@@ -4,19 +4,17 @@
 <head>
 <title>Loop (files &amp; folders)</title>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-<link href="../css/commands.css" rel="stylesheet" type="text/css">
-<link href="../css/print.css" rel="stylesheet" type="text/css" media="print">
+<link href="../css/default.css" rel="stylesheet" type="text/css">
 </head>
 <body>
 
 <h1>Loop (files &amp; folders)</h1>
-<hr size="2">
+
 <p>Retrieves the specified files or folders, one at a time.</p>
 
-<p class="CommandSyntax">
-    Loop, FilePattern [, IncludeFolders?, Recurse?] </p>
-<h4>Parameters</h4>
-<table border="1" width="100%" cellspacing="0" cellpadding="3" bordercolor="#C0C0C0">
+<pre class="Syntax">Loop, FilePattern [, IncludeFolders?, Recurse?] </pre>
+<h3>Parameters</h3>
+<table class="info">
   <tr>
     <td width="15%">FilePattern</td>
     <td width="85%"><p>The name of a single file or folder, or a wildcard pattern such as C:\Temp\*.tmp. <em>FilePattern</em> is assumed to be in <a href="../Variables.htm#WorkingDir">%A_WorkingDir%</a> if an absolute path isn't specified.</p>
@@ -38,9 +36,9 @@
   </tr>
 </table>
 
-<h4>Special Variables Available Inside a File-Loop</h4>
+<h3>Special Variables Available Inside a File-Loop</h3>
 <p>The following variables exist within any file-loop. If an inner file-loop is enclosed by an outer file-loop, the innermost loop's file will take precedence:</p>
-<table width="100%" border="1">
+<table class="info">
   <tr>
     <td>A_LoopFileName</td>
     <td><a name="LoopFileName" id="LoopFileName"></a>The name of the file or folder currently retrieved (without the path).</td>
@@ -102,11 +100,11 @@
     <td><a name="LoopFileSizeMB"></a>The size in Mbytes of the file currently retrieved, rounded down to the nearest integer. </td>
   </tr>
 </table>
-<h4>Remarks</h4>
+<h3>Remarks</h3>
 <p>A file-loop is useful when you want to operate on a collection of files and/or folders, one at a time.</p>
 <p>All matching files are retrieved, including hidden files. By contrast, OS features such as the DIR command omit hidden files by default. To avoid processing hidden, system, and/or read-only files, use something like the following inside the loop:</p>
-<pre>if A_LoopFileAttrib contains H,R,S  <span class="CodeCom">; Skip any file that is either H (Hidden), R (Read-only), or S (System). Note: No spaces in &quot;H,R,S&quot;.</span>
-    continue  <span class="CodeCom">; Skip this file and move on to the next one.</span></pre>
+<pre>if A_LoopFileAttrib contains H,R,S  <em>; Skip any file that is either H (Hidden), R (Read-only), or S (System). Note: No spaces in &quot;H,R,S&quot;.</em>
+    continue  <em>; Skip this file and move on to the next one.</em></pre>
 <p>To retrieve files' relative paths instead of absolute paths during a recursive search, use <a href="SetWorkingDir.htm">SetWorkingDir</a> to change to the base folder prior to the loop, and then omit the path from the Loop (e.g. Loop, *.*, 0, 1). That will cause <a href="#LoopFileFullPath">A_LoopFileFullPath</a> to contain the file's path relative to the base folder.</p>
 <p>A file-loop can disrupt itself if it creates or renames files or folders within its own purview. For example, if it renames files via <a href="FileMove.htm">FileMove</a> or other means, each such file might be found twice: once as its old name and again as its new name. To work around this, rename the files only after creating a list of them. For example:</p>
 <pre>FileList =
@@ -117,84 +115,84 @@ Loop, parse, FileList, `n
 <p>Files in an NTFS file system are probably always retrieved in alphabetical order. Files in other file systems are retrieved in no particular order. To ensure a particular ordering, use the <a href="Sort.htm">Sort</a> command as shown in the Examples section below.</p>
 <p>Files and folders with a complete path name longer than 259 characters are skipped over as though they do not exist. Such files are rare because normally, the operating system does not allow their creation.</p>
 <p>See <a href="Loop.htm">Loop</a> for information about <a href="Block.htm">Blocks</a>, <a href="Break.htm">Break</a>, <a href="Continue.htm">Continue</a>, and the A_Index variable (which exists in every type of loop).</p>
-<h4>Related</h4>
+<h3>Related</h3>
 <p><a href="Loop.htm">Loop</a>, <a href="Break.htm">Break</a>, <a href="Continue.htm">Continue</a>, <a href="Block.htm">Blocks</a>, <a href="SplitPath.htm">SplitPath</a>, <a href="FileSetAttrib.htm">FileSetAttrib</a>, <a href="FileSetTime.htm">FileSetTime</a></p>
-<h4>Examples</h4>
-<pre class="NoIndent"><span class="CodeCom">; Example #1:</span>
-Loop, %A_ProgramFiles%\*.txt, , 1  <span class="CodeCom">; Recurse into subfolders.</span>
+<h3>Examples</h3>
+<pre class="NoIndent"><em>; Example #1:</em>
+Loop, %A_ProgramFiles%\*.txt, , 1  <em>; Recurse into subfolders.</em>
 {
     MsgBox, 4, , Filename = %A_LoopFileFullPath%`n`nContinue?
     IfMsgBox, No
         break
 }</pre>
 <p>&nbsp;</p>
-<pre class="NoIndent"><span class="CodeCom">; Example #2: Calculate the size of a folder, including the files in all its subfolders:</span>
-SetBatchLines, -1  <span class="CodeCom">; Make the operation run at maximum speed.</span>
+<pre class="NoIndent"><em>; Example #2: Calculate the size of a folder, including the files in all its subfolders:</em>
+SetBatchLines, -1  <em>; Make the operation run at maximum speed.</em>
 FolderSizeKB = 0
-FileSelectFolder, WhichFolder  <span class="CodeCom">; Ask the user to pick a folder.</span>
+FileSelectFolder, WhichFolder  <em>; Ask the user to pick a folder.</em>
 Loop, %WhichFolder%\*.*, , 1
     FolderSizeKB += %A_LoopFileSizeKB%
 MsgBox Size of %WhichFolder% is %FolderSizeKB% KB.</pre>
 <p>&nbsp;</p>
-<pre class="NoIndent"><span class="CodeCom">; Example #3: Retrieve file names sorted by name (see next example to sort by date):</span>
-FileList =  <span class="CodeCom">; Initialize to be blank.</span>
+<pre class="NoIndent"><em>; Example #3: Retrieve file names sorted by name (see next example to sort by date):</em>
+FileList =  <em>; Initialize to be blank.</em>
 Loop, C:\*.*
     FileList = %FileList%%A_LoopFileName%`n
-Sort, FileList, R  <span class="CodeCom">; The R option sorts in reverse order. See <a href="Sort.htm">Sort</a> for other options.</span>
+Sort, FileList, R  <em>; The R option sorts in reverse order. See <a href="Sort.htm">Sort</a> for other options.</em>
 Loop, parse, FileList, `n
 {
-    if A_LoopField =  <span class="CodeCom">; Ignore the blank item at the end of the list.</span>
+    if A_LoopField =  <em>; Ignore the blank item at the end of the list.</em>
         continue
     MsgBox, 4,, File number %A_Index% is %A_LoopField%.  Continue?
     IfMsgBox, No
         break
 }</pre>
 <p>&nbsp;</p>
-<pre class="NoIndent"><span class="CodeCom">; Example #4: Retrieve file names sorted by modification date:</span>
+<pre class="NoIndent"><em>; Example #4: Retrieve file names sorted by modification date:</em>
 FileList =
 Loop, %A_MyDocuments%\Photos\*.*, 1
     FileList = %FileList%%A_LoopFileTimeModified%`t%A_LoopFileName%`n
-Sort, FileList  <span class="CodeCom">; Sort by date.</span>
+Sort, FileList  <em>; Sort by date.</em>
 Loop, parse, FileList, `n
 {
-    if A_LoopField =  <span class="CodeCom">; Omit the last linefeed (blank item) at the end of the list.</span>
+    if A_LoopField =  <em>; Omit the last linefeed (blank item) at the end of the list.</em>
         continue
-    StringSplit, FileItem, A_LoopField, %A_Tab%  <span class="CodeCom">; Split into two parts at the tab char.</span>
+    StringSplit, FileItem, A_LoopField, %A_Tab%  <em>; Split into two parts at the tab char.</em>
     MsgBox, 4,, The next file (modified at %FileItem1%) is:`n%FileItem2%`n`nContinue?
     IfMsgBox, No
         break
 }</pre>
 <p>&nbsp;</p>
-<pre class="NoIndent"><span class="CodeCom">; Example #5: Copy only the source files that are newer than their counterparts</span>
-<span class="CodeCom">; in the destination:</span>
+<pre class="NoIndent"><em>; Example #5: Copy only the source files that are newer than their counterparts
+; in the destination:</em>
 CopyIfNewer:
-<span class="CodeCom">; Caller has set the variables CopySourcePattern and CopyDest for us.</span>
+<em>; Caller has set the variables CopySourcePattern and CopyDest for us.</em>
 Loop, %CopySourcePattern%
 {
     copy_it = n
-    IfNotExist, %CopyDest%\%A_LoopFileName%  <span class="CodeCom">; Always copy if target file doesn't yet exist.</span>
+    IfNotExist, %CopyDest%\%A_LoopFileName%  <em>; Always copy if target file doesn't yet exist.</em>
         copy_it = y
     else
     {
         FileGetTime, time, %CopyDest%\%A_LoopFileName%
-        EnvSub, time, %A_LoopFileTimeModified%, seconds  <span class="CodeCom">; Subtract the source file's time from the destination's.</span>
-        if time &lt; 0  <span class="CodeCom">; Source file is newer than destination file.</span>
+        EnvSub, time, %A_LoopFileTimeModified%, seconds  <em>; Subtract the source file's time from the destination's.</em>
+        if time &lt; 0  <em>; Source file is newer than destination file.</em>
             copy_it = y
     }
     if copy_it = y
     {
-        FileCopy, %A_LoopFileFullPath%, %CopyDest%\%A_LoopFileName%, 1   <span class="CodeCom">; Copy with overwrite=yes</span>
+        FileCopy, %A_LoopFileFullPath%, %CopyDest%\%A_LoopFileName%, 1   <em>; Copy with overwrite=yes</em>
         if ErrorLevel
             MsgBox, Could not copy &quot;%A_LoopFileFullPath%&quot; to &quot;%CopyDest%\%A_LoopFileName%&quot;.
     }
 }
 Return</pre>
 <p>&nbsp;</p>
-<pre class="NoIndent"><span class="CodeCom">; Example #6: Convert filenames passed in via command-line parameters to long names,</span>
-<span class="CodeCom">; complete path, and correct uppercase/lowercase characters as stored in the file system.</span>
-Loop %0%  <span class="CodeCom">; For each file dropped onto the script (or passed as a parameter).</span>
+<pre class="NoIndent"><em>; Example #6: Convert filenames passed in via command-line parameters to long names,
+; complete path, and correct uppercase/lowercase characters as stored in the file system.</em>
+Loop %0%  <em>; For each file dropped onto the script (or passed as a parameter).</em>
 {
-    GivenPath := %A_Index%  <span class="CodeCom">; Retrieve the next command line parameter.</span>
+    GivenPath := %A_Index%  <em>; Retrieve the next command line parameter.</em>
     Loop %GivenPath%, 1
         LongPath = %A_LoopFileLongPath%
     MsgBox The case-corrected long path name of file`n%GivenPath%`nis:`n%LongPath%

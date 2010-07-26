@@ -5,12 +5,11 @@
 <title>Clipboard, ClipboardAll, and OnClipboardChange</title>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
 <link href="../css/default.css" rel="stylesheet" type="text/css">
-<link href="../css/print.css" rel="stylesheet" type="text/css" media="print">
 </head>
 
 <body>
 <h1>Clipboard, <a href="#ClipboardAll">ClipboardAll</a>, and <a href="#OnClipboardChange">OnClipboardChange</a></h1>
-<hr size="2">
+
 <p><em>Clipboard</em> is a built-in <a href="../Variables.htm">variable</a> that reflects the current contents of the Windows clipboard if those contents can be expressed as text. By contrast, <em> <a href="#ClipboardAll">ClipboardAll</a></em> contains everything on the clipboard, such as pictures and formatting.</p>
 <p><a name="CopiedFiles"></a>Each line of text on <em>Clipboard</em> typically ends with carriage return and linefeed (CR+LF), which can be expressed in the script as `r`n. Files (such as those copied from an open Explorer window via Control-C) are considered to be text: They are automatically converted to their filenames (with full path) whenever <em>Clipboard</em> is referenced in the script. To extract the files one by one, follow this example:</p>
 <pre><a href="../commands/LoopParse.htm">Loop, parse</a>, clipboard, `n, `r
@@ -20,27 +19,27 @@
 }</pre>
 <p>To arrange the filenames in alphabetical order, use the <a href="../commands/Sort.htm">Sort</a> command. To write the filenames on the clipboard to a file, use <em>  <a href="../commands/FileAppend.htm">FileAppend</a>, %clipboard%`r`n, C:\My File.txt</em>. To change how long the script will keep trying to open the clipboard -- such as when it is in use by another application -- use <a href="../commands/_ClipboardTimeout.htm">#ClipboardTimeOut</a>.</p>
 <strong>Basic examples:</strong>
-<pre>clipboard = my text   <span class="CodeCom">; Give the clipboard entirely new contents.</span>
-clipboard =   <span class="CodeCom">; Empty the clipboard.</span>
-clipboard = %clipboard%   <span class="CodeCom">; Convert any copied files, HTML, or other formatted text to plain text.</span>
-clipboard = %clipboard% Text to append.   <span class="CodeCom">; Append some text to the clipboard.</span>
-StringReplace, clipboard, clipboard, ABC, DEF, All   <span class="CodeCom">; Replace all occurrences of ABC with DEF (also converts the clipboard to plain text).</span></pre>
+<pre>clipboard = my text   <em>; Give the clipboard entirely new contents.</em>
+clipboard =   <em>; Empty the clipboard.</em>
+clipboard = %clipboard%   <em>; Convert any copied files, HTML, or other formatted text to plain text.</em>
+clipboard = %clipboard% Text to append.   <em>; Append some text to the clipboard.</em>
+StringReplace, clipboard, clipboard, ABC, DEF, All   <em>; Replace all occurrences of ABC with DEF (also converts the clipboard to plain text).</em></pre>
 
 <p><strong>Using ClipWait to improve script reliability:</strong></p>
-<pre>clipboard =  <span class="CodeCom">; Start off empty to allow ClipWait to detect when the text has arrived.</span>
+<pre>clipboard =  <em>; Start off empty to allow ClipWait to detect when the text has arrived.</em>
 Send ^c
-<a href="../commands/ClipWait.htm">ClipWait</a>  <span class="CodeCom">; Wait for the clipboard to contain text.</span>
+<a href="../commands/ClipWait.htm">ClipWait</a>  <em>; Wait for the clipboard to contain text.</em>
 MsgBox Control-C copied the following contents to the clipboard:`n`n%clipboard%</pre>
 <h2><a name="ClipboardAll"></a>ClipboardAll<span class="small80bold"> (saving and restoring everything on the clipboard)</span></h2>
 <p><em>ClipboardAll</em> contains everything on the clipboard (such as pictures and formatting). It is most commonly used to save the clipboard's contents so that the script can temporarily use the clipboard for an operation. When the operation is completed, the script restores the original clipboard contents as shown below:</p>
-<pre>ClipSaved := ClipboardAll   <span class="CodeCom">; Save the entire clipboard to a variable of your choice.</span>
-<span class="CodeCom">; ... here make temporary use of the clipboard, such as for pasting Unicode text via <a href="../commands/Transform.htm#Unicode">Transform Unicode</a> ...</span>
-Clipboard := ClipSaved   <span class="CodeCom">; Restore the original clipboard. Note the use of <em>Clipboard</em> (not <em>ClipboardAll</em>).</span>
-ClipSaved =   <span class="CodeCom">; Free the memory in case the clipboard was very large.</span></pre>
+<pre>ClipSaved := ClipboardAll   <em>; Save the entire clipboard to a variable of your choice.
+; ... here make temporary use of the clipboard, such as for pasting Unicode text via <a href="../commands/Transform.htm#Unicode">Transform Unicode</a> ...</em>
+Clipboard := ClipSaved   <em>; Restore the original clipboard. Note the use of <em>Clipboard</em> (not <em>ClipboardAll</em>).</em>
+ClipSaved =   <em>; Free the memory in case the clipboard was very large.</em></pre>
 <p><em>ClipboardAll</em> may also be saved to a file (in this mode, FileAppend always overwrites any existing file):<br>
-<a href="../commands/FileAppend.htm">FileAppend</a>, %ClipboardAll%, C:\Company Logo.clip <span class="CodeCom">; The file extension does not matter.</span></p>
+<a href="../commands/FileAppend.htm">FileAppend</a>, %ClipboardAll%, C:\Company Logo.clip <em>; The file extension does not matter.</em></p>
 <p>To later load the file back onto the clipboard (or into a variable), follow this example:<br>
-<a href="../commands/FileRead.htm">FileRead</a>, Clipboard, <strong>*c</strong> C:\Company Logo.clip <span class="CodeCom">; Note the use of *c, which must precede the filename. </span></p>
+<a href="../commands/FileRead.htm">FileRead</a>, Clipboard, <strong>*c</strong> C:\Company Logo.clip <em>; Note the use of *c, which must precede the filename. </em></p>
 <p><strong><u>Notes</u></strong></p>
 <p><em>ClipboardAll</em> is blank when used in ways other than those described above. In addition, <em>ClipboardAll</em> is not supported inside <a href="../Variables.htm#comma">comma-separated expressions</a>; that is, it should be assigned on a line by itself such as <em>ClipSaved := ClipboardAll.</em></p>
 <p>Variables to which <em>ClipboardAll</em> has been assigned are in binary format and thus will appear as gibberish when displayed with <a href="../commands/MsgBox.htm">MsgBox</a> or similar. Also, altering a binary-clipboard variable (by means such as <a href="../commands/StringReplace.htm">StringReplace</a>) will revert it to a normal variable, resulting in the loss of its clipboard data. In v1.0.46+, binary-clipboard variables may be passed to <a href="../Functions.htm#ByRef">functions</a> by value (formerly they only worked <a href="../Functions.htm#ByRef">ByRef</a>).</p>
@@ -49,7 +48,7 @@ ClipSaved =   <span class="CodeCom">; Free the memory in case the clipboard was 
 <p><a href="../commands/ClipWait.htm">ClipWait</a> may be used to detect when the clipboard contains data (optionally including non-text data).</p>
 <p><a href="../commands/StringLen.htm">StringLen</a> may be used to discover the total size of a variable to which <em>ClipboardAll</em> has been assigned.</p>
 <p>Variables to which <em>ClipboardAll</em> has been assigned can be compared to each other (but not directly to <em>ClipboardAll</em>) by means of the &lt;&gt; and = operators. In the following example, the length of each variable is checked first. If that is not enough to make the determination, the contents are compared to break the tie:</p>
-<pre>if ClipSaved1 &lt;&gt; %ClipSaved2%   <span class="CodeCom">; This <u>must</u> be an old-style IF statement, not an expression.</span>
+<pre>if ClipSaved1 &lt;&gt; %ClipSaved2%   <em>; This <u>must</u> be an old-style IF statement, not an expression.</em>
     MsgBox The two saved clipboards are different.</pre>
 <p>Saving <em>ClipboardAll</em> to a variable is not restricted by the memory limit set by <a href="../commands/_MaxMem.htm">#MaxMem</a>.</p>
 <p>A saved clipboard file internally consists of a four-byte format type, followed by a four-byte data-block size, followed by the data-block for that format. If the clipboard contained more than one format (which is almost always the case), these three items are repeated until all the formats are included. The file ends with a four-byte format type of 0.</p>
@@ -72,7 +71,7 @@ return
 OnClipboardChange:
 ToolTip Clipboard data type: %A_EventInfo%
 Sleep 1000
-ToolTip  <span class="CodeCom">; Turn off the tip.</span>
+ToolTip  <em>; Turn off the tip.</em>
 return</pre>
 <p>If the clipboard changes while the OnClipboardChange label is already running, that notification event is lost. If this is undesirable,  specify <a href="../commands/Critical.htm">Critical</a> as the label's first line. However, this will also buffer/defer other <a href="../misc/Threads.htm">threads</a> (such as the press of a hotkey) that occur while the OnClipboardChange thread is running.</p>
 <p>If the script itself changes the clipboard, its OnClipboardChange label is typically not executed immediately; that is, commands immediately below the command that changed the clipboard are likely to execute beforehand. To force the label to execute immediately, use a short delay such as <a href="../commands/Sleep.htm">Sleep 20</a> after changing the clipboard.</p>

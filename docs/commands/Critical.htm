@@ -4,17 +4,16 @@
 <head>
 <title>Critical</title>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-<link href="../css/commands.css" rel="stylesheet" type="text/css">
-<link href="../css/print.css" rel="stylesheet" type="text/css" media="print">
+<link href="../css/default.css" rel="stylesheet" type="text/css">
 </head>
 <body>
 
 <h1>Critical</h1>
-<hr size="2">
+
 <p>Prevents the <a href="../misc/Threads.htm">current thread</a> from being interrupted by other threads.</p>
 
-<p class="CommandSyntax">Critical [, Off]<br>
-  Critical 50 <span class="CodeCom">; See <a href="#Interval">bottom of remarks</a>. </span></p>
+<pre class="Syntax">Critical [, Off]
+  Critical 50 <em>; See <a href="#Interval">bottom of remarks</a>. </em></p>
 <p>If the first parameter is omitted (or the word On), the <a href="../misc/Threads.htm">current thread</a> is made critical, meaning that it cannot be interrupted by another thread. If the first parameter is the word Off (or the number 0 in v1.0.48+), the current thread immediately becomes interruptible, regardless of the settings of <a href="Thread.htm">&quot;Thread Interrupt&quot;</a>.</p>
 <p>Unlike <a href="../misc/Threads.htm">high-priority</a> threads, events that occur during a critical thread are not discarded. For example, if the user presses a <a href="../Hotkeys.htm">hotkey</a> while the current thread is critical, the hotkey is buffered indefinitely until the current thread finishes or becomes noncritical, at which time the hotkey is launched as a new thread.</p>
 <p>A critical thread will be interrupted in emergencies. Emergencies consist of: 1) the <a href="OnExit.htm">OnExit</a> subroutine; 2) any <a href="OnMessage.htm">OnMessage()</a> function that monitors a message number less than 0x312 (or a <a href="RegisterCallback.htm">callback</a> triggered by such a message); and 3) any <a href="RegisterCallback.htm">callback</a> indirectly triggered by the critical thread itself (e.g. via <a href="PostMessage.htm">SendMessage</a> or <a href="DllCall.htm">DllCall</a>). To avoid these interruptions, temporarily disable such functions.</p>
@@ -25,15 +24,15 @@
 <p>The command &quot;<a href="Thread.htm">Thread NoTimers</a>&quot; is similar to Critical except that it only prevents interruptions from <a href="SetTimer.htm">timers</a>.</p>
 <p>In v1.0.47+, turning on Critical also puts <a href="SetBatchLines.htm"><em>SetBatchLines -1</em></a> into effect for the <a href="../misc/Threads.htm">current thread</a>.</p>
 <p><a name="Interval"></a>In v1.0.47+, specifying a positive number as the first parameter (e.g. <em>Critical 30</em>) turns on Critical but also changes the number of milliseconds between checks of the internal message queue. If unspecified, messages are checked every 16 milliseconds while Critical is On, and every 5 ms while Critical is Off. Increasing the interval postpones the arrival of messages/events, which gives the <a href="../misc/Threads.htm">current thread</a> more time to finish. This reduces the possibility that certain <a href="OnMessage.htm">OnMessage()</a> and <a href="Gui.htm#DefaultWin">GUI events</a> will be lost due to &quot;thread already running&quot;. However, commands that wait such as <a href="Sleep.htm">Sleep</a> and <a href="WinWait.htm">WinWait</a> will check messages regardless of this setting (a workaround is <em>DllCall(&quot;Sleep&quot;, Uint, 500)</em>). Note: Increasing the message-check interval too much may reduce the responsiveness of various events such as <a href="Gui.htm">GUI</a> window repainting.</p>
-<h4>Related</h4>
+<h3>Related</h3>
 <p><a href="Thread.htm">Thread (command), </a><a href="../misc/Threads.htm">Threads</a>, <a href="_MaxThreadsPerHotkey.htm">#MaxThreadsPerHotkey</a>, <a href="_MaxThreadsBuffer.htm">#MaxThreadsBuffer</a>, <a href="OnMessage.htm">OnMessage()</a>, <a href="RegisterCallback.htm">RegisterCallback()</a>, <a href="Hotkey.htm">Hotkey</a>, <a href="Menu.htm">Menu</a>, <a href="SetTimer.htm">SetTimer</a></p>
-<h4>Example</h4>
-<pre class="NoIndent">#space::  <span class="CodeCom">; Win+Space hotkey.</span>
+<h3>Example</h3>
+<pre class="NoIndent">#space::  <em>; Win+Space hotkey.</em>
 Critical
 ToolTip No new threads will launch until after this ToolTip disappears.
 Sleep 3000
-ToolTip  <span class="CodeCom">; Turn off the tip.</span>
-return  <span class="CodeCom">; Returning from a hotkey subroutine ends the thread. Any underlying thread to be resumed is noncritical by definition.</span></pre>
+ToolTip  <em>; Turn off the tip.</em>
+return  <em>; Returning from a hotkey subroutine ends the thread. Any underlying thread to be resumed is noncritical by definition.</em></pre>
 
 </body>
 </html>

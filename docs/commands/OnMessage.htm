@@ -4,18 +4,17 @@
 <head>
 <title>OnMessage</title>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-<link href="../css/commands.css" rel="stylesheet" type="text/css">
-<link href="../css/print.css" rel="stylesheet" type="text/css" media="print">
+<link href="../css/default.css" rel="stylesheet" type="text/css">
 </head>
 <body>
 
 <h1>OnMessage()</h1>
-<hr size="2">
+
 <p>Specifies a <a href="../Functions.htm">function</a> to call automatically when the script receives the specified message.</p>
 
-<p class="CommandSyntax">OnMessage(MsgNumber [, &quot;FunctionName&quot;, MaxThreads])</p>
-<h4>Parameters</h4>
-<table border="1" width="100%" cellspacing="0" cellpadding="3" bordercolor="#C0C0C0">
+<pre class="Syntax">OnMessage(MsgNumber [, &quot;FunctionName&quot;, MaxThreads])</pre>
+<h3>Parameters</h3>
+<table class="info">
   <tr>
     <td width="15%">MsgNumber</td>
     <td width="85%">The number of the message to monitor or query, which should be between 0 and 4294967295 (0xFFFFFFFF). If you do not wish to monitor a <a href="../misc/SendMessageList.htm">system message</a> (that is, one below 0x400), it is best to choose a number greater than 4096 (0x1000) to the extent you have a choice. This reduces the chance of interfering with messages used internally by current and future versions of AutoHotkey.</td>
@@ -31,11 +30,11 @@
   </tr>
 </table>
 
-<h4>Return Values</h4>
+<h3>Return Values</h3>
 <p>If <em>FunctionName</em> and <em>MaxThreads</em> are omitted, it returns the name of the function currently monitoring <em>MsgNumber</em> (blank if none). However, no changes are made.</p>
 <p>If <em>FunctionName</em> is explicitly blank (e.g. &quot;&quot;), it returns the name of the function currently monitoring <em>MsgNumber</em> (blank if none), then disables the monitoring of <em>MsgNumber</em>.</p>
 <p>If <em>FunctionName</em> is non-blank: If <em>MsgNumber</em> is already being monitored, it returns the name of that function then puts the new function into effect. Otherwise, it assigns <em>FunctionName</em> to monitor <em>MsgNumber</em> then returns the same <em>FunctionName. </em>In either case, a blank value is returned upon failure. Failure occurs when <em>FunctionName</em>: 1) does not exist (perhaps due to missing quotes around <em>FunctionName</em>); 2) accepts more than four parameters; or 3) has any <a href="../Functions.htm#ByRef">ByRef</a> or <a href="../Functions.htm#optional">optional</a> parameters. It will also fail if the script attempts to monitor a new message when there are already 500 messages being monitored.</p>
-<h4>The Function's Parameters</h4>
+<h3>The Function's Parameters</h3>
 <p>A <a href="../Functions.htm">function</a> assigned to monitor one or more messages can accept up to four parameters:</p>
 <pre>MyMessageMonitor(wParam, lParam, msg, hwnd)
 {
@@ -50,7 +49,7 @@ Parameter #4: The HWND (unique ID) of the window or control to which the message
 <p>If an incoming WPARAM or LPARAM is intended to be a signed integer, any negative numbers can be revealed by following this example:</p>
 <pre>if wParam &gt; 0x7FFFFFFF
     wParam := -(~wParam) - 1</pre>
-<h4>Additional Information Available to the Function</h4>
+<h3>Additional Information Available to the Function</h3>
 <p>In addition to the parameters received above, the function may also consult the values in the following built-in variables:</p>
 <ul>
   <li><a href="../Variables.htm#Gui">A_Gui</a>: Blank unless the message was sent to a GUI window or control, in which case A_Gui is the <a href="Gui.htm#MultiWin">Gui Window number</a> (this window is also set as the function's <a href="Gui.htm#DefaultWin">default GUI window</a>).</li>
@@ -60,10 +59,10 @@ Parameter #4: The HWND (unique ID) of the window or control to which the message
 </ul>
 <p>A monitor function's <a href="../LastFoundWindow.htm">last found window</a> starts off as the parent window to which the message was sent (even if it was sent to a control). If the window is hidden but not a GUI window (such as the script's main window), turn on <a href="DetectHiddenWindows.htm">DetectHiddenWindows</a> before using it. For example:</p>
 <pre>DetectHiddenWindows On
-MsgParentWindow := WinExist()  <span class="CodeCom">; This stores the unique ID of the window to which the message was sent.</span></pre>
-<h4>What the Function Should <em>Return</em></h4>
+MsgParentWindow := WinExist()  <em>; This stores the unique ID of the window to which the message was sent.</em></pre>
+<h3>What the Function Should <em>Return</em></h3>
 <p>If a monitor function uses <a href="Return.htm">Return</a> without any parameters, or it specifies a blank value such as &quot;&quot; (or it never uses Return at all), the incoming message goes on to be processed normally when the function finishes. The same thing happens if the function <a href="Exit.htm">Exits</a> or causes a runtime error such as <a href="Run.htm">running</a> a nonexistent file. By contrast, returning an integer between -2147483648 and 4294967295 causes that number to be sent immediately as a reply; that is, the program does not process the message any further. For example, a function monitoring WM_LBUTTONDOWN (0x201) may return an integer to prevent the target window from being notified that a mouse click has occurred. In many cases (such as a message arriving via <a href="PostMessage.htm">PostMessage</a>), it does not matter which integer is returned; but if in doubt, 0 is usually safest.</p>
-<h4><a name="Remarks"></a>General Remarks</h4>
+<h3><a name="Remarks"></a>General Remarks</h3>
 <p>Unlike a normal function-call, the arrival of a monitored message calls the function as a new <a href="../misc/Threads.htm">thread</a>. Because of this, the function starts off fresh with the default values for settings such as <a href="SendMode.htm">SendMode</a> and <a href="DetectHiddenWindows.htm">DetectHiddenWindows</a>. These defaults can be changed in the <a href="../Scripts.htm#auto">auto-execute section</a>.</p>
 <p>Messages sent to a control (rather than being posted) are not monitored because the system routes them directly to the control behind the scenes. This is seldom an issue for system-generated messages because most of them are posted.</p>
 <p>Any script that calls OnMessage anywhere is automatically <a href="_Persistent.htm">persistent</a>. It is also single-instance unless <a href="_SingleInstance.htm">#SingleInstance </a>has been used to override that.</p>
@@ -74,11 +73,11 @@ MsgParentWindow := WinExist()  <span class="CodeCom">; This stores the unique ID
 <p>Caution should be used when monitoring system messages (those below 0x400). For example, if a monitor function does not finish quickly, the response to the message might take longer than the system expects, which might cause side-effects. Unwanted behavior may also occur if a monitor function returns an integer to suppress further processing of a message, but the system expected different processing or a different response.</p>
 <p>When the script is displaying a system dialog such as <a href="MsgBox.htm">MsgBox</a>, any message posted to a control is not monitored. For example, if the script is displaying a MsgBox and the user clicks a button in a GUI window, the WM_LBUTTONDOWN message is sent directly to the button without calling the monitor function.</p>
 <p>Although an external program may post messages directly to a script's thread via PostThreadMessage() or other API call, this is not recommended because the messages would be lost if the script is displaying a system window such as a <a href="MsgBox.htm">MsgBox</a>. Instead, it is usually best to post or send the messages to the script's main window or one of its GUI windows.</p>
-<h4>Related</h4>
+<h3>Related</h3>
 <p><a href="RegisterCallback.htm">RegisterCallback()</a>, <a href="OnExit.htm">OnExit</a>, <a href="../misc/Clipboard.htm#OnClipboardChange">OnClipboardChange</a>, <a href="PostMessage.htm">Post/SendMessage</a>, <a href="../Functions.htm">Functions</a>, <a href="../misc/SendMessageList.htm">List of Windows Messages</a>, <a href="../misc/Threads.htm">Threads</a>, <a href="Critical.htm">Critical</a>, <a href="DllCall.htm">DllCall()</a></p>
-<h4>Examples</h4>
-<pre class="NoIndent"><span class="CodeCom">; Example: The following is a working script that monitors mouse clicks in a GUI window.</span>
-<span class="CodeCom">; Related topic: <a href="Gui.htm#GuiContextMenu">GuiContextMenu</a></span>
+<h3>Examples</h3>
+<pre class="NoIndent"><em>; Example: The following is a working script that monitors mouse clicks in a GUI window.
+; Related topic: <a href="Gui.htm#GuiContextMenu">GuiContextMenu</a></em>
 
 Gui, Add, Text,, Click anywhere in this window.
 Gui, Add, Edit, w200 vMyEdit
@@ -97,13 +96,13 @@ WM_LBUTTONDOWN(wParam, lParam)
 
 GuiClose:
 ExitApp</pre>
-<p>&nbsp;</p>
-<pre class="NoIndent"><a name="shutdown"></a><span class="CodeCom">; Example: The following script detects system shutdown/logoff and allows you to abort it (this is
-<span class="CodeCom">; reported NOT to work on Windows Vista and later).</span>
-</span><span class="CodeCom">; Related topic: <a href="OnExit.htm">OnExit</a></span>
 
-<span class="CodeCom">; The following DllCall is optional: it tells the OS to shut down this script <em>first</em> (prior to all other applications).</span>
-<span class="CodeCom">; This call has no effect on Windows 9x.</span>
+<pre class="NoIndent"><a name="shutdown"></a><em>; Example: The following script detects system shutdown/logoff and allows you to abort it (this is
+; reported NOT to work on Windows Vista and later).
+; Related topic: <a href="OnExit.htm">OnExit</a></em>
+
+<em>; The following DllCall is optional: it tells the OS to shut down this script <i>first</i> (prior to all other applications).
+; This call has no effect on Windows 9x.</em>
 DllCall(&quot;kernel32.dll\SetProcessShutdownParameters&quot;, UInt, 0x4FF, UInt, 0)
 OnMessage(0x11, &quot;WM_QUERYENDSESSION&quot;)
 return
@@ -111,68 +110,68 @@ return
 WM_QUERYENDSESSION(wParam, lParam)
 {
     ENDSESSION_LOGOFF = 0x80000000
-    if (lParam &amp; ENDSESSION_LOGOFF)  <span class="CodeCom">; User is logging off.</span>
+    if (lParam &amp; ENDSESSION_LOGOFF)  <em>; User is logging off.</em>
         EventType = Logoff
-    else  <span class="CodeCom">; System is either shutting down or restarting.</span>
+    else  <em>; System is either shutting down or restarting.</em>
         EventType = Shutdown
     MsgBox, 4,, %EventType% in progress.  Allow it?
     IfMsgBox Yes
-        return true  <span class="CodeCom">; Tell the OS to allow the shutdown/logoff to continue.</span>
+        return true  <em>; Tell the OS to allow the shutdown/logoff to continue.</em>
     else
-        return false  <span class="CodeCom">; Tell the OS to abort the shutdown/logoff.</span>
+        return false  <em>; Tell the OS to abort the shutdown/logoff.</em>
 }</pre>
-<p>&nbsp;</p>
-<pre class="NoIndent"><span class="CodeCom">; Example: Have a script receive a custom message and up to two numbers from some other script or program</span>
-<span class="CodeCom">; (to send strings rather than numbers, see the example after this one).</span>
+
+<pre class="NoIndent"><em>; Example: Have a script receive a custom message and up to two numbers from some other script or program
+; (to send strings rather than numbers, see the example after this one).</em>
 
 OnMessage(0x5555, &quot;MsgMonitor&quot;)
 OnMessage(0x5556, &quot;MsgMonitor&quot;)
 
 MsgMonitor(wParam, lParam, msg)
 {
-    <span class="CodeCom">; Since returning quickly is often important, it is better to use a ToolTip than</span>
-    <span class="CodeCom">; something like MsgBox that would prevent the function from finishing:</span>
+    <em>; Since returning quickly is often important, it is better to use a ToolTip than</em>
+    <em>; something like MsgBox that would prevent the function from finishing:</em>
     ToolTip Message %msg% arrived:`nWPARAM: %wParam%`nLPARAM: %lParam%
 }
 
-<span class="CodeCom">; The following could be used inside some other script to run the function inside the above script:</span>
+<em>; The following could be used inside some other script to run the function inside the above script:</em>
 SetTitleMatchMode 2
 DetectHiddenWindows On
 if WinExist(&quot;Name of Receiving Script.ahk ahk_class AutoHotkey&quot;)
-    PostMessage, 0x5555, 11, 22  <span class="CodeCom">; The message is sent  to the &quot;<a href="../LastFoundWindow.htm">last found window</a>&quot; due to WinExist() above.</span>
-DetectHiddenWindows Off  <span class="CodeCom">; Must not be turned off until after PostMessage.</span></pre>
-<p>&nbsp;</p>
-<pre class="NoIndent"><a name="SendString"></a><span class="CodeCom">; Example: Send a string of any length from one script to another.  This is a working example.</span>
-<span class="CodeCom">; To use it, save and run both of the following scripts then press Win+Space to show an</span>
-<span class="CodeCom">; InputBox that will prompt you to type in a string.</span>
+    PostMessage, 0x5555, 11, 22  <em>; The message is sent  to the &quot;<a href="../LastFoundWindow.htm">last found window</a>&quot; due to WinExist() above.</em>
+DetectHiddenWindows Off  <em>; Must not be turned off until after PostMessage.</em></pre>
 
-<span class="CodeCom">; Save the following script as &quot;<strong>Receiver.ahk</strong>&quot; then launch it:</span>
+<pre class="NoIndent"><a name="SendString"></a><em>; Example: Send a string of any length from one script to another.  This is a working example.
+; To use it, save and run both of the following scripts then press Win+Space to show an
+; InputBox that will prompt you to type in a string.</em>
+
+<em>; Save the following script as &quot;<strong>Receiver.ahk</strong>&quot; then launch it:</em>
 #SingleInstance
-OnMessage(0x4a, &quot;Receive_WM_COPYDATA&quot;)  <span class="CodeCom">; 0x4a is WM_COPYDATA</span>
+OnMessage(0x4a, &quot;Receive_WM_COPYDATA&quot;)  <em>; 0x4a is WM_COPYDATA</em>
 return
 
 Receive_WM_COPYDATA(wParam, lParam)
 {
-    StringAddress := NumGet(lParam + 8)  <span class="CodeCom">; lParam+8 is the address of CopyDataStruct's lpData member.</span>
+    StringAddress := NumGet(lParam + 8)  <em>; lParam+8 is the address of CopyDataStruct's lpData member.</em>
     StringLength := DllCall(&quot;lstrlen&quot;, UInt, StringAddress)
     if StringLength &lt;= 0
         ToolTip %A_ScriptName%`nA blank string was received or there was an error.
     else
     {
         VarSetCapacity(CopyOfData, StringLength)
-        DllCall(&quot;lstrcpy&quot;, &quot;str&quot;, CopyOfData, &quot;uint&quot;, StringAddress)  <span class="CodeCom">; Copy the string out of the structure.</span>
-        <span class="CodeCom">; Show it with ToolTip vs. MsgBox so we can return in a timely fashion:</span>
+        DllCall(&quot;lstrcpy&quot;, &quot;str&quot;, CopyOfData, &quot;uint&quot;, StringAddress)  <em>; Copy the string out of the structure.</em>
+        <em>; Show it with ToolTip vs. MsgBox so we can return in a timely fashion:</em>
         ToolTip %A_ScriptName%`nReceived the following string:`n%CopyOfData%
     }
-    return true  <span class="CodeCom">; Returning 1 (true) is the traditional way to acknowledge this message.</span>
+    return true  <em>; Returning 1 (true) is the traditional way to acknowledge this message.</em>
 }
 
-<span class="CodeCom">; Save the following script as &quot;<strong>Sender.ahk</strong>&quot; then launch it.  After that, press the Win+Space hotkey.</span>
+<em>; Save the following script as &quot;<strong>Sender.ahk</strong>&quot; then launch it.  After that, press the Win+Space hotkey.</em>
 TargetScriptTitle = Receiver.ahk ahk_class AutoHotkey
 
-#space::  <span class="CodeCom">; Win+Space hotkey. Press it to show an InputBox for entry of a message string.</span>
+#space::  <em>; Win+Space hotkey. Press it to show an InputBox for entry of a message string.</em>
 InputBox, StringToSend, Send text via WM_COPYDATA, Enter some text to Send:
-if ErrorLevel  <span class="CodeCom">; User pressed the Cancel button.</span>
+if ErrorLevel  <em>; User pressed the Cancel button.</em>
     return
 result := Send_WM_COPYDATA(StringToSend, TargetScriptTitle)
 if result = FAIL
@@ -181,26 +180,26 @@ else if result = 0
     MsgBox Message sent but the target window responded with 0, which may mean it ignored it.
 return
 
-Send_WM_COPYDATA(ByRef StringToSend, ByRef TargetScriptTitle)  <span class="CodeCom">; ByRef saves a little memory in this case.</span>
-<span class="CodeCom">; This function sends the specified string to the specified window and returns the reply.</span>
-<span class="CodeCom">; The reply is 1 if the target window processed the message, or 0 if it ignored it.</span>
+Send_WM_COPYDATA(ByRef StringToSend, ByRef TargetScriptTitle)  <em>; ByRef saves a little memory in this case.
+; This function sends the specified string to the specified window and returns the reply.
+; The reply is 1 if the target window processed the message, or 0 if it ignored it.</em>
 {
-    VarSetCapacity(CopyDataStruct, 12, 0)  <span class="CodeCom">; Set up the structure's memory area.</span>
-    <span class="CodeCom">; First set the structure's cbData member to the size of the string, including its zero terminator:</span>
-    NumPut(StrLen(StringToSend) + 1, CopyDataStruct, 4)  <span class="CodeCom">; OS requires that this be done.</span>
-    NumPut(&amp;StringToSend, CopyDataStruct, 8)  <span class="CodeCom">; Set lpData to point to the string itself.</span>
+    VarSetCapacity(CopyDataStruct, 12, 0)  <em>; Set up the structure's memory area.</em>
+    <em>; First set the structure's cbData member to the size of the string, including its zero terminator:</em>
+    NumPut(StrLen(StringToSend) + 1, CopyDataStruct, 4)  <em>; OS requires that this be done.</em>
+    NumPut(&amp;StringToSend, CopyDataStruct, 8)  <em>; Set lpData to point to the string itself.</em>
     Prev_DetectHiddenWindows := A_DetectHiddenWindows
     Prev_TitleMatchMode := A_TitleMatchMode
     DetectHiddenWindows On
     SetTitleMatchMode 2
-    SendMessage, 0x4a, 0, &amp;CopyDataStruct,, %TargetScriptTitle%  <span class="CodeCom">; 0x4a is WM_COPYDATA. Must use Send not Post.</span>
-    DetectHiddenWindows %Prev_DetectHiddenWindows%  <span class="CodeCom">; Restore original setting for the caller.</span>
-    SetTitleMatchMode %Prev_TitleMatchMode%         <span class="CodeCom">; Same.</span>
-    return ErrorLevel  <span class="CodeCom">; Return SendMessage's reply back to our caller.</span>
+    SendMessage, 0x4a, 0, &amp;CopyDataStruct,, %TargetScriptTitle%  <em>; 0x4a is WM_COPYDATA. Must use Send not Post.</em>
+    DetectHiddenWindows %Prev_DetectHiddenWindows%  <em>; Restore original setting for the caller.</em>
+    SetTitleMatchMode %Prev_TitleMatchMode%         <em>; Same.</em>
+    return ErrorLevel  <em>; Return SendMessage's reply back to our caller.</em>
 }</pre>
-<p>&nbsp;</p>
-<pre class="NoIndent"><span class="CodeCom">; Example: See the <a href="../scripts/WinLIRC.htm">WinLIRC client script</a> for a demonstration of how to use OnMessage() to receive</span>
-<span class="CodeCom">; notification when data has arrived on a network connection.</span></pre>
+
+<pre class="NoIndent"><em>; Example: See the <a href="../scripts/WinLIRC.htm">WinLIRC client script</a> for a demonstration of how to use OnMessage() to receive
+; notification when data has arrived on a network connection.</em></pre>
 
 </body>
 </html>

@@ -5,19 +5,18 @@
 <title>PostMessage / SendMessage</title>
 <meta name="description" content="Send messages to a window with this free macro program. PostMessage puts a message in the window's message queue, but SendMessage waits for a reply.">
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-<link href="../css/commands.css" rel="stylesheet" type="text/css">
-<link href="../css/print.css" rel="stylesheet" type="text/css" media="print">
+<link href="../css/default.css" rel="stylesheet" type="text/css">
 </head>
 <body>
 
 <h1>PostMessage / SendMessage</h1>
-<hr size="2">
+
 <p>Sends a message to a window or control (SendMessage additionally waits for acknowledgement).</p>
 
-<p class="CommandSyntax">PostMessage, Msg [, wParam, lParam, Control, WinTitle, WinText, ExcludeTitle, ExcludeText]<br>
-      SendMessage, Msg [, wParam, lParam, Control, WinTitle, WinText, ExcludeTitle, ExcludeText]</p>
-<h4>Parameters</h4>
-<table border="1" width="100%" cellspacing="0" cellpadding="3" bordercolor="#C0C0C0">
+<pre class="Syntax">PostMessage, Msg [, wParam, lParam, Control, WinTitle, WinText, ExcludeTitle, ExcludeText]
+SendMessage, Msg [, wParam, lParam, Control, WinTitle, WinText, ExcludeTitle, ExcludeText]</pre>
+<h3>Parameters</h3>
+<table class="info">
   <tr>
     <td>Msg</td>
     <td>The message number to send, which can be an <a href="../Variables.htm#Expressions">expression</a>. See the <a href="../misc/SendMessageList.htm">message list</a> to determine the number. </td>
@@ -54,62 +53,62 @@
   </tr>
 </table>
 
-<h4>ErrorLevel</h4>
+<h3>ErrorLevel</h3>
 <p>PostMessage: <a href="../misc/ErrorLevel.htm">ErrorLevel</a> is set to 1 if there was a problem such as the target window or control not existing. Otherwise, it is set to 0.</p>
 <p>SendMessage: <a href="../misc/ErrorLevel.htm">ErrorLevel</a> is set to the word FAIL if there was a problem. Otherwise, it is set to the numeric result of the message, which might sometimes be a &quot;reply&quot; depending on the nature of the message and its target window. This result is an integer between 0 and 4294967295. If the result is intended to be a signed integer, a negative number can be revealed by following this example: <em>MsgReply := ErrorLevel &gt; 0x7FFFFFFF ? -(~ErrorLevel) - 1 : ErrorLevel</em></p>
-<h4>Remarks</h4>
+<h3>Remarks</h3>
 <p>These commands should be used with caution because sending a message to the wrong window (or sending an invalid message) might cause unexpected behavior or even crash the target application. This is because most applications are not designed to expect certain types of messages from external sources.</p>
 <p>PostMessage places the message in the message queue associated with the target window. It does not wait for acknowledgement or reply. By contrast, SendMessage waits up to 5 seconds for the target window to process the message. If the message is not processed within this time, the command finishes and sets ErrorLevel to the word FAIL.</p>
 <p>The parameters <em>Msg</em>, <em>wParam</em>, and <em>lParam</em> should all be integers between -2147483648 and 4294967295 (0xFFFFFFFF). As with all integer values in AutoHotkey, a prefix of 0x indicates a hex value. For example, 0xFF is equivalent to 255.</p>
 <p>A string may be sent via <em>wParam</em> or <em>lParam</em> by specifying the address of a variable. The following example uses the <a href="../Variables.htm#amp">address operator (&amp;)</a> to do this:</p>
-<pre>SendMessage, 0xC, 0, <strong>&amp;MyVar</strong>, ClassNN, WinTitle  <span class="CodeCom">; 0XC is WM_SETTEXT</span></pre>
+<pre>SendMessage, 0xC, 0, <strong>&amp;MyVar</strong>, ClassNN, WinTitle  <em>; 0XC is WM_SETTEXT</em></pre>
 <p>In v1.0.43.06+, a string put into MyVar by the receiver of the message is properly recognized without the need for extra steps. However, this works only if the parameter's first character is an ampersand (&amp;); for example, <em>5+&amp;MyVar</em> would not work but <em>&amp;MyVar</em> or <em>&amp;MyVar+5</em> would work.</p>
 <p>A quoted/literal string may also be sent as in the following working example (the &amp; operator should not be used in this case):</p>
 <pre>Run Notepad
 WinWait Untitled - Notepad
-SendMessage, 0xC, 0, <strong>&quot;New Notepad Title&quot;</strong>  <span class="CodeCom">; 0XC is WM_SETTEXT</span></pre>
+SendMessage, 0xC, 0, <strong>&quot;New Notepad Title&quot;</strong>  <em>; 0XC is WM_SETTEXT</em></pre>
 <p>To send a message to all windows in the system, including those that are hidden or disabled, specify <em>ahk_id 0xFFFF</em> for <em>WinTitle</em> (0xFFFF is HWND_BROADCAST). This technique should be used only for messages intended to be broadcast, such as the following example:</p>
-<pre>SendMessage, 0x1A,,,, ahk_id 0xFFFF  <span class="CodeCom">; 0x1A is WM_SETTINGCHANGE</span></pre>
+<pre>SendMessage, 0x1A,,,, ahk_id 0xFFFF  <em>; 0x1A is WM_SETTINGCHANGE</em></pre>
 <p>To have a script receive a message, use <a href="OnMessage.htm">OnMessage()</a>.</p>
 <p>See the <a href="../misc/SendMessage.htm">Message Tutorial</a> for an introduction to using these commands.</p>
 <p>Window titles and text are case sensitive. Hidden windows are not detected unless <a href="DetectHiddenWindows.htm">DetectHiddenWindows</a> has been turned on.</p>
 
-<h4>Related</h4>
+<h3>Related</h3>
 <p><a href="../misc/SendMessageList.htm">Message List</a>, <a href="../misc/SendMessage.htm">Message Tutorial</a>, <a href="OnMessage.htm">OnMessage()</a>, <a href="../misc/Winamp.htm">Automating Winamp</a>, <a href="DllCall.htm">DllCall</a>, <a href="ControlSend.htm">ControlSend</a>, <a href="WinMenuSelectItem.htm">WinMenuSelectItem</a></p>
-<h4>Examples</h4>
-<pre class="NoIndent">#o::  <span class="CodeCom">; Win+O hotkey that turns off the monitor.</span>
-Sleep 1000  <span class="CodeCom">; Give user a chance to release keys (in case their release would wake up the monitor again).</span>
-<span class="CodeCom">; Turn Monitor Off:</span>
-SendMessage, 0x112, 0xF170, 2,, Program Manager  <span class="CodeCom">; 0x112 is WM_SYSCOMMAND, 0xF170 is SC_MONITORPOWER.</span>
-<span class="CodeCom">; Note for the above: Use -1 in place of 2 to turn the monitor on.</span>
-<span class="CodeCom">; Use 1 in place of 2 to activate the monitor's low-power mode.</span>
+<h3>Examples</h3>
+<pre class="NoIndent">#o::  <em>; Win+O hotkey that turns off the monitor.</em>
+Sleep 1000  <em>; Give user a chance to release keys (in case their release would wake up the monitor again).
+; Turn Monitor Off:</em>
+SendMessage, 0x112, 0xF170, 2,, Program Manager  <em>; 0x112 is WM_SYSCOMMAND, 0xF170 is SC_MONITORPOWER.
+; Note for the above: Use -1 in place of 2 to turn the monitor on.
+; Use 1 in place of 2 to activate the monitor's low-power mode.</em>
 return
 
-<span class="CodeCom">; Start the user's chosen screen saver:</span>
-SendMessage, 0x112, 0xF140, 0,, Program Manager  <span class="CodeCom">; 0x112 is WM_SYSCOMMAND, and 0xF140 is SC_SCREENSAVE.</span>
+<em>; Start the user's chosen screen saver:</em>
+SendMessage, 0x112, 0xF140, 0,, Program Manager  <em>; 0x112 is WM_SYSCOMMAND, and 0xF140 is SC_SCREENSAVE.</em>
 
-<span class="CodeCom">; Scroll up by one line (for a control that has a vertical scroll bar):</span>
+<em>; Scroll up by one line (for a control that has a vertical scroll bar):</em>
 ControlGetFocus, control, A
 SendMessage, 0x115, 0, 0, %control%, A
 
-<span class="CodeCom">; Scroll down by one line:</span>
+<em>; Scroll down by one line:</em>
 ControlGetFocus, control, A
 SendMessage, 0x115, 1, 0, %control%, A
 
-<span class="CodeCom">; Switch the active window's keyboard layout/language to English:</span>
-PostMessage, 0x50, 0, 0x4090409,, A  <span class="CodeCom">; 0x50 is WM_INPUTLANGCHANGEREQUEST.</span>
+<em>; Switch the active window's keyboard layout/language to English:</em>
+PostMessage, 0x50, 0, 0x4090409,, A  <em>; 0x50 is WM_INPUTLANGCHANGEREQUEST.</em>
 
-<span class="CodeCom">; This example asks Winamp which track number is currently active:</span>
+<em>; This example asks Winamp which track number is currently active:</em>
 SetTitleMatchMode, 2
 SendMessage, 1024, 0, 120, - Winamp
 if ErrorLevel &lt;&gt; FAIL
 {
-    ErrorLevel++  <span class="CodeCom">; Winamp's count starts at &quot;0&quot;, so adjust by 1.</span>
+    ErrorLevel++  <em>; Winamp's count starts at &quot;0&quot;, so adjust by 1.</em>
     MsgBox, Track #%ErrorLevel% is active or playing.
 }
-<span class="CodeCom">; See <a href="../misc/Winamp.htm">Automating Winamp</a> for more information.</span>
+<em>; See <a href="../misc/Winamp.htm">Automating Winamp</a> for more information.</em>
 
-<span class="CodeCom">; To find the process ID of an AHK script (an alternative to &quot;<a href="WinGet.htm">WinGet PID</a>&quot;):</span>
+<em>; To find the process ID of an AHK script (an alternative to &quot;<a href="WinGet.htm">WinGet PID</a>&quot;):</em>
 SetTitleMatchMode, 2
 DetectHiddenWindows, on
 SendMessage, 0x44, 0x405, 0, , SomeOtherScript.ahk - AutoHotkey v

@@ -4,55 +4,54 @@
 <head>
 <title>Sleep</title>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-<link href="../css/commands.css" rel="stylesheet" type="text/css">
-<link href="../css/print.css" rel="stylesheet" type="text/css" media="print">
+<link href="../css/default.css" rel="stylesheet" type="text/css">
 </head>
 <body>
 
 <h1>Sleep</h1>
-<hr size="2">
+
 <p>Waits the specified amount of time before continuing.</p>
 
-<p class="CommandSyntax">Sleep, DelayInMilliseconds</p>
-<h4>Parameters</h4>
-<table border="1" width="100%" cellspacing="0" cellpadding="3" bordercolor="#C0C0C0">
+<pre class="Syntax">Sleep, DelayInMilliseconds</pre>
+<h3>Parameters</h3>
+<table class="info">
   <tr> 
     <td width="15%">Delay</td>
     <td width="85%">The amount of time to pause (in milliseconds) between 0 and 2147483647  (24 days), which can be an <a href="../Variables.htm#Expressions">expression</a>.</td>
   </tr>
 </table>
 
-<h4>Remarks</h4>
+<h3>Remarks</h3>
 <p>Due to the granularity of the OS's time-keeping system, <em>Delay</em> is typically rounded up to the nearest multiple of 10 or 15.6 milliseconds (depending on the type of hardware and drivers installed). For example, a delay between 1 and 10 (inclusive) is equivalent to 10 or 15.6 on most Windows NT/2000/XP systems. To achieve a shorter delay, see <a href="#ShorterSleep">Examples</a>. </p>
 <p>The actual delay time might wind up being longer than what was requested if the CPU is under load. This is because the OS gives each needy process a slice of CPU time (typically 20 milliseconds) before giving another timeslice to the script.</p>
 <p>A delay of 0 yields the remainder of the script's current timeslice to any other processes that need it (as long as they are not significantly lower in <a href="Process.htm#Priority">priority</a> than the script). Thus, a delay of 0 produces an actual delay between 0 and 20ms (or more), depending on the number of needy processes (if there are no needy processes, there will be no delay at all). However, a <em>Delay</em> of 0 should always wind up being shorter than any longer <em>Delay</em> would have been.</p>
 <p>While sleeping, new <a href="../misc/Threads.htm">threads</a> can be launched via <a href="../Hotkeys.htm">hotkey</a>, <a href="Menu.htm">custom menu item</a>, or <a href="SetTimer.htm">timer</a>.</p>
 <p>&quot;Sleep -1&quot;: A delay of -1 does not sleep but instead makes the script immediately check its message queue. This can be used to force any pending <a href="../misc/Threads.htm">interruptions</a> to occur at a specific place rather than somewhere more random. See <a href="Critical.htm">Critical</a> for more details.</p>
-<h4>Related</h4>
+<h3>Related</h3>
 <p><a href="SetKeyDelay.htm">SetKeyDelay</a>, <a href="SetMouseDelay.htm">SetMouseDelay</a>, <a href="SetControlDelay.htm">SetControlDelay</a>, <a href="SetWinDelay.htm">SetWinDelay</a>, <a href="SetBatchLines.htm">SetBatchLines</a> </p>
-<h4>Examples</h4>
-<pre class="NoIndent">Sleep, 1000  <span class="CodeCom">; 1 second</span></pre>
+<h3>Examples</h3>
+<pre class="NoIndent">Sleep, 1000  <em>; 1 second</em></pre>
 <p>&nbsp;</p>
-<pre class="NoIndent"><span class="CodeCom"><a name="ShorterSleep"></a>; The following is a working example that demonstrates how to sleep for less time than the
-<span class="CodeCom">; normal 10 or 15.6 milliseconds.</span>
-<span class="CodeCom">; NOTE: While a script like this is running, the entire operating system and all applications are</span>
-<span class="CodeCom">; affected by timeBeginPeriod below.</span></span>
+<pre class="NoIndent"><em><a name="ShorterSleep"></a>; The following is a working example that demonstrates how to sleep for less time than the
+; normal 10 or 15.6 milliseconds.
+; NOTE: While a script like this is running, the entire operating system and all applications are
+; affected by timeBeginPeriod below.</em></span>
 
-SetBatchLines -1  <span class="CodeCom">; Ensures maximum effectiveness of this method.</span>
+SetBatchLines -1  <em>; Ensures maximum effectiveness of this method.</em>
 
-SleepDuration = 1  <span class="CodeCom">; This can sometimes be finely adjusted (e.g. 2 is different than 3) depending on the value below.</span>
-TimePeriod = 3 <span class="CodeCom">; Try 7 or 3.  See comment below.</span>
-<span class="CodeCom">; On a PC whose sleep duration normally rounds up to 15.6 ms, try TimePeriod=7 to allow
-</span><span class="CodeCom">; somewhat shorter sleeps, and try TimePeriod=3 or less to allow the shortest possible sleeps.</span>
+SleepDuration = 1  <em>; This can sometimes be finely adjusted (e.g. 2 is different than 3) depending on the value below.</em>
+TimePeriod = 3 <em>; Try 7 or 3.  See comment below.
+; On a PC whose sleep duration normally rounds up to 15.6 ms, try TimePeriod=7 to allow
+; somewhat shorter sleeps, and try TimePeriod=3 or less to allow the shortest possible sleeps.</em>
 
-DllCall(&quot;Winmm\timeBeginPeriod&quot;, uint, TimePeriod)  <span class="CodeCom">; Affects all applications, not just this script's DllCall(&quot;Sleep&quot;...), but does not affect SetTimer</span>.
+DllCall(&quot;Winmm\timeBeginPeriod&quot;, uint, TimePeriod)  <em>; Affects all applications, not just this script's DllCall(&quot;Sleep&quot;...), but does not affect SetTimer</em>.
 Iterations = 50
 StartTime := A_TickCount
 
 Loop %Iterations%
-    DllCall(&quot;Sleep&quot;, UInt, SleepDuration)  <span class="CodeCom">; Must use DllCall instead of the Sleep command.</span>
+    DllCall(&quot;Sleep&quot;, UInt, SleepDuration)  <em>; Must use DllCall instead of the Sleep command.</em>
 
-DllCall(&quot;Winmm\timeEndPeriod&quot;, UInt, TimePeriod)  <span class="CodeCom">; Should be called to restore system to normal.</span>
+DllCall(&quot;Winmm\timeEndPeriod&quot;, UInt, TimePeriod)  <em>; Should be called to restore system to normal.</em>
 MsgBox % &quot;Sleep duration = &quot; . (A_TickCount - StartTime) / Iterations</pre>
 
 </body>
