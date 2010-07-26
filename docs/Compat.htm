@@ -1,0 +1,113 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<title>Script Compatibility</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link href="css/default.css" rel="stylesheet" type="text/css">
+<link href="css/print.css" rel="stylesheet" type="text/css" media="print">
+</head>
+<body>
+
+<h1>Script Compatibility</h1>
+<hr size="2">
+<p>As of revision 42, AutoHotkey_L includes Unicode support via separate ANSI and Unicode builds.  Scripts written for ANSI builds (or mainstream AutoHotkey) face a number of compatibility issues with Unicode builds.</p>
+<p>Other known incompatibilities with mainstream AutoHotkey are documented <a href="#Other">below</a>.</p>
+
+<h2><a name="Format"></a>Native String Format</h2>
+<p><b>Unicode:</b> Strings are stored in <a href="http://en.wikipedia.org/wiki/UTF-16">UTF-16</a> format.  Each character consumes a multiple of two bytes in this format, so care must be taken when <a href="commands/DllCall.htm">DllCall</a>, <a href="commands/VarSetCapacity.htm">VarSetCapacity</a>, <a href="Functions.htm#NumPut">NumPut</a> or <a href="Functions.htm#NumGet">NumGet</a> are used with strings.</p>
+<p><b>ANSI:</b> Strings are stored in the system default ANSI code page, as in mainstream AutoHotkey.  Each character consumes one or more bytes in this format.</p>
+<p>Note that in either case, some characters may be represented with multiple 8-bit or 16-bit values, but for performance and simplicity these are typically treated as a <i>sequence</i> of characters.  For convenience, the rest of this document considers a "character" to be a single 8-bit or 16-bit value, depending on whether the string is UTF-16.</p>
+
+<h4><a name="VarSetCapacity"></a>VarSetCapacity</h4>
+<p>VarSetCapacity sets the capacity of a var <i>in bytes</i>.  Since the size of a character varies depending on the string format, some calculation may be necessary:</p>
+<pre>VarSetCapacity(ansi_var,    size_in_chars)
+VarSetCapacity(unicode_var, size_in_chars * 2)
+VarSetCapacity(native_var,  size_in_chars * (A_IsUnicode ? 2 : 1))
+VarSetCapacity(native_var, t_size(size_in_chars))  <em>; see <a href="#NumPutGet">below</a></em>
+</pre>VarSetCapacity will internally add one <i>character</i> to the capacity to ensure the var is null-terminated.  However, <code>size_in_chars</code> should generally include the null-terminator for consistency if a string in a <i>non-native</i> format will be stored in the var.
+<p></p>
+
+<h4><a name="DllCall"></a>DllCall</h4>
+<p>When the "Str" type is used, it means a string in the native format of the current build.  Since some functions may require or return strings in a particular format, the following string types are available:</p>
+<table border="1" width="100%" cellspacing="0" cellpadding="3" bordercolor="#C0C0C0">
+  <tr><th></th><th>Char Size</th><th>C / Win32 Types</th><th>Encoding</th></tr>
+  <tr><td class="Syntax" style="text-align:center">WStr</td><td style="text-align:center">16-bit</td><td>wchar_t*, WCHAR*, LPWSTR, LPCWSTR</td><td>UTF-16</td></tr>
+  <tr><td class="Syntax" style="text-align:center">AStr</td><td style="text-align:center">8-bit</td><td>char*, CHAR*, LPSTR, LPCSTR</td><td>ANSI (the system default ANSI code page)</td></tr>
+  <tr><td class="Syntax" style="text-align:center">Str</td><td style="text-align:center">--</td><td>TCHAR*, LPTSTR, LPCTSTR</td><td>Equivalent to <b>WStr</b> in Unicode builds and <b>AStr</b> in ANSI builds.</td></tr>
+</table>
+<br>
+<p>If "Str" or the equivalent type for the current build is used as a parameter, the address of the string or var is passed to the function; otherwise a temporary copy of the string is created in the desired format and passed instead.  Functions may modify a temporary copy, but <b>must not</b> write beyond the <i>length</i> of the converted string (indicated by its null-terminator).</p>
+<p><b>Note:</b> "AStr" and "WStr" are equally valid for parameters and the function's return value.</p>
+<p>In general, if a script calls a function via DllCall which accepts a string as a parameter, one of the following approaches must be taken:</p>
+<ol>
+  <li>If both Unicode (W) and ANSI (A) versions of the function are available, call the appropriate one for the current build.  In the following example, "DeleteFile" is internally known as "DeleteFileA" or "DeleteFileW".  Since "DeleteFile" itself doesn't really exist, DllCall automatically tries "A" or "W" as appropriate for the current build:
+  <pre>DllCall("DeleteFile", "UInt", &filename)
+DllCall("DeleteFile", "Str", filename)</pre>
+  <p>In this example, <code>&amp;filename</code> passes the address of the string exactly as-is, so the function must expect a string in the same format as the "Str" type.
+  <p><b>Note:</b> If the function cannot be found exactly as specified, AutoHotkey_L appends the "A" or "W" suffix regardless of which DLL is specified.  However, mainstream AutoHotkey appends the "A" suffix only for functions in User32.dll, Kernel32.dll, ComCtl32.dll, or Gdi32.dll.</p></li>
+  <li>If the function only accepts a specific type of string as input, the script may use the appropriate string type:</li>
+  <pre>DllCall("DeleteFileA", "AStr", filename)
+DllCall("DeleteFileW", "WStr", filename)</pre>
+  <li>If the function must modify a string (in a non-native format), the script must allocate a buffer as described <a href="#VarSetCapacity">above</a> and pass its address to the function.  If the parameter accepts input, the script must also convert the input string to the appropriate format; this can be done using <a href="commands/StrPutGet.htm">StrPut</a>.</li>
+  <p></p>
+</ol>
+
+<h4><a name="NumPutGet"></a>NumPut / NumGet</h4>
+<p>When NumPut or NumGet are used with strings, the offset and type must be correct for the given type of string.  The following may be used as a guide:</p>
+<pre><em>;  8-bit/ANSI   strings:  size_of_char=1  type_of_char="Char"</em>
+<em>; 16-bit/UTF-16 strings:  size_of_char=2  type_of_char="UShort"</em>
+<i>n</i>th_char := NumGet(var, (<i>n</i>-1)*<i>size_of_char</i>, <i>type_of_char</i>)
+NumPut(<i>n</i>th_char, var, (<i>n</i>-1)*<i>size_of_char</i>, <i>type_of_char</i>)</pre>
+<p>If <code>var</code> contains a string in the native format, the appropriate values may be determined based on the value of <code>A_IsUnicode</code>:</p>
+<pre><i>n</i>th_char := NumGet(var, t_size(<i>n</i>-1), t_char())
+NumPut(<i>n</i>th_char, var, t_size(<i>n</i>-1), t_char())
+
+<em>; Define functions for convenience and clarity:</em>
+t_char() {
+    return A_IsUnicode ? "UShort" : "Char"
+}
+t_size(char_count=1) {
+    return A_IsUnicode ? char_count : char_count*2
+}</pre>
+
+<h2><a name="Other"></a>Other Changes</h2>
+
+<h4>Default Script</h4>
+<p>When AutoHotkey_L is launched without specifying a script, the default script filename is based on the filename of the current executable, and always has the "ahk" extension.  For instance, if the executable is named "AutoHotkey_L.exe", it will look for "AutoHotkey_L.ahk" in the current directory or in My Documents. See also <a href="Scripts.htm#cmd">Passing Command Line Parameters to a Script</a>.</p>
+
+<h4><a name="Names"></a>Variable and Function Names</h4>
+<p>Characters [ ] and ? are no longer valid in variable names.  Consequently, ? (used in ternary operations) no longer requires a space on either side.  See also <a href="Objects.htm#Syntax">object syntax</a>.</p>
+
+<h4><a name="Validation"></a>Syntax Validation</h4>
+<p>Command names must be terminated with a space, tab or comma.  Unlike in mainstream AutoHotkey, none of the following characters bypass this requirement: <code><>:+-*/!~&|^[]</code>. As a consequence, syntax errors such as <code>MsgBox< foo</code> and <code>If!foo</code> are caught at load-time, not interpreted as <code>MsgBox,< foo</code> or <code>If !foo</code>.</p>
+
+<h4><a name="Transform"></a>Transform</h4>
+<p>Some <i>Transform</i> sub-commands have changed in the <b>Unicode</b> build:</p>
+<ul>
+  <li><span class="Syntax">Unicode</span> has been replaced with <span class="Syntax"><a href="commands/Transform.htm#ToCodePage">ToCodePage</a></span> and <span class="Syntax"><a href="commands/Transform.htm#FromCodePage">FromCodePage</a></span>.</li>
+  <li><span class="Syntax">HTML</span> supports <a href="commands/Transform.htm#HTML">additional features</a>.</li>
+</ul>
+
+
+<h4><a name="IfIs"></a>If var is</h4>
+<p>This command ignores the system locale unless <i>StringCaseSense, Locale</i> has been used.</p>
+
+<h4><a name="FileRead"></a>FileRead</h4>
+<p>FileRead may attempt to translate text between code pages.  If the file contains binary data, the retrieved data will be incorrect.</p>
+<p>Code page translation will not occur in specific cases, such as:</p>
+<ul>
+  <li>The <span class="Syntax">*C</span> option is present; all code page and end-of-line translations are unconditionally bypassed.</li>
+  <li>The <span class="Syntax">*P<i>nnn</i></span> option is present and <i>nnn</i> corresponds to the <a href="#Format">native string encoding</a>.</li>
+  <li>The current <a href="commands/FileEncoding.htm">file encoding</a> setting corresponds to the native string encoding.</li>
+</ul>
+<a href="commands/FileOpen.htm">FileOpen</a> is the preferred method for accessing binary files.
+
+<h4><a name="SetFormat"></a>SetFormat, Integer[Fast], H</h4>
+<p>When an uppercase H is used, hexadecimal digits A-F will also be in uppercase.  This contrasts with mainstream AutoHotkey, which always uses lowercase digits. See <a href="commands/SetFormat.htm">SetFormat</a>.</p>
+
+<h4>Compatibility Mode</h4>
+<p>If <a href="http://www.microsoft.com/windowsxp/using/helpandsupport/learnmore/appcompat.mspx#ECD">Compatibility mode</a> is set to Windows 95, 98/ME or NT4 in the properties of the EXE file used to run the script, the script may not behave correctly.  This is because compatibility mode causes a specific version of Windows to be reported to the application, but the pre-built binaries exclude support for these versions.  For example, setting compatibility mode to Windows 95 or 98/ME will cause <code>MsgBox %A_OSVersion%</code> to report <code>WIN_NT4</code>.</p>
+
+</body>
+</html>

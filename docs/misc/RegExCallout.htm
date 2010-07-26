@@ -1,0 +1,111 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<title>Regular Expression Callouts</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link href="../css/commands.css" rel="stylesheet" type="text/css">
+<link href="../css/print.css" rel="stylesheet" type="text/css" media="print">
+</head>
+<body>
+
+<h1>Regular Expression Callouts</h1>
+<hr>
+<p>Callouts provide a means of temporarily passing control to the script in the middle of regular expression pattern matching. Available in AutoHotkey_L only. For detailed information about the PCRE-standard callout feature, see <a href="http://www.pcre.org/pcre.txt">pcre.txt</a>.</p>
+
+<p>Callouts are currently supported only by <a href="../commands/RegExMatch.htm">RegExMatch</a> and <a href="../commands/RegExReplace.htm">RegExReplace</a>.</p>
+
+<h4>Syntax</h4>
+
+<p>The syntax for a callout in AutoHotkey_L is <span class="Syntax">(?C<em>Number</em>:<em>Function</em>)</span>, where both <em>Number</em> and <em>Function</em> are optional. Colon ':' is allowed only if <em>Function</em> is specified, and is optional if <em>Number</em> is omitted. If <em>Function</em> is specified but is not the name of a user-defined function, a compile error occurs and pattern-matching does not begin.</p>
+
+<p>If <em>Function</em> is omitted, the function name must be specified in a variable named <b>pcre_callout</b>. If both a global variable and local variable exist with this name, the local variable takes precedence. If <em>pcre_callout</em> does not contain the name of a user-defined function, callouts which omit <em>Function</em> are ignored.</p>
+
+<h4>Callout Functions</h4>
+
+<pre class="Syntax">Function(Match, CalloutNumber, FoundPos, Haystack, NeedleRegEx)
+{
+    ...
+}</pre>
+<p>Callout functions may define up to 5 parameters:</p>
+<ul>
+  <li><b>Match</b>: Equivalent to the <em>UnquotedOutputVar</em> of RegExMatch, including the creation of array variables.</li>
+  <li><b>CalloutNumber</b>: Receives the <em>Number</em> of the callout.</li>
+  <li><b>FoundPos</b>: Receives the position of the current potential match.</li>
+  <li><b>Haystack</b>: Receives the <em>Haystack</em> passed to RegExMatch or RegExReplace.</li>
+  <li><b>NeedleRegEx</b>: Receives the <em>NeedleRegEx</em> passed to RegExMatch or RegExReplace.</li>
+</ul>
+<p>These names are suggestive only. Actual names may vary.</p>
+
+<p>Pattern-matching may proceed or fail depending on the return value of the callout function:</p>
+<ul>
+  <li>If the function returns <b>0</b> or does not return a numeric value, matching proceeds as normal.</li>
+  <li>If the function returns <b>1</b> or greater, matching fails at the current point, but the testing of other matching possibilities goes ahead.</li>
+  <li>If the function returns <b>-1</b>, matching is abandoned.</li>
+  <li>If the function returns a value less than -1, it is treated as a PCRE error code and matching is abandoned. RegExMatch returns a blank string, while RegExReplace returns the original <em>Haystack</em>. In either case, ErrorLevel contains the error code.</li>
+</ul>
+
+<p>For example:</p>
+<pre>Haystack = The quick brown fox jumps over the lazy dog.
+RegExMatch(Haystack, "i)(The) (\w+)\b(?CFunc)")
+Func(m) {
+    MsgBox m=%m%`nm1=%m1%`nm2=%m2%
+    return 1
+}</pre>
+<p>In the above example, <em>Func</em> is called once for each substring which matches the part of the pattern preceding the callout. <span class="Syntax">\b</span> is used to exclude incomplete words in matches such as <em>The quic</em>, <em>The qui</em>, <em>The qu</em>, etc.</p>
+
+<h4>EventInfo</h4>
+
+<p>Additional information is available by accessing the pcre_callout_block structure via <b>A_EventInfo</b>.</p>
+<pre>version := NumGet(A_EventInfo, 0, "Int")
+callout_number := NumGet(A_EventInfo, 4, "Int")
+offset_vector := NumGet(A_EventInfo, 8)
+subject := NumGet(A_EventInfo, 12)
+subject_length := NumGet(A_EventInfo, 16, "Int")
+start_match := NumGet(A_EventInfo, 20, "Int")
+current_position := NumGet(A_EventInfo, 24, "Int")
+capture_top := NumGet(A_EventInfo, 28, "Int")
+capture_last := NumGet(A_EventInfo, 32, "Int")
+callout_data := NumGet(A_EventInfo, 36)
+pattern_position := NumGet(A_EventInfo, 40, "Int")
+next_item_length := NumGet(A_EventInfo, 44, "Int")</pre>
+<p>For more information, see <a href="http://www.pcre.org/pcre.txt">pcre.txt</a>.</p>
+
+<h4><a name="auto"></a>Auto-Callout</h4>
+
+<p>Including <span class="Syntax">C</span> in the options of the pattern enables the auto-callout mode. In this mode, callouts equivalent to <span class="Syntax">(?C255)</span> are inserted before each item in the pattern. For example, the following template may be used to debug regular expressions:</p>
+<pre><em>; Set the default callout function.</em>
+pcre_callout = DebugRegEx
+
+<em>; Call RegExMatch with auto-callout option C.</em>
+RegExMatch("xxxabc123xyz", "C)abc.*xyz")
+
+DebugRegEx(Match, CalloutNumber, FoundPos, Haystack, NeedleRegEx)
+{
+    <em>; See pcre.txt for descriptions of these fields.</em>
+    start_match := NumGet(A_EventInfo, 20, "Int")
+    current_position := NumGet(A_EventInfo, 24, "Int")
+    pattern_position := NumGet(A_EventInfo, 40, "Int")
+    next_item_length := NumGet(A_EventInfo, 44, "Int")
+
+    <em>; Point out &gt;&gt;current match&lt;&lt;.</em>
+    _HAYSTACK:=SubStr(Haystack, 1, start_match)
+        . "&gt;&gt;" SubStr(Haystack, start_match + 1, current_position - start_match)
+        . "&lt;&lt;" SubStr(Haystack, current_position + 1)
+    
+    <em>; Point out &gt;&gt;next item to be evaluated&lt;&lt;.</em>
+    _NEEDLE:=  SubStr(NeedleRegEx, 1, pattern_position)
+        . "&gt;&gt;" SubStr(NeedleRegEx, pattern_position + 1, next_item_length)
+        . "&lt;&lt;" SubStr(NeedleRegEx, pattern_position + 1 + next_item_length)
+    
+    ListVars
+    <em>; Press Pause to continue.</em>
+    Pause
+}</pre>
+
+<h4>Remarks</h4>
+
+<p>Callouts are executed on the current quasi-thread, but the previous value of A_EventInfo will be restored after the callout function returns. ErrorLevel is not set until immediatley before RegExMatch or RegExReplace returns.</p>
+
+</body>
+</html>

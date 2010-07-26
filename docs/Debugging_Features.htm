@@ -1,0 +1,104 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<title>Debugging Features</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link href="css/default.css" rel="stylesheet" type="text/css">
+<link href="css/print.css" rel="stylesheet" type="text/css" media="print">
+</head>
+<body>
+
+<h1>Debugging Features</h1>
+<hr size="2">
+<p>Additional debugging features are supported via <a href="http://xdebug.org/docs-dbgp.php">DBGp</a>, a common debugger protocol for languages and debugger UI communication.</p>
+
+<h2>Debugger Engine</h2>
+<p>The debugger engine is enabled if AutoHotkey_L is built with <code>CONFIG_DEBUGGER</code> defined. This is done by default for the Debug and Release build configurations, <b>but not SC (compiled scripts)</b>.</p>
+<p>Use the <b>/Debug</b> switch when running the script to connect to a debugger client, enabling interactive debugging.</p>
+<pre id="syntax" class="Syntax">AutoHotkey.exe /Debug[=<i>SERVER</i>:<i>PORT</i>] ...</pre>
+<p><i>SERVER</i> and <i>PORT</i> may be omitted.  For example, the following are equivalent:</p>
+<pre>AutoHotkey /Debug "myscript.ahk"
+AutoHotkey /Debug=localhost:9000 "myscript.ahk"</pre>
+
+<h2>Debugger Clients</h3>
+
+<h3>XDebugClient</h3>
+<p><a href="http://code.google.com/p/xdebugclient/">XDebugClient</a> is a simple open-source front-end DBGp client based on the <b>.NET Framework 2.0</b>. XDebugClient was originally designed for PHP with Xdebug, but a custom build compatible with AutoHotkey_L is available below.</p>
+<p><b>Changes:</b></p>
+<ul>
+  <li>Allow the debugger engine to report a language other than "php".</li>
+  <li>Added AutoHotkey syntax highlighting.</li>
+  <li>Automatically listen for a connection from the debugger engine, rather than waiting for the user to click <em>Start Listening</em>.</li>
+  <li>Truncate property values at the first null-character, since AutoHotkey_L currently returns the entire variable contents and XDebugClient has no suitable interface for displaying binary content.</li>
+</ul>
+<p><b>Download:</b> <a href="http://www.autohotkey.net/~Lexikos/AutoHotkey_L/XDebugClient.zip">Binary</a>; <a href="http://www.autohotkey.net/~Lexikos/AutoHotkey_L/XDebugClient_src.zip">Source Code</a> (also see <a href="http://www.icsharpcode.net/">SharpDevelop</a>, <a href="http://sourceforge.net/projects/dockpanelsuite/">Dockpanel Suite</a> and <a href="http://www.codeproject.com/cs/miscctrl/treeviewadv.asp">Advanced Treeview</a>.)</p>
+<p><b>Usage:</b></p>
+<ul>
+  <li>Launch XDebugClient.</li>
+  <li>Launch AutoHotkey_L /Debug. XDebugClient should automatically open the script file.</li>
+  <li>Click the left margin to set at least one breakpoint.</li>
+  <li>Choose Run from the Debug menu, or press F5.</li>
+  <li>When execution hits a breakpoint, use the Debug menu or shortcut keys to step through or resume the script.</li>
+</ul>
+<p><b>Features:</b></p>
+<ul>
+  <li>Syntax highlighted, read-only view of the source code.</li>
+  <li>Breakpoints.</li>
+  <li>Run, Step Over/Into/Out.</li>
+  <li>View the call stack.</li>
+  <li>Inspect variables - select a variable name, right-click, Inspect.</li>
+</ul>
+<p><b>Issues:</b></p>
+<ul>
+  <li>The user interface does not respond to user input while the script is running.</li>
+  <li>No mechanisms are provided to list variables or set their values.</li>
+</ul>
+
+<h3>Notepad++ DBGp Plugin</h3>
+<p>A DBGp client is available as a plugin for <a href="http://notepad-plus.sourceforge.net/">Notepad++</a>. It is designed for PHP, but also works well with AutoHotkey_L.</p>
+<p><b>Download:</b> See <a href="http://notepad-plus.sourceforge.net/">Notepad++ at SourceForge</a>.</p>
+<p><b>Usage:</b></p>
+<ul>
+  <li>Launch Notepad++.</li>
+  <li>Configure the DBGp plugin via <i>Plugins</i>, <i>DBGp</i>, <i>Config...</i>
+    <p><b>Note:</b> File Mapping must be configured.  Most users will not be debugging remotely, and therefore may simply put a checkmark next to <i>Bypass all mapping (local windows setup)</i>.</p>
+  </li>
+  <li>Show the debugger pane via the toolbar or <b>Plugins</b>, <b>DBGp</b>, <b>Debugger</b>.</li>
+  <li>Open the script file to be debugged.</li>
+  <li>Set at least one breakpoint.</li>
+  <li>Launch AutoHotkey_L /Debug.</li>
+  <li>Use the debugger toolbar or shortcut keys to control the debugger.</li>
+</ul>
+<p><b>Features:</b></p>
+<ul>
+  <li>Syntax highlighting, if configured by the user.</li>
+  <li>Breakpoints.</li>
+  <li>Run, Step Over/Into/Out, Run to cursor, Stop.</li>
+  <li>View local/global variables.</li>
+  <li>Watch user-specified variables.</li>
+  <li>View the call stack.</li>
+  <li>Hover over a variable to view its contents.</li>
+  <li>User-configurable shortcut keys - Settings, Shortcut Mapper..., Plugin commands.</li>
+</ul>
+<p><b>Issues:</b></p>
+<ul>
+  <li>Hovering over a single-letter variable name does not work - for instance, hovering over "a" will attempt to retrieve " a" or "a ".</li>
+  <li>Hovering over text will attempt to retrieve a variable even if the text contains invalid characters.</li>
+  <li>Notepad++ becomes unstable if property_get fails, which is particularly problematic in light of the above. As a workaround, AutoHotkey_L sends an empty property instead of an error code when a non-existent or invalid variable is requested.</li>
+</ul>
+
+<h3>Script-based Clients</h3>
+<p>A script-based <a href="http://www.autohotkey.net/~Lexikos/AutoHotkey_L/DBGP.ahk">DBGp library</a> and two basic clients are available for development purposes:</p><ul>
+  <li><a href="http://www.autohotkey.net/~Lexikos/AutoHotkey_L/dbgp_console.ahk">dbgp_console.ahk</a>: Simple command-line client.</li>
+  <li><a href="http://www.autohotkey.net/~Lexikos/AutoHotkey_L/dbgp_test.ahk">dbgp_test.ahk</a>: Demonstrates asynchronous debugging.</li>
+</ul>
+
+<h3>Command-line Client</h3>
+<p>A command-line client is available from <a href="http://xdebug.org/">xdebug.org</a>, however this is not suitable for most users as it requires a decent understanding of DBGp (the protocol).</p>
+
+<h3>Others</h3>
+<p>A number of other DBGp clients are available, but have not been tested with AutoHotkey_L. For a list, see <a href="http://xdebug.org/docs/remote">Xdebug: Documentation</a>.</p>
+
+</body>
+</html>

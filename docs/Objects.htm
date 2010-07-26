@@ -1,0 +1,384 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<title>Objects</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link href="css/default.css" rel="stylesheet" type="text/css">
+<link href="css/print.css" rel="stylesheet" type="text/css" media="print">
+</head>
+<body>
+
+<h1>Objects</h1>
+<hr>
+<p>In addition to strings and numbers, AutoHotkey_L supports <i>objects</i>.  Objects are treated as a distinct type of value which, like other types of values, can be stored in variables, passed to or returned from functions and stored in other objects.</p>
+
+<p>Note that objects are "reference types" - after an assignment such as <code>food := pizza</code>, <code>food</code> will refer to the original <code>pizza</code> object.  Similarly, <code>Eat(pizza)</code> will pass the original <code>pizza</code> object to the <code>Eat()</code> function, which is then able to modify the original object.  If the parameter is declared ByRef, the function can also change the <code>pizza</code> variable to point to a different object.</p>
+
+<p><b>IsObject</b> can be used to determine if a value is an object:</p>
+<pre>Result := IsObject(<i>expression</i>)</pre>
+
+<p>There are two primary types of objects:</p>
+<ul>
+  <li><a href="objects/Object.htm"><b>Object</b></a> - scriptable associative array.</li>
+  <li><a href="objects/File.htm"><b>File</b></a> - provides an interface for file input/output.</li>
+</ul>
+
+<h2><a name="Syntax"></a>Syntax</h2>
+<h4>Supported Operators</h4>
+<p>Operator support for objects is limited to the following:</p>
+<ul>
+  <li>Direct comparison (<span class="Code">= == != <></span>) compares objects by reference.  Objects are never equal to non-object values.</li>
+  <li>Address-of (<span class="Code">&amp;<i>object</i></span>) returns a pointer to the object's native interface - this uniquely identifies it during its lifetime. See also: <a href="#Refs">Reference Counting</a>.</li>
+  <li>Ternary (<code>a ? b : c</code>): any of the operands may be objects.
+  <li>When an expression is required to evaluate to true or false, objects are considered true.
+  <li>Dot and brackets work as outlined in the next section.</li>
+  <li>Unsupported operators treat objects as empty strings.</li>
+</ul>
+
+<h4><a name="SyntaxInvoke"></a>Invoking an Object</h4>
+<p>Two primary forms of syntax are available for invoking functionality of an object: <code>Object[Params]</code> and <code>Object.Param</code>.  In both cases, <code>Object</code> may be a variable or a more complex expression which evaluates to an object.  In each case, the actual result of the operation is defined by the object.  Typically a SET operation will return the value being stored if it is stored successfully.</p>
+
+<p style="font-size: 111%; font-weight: bold;">Object[Params]</p>
+<p>Brackets are used to imply an object-operation and delimit its parameter list.</p>
+<pre>Value  := Object[ <i>Params</i> ]             <em>; GET</em>
+<span class="dull">Result := </span>Object[ <i>Params</i> ] := Value    <em>; SET</em>
+<span class="dull">Result := </span>Object[ <i>Param </i> ]( <i>Params</i> )   <em>; CALL</em>
+</pre>
+<p>CALL supports only a single <i>Param</i> between the brackets.  Typically this is the name of a method to call or a key/index which was used to store a function name within the object.  For more information, see <a href="#FuncArrays">Arrays of Functions</a>.</p>
+
+<p style="font-size: 111%; font-weight: bold;">Object.Param</p>
+<p>When the first parameter is a known (literal) value consisting purely of alphanumeric characters and/or underscore, alternate syntax is available:</p>
+<pre>Value  := Object.Param             <em>; GET</em>
+<span class="dull">Result := </span>Object.Param := Value    <em>; SET</em>
+<span class="dull">Result := </span>Object.Param( <i>Params</i> )   <em>; CALL</em>
+</pre>
+
+<p>Although only a single literal parameter can be specified this way, any number of additional parameters can be specified:</p>
+<pre>Value  := Object.Param1[ <i>Param2, Param3, ...</i> ]            <em>; GET</em>
+<span class="dull">Result := </span>Object.Param1[ <i>Param2, Param3, ...</i> ] := Value   <em>; SET</em>
+<span class="dull">Result := </span>Object.Param1( <i>Param2, Param3, ...</i> )            <em>; CALL</em>
+</pre>
+
+<p>Parentheses are generally distinct from brackets, but not when immediately followed by the assignment operator (<code>:=</code>):</p>
+<pre><span class="dull">Result := </span>Object.Param1( <i>Param2, Param3, ...</i> ) := Value   <em>; SET</em></pre>
+
+<p>If a dot appears at the beginning of an expression or is preceded by an operator such as + or *, it is unconditionally treated as a floating-point literal.  If a dot is followed by a space, it is treated as the concatenation operator; if in that case it is not <i>preceded</i> by a space, an error is raised.  Any other unquoted dot (excluding <code>.=</code>) is treated as an object-access operator.</p>
+
+
+<h2><a name="Refs"></a>Reference-Counting</h2>
+<p>A basic reference-counting mechanism is used to automatically deallocate an object when it is no longer referenced by the script.  Scripts should not typically invoke this mechanism explicitly; it is invoked automatically as the script deals with objects.</p>
+<p>However, taking the address of an object (via <span class="Code">address := &amp;<i>object</i></span>) does not increment its reference count.  To ensure the address remains valid when all other references to the object are released, follow this example:</p>
+<pre><em>; Increment the object's reference count to "keep it alive":</em>
+DllCall(NumGet(NumGet(address+0)+4), "uint", address)
+...
+<em>; Decrement the object's reference count to allow it to be freed:</em>
+DllCall(NumGet(NumGet(address+0)+8), "uint", address)
+</pre>
+<p>To run code when the last reference to an object is being released, implement the <a href="#Cleanup">__Delete</a> meta-function.</p>
+<p><b>Known Limitations:</b></p>
+<ul>
+  <li>No exception or allowance is made for cyclic references - an object is not freed if any references to it exist, even if the script ultimately has no way to access the object.</li>
+  <li>Although references in static and global variables are released automatically when the program exits, references in non-static local variables or in temporary storage during expression evaluation are not.  These references are only released if the function or expression is allowed to complete normally.</li>
+  <p>Although memory used by the object is reclaimed by the operating system when the program exits, <a href="#Cleanup">__Delete</a> will not be called unless all references to the object are freed.  This can be important if it frees other resources which are not automatically reclaimed by the operating system, such as temporary files.</p>
+</ul>
+
+
+<h2><a name="Arrays"></a>Object()</h2>
+<p>Creates a scriptable object which is also an associative array.</p>
+<pre class="Syntax">Object := Object()
+Object := Object(Key1, Value1 [, Key2, Value2 ... ])</pre>
+<p>Parameters must be in pairs of two, except when the only parameter is an <a href="#AddressCast">object address</a>.</p>
+<pre><em>; Explicit initialization:</em>
+obj := Object()
+obj[a] := b
+obj[c] := d
+
+<em>; In-line initialization:</em>
+obj := Object(a, b, c, d)</pre>
+
+<h4>Associative Arrays</h4>
+<p>Each object contains a list of key-value pairs - each key or value is a string, number or object.  Values are stored in or retrieved from an object by key, as shown below:</p>
+<pre>array := Object()
+array["a"] := "alpha"
+array["b"] := "bravo"
+MsgBox % array["a"] . " " . array["b"]</pre>
+<p>Of course, dotted syntax may also be used.  Adding to the previous example:</p>
+<pre>array.a := "apple"
+MsgBox % array.a . " " . array.b</pre>
+
+<p>To remove a key-value pair, use <a href="objects/Object.htm#Remove">_Remove</a>.</p>
+
+<p>Integer keys are stored in native 32-bit signed form and therefore must be in the range -2147483648 to 2147483647.  Integers outside this range will wrap; <code>key &lt;&lt; 32 &gt;&gt; 32</code> achieves a similar effect.  Format is ignored, so for instance <code>x[0x10]</code>, <code>x[16]</code> and <code>x[00016]</code> are equivalent.  Keys do not need to be contiguous - if only <code>x[1]</code> and <code>x[1000]</code> contain values, the object <code>x</code> really contains only two key-value pairs.</p>
+
+<p>Floating-point numbers are not supported as keys - instead they are converted to strings.  Note that floating-point literals are preserved exactly as-is, whereas pure floating-point numbers (such as the result of <code>0+1.0</code> or <code>Sqrt(y)</code>) are forced into the current <a href="http://www.autohotkey.com/docs/commands/SetFormat.htm">float format</a>.</p>
+
+<p><b>Note:</b> The key <a href="#Extensibility">"base"</a> has special meaning, except when used with <a href="objects/Object.htm#Insert">_Insert</a>.</p>
+
+<h4><a name="Methods"></a>Built-in Methods</h4>
+<p>See <a href="objects/Object.htm">Object Methods</a>.</p>
+
+<h4><a name="JaggedArrays"></a>Arrays of Arrays</h4>
+<p>Since objects can contain other objects, arrays of arrays are also possible.  For instance, if <code>table</code> is an array of rows and each row is itself an array of columns, the content of column <code>y</code> of row <code>x</code> can be set using either of the methods below:</p>
+<pre>table[x][y] := content  <em>; A</em>
+table[x, y] := content  <em>; B</em></pre>
+<p>If <code>table[x]</code> does not exist, <span class="Code"><em>A</em></span> and <span class="Code"><em>B</em></span> differ in two ways:</p>
+<ul>
+  <li><span class="Code"><em>A</em></span> fails whereas <span class="Code"><em>B</em></span> automatically creates an object and stores it in <code>table[x]</code>.</li>
+  <li>If <code>table</code>'s <a href="#Extensibility">base</a> defines <a href="#MetaFunc">meta-functions</a>, they are invoked as follows:
+  <pre>table.base.__Get(table, x)<span class="dull">[y] := content</span>   <em>; A</em>
+table.base.__Set(table, x, y, content)     <em>; B</em></pre>
+  Consequently, <span class="Code"><em>B</em></span> allows the object to define custom behaviour for the overall assignment.</li>
+</ul>
+
+<h4><a name="FuncArrays"></a>Arrays of Functions</h4>
+<p>Although true function references aren't yet supported, arrays of functions may be simulated by storing function names in objects.  If <code>array[index]</code> contains a function name, the following two examples are equivalent:</p>
+<pre>array[index](param)</pre>
+<pre>n := array[index]
+%n%(param)</pre>
+<p>If <code>index</code> contains the name of a built-in method, the name of a method defined in a <a href="#Extensibility"><i>base</i> object</a>, or an object representing a function, only the first example will work.</p>
+
+<p><a name="ExitLimitation"></a><b>Known limitation:</b> If an object-call exists on the stack of running functions and subroutines, <a href="commands/Exit.htm">Exit</a> behaves as though the object-call created a new thread; that is, it returns immediately to the caller of the object-call.  However, Exit still causes the script to terminate when appropriate.</p>
+
+
+<h2><a name="AddressCast"></a>Object(<i>address</i>)</h2>
+<p>To cast an address previously retrieved via <code>address := &amp;<i>object</i></code> back into a usable object reference, use <code>Object(address)</code>.  Note that this also works for objects not created by <a href="#Arrays">Object()</a>.  This is an advanced feature which should be used only when absolutely necessary; see <a href="#Refs">Reference Counting</a>.  It may be useful for associating an object with a <a href="commands/RegisterCallback.htm">callback</a> via A_EventInfo.</p>
+
+
+<h2><a name="Extensibility"></a>Extensibility</h2>
+<p>An object's behaviour can be modified or extended via the special <i>base</i> mechanism.  When the key of an operation (the first or only parameter) has no pre-existing value, the object's <i>base</i> is invoked.  When a standard base object is invoked, it does the following:</p>
+<ul>
+  <li>Call its <code>__Get</code>, <code>__Set</code> or <code>__Call</code> meta-function, if present.  If <code>return</code> is encountered during execution of the meta-function, no further processing takes place.  For all operations, the return value is used as the result of the expression.
+    <p><i>Set</i>: If the operation was successful, <code>__Set</code> should return the new value of the field, which may differ from the original r-value.  This allows assignments to be chained, as in <code>a.x := b.y := z</code>.  An empty string should be returned if the assignment failed, allowing the script to detect the error.</p></li>
+  <li>If this is a <i>get</i> or <i>call</i> operation, search for a matching key in the base object's own fields.
+    <p><i>Get</i>: If found, the value of that field is returned.<br>
+    <i>Call</i>: If found, the field is <i>called</i> with the target object as the first parameter.</p></li>
+  <li>Recursively invoke its own base object.  This allows properties of an object to be "inherited" from its base, its base's base and so on.</li>
+</ul>
+<p>If (and only if) no base object handles the operation, processing will continue as normal:</p>
+<ul>
+  <li><i>Get</i>: If the key is "base", the object's base is retrieved.</li>
+  <li><i>Set</i>: If the key is "base", the object's base is set; non-object values cause the existing base to be removed.
+  <p style="margin-left:2.6em;margin-top:0.25em;">Otherwise a new key-value pair is created and stored in the object.</p></li>
+  <li><i>Call</i>: A <a href="objects/Object.htm">built-in method</a> may be called.</li>
+</ul>
+
+<p><b>Example:</b> Simple value inheritance.</p>
+<pre>Color := Object("R", 0, "G", 0, "B", 0)
+blue := Object("B", 255, "base", Color)
+cyan := Object("G", 255, "base", blue)
+MsgBox % "blue: " blue.R "," blue.G "," blue.B
+MsgBox % "cyan: " cyan.R "," cyan.G "," cyan.B
+</pre>
+
+<p><b>Example:</b> Adding to the previous example, define a method to retrieve the combined RGB value.</p>
+<pre>Color.GetRGB := "Color_GetRGB"
+
+MsgBox % cyan.GetRGB()  <em>; Displays 65535.</em>
+
+Color_GetRGB(clr) {
+    return clr.R << 16 | clr.G << 8 | clr.B
+}</pre>
+
+<h4><a name="MetaFunc"></a>Meta-Functions</h4>
+<p>Meta-functions allow script to define exactly how an object should act.  When called, the parameter list contains a reference to the target object, followed by the parameters of the <i>get</i>, <i>set</i> or <i>call</i> operation.  If the function returns a value, it is used as the result of the operation and no further processing occurs.  If <code>return</code> is not encountered, processing continues as per the rules described above.</p>
+
+<p><b>Example:</b> Reimplement the examples above to store only a single RGB value.</p>
+<pre>Color := Object("RGB", 0
+                , "__Set", "Color_Set"
+                , "__Get", "Color_Get")
+
+blue := Object("base", Color, "B", 255)
+cyan := Object("base", Color, "RGB", 0x00ffff)
+
+MsgBox % "blue: " blue.R "," blue.G "," blue.B " = " blue.RGB
+MsgBox % "cyan: " cyan.R "," cyan.G "," cyan.B " = " cyan.RGB
+
+Color_Get(clr, name)
+{
+    if name = R
+        return (clr.RGB >> 16) & 255
+    if name = G
+        return (clr.RGB >> 8) & 255
+    if name = B
+        return clr.RGB & 255
+}
+
+Color_Set(clr, name, val)
+{
+    if name in R,G,B
+    {
+        val &= 255
+        
+        if      name = R
+            clr.rgb := (val << 16) | (clr.rgb & ~0xff0000)
+        else if name = G
+            clr.rgb := (val << 8)  | (clr.rgb & ~0x00ff00)
+        else  <em>; name = B</em>
+            clr.rgb :=  val        | (clr.rgb & ~0x0000ff)
+        
+        <em>; 'Return' must be used to indicate a new key-value pair should not be created.
+        ; This also defines what will be stored in the 'x' in 'x := clr[name] := val':</em>
+        return val
+    }
+}</pre>
+<p>It is important to note that when Object() is called with parameters, the key-value pairs are set in left to right order.  Since "B" is set before "base" in the example below, a new key-value pair is created and "RGB" is not updated:</p>
+<pre>c := Object("B", 255, "base", Color)</pre>
+<p>This behaviour can be used to bypass a meta-function, or for performance in cases where the base is not required for that particular key.</p>
+
+<p><b>Known limitations:</b></p>
+<ul><li><p>Each meta-function can accept only as many individual parameters as it defines; excess parameters are discarded.  Since the r-value of a <i>set</i> operation is treated as the final parameter, it is the first to be discarded if too many parameters are passed.</p>
+<p>Although a varying number of parameters can be handled by declaring some as optional, the actual number of available parameters can be determined only by comparing each parameter to its default value.  Consequently, a value must be reserved for this purpose.</p></li>
+<li><p>If <code>return</code> is used without parameters, it behaves the same as <code>return ""</code> and therefore cannot be used to "escape" from a meta-function.  For example:</p>
+<pre><em>; Incorrect method:</em>
+x_Set(x, name, value)
+{
+    if name != foo
+        return  <em>; This prevents any new key-value pairs from being created, including real_foo.</em>
+    <em>;...</em>
+    return x.real_foo := modified_value
+}
+
+<em>; Correct method:</em>
+x_Set(x, name, value)
+{
+    if name = foo
+    {
+        <em>;...</em>
+        return x.real_foo := modified_value
+    }
+}</pre></li>
+<li>See also <a href="#ExitLimitation">Exit limitation</a>.</li></ul>
+
+<h4><a name="Cleanup"></a>Cleanup</h4>
+
+<p>If an object has associated resources such as file or network handles or pointers to memory allocated with DllCall, these resources may be managed automatically by implementing the <b><code>__Delete</code></b> meta-function.  For example:</p>
+<pre><em>; Create an object with a __delete meta-function:</em>
+obj := Object("base", Object("__Delete", "MemoryObject_Delete"))
+<em>; Allocate a resource and store it in the object:</em>
+obj.ptr := DllCall("GlobalAlloc", "uint", 0, "uint", 1024)
+
+MsgBox % "Memory allocated: " obj.ptr
+
+MemoryObject_Delete(obj)
+{   <em>; Retrieve the resource.</em>
+    if p := obj.ptr
+    {   <em>; It hasn't already been freed, so free it.</em>
+        DllCall("GlobalFree", "uint", p)
+        <em>; Set to zero so we know it has been freed.</em>
+        obj.ptr := 0
+    }
+    MsgBox % "Memory freed: " p
+}</pre>
+<p>When the last reference to <code>obj</code> is about to be released, <code>obj.base.__Delete</code> is called with <code>obj</code> as the first parameter.  Note that at the time <code>__Delete</code> is called, all other references to the object have been released.  If there are still references to the object after the function returns (for instance, because the function copied a reference into a static or global variable), the object is not deleted and <code>__Delete</code> may be called again at a later time.</p>
+
+<h4><a name="JaggedArraysEx"></a>Arrays of Arrays</h4>
+<p>When a multi-parameter assignment such as <code>table[x, y] := content</code> implicitly causes a new object to be created, the new object ordinarily has no base and therefore no custom methods or special behaviour.  <code>__Set</code> may be used to initialize these objects, as demonstrated below.</p>
+<pre>x := Object("base", Object("addr", "x_Addr", "__Set", "x_Setter"))
+
+<em>; Assign value, implicitly calling x_Setter to create sub-objects.</em>
+x[1,2,3] := "..."
+
+<em>; Retrieve value and call example method.</em>
+MsgBox % x[1,2,3] "`n" x.addr() "`n" x[1].addr() "`n" x[1,2].addr()
+
+x_Setter(x, p1, p2, p3) {
+    x[p1] := Object("base", x.base)
+}
+
+x_Addr(x) {
+    return &x
+}</pre>
+<p>Since <code>x_Setter</code> has four mandatory parameters, it will only be called when there are two or more key parameters.  When the assignment above occurs, the following takes place:</p>
+<ul>
+  <li><code>x[1]</code> does not exist, so <code>x_Setter(x,1,2,3)</code> is called (<code>"..."</code> is not passed as there are too few parameters).</li>
+  <ul>
+    <li><code>x[1]</code> is assigned a new object with the same base as <code>x</code>.</li>
+    <li>No value is returned &ndash; the assignment continues.</li>
+  </ul>
+  <li><code>x[1][2]</code> does not exist, so <code>x_Setter(x[1],2,3,"...")</code> is called.</li>
+  <ul>
+    <li><code>x[1][2]</code> is assigned a new object with the same base as <code>x[1]</code>.</li>
+    <li>No value is returned &ndash; the assignment continues.</li>
+  </ul>
+  <li><code>x[1][2][3]</code> does not exist, but since <code>x_Setter</code> requires four parameters and there are only three (<code>x[1][2], 3, "..."</code>), it is not called and the assignment completes as normal.</li>
+</ul>
+
+<h4><a name="FuncObjects"></a>Objects as Functions</h4>
+<p>When a call such as <code>obj.func(param)</code> is made, <code>obj.func</code> may contain a function name or an object.  If <code>obj.func</code> contains an object, it is invoked using <code>obj</code> as a key; for example, the following may be equivalent:</p>
+<pre>ObjCall(obj.func, obj, param)</pre>
+<p>In most cases <code>obj.func[obj]</code> does not exist and the <code>__Call</code> <a href="#MetaFunc">meta-function</a> is invoked instead, with the same parameters as shown above (or with more or less parameters).  This may be used to change the behaviour of a function-call, as shown in the example below:</p>
+<pre>FuncType := Object("__Call", "FuncType_Call")
+func := Object("base", FuncType, 1, "One", 2, "Two")
+obj := Object("func", func, "name", "foo")
+obj.func("bar")  <em>; Shows "One foo bar", "Two foo bar"</em>
+
+FuncType_Call(func, obj, param) {
+    Loop % func._MaxIndex()
+        ObjCall(func, A_Index, obj, param)
+}
+
+One(obj, param) {
+    MsgBox % A_ThisFunc " " obj.name " " param
+}
+Two(obj, param) {
+    MsgBox % A_ThisFunc " " obj.name " " param
+}</pre>
+
+<h4>Default Base</h4>
+<p>When a non-object value is used with object syntax or passed to ObjGet, ObjSet or ObjCall, the <i>default base object</i> is invoked.  This can be used for debugging or to globally define object-like behaviour for strings, numbers and/or variables.  The default base may be accessed by using <code>.base</code> with any non-object value; for instance, <code>"".base</code>.  Although the default base may not be <i>set</i> as in <code>"".base := Object()</code>, the default base may itself have a base as in <code>"".base.base := Object()</code>.</p>
+
+<p><b>Example 1: Automatic Var Init</b></p>
+<p>When an empty variable is used as the target of a <i>set</i> operation, it is passed directly to the __Set meta-function, giving it opportunity to insert a new object into the variable.  Limitations:  Since the first parameter must be declared <i>ByRef</i>, the meta-function will not be invoked if the target is not a variable.  This example does not support multiple parameters.</p>
+<pre>"".base.__Set := "Default_Set_AutomaticVarInit"
+
+empty_var.foo := "bar"
+MsgBox % empty_var.foo
+
+Default_Set_AutomaticVarInit(ByRef var, key, value)
+{
+    if var =
+        var := Object(key, value)
+}</pre>
+
+<p><b>Example 2: Pseudo-Properties</b></p>
+<p>Object "syntax sugar" can be applied to strings and numbers.</p>
+<pre>"".base.__Get := "Default_Get_PseudoProperty"
+"".base.is  := "Default_is"
+
+MsgBox % A_AhkPath.length " == " StrLen(A_AhkPath)
+MsgBox % A_AhkPath.length.is("integer")
+
+Default_Get_PseudoProperty(nonobj, key)
+{
+    if key = length
+        return StrLen(nonobj)
+}
+
+Default_is(nonobj, type)
+{
+    if nonobj is %type%
+        return true
+    return false
+}</pre>
+<p>Note that built-in functions may also be used, but in this case the parentheses cannot be omitted:</p>
+<pre>"".base.length := "StrLen"
+MsgBox % A_AhkPath.length() " == " StrLen(A_AhkPath)</pre>
+
+<p><b>Example 3: Debug</b></p>
+<p>If allowing a value to be treated as an object is undesirable, a warning may be shown whenever a non-object value is invoked:</p>
+<pre>"".base.__Call := "Default__Warn"
+"".base.__Set  := "Default__Warn"
+"".base.__Get  := "Default__Warn"
+
+empty_var.foo := "bar"
+x := (1 + 1).is("integer")
+
+Default__Warn(nonobj, p1="", p2="", p3="", p4="")
+{
+    ListLines
+    MsgBox A non-object value was improperly invoked.`n`nSpecifically: %nonobj%
+}</pre>
+
+</body>
+</html>

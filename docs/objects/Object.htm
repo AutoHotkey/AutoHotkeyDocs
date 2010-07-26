@@ -1,0 +1,79 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<title>Object Methods</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link href="../css/commands.css" rel="stylesheet" type="text/css">
+<link href="../css/print.css" rel="stylesheet" type="text/css" media="print">
+</head>
+<body>
+
+<h1>Object Methods</h1>
+<hr size="2">
+<p>Available in AutoHotkey_L only. All built-in methods of objects created by <a href="../Objects.htm#Arrays">Object()</a> may be accessed either as built-in functions or as methods:</p>
+<pre>result := obj._Method(params)</pre>
+<p>Calling the method this way allows each object to implement its own behaviour for that method, unbeknownst to the caller.  However, if an object overrides a built-in method, it typically needs a way to access the original functionality:</p>
+<pre>result := ObjMethod(obj, params)</pre>
+<p>Calling a built-in function is marginally faster since the name can be resolved at load-time, but this syntax is generally less intuitive.  Any custom behaviour implemented by the object is bypassed, so the built-in functions should typically be used only by the object itself.</p>
+
+<div class="methodShort" id="Insert"><h2>Insert</h2>
+<p>Inserts key-value pairs into the object, automatically adjusting existing keys if appropriate.</p>
+<p class="CommandSyntax">Object._Insert(Index, Value1 [, Value2, ... Value<i>N</i> ])<br>
+Object._Insert(Value)<br>
+Object._Insert(Key, Value)</p>
+<table border="1" width="100%" cellspacing="0" cellpadding="3" bordercolor="#C0C0C0">
+  <tr><td width="15%">Index</td><td width="85%">An integer key to insert Value1 at. Subsequent values are inserted at Index+1, Index+2, etc.<br>
+  If omitted, it defaults to <code>_MaxIndex()="" ? 1 : _MaxIndex() + 1</code>.</td></tr>
+  <tr><td>Key</td><td>A string or object key.  If the key already exists, its value is overwritten.</td></tr>
+  <tr><td>Value</td><td>A string, number or object.</td></tr>
+  <tr><td><b>Returns</b></td><td>A <i>true</i> value if successful or an empty string if the script is out of memory.</td></tr>
+</table>
+<h3>Remarks</h3>
+<p>Note that this method bypasses the <a href="../Objects.htm#MetaFunc">__Set</a> mechanism and special behaviour of the <a href="../Objects.htm#Extensibility">base</a> key.  For instance, <code>Object._Insert("base","")</code> causes <code>Object.base</code> to return an empty string instead of the real base object, but doesn't prevent other operations from triggering the object's meta-functions.</p>
+</div>
+
+<div class="methodShort" id="Remove"><h2>Remove</h2>
+<p>Removes key-value pairs from an object.</p>
+<p class="CommandSyntax">Object._Remove(FirstKey, LastKey)</p>
+<table border="1" width="100%" cellspacing="0" cellpadding="3" bordercolor="#C0C0C0">
+  <tr><td width="15%">FirstKey, LastKey</td><td width="85%">A range of integer or string keys to remove.  If both keys are integers, any integer keys greater than <i>LastKey</i> are decremented by <code>(LastKey - FirstKey + 1)</code> to emulate a typical numerically-indexed array.  Both keys must be the same type (integer or string).</td></tr>
+  <tr><td><b>Returns</b></td><td>The actual number of key-value pairs which were removed if successful, zero if no keys were found, or an empty string on failure.</td></tr>
+</table>
+<p class="CommandSyntax" style="margin-top:10px">Object._Remove(Key = <i>_MaxIndex()</i>)</p>
+<table border="1" width="100%" cellspacing="0" cellpadding="3" bordercolor="#C0C0C0">
+  <tr><td width="15%">Key</td><td width="85%">Any valid key.  If omitted, it defaults to the highest existing integer key; if none exist, nothing is removed. Existing keys are adjusted as though <code>_Remove(Key,Key)</code> was used.</td></tr>
+  <tr><td><b>Returns</b></td><td>The value which was removed, if any; otherwise an empty string.</td></tr>
+</table></div>
+
+<div class="methodShort" id="MinMaxIndex"><h2>MinIndex / MaxIndex</h2>
+<p class="CommandSyntax">MinIndex := Object._MinIndex()
+MaxIndex := Object._MaxIndex()</p>
+<p>If any integer keys are present, _MinIndex returns the lowest and _MaxIndex returns the highest.  Otherwise an empty string is returned.</p></div>
+
+<div class="methodShort" id="SetCapacity"><h2>SetCapacity</h2>
+<p>Adjusts the capacity of an object or one of its fields.</p>
+<p class="CommandSyntax">Object._SetCapacity(MaxItems)
+Object._SetCapacity(Key, ByteSize)</p>
+<table border="1" width="100%" cellspacing="0" cellpadding="3" bordercolor="#C0C0C0">
+  <tr><td width="15%">MaxItems</td><td width="85%">The maximum number of key-value pairs the object should be able to contain before it must be automatically expanded.  If less than the current number of key-value pairs, the object is shrunk to fit.</td></tr>
+  <tr><td>Key</td><td>Any valid key.</td></tr>
+  <tr><td>ByteSize</td><td>The new size in bytes of the field's string buffer, excluding the null-terminator.  If the field does not exist, it is created.  If <i>ByteSize</i> is zero, the buffer is freed but the empty field is not removed.  If <i>ByteSize</i> is less than the current size, excess data is truncated; otherwise all existing data is preserved.</td></tr>
+  <tr><td><b>Returns</b></td><td>The new capacity if successful, otherwise an empty string.</td></tr>
+</table></div>
+
+<div class="methodShort" id="GetCapacity"><h2>GetCapacity</h2>
+<p class="CommandSyntax">MaxItems := Object._GetCapacity()<br>
+ByteSize := Object._GetCapacity(Key)</p>
+<p>Returns the current capacity of an object or one of its fields.</p></div>
+
+<div class="methodShort" id="GetAddress"><h2>GetAddress</h2>
+<p class="CommandSyntax">Ptr := Object._GetAddress(Key)</p>
+<p>Returns the current address of the field's string buffer, if it has one.</p></div>
+
+<div class="methodShort" id="NewEnum"><h2>NewEnum</h2>
+<p class="CommandSyntax">Enum := Object._NewEnum()</p>
+<p>Returns a new <a href="Enumerator.htm">enumerator</a> to enumerate this object's key-value pairs.</p></div>
+
+</body>
+</html>
