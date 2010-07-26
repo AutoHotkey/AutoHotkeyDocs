@@ -1,0 +1,111 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<title>Regular Expressions (RegEx) - Quick Reference</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link href="../css/default.css" rel="stylesheet" type="text/css">
+<link href="../css/print.css" rel="stylesheet" type="text/css" media="print">
+<style type="text/css">
+<!--
+.regex {background-color: #FFEED3; font-weight: bold}
+.subj {background-color: #DDFFDD}
+-->
+</style>
+</head>
+<body>
+<h1>Regular Expressions (RegEx) - Quick Reference</h1>
+
+<h2>Fundamentals</h2>
+<p><strong>Match anywhere</strong>: By default, a regular expression matches a substring <em>anywhere</em> inside the string to be searched. For example, the regular expression <span class="regex">abc</span> matches <span class="subj">abc</span>123, 123<span class="subj">abc</span>, and 123<span class="subj">abc</span>xyz. To require the match to occur only at the beginning or end, use an <a href="#anchor">anchor</a>.</p>
+<p><strong>Escaped characters</strong>: Most characters like abc123 can be used literally inside a regular expression. However, the characters <strong>\.*?+[{|()^$</strong> must be preceded by a backslash to be seen as literal. For example, <span class="regex">\.</span> is a literal period and <span class="regex">\\</span> is a literal backslash. Escaping can be avoided by using \Q...\E. For example: \QLiteral Text\E.</p>
+<p><strong>Case-sensitive</strong>: By default, regular expressions are case-sensitive. This can be changed via the &quot;i&quot; option. For example, the pattern <span class="regex">i)abc</span> searches for &quot;abc&quot; without regard to case. See <a href="../commands/RegExMatch.htm#Options">options</a> for other modifiers.</p>
+<h2>Commonly Used Symbols and Syntax </h2>
+<table border="1" width="100%" cellspacing="0" cellpadding="3" bordercolor="#C0C0C0">
+	<tr>
+		<td align="center"><strong>.</strong></td>
+		<td><a name="dot"></a>A dot matches <em>any single</em> character (except newline: `r and `n). For example, <span class="regex">ab.</span> matches <span class="subj">abc</span> and <span class="subj">abz</span> and <span class="subj">ab_</span></td>
+	</tr>
+	<tr>
+		<td align="center"><strong>*</strong></td>
+		<td><p>An asterisk matches zero or more of the preceding character, <a href="#class">class</a>, or <a href="#subpat">subpattern</a>. For example, <span class="regex">a*</span> matches <span class="subj">a</span>b and <span class="subj">aaa</span>b. It also matches at the very beginning of any string that contains no &quot;a&quot; at all.</p>
+	      <p><strong>Wildcard:</strong> The dot-star pattern <span class="regex">.*</span> is one of the most permissive because it matches zero or more occurrences of <em>any</em> character (except newline: `r and `n). For example, <span class="regex">abc.*123</span> matches <span class="subj">abcAnything123</span> as well as <span class="subj">abc123</span>.</p>		  </td>
+	</tr>
+	<tr>
+	  <td align="center"><strong>?</strong></td>
+	  <td>A question mark matches zero or one of the preceding character, <a href="#set">class</a>, or <a href="#subpat">subpattern</a>. Think of this as &quot;the preceding item is optional&quot;. For example, <span class="regex">colou?r</span> matches both <span class="subj">color</span> and <span class="subj">colour</span> because the &quot;u&quot; is optional.</td>
+  </tr>
+	<tr>
+	  <td align="center"><strong>+</strong></td>
+	  <td>A plus sign matches one or more of the preceding character, <a href="#class">class</a>, or <a href="#subpat">subpattern</a>. For example <span class="regex">a+</span> matches <span class="subj">a</span>b and <span class="subj">aaa</span>b. But unlike <span class="regex">a*</span> and <span class="regex">a?</span>, the pattern <span class="regex">a+</span> does not match at the beginning of strings that lack an &quot;a&quot; character.</td>
+  </tr>
+	<tr>
+	  <td align="center">{min,max}</td>
+	  <td><p>Matches between <em>min</em> and <em>max</em> occurrences of the preceding character, <a href="#set">class</a>, or <a href="#subpat">subpattern</a>. For example, <span class="regex">a{1,2}</span> matches  <span class="subj">a</span>b but only the first two a's in <span class="subj">aa</span>ab.</p>
+        <p>Also, {3} means exactly 3 occurrences, and {3<strong>,</strong>} means 3 or more occurrences. Note: The specified numbers must be less than 65536, and the first must be less than or equal to the second.</p></td>
+  </tr>
+	<tr>
+	  <td align="center"><strong>[...]</strong></td>
+	  <td><p><a name="set"></a><a name="class"></a><strong>Classes of characters:</strong> The square brackets enclose a list or range of characters (or both). For example, <span class="regex">[abc]</span> means &quot;any single character that is either a, b or c&quot;. Using a dash in between creates a range; for example, <span class="regex">[a-z]</span> means &quot;any single character that is between lowercase a and z (inclusive)&quot;. Lists and ranges may be combined; for example <span class="regex">[a-zA-Z0-9_]</span> means &quot;any single character that is alphanumeric or underscore&quot;.</p>
+	    <p>A character class may be followed by *, ?, +, or {min,max}. For example, <span class="regex">[0-9]+</span> matches one or more occurrence of any digit; thus it matches xyz<span class="subj">123</span> but not abcxyz.</p>            
+        <p>The following POSIX named sets are also supported via the form [[:xxx:]], where xxx is one of the following words: alnum, alpha, ascii (0-127), blank (space or tab), cntrl (control character), digit (0-9), xdigit (hex digit), print, graph (print excluding space), punct, lower, upper, space (whitespace), word (same as <a href="#word">\w</a>).</p>
+        <p>Within a character class, characters do not need to be escaped except when they have special meaning inside a class; e.g. <span class="regex">[\^a]</span>, <span class="regex">[a\-b]</span>, <span class="regex">[a\]]</span>, and <span class="regex">[\\a]</span>.</p></td>
+  </tr>
+	<tr>
+	  <td align="center"><strong>[^...]</strong></td>
+	  <td>Matches any single character that is <strong>not</strong> in the class. For example, <span class="regex">[^/]*</span> matches zero or more occurrences of any character that is <em>not</em> a forward-slash, such as <span class="subj">http:</span>//. Similarly, <span class="regex">[^0-9xyz]</span> matches any single character that isn't a digit and isn't the letter x, y, or z.</td>
+  </tr>
+	<tr>
+	  <td align="center"><strong>\d</strong></td>
+	  <td>Matches any single digit (equivalent to the class <span class="regex">[0-9]</span>). Conversely, capital \D means &quot;any <em>non</em>-digit&quot;. This and the other two below can also be used inside a <a href="#set">class</a>; for example, <span class="regex">[\d.-]</span> means &quot;any single digit, period, or minus sign&quot;.</td>
+  </tr>
+	<tr>
+	  <td align="center"><strong>\s</strong></td>
+	  <td>Matches any single whitespace character, mainly space, tab, and newline (`r and `n). Conversely, capital \S means &quot;any <em>non</em>-whitespace character&quot;.</td>
+  </tr>
+	<tr>
+	  <td align="center"><strong>\w</strong></td>
+	  <td><a name="word"></a>Matches any single &quot;word&quot; character, namely alphanumeric or underscore. This is equivalent to <span class="regex">[a-zA-Z0-9_]</span>. Conversely, capital \W means &quot;any <em>non</em>-word character&quot;.</td>
+  </tr>
+	<tr>
+	  <td align="center"><strong>^<br>
+        $</strong></td>
+	  <td><p><a name="anchor" id="anchor"></a>Circumflex (^) and dollar sign ($) are called <em>anchors</em> because they don't consume any characters; instead, they tie the pattern to the beginning or end of the string being searched.</p>
+	    <p><span class="regex">^</span> may appear at the beginning of a pattern to require the match to occur at the very beginning of a line. For example, <span class="regex">^abc</span> matches <span class="subj">abc</span>123 but not 123abc.</p>
+	    <p><span class="regex">$</span> may appear at the end of a pattern to require the match to occur at the very end of a line. For example, <span class="regex">abc$</span> matches 123<span class="subj">abc</span> but not abc123.</p>
+      <p>The two anchors may be combined. For example, <span class="regex">^abc$</span> matches only <span class="subj">abc</span> (i.e. there must be no other characters before or after it).</p>
+      <p>If the text being searched contains multiple lines, the anchors can be made to apply to each line rather than the text as a whole by means of the <a href="../commands/RegExMatch.htm#Multiline">&quot;m&quot; option</a>. For example, <span class="regex">m)^abc$</span> matches 123`r`n<span class="subj">abc</span>`r`n789. But without the &quot;m&quot; option, it wouldn't match.</p></td>
+  </tr>
+	<tr>
+	  <td align="center"><strong>\b</strong></td>
+	  <td>\b means &quot;word boundary&quot;, which is like an anchor because it doesn't consume any characters. It requires the current character's <a href="#word">status as a word character (\w)</a> to be the opposite of the previous character's. It is typically used to avoid accidentally matching a word that appears inside some other word. For example, <span class="regex">\bcat\b</span> doesn't match catfish, but it matches <span class="subj">cat</span> regardless of what punctuation and whitespace surrounds it. Capital \B is the opposite: it requires that the current character <em>not</em> be at a word boundary.</td>
+  </tr>
+	<tr>
+	  <td align="center"><strong>|</strong></td>
+	  <td>The vertical bar separates two or more alternatives. A match occurs if <em>any</em> of the alternatives is satisfied. For example, <span class="regex">gray|grey</span> matches both <span class="subj">gray</span> and <span class="subj">grey</span>. Similarly, the pattern <span class="regex">gr(a|e)y</span> does the same thing with the help of the parentheses described below.</td>
+  </tr>
+	<tr>
+	  <td align="center"><strong>(...)</strong></td>
+	  <td><p><a name="subpat"></a>Items enclosed in parentheses are most commonly used to:</p>
+	    <ul>
+	      <li>Determine the order of evaluation. For example, <span class="regex">(Sun|Mon|Tues|Wednes|Thurs|Fri|Satur)day</span> matches the name of any day.</li>
+	      <li>Apply <span class="regex">*</span>, <span class="regex">?</span>, <span class="regex">+</span>, or <span class="regex">{min,max}</span> to a <em>series</em> of characters rather than just one. For example, <span class="regex">(abc)+</span> matches one or more occurrences of the string &quot;abc&quot;; thus it matches <span class="subj">abcabc</span>123 but not ab123 or bc123.</li>
+          <li><a name="capture"></a>Capture a subpattern such as the dot-star in <span class="regex">abc<span class="red">(.*)</span>xyz</span>. For example, <a href="../commands/RegExMatch.htm">RegExMatch()</a> stores the substring that matches each subpattern in its <a href="../commands/RegExMatch.htm#Array">output array</a>. Similarly, <a href="../commands/RegExReplace.htm">RegExReplace()</a> allows the substring that matches each subpattern to be reinserted into the result via <a href="../commands/RegExReplace.htm#BackRef">backreferences</a> like $1. To use the parentheses without the side-effect of capturing a subpattern, specify <span class="regex">?:</span> as the first two characters inside the parentheses; for example: <span class="regex">(<span class="red">?:</span>.*)</span></li>
+	      <li>Change <a href="../commands/RegExMatch.htm#Options">options</a> on-the-fly. For example, <span class="regex">(?im)</span> turns on the case-insensitive and multiline options for the remainder of the pattern (or subpattern if it occurs inside a subpattern). Conversely, <span class="regex">(?-im)</span> would turn them both off. All options are supported except DPS`r`n`a.</li>
+	    </ul></td>
+  </tr>
+	<tr>
+	  <td align="center"><strong>\t<br>
+  \r<br>
+  etc.</strong></td>
+	  <td><p>These escape sequences stand for special characters. The most common ones are <span class="regex">\t</span> (tab), <span class="regex">\r</span> (carriage return), and <span class="regex">\n</span> (linefeed). In AutoHotkey, an accent (`) may optionally be used in place of the backslash in these cases. Escape sequences in the form  \xhh are also supported, in which <em>hh</em> is the hex code of any ANSI character between 00 and FF.</p>
+      <p>In v1.0.46.06+, <span class="regex">\R</span> means &quot;any single newline of any type&quot;, namely those listed at the <a href="../commands/RegExMatch.htm#NEWLINE_ANY">`a option</a> (however, \R inside a <a href="#class">character class</a> is merely the letter &quot;R&quot;). In v1.0.47.05+, <span class="regex">\R</span> can be restricted to CR, LF, and CRLF by specifying (*BSR_ANYCRLF) in uppercase at the beginning of the pattern (after the options); e.g. <span class="regex">im)(*BSR_ANYCRLF)abc\Rxyz</span></p></td>
+  </tr>
+</table>
+<p><strong>Greed</strong>: By default, <span class="regex">*</span>, <span class="regex">?</span>, <span class="regex">+</span>, and <span class="regex">{min,max}</span> are greedy because they consume all characters up through the <em>last </em>possible one that still satisfies the entire pattern. To instead have them stop at the <em>first</em> possible character, follow them with a question mark. For example, the pattern <span class="regex">&lt;.+&gt;</span> (which lacks a question mark) means: &quot;search for a &lt;, followed by one or more of any character, followed by a &gt;&quot;. To stop this pattern from matching the <em>entire</em> string <span class="subj"><span class="red"><strong>&lt;</strong></span>em&gt;text&lt;/em<span class="red"><strong>&gt;</strong></span></span>, append a question mark to the plus sign: <span class="regex">&lt;.+<span class="red">?</span>&gt;</span>. This causes the match to stop at the first '&gt;' and thus it matches only the first tag <span class="subj"><span class="red"><strong>&lt;</strong></span>em<span class="red"><strong>&gt;</strong></span></span>.</p>
+<p><strong>Look-ahead and look-behind assertions</strong>: The groups <span class="regex">(?=...)</span>, <span class="regex">(?!...)</span>, <span class="regex">(?&lt;=...)</span>, and <span class="regex">(?&lt;!...)</span> are called <em>assertions </em>because they demand a condition to be met but don't consume any characters. For example, <span class="regex">abc(?=.*xyz)</span> is a look-ahead assertion that requires the string xyz to exist somewhere to the right of the string abc (if it doesn't, the entire pattern is not considered a match). <span class="regex">(?=...)</span> is called a <em>positive</em> look-ahead because it requires that the specified pattern exist. Conversely, <span class="regex">(?!...)</span> is a <em>negative</em> look-ahead because it requires that the specified pattern <em>not</em> exist. Similarly, <span class="regex">(?&lt;=...)</span> and <span class="regex">(?&lt;!...)</span> are positive and negative look-<em>behinds</em> (respectively) because they look to the <em>left</em> of the current position rather than the right. Look-behinds are more limited than look-aheads because they do not support quantifiers of varying size such as <span class="regex">*</span>, <span class="regex">?</span>, and <span class="regex">+</span>. The escape sequence \K is similar to a look-behind assertion because it causes any previously-matched characters to be omitted from the final matched string. For example, <span class="regex">foo\Kbar</span> matches &quot;foobar&quot; but reports that it has matched &quot;bar&quot;.</p>
+<p><strong>Related</strong>: Regular expressions are supported by <a href="../commands/RegExMatch.htm">RegExMatch()</a>, <a href="../commands/RegExReplace.htm">RegExReplace()</a>, and <a href="../commands/SetTitleMatchMode.htm">SetTitleMatchMode</a>.</p>
+<p><strong>Final note</strong>: Although this page touches upon most of the commonly-used RegEx features, there are quite a few other features you may want to explore such as conditional subpatterns. The complete PCRE manual is at <a href="http://www.pcre.org/pcre.txt">www.pcre.org/pcre.txt</a></p>
+<p>&nbsp; </p>
+</body>
+</html>

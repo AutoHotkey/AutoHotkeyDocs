@@ -1,0 +1,151 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<title>Loop (read file contents)</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link href="../css/commands.css" rel="stylesheet" type="text/css">
+<link href="../css/print.css" rel="stylesheet" type="text/css" media="print">
+</head>
+<body>
+
+<h1>Loop (read file contents)</h1>
+<hr size="2">
+<p>Retrieves the lines in a text file, one at a time (performs better than <a href="FileReadLine.htm">FileReadLine</a>).</p>
+
+<p class="CommandSyntax">
+    Loop, Read, InputFile [, OutputFile]</p>
+<h4>Parameters</h4>
+<table border="1" width="100%" cellspacing="0" cellpadding="3" bordercolor="#C0C0C0">
+  <tr>
+    <td width="15%">Read</td>
+    <td width="85%">This parameter must be the word READ.</td>
+  </tr>
+  <tr>
+    <td>InputFile</td>
+    <td>The name of the text file whose contents will be read by the loop, which is assumed to be in <a href="../Variables.htm#WorkingDir">%A_WorkingDir%</a> if an absolute path isn't specified. Windows and Unix formats are supported; that is, the file's lines may end in either carriage return and linefeed (`r`n) or just linefeed (`n).</td>
+  </tr>
+  <tr>
+    <td>OutputFile</td>
+    <td><p>(Optional) The name of the file to be kept open for the duration of the loop, which is assumed to be in <a href="../Variables.htm#WorkingDir">%A_WorkingDir%</a> if an absolute path isn't specified.</p>
+      <p>Within the loop's body, use the <a href="FileAppend.htm">FileAppend</a> command with only one parameter (the text to be written) to append to this special file. Appending to a file in this manner performs better than using <a href="FileAppend.htm">FileAppend</a> in its 2-parameter mode because the file does not need to be closed and re-opened for each operation. Remember to include a linefeed (`n) after the text, if desired.</p>
+      <p>The file is not opened if nothing is ever written to it. This happens if the Loop performs zero iterations or if it never uses the <a href="FileAppend.htm">FileAppend</a> command.</p>
+      <p><strong>Binary mode</strong>: To append in binary mode rather than text mode, prepend an asterisk to the filename. This causes each linefeed character (`n) to be written as as a single linefeed (LF) rather than the Windows standard of CR+LF. For example: <strong><em>*</em></strong><em>C:\My Unix File.txt</em>. Even without the asterisk, binary mode is put into effect automatically if the Loop's <u>first</u> use of <a href="FileAppend.htm">FileAppend</a> writes any carriage return and linefeed pairs (`r`n).</p>      
+      <p><strong>Standard Output (stdout)</strong>: Specifying an asterisk (*) for <em>OutputFile</em> sends any text written by <a href="FileAppend.htm">FileAppend</a> to standard output (stdout). Although such output can be redirected to a file, piped to another EXE, or captured by <a href="_ErrorStdOut.htm">fancy text editors</a>, it will not appear at the command prompt it was launched from. See <a href="FileAppend.htm">FileAppend</a> for more details.</p>
+      <p><strong>Escaped Commas</strong>: Unlike the last parameter of most other commands, commas in <em>OutputFile</em> must be escaped (`,).</p></td>
+  </tr>
+</table>
+
+<h4>Remarks</h4>
+<p>A file-reading loop is useful when you want to operate on each line contained in a text file, one at a time. It performs better than using <a href="FileReadLine.htm">FileReadLine</a> because: 1) the file can be kept open for the entire operation; and 2) the file does not have to be re-scanned each time to find the requested line number.</p>
+<p><a name="LoopReadLine"></a>The built-in variable <strong>A_LoopReadLine</strong> exists within any file-reading loop. It contains the contents of the current line excluding the carriage return and linefeed (`r`n) that marks the end of the line. If an inner file-reading loop is enclosed by an outer file-reading loop, the innermost loop's file-line will take precedence.</p>
+<p>Lines up to 65,534 characters long can be read. If the length of a line exceeds this, its remaining characters will be read during the next loop iteration.</p>
+<p><a href="StringSplit.htm">StringSplit</a> or a <a href="LoopParse.htm">parsing loop</a> is often used inside a file-reading loop to parse the contents of each line retrieved from <em>InputFile</em>. For example, if <em>InputFile</em>'s lines are each a series of tab-delimited fields, those fields can individually retrieved as in this example:</p>
+<pre>Loop, read, C:\Database Export.txt
+{
+    Loop, parse, A_LoopReadLine, %A_Tab%
+    {
+        MsgBox, Field number %A_Index% is %A_LoopField%.
+    }
+}</pre>
+<p>To load an entire file into variable, use <a href="FileRead.htm">FileRead</a> because it performs much better than a loop (especially for large files).</p>
+<p>To have multiple files open simultaneously, use DllCall() as shown in <a href="DllCall.htm#file">this example</a>.</p>
+<p>See <a href="Loop.htm">Loop</a> for information about <a href="Block.htm">Blocks</a>, <a href="Break.htm">Break</a>, <a href="Continue.htm">Continue</a>, and the A_Index variable (which exists in every type of loop).</p>
+<h4>Related</h4>
+<p><a href="FileRead.htm">FileRead</a>, <a href="FileReadLine.htm">FileReadLine</a>, <a href="FileAppend.htm">FileAppend</a>, <a href="Sort.htm">Sort</a>, <a href="Loop.htm">Loop</a>, <a href="Break.htm">Break</a>, <a href="Continue.htm">Continue</a>, <a href="Block.htm">Blocks, </a><a href="FileSetAttrib.htm">FileSetAttrib</a>, <a href="FileSetTime.htm">FileSetTime</a></p>
+<h4>Examples</h4>
+<pre class="NoIndent"><span class="CodeCom">; Example #1: Only those lines of the 1st file that contain the word FAMILY will be written to the 2nd file.</span>
+<span class="CodeCom">; Uncomment the first line to overwrite rather than append to any existing file.</span>
+<span class="CodeCom">;FileDelete, C:\Docs\Family Addresses.txt</span>
+
+Loop, read, C:\Docs\Address List.txt, C:\Docs\Family Addresses.txt
+{
+    IfInString, A_LoopReadLine, family, FileAppend, %A_LoopReadLine%`n
+}</pre>
+<p>&nbsp;</p>
+<pre class="NoIndent"><span class="CodeCom">; Example #2: Retrieve the last line from a text file.</span>
+Loop, read, C:\Log File.txt
+    last_line := A_LoopReadLine  <span class="CodeCom">; When loop finishes, this will hold the last line.</span></pre>
+<p>&nbsp;</p>
+<pre class="NoIndent"><span class="CodeCom">; Example #3: A working script that attempts to extract all FTP and HTTP</span>
+<span class="CodeCom">; URLs from a text or HTML file:</span>
+FileSelectFile, SourceFile, 3,, Pick a text or HTML file to analyze.
+if SourceFile =
+    return  <span class="CodeCom">; This will exit in this case.</span>
+
+SplitPath, SourceFile,, SourceFilePath,, SourceFileNoExt
+DestFile = %SourceFilePath%\%SourceFileNoExt% Extracted Links.txt
+
+IfExist, %DestFile%
+{
+    MsgBox, 4,, Overwrite the existing links file? Press No to append to it.`n`nFILE: %DestFile%
+    IfMsgBox, Yes
+        FileDelete, %DestFile%
+}
+
+LinkCount = 0
+Loop, read, %SourceFile%, %DestFile%
+{
+    URLSearchString = %A_LoopReadLine%
+    Gosub, URLSearch
+}
+MsgBox %LinkCount% links were found and written to &quot;%DestFile%&quot;.
+return
+
+
+URLSearch:
+<span class="CodeCom">; It's done this particular way because some URLs have other URLs embedded inside them:</span>
+StringGetPos, URLStart1, URLSearchString, http://
+StringGetPos, URLStart2, URLSearchString, ftp://
+StringGetPos, URLStart3, URLSearchString, www.
+
+<span class="CodeCom">; Find the left-most starting position:</span>
+URLStart = %URLStart1%  <span class="CodeCom">; Set starting default.</span>
+Loop
+{
+    <span class="CodeCom">; It helps performance (at least in a script with many variables) to resolve</span>
+    <span class="CodeCom">; &quot;URLStart%A_Index%&quot; only once:</span>
+    ArrayElement := URLStart%A_Index%
+    if ArrayElement =  <span class="CodeCom">; End of the array has been reached.</span>
+        break
+    if ArrayElement = -1  <span class="CodeCom">; This element is disqualified.</span>
+        continue
+    if URLStart = -1
+        URLStart = %ArrayElement%
+    else <span class="CodeCom">; URLStart has a valid position in it, so compare it with ArrayElement.</span>
+    {
+        if ArrayElement &lt;&gt; -1
+            if ArrayElement &lt; %URLStart%
+                URLStart = %ArrayElement%
+    }
+}
+
+if URLStart = -1  <span class="CodeCom">; No URLs exist in URLSearchString.</span>
+    return
+
+<span class="CodeCom">; Otherwise, extract this URL:</span>
+StringTrimLeft, URL, URLSearchString, %URLStart%  <span class="CodeCom">; Omit the beginning/irrelevant part.</span>
+Loop, parse, URL, %A_Tab%%A_Space%&lt;&gt;  <span class="CodeCom">; Find the first space, tab, or angle (if any).</span>
+{
+    URL = %A_LoopField%
+    break  <span class="CodeCom">; i.e. perform only one loop iteration to fetch the first &quot;field&quot;.</span>
+}
+<span class="CodeCom">; If the above loop had zero iterations because there were no ending characters found,</span>
+<span class="CodeCom">; leave the contents of the URL var untouched.</span>
+
+<span class="CodeCom">; If the URL ends in a double quote, remove it.  For now, StringReplace is used, but</span>
+<span class="CodeCom">; note that it seems that double quotes can legitimately exist inside URLs, so this</span>
+<span class="CodeCom">; might damage them:</span>
+StringReplace, URLCleansed, URL, &quot;,, All
+FileAppend, %URLCleansed%`n
+LinkCount += 1
+
+<span class="CodeCom">; See if there are any other URLs in this line:</span>
+StringLen, CharactersToOmit, URL
+CharactersToOmit += %URLStart%
+StringTrimLeft, URLSearchString, URLSearchString, %CharactersToOmit%
+Gosub, URLSearch  <span class="CodeCom">; Recursive call to self.</span>
+return</pre>
+
+</body>
+</html>

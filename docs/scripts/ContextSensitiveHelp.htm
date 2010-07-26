@@ -1,0 +1,90 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<title>Context Sensitive Help in Any Editor -- by Rajat</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link rel="alternate" type="application/rss+xml" title="AutoHotkey Forum RSS" href="/forum/rss.php">
+<link href="/docs/css/default.css" rel="stylesheet" type="text/css">
+<link href="/docs/css/print.css" rel="stylesheet" type="text/css" media="print">
+</head>
+<body>
+
+<h6>Context Sensitive Help in Any Editor -- by Rajat</h6>
+
+<p> This script makes Ctrl+2 (or another hotkey of your choice) show the help file
+ page for the selected AutoHotkey command or keyword. If nothing is selected,
+ the command name will be extracted from the beginning of the current line.
+</p>
+<p><a href="ContextSensitiveHelp.ahk">Download This Script</a> &nbsp;| &nbsp;<a href="index.htm">Other Sample Scripts</a> &nbsp;| &nbsp;<a href="http://www.autohotkey.com">Home</a></p>
+<hr>
+<pre class="NoIndent"><span class="CodeCom">; The hotkey below uses the clipboard to provide compatibility with the maximum</span>
+<span class="CodeCom">; number of editors (since ControlGet doesn't work with most advanced editors).</span>
+<span class="CodeCom">; It restores the original clipboard contents afterward, but as plain text,</span>
+<span class="CodeCom">; which seems better than nothing.</span>
+
+$^2::
+<span class="CodeCom">; The following values are in effect only for the duration of this hotkey thread.</span>
+<span class="CodeCom">; Therefore, there is no need to change them back to their original values</span>
+<span class="CodeCom">; because that is done automatically when the thread ends:</span>
+SetWinDelay 10
+SetKeyDelay 0
+AutoTrim, On
+
+if A_OSType = WIN32_WINDOWS  <span class="CodeCom">; Windows 9x</span>
+    Sleep, 500  <span class="CodeCom">; Give time for the user to release the key.</span>
+
+C_ClipboardPrev = %clipboard%
+clipboard =
+<span class="CodeCom">; Use the highlighted word if there is one (since sometimes the user might</span>
+<span class="CodeCom">; intentionally highlight something that isn't a command):</span>
+Send, ^c
+ClipWait, 0.1
+if ErrorLevel &lt;&gt; 0
+{
+    <span class="CodeCom">; Get the entire line because editors treat cursor navigation keys differently:</span>
+    Send, {home}+{end}^c
+    ClipWait, 0.2
+    if ErrorLevel &lt;&gt; 0  <span class="CodeCom">; Rare, so no error is reported.</span>
+    {
+        clipboard = %C_ClipboardPrev%
+        return
+    }
+}
+C_Cmd = %clipboard%  <span class="CodeCom">; This will trim leading and trailing tabs &amp; spaces.</span>
+clipboard = %C_ClipboardPrev%  <span class="CodeCom">; Restore the original clipboard for the user.</span>
+Loop, parse, C_Cmd, %A_Space%`,  <span class="CodeCom">; The first space or comma is the end of the command.</span>
+{
+    C_Cmd = %A_LoopField%
+    break <span class="CodeCom">; i.e. we only need one interation.</span>
+}
+IfWinNotExist, AutoHotkey Help
+{
+    <span class="CodeCom">; Determine AutoHotkey's location:</span>
+    RegRead, ahk_dir, HKEY_LOCAL_MACHINE, SOFTWARE\AutoHotkey, InstallDir
+    if ErrorLevel  <span class="CodeCom">; Not found, so look for it in some other common locations.</span>
+    {
+        if A_AhkPath
+            SplitPath, A_AhkPath,, ahk_dir
+        else IfExist ..\..\AutoHotkey.chm
+            ahk_dir = ..\..
+        else IfExist %A_ProgramFiles%\AutoHotkey\AutoHotkey.chm
+            ahk_dir = %A_ProgramFiles%\AutoHotkey
+        else
+        {
+            MsgBox Could not find the AutoHotkey folder.
+            return
+        }
+    }
+    Run %ahk_dir%\AutoHotkey.chm
+    WinWait AutoHotkey Help
+}
+<span class="CodeCom">; The above has set the &quot;last found&quot; window which we use below:</span>
+WinActivate
+WinWaitActive
+StringReplace, C_Cmd, C_Cmd, #, {#}
+send, !n{home}+{end}%C_Cmd%{enter}
+return
+</pre>
+</body>
+</html>

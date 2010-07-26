@@ -1,0 +1,166 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<title>Easy Window Dragging -- KDE style (requires XP/2k/NT) -- by Jonny</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link rel="alternate" type="application/rss+xml" title="AutoHotkey Forum RSS" href="/forum/rss.php">
+<link href="/docs/css/default.css" rel="stylesheet" type="text/css">
+<link href="/docs/css/print.css" rel="stylesheet" type="text/css" media="print">
+</head>
+<body>
+
+<h6>Easy Window Dragging -- KDE style (requires XP/2k/NT) -- by Jonny</h6>
+
+<p> This script makes it much easier to move or resize a window: 1) Hold down
+ the ALT key and LEFT-click anywhere inside a window to drag it to a new
+ location; 2) Hold down ALT and RIGHT-click-drag anywhere inside a window
+ to easily resize it; 3) Press ALT twice, but before releasing it the second
+ time, left-click to minimize the window under the mouse cursor, right-click
+ to maximize it, or middle-click to close it.
+</p>
+<p><a href="EasyWindowDrag_(KDE).ahk">Download This Script</a> &nbsp;| &nbsp;<a href="index.htm">Other Sample Scripts</a> &nbsp;| &nbsp;<a href="http://www.autohotkey.com">Home</a></p>
+<hr>
+<pre class="NoIndent"><span class="CodeCom">; This script was inspired by and built on many like it</span>
+<span class="CodeCom">; in the forum. Thanks go out to ck, thinkstorm, Chris,</span>
+<span class="CodeCom">; and aurelian for a job well done.</span>
+
+<span class="CodeCom">; Change history:</span>
+<span class="CodeCom">; November 07, 2006: Optimized resizing code in !RButton, courtesy of bluedawn.</span>
+<span class="CodeCom">; February 05, 2006: Fixed double-alt (the ~Alt hotkey) to work with latest versions of AHK.</span>
+
+<span class="CodeCom">; The Double-Alt modifier is activated by pressing</span>
+<span class="CodeCom">; Alt twice, much like a double-click. Hold the second</span>
+<span class="CodeCom">; press down until you click.</span>
+<span class="CodeCom">;</span>
+<span class="CodeCom">; The shortcuts:</span>
+<span class="CodeCom">;  Alt + Left Button  : Drag to move a window.</span>
+<span class="CodeCom">;  Alt + Right Button : Drag to resize a window.</span>
+<span class="CodeCom">;  Double-Alt + Left Button   : Minimize a window.</span>
+<span class="CodeCom">;  Double-Alt + Right Button  : Maximize/Restore a window.</span>
+<span class="CodeCom">;  Double-Alt + Middle Button : Close a window.</span>
+<span class="CodeCom">;</span>
+<span class="CodeCom">; You can optionally release Alt after the first</span>
+<span class="CodeCom">; click rather than holding it down the whole time.</span>
+
+If (A_AhkVersion &lt; &quot;1.0.39.00&quot;)
+{
+    MsgBox,20,,This script may not work properly with your version of AutoHotkey. Continue?
+    IfMsgBox,No
+    ExitApp
+}
+
+
+<span class="CodeCom">; This is the setting that runs smoothest on my</span>
+<span class="CodeCom">; system. Depending on your video card and cpu</span>
+<span class="CodeCom">; power, you may want to raise or lower this value.</span>
+SetWinDelay,2
+
+CoordMode,Mouse
+return
+
+!LButton::
+If DoubleAlt
+{
+    MouseGetPos,,,KDE_id
+    <span class="CodeCom">; This message is mostly equivalent to WinMinimize,</span>
+    <span class="CodeCom">; but it avoids a bug with PSPad.</span>
+    PostMessage,0x112,0xf020,,,ahk_id %KDE_id%
+    DoubleAlt := false
+    return
+}
+<span class="CodeCom">; Get the initial mouse position and window id, and</span>
+<span class="CodeCom">; abort if the window is maximized.</span>
+MouseGetPos,KDE_X1,KDE_Y1,KDE_id
+WinGet,KDE_Win,MinMax,ahk_id %KDE_id%
+If KDE_Win
+    return
+<span class="CodeCom">; Get the initial window position.</span>
+WinGetPos,KDE_WinX1,KDE_WinY1,,,ahk_id %KDE_id%
+Loop
+{
+    GetKeyState,KDE_Button,LButton,P <span class="CodeCom">; Break if button has been released.</span>
+    If KDE_Button = U
+        break
+    MouseGetPos,KDE_X2,KDE_Y2 <span class="CodeCom">; Get the current mouse position.</span>
+    KDE_X2 -= KDE_X1 <span class="CodeCom">; Obtain an offset from the initial mouse position.</span>
+    KDE_Y2 -= KDE_Y1
+    KDE_WinX2 := (KDE_WinX1 + KDE_X2) <span class="CodeCom">; Apply this offset to the window position.</span>
+    KDE_WinY2 := (KDE_WinY1 + KDE_Y2)
+    WinMove,ahk_id %KDE_id%,,%KDE_WinX2%,%KDE_WinY2% <span class="CodeCom">; Move the window to the new position.</span>
+}
+return
+
+!RButton::
+If DoubleAlt
+{
+    MouseGetPos,,,KDE_id
+    <span class="CodeCom">; Toggle between maximized and restored state.</span>
+    WinGet,KDE_Win,MinMax,ahk_id %KDE_id%
+    If KDE_Win
+        WinRestore,ahk_id %KDE_id%
+    Else
+        WinMaximize,ahk_id %KDE_id%
+    DoubleAlt := false
+    return
+}
+<span class="CodeCom">; Get the initial mouse position and window id, and</span>
+<span class="CodeCom">; abort if the window is maximized.</span>
+MouseGetPos,KDE_X1,KDE_Y1,KDE_id
+WinGet,KDE_Win,MinMax,ahk_id %KDE_id%
+If KDE_Win
+    return
+<span class="CodeCom">; Get the initial window position and size.</span>
+WinGetPos,KDE_WinX1,KDE_WinY1,KDE_WinW,KDE_WinH,ahk_id %KDE_id%
+<span class="CodeCom">; Define the window region the mouse is currently in.</span>
+<span class="CodeCom">; The four regions are Up and Left, Up and Right, Down and Left, Down and Right.</span>
+If (KDE_X1 &lt; KDE_WinX1 + KDE_WinW / 2)
+   KDE_WinLeft := 1
+Else
+   KDE_WinLeft := -1
+If (KDE_Y1 &lt; KDE_WinY1 + KDE_WinH / 2)
+   KDE_WinUp := 1
+Else
+   KDE_WinUp := -1
+Loop
+{
+    GetKeyState,KDE_Button,RButton,P <span class="CodeCom">; Break if button has been released.</span>
+    If KDE_Button = U
+        break
+    MouseGetPos,KDE_X2,KDE_Y2 <span class="CodeCom">; Get the current mouse position.</span>
+    <span class="CodeCom">; Get the current window position and size.</span>
+    WinGetPos,KDE_WinX1,KDE_WinY1,KDE_WinW,KDE_WinH,ahk_id %KDE_id%
+    KDE_X2 -= KDE_X1 <span class="CodeCom">; Obtain an offset from the initial mouse position.</span>
+    KDE_Y2 -= KDE_Y1
+    <span class="CodeCom">; Then, act according to the defined region.</span>
+    WinMove,ahk_id %KDE_id%,, KDE_WinX1 + (KDE_WinLeft+1)/2*KDE_X2  <span class="CodeCom">; X of resized window</span>
+                            , KDE_WinY1 +   (KDE_WinUp+1)/2*KDE_Y2  <span class="CodeCom">; Y of resized window</span>
+                            , KDE_WinW  -     KDE_WinLeft  *KDE_X2  <span class="CodeCom">; W of resized window</span>
+                            , KDE_WinH  -       KDE_WinUp  *KDE_Y2  <span class="CodeCom">; H of resized window</span>
+    KDE_X1 := (KDE_X2 + KDE_X1) <span class="CodeCom">; Reset the initial position for the next iteration.</span>
+    KDE_Y1 := (KDE_Y2 + KDE_Y1)
+}
+return
+
+<span class="CodeCom">; &quot;Alt + MButton&quot; may be simpler, but I</span>
+<span class="CodeCom">; like an extra measure of security for</span>
+<span class="CodeCom">; an operation like this.</span>
+!MButton::
+If DoubleAlt
+{
+    MouseGetPos,,,KDE_id
+    WinClose,ahk_id %KDE_id%
+    DoubleAlt := false
+    return
+}
+return
+
+<span class="CodeCom">; This detects &quot;double-clicks&quot; of the alt key.</span>
+~Alt::
+DoubleAlt := A_PriorHotKey = &quot;~Alt&quot; AND A_TimeSincePriorHotkey &lt; 400
+Sleep 0
+KeyWait Alt  <span class="CodeCom">; This prevents the keyboard's auto-repeat feature from interfering.</span>
+return
+</pre>
+</body>
+</html>

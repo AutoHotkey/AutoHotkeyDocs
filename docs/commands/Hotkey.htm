@@ -1,0 +1,166 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<title>Hotkey</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link href="../css/commands.css" rel="stylesheet" type="text/css">
+<link href="../css/print.css" rel="stylesheet" type="text/css" media="print">
+</head>
+<body>
+
+<h1>Hotkey</h1>
+<hr size="2">
+<p>Creates, modifies, enables, or disables a hotkey while the script is running.</p>
+
+<p class="CommandSyntax">Hotkey, KeyName [, Label, Options]<br>
+    Hotkey, IfWinActive/Exist [, WinTitle, WinText]</p>
+<h4>Parameters</h4>
+<table border="1" width="100%" cellspacing="0" cellpadding="3" bordercolor="#C0C0C0">
+  <tr>
+    <td width="15%">KeyName</td>
+    <td width="85%"><p>Name of the hotkey's activation key, including any <a href="../Hotkeys.htm#symbols">modifier symbols</a>. For example, specify #c for the Win+C hotkey.</p>
+    <p>If <em>KeyName</em> already exists as a hotkey, that hotkey will be updated with the values of the command's other parameters.</p>
+    <p><em>KeyName</em> can also be the name of an existing hotkey label (i.e. a double-colon label), which will cause that hotkey to be updated with the values of the command's other parameters.</p>
+    <p>When specifying an <em>existing</em> hotkey, <em>KeyName</em> is not case sensitive. However, the names of keys must be spelled the same as in the existing hotkey (e.g. Esc is not the same as Escape for this purpose). Also, the order of <a href="../Hotkeys.htm#Symbols">modifier symbols</a> such as ^!+# does not matter.</p>
+    <p>The <a href="#IfWin">current IfWin setting</a>  determines the <a href="#variant">variant</a> of a hotkey upon which the Hotkey command will operate. If the variant does not yet exist, it will be created.</p>
+    <p>When a hotkey is first created -- either by the Hotkey command or a <a href="../Hotkeys.htm">double-colon label</a> in the script -- its key name and the ordering of its modifier symbols becomes the permanent name of that hotkey as reflected by <a href="../Variables.htm#ThisHotkey">A_ThisHotkey</a>. This name does not change even if the Hotkey command later accesses the hotkey with a different symbol ordering.</p></td>
+  </tr>
+  <tr>
+    <td>Label</td>
+    <td><p>The label name whose contents will be executed (as a new <a href="../misc/Threads.htm">thread</a>) when the hotkey is pressed. Both normal labels and <a href="../Hotkeys.htm">hotkey</a>/<a href="../Hotstrings.htm">hotstring</a> labels can be used. The trailing colon(s) should not be included. If <em>Label</em> is dynamic (e.g. %VarContainingLabelName%), <a href="../Functions.htm#IsLabel">IsLabel(VarContainingLabelName)</a> may be called beforehand to verify that the label exists.</p>
+      <p>This parameter can be left blank if <em>KeyName</em> already exists as a hotkey, in which case its label will not be changed. This is useful to change only the hotkey's <em>Options</em>.</p>
+      <p><strong>If the label is specified but the hotkey is disabled from a previous use of this command, the hotkey will remain disabled. To prevent this, include the word ON in <em>Options</em>.</strong></p>
+      <p>This parameter can also be one of the following special values:</p>
+      <p><strong>On</strong>: The hotkey becomes enabled. No action is taken if the hotkey is already On.</p>
+      <p><strong>Off</strong>: The hotkey becomes disabled. No action is taken if the hotkey is already Off.</p>
+      <p><strong>Toggle</strong>: The hotkey is set to the opposite state (enabled or disabled).</p>
+      <p><strong>AltTab</strong> (and others): These are special Alt-Tab hotkey actions that are described <a href="../Hotkeys.htm#alttab">here</a>.</p>
+      <p>Note: The <a href="#IfWin">current IfWin setting</a>  determines the <a href="#variant">variant</a> of a hotkey upon which On/Off/Toggle will operate.</p>      </td>
+  </tr>
+  <tr>
+    <td>Options</td>
+    <td><p>A string of zero or more of the following letters with optional spaces in between. For example: UseErrorLevel B0</p>
+      <p><strong><a name="UseErrorLevel"></a>UseErrorLevel</strong>: If the command encounters a problem, this option skips the warning dialog, sets <a href="../misc/ErrorLevel.htm">ErrorLevel</a> to one of the codes from the table <a href="#ErrorLevel">below</a>, then allows the <a href="../misc/Threads.htm">current thread</a> to continue.</p>
+      <p><strong>On</strong>: Enables the hotkey if it is currently disabled.</p>
+      <p><strong>Off</strong>: Disables the hotkey if it is currently enabled. This is typically used to create a hotkey in an initially-disabled state.</p>
+      <p><strong>B</strong> or <strong>B0</strong>: Specify the letter B to buffer the hotkey as described in <a href="_MaxThreadsBuffer.htm">#MaxThreadsBuffer</a>. Specify B0 (B with the number 0) to disable this type of buffering.</p>
+      <p><strong>Pn</strong>: Specify the letter P followed by the hotkey's <a href="../misc/Threads.htm">thread priority</a>. If the P option is omitted when creating a hotkey, 0 will be used.</p>
+      <p><strong>Tn</strong>: Specify the letter T followed by a the number of threads to allow for this hotkey as described in <a href="_MaxThreadsPerHotkey.htm">#MaxThreadsPerHotkey</a>. For example: T5</p>
+      <p>If either or both of the <strong>B</strong> and <strong>T</strong> option letters are omitted and the hotkey already exists, those options will not be changed. But if the hotkey does not yet exist -- that is, it is about to be created by this command -- the options will default to those most recently in effect. For example, the instance of <a href="_MaxThreadsBuffer.htm">#MaxThreadsBuffer</a> that occurs closest to the bottom of the script will be used. If <a href="_MaxThreadsBuffer.htm">#MaxThreadsBuffer</a> does not appear in the script, its default setting (OFF in this case) will be used. This behavior also applies to <a href="_IfWinActive.htm">#IfWin</a>: the bottommost occurrence applies to newly created hotkeys unless &quot;<a href="#IfWin">Hotkey IfWin</a>&quot; has executed since the script started.</p>
+      <p>Note: The <a href="#IfWin">current IfWin setting</a>  determines the <a href="#variant">variant</a> of a hotkey upon which the Hotkey command will operate. If the variant does not yet exist, it will be created.</p>      </td>
+  </tr>
+  <tr>
+    <td>IfWinActive<br>
+    IfWinExist</td>
+    <td>(IfWin<strong>Not</strong>Active and IfWin<strong>Not</strong>Exist are also supported). These sub-commands make all subsequently-created hotkeys context sensitive. See <a href="#IfWin">below</a> for details.</td>
+  </tr>
+  <tr>
+    <td>WinTitle<br>
+    WinText</td>
+    <td><p>Within these parameters, any variable reference such as %var% becomes permanent the moment the command finishes. In other words, subsequent changes to the contents of the variable are not seen by existing IfWin hotkeys.</p>
+      <p>Like <a href="_IfWinActive.htm">#IfWinActive/Exist</a>, <em>WinTitle</em> and <em>WinText</em> use the default settings for <a href="SetTitleMatchMode.htm">SetTitleMatchMode</a> and <a href="DetectHiddenWindows.htm">DetectHiddenWindows</a> as set in the <a href="../Scripts.htm#auto">auto-execute section</a>. See <a href="_IfWinActive.htm">#IfWinActive/Exist</a> for details. </p></td>
+  </tr>
+</table>
+
+<h4><a name="ErrorLevel"></a>ErrorLevel</h4>
+<p><a href="../misc/ErrorLevel.htm">ErrorLevel</a> is changed only when: 1) the first parameter is IfWin[Not]Active/Exist, in which case it is set to 1 if there was a problem or 0 otherwise; or 2) the word UseErrorLevel is present in the <em>Options</em> parameter.</p>
+<table width="100%"  border="1">
+  <tr>
+    <td><strong>Error</strong></td>
+    <td><strong>Description</strong></td>
+  </tr>
+  <tr>
+    <td>1</td>
+    <td>The <em>Label</em> parameter specifies a nonexistent label name. </td>
+  </tr>
+  <tr>
+    <td>2</td>
+    <td>The <em>KeyName</em> parameter specifies one or more keys that are either not recognized or not supported by the current keyboard layout/language.</td>
+  </tr>
+  <tr>
+    <td>3</td>
+    <td>Unsupported prefix key. For example, using the mouse wheel as a prefix in a hotkey such as <em>WheelDown &amp; Enter</em> is not supported.</td>
+  </tr>
+  <tr>
+    <td>4</td>
+    <td>The <em>KeyName</em> parameter is not suitable for use with the <a href="../Hotkeys.htm#alttab">AltTab or ShiftAltTab </a>actions. A combination of two keys is required. For example: <em>RControl &amp; RShift::AltTab</em></td>
+  </tr>
+  <tr>
+    <td>5</td>
+    <td>The command attempted to modify a nonexistent hotkey.</td>
+  </tr>
+  <tr>
+    <td>6</td>
+    <td>The command attempted to modify a nonexistent <a href="#variant">variant</a> of an existing hotkey. To solve this, use &quot;<a href="#IfWin">Hotkey IfWin</a>&quot; to set the criteria to match those of the hotkey to be modified.</td>
+  </tr>
+  <tr>
+    <td>50</td>
+    <td>Windows 95/98/Me: The command completed successfully but the operating system refused to activate the hotkey. This is usually caused by the hotkey being &quot;in use&quot; by some other script or application (or the OS itself). This occurs only on Windows 95/98/Me because on other operating systems, the program will resort to the <a href="_InstallKeybdHook.htm">keyboard hook</a> to <a href="../misc/Override.htm">override</a> the refusal.</td>
+  </tr>
+  <tr>
+    <td>51</td>
+    <td>Windows 95/98/Me: The command completed successfully but the hotkey is not supported on Windows 95/98/Me. For example, mouse hotkeys and prefix hotkeys such as &quot;a &amp; b&quot; are not supported.</td>
+  </tr>
+  <tr>
+    <td>98</td>
+    <td>Creating this hotkey would exceed the 1000-hotkey-per-script limit (however, each hotkey can have an unlimited number of <a href="#variant">variants</a>, and there is no limit to the number of <a href="../Hotstrings.htm">hotstrings</a>).</td>
+  </tr>
+  <tr>
+    <td>99</td>
+    <td>Out of memory. This is very rare and usually happens only when the operating system has become unstable.</td>
+  </tr>
+</table>
+<p><br>
+Tip: The UseErrorLevel option can be used to test for the existence of a hotkey variant. For example:</p>
+<pre>Hotkey, ^!p,, UseErrorLevel
+if ErrorLevel in 5,6
+    MsgBox The hotkey does not exist or it has no variant for the current IfWin criteria.</pre>
+<h4>Remarks</h4>
+<p>If the goal is to disable selected hotkeys or hotstrings automatically based on the type of window that is active, <em>Hotkey, ^!c, Off</em> is usually less convenient than using <a href="_IfWinActive.htm">#IfWinActive/Exist</a> (or their dynamic counterparts &quot;Hotkey IfWinActive/Exist&quot; <a href="#IfWin">below</a>).</p>
+<p>Creating hotkeys via <a href="../Hotkeys.htm">double-colon labels</a> performs better than using the Hotkey command because the hotkeys can all be enabled as a batch when the script starts (rather than one by one). Therefore, it is best to use this command to create only those hotkeys whose key names are not known until after the script has started running. One such case is when a script's hotkeys for various actions are configurable via an <a href="IniRead.htm">INI file</a>.</p>
+<p>A given label can be the target of more than one hotkey. If it is known that a label was called by a hotkey, you can determine which hotkey by checking the built-in variable <a href="../Variables.htm#ThisHotkey">A_ThisHotkey</a>.</p>
+<p>If the script is <a href="Suspend.htm">suspended</a>, newly added/enabled hotkeys will also be suspended until the suspension is turned off (unless they are exempt as described in the <a href="Suspend.htm">Suspend</a> section).</p>
+<p>The <a href="_InstallKeybdHook.htm">keyboard</a> and/or <a href="_InstallMouseHook.htm">mouse</a> hooks will be installed or removed if justified by the changes made by this command.</p>
+<p>Although the Hotkey command cannot directly enable or disable hotkeys in scripts other than its own, in most cases it can <a href="../misc/Override.htm">override</a> them by creating or enabling the same hotkeys. Whether this works depends on a combination of factors: 1) Whether the hotkey to be overridden is a <a href="ListHotkeys.htm">hook hotkey</a> in the other script (non-hook hotkeys can always be overridden except on Win9x); 2) The fact that the most recently started script's hotkeys generally take precedence over those in other scripts (therefore, if the script intending to override was started most recently, its override should always succeed);  3) Whether the enabling or creating of this hotkey will newly activate the <a href="_InstallKeybdHook.htm">keyboard</a> or <a href="_InstallMouseHook.htm">mouse</a> hook (if so, the override will always succeed).</p>
+<p>Once a script has at least one hotkey, it becomes persistent, meaning that <a href="ExitApp.htm">ExitApp</a> rather than Exit should be used to terminate it. Hotkey scripts are also automatically <a href="_SingleInstance.htm">#SingleInstance</a> unless <em>#SingleInstance Off</em> has been specified.</p>
+<h4><a name="IfWin"></a>Remarks About <em>Hotkey, IfWinXX [, WinTitle, WinText]</em></h4>
+<p>The &quot;Hotkey IfWin&quot; commands allow context-sensitive <a href="../Hotkeys.htm">hotkeys</a> to be created and modified while the script is running (by contrast, the <a href="_IfWinActive.htm">#IfWinActive/Exist</a> directives are positional and take effect before the script begins executing). For example:</p>
+<pre>Hotkey, IfWinActive, ahk_class Notepad
+Hotkey, ^!e, MyLabel  <span class="CodeCom">; Creates a hotkey that works only in Notepad.</span></pre>
+<p>Using &quot;Hotkey IfWin&quot; puts context sensitivity into effect for all subsequently created or modified <a href="../Hotkeys.htm">hotkeys</a>. In addition, each IfWin sub-command is mutually exclusive; that is, only the most recent one will be in effect.</p>
+<p>To turn off context sensitivity (that is, to make subsequently-created hotkeys work in all windows), specify any IfWin sub-command but omit the <em>WinTitle/Text</em> parameters. For example: <em>Hotkey, IfWinActive</em></p>
+<p>If &quot;Hotkey IfWin&quot; is never used by a script, the bottommost use of the <a href="_IfWinActive.htm">#IfWin</a> directive (if any) will be in effect for the Hotkey command.</p>
+<p>When a mouse or keyboard hotkey is disabled via IfWin, it performs its native function; that is, it passes through to the active window as though there is no such hotkey. There are two exceptions: 1) Windows 95/98/Me: pressing an IfWin-disabled hotkey has no effect (not even its native function); and 2) Joystick hotkeys: although IfWin works, it never prevents other programs from seeing the press of a button.</p>
+<h4><a name="variant"></a>Variant (Duplicate) Hotkeys</h4>
+<p>A particular hotkey can be created more than once if each definition has different IfWin criteria. These are known as <em>hotkey variants</em>. For example:</p>
+<pre>Hotkey, IfWinActive, ahk_class Notepad
+Hotkey, ^!c, MyLabelForNotepad
+Hotkey, IfWinActive, ahk_class WordPadClass
+Hotkey, ^!c, MyLabelForWordPad
+Hotkey, IfWinActive
+Hotkey, ^!c, MyLabelForAllOtherWindows</pre>
+<p>If more than one variant of a hotkey is eligible to fire, only the one created earliest will fire. The exception to this is the global variant (the one with no IfWin criteria): It always has the lowest precedence, and thus will fire only if no other variant is eligible.</p>
+<p>When creating duplicate hotkeys, the order of <a href="../Hotkeys.htm#Symbols">modifier symbols</a> such as ^!+# does not matter. For example, ^!c is the same as !^c. However, keys must be spelled consistently. For example, <em>Esc</em> is not the same as <em>Escape </em>for this purpose (though the case does not matter). Finally, any hotkey with a <a href="../Hotkeys.htm#wildcard">wildcard prefix (*)</a> is entirely separate from a non-wildcard one; for example, *F1 and F1 would each have their own set of variants.</p>
+<p>For more information about IfWin hotkeys, see <a href="_IfWinActive.htm#gen">#IfWin's General Remarks</a>.</p>
+<h4>Related</h4>
+<p><a href="../Hotkeys.htm#symbols">Hotkey Symbols</a>, <a href="_IfWinActive.htm">#IfWinActive/Exist</a>, <a href="_MaxThreadsBuffer.htm">#MaxThreadsBuffer</a>, <a href="_MaxThreadsPerHotkey.htm">#MaxThreadsPerHotkey</a>, <a href="Suspend.htm">Suspend</a>, <a href="../Functions.htm#IsLabel">IsLabel()</a>, <a href="../misc/Threads.htm">Threads</a>, <a href="Thread.htm">Thread</a>, <a href="Critical.htm">Critical</a>, <a href="Gosub.htm">Gosub</a>, <a href="Return.htm">Return</a>, <a href="Menu.htm">Menu</a>, <a href="SetTimer.htm">SetTimer</a></p>
+<h4>Examples</h4>
+<pre class="NoIndent">Hotkey, ^!z, MyLabel
+return
+
+MyLabel:
+MsgBox You pressed %A_ThisHotkey%.
+return
+
+<span class="CodeCom">; Other examples:</span>
+Hotkey, RCtrl &amp; RShift, AltTab <span class="CodeCom">; Makes RCtrl &amp; RShift operate like Alt-Tab.</span>
+Hotkey, #c, On  <span class="CodeCom">; Re-enables the Win-C hotkey.</span>
+Hotkey, $+#c, Off  <span class="CodeCom">; Disables the Shift-Win-C hotkey.</span>
+Hotkey, ^!a, , T5  <span class="CodeCom">; Changes the hotkey to allow 5 threads.</span>
+
+Hotkey, IfWinActive, ahk_class Notepad
+Hotkey, ^!c, MyLabelForNotepad  <span class="CodeCom">; Creates Ctrl-Alt-C as a hotkey that works only in Notepad.</span></pre>
+
+</body>
+</html>

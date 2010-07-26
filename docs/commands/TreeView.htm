@@ -1,0 +1,271 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<title>TreeView (GUI)</title>
+<meta name="description" content="Create TreeView controls easily with this free scripting language. Includes context menus, icons, and optional ListView companion controls.">
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link href="../css/commands.css" rel="stylesheet" type="text/css">
+<link href="../css/print.css" rel="stylesheet" type="text/css" media="print">
+<style type="text/css">
+<!--
+h1 {font-size: 200%;}
+hr {margin-bottom: 0em;}
+-->
+</style>
+</head>
+
+<body>
+<h1>TreeView <span class="small80">[v1.0.44+]</span></h1>
+<hr size="2">
+<h2>Table of Contents</h2>
+<ul>
+  <li><a href="#Intro">Introduction and Simple Example</a></li>
+  <li><a href="#Options">Options and Styles</a></li>
+  <li><a href="#BuiltIn">Built-in Functions</a>: 1) <a href="#bifAddModifyDelete">Add/modify/delete items</a>; 2) <a href="#bifGet">Getting data out of a TreeView</a></li>
+  <li><a href="#notify">G-Label Notifications</a></li>
+  <li><a href="#Remarks">Remarks</a></li>
+  <li><a href="#Examples">Longer Example</a></li>
+</ul>
+<h2><a name="Intro"></a>Introduction and Simple Example</h2>
+<p>A Tree-View displays a hierarchy of items by indenting child items beneath their parents. The most common example is Explorer's tree of drives and folders.</p>
+<p>The syntax for creating a TreeView is:</p>
+<p><strong><a name="GuiAdd"></a>Gui, Add, TreeView, <em>Options</em></strong></p>
+<p>Here is a working script that creates and displays a simple hierarchy of items:</p>
+<pre>Gui, Add, TreeView
+<span class="red">P1</span> := <a href="#TV_Add">TV_Add</a>(&quot;First parent&quot;)
+P1C1 := TV_Add(&quot;Parent 1's first child&quot;, <span class="red">P1</span>)  <span class="CodeCom">; Specify P1 to be this item's parent.</span>
+P2 := TV_Add(&quot;Second parent&quot;)
+P2C1 := TV_Add(&quot;Parent 2's first child&quot;, P2)
+P2C2 := TV_Add(&quot;Parent 2's second child&quot;, P2)
+P2C2C1 := TV_Add(&quot;Child 2's first child&quot;, P2C2)
+
+Gui, Show  <span class="CodeCom">; Show the window and its TreeView.</span>
+return
+
+GuiClose:  <span class="CodeCom">; Exit the script when the user closes the TreeView's GUI window.</span>
+ExitApp</pre>
+<h2><a name="Options"></a>Options and Styles for &quot;<em>Gui, Add, TreeView, <u>Options</u></em>&quot;</h2>
+<p><strong><a name="AltSubmit"></a>AltSubmit:</strong> Notifies the script for more types of TreeView events than normal. In other words, the g-label is launched more often. See <a href="#notify">TreeView Notifications</a> for details.</p>
+<p><strong>Background:</strong> Specify the word Background followed immediately by a color name (see <a href="Progress.htm#colors">color chart</a>) or RGB value (the 0x prefix is optional). Examples: BackgroundSilver, BackgroundFFDD99. If this option is not present, the TreeView initially defaults to the background color set by the last parameter of <a href="Gui.htm#Color">Gui Color</a> (or if none, the system's default background color). Specifying BackgroundDefault applies the system's default background color (usually white). For example, a TreeView can be restored to the default color via <em>GuiControl, +BackgroundDefault, MyTreeView</em>.</p>
+<p><strong>Buttons</strong>: Specify -Buttons (minus Buttons) to avoid displaying a plus or minus button to the left of each item that has children.</p>
+<p><strong>C</strong>: Text color. Specify the letter C followed immediately by a color name (see <a href="Progress.htm#colors">color chart</a>) or RGB value (the 0x prefix is optional). Examples: cRed, cFF2211, c0xFF2211, cDefault</p>
+<p><strong><a name="Checked"></a>Checked:</strong> Provides a checkbox at the left side of each item. When <a href="#TV_Add">adding</a> an item, specify the word <em>Check</em> in its options to have the box to start off checked instead of unchecked. The user may either click the checkbox or press the spacebar to check or uncheck an item. To discover which items in a TreeView are currently checked, call <a href="#TV_GetNext">TV_GetNext()</a> or <a href="#TV_Get">TV_Get()</a>. </p>
+<p><strong>HScroll</strong>: Specify -HScroll (minus HScroll) to disable horizontal scrolling in the control (in addition, the control will not display any horizontal scroll bar). On operating systems older than Windows 2000/Me, this option has no effect unless the system has
+
+
+ Comctl32.dll 5.8 or greater (distributed with applications such as Internet Explorer 5 or later).</p>
+<p><strong><a name="ImageList"></a>ImageList</strong>: This is the means by which icons are added to a TreeView. Specify the word <em>ImageList</em> followed immediately by the ImageListID returned from a previous call to <a href="ListView.htm#IL_Create">IL_Create()</a>. This option has an effect only when creating a TreeView. Here is a working example:</p>
+<pre>ImageListID := <a href="ListView.htm#IL_Create">IL_Create</a>(10)  <span class="CodeCom">; Create an ImageList with initial capacity for 10 icons.</span>
+Loop 10  <span class="CodeCom">; Load the ImageList with some standard system icons.</span>
+    <a href="ListView.htm#IL_Add">IL_Add</a>(ImageListID, &quot;shell32.dll&quot;, A_Index)  <span class="CodeCom">; Omits the DLL's path so that it works on Windows 9x too.</span>
+Gui, Add, TreeView, <strong>ImageList%ImageListID%</strong>
+<a href="#TV_Add">TV_Add</a>(&quot;Name of Item&quot;, 0, &quot;Icon4&quot;)  <span class="CodeCom">; Add an item to the TreeView and give it a folder icon.</span>
+Gui Show</pre>
+<p><strong>Lines</strong>: Specify -Lines (minus Lines) to avoid displaying a network of lines connecting parent items to their children. However, removing these lines also prevents the plus/minus buttons from being shown for top-level items.</p>
+<p><strong><a name="ReadOnly"></a>ReadOnly:</strong> Specify -ReadOnly (minus ReadOnly) to allow editing of the text/name of each item. To edit an item, select it then press the <a href="#WantF2">F2 key</a>. Alternatively, you can click an item once to select it, wait at least half a second, then click the same item again to edit it. After being edited, an item can be alphabetically repositioned among its siblings via the following example:</p>
+<pre>Gui, Add, TreeView, -ReadOnly <a href="#notify">gMyTree</a>
+<span class="CodeCom">; ...</span>
+MyTree:
+if (A_GuiEvent == &quot;e&quot;)  <span class="CodeCom">; The user has finished editing an item (use == for case sensitive comparison).</span>
+    TV_Modify(TV_GetParent(A_EventInfo), &quot;Sort&quot;)  <span class="CodeCom">; This works even if the item has no parent.</span>
+return</pre>
+<p><strong>R</strong>: Rows of height (upon creation). Specify the letter R followed immediately by the number of rows for which to make room inside the control. For example, R10 would make the control 10 items tall.</p>
+<p><strong><a name="WantF2"></a>WantF2</strong>: Specify -WantF2 (minus WantF2) to prevent an F2 keystroke from <a href="#ReadOnly">editing </a>the currently selected item. This setting is ignored unless <a href="#ReadOnly">-ReadOnly</a> is also in effect. Regardless of this setting, the g-label still receives F2 <a href="#NotifyK">notifications</a>.</p>
+<p><strong>(Unnamed numeric styles):</strong> Since styles other than the above are rarely used, they do not have names. See the <a href="../misc/Styles.htm#TreeView">TreeView styles table</a> for a list.</p>
+<h2><a name="BuiltIn"></a>Built-in Functions for TreeViews</h2>
+<p>All of the TreeView functions operate upon the current thread's <a href="Gui.htm#DefaultWin">default GUI window</a> (which can be changed via <a href="Gui.htm#Default"><em>Gui, 2:Default</em></a>). If the default window does not exist or has no TreeView controls, all functions return zero to indicate the problem.</p>
+<p><a name="GuiTV"></a>If the window has more than one TreeView control, by default the functions operate upon the one most recently added. To change this, specify <em>Gui, TreeView, TreeViewName</em>, where <em>TreeViewName</em> is the name of the TreeView's <a href="Gui.htm#var">associated variable</a> or its ClassNN as shown by Window Spy. Once changed, all existing and future <a href="../misc/Threads.htm">threads</a> will use the indicated TreeView.</p>
+<h2><a name="bifAddModifyDelete"></a>Add, Modify, and Delete Items</h2>
+<p><strong><a name="TV_Add"></a>TV_Add(Name, [ParentItemID, Options]):</strong> Adds a new item to the TreeView and returns its unique Item ID number (or 0 upon failure). <em>Name</em> is the displayed text of the item, which can be text or numeric (including numeric <a href="../Variables.htm#Expressions">expression</a> results). <em>ParentItemID</em> is the ID number of the new item's parent (omit it or specify 0 to add the item at the top level). When adding a large number of items, performance can be improved by using <em>GuiControl, -Redraw, MyTreeView</em> before adding the items, and <em>GuiControl, +Redraw, MyTreeView</em> afterward.</p>
+<p><span class="greenbold">Options for TV_Add() and TV_Modify():</span> The <em>Options</em> parameter is a string containing zero or more words from the list below (not case sensitive). Separate each word from the next with a space or tab. To remove an option, precede it with a minus sign. To add an option, a plus sign is permitted but not required.</p>
+<p><span class="green"><a name="Bold"></a>Bold</span>: Displays the item's name in a bold font. To later un-bold the item, use <em>TV_Modify(ItemID, &quot;-Bold&quot;)</em>.</p>
+<p><span class="green"><a name="Check"></a>Check</span>: Shows a checkmark to the left of the item (if the TreeView has <a href="#Checked">checkboxes</a>). To later uncheck it, use <em>TV_Modify(ItemID, &quot;-Check&quot;)</em>. The word <em>Check</em> may optionally be followed immediately by a 0 or 1 to indicate the starting state. In other words, both <em>&quot;Check&quot;</em> and <em>&quot;Check&quot; <strong>.</strong> VarContainingOne</em> are the same (the period used here is the <a href="../Variables.htm#concat">concatenation operator</a>).</p>
+<p><span class="green"><a name="Expand"></a>Expand</span>: Expands the item to reveal its children (if any). To later collapse the item, use <em>TV_Modify(ItemID, &quot;-Expand&quot;)</em>. If there are no children, <a href="#TV_Modify">TV_Modify()</a> returns 0 instead of the item's ID. By contrast, <a href="#TV_Add">TV_Add()</a> marks the item as expanded in case children are added to it later. Unlike &quot;Select&quot; (below), expanding an item does not automatically expand its parent. Finally, the word <em>Expand</em> may optionally be followed immediately by a 0 or 1 to indicate the starting state. In other words, both <em>&quot;Expand&quot;</em> and <em>&quot;Expand&quot; <strong>.</strong> VarContainingOne</em> are the same.</p>
+<p><span class="green">First | Sort | N</span>: These options apply only to <a href="#TV_Add">TV_Add()</a>. They specify the new item's position relative to its siblings (a <em>sibling</em> is any other item on the same level). If none of these options is present, the new item is added as the last/bottom sibling. Otherwise, specify <em>First</em> to add the item as the first/top sibling, or specify <em>Sort </em>to insert it among its siblings in alphabetical order. If a plain integer (<strong>N</strong>) is specified, it is assumed to be ID number of the sibling after which to insert the new item (if integer N is the only option present, it does not have to be enclosed in quotes).</p>
+<p><span class="green">Icon</span>: Specify the word <em>Icon</em> followed immediately by the number of this item's icon, which is displayed to the left of the item's name. If this option is absent, the first icon in the <a href="#ImageList">ImageList</a> is used. To display a blank icon, specify a number that is larger than the number of icons in the ImageList. If the control lacks an ImageList, no icon is displayed nor is any space reserved for one.</p>
+<p><span class="green"><a name="Select"></a>Select</span>: Selects the item. Since only one item at a time can be selected, any previously selected item is automatically de-selected. In addition, this option reveals the newly selected item by expanding its parent(s), if necessary. To find out the current selection, call <a href="#TV_GetSelection">TV_GetSelection()</a>.</p>
+<p><span class="green">Sort</span>: For <a href="#TV_Modify">TV_Modify()</a>, this option alphabetically sorts the children of the specified item. To instead sort all top-level items, use <em>TV_Modify(0, &quot;Sort&quot;)</em>. If there are no children, 0 is returned instead of the ID of the modified item.</p>
+<p><span class="green">Vis</span>: Ensures that the item is completely visible by scrolling the TreeView and/or expanding its parent, if necessary.</p>
+<p><span class="green">VisFirst</span>: Same as above except that the TreeView is also scrolled so that the item appears at the top, if possible. This option is typically more effective when used with <a href="#TV_Modify">TV_Modify()</a> than with <a href="#TV_Add">TV_Add()</a>.</p>
+<p><strong><br>
+<a name="TV_Modify"></a>TV_Modify(ItemID [, Options, NewName]):</strong> Modifies the attributes and/or name of an item. It returns the item's own ID upon success or 0 upon failure (or partial failure). When only the first parameter is present, the specified item is <a href="#Select">selected</a>. When <em>NewName</em> is omitted, the current name is left unchanged. For <em>Options</em>, see the list above.</p>
+<p><strong><a name="TV_Delete"></a>TV_Delete([ItemID]):</strong> If <em>ItemID</em> is omitted, <strong>all</strong> items in the TreeView are deleted. Otherwise, only the specified <em>ItemID</em> is deleted. It returns 1 upon success and 0 upon failure.</p>
+<h2><a name="bifGet"></a>Getting Data Out of a TreeView</h2>
+<p><strong><a name="TV_GetSelection"></a>TV_GetSelection():</strong> Returns the selected item's ID number.</p>
+<p><strong><a name="TV_GetCount"></a>TV_GetCount():</strong> Returns the total number of items in the control. This function is always instantaneous because the control keeps track of the count.</p>
+<p><strong><a name="TV_GetParent"></a>TV_GetParent(ItemID):</strong> Returns the specified item's parent as an item ID. Items at the top level have no parent and thus return 0.</p>
+<p><strong><a name="TV_GetChild"></a>TV_GetChild(ParentItemID):</strong> Returns the ID number of the specified item's first/top child (or 0 if none).</p>
+<p><strong><a name="TV_GetPrev"></a>TV_GetPrev(ItemID)</strong>: Returns the ID number of the sibling above the specified item (or 0 if none).</p>
+<p><strong><a name="TV_GetNext"></a>TV_GetNext([ItemID, &quot;Checked | Full&quot;]):</strong> This has the following modes:</p>
+<ol>
+  <li>When all parameters are omitted, it returns the ID number of the first/top item in the TreeView (or 0 if none).</li>
+  <li>When the only first parameter (ItemID) is present, it returns the ID number of the sibling below the specified item  (or 0 if none). If the first parameter is 0, it returns the ID number of the first/top item in the TreeView (or 0 if none).</li>
+  <li>When the second parameter is &quot;Full&quot; or &quot;F&quot;, the next item is retrieved regardless of its relationship to the specified item. This allows the script to easily traverse the entire tree, item by item. For example:
+    <pre>ItemID = 0  <span class="CodeCom">; Causes the loop's first iteration to start the search at the top of the tree.</span>
+Loop
+{
+    ItemID := TV_GetNext(ItemID, &quot;Full&quot;)  <span class="CodeCom">; Replace &quot;Full&quot; with &quot;Checked&quot; to find all checkmarked items.</span>
+    if not ItemID  <span class="CodeCom">; No more items in tree.</span>
+        break
+    TV_GetText(ItemText, ItemID)
+    MsgBox The next Item is %ItemID%, whose text is &quot;%ItemText%&quot;.
+}</pre>
+  </li>
+  <li>When the second parameter is either &quot;Check&quot;, &quot;Checked&quot;, or &quot;C&quot;, the same behavior as above is used except that any item without a checkmark is skipped over. This allows all checkmarked items in the TreeView to be retrieved, one by one.</li>
+</ol>
+<p><strong><a name="TV_GetText"></a>TV_GetText(OutputVar, ItemID):</strong> Retrieves the text/name of the specified <em>ItemID</em> and stores it in <em>OutputVar</em>. If the text is longer than 8191, only the first 8191 characters are retrieved. Upon success, the function returns the item's own ID. Upon failure, it returns 0 (and <em>OutputVar</em> is also made blank).</p>
+<p><strong><a name="TV_Get"></a>TV_Get(ItemID, &quot;Expand | Check | Bold&quot;):</strong> If the specified item has the specified attribute, its own <em>ItemID</em> is returned. Otherwise, 0 is returned. For the second parameter, specify &quot;E&quot;, &quot;Expand&quot;, or &quot;Expanded&quot; to determine if the item is currently <a href="#Expand">expanded</a> (that is, its children are being displayed); specify &quot;C&quot;, &quot;Check&quot;, or &quot;Checked&quot; to determine if the item has a <a href="#Check">checkmark</a>; or specify &quot;B&quot; or &quot;Bold&quot; to determine if the item is currently <a href="#Bold">bold</a> in font.</p>
+<p>Tip: Since an IF-statement sees any non-zero value as &quot;true&quot;, the following two lines are functionally identical:</p>
+<ol>
+  <li>if TV_Get(ItemID, &quot;Checked&quot;) = ItemID</li>
+  <li>if TV_Get(ItemID, &quot;Checked&quot;)</li>
+</ol>
+<h2><a name="notify"></a>G-Label Notifications (Primary) </h2>
+<p>A <a href="Gui.htm#label">g-label</a> such as <em><strong>g</strong>MySubroutine</em> may be listed in the control's options. This would cause the <em>MySubroutine</em> label to be launched automatically whenever the user performs an action in the control. This subroutine may consult the built-in variables <a href="../Variables.htm#Gui">A_Gui</a> and <a href="../Variables.htm#GuiControl">A_GuiControl</a> to find out which window and TreeView generated the event. More importantly, it may consult <strong>A_GuiEvent</strong>, which contains one of the following strings or letters (for compatibility with future versions, a script should not assume these are the only possible values):</p>
+<p><strong>DoubleClick</strong>: The user has double-clicked an item. The variable A_EventInfo contains the item ID.</p>
+<p><strong>D</strong>: The user has attempted to start dragging an item (there is currently no built-in support for this). The variable A_EventInfo contains the item ID.</p>
+<p><strong>d</strong> (lowercase D): Same as above except a right-click-drag rather than a left-drag.</p>
+<p><strong>e</strong> (lowercase E): The user has finished editing an item (the user may edit items only when the TreeView has <a href="#ReadOnly"><strong>-</strong>ReadOnly</a> in its options). The variable A_EventInfo contains the item ID.</p>
+<p><strong>S</strong>: A new item has been selected, either by the user or the script itself. The variable A_EventInfo contains the newly selected item ID.</p>
+<h2>G-Label Notifications (Secondary)</h2>
+<p>If the TreeView has the word AltSubmit in its <a href="#Options">options</a>, its g-label is launched more often and <strong>A_GuiEvent</strong> may contain the following additional values:</p>
+<p><strong>Normal</strong>: The user has left-clicked an item. The variable A_EventInfo contains the item ID.</p>
+<p><strong>RightClick</strong>: The user has right-clicked an item. The variable A_EventInfo contains the item ID. In most cases, it is best not to display a menu in response to this. Instead, use the <a href="Gui.htm#GuiContextMenu">GuiContextMenu label</a> because it also recognizes the Apps key. For example:</p>
+<pre>GuiContextMenu:  <span class="CodeCom">; Launched in response to a right-click or press of the Apps key.</span>
+if A_GuiControl &lt;&gt; MyTreeView  <span class="CodeCom">; This check is optional. It displays the menu only for clicks inside the TreeView.</span>
+    return
+<span class="CodeCom">; Show the menu at the provided coordinates, A_GuiX and A_GuiY.  These should be used</span>
+<span class="CodeCom">; because they provide correct coordinates even if the user pressed the Apps key:</span>
+Menu, MyContextMenu, Show, %A_GuiX%, %A_GuiY%
+return</pre>
+<p><strong>E</strong>: The user has begun editing an item (the user may edit items only when the TreeView has <a href="#ReadOnly">-ReadOnly</a> in its options). The variable A_EventInfo contains the item ID.</p>
+<p><strong>F</strong>: The TreeView has received keyboard focus.</p>
+<p><strong>f</strong> (lowercase F): The TreeView has lost keyboard focus.</p>
+<p><strong><a name="NotifyK"></a>K</strong>: The user has pressed a key while the TreeView has focus. A_EventInfo contains the virtual key code of the key, which is a number between 1 and 255. If the key is alphabetic, on most keyboard layouts it can be translated to the corresponding character via <a href="../Functions.htm#Chr">Chr(A_EventInfo)</a>. F2 keystrokes are received regardless of <a href="#WantF2">WantF2</a>. However, the Enter keystroke is not received; to receive it, use a default button as described <a href="#Enter">below</a>.</p>
+<p><strong>+</strong> (plus sign): An item has been expanded to reveal its children. The variable A_EventInfo contains the item ID.</p>
+<p><strong>-</strong> (minus sign): An item has been collapsed to hide its children. The variable A_EventInfo contains the item ID.</p>
+<h2><a name="Remarks"></a>Remarks</h2>
+<p>The <a href="Gui.htm#Submit">Gui Submit</a> command has no effect on a TreeView control. Therefore, the script may use the TreeView's <a href="Gui.htm#var">associated variable</a> (if any) to store other data without concern that it will ever be overwritten.</p>
+<p><a name="Enter"></a>To detect when the user has pressed Enter while a TreeView has focus, use a <a href="GuiControls.htm#DefaultButton">default button</a> (which can be hidden if desired). For example:</p>
+<pre>Gui, Add, Button, Hidden Default, OK
+...
+ButtonOK:
+GuiControlGet, FocusedControl, FocusV
+if FocusedControl &lt;&gt; MyTreeView
+    return
+MsgBox % &quot;Enter was pressed. The selected item ID is &quot; . TV_GetSelection()
+return</pre>
+<p>In addition to navigating from item to item with the keyboard, the user may also perform incremental search by typing the first few characters of an item's name. This causes the selection to jump to the nearest matching item.</p>
+<p>Although any length of text can be stored in each item of a TreeView, only the first 260 characters are displayed.</p>
+<p>Although the theoretical maximum number of items in a TreeView is 65536, item-adding performance will noticeably decrease long before then. This can be alleviated somewhat by using the redraw tip described in <a href="#TV_Add">TV_Add()</a>.</p>
+<p><a name="ILremarks"></a>Unlike <a href="ListView.htm">ListViews</a>, a TreeView's ImageList is not automatically destroyed when the TreeView is destroyed. Therefore, a script should call <a href="ListView.htm#IL_Destroy">IL_Destroy(ImageListID)</a> after destroying a TreeView's window if the ImageList will not be used for anything else. However, this is not necessary if the script will soon be exiting because all ImageLists are automatically destroyed at that time. On a related note, a TreeView's <a href="#ImageList">original ImageList</a> can be replaced with a new one via the following example:</p>
+<pre>Gui <a href="Gui.htm#LastFound">+LastFound</a>
+<a href="PostMessage.htm">SendMessage</a>, 0x1109, 0, NewImageListID, SysTreeView321  <span class="CodeCom">; 0x1109 is TVM_SETIMAGELIST</span>
+if ErrorLevel  <span class="CodeCom">; The TreeView had a previous ImageList.</span>
+    <a href="ListView.htm#IL_Destroy">IL_Destroy</a>(ErrorLevel)  <span class="CodeCom">; Destroying it is the most typical action.</span></pre>
+<p>A script may create more than one TreeView per window. To operate upon a TreeView other than the default one, see <a href="#BuiltIn">built-in functions</a>.</p>
+<p>To perform actions such as resizing, hiding, or changing the font of a TreeView, use <a href="GuiControl.htm">GuiControl</a>.</p>
+<p> Tree View eXtension (TVX) extends TreeViews to support moving, inserting and deleting. It is demonstrated at <a href="http://www.autohotkey.com/forum/topic19021.html">www.autohotkey.com/forum/topic19021.html</a></p>
+<p>Windows 95 and NT4: If the system lacks version 4.70 or later of Comctl32.dll, Shell32.dll, and Shlwapi.dll -- which are distributed with various updates and applications such as Internet Explorer 3.0 or later -- TreeViews are more limited and some features might not behave as expected.</p>
+<h2>Related</h2>
+<p><a href="ListView.htm">ListView</a>, <a href="GuiControls.htm">Other Control Types</a>, <a href="Gui.htm">Gui</a>, <a href="Gui.htm#GuiContextMenu">GuiContextMenu</a>, <a href="GuiControl.htm">GuiControl</a>, <a href="GuiControlGet.htm">GuiControlGet</a>, <a href="../misc/Styles.htm#TreeView">TreeView styles table</a></p>
+<h2><a name="Examples"></a>Example</h2>
+<pre class="NoIndent"><span class="CodeCom">; The following is a working script that is more elaborate than the one near the top of this page.</span>
+<span class="CodeCom">; It creates and displays a TreeView containing all folders in the all-users Start Menu.  When the</span>
+<span class="CodeCom">; user selects a folder, its contents are shown in a ListView to the right (like Windows Explorer).</span>
+<span class="CodeCom">; In addition, a <a href="GuiControls.htm#StatusBar">StatusBar</a> control shows information about the currently selected folder.</span>
+
+<span class="CodeCom">; The following folder will be the root folder for the TreeView. Note that loading might take a long</span>
+<span class="CodeCom">; time if an entire drive such as C:\ is specified:</span>
+TreeRoot = %A_StartMenuCommon%
+TreeViewWidth := 280
+ListViewWidth := A_ScreenWidth - TreeViewWidth - 30
+
+<span class="CodeCom">; Allow the user to maximize or drag-resize the window:</span>
+Gui +Resize
+
+<span class="CodeCom">; Create an ImageList and put some standard system icons into it:</span>
+ImageListID := <a href="ListView.htm#IL_Create">IL_Create</a>(5)
+Loop 5  <span class="CodeCom">; Below omits the DLL's path so that it works on Windows 9x too:</span>
+    <a href="ListView.htm#IL_Add">IL_Add</a>(ImageListID, &quot;shell32.dll&quot;, A_Index)
+
+<span class="CodeCom">; Create a TreeView and a ListView side-by-side to behave like Windows Explorer:</span>
+<a href="#GuiAdd">Gui, Add, TreeView</a>, vMyTree r20 w%TreeViewWidth% gMyTree <a href="#ImageList">ImageList</a>%ImageListID%
+Gui, Add, ListView, vMyList r20 w%ListViewWidth% x+10, Name|Modified
+
+<span class="CodeCom">; Set the ListView's column widths (this is optional):</span>
+Col2Width = 70  <span class="CodeCom">; Narrow to reveal only the YYYYMMDD part.</span>
+LV_ModifyCol(1, ListViewWidth - Col2Width - 30)  <span class="CodeCom">; Allows room for vertical scrollbar.</span>
+LV_ModifyCol(2, Col2Width)
+
+<span class="CodeCom">; Create a Status Bar to give info about the number of files and their total size:</span>
+<a href="GuiControls.htm#StatusBar">Gui, Add, StatusBar</a>
+<a href="GuiControls.htm#SB_SetParts">SB_SetParts</a>(60, 85)  <span class="CodeCom">; Create three parts in the bar (the third part fills all the remaining width).</span>
+
+<span class="CodeCom">; Add folders and their subfolders to the tree. Display the status in case loading takes a long time:</span>
+SplashTextOn, 200, 25, TreeView and StatusBar Example, Loading the tree...
+AddSubFoldersToTree(TreeRoot)
+SplashTextOff
+
+<span class="CodeCom">; Display the window and return. The OS will notify the script whenever the user performs an eligible action:</span>
+Gui, Show,, %TreeRoot%  <span class="CodeCom">; Display the source directory (TreeRoot) in the title bar.</span>
+return
+
+AddSubFoldersToTree(Folder, ParentItemID = 0)
+{
+    <span class="CodeCom">; This function adds to the TreeView all subfolders in the specified folder.</span>
+    <span class="CodeCom">; It also calls itself recursively to gather nested folders to any depth.</span>
+    Loop %Folder%\*.*, 2  <span class="CodeCom">; Retrieve all of Folder's sub-folders.</span>
+        AddSubFoldersToTree(A_LoopFileFullPath, <a href="#TV_Add">TV_Add</a>(A_LoopFileName, ParentItemID, &quot;Icon4&quot;))
+}
+
+MyTree:  <span class="CodeCom">; This subroutine handles user actions (such as clicking).</span>
+if A_GuiEvent &lt;&gt; S  <span class="CodeCom">; i.e. an event other than &quot;select new tree item&quot;.</span>
+    return  <span class="CodeCom">; Do nothing.</span>
+<span class="CodeCom">; Otherwise, populate the ListView with the contents of the selected folder.</span>
+<span class="CodeCom">; First determine the full path of the selected folder:</span>
+<a href="#TV_GetText">TV_GetText</a>(SelectedItemText, A_EventInfo)
+ParentID := A_EventInfo
+Loop  <span class="CodeCom">; Build the full path to the selected folder.</span>
+{
+    ParentID := <a href="#TV_GetParent">TV_GetParent</a>(ParentID)
+    if not ParentID  <span class="CodeCom">; No more ancestors.</span>
+        break
+    TV_GetText(ParentText, ParentID)
+    SelectedItemText = %ParentText%\%SelectedItemText%
+}
+SelectedFullPath = %TreeRoot%\%SelectedItemText%
+
+<span class="CodeCom">; Put the files into the ListView:</span>
+LV_Delete()  <span class="CodeCom">; Clear all rows.</span>
+GuiControl, -Redraw, MyListView  <span class="CodeCom">; Improve performance by disabling redrawing during load.</span>
+FileCount = 0  <span class="CodeCom">; Init prior to loop below.</span>
+TotalSize = 0
+Loop %SelectedFullPath%\*.*  <span class="CodeCom">; For simplicity, this omits folders so that only files are shown in the ListView.</span>
+{
+    LV_Add(&quot;&quot;, A_LoopFileName, A_LoopFileTimeModified)
+    FileCount += 1
+    TotalSize += A_LoopFileSize
+}
+GuiControl, +Redraw, MyListView
+
+<span class="CodeCom">; Update the three parts of the status bar to show info about the currently selected folder:</span>
+<a href="GuiControls.htm#SB_SetText">SB_SetText</a>(FileCount . &quot; files&quot;, 1)
+SB_SetText(Round(TotalSize / 1024, 1) . &quot; KB&quot;, 2)
+SB_SetText(SelectedFullPath, 3)
+return
+
+GuiSize:  <span class="CodeCom">; Expand/shrink the ListView and TreeView in response to user's resizing of window.</span>
+if A_EventInfo = 1  <span class="CodeCom">; The window has been minimized.  No action needed.</span>
+    return
+<span class="CodeCom">; Otherwise, the window has been resized or maximized. Resize the controls to match.</span>
+GuiControl, Move, MyTree, % &quot;H&quot; . (A_GuiHeight - 30)  <span class="CodeCom">; -30 for StatusBar and margins.</span>
+GuiControl, Move, MyList, % &quot;H&quot; . (A_GuiHeight - 30) . &quot; W&quot; . (A_GuiWidth - TreeViewWidth - 30)
+return
+
+GuiClose:  <span class="CodeCom">; Exit the script when the user closes the TreeView's GUI window.</span>
+ExitApp</pre>
+
+</body>
+</html>

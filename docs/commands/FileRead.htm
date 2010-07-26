@@ -1,0 +1,56 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<title>FileRead</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link href="../css/commands.css" rel="stylesheet" type="text/css">
+<link href="../css/print.css" rel="stylesheet" type="text/css" media="print">
+</head>
+<body>
+
+<h1>FileRead</h1>
+<hr size="2">
+<p>Reads a file's contents into a <a href="../Variables.htm">variable</a>.</p>
+
+<p class="CommandSyntax">FileRead, OutputVar, Filename</p>
+<h4>Parameters</h4>
+<table border="1" width="100%" cellspacing="0" cellpadding="3" bordercolor="#C0C0C0">
+  <tr> 
+    <td>OutputVar</td>
+    <td>The name of the <a href="../Variables.htm">variable</a> in which to store the retrieved data. <em>OutputVar</em> will be made blank if a problem occurs such as the file being &quot;in use&quot; or not existing (in which case <a href="../misc/ErrorLevel.htm">ErrorLevel</a> is set to 1). It will also be made blank if <em>Filename</em> is an empty file (in which case ErrorLevel is set to 0).</td>
+  </tr>
+  <tr> 
+    <td width="15%">Filename</td>
+    <td width="85%"><p>The name of the file to read, which is assumed to be in <a href="../Variables.htm#WorkingDir">%A_WorkingDir%</a> if an absolute path isn't specified.</p>
+      <p><strong>Options</strong>: Zero or more of the following strings may be also be present immediately before the name of the file. Separate each option from the next with a single space or tab. For example: *t *m5000 C:\Log Files\200601.txt</p>
+    <p><strong>*c</strong>: Load a <a href="../misc/Clipboard.htm#ClipboardAll">ClipboardAll</a> file. All other options are ignored when <strong>*c</strong> is present.</p>
+    <p><strong>*m1024</strong> [v1.0.43.03+]: If this option is omitted, the entire file is loaded unless the file is larger than 1 GB, in which case it is not loaded at all. Otherwise, replace 1024 with a decimal or hexadecimal number of bytes between 1 and 1073741824 (1 GB). If the file is larger than this, only its leading part is loaded. Note: This might result in the last line ending in a naked carriage return (`r) rather than `r`n.</p>    
+    <p><strong>*t</strong>: Replaces any/all occurrences of carriage return &amp; linefeed (`r`n) with linefeed (`n). However, this translation reduces performance and is usually not necessary. For example, text containing `r`n is already in the right format to be added to a <a href="StringReplace.htm">Gui Edit control</a>. Similarly, <a href="FileAppend.htm">FileAppend</a> detects the presence of `r`n when it opens a new file; it knows to write each `r`n as-is rather than translating it to `r`r`n. Finally, the following <a href="LoopParse.htm">parsing loop</a> will work correctly regardless of whether each line ends in `r`n or just `n: <em>Loop, parse, MyFileContents, `n, `r</em></p></td>
+  </tr>
+</table>
+
+<h4>ErrorLevel</h4>
+<p><a href="../misc/ErrorLevel.htm">ErrorLevel</a> is set to 0 if the load was successful. It is set to 1 if a problem occurred such as: 1) file does not exist; 2) file is locked or inaccessible; 3) the system lacks sufficient memory to load the file.</p>
+<h4>Remarks</h4>
+<p>When the goal is to load all or a large part of a file into memory, FileRead performs much better than using a <a href="LoopReadFile.htm">file-reading loop</a>.</p>
+<p>A file greater than 1 GB in size will cause <a href="../misc/ErrorLevel.htm">ErrorLevel</a> to be set to 1 and <em>OutputVar</em> to be made blank unless the <strong>*m</strong> option is present, in which case the leading part of the file is loaded.</p>
+<p>FileRead does not obey <a href="_MaxMem.htm">#MaxMem</a>. If there is concern about using too much memory, check the file size beforehand with <a href="FileGetSize.htm">FileGetSize</a>.</p>
+<p>If the specified file contains any binary zeros (which never occur in proper text files), only the text before the first binary zero will be &quot;seen&quot; by AutoHotkey commands and functions. However, the entire contents are still present in <em>OutputVar</em> and can be accessed by advanced methods such as <a href="../Functions.htm#NumGet">NumGet()</a> and the <a href="../Variables.htm#amp">address operator (&amp;)</a>; for example: *(&amp;OutputVar + 1000)</p>
+<p>Unlike <a href="LoopReadFile.htm">file-reading loops</a> and <a href="FileReadLine.htm">FileReadLine</a>, FileRead does not obey the character Control-Z (0x1A) as an end-of-file marker. Thus any Control-Z, even one appearing at the very end of the file, is loaded as-is.</p>
+<p>FileRead can be used to quickly sort the contents of a file as in the following example:</p>
+<pre>FileRead, Contents, C:\Address List.txt
+if not ErrorLevel  <span class="CodeCom">; Successfully loaded.</span>
+{
+    <a href="Sort.htm">Sort</a>, Contents
+    FileDelete, C:\Address List (alphabetical).txt
+    FileAppend, %Contents%, C:\Address List (alphabetical).txt
+    Contents =  <span class="CodeCom">; Free the memory.</span>
+}</pre>
+<h4>Related</h4>
+<p><a href="LoopReadFile.htm">file-reading loop</a>, <a href="FileReadLine.htm">FileReadLine</a>, <a href="FileGetSize.htm">FileGetSize</a>, <a href="FileAppend.htm">FileAppend</a>, <a href="IniRead.htm">IniRead</a>, <a href="Sort.htm">Sort</a>, <a href="UrlDownloadToFile.htm">UrlDownloadToFile</a></p>
+<h4>Example</h4>
+<pre class="NoIndent">FileRead, OutputVar, C:\My Documents\My File.txt</pre>
+
+</body>
+</html>

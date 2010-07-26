@@ -1,0 +1,206 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<title>AutoHotkey Scripts and Macros</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link rel="alternate" type="application/rss+xml" title="AutoHotkey Forum RSS" href="../forum/rss.php">
+<link href="css/default.css" rel="stylesheet" type="text/css">
+<link href="css/print.css" rel="stylesheet" type="text/css" media="print">
+</head>
+<body>
+
+<h1>Scripts</h1>
+<hr>
+<h2>Table of Contents</h2>
+<ul>
+  <li><a href="#intro">Introduction</a></li>
+  <li><a href="#auto">The Top of the Script (the Auto-execute Section</a>): This portion executes automatically when the script starts.</li>
+  <li><a href="#esc">Escape Sequences</a>: When to use `% and `, to indicate a literal percent sign or comma.</li>
+  <li><a href="#Comments">Comments in Scripts</a>: The use of semicolon and the symbols /*...*/ to add remarks to a script. </li>
+  <li><a href="#continuation">Splitting a Long Line into a Series of Shorter Ones</a>: This can improve a script's readability and maintainability.</li>
+  <li><a href="#ahk2exe">Convert a Script to an EXE (ahk2exe)</a>: Convert a .ahk script into a .exe file that can run on any PC.</li>
+  <li><a href="#cmd">Passing Command Line Parameters to a Script</a>: The variables %1%, %2%, etc. contain the incoming parameters.</li>
+  <li><a href="#debug">Debugging a Script</a>: How to find the flaws in a misbehaving script.</li>
+  <li><a href="#port">Portability of AutoHotkey.exe</a>: Having a copy of AutoHotkey.exe is enough to execute any .ahk file.</li>
+  <li><a href="#install">Installer Options</a>: How to do unattended/silent installations or uninstallations.</li>
+</ul>
+<h2><a name="intro"></a>Introduction</h2>
+<p>Each script is a plain text file containing lines to be executed by the program (AutoHotkey.exe). A script may also contain <a href="Hotkeys.htm">hotkeys</a> and <a href="Hotstrings.htm">hotstrings</a>, or even consist entirely of them. However, in the absence of hotkeys and hotstrings, a script will perform its commands sequentially from top to bottom the moment it is launched.</p>
+<p>The program loads the script into memory line by line, and each line may be up to 16,383 characters long. During loading, the script is <a href="misc/Performance.htm">optimized</a> and validated. Any syntax errors will be displayed, and they must be corrected before the script can run.</p>
+<h2><a name="auto" id="auto"></a>The Top of the Script (the Auto-execute Section)</h2>
+<p> After the script has been loaded, it begins executing at the top line, continuing until a <a href="commands/Return.htm">Return</a>, <a href="commands/Exit.htm">Exit</a>, <a href="Hotkeys.htm">hotkey/hotstring label, </a>or the physical end of the script is encountered (whichever comes first). This top portion of the script is referred to as the <em>auto-execute</em> section.</p>
+<p>A script  that is not <a href="commands/_Persistent.htm">persistent</a> and that lacks <a href="Hotkeys.htm">hotkeys</a>, <a href="Hotstrings.htm">hotstrings</a>, <a href="commands/OnMessage.htm">OnMessage</a>, and <a href="commands/Gui.htm">GUI</a> will terminate after the auto-execute section has completed. Otherwise, it will stay running in an idle state, responding to events such as  hotkeys, hotstrings, <a href="commands/Gui.htm#label">GUI events</a>, <a href="commands/Menu.htm">custom menu items</a>, and <a href="commands/SetTimer.htm">timers</a>.</p>
+<p>Every <a href="misc/Threads.htm">thread</a> launched by a <a href="Hotkeys.htm">hotkey</a>, <a href="Hotstrings.htm">hotstring</a>, <a href="commands/Menu.htm"> menu item</a>, <a href="commands/Gui.htm#label">GUI event</a>, or <a href="commands/SetTimer.htm">timer</a> starts off fresh with the default values for the following attributes as set in the auto-execute section. If unset, the standard defaults will apply (as documented on each of the following pages): <a href="commands/DetectHiddenWindows.htm">DetectHiddenWindows</a>,  <a href="commands/DetectHiddenText.htm">DetectHiddenText</a>,  <a href="commands/SetTitleMatchMode.htm">SetTitleMatchMode</a>,  <a href="commands/SetBatchLines.htm">SetBatchLines</a>, <a href="commands/SendMode.htm">SendMode, </a><a href="commands/SetKeyDelay.htm">SetKeyDelay</a>,  <a href="commands/SetMouseDelay.htm">SetMouseDelay</a>,
+  <a href="commands/SetWinDelay.htm"></a><a href="commands/SetWinDelay.htm">SetWinDelay</a>,
+  <a href="commands/SetControlDelay.htm">SetControlDelay</a>,
+  <a href="commands/SetDefaultMouseSpeed.htm">SetDefaultMouseSpeed</a>,
+  <a href="commands/CoordMode.htm">CoordMode</a>,
+  <a href="commands/SetStoreCapslockMode.htm">SetStoreCapslockMode</a>,
+<a href="commands/AutoTrim.htm">AutoTrim, </a><a href="commands/SetFormat.htm">SetFormat</a>, <a href="commands/StringCaseSense.htm">StringCaseSense</a>, <a href="commands/Thread.htm">Thread</a>, and <a href="commands/Critical.htm">Critical</a>.</p>
+<p>If the auto-execute section takes a long time to complete (or never completes), the default values for the above settings will be put into effect after 100 milliseconds. When the auto-execute section finally completes (if ever), the defaults are updated again to be those that were in effect at the end of the auto-execute section. Thus, it's usually best to make any desired changes to the defaults at the top of scripts that contain <a href="/docs/Hotkeys.htm">hotkeys</a>, <a href="Hotstrings.htm">hotstrings</a>, <a href="/docs/commands/SetTimer.htm">timers</a>, or <a href="commands/Menu.htm">custom menu items</a>. Also note that each <a href="misc/Threads.htm">thread</a> retains its own collection of the above settings. Changes made to those settings will not affect other <a href="misc/Threads.htm">threads</a>.</p>
+<h2><a name="esc"></a>Escape Sequences</h2>
+<p>AutoHotkey's default <a href="commands/_EscapeChar.htm">escape character</a> is accent/backtick (`), which is at the upper left corner of most English keyboards. Using this character rather than backslash avoids the need for double blackslashes in file paths.</p>
+<p>Since commas and percent signs have special meaning in the AutoHotkey language, use `, to specify a literal comma and `% to specify a literal percent sign. One of the exceptions to this is <a href="commands/MsgBox.htm">MsgBox</a>, which does not require commas to be escaped. Another exception is commas in the last parameter of any command: they do not need to be escaped. See <a href="commands/_EscapeChar.htm">#EscapeChar</a> for a complete list of escape sequences.</p>
+<p>Certain special characters are also produced by means of an escape sequence. The most common ones are `t (tab), `n (linefeed), and `r (carriage return).</p>
+<p>Tip: The first comma of any command may be omitted (except when the first parameter is blank or starts with := or =, or the command is alone at the top of a <a href="#continuation">continuation section</a>). For example:</p>
+<pre>MsgBox This is ok.
+MsgBox<strong>,</strong> This is ok too (it has an explicit comma).</pre>
+<h2><a name="Comments"></a>Comments in Scripts </h2>
+<p>Scripts can be commented by using a semicolon at the beginning of a line. For example:</p>
+<pre><span class="CodeCom">; This entire line is a comment.</span></pre>
+<p>Comments may also be added to the end of a command, in which case the semicolon must have at least one space or tab to its left. For example:</p>
+<pre>Run Notepad  <span class="CodeCom">; This is a comment on the same line as a command.</span></pre>
+<p>In addition, the /* and */ symbols can be used to comment out an entire section, <em>but only if the symbols appear at the beginning of a line</em> as in this example:</p>
+<pre class="CodeCom">/*
+MsgBox, This line is commented out (disabled).
+MsgBox, This one too. 
+*/</pre>
+<p>Since comments are ignored when a script is launched, they do not impact performance or memory utilization.</p>
+<p>The default comment character (semicolon) can be changed to some other character or string via <a href="commands/_CommentFlag.htm">#CommentFlag</a>.</p>
+<h2><a name="continuation"></a>Splitting a Long Line into a Series of Shorter Ones</h2>
+<p>Long lines can be divided up into a collection of smaller ones to improve readability and maintainability. This does not reduce the script's execution speed because such lines are merged in memory the moment the script launches.</p>
+<p><strong>Method #1</strong>: A line that starts with &quot;and&quot;, &quot;or&quot;,  ||, &amp;&amp;, a comma, or a <a href="Variables.htm#concat">period</a> is automatically merged with the line directly above it (in v1.0.46+, the same is true for all other <a href="Variables.htm#Operators">expression operators</a> except ++ and --). In the following example, the second line is appended to the first because it begins with a comma:</p>
+<pre>FileAppend, This is the text to append.`n   <span class="CodeCom">; A comment is allowed here.</span>
+    <strong>,</strong> %A_ProgramFiles%\SomeApplication\LogFile.txt  <span class="CodeCom">; Comment.</span></pre>
+<p>Similarly, the following lines would get merged into a single line because the last two start with &quot;and&quot; or &quot;or&quot;:</p>
+<pre>if (Color = &quot;Red&quot; or Color = &quot;Green&quot;  or Color = &quot;Blue&quot;   <span class="CodeCom">; Comment.</span>
+    <strong>or</strong> Color = &quot;Black&quot; or Color = &quot;Gray&quot; or Color = &quot;White&quot;)   <span class="CodeCom">; Comment.</span>
+    <strong>and</strong> ProductIsAvailableInColor(Product, Color)   <span class="CodeCom">; Comment.</span></pre>
+<p>The <a href="Variables.htm#ternary">ternary operator</a> is also a good candidate:</p>
+<pre>ProductIsAvailable := (Color = &quot;Red&quot;)
+    <strong>?</strong> false  <span class="CodeCom">; We don't have any red products, so don't bother calling the function.</span>
+    <strong>:</strong> ProductIsAvailableInColor(Product, Color)</pre>
+<p>Although the indentation used in the examples above is optional, it might improve clarity by indicating which lines belong to ones above them. Also, it is not necessary to include extra spaces for lines starting with the words &quot;AND&quot; and &quot;OR&quot;; the program does this automatically. Finally, blank lines or <a href="#Comments">comments</a> may be added between or at the end of any of the lines in the above examples.</p>
+<p> <strong>Method #2</strong>: This method should be used to merge a large number of lines or when the lines are not suitable for Method #1. Although this method is especially useful for <a href="Hotstrings.htm">auto-replace hotstrings</a>, it can also be used with any command or <a href="Variables.htm#Expressions">expression</a>. For example:</p>
+<pre><span class="CodeCom">; EXAMPLE #1:</span>
+Var =
+(
+Line 1 of the text.
+Line 2 of the text. By default, a linefeed (`n) is present between lines.
+)
+
+<span class="CodeCom">; EXAMPLE #2:</span>
+FileAppend<strong>,</strong>  <span class="CodeCom">; The comma is required in this case.</span>
+(
+A line of text.
+<em>By default</em>, the hard carriage return (Enter) between the previous line and this one will be written to the file as a linefeed (`n).
+    <em>By default</em>, the tab to the left of this line will also be written to the file (the same is true for spaces).
+<em>By default</em>, variable references such as %Var% are resolved to the variable's contents.
+), C:\My File.txt</pre>
+<p>In the examples above, a series of lines is bounded at the top and bottom by a pair of parentheses. This is known as a <em>continuation section</em>. Notice that the bottom line contains <a href="commands/FileAppend.htm">FileAppend</a>'s last parameter after the closing parenthesis. This practice is optional; it is done in cases like this so that the comma will be seen as a parameter-delimiter rather than a literal comma.</p>
+<p>The default behavior of a continuation section can be overridden by including one or more of the following options to the right of the section's opening parenthesis. If more than one option is present, separate each one from the previous with a space. For example: ( LTrim Join| %</p>
+<p><strong><a name="Join"></a>Join</strong>: Specifies how lines should be connected together. If this option is omitted, each line except the last will be followed by a linefeed character (`n). If the word <em>Join</em> is specified by itself, lines are connected directly to each other without any characters in between. Otherwise, the word <em>Join</em> should be followed immediately by as many as 15 characters. For example, Join`s would insert a space after each line except the last (<strong>`s</strong> indicates a literal space -- it is a special escape sequence recognized only by <em>Join</em>). Another example is <em>Join`r`n</em>, which inserts CR+LF between lines. Similarly, <em>Join|</em> inserts  a pipe between lines. To have the final line in the section also ended by a join-string, include a blank line immediately above the section's closing parenthesis.</p>
+<p><strong><a name="LTrim"></a>LTrim</strong>: Omits spaces and tabs at the beginning of each line. This is primarily used to allow the continuation section to be indented. Also, this option may be turned on for multiple continuation sections by specifying <em>#LTrim</em> on a line by itself. <em>#LTrim</em> is positional: it affects all continuation sections physically beneath it. The setting may be turned off via <em>#LTrim Off</em>.</p>
+<p><strong>RTrim0</strong> (RTrim followed by a zero): Turns off the omission of spaces and tabs from the end of each line.</p>
+<p><strong><a name="CommentOption"></a>Comments</strong> (or <strong>Comment</strong> or <strong>Com</strong> or <strong>C</strong>) [v1.0.45.03+]: Allows <a href="#Comments">semicolon comments</a> inside the continuation section (but not /*..*/). Such comments (along with any spaces and tabs to their left) are entirely omitted from the joined result rather than being treated as literal text. Each comment can appear to the right of a line or on a new line by itself.</p>
+<p><strong>%</strong> (percent sign): Treats percent signs as literal rather than as variable references. This avoids the need to <a href="commands/_EscapeChar.htm">escape</a> each percent sign to make it literal. This option is not needed in places where percent signs are already literal, such as <a href="Hotstrings.htm">auto-replace hotstrings</a>.</p>
+<p><strong>,</strong> (comma): Treats commas as delimiters rather than as literal commas. This rarely-used option is necessary only for the commas between command parameters because in <a href="Functions.htm">function calls</a>, the type of comma does not matter. Also, this option transforms only those commas that actually delimit parameters. In other words, once the command's final parameter is reached (or there are no parameters), subsequent commas are treated as literal commas regardless of this option.</p>
+<p><a name="accent"></a><strong>`</strong> (accent): Treats each backtick character literally rather than as an <a href="commands/_EscapeChar.htm">escape character</a>. This also prevents commas and percent signs from being explicitly and individually escaped. In addition, it prevents the translation of any explicitly specified escape sequences such as `r and `t.</p>
+<p><u>Remarks</u></p>
+<p><a href="commands/_EscapeChar.htm">Escape sequences</a> such as `n (linefeed) and `t (tab) are supported inside the continuation section except when the <a href="#accent">accent (`) option</a> has been specified.</p>
+<p>When the <a href="#CommentOption">comment option</a> is absent, semicolon and /*..*/ comments are not supported within the interior of a continuation section because they are seen as literal text. However, comments can be included on the bottom and top lines of the section. For example:</p>
+<pre>FileAppend<strong>,</strong>   <span class="CodeCom">; Comment.</span>
+<span class="CodeCom">; Comment.</span>
+( LTrim Join    <span class="CodeCom">; Comment.</span>
+    &nbsp;; This is <strong>not</strong> a comment; it is literal. Include the word <em>Comments</em> in the line above to make it a comment.
+), C:\File.txt   <span class="CodeCom">; Comment.</span></pre>
+<p>As a consequence of the above, semicolons never need to be <a href="commands/_EscapeChar.htm">escaped</a> within a continuation section.</p>
+<p>A continuation section cannot produce a line whose total length is greater than 16,383 characters (if it tries, the program will alert you the moment the script is launched). One way to work around this is to do a series of concatenations into a variable.  For example:</p>
+<pre>Var =
+(
+...
+)
+Var = %Var%`n  <span class="CodeCom">; Add more text to the variable via another continuation section.</span>
+(
+...
+)
+FileAppend, %Var%, C:\My File.txt</pre>
+<p> Since a closing parenthesis indicates the end of a continuation section, to have a line start with literal closing parenthesis, precede it with an accent/backtick: `).</p>
+<p>A continuation section can be immediately followed by a line containing the open-parenthesis of another continuation section. This allows the options mentioned above to be varied during the course of building a single line.</p>
+<p>The piecemeal construction of a continuation section by means of <a href="commands/_Include.htm">#Include</a> is not supported.</p>
+<h2><a name="ahk2exe"></a>Convert a Script to an EXE (ahk2exe)</h2>
+<p>A script compiler  (courtesy of Jonathan Bennett's AutoIt v3 source code) is  included with the program. AutoIt v2 scripts are not supported, so if necessary, first <a href="AutoIt2Users.htm#convert">auto-convert</a> your .aut file to .ahk.</p>
+<p> Once a script is compiled, it becomes a standalone executable; that is, it can be used even on machines where AutoHotkey is not installed (and such EXEs can be distributed or sold with no restrictions). The compilation process compresses and encrypts all of the following: the script, any files it <a href="commands/_Include.htm">includes</a>, and any files it has incorporated via the <a href="commands/FileInstall.htm">FileInstall</a> command.</p>
+<p>Compiling does not improve the performance of a script. In fact, a compiled script is slightly slower to launch because it must first be decrypted and decompressed into memory, after which it is <a href="misc/Performance.htm">optimized</a> just like a normal script.</p>
+<p>Ahk2Exe can be used in the following ways:</p>
+<ol>
+  <li><strong>GUI Interface</strong>: Run the &quot;Convert .ahk to .exe&quot; item in the Start Menu. In v1.0.46.10+, the password N/A may be specified within the GUI interface to prevent <a href="#exe2ahk">exe2ahk </a>from being able to decompile the script. This works only in the GUI interface; for the command line, use the /NoDecompile switch instead.</li>
+  <li><strong>Right-click</strong>: Within an open Explorer window, you can right-click any .ahk file and select &quot;Compile Script&quot; (only available if the script compiler option was chosen when AutoHotkey was installed). This creates an EXE file of the same base filename as the script, which appears after a short time in the same directory. Note: The EXE file is produced using the same custom icon and compression level that was last used by Method #1 above <u>and it will not have a password</u>.</li>
+  <li><a name="ahk2exeCmd"></a><strong>Command Line</strong>: The compiler can be run from the command line with the following parameters:
+  <pre>Ahk2exe.exe /in MyScript.ahk [/out MyScript.exe][/icon MyIcon.ico][/pass password][/NoDecompile]</pre>
+  For example:
+<pre>Ahk2exe.exe /in "MyScript.ahk" /icon "MyIcon.ico" /pass "CustomPassword" /NoDecompile</pre>
+Usage:
+<ul>
+<li>Parameters containing spaces should be enclosed in double quotes.</li>
+<li>If the &quot;out&quot; file is omitted, the EXE will have the same base filename as the script itself.</li>
+<li>In v1.0.46.10+, the /NoDecompile switch (if present) prevents <a href="#exe2ahk">exe2ahk </a>from being able to decompile the script even when the correct password is given. This provides an additional layer of protection that goes beyond having a long, elaborate password.</li>
+</ul></li>
+</ol>
+<p>Notes:</p>
+<ul>
+  <li>If you plan to distribute your EXE and don't want anyone to be able to view the source code of your script, you get the maximum protection by compiling at the command line with the /NoDecompile switch, and also specifying a long, elaborate password. A password's maximum length is 64 characters.</li>
+  <li>The commands <a href="commands/_NoTrayIcon.htm">#NoTrayIcon</a> and &quot;<a href="commands/Menu.htm">Menu, Tray, ShowMainWindow</a>&quot; affect the behavior of compiled scripts.</li>
+  <li><a name="exe2ahk"></a>An EXE can be decompiled to retrieve the original script by downloading <a href="http://www.autohotkey.com/download/Exe2Ahk.exe">Exe2Ahk</a> (this utility should be run from the command prompt). However, any <a href="#comments">comments</a> originally present (semicolon or /**/) will be lost.</li>
+  <li>Compiled scripts can be reduced in size by about 20 KB by placing <a href="http://www.autohotkey.com/download/AutoHotkey_sc_bin_min_size.zip">this smaller version</a> of the AutoHotkeySC.bin file in your AutoHotkey\Compiler folder (overwriting the existing file of the same name). Any compiled script produced in this fashion will be dependent on MSVCRT.dll. Although this DLL is always present on Windows 2000/XP or later, older operating systems do not necessarily have it.</li>
+  <li>Custom version info (as seen in Explorer's file-properties dialog) can be added to your compiled scripts by using a utility such as Resource Hacker (freeware) to edit the file &quot;AutoHotkeySC.bin&quot;.  This file is contained in the &quot;compiler&quot; subfolder where AutoHotkey was installed. Note: Resource Hacker will corrupt compiled scripts, which is why only the AutoHotkeySC.bin file should be edited.</li>
+  <li>The method above can also be used to change existing icons or add new ones to all compiled scripts.</li>
+  <li>The built-in variable A_IsCompiled contains 1 if the script is running in compiled form. Otherwise, it is blank.</li>
+  <li>If you do not wish your compiled scripts to be compressed, delete or rename the file &quot;upx.exe&quot; in AutoHotkey's &quot;Compiler&quot; folder.</li>
+  <li>When parameters are passed to Ahk2Exe, a message indicating the success or failure of the compiling process is written to stdout. Although the message will not appear at the command prompt, it can be &quot;caught&quot; by means such as redirecting output to a file. [v1.0.43+]</li>
+</ul>
+<h2><a name="cmd"></a>Passing Command Line Parameters to a Script</h2>
+<p>Scripts support command line parameters. The format is:</p>
+<pre>AutoHotkey.exe [<em>Switches</em>] [<em>Script Filename</em>] [<em>Script Parameters</em>]</pre>
+<p>And for compiled scripts, the format is:</p>
+<pre>CompiledScript.exe [<em>Switches</em>] [<em>Script Parameters</em>]</pre>
+<p><strong>Switches:</strong> Zero or more of the following: <br>
+  /f or /force -- Launch unconditionally, skipping any warning dialogs. <br>
+/r or /restart -- Indicate that the script is being restarted (this is also used by the <a href="commands/Reload.htm">Reload</a> command, internally).<br>
+/ErrorStdOut -- Send syntax errors that prevent a script from launching to stdout rather than displaying a dialog. See <a href="commands/_ErrorStdOut.htm">#ErrorStdOut</a> for details.</p>
+<p><strong>Script Filename:</strong> This can be omitted if there are no <em>Script Parameters</em>. If omitted, it will run (or prompt you to create) the file AutoHotkey.ahk in the <a href="Variables.htm#MyDocuments">My Documents</a> folder. The only exception is when AutoHotkey.ini exists in the current working directory, in which case it executes that file.</p>
+<p><strong>Script Parameters:</strong> The string(s) you want to pass into the script, with each separated from the next by a space. Any parameter that contains spaces should be enclosed in quotation marks. A literal quotation mark may be passed in by preceding it with a backslash (\&quot;). Consequently, any trailing slash in a quoted parameter (such as &quot;C:\My Documents<span class="red">\&quot;</span>) is treated as a literal quotation mark (that is, the script would receive the string C:\My Documents<span class="red">&quot;</span>). To remove such quotes, use <em><a href="commands/StringReplace.htm">StringReplace, 1, 1, <span class="red">&quot;</span>,, All</a></em></p>
+<p>The script sees incoming parameters as the <a href="Variables.htm">variables</a> %1%, %2%, and so on. In addition, %0% contains the number of parameters passed (0 if none). The following example exits the script when too few parameters are passed to it:</p>
+<pre>if 0 &lt; 3  <span class="CodeCom">; The left side of a <a href="commands/IfEqual.htm">non-expression if-statement</a> is always the name of a variable.</span>
+{
+    MsgBox This script requires at least 3 incoming parameters but it only received %0%.
+    ExitApp
+}</pre>
+<p>If the number of parameters passed into a script varies (perhaps due to the user dragging and dropping a set of files onto a script), the following example can be used to extract them one by one:</p>
+<pre>Loop, %0%  <span class="CodeCom">; For each parameter:</span>
+{
+    param := %A_Index%  <span class="CodeCom">; Fetch the contents of the variable whose name is contained in A_Index.</span>
+    MsgBox, 4,, Parameter number %A_Index% is %param%.  Continue?
+    IfMsgBox, No
+        break
+}</pre>
+<p>If the parameters are file names, the following example can be used to convert them to their case-corrected long names (as stored in the file system), including complete/absolute path:</p>
+<pre>Loop %0%  <span class="CodeCom">; For each parameter (or file dropped onto a script):</span>
+{
+    GivenPath := %A_Index%  <span class="CodeCom">; Fetch the contents of the variable whose name is contained in A_Index.</span>
+    Loop %GivenPath%, 1
+        LongPath = %A_LoopFileLongPath%
+    MsgBox The case-corrected long path name of file`n%GivenPath%`nis:`n%LongPath%
+}</pre>
+<p>Known limitation: dragging files onto a .ahk script may fail to work properly if 8-dot-3 (short) names have been turned off in an NTFS file system. One work-around is to <a href="#ahk2exe">compile</a> the script then drag the files onto the resulting EXE.</p>
+<h2><a name="debug"></a>Debugging a Script</h2>
+<p>Commands such as <a href="commands/ListVars.htm">ListVars</a> and <a href="commands/Pause.htm">Pause</a> can help you debug a script. For example, the following two lines, when temporarily inserted at carefully chosen positions, create &quot;break points&quot; in the script:</p>
+<p><a href="commands/ListVars.htm">ListVars</a><br>
+Pause</p>
+<p>When the script encounters these two lines, it will display the current contents of all variables for your inspection. When you're ready to resume, un-pause the script via the File or Tray menu. The script will then continue until reaching the next &quot;break point&quot; (if any).</p>
+<p>It is generally best to insert these &quot;break points&quot; at positions where the active window does not matter to the script, such as immediately before a WinActivate command. This allows the script to properly resume operation when you un-pause it.</p>
+<p>The following commands are also useful for debugging: <a href="commands/ListLines.htm">ListLines</a>, <a href="commands/KeyHistory.htm">KeyHistory</a>, and <a href="commands/OutputDebug.htm">OutputDebug</a>.</p>
+<h2><a name="port"></a>Portability of AutoHotkey.exe</h2>
+<p>The file AutoHotkey.exe is all that is needed to launch any .ahk script. The only exception is Windows NT4, which requires a copy of psapi.dll (from the AutoHotkey folder) for any script that uses the <a href="commands/Process.htm">Process command</a>.</p>
+<h2><a name="install"></a>Installer Options</h2>
+<p>To silently install AutoHotkey into the default directory (which is the same directory displayed by non-silent mode), pass the parameter /S to the installer (/S must be capitalized). For example:</p>
+<pre>AutoHotkey104307_Install.exe /S</pre>
+<p>A directory other than the default may be specified via the /D parameter (in the absence of /S, this changes the default directory displayed by the installer). For example:</p>
+<pre>AutoHotkey104307_Install.exe /S /D=C:\Program Files\AutoHotkey</pre>
+<p>To silently uninstall AutoHotkey, pass the parameter /S to the uninstaller. For example:</p>
+<pre>&quot;C:\Program Files\AutoHotkey\uninst.exe&quot; /S</pre>
+<h2>Script Showcase</h2>
+<p>See <a href="scripts/">this page</a> for some useful scripts.</p>
+</body>
+</html>

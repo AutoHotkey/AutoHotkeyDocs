@@ -1,0 +1,172 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<title>Using a Joystick as a Mouse</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link rel="alternate" type="application/rss+xml" title="AutoHotkey Forum RSS" href="/forum/rss.php">
+<link href="/docs/css/default.css" rel="stylesheet" type="text/css">
+<link href="/docs/css/print.css" rel="stylesheet" type="text/css" media="print">
+</head>
+<body>
+
+<h6>Using a Joystick as a Mouse</h6>
+
+<p> This script converts a joystick into a three-button mouse.  It allows each
+ button to drag just like a mouse button and it uses virtually no CPU time.
+ Also, it will move the cursor faster depending on how far you push the joystick
+ from center. You can personalize various settings at the top of the script.
+</p>
+<p><a href="JoystickMouse.ahk">Download This Script</a> &nbsp;| &nbsp;<a href="index.htm">Other Sample Scripts</a> &nbsp;| &nbsp;<a href="http://www.autohotkey.com">Home</a></p>
+<hr>
+<pre class="NoIndent"><span class="CodeCom">; Increase the following value to make the mouse cursor move faster:</span>
+JoyMultiplier = 0.30
+
+<span class="CodeCom">; Decrease the following value to require less joystick displacement-from-center</span>
+<span class="CodeCom">; to start moving the mouse.  However, you may need to calibrate your joystick</span>
+<span class="CodeCom">; -- ensuring it's properly centered -- to avoid cursor drift. A perfectly tight</span>
+<span class="CodeCom">; and centered joystick could use a value of 1:</span>
+JoyThreshold = 3
+
+<span class="CodeCom">; Change the following to true to invert the Y-axis, which causes the mouse to</span>
+<span class="CodeCom">; move vertically in the direction opposite the stick:</span>
+InvertYAxis := false
+
+<span class="CodeCom">; Change these values to use joystick button numbers other than 1, 2, and 3 for</span>
+<span class="CodeCom">; the left, right, and middle mouse buttons.  Available numbers are 1 through 32.</span>
+<span class="CodeCom">; Use the Joystick Test Script to find out your joystick's numbers more easily.</span>
+ButtonLeft = 1
+ButtonRight = 2
+ButtonMiddle = 3
+
+<span class="CodeCom">; If your joystick has a POV control, you can use it as a mouse wheel.  The</span>
+<span class="CodeCom">; following value is the number of milliseconds between turns of the wheel.</span>
+<span class="CodeCom">; Decrease it to have the wheel turn faster:</span>
+WheelDelay = 250
+
+<span class="CodeCom">; If your system has more than one joystick, increase this value to use a joystick</span>
+<span class="CodeCom">; other than the first:</span>
+JoystickNumber = 1
+
+<span class="CodeCom">; END OF CONFIG SECTION -- Don't change anything below this point unless you want</span>
+<span class="CodeCom">; to alter the basic nature of the script.</span>
+
+#SingleInstance
+
+JoystickPrefix = %JoystickNumber%Joy
+Hotkey, %JoystickPrefix%%ButtonLeft%, ButtonLeft
+Hotkey, %JoystickPrefix%%ButtonRight%, ButtonRight
+Hotkey, %JoystickPrefix%%ButtonMiddle%, ButtonMiddle
+
+<span class="CodeCom">; Calculate the axis displacements that are needed to start moving the cursor:</span>
+JoyThresholdUpper := 50 + JoyThreshold
+JoyThresholdLower := 50 - JoyThreshold
+if InvertYAxis
+    YAxisMultiplier = -1
+else
+    YAxisMultiplier = 1
+
+SetTimer, WatchJoystick, 10  <span class="CodeCom">; Monitor the movement of the joystick.</span>
+
+GetKeyState, JoyInfo, %JoystickNumber%JoyInfo
+IfInString, JoyInfo, P  <span class="CodeCom">; Joystick has POV control, so use it as a mouse wheel.</span>
+    SetTimer, MouseWheel, %WheelDelay%
+
+return  <span class="CodeCom">; End of auto-execute section.</span>
+
+
+<span class="CodeCom">; The subroutines below do not use KeyWait because that would sometimes trap the</span>
+<span class="CodeCom">; WatchJoystick quasi-thread beneath the wait-for-button-up thread, which would</span>
+<span class="CodeCom">; effectively prevent mouse-dragging with the joystick.</span>
+
+ButtonLeft:
+SetMouseDelay, -1  <span class="CodeCom">; Makes movement smoother.</span>
+MouseClick, left,,, 1, 0, D  <span class="CodeCom">; Hold down the left mouse button.</span>
+SetTimer, WaitForLeftButtonUp, 10
+return
+
+ButtonRight:
+SetMouseDelay, -1  <span class="CodeCom">; Makes movement smoother.</span>
+MouseClick, right,,, 1, 0, D  <span class="CodeCom">; Hold down the right mouse button.</span>
+SetTimer, WaitForRightButtonUp, 10
+return
+
+ButtonMiddle:
+SetMouseDelay, -1  <span class="CodeCom">; Makes movement smoother.</span>
+MouseClick, middle,,, 1, 0, D  <span class="CodeCom">; Hold down the right mouse button.</span>
+SetTimer, WaitForMiddleButtonUp, 10
+return
+
+WaitForLeftButtonUp:
+if GetKeyState(JoystickPrefix . ButtonLeft)
+    return  <span class="CodeCom">; The button is still, down, so keep waiting.</span>
+<span class="CodeCom">; Otherwise, the button has been released.</span>
+SetTimer, WaitForLeftButtonUp, off
+SetMouseDelay, -1  <span class="CodeCom">; Makes movement smoother.</span>
+MouseClick, left,,, 1, 0, U  <span class="CodeCom">; Release the mouse button.</span>
+return
+
+WaitForRightButtonUp:
+if GetKeyState(JoystickPrefix . ButtonRight)
+    return  <span class="CodeCom">; The button is still, down, so keep waiting.</span>
+<span class="CodeCom">; Otherwise, the button has been released.</span>
+SetTimer, WaitForRightButtonUp, off
+MouseClick, right,,, 1, 0, U  <span class="CodeCom">; Release the mouse button.</span>
+return
+
+WaitForMiddleButtonUp:
+if GetKeyState(JoystickPrefix . ButtonMiddle)
+    return  <span class="CodeCom">; The button is still, down, so keep waiting.</span>
+<span class="CodeCom">; Otherwise, the button has been released.</span>
+SetTimer, WaitForMiddleButtonUp, off
+MouseClick, middle,,, 1, 0, U  <span class="CodeCom">; Release the mouse button.</span>
+return
+
+WatchJoystick:
+MouseNeedsToBeMoved := false  <span class="CodeCom">; Set default.</span>
+SetFormat, float, 03
+GetKeyState, joyx, %JoystickNumber%JoyX
+GetKeyState, joyy, %JoystickNumber%JoyY
+if joyx &gt; %JoyThresholdUpper%
+{
+    MouseNeedsToBeMoved := true
+    DeltaX := joyx - JoyThresholdUpper
+}
+else if joyx &lt; %JoyThresholdLower%
+{
+    MouseNeedsToBeMoved := true
+    DeltaX := joyx - JoyThresholdLower
+}
+else
+    DeltaX = 0
+if joyy &gt; %JoyThresholdUpper%
+{
+    MouseNeedsToBeMoved := true
+    DeltaY := joyy - JoyThresholdUpper
+}
+else if joyy &lt; %JoyThresholdLower%
+{
+    MouseNeedsToBeMoved := true
+    DeltaY := joyy - JoyThresholdLower
+}
+else
+    DeltaY = 0
+if MouseNeedsToBeMoved
+{
+    SetMouseDelay, -1  <span class="CodeCom">; Makes movement smoother.</span>
+    MouseMove, DeltaX * JoyMultiplier, DeltaY * JoyMultiplier * YAxisMultiplier, 0, R
+}
+return
+
+MouseWheel:
+GetKeyState, JoyPOV, %JoystickNumber%JoyPOV
+if JoyPOV = -1  <span class="CodeCom">; No angle.</span>
+    return
+if (JoyPOV &gt; 31500 or JoyPOV &lt; 4500)  <span class="CodeCom">; Forward</span>
+    Send {WheelUp}
+else if JoyPOV between 13500 and 22500  <span class="CodeCom">; Back</span>
+    Send {WheelDown}
+return
+</pre>
+</body>
+</html>

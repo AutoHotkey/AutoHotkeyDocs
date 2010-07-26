@@ -1,0 +1,144 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<title>Volume On-Screen-Display (OSD) -- by Rajat</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link rel="alternate" type="application/rss+xml" title="AutoHotkey Forum RSS" href="/forum/rss.php">
+<link href="/docs/css/default.css" rel="stylesheet" type="text/css">
+<link href="/docs/css/print.css" rel="stylesheet" type="text/css" media="print">
+</head>
+<body>
+
+<h6>Volume On-Screen-Display (OSD) -- by Rajat</h6>
+
+<p> This script assigns hotkeys of your choice to raise and lower the
+ master and/or wave volume.  Both volumes are displayed as different
+ color bar graphs.
+</p>
+<p><a href="VolumeOSD.ahk">Download This Script</a> &nbsp;| &nbsp;<a href="index.htm">Other Sample Scripts</a> &nbsp;| &nbsp;<a href="http://www.autohotkey.com">Home</a></p>
+<hr>
+<pre class="NoIndent"><span class="CodeCom">;_________________________________________________ </span>
+<span class="CodeCom">;_______User Settings_____________________________ </span>
+
+<span class="CodeCom">; Make customisation only in this area or hotkey area only!! </span>
+
+<span class="CodeCom">; The percentage by which to raise or lower the volume each time:</span>
+vol_Step = 4
+
+<span class="CodeCom">; How long to display the volume level bar graphs:</span>
+vol_DisplayTime = 2000
+
+<span class="CodeCom">; Master Volume Bar color (see the help file to use more</span>
+<span class="CodeCom">; precise shades):</span>
+vol_CBM = Red
+
+<span class="CodeCom">; Wave Volume Bar color</span>
+vol_CBW = Blue
+
+<span class="CodeCom">; Background color</span>
+vol_CW = Silver
+
+<span class="CodeCom">; Bar's screen position.  Use -1 to center the bar in that dimension:</span>
+vol_PosX = -1
+vol_PosY = -1
+vol_Width = 150  <span class="CodeCom">; width of bar</span>
+vol_Thick = 12   <span class="CodeCom">; thickness of bar</span>
+
+<span class="CodeCom">; If your keyboard has multimedia buttons for Volume, you can</span>
+<span class="CodeCom">; try changing the below hotkeys to use them by specifying</span>
+<span class="CodeCom">; Volume_Up, ^Volume_Up, Volume_Down, and ^Volume_Down:</span>
+HotKey, #Up, vol_MasterUp      <span class="CodeCom">; Win+UpArrow</span>
+HotKey, #Down, vol_MasterDown
+HotKey, +#Up, vol_WaveUp       <span class="CodeCom">; Shift+Win+UpArrow</span>
+HotKey, +#Down, vol_WaveDown
+
+
+<span class="CodeCom">;___________________________________________ </span>
+<span class="CodeCom">;_____Auto Execute Section__________________ </span>
+
+<span class="CodeCom">; DON'T CHANGE ANYTHING HERE (unless you know what you're doing).</span>
+
+vol_BarOptionsMaster = 1:B ZH%vol_Thick% ZX0 ZY0 W%vol_Width% CB%vol_CBM% CW%vol_CW%
+vol_BarOptionsWave   = 2:B ZH%vol_Thick% ZX0 ZY0 W%vol_Width% CB%vol_CBW% CW%vol_CW%
+
+<span class="CodeCom">; If the X position has been specified, add it to the options.</span>
+<span class="CodeCom">; Otherwise, omit it to center the bar horizontally:</span>
+if vol_PosX &gt;= 0
+{
+    vol_BarOptionsMaster = %vol_BarOptionsMaster% X%vol_PosX%
+    vol_BarOptionsWave   = %vol_BarOptionsWave% X%vol_PosX%
+}
+
+<span class="CodeCom">; If the Y position has been specified, add it to the options.</span>
+<span class="CodeCom">; Otherwise, omit it to have it calculated later:</span>
+if vol_PosY &gt;= 0
+{
+    vol_BarOptionsMaster = %vol_BarOptionsMaster% Y%vol_PosY%
+    vol_PosY_wave = %vol_PosY%
+    vol_PosY_wave += %vol_Thick%
+    vol_BarOptionsWave = %vol_BarOptionsWave% Y%vol_PosY_wave%
+}
+
+#SingleInstance
+SetBatchLines, 10ms
+Return
+
+
+<span class="CodeCom">;___________________________________________ </span>
+
+vol_WaveUp:
+SoundSet, +%vol_Step%, Wave
+Gosub, vol_ShowBars
+return
+
+vol_WaveDown:
+SoundSet, -%vol_Step%, Wave
+Gosub, vol_ShowBars
+return
+
+vol_MasterUp:
+SoundSet, +%vol_Step%
+Gosub, vol_ShowBars
+return
+
+vol_MasterDown:
+SoundSet, -%vol_Step%
+Gosub, vol_ShowBars
+return
+
+vol_ShowBars:
+<span class="CodeCom">; To prevent the &quot;flashing&quot; effect, only create the bar window if it</span>
+<span class="CodeCom">; doesn't already exist:</span>
+IfWinNotExist, vol_Wave
+    Progress, %vol_BarOptionsWave%, , , vol_Wave
+IfWinNotExist, vol_Master
+{
+    <span class="CodeCom">; Calculate position here in case screen resolution changes while</span>
+    <span class="CodeCom">; the script is running:</span>
+    if vol_PosY &lt; 0
+    {
+        <span class="CodeCom">; Create the Wave bar just above the Master bar:</span>
+        WinGetPos, , vol_Wave_Posy, , , vol_Wave
+        vol_Wave_Posy -= %vol_Thick%
+        Progress, %vol_BarOptionsMaster% Y%vol_Wave_Posy%, , , vol_Master
+    }
+    else
+        Progress, %vol_BarOptionsMaster%, , , vol_Master
+}
+<span class="CodeCom">; Get both volumes in case the user or an external program changed them:</span>
+SoundGet, vol_Master, Master
+SoundGet, vol_Wave, Wave
+Progress, 1:%vol_Master%
+Progress, 2:%vol_Wave%
+SetTimer, vol_BarOff, %vol_DisplayTime%
+return
+
+vol_BarOff:
+SetTimer, vol_BarOff, off
+Progress, 1:Off
+Progress, 2:Off
+return
+</pre>
+</body>
+</html>

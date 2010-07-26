@@ -1,0 +1,160 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<title>SoundSet</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link href="../css/commands.css" rel="stylesheet" type="text/css">
+<link href="../css/print.css" rel="stylesheet" type="text/css" media="print">
+</head>
+<body>
+
+<h1>SoundSet</h1>
+<hr size="2">
+<p>Changes various settings of a sound device (master mute, master volume, etc.)</p>
+
+<p class="CommandSyntax">SoundSet, NewSetting [, ComponentType, ControlType, DeviceNumber]</p>
+<h4>Parameters</h4>
+<table border="1" width="100%" cellspacing="0" cellpadding="3" bordercolor="#C0C0C0">
+  <tr>
+    <td width="15%">NewSetting</td>
+    <td width="85%"><p>Percentage number between -100 and 100 inclusive (it can be a floating point number or <a href="../Variables.htm#Expressions">expression</a>). If the number begins with a plus or minus sign, the <strong>current setting </strong> will be adjusted up or down by the indicated amount. Otherwise, the setting will be set explicitly to the level indicated by <em>NewSetting</em>.</p>
+      <p>For <em>ControlTypes</em> with only two possible settings -- namely ONOFF, MUTE, MONO, LOUDNESS, STEREOENH, and BASSBOOST -- any positive number will turn on the setting and a zero will turn it off. However, if the number begins with a plus or minus sign, the  setting  will be toggled (set to the opposite of its current state).</p></td>
+  </tr>
+  <tr>
+    <td>ComponentType</td>
+    <td><p>If omitted or blank, it defaults to the word MASTER. Otherwise, it can be one of the following words: MASTER (synonymous with SPEAKERS), DIGITAL, LINE, MICROPHONE, SYNTH, CD, TELEPHONE, PCSPEAKER, WAVE, AUX, ANALOG, HEADPHONES, or N/A. If the sound device lacks the specified <em>ComponentType</em>, ErrorLevel will indicate the problem.</p>
+      <p>The component labeled Auxiliary in some mixers might be accessible as ANALOG rather than AUX.</p>
+    <p>If a device has more than one instance of <em>ComponentType</em> (two of type LINE, for example), usually the first contains the playback settings and the second contains the recording settings. To access an instance other than the first, append a colon and a number to this parameter. For example: Analog:2 is the second instance of the analog component.</p></td>
+  </tr>
+  <tr>
+    <td>ControlType</td>
+    <td>If omitted or blank, it defaults to VOLUME. Otherwise, it can be one of the following words: VOLUME (or VOL), ONOFF, MUTE, MONO, LOUDNESS, STEREOENH, BASSBOOST, PAN, QSOUNDPAN, BASS, TREBLE, EQUALIZER, or the number of a valid control type (see <a href="#Ex">soundcard analysis script</a>). If the specified <em>ComponentType</em> lacks the specified <em>ControlType</em>, ErrorLevel will indicate the problem.</td>
+  </tr>
+  <tr>
+    <td>DeviceNumber</td>
+    <td>If this parameter is omitted, it defaults to 1 (the first sound device), which is usually the system's default device for recording and playback. Specify a number higher than 1 to operate upon a different sound device. This parameter can be an <a href="../Variables.htm#Expressions">expression</a>.</td>
+  </tr>
+</table>
+<h4>ErrorLevel</h4>
+<p><a href="../misc/ErrorLevel.htm">ErrorLevel</a> is set to 0 if the command succeeded. Otherwise, it is set to one of the following phrases:</p>
+<table width="436" border="1">
+  <tr>
+    <td width="426">Invalid Control Type or Component Type</td>
+  </tr>
+  <tr>
+    <td>Can't Open Specified Mixer</td>
+  </tr>
+  <tr>
+    <td>Mixer Doesn't Support This Component Type</td>
+  </tr>
+  <tr>
+    <td>Mixer Doesn't Have That Many of That Component Type</td>
+  </tr>
+  <tr>
+    <td>Component Doesn't Support This Control Type</td>
+  </tr>
+  <tr>
+    <td>Can't Get Current Setting</td>
+  </tr>
+  <tr>
+    <td>Can't Change Setting</td>
+  </tr>
+</table>
+<h4>Remarks</h4>
+<p>On Windows Vista or later, SoundSet and SoundGet affect only the script itself (this may be resolved in a future version). There are at least two ways to work around this:</p>
+<p>1) In the properties dialog for the file &quot;AutoHotkey.exe&quot; (or a <a href="../Scripts.htm#ahk2exe">compiled script</a>), change the compatibility setting to &quot;Windows XP&quot;.</p>
+<p>2) Have the script send volume-control keystrokes to change the master volume for the entire system. For example:</p>
+<pre>Send {Volume_Up}  <span class="CodeCom">; Raise the master volume by 1 interval (typically 5%).</span>
+Send {Volume_Down 3}  <span class="CodeCom">; Lower the master volume by 3 intervals.</span>
+Send {Volume_Mute}  <span class="CodeCom">; Mute/unmute the master volume.</span></pre>
+<p>To discover the capabilities of the sound devices (mixers) installed on the system -- such as the available component types and control types -- run the <a href="#Ex">soundcard analysis script</a>.</p>
+<p>When SoundSet changes the volume of a component, all of that component's channels (e.g. left and right) are set to the same level. In other words, any off-center &quot;balance&quot; that may have been set previously is lost. This can be avoided for the WAVE component by using <a href="SoundSetWaveVolume.htm">SoundSetWaveVolume</a> instead, which attempts to preserve the existing balance when changing the volume level.</p>
+<p>Use <a href="SoundGet.htm">SoundGet</a> to retrieve the current value of a setting.</p>
+<h4>Related</h4>
+<p><a href="SoundGet.htm">SoundGet</a>, <a href="SoundGetWaveVolume.htm">SoundGetWaveVolume</a>, <a href="SoundSetWaveVolume.htm">SoundSetWaveVolume</a>, <a href="SoundPlay.htm">SoundPlay</a></p>
+<h4>Examples</h4>
+<pre class="NoIndent"><span class="CodeCom">; BASIC EXAMPLES:</span>
+SoundSet, 50  <span class="CodeCom">; Set the master volume to 50%</span>
+SoundSet +10  <span class="CodeCom">; Increase master volume by 10%</span>
+SoundSet -10  <span class="CodeCom">; Decrease master volume by 10%</span>
+SoundSet, 1, Microphone, mute  <span class="CodeCom">; mute the microphone</span>
+SoundSet, +1, , mute  <span class="CodeCom">; Toggle the master mute (set it to the opposite state)</span>
+SoundSet, +20, Master, bass  <span class="CodeCom">; Increase bass level by 20%.</span>
+if ErrorLevel
+    MsgBox, The BASS setting is not supported for MASTER.</pre>
+<p>&nbsp;</p>
+<pre class="NoIndent"><a name="Ex"></a><span class="CodeCom">; SOUNDCARD ANALYSIS</span>
+<span class="CodeCom">; Use the following script to discover your soundcard's capabilities (component types and control types).</span>
+<span class="CodeCom">; It displays the results in a simple ListView.</span>
+
+SetBatchLines -1
+SplashTextOn,,, Gathering Soundcard Info...
+
+<span class="CodeCom">; Most of the pure numbers below probably don't exist in any mixer, but they're queried for completeness.</span>
+<span class="CodeCom">; The numbers correspond to the following items (in order): CUSTOM, BOOLEANMETER, SIGNEDMETER, PEAKMETER,</span>
+<span class="CodeCom">; UNSIGNEDMETER, BOOLEAN, BUTTON, DECIBELS, SIGNED, UNSIGNED, PERCENT, SLIDER, FADER, SINGLESELECT, MUX,</span>
+<span class="CodeCom">; MULTIPLESELECT, MIXER, MICROTIME, MILLITIME</span>
+ControlTypes = VOLUME,ONOFF,MUTE,MONO,LOUDNESS,STEREOENH,BASSBOOST,PAN,QSOUNDPAN,BASS,TREBLE,EQUALIZER,0x00000000, 0x10010000,0x10020000,0x10020001,0x10030000,0x20010000,0x21010000,0x30040000,0x30020000,0x30030000,0x30050000,0x40020000,0x50030000,0x70010000,0x70010001,0x71010000,0x71010001,0x60030000,0x61030000
+
+ComponentTypes = MASTER,HEADPHONES,DIGITAL,LINE,MICROPHONE,SYNTH,CD,TELEPHONE,PCSPEAKER,WAVE,AUX,ANALOG,N/A
+
+<span class="CodeCom">; Create a ListView and prepare for the main loop:</span>
+Gui, Add, Listview, w400 h400 vMyListView, Component Type|Control Type|Setting|Mixer
+LV_ModifyCol(4, &quot;Integer&quot;)
+SetFormat, Float, 0.2  <span class="CodeCom">; Limit number of decimal places in percentages to two.</span>
+
+Loop  <span class="CodeCom">; For each mixer number that exists in the system, query its capabilities.</span>
+{
+    CurrMixer := A_Index
+    SoundGet, Setting,,, %CurrMixer%
+    if ErrorLevel = Can't Open Specified Mixer  <span class="CodeCom">; Any error other than this indicates that the mixer exists.</span>
+        break
+
+    <span class="CodeCom">; For each component type that exists in this mixer, query its instances and control types:</span>
+    Loop, parse, ComponentTypes, `,
+    {
+        CurrComponent := A_LoopField
+        <span class="CodeCom">; First check if this component type even exists in the mixer:</span>
+        SoundGet, Setting, %CurrComponent%,, %CurrMixer%
+        if ErrorLevel = Mixer Doesn't Support This Component Type
+            continue  <span class="CodeCom">; Start a new iteration to move on to the next component type.</span>
+        Loop  <span class="CodeCom">; For each instance of this component type, query its control types.</span>
+        {
+            CurrInstance := A_Index
+            <span class="CodeCom">; First check if this instance of this instance even exists in the mixer:</span>
+            SoundGet, Setting, %CurrComponent%:%CurrInstance%,, %CurrMixer%
+            <span class="CodeCom">; Checking for both of the following errors allows this script to run on older versions:</span>
+            if ErrorLevel in Mixer Doesn't Have That Many of That Component Type,Invalid Control Type or Component Type
+                break  <span class="CodeCom">; No more instances of this component type.</span>
+            <span class="CodeCom">; Get the current setting of each control type that exists in this instance of this component:</span>
+            Loop, parse, ControlTypes, `,
+            {
+                CurrControl := A_LoopField
+                SoundGet, Setting, %CurrComponent%:%CurrInstance%, %CurrControl%, %CurrMixer%
+                <span class="CodeCom">; Checking for both of the following errors allows this script to run on older versions:</span>
+                if ErrorLevel in Component Doesn't Support This Control Type,Invalid Control Type or Component Type
+                    continue
+                if ErrorLevel  <span class="CodeCom">; Some other error, which is unexpected so show it in the results.</span>
+                    Setting := ErrorLevel
+                ComponentString := CurrComponent
+                if CurrInstance &gt; 1
+                    ComponentString = %ComponentString%:%CurrInstance%
+                LV_Add(&quot;&quot;, ComponentString, CurrControl, Setting, CurrMixer)
+            }  <span class="CodeCom">; For each control type.</span>
+        }  <span class="CodeCom">; For each component instance.</span>
+    }  <span class="CodeCom">; For each component type.</span>
+}  <span class="CodeCom">; For each mixer.</span>
+
+Loop % LV_GetCount(&quot;Col&quot;)  <span class="CodeCom">; Auto-size each column to fit its contents.</span>
+    LV_ModifyCol(A_Index, &quot;AutoHdr&quot;)
+
+SplashTextOff
+Gui, Show
+return
+
+GuiClose:
+ExitApp</pre>
+
+</body>
+</html>

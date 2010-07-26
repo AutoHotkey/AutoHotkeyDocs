@@ -1,0 +1,129 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<title>SetTimer</title>
+<meta name="description" content="Perform scripted actions at intervals of your choice with this free macro program. SetTimer launches a subroutine automatically and repeatedly.">
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link href="../css/commands.css" rel="stylesheet" type="text/css">
+<link href="../css/print.css" rel="stylesheet" type="text/css" media="print">
+</head>
+<body>
+
+<h1>SetTimer</h1>
+<hr size="2">
+<p>Causes a subroutine to be launched automatically  and repeatedly at a specified time interval.</p>
+
+<p class="CommandSyntax">SetTimer, Label [, Period|On|Off, Priority]</p>
+<h4>Parameters</h4>
+<table border="1" width="100%" cellspacing="0" cellpadding="3" bordercolor="#C0C0C0">
+  <tr>
+    <td width="15%">Label</td>
+    <td width="85%">The name of the label or <a href="../Hotkeys.htm">hotkey label</a> to which to jump, which causes the commands beneath <em>Label</em> to be executed until a <a href="Return.htm">Return</a> or <a href="Exit.htm">Exit</a> is encountered. As with the parameters of almost all other commands, <em>Label</em> can be a <a href="../Variables.htm">variable</a> reference such as %MyLabel%, in which case the name stored in the variable is used as the target.</td>
+  </tr>
+  <tr>
+    <td>Period|On|Off</td>
+    <td><p><strong>On</strong>: Re-enables a previously disabled timer at its former <em>period</em>. If the timer doesn't exist, it is created (with a default period of 250). If the timer exists but was previously set to <a href="#once">run-only-once mode</a>, it will again run only once.</p>
+      <p><strong>Off</strong>: Disables an existing timer.</p>
+      <p><strong>Period</strong>: Creates or updates a timer using this parameter as the <a href="#Precision">approximate</a> number of milliseconds  that must pass since the last time the <em>Label</em> subroutine was started. When this amount of time has passed, <em>Label</em> will be run again (unless it is still running from the last time). The timer will be automatically enabled. To prevent this, call the command a second time immediately afterward, specifying OFF for this parameter.</p>
+      <p>If this parameter is blank  and:<br>
+      1) the timer does not exist: it will be created with a period of 250.<br>
+      2) the timer already exists: it will be enabled and <a href="#reset">reset</a> at its former <em>period</em> unless a <em>Priority</em> is specified.</p>
+      <p><strong><a name="once" id="once"></a>Run only once</strong> [v1.0.46.16+]: Specify a negative <em>Period</em> to indicate that the timer should run only once. For example, specifying -100 would run the timer 100 ms from now then disable the timer as though <em>SetTimer, Label, Off</em> had been used.<br>
+      </p>
+    </td>
+  </tr>
+  <tr>
+    <td>Priority</td>
+    <td><p>This optional parameter is an integer between -2147483648 and 2147483647 (or an <a href="../Variables.htm#Expressions">expression</a>) to indicate this timer's thread priority. If omitted, 0 will be used. See <a href="../misc/Threads.htm">Threads</a> for details.</p>
+      <p>To change the priority of an existing timer without affecting it in any other way, leave the  parameter before this one blank.</p></td>
+  </tr>
+</table>
+
+<h4>Remarks</h4>
+<p>Timers are useful because they run asynchronously, meaning that they will run at the specified frequency (interval) even when the script is  waiting for a window, displaying a dialog, or busy with another task. Examples of their many uses include taking some action when the user becomes idle (as reflected by <a href="../Variables.htm#TimeIdle">A_TimeIdle</a>) or closing unwanted windows the moment they appear.</p>
+<p>Although timers may give the illusion that the script is performing more than one task simultaneously, this is not the case. Instead, timed subroutines are treated just like other threads: they can interrupt or be interrupted by another thread, such as a <a href="../Hotkeys.htm">hotkey subroutine</a>. See <a href="../misc/Threads.htm">Threads</a> for details.</p>
+<p>Whenever a timer is created, re-enabled, or updated with a new <em>period,</em> its subroutine will not run right away; its time <em>period</em> must expire first. If you wish the timer's first execution to be immediate, use <a href="Gosub.htm">Gosub</a> to execute the timer's subroutine (however, this will not start a new thread like the timer itself does; so settings such as <a href="SendMode.htm">SendMode</a> will not start off at their defaults).</p>
+<p><a name="reset"></a>If SetTimer is  used on an existing timer and parameter #2 is a number or the word ON (or it is omitted), the timer's internal &quot;time it was last run&quot; will be reset to the current time; in other words, the entirety of its period must elapse before its subroutine will run again.</p>
+<p><strong><a name="Precision"></a>Timer precision</strong>: Due to the granularity of the OS's time-keeping system, <em>Period</em> is typically rounded up to the nearest multiple of 10 or 15.6 milliseconds (depending on the type of hardware and drivers installed). For example, a <em>Period</em> between 1 and 10 (inclusive) is usually equivalent to 10 or 15.6 on Windows NT/2000/XP (Windows 9x uses ~55ms). A shorter delay may be achieved via Loop+Sleep as demonstrated at <a href="Sleep.htm#ShorterSleep">DllCall+<span class="NoIndent">timeBeginPeriod</span>+Sleep</a>.</p>
+<p>A timer might not be able to run as often as specified under the following conditions:</p>
+<ol>
+  <li>Other applications are putting a heavy load on the CPU.</li>
+  <li> The timer subroutine itself takes longer than its own period to run, or there are too many other competing timers (altering <a href="SetBatchLines.htm">SetBatchLines</a> may help).</li>
+  <li>The timer has been interrupted by another <a href="../misc/Threads.htm">thread</a>, namely another timed subroutine, <a href="../Hotkeys.htm">hotkey subroutine</a>, or <a href="Menu.htm">custom menu item</a> (this can be avoided via <a href="Critical.htm">Critical</a>). If this happens and the interrupting thread takes a long time to finish, the interrupted timer will be effectively disabled for the duration. However, any other timers will continue to run by interrupting the <a href="../misc/Threads.htm">thread</a> that interrupted the first timer.</li>
+  <li>The script is uninterruptible as a result of <a href="Critical.htm">Critical</a> or <a href="Thread.htm">Thread Interrupt/Priority</a>. During such times, timers will not run. Later, when the script becomes interruptible again, any overdue timer will run once as soon as possible and then resume its normal schedule.</li>
+</ol>
+<p>Although timers will operate when the script is <a href="Suspend.htm">suspended</a>, they will not run if the <a href="../misc/Threads.htm">current thread</a> has &quot;<a href="Thread.htm">Thread NoTimers</a>&quot; in effect or whenever any thread is <a href="Pause.htm">paused</a>. In addition, they do not operate when the user is navigating through one of the script's menus (such as the tray icon menu or a menu bar).</p>
+<p>Because timers operate by temporarily interrupting the script's current activity, their subroutines should be kept short (so that they finish  quickly) whenever a long interruption would be undesirable.</p>
+<p>Timers that stay in effect for the duration of a script should usually be created in the <a href="../Scripts.htm#auto">auto-execute section</a>. By contrast, a temporary timer might often be disabled by its own subroutine (see examples at the bottom of this page).</p>
+<p>Whenever a timed subroutine is run, it starts off fresh with the default values for settings such as <a href="SendMode.htm">SendMode</a>. These defaults can be changed in the <a href="../Scripts.htm#auto">auto-execute section</a>.</p>
+<p>If <a href="../Hotkeys.htm">hotkey</a> response time is crucial (such as in games) and the script contains any timers whose subroutines take longer than about 5 ms to execute, use the following command to avoid any chance of a 15 ms delay. Such a delay would otherwise happen if a hotkey is pressed at the exact moment a timer thread is in its period of uninterruptibility:</p>
+<pre><a href="Thread.htm">Thread</a>, interrupt, 0  <span class="CodeCom">; Make all threads always-interruptible.</span></pre>
+<p>If a timer is disabled while its subroutine is currently running, that subroutine will continue until it completes.</p>
+<p>The <a href="KeyHistory.htm">KeyHistory</a> feature shows how many timers exist and how many are currently enabled.</p>
+<p>A timer's period can be no larger than 4294967295 milliseconds (49.7 days).</p>
+<p>To keep a script running -- such as one that contains only timers -- use <a href="_Persistent.htm">#Persistent</a>.</p>
+<h4>Related</h4>
+<p><a href="Gosub.htm">Gosub</a>, <a href="Return.htm">Return</a>, <a href="../misc/Threads.htm">Threads</a>, <a href="Thread.htm">Thread (command)</a>, <a href="Critical.htm">Critical</a>, <a href="../Functions.htm#IsLabel">IsLabel()</a>, <a href="Menu.htm">Menu</a>, <a href="_Persistent.htm">#Persistent</a></p>
+<h4>Examples</h4>
+<pre class="NoIndent"><span class="CodeCom">; Example #1: Close unwanted windows whenever they appear:</span>
+#Persistent
+SetTimer, CloseMailWarnings, 250
+return
+
+CloseMailWarnings:
+WinClose, Microsoft Outlook, A timeout occured while communicating
+WinClose, Microsoft Outlook, A connection to the server could not be established
+return</pre>
+<p>&nbsp;</p>
+<pre class="NoIndent"><span class="CodeCom">; Example #2: Wait for a certain window to appear and then alert the user:</span>
+#Persistent
+SetTimer, Alert1, 500
+return
+
+Alert1:
+IfWinNotExist, Video Conversion, Process Complete
+    return
+<span class="CodeCom">; Otherwise:</span>
+SetTimer, Alert1, Off  <span class="CodeCom">; i.e. the timer turns itself off here.</span>
+SplashTextOn, , , The video conversion is finished.
+Sleep, 3000
+SplashTextOff
+return</pre>
+<p>&nbsp;</p>
+<pre class="NoIndent"><span class="CodeCom">; Example #3: Detection of single, double, and triple-presses of a hotkey. This</span>
+<span class="CodeCom">; allows a hotkey to perform a different operation depending on how many times</span>
+<span class="CodeCom">; you press it:</span>
+#c::
+if winc_presses &gt; 0 <span class="CodeCom">; SetTimer already started, so we log the keypress instead.</span>
+{
+    winc_presses += 1
+    return
+}
+<span class="CodeCom">; Otherwise, this is the first press of a new series. Set count to 1 and start</span>
+<span class="CodeCom">; the timer:</span>
+winc_presses = 1
+SetTimer, KeyWinC, 400 <span class="CodeCom">; Wait for more presses within a 400 millisecond window.</span>
+return
+
+KeyWinC:
+SetTimer, KeyWinC, off
+if winc_presses = 1 <span class="CodeCom">; The key was pressed once.</span>
+{
+    Run, m:\  <span class="CodeCom">; Open a folder.</span>
+}
+else if winc_presses = 2 <span class="CodeCom">; The key was pressed twice.</span>
+{
+    Run, m:\multimedia  <span class="CodeCom">; Open a different folder.</span>
+}
+else if winc_presses &gt; 2
+{
+    MsgBox, Three or more clicks detected.
+}
+<span class="CodeCom">; Regardless of which action above was triggered, reset the count to</span>
+<span class="CodeCom">; prepare for the next series of presses:</span>
+winc_presses = 0
+return</pre>
+
+</body>
+</html>

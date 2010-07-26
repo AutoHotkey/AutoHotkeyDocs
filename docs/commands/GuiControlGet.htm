@@ -1,0 +1,84 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<title>GuiControlGet</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link href="../css/commands.css" rel="stylesheet" type="text/css">
+<link href="../css/print.css" rel="stylesheet" type="text/css" media="print">
+</head>
+<body>
+
+<h1>GuiControlGet</h1>
+<hr size="2">
+<p>Retrieves various types of information about a control in a GUI window. </p>
+
+<p class="CommandSyntax">GuiControlGet,
+
+
+ OutputVar [, Sub-command, ControlID, Param4]</p>
+<h4>Parameters</h4>
+<table border="1" width="100%" cellspacing="0" cellpadding="3" bordercolor="#C0C0C0">
+  <tr>
+    <td>OutputVar</td>
+    <td>The name of the variable in which to store the result. If the command cannot complete (see ErrorLevel below), this variable is made blank.</td>
+  </tr>
+  <tr>
+    <td>Sub-command</td>
+    <td>See list below.</td>
+  </tr>
+  <tr>
+    <td width="15%">ControlID</td>
+    <td width="85%"><p>If blank or omitted, it behaves as though the name of the output variable was specified. For example, <em>GuiControlGet, MyEdit</em> is the same as <em>GuiControlGet, MyEdit,, MyEdit.</em></p>
+      <p>If the target control has an associated variable, specify the variable's name as the <em>ControlID</em> (this method takes precedence over the ones described next). For this reason, it is usually best to assign a variable to any control that will later be accessed via GuiControl or GuiControlGet, even if that control is not input-capable (such as GroupBox or Text).</p>
+    <p>Otherwise, <em>ControlID</em> can be either ClassNN (the classname and instance number of the control) or the name/text of the control, both of which can be determined via Window Spy. When using name/text, the matching behavior is determined by <a href="SetTitleMatchMode.htm">SetTitleMatchMode</a>. Note: a picture control's file name (as it was specified at the time the control was created) may be used as its <em>ControlID</em>.</p></td>
+  </tr>
+  <tr>
+    <td>Param4</td>
+    <td>This parameter is omitted except where noted in the list of sub-commands below.</td>
+  </tr>
+</table>
+
+<h4>ErrorLevel</h4>
+<p><a href="../misc/ErrorLevel.htm">ErrorLevel</a> is set to 1 if the specified window/control does not exist or some other problem prevented the command from working. Otherwise, it is set to 0.</p>
+<h4>Sub-commands</h4>
+<p><strong>(Blank)</strong>: Leave <em>Sub-command</em> blank to retrieve the control's contents. All control types are self-explanatory except the following:</p>
+<p><a href="GuiControls.htm#Picture">Picture</a>: Retrieves the picture's file name as it was originally specified when the control was created. This name does not change even if a new picture file name is specified.</p>
+<p><a href="GuiControls.htm#Edit">Edit</a>: Retrieves the contents but any line breaks in the text will be represented as plain linefeeds (`n) rather than the traditional CR+LF (`r`n) used by non-GUI commands such as <a href="ControlGetText.htm">ControlGetText</a> and <a href="ControlSetText.htm">ControlSetText</a>.</p>
+<p><a href="GuiControls.htm#Hotkey">Hotkey</a>: Retrieves a blank value if there is no hotkey in the control. Otherwise it retrieves the modifiers and key name. Examples: ^!C, ^Home, +^NumpadHome.</p>
+<p><a href="GuiControls.htm#Checkbox">Checkbox</a>/<a href="GuiControls.htm#Radio">Radio</a>: Retrieves 1 if the control is checked, 0 if it is unchecked, or -1 if it has a gray checkmark. To retrieve the control's text/caption instead, specify the word Text for <em>Param4</em>. Note: Unlike the <a href="Gui.htm#Submit">Gui Submit</a> command, radio buttons are always retrieved individually, regardless of whether they are in a radio group.</p>
+<p><a href="GuiControls.htm#UpDown">UpDown</a>/<a href="GuiControls.htm#Slider">Slider</a>/<a href="GuiControls.htm#Progress">Progress</a>: Retrieves the control's current position.</p>
+<p><a href="GuiControls.htm#Tab">Tab</a>/<a href="GuiControls.htm#DropDownList">DropDownList</a>/<a href="GuiControls.htm#ComboBox">ComboBox</a>/<a href="GuiControls.htm#ListBox">ListBox</a>: Retrieves the text of the currently selected item/tab (or its position if the control has the <a href="Gui.htm#AltSubmit">AltSubmit</a> property). For a ComboBox, if there is no selected item, the text in the control's edit field is retrieved instead. For a <a href="GuiControls.htm#ListBoxMulti">multi-select ListBox</a>, the output uses the window's <a href="Gui.htm#Delimiter">current delimiter</a>.</p>
+<p><a href="ListView.htm">ListView</a> and <a href="TreeView.htm">TreeView</a>: These are not supported when <em>Sub-command</em> is blank. Instead, use the built-in <a href="ListView.htm#BuiltIn">ListView functions</a> and <a href="TreeView.htm#BuiltIn">TreeView functions</a>.</p>
+<p><a href="GuiControls.htm#StatusBar">StatusBar</a>: Retrieves only the first part's text.</p>
+<p>Note: To unconditionally retrieve any control's text/caption rather than its contents, specify the word Text for <em>Param4.</em></p>
+<p><strong><br>
+GuiControlGet, OutputVar, Pos</strong>: Retrieves the position and size of the control. The position is relative to the GUI window's client area, which is the area not including title bar, menu bar, and borders. The information is stored in four variables whose names all start with <em>OutputVar</em>. For example:</p>
+<pre>GuiControlGet, MyEdit, Pos
+MsgBox The X coordinate is %MyEditX%. The Y coordinate is %MyEditY%. The width is %MyEditW%. The height is %MyEditH%.</pre>
+<p>Within a <a href="../Functions.htm">function</a>, to create a set of variables that is global instead of local, <a href="../Functions.htm#Global">declare</a> <em>OutputVar</em> as a global variable prior to using this command (the converse is true for <a href="../Functions.htm#AssumeGlobal">assume-global</a> functions).</p>
+<p><strong><br>
+GuiControlGet, OutputVar, Focus</strong>: Retrieves the control identifier (ClassNN) for the control that currently has keyboard focus. Since the specified GUI window must be <a href="WinActivate.htm">active</a> for one of its controls to have focus, <em>OutputVar</em> will be made blank if it is not active. Example usage: GuiControlGet, focused_control, focus</p>
+<p><strong>GuiControlGet, OutputVar, FocusV</strong> [v1.0.43.06+]: Same as <em>Focus</em> (above) except that it retrieves the name of the focused control's <a href="Gui.htm#Events">associated variable</a>. If that control lacks an associated variable, the first 63 characters of the control's text/caption is retrieved instead (this is most often used to avoid giving each button a variable name).</p>
+<p><strong>GuiControlGet, OutputVar, Enabled</strong>: Retrieves 1 if the control is enabled or 0 if it is disabled.</p>
+<p><strong>GuiControlGet, OutputVar, Visible</strong>: Retrieves 1 if the control is visible or 0 if it is hidden.</p>
+<p><strong><a name="Hwnd"></a>GuiControlGet, OutputVar, Hwnd</strong> [v1.0.46.16+]: Retrieves the window handle (HWND) of the control. A control's HWND is often used with <a href="PostMessage.htm">PostMessage</a>, <a href="PostMessage.htm">SendMessage</a>, and <a href="DllCall.htm">DllCall</a>. Note: <a href="Gui.htm#HwndOutputVar">HwndOutputVar</a> is usually a more concise way to get the HWND.</p>
+<h4>Remarks</h4>
+<p>To operate upon a window number other than the default (see below), include a number followed by a colon in front of the sub-command as in these examples:<br>
+GuiControlGet, MyEdit, 2:<br>
+GuiControlGet, MyEdit, 2:Pos<br>
+GuiControlGet, Outputvar, 2:Focus</p>
+<p>A GUI <a href="../misc/Threads.htm">thread</a> is defined as any thread launched as a result of a GUI action. GUI actions include selecting an item from a GUI window's menu bar, or triggering one of its <a href="Gui.htm#label">g-labels</a> (such as by pressing a button).</p>
+<p>The default window number for a GUI thread is that of the window that launched the thread. Non-GUI threads use 1 as their default.</p>
+
+<h4>Related</h4>
+<p><a href="Gui.htm">Gui</a>, <a href="GuiControl.htm">GuiControl</a>, <a href="ControlGet.htm">ControlGet</a></p>
+<h4>Examples</h4>
+<pre class="NoIndent">GuiControlGet, MyEdit
+GuiControlGet, CtrlContents,, MyEdit  <span class="CodeCom">; Same as the above except uses a non-default output variable.</span>
+GuiControlGet, MyCheckbox1 <span class="CodeCom">; Retrieves 1 if it is checked, 0 if it is unchecked.</span>
+GuiControlGet, MyCheckbox1,,, Text  <span class="CodeCom">; Retrieves the caption/text of the checkbox.</span>
+GuiControlGet, Pic, Pos, Static4  <span class="CodeCom">; The position/size will be stored in PicX, PicY, PicW, and PicH</span></pre>
+
+</body>
+</html>

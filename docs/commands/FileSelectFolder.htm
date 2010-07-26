@@ -1,0 +1,73 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<title>FileSelectFolder</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link href="../css/commands.css" rel="stylesheet" type="text/css">
+<link href="../css/print.css" rel="stylesheet" type="text/css" media="print">
+</head>
+<body>
+
+<h1>FileSelectFolder</h1>
+<hr size="2">
+<p>Displays a standard dialog  that allows the user to select a folder.</p>
+
+<p class="CommandSyntax">FileSelectFolder, OutputVar [, StartingFolder, Options, Prompt]</p>
+<h4>Parameters</h4>
+<table border="1" width="100%" cellspacing="0" cellpadding="3" bordercolor="#C0C0C0">
+  <tr> 
+    <td width="15%">OutputVar</td>
+    <td width="85%"><p>The name of the variable in which to store the user's selected folder. This will be made blank if the user cancels the dialog (i.e. does not wish to select a folder). If the user selects a root directory (such as C:\), <em>OutputVar</em> will contain a trailing backslash. If this is undesirable, remove it as follows:</p>
+      <pre>FileSelectFolder, Folder
+Folder := RegExReplace(Folder, "\\$")  <span class="CodeCom">; Removes the trailing backslash, if present.</span></pre></td>
+  </tr>
+  <tr> 
+    <td>StartingFolder</td>
+    <td><p>If blank or omitted, the dialog's initial selection will be the user's My Documents folder (or possibly My Computer). A <a href="../misc/CLSID-List.htm">CLSID folder</a> such as <em>::{20d04fe0-3aea-1069-a2d8-08002b30309d}</em> (i.e. My Computer) may be specified start navigation at a specific special folder.</p>
+      <p>Otherwise, the most common usage of this parameter is an asterisk followed immediately by the absolute path of the drive or folder to be initially selected. For example, <em>*C:\ </em>would initially select the C drive. Similarly, <em>*C:\My Folder</em> would initially select that particular folder.</p>
+      <p>The asterisk indicates that the user is permitted to navigate upward (closer to the root) from the starting folder. Without the asterisk, the user would be forced to select a folder inside <em>StartingFolder </em>(or <em>StartingFolder</em> itself). One benefit of omitting the asterisk is that <em>StartingFolder</em> is initially shown in a tree-expanded state, which may save the user from having to click the first plus sign.</p>
+      <p>If the asterisk is present, upward navigation may optionally be restricted to a folder other than Desktop. This is done by preceding the asterisk with the absolute path of the uppermost folder followed by exactly one space or tab. In the following example, the user would not be allowed to navigate any higher than C:\My Folder (but the initial selection would be C:\My Folder\Projects):<br>
+      <em>C:\My Folder *C:\My Folder\Projects</em></p>
+    </td>
+  </tr>
+  <tr> 
+    <td>Options</td>
+    <td><p>One of the following numbers:</p>
+      <p><strong>0</strong>: The options below are all disabled (except on Windows 2000, where the &quot;make new folder&quot; button might appear anyway).</p>
+      <p><strong>1</strong> (default): A button is provided that allows the user to create new folders. However, the button will not be present on Windows 95/98/NT.</p>
+      <p><strong>Add 2</strong> to the above number to  provide an edit field that allows the user to type the name of a folder. For example, a value of 3 for this parameter provides both an edit field and a &quot;make new folder&quot; button.</p>
+      <p><strong><a name="NewDialog"></a>Add 4</strong> to the above number to omit the BIF_NEWDIALOGSTYLE property. Adding 4 ensures that FileSelectFolder will work properly even in a Preinstallation Environment like WinPE or BartPE. However, this prevents the appearance of a &quot;make new folder&quot; button, at least on Windows XP. [&quot;4&quot; requires v1.0.48+]</p>
+      <p>If the user types an invalid folder name in the edit field, <em>OutputVar</em> will be set to the folder selected in the navigation tree rather than what the user entered, at least on Windows XP.</p>
+      <p>This parameter can be an <a href="../Variables.htm#Expressions">expression</a>.<br>
+      </p></td>
+  </tr>
+  <tr>
+    <td>Prompt</td>
+    <td>Text displayed in the window to instruct the user what to do. If omitted or blank, it will default to &quot;Select Folder - %A_SCRIPTNAME%&quot; (i.e. the name of the current script).</td>
+  </tr>
+</table>
+
+<h4>ErrorLevel</h4>
+<p><a href="../misc/ErrorLevel.htm">ErrorLevel</a> is set to 1 if the user dismissed the dialog without selecting a file (such as by pressing the Cancel button). It is also set to 1 if the system refused to show the dialog (rare). Otherwise, it is set to 0.</p>
+<h4>Remarks</h4>
+<p>A GUI window may display a modal folder-selection dialog by means of <a href="Gui.htm#OwnDialogs">Gui +OwnDialogs</a>. A modal dialog prevents the user from interacting with the GUI window until the dialog is dismissed.</p>
+<p>Known limitation: A <a href="SetTimer.htm">timer</a> that launches during the display of a FileSelectFolder dialog will postpone the effect of the user's clicks inside the dialog until after the timer finishes. To work around this, avoid using timers whose subroutines take a long time to finish, or disable all timers during the dialog:</p>
+<pre><a href="Thread.htm">Thread</a>, NoTimers
+FileSelectFolder, OutputVar,, 3
+Thread, NoTimers, false</pre>
+<h4>Related</h4>
+<p><a href="FileSelectFile.htm">FileSelectFile</a>, <a href="MsgBox.htm">MsgBox</a>, <a href="InputBox.htm">InputBox</a>, <a href="ToolTip.htm">ToolTip</a>, <a href="Gui.htm">GUI</a>, <a href="../misc/CLSID-List.htm">CLSID List</a>, <a href="FileCopyDir.htm">FileCopyDir</a>, <a href="FileMoveDir.htm">FileMoveDir</a>, <a href="SplitPath.htm">SplitPath</a></p>
+<p>Also, the operating system offers standard dialog boxes that prompt the user to pick a font, color, or icon. These dialogs can be displayed via <a href="DllCall.htm">DllCall()</a> as demonstrated at <a href="http://www.autohotkey.com/forum/topic17230.html">www.autohotkey.com/forum/topic17230.html</a>.</p>
+<h4>Example</h4>
+<pre class="NoIndent">FileSelectFolder, OutputVar, , 3
+if OutputVar =
+    MsgBox, You didn't select a folder.
+else
+    MsgBox, You selected folder &quot;%OutputVar%&quot;.
+
+<a href="../misc/CLSID-List.htm">CLSID</a> Example:
+FileSelectFolder, OutputVar, ::{20d04fe0-3aea-1069-a2d8-08002b30309d}  <span class="CodeCom">; My Computer.</span></pre>
+
+</body>
+</html>

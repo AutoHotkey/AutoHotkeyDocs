@@ -1,0 +1,147 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<title>RegExMatch</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link href="../css/commands.css" rel="stylesheet" type="text/css">
+<link href="../css/print.css" rel="stylesheet" type="text/css" media="print">
+</head>
+<body>
+
+<h1>RegExMatch() <span class="small65">[v1.0.45+]</span></h1>
+<hr size="2">
+<p>Determines whether a string contains a pattern (regular expression).</p>
+
+<p class="CommandSyntax">FoundPos := RegExMatch(Haystack, NeedleRegEx [, UnquotedOutputVar = &quot;&quot;, StartingPosition = 1])</p>
+<h4>Parameters</h4>
+<table border="1" width="100%" cellspacing="0" cellpadding="3" bordercolor="#C0C0C0">
+  <tr>
+    <td width="15%">FoundPos</td>
+    <td width="85%">RegExMatch() returns the position of the leftmost occurrence of <em>NeedleRegEx</em> in the string <em>Haystack</em>. Position 1 is the first character. Zero is returned if the pattern is not found. If an error occurs (such as a syntax error inside <em>NeedleRegEx</em>), an empty string is returned and ErrorLevel is set to one of the values <a href="#ErrorLevel">below</a> instead of 0.</td>
+  </tr>
+  <tr>
+    <td>Haystack</td>
+    <td>The string whose content is searched.</td>
+  </tr>
+  <tr>
+    <td>NeedleRegEx</td>
+    <td>The pattern to search for, which is a Perl-compatible regular expression (PCRE). The pattern's <a href="#Options">options</a> (if any) must be included at the beginning of the string followed by a close-parenthesis. For example, the pattern &quot;<span class="red">i)</span>abc.*123&quot; would turn on the case-insensitive option and search for &quot;abc&quot;, followed by zero or more occurrences of any character, followed by &quot;123&quot;. If there are no options, the &quot;)&quot; is optional; for example, &quot;)abc&quot; is equivalent to &quot;abc&quot;.</td>
+  </tr>
+  <tr>
+    <td><span class="CommandSyntax">UnquotedOutputVar</span></td>
+    <td><p><strong>Mode 1 (default):</strong> <em>OutputVar</em> is the unquoted name of a variable in which to store the part of <em>Haystack</em> that matched the entire pattern. If the pattern is not found (that is, if the function returns 0), this variable and all array elements below are made blank.</p>
+      <p><a name="Array"></a>If any <a href="../misc/RegEx-QuickRef.htm#subpat">capturing subpatterns</a> are present inside <em>NeedleRegEx</em>, their matches are stored in an <a href="../misc/Arrays.htm">array</a> whose base name is <em>OutputVar</em>. For example, if the variable's name is <em>Match</em>, the substring that matches the first subpattern would be stored in <em>Match1</em>, the second would be stored in <em>Match2</em>, and so on. The exception to this is <a href="#NamedSubPat">named subpatterns</a>: they are stored by name instead of number. For example, the substring that matches the named subpattern <em>(?P&lt;Year&gt;\d{4})</em> would be stored in <em>MatchYear</em>. If a particular subpattern does not match anything (or if the function returns zero), the corresponding variable is made blank.</p>
+      <p>Within a <a href="../Functions.htm">function</a>, to create an array that is global instead of local, <a href="../Functions.htm#Global">declare</a> the base name of the array (e.g. Match) as a global variable prior to using it. The converse is true for <a href="../Functions.htm#AssumeGlobal">assume-global</a> functions.</p>      
+      <p><a name="PosMode"></a><strong>Mode 2 (position-and-length):</strong> If a capital P is present in the RegEx's options -- such as &quot;<span class="red">P)</span>abc.*123&quot; -- the <em>length</em> of the entire-pattern match is stored in <em>OutputVar</em> (or 0 if no match). If any <a href="../misc/RegEx-QuickRef.htm#subpat">capturing subpatterns</a> are present, their positions and lengths are stored in two arrays: <em>OutputVarPos</em> and <em>OutputVarLen</em>. For example, if the variable's base name is <em>Match</em>, the one-based <em>position</em> of the first subpattern's match would be stored in <em>MatchPos1</em>, and its length in <em>MatchLen1</em> (zero is stored in both if the subpattern was not matched or the function returns 0).  The exception to this is <a href="#NamedSubPat">named subpatterns</a>: they are stored by name instead of number (e.g. <em>MatchPosYear</em> and <em>MatchLenYear</em>).</p>
+    </td>
+  </tr>
+  <tr>
+    <td>StartingPosition</td>
+    <td><p>If <em>StartingPosition</em> is omitted, it defaults to 1 (the beginning of <em>Haystack</em>). Otherwise, specify 2 to start at the second character, 3 to start at the third, and so on. If <em>StartingPosition</em> is beyond the length of <em>Haystack</em>, the search starts at the empty string that lies at the end of <em>Haystack</em> (which typically results in no match).</p>
+      <p>If <em>StartingPosition</em> is less than 1, it is considered to be an offset from the end of <em>Haystack</em>. For example, 0 starts at the last character and -1 starts at the next-to-last character. If <em>StartingPosition</em> tries to go beyond the left end of <em>Haystack</em>, all of <em>Haystack</em> is searched.</p>
+      <p>Regardless of the value of <em>StartingPosition</em>, the return value is always relative to the first character of <em>Haystack</em>. For example, the position of &quot;abc&quot; in &quot;123abc789&quot; is always 4.</p>    </td>
+  </tr>
+</table>
+<h4><a name="ErrorLevel"></a>ErrorLevel</h4>
+<p><a href="../misc/ErrorLevel.htm">ErrorLevel</a> is set to one of the following:</p>
+<ul>
+  <li>0, which means that no error occurred.</li>
+  <li>A string in the following form: <em>Compile error N at offset M: description</em>. In that string, <em>N</em> is the PCRE error number, <em>M</em> is the position of the offending character inside the regular expression, and <em>description</em> is the text describing the error.</li>
+  <li>A negative number, which means an error occurred during the <em>execution</em> of the regular expression. Although such errors are rare, the ones most likely to occur are &quot;too many possible empty-string matches&quot; (-22), &quot;recursion too deep&quot; (-21), and &quot;reached match limit&quot; (-8). If these happen, try to redesign the pattern to be more restrictive, such as replacing each * with a ?, +, or a limit like {0,3} wherever feasible.</li>
+</ul>
+<h4><a name="Options"></a>Options <span class="red">(case sensitive)</span></h4>
+<p>At the very beginning of a regular expression, specify zero or more of the following options followed by a close-parenthesis. For example, the pattern &quot;<span class="red">im)</span>abc&quot; would search for <em>abc</em> with the case-insensitive and multiline options (the parenthesis may be omitted when there are no options). Although this syntax breaks from tradition, it requires no special delimiters (such as forward-slash), and thus there is no need to escape such delimiters inside the pattern. In addition, performance is improved because the options are easier to parse.</p>
+<table border="1" width="100%" cellspacing="0" cellpadding="3" bordercolor="#C0C0C0">
+  <tr>
+    <td><strong>i</strong></td>
+    <td>Case-insensitive matching, which treats the letters A through Z as identical to their lowercase counterparts. </td>
+  </tr>
+  <tr>
+    <td><strong>m</strong></td>
+    <td><p><a name="Multiline"></a>Multiline. Views <em>Haystack</em> as a collection of individual lines (if it contains newlines) rather than as a single continuous line. Specifically, it changes the following:</p>
+      <p>1) Circumflex (^) matches immediately after all internal newlines -- as well as at the start of <em>Haystack</em> where it always matches (but it does not match after a newline <em>at the very end</em> of <em>Haystack</em>).</p>
+      <p>2) Dollar-sign ($) matches before any newlines in <em>Haystack</em> (as well as at the very end where it always matches).</p>
+      <p>For example, the pattern &quot;<span class="red">m)</span>^abc$&quot; would not match the <em>Haystack</em>&quot;xyz`r`nabc&quot; unless the &quot;m&quot; option is present.</p>
+      <p>The &quot;D&quot; option is ignored when &quot;m&quot; is present.</p></td>
+  </tr>
+  <tr>
+    <td><strong>s</strong></td>
+    <td>DotAll. This causes a period (.) to match all characters including newlines (normally, it does not match newlines). However, when the newline character is at its default of CRLF (`r`n), two dots are required to match it (not one). Regardless of this option, a negative class such as [^a] always matches newlines.</td>
+  </tr>
+  <tr>
+    <td><strong>x</strong></td>
+    <td>Ignores whitespace characters in the pattern except when escaped or inside a character class. The characters `n and `t are among those ignored because by the time they get to PCRE, they are already raw/literal whitespace characters (by contrast, \n and \t are not ignored because they are PCRE escape sequences). The <strong>x</strong> option also ignores characters between a non-escaped # outside a character class and the next newline character, inclusive. This makes it possible to include comments inside complicated patterns. However, this applies only to data characters; whitespace may never appear within special character sequences such as (?(, which begins a conditional subpattern.</td>
+  </tr>
+  <tr>
+    <td><strong>A</strong></td>
+    <td>Forces the pattern to be anchored; that is, it can match only at the start of <em>Haystack</em>. Under most conditions, this is equivalent to explicitly anchoring the pattern by means such as &quot;^&quot;.</td>
+  </tr>
+  <tr>
+    <td><strong>D</strong></td>
+    <td>Forces dollar-sign ($) to match at the very end of <em>Haystack</em>, even if <em>Haystack</em>'s last item is a newline. Without this option, $ instead matches right before the final newline (if there is one). Note: This option is ignored when the &quot;m&quot; option is present.</td>
+  </tr>
+  <tr>
+    <td><strong>J</strong></td>
+    <td>Allows duplicate <a href="#NamedSubPat">named subpatterns</a>. 
+
+
+ This can be useful for patterns in which only one of a collection of identically-named subpatterns can match. Note: If more than one instance of a particular name matches something, only the leftmost one is stored. Also, variable names are not case-sensitive.</td>
+  </tr>
+  <tr>
+    <td><strong>U</strong></td>
+    <td>Ungreedy. 
+
+
+ Makes the quantifiers *+?{} consume only those characters absolutely necessary to form a match, leaving the remaining ones available for the next part of the pattern. When the &quot;U&quot; option is not in effect, an individual quantifier can be made non-greedy by following it with a question mark. Conversely, when &quot;U&quot; <em>is</em> in effect, the question mark makes an individual quantifier greedy.</td>
+  </tr>
+  <tr>
+    <td><strong>X</strong></td>
+    <td> PCRE_EXTRA. Enables PCRE features that are incompatible with Perl. Currently, the only such feature is that any backslash in a pattern that is followed by a letter that has no special meaning causes the match to fail and ErrorLevel to be set accordingly. This option helps reserve unused backslash sequences for future use. Without this option, a backslash followed by a letter with no special meaning is treated as a literal (e.g. \g and g are both recognized as a literal g). Regardless of this option, non-alphabetic backslash sequences that have no special meaning are always treated as literals (e.g. \/ and / are both recognized as forward-slash). </td>
+  </tr>
+  <tr>
+    <td><strong>P</strong></td>
+    <td>Position mode. This causes RegExMatch() to yield the position and length of the match and its subpatterns rather than their matching substrings. For details, see <a href="#PosMode">OutputVar</a> above.</td>
+  </tr>
+  <tr>
+    <td><strong>S</strong></td>
+    <td><a name="Study"></a>Studies the pattern to try improve its performance. This is useful when a particular pattern (especially a complex one) will be executed many times. If PCRE finds a way to improve performance, that discovery is stored alongside the pattern in the cache for use by subsequent executions of the same pattern (subsequent uses of that pattern should also specify the S option because finding a match in the cache requires that the option letters exactly match, including their order).</td>
+  </tr>
+  <tr>
+    <td><strong>`n</strong></td>
+    <td>Switches from the default newline character (`r`n) to a solitary linefeed (`n), which is the standard on UNIX systems. The chosen newline character affects the behavior of <a href="../misc/RegEx-QuickRef.htm#anchor">anchors (^ and $)</a> and the <a href="../misc/RegEx-QuickRef.htm#dot">dot/period pattern</a>.</td>
+  </tr>
+  <tr>
+    <td><strong>`r</strong></td>
+    <td>Switches from the default newline character (`r`n) to a solitary carriage return (`r).</td>
+  </tr>
+  <tr>
+    <td><strong>`a</strong></td>
+    <td><a name="NEWLINE_ANY"></a>In v1.0.46.06+, `a recognizes any type of newline, namely `r, `n, `r`n, `v/VT/vertical tab/chr(0xB), `f/FF/formfeed/chr(0xC), and NEL/next-line/chr(0x85). In v1.0.47.05+, newlines can be restricted to only CR, LF, and CRLF by instead specifying (*ANYCRLF) in uppercase at the beginning of the pattern (after the options); e.g. <em>im)(*ANYCRLF)^abc$</em></td>
+  </tr>
+</table>
+<p>Note: Spaces and tabs may optionally be used to separate each option from the next.</p>
+<h4>Performance</h4>
+<p>To search for a simple substring inside a larger string, use <a href="../Functions.htm#InStr">InStr()</a> because it is faster than RegExMatch().</p>
+<p>To improve performance, the 100 most recently used regular expressions are kept cached in memory (in compiled form).</p>
+<p>The <a href="#Study">study option (S)</a> can sometimes improve the performance of a regular expression that is used many times (such as in a loop).</p>
+<h4>Remarks</h4>
+<p><a name="NamedSubPat"></a>A subpattern may be given a name such as the word <em>Year</em> in the pattern <em>(?P&lt;Year&gt;\d{4})</em>. Such names may consist of up to 32 alphanumeric characters and underscores. Although named subpatterns are also available by their numbers during the RegEx operation itself (e.g. \1 is a backreference to the string that actually matched the first capturing subpattern), they are stored in the <a href="#Array">output array </a><em>only</em> by name (not by number). For example, if &quot;Year&quot; is the first subpattern, <em>OutputVarYear</em> would be set to the matching substring, but <em>OutputVar1</em> would not be changed at all (it would retain its previous value, if any). However, if an <a href="../misc/RegEx-QuickRef.htm#subpat">unnamed subpattern</a> occurs after &quot;Year&quot;, it would be stored in <em>OutputVar2</em>, not <em>OutputVar1</em>.</p>
+<p>Most characters like abc123 can be used literally inside a regular expression. However, the characters <strong>\.*?+[{|()^$</strong> must be preceded by a backslash to be seen as literal. For example, <strong>\.</strong> is a literal period and <strong>\\</strong> is a literal backslash. Escaping can be avoided by using \Q...\E. For example: \QLiteral Text\E.</p>
+<p>Within a regular expression, special characters such as tab and newline can be escaped with either an accent (`) or a backslash (\). For example, `t is the same as \t.</p>
+<p>To learn the basics of regular expressions (or refresh your memory of pattern syntax), see the <a href="../misc/RegEx-QuickRef.htm">RegEx Quick Reference</a>.</p>
+<p>AutoHotkey's regular expressions are implemented using Perl-compatible Regular Expressions (PCRE) from <a href="http://www.pcre.org/">www.pcre.org</a>.</p>
+<h4>Related</h4>
+<p><a href="RegExReplace.htm">RegExReplace()</a>, <a href="../misc/RegEx-QuickRef.htm">RegEx Quick Reference</a>, <a href="../Functions.htm#InStr">InStr()</a>, <a href="IfInString.htm">IfInString</a>, <a href="StringGetPos.htm">StringGetPos</a>, <a href="../Functions.htm#SubStr">SubStr()</a>, <a href="SetTitleMatchMode.htm#RegEx">SetTitleMatchMode RegEx</a>, <a href="http://www.autohotkey.com/forum/topic16164.html">Global matching and Grep (forum link)</a></p>
+<p>Common sources of text data: <a href="FileRead.htm">FileRead</a>, <a href="UrlDownloadToFile.htm">UrlDownloadToFile</a>, <a href="../misc/Clipboard.htm">Clipboard</a>, <a href="GuiControls.htm#Edit">GUI Edit controls</a></p>
+<h4>Examples</h4>
+<pre class="NoIndent">FoundPos := RegExMatch(&quot;xxxabc123xyz&quot;, &quot;abc.*xyz&quot;)  <span class="CodeCom">; Returns 4, which is the position where the match was found.</span>
+FoundPos := RegExMatch(&quot;abc123123&quot;, &quot;123$&quot;)  <span class="CodeCom">; Returns 7 because the $ requires the match to be at the end.</span>
+FoundPos := RegExMatch(&quot;abc123&quot;, &quot;i)^ABC&quot;)  <span class="CodeCom">; Returns 1 because a match was achieved via the case-insensitive option.</span>
+FoundPos := RegExMatch(&quot;abcXYZ123&quot;, &quot;abc(.*)123&quot;, SubPat)  <span class="CodeCom">; Returns 1 and stores &quot;XYZ&quot; in SubPat1.</span>
+FoundPos := RegExMatch(&quot;abc123abc456&quot;, &quot;abc\d+&quot;, &quot;&quot;, 2)  <span class="CodeCom">; Returns 7 instead of 1 due to StartingPosition 2 vs. 1.</span>
+
+<span class="CodeCom">; For general RegEx examples, see the <a href="../misc/RegEx-QuickRef.htm">RegEx Quick Reference</a>.</span></pre>
+
+</body>
+</html>

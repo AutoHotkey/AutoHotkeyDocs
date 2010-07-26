@@ -1,0 +1,187 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<title>Remapping Keys and Buttons</title>
+<meta name="description" content="Free keyboard remapper that can also remap mouse and joystick buttons. It can also automate repetitive tasks by sending keystrokes & mouse clicks.">
+<meta name="keywords" content="keyboard,remapper,remap,remapping,keys,key,keystrokes,clicks,mouse,buttons,button,joystick,hotkeys,hotkey">
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link rel="alternate" type="application/rss+xml" title="AutoHotkey Forum RSS" href="../../forum/rss.php">
+<link href="../css/default.css" rel="stylesheet" type="text/css">
+<link href="../css/print.css" rel="stylesheet" type="text/css" media="print">
+</head>
+<body>
+
+<h1>Remapping Keys and Buttons</h1>
+<hr>
+<h2>Introduction</h2>
+<p>The feature described on this page is not supported on Windows 95/98/Me or for joysticks. See the following alternate methods for them:</p>
+<ul>
+  <li><a href="#Win9x">Windows 9x remapping</a></li>
+  <li><a href="RemapJoystick.htm">Joystick remapping</a></li>
+</ul>
+<p><strong>Limitation</strong>: AutoHotkey's remapping feature described below is generally not as pure and effective as remapping directly via the Windows registry. For the advantages and disadvantages of each approach, see <a href="#registry">registry remapping</a>.</p>
+<h2><a name="Remap"></a>Remapping the Keyboard and Mouse</h2>
+<p>The syntax for the built-in remapping feature is <em>OriginKey::DestinationKey</em>. For example, a <a href="../Scripts.htm">script</a> consisting only of the following line would make the &quot;a&quot; key behave like the &quot;b&quot; key:</p>
+<pre>a::b</pre>
+<p>The above example does not alter the &quot;b&quot; key itself. The &quot;b&quot; key would continue to send the &quot;b&quot; keystroke unless you remap it to something else as shown in the following example:</p>
+<pre>a::b
+b::a</pre>
+<p>The examples above use lowercase, which is recommended for most purposes because it also remaps the corresponding uppercase letters (that is, it will send uppercase when Capslock is &quot;on&quot; or the Shift key is held down). By contrast, specifying an uppercase letter on the right side forces uppercase. For example, the following line would produce an uppercase B when you type either &quot;a&quot; or &quot;A&quot; (as long as Capslock is off):</p>
+<pre>a::B</pre>
+<p>&nbsp;</p>
+<p><strong><a name="RemapMouse"></a>Mouse remapping</strong>: To remap the mouse instead of the keyboard, use the same approach. For example:</p>
+<table border="1" width="100%" cellspacing="0" cellpadding="3" bordercolor="#C0C0C0">
+  <tr>
+    <td>MButton::Shift</td>
+    <td>Makes the middle button behave like the Shift key.</td>
+  </tr>
+  <tr>
+    <td>XButton1::LButton</td>
+    <td>Makes the fourth mouse button behave like the left mouse button.</td>
+  </tr>
+  <tr>
+    <td>RAlt::RButton</td>
+    <td>Makes the right Alt key behave like the right mouse button.</td>
+  </tr>
+</table>
+<p>&nbsp;</p>
+<p><strong>Other useful remappings:</strong></p>
+<table border="1" width="100%" cellspacing="0" cellpadding="3" bordercolor="#C0C0C0">
+  <tr> 
+    <td>Capslock::Ctrl</td>
+    <td>Makes Capslock become a Control key. To retain the ability to turn Capslock on and off, also add the remapping <em>+Capslock::Capslock</em> (this toggles Capslock on and off when you hold down the shift key and press Capslock).</td>
+  </tr>
+  <tr>
+    <td>XButton2::^LButton</td>
+    <td>Makes the fifth mouse button (XButton2) produce Control-LeftClick.</td>
+  </tr>
+  <tr>
+    <td>RAlt::AppsKey</td>
+    <td>Makes the right Alt key become the Apps key (which is the key that opens the context menu).</td>
+  </tr>
+  <tr>
+    <td>RCtrl::RWin</td>
+    <td>Makes the right Control key become the right Windows key.</td>
+  </tr>
+  <tr>
+    <td>Ctrl::Alt</td>
+    <td>Makes both Control keys behave like an Alt key. However, see <a href="#AltTab">alt-tab issues</a>.</td>
+  </tr>
+  <tr>
+    <td>^x::^c</td>
+    <td>Makes Control-X produce Control-C. It also makes Control-Alt-X produce Control-Alt-C, etc.</td>
+  </tr>
+  <tr>
+    <td>RWin::Return</td>
+    <td>Disables the right Windows key by having it simply <a href="../commands/Return.htm">return</a>.</td>
+  </tr>
+</table>
+<p>You can try out any of these examples by copying them into a new text file such as &quot;Remap.ahk&quot;, then launching the file.</p>
+<p>See the <a href="../KeyList.htm">Key List</a> for a complete list of key and mouse button names.</p>
+<h2>Remarks</h2>
+<p>The directives <a href="../commands/_IfWinActive.htm">#IfWinActive/Exist</a> can be used to make selected remappings active only in the windows you specify. For example:</p>
+<pre>#IfWinActive ahk_class Notepad
+a::b  <span class="CodeCom">; Makes the 'a' key send a 'b' key, but only in Notepad.</span>
+#IfWinActive  <span class="CodeCom">; This puts subsequent remappings and hotkeys in effect for all windows.</span></pre>
+<p>Remapping a key or button is &quot;complete&quot; in the following respects:</p>
+<ul>
+  <li>Holding down a modifier such as Control or Shift while typing the origin key will put that modifier into effect for the destination key. For example, b::a would produce Control-A if you press Control-B.</li>
+  <li>Capslock generally affects remapped keys in the same way as normal keys.</li>
+  <li>The destination key or button is held down for as long as you continue to hold down the origin key. However, some games do not support remapping; in such cases, the keyboard and mouse will behave as though not remapped.</li>
+  <li>Remapped keys will auto-repeat while being held down (except keys remapped to become mouse buttons).</li>
+</ul>
+<p><a name="HookHotkeys"></a>Although a remapped key can trigger normal hotkeys, it cannot trigger mouse hotkeys or <a href="../commands/_UseHook.htm">hook hotkeys</a> (use <a href="../commands/ListHotkeys.htm">ListHotkeys</a> to discover which hotkeys are &quot;hook&quot;). For example, if the remapping a::b is in effect, pressing Ctrl-Alt-A would trigger the ^!b hotkey only if ^!b is not a hook hotkey. If ^!b is a hook hotkey, you can define ^!a as a hotkey if you want Ctrl-Alt-A to perform the same action as Ctrl-Alt-B. For example:</p>
+<pre>a::b
+^!a::
+^!b::
+ToolTip You pressed %A_ThisHotkey%.
+return</pre>
+<p><a name="SendPlay"></a>If <a href="../commands/SendMode.htm">SendMode</a> is used in the auto-execute section (top part of the script), it affects all remappings. However, since remapping uses <a href="../commands/Send.htm#Blind">Send {Blind}</a> and since the <a href="../commands/SendMode.htm">SendPlay mode</a> does not fully support  {Blind}, some remappings might not function properly in SendPlay mode (especially Control, Shift, Alt, and Win). To work around this, avoid SendPlay in auto-execute section when you have remappings; then use the command <a href="../commands/Send.htm#SendPlay">SendPlay</a> vs. Send in other places throughout the script. Alternatively, you could translate your remappings into hotkeys (as described below) that explicitly call SendEvent vs. Send.</p>
+<p>When a script is launched, each remapping is translated into a pair of <a href="../Hotkeys.htm">hotkeys</a>. For example, a script containing <em>a::b</em> actually contains the following two hotkeys instead:</p>
+<pre>*<strong>a</strong>::
+SetKeyDelay -1   <span class="CodeCom">; If the destination key is a mouse button, SetMouseDelay is used instead.</span>
+Send <a href="../commands/Send.htm#blind">{Blind}</a>{<strong>b</strong> DownTemp}  <span class="CodeCom">; DownTemp is like Down except that other Send commands in the script won't assume &quot;b&quot; should stay down during their Send.</span>
+return
+
+*<strong>a up</strong>::
+SetKeyDelay -1  <span class="CodeCom">; See note below for why press-duration is not specified with either of these SetKeyDelays.</span>
+Send {Blind}{<strong>b</strong> Up}
+return</pre>
+<p>However, the above hotkeys vary under the following circumstances:</p>
+<ol>
+  <li>When the source key is LCtrl and the destination key is an Alt key, the line <em>Send {Blind}{LAlt DownTemp}</em> is replaced by <em>Send {Blind}<strong>{LCtrl Up}</strong>{LAlt DownTemp}</em>. The same is true if the source is RCtrl, except that <em>{RCtrl up}</em> is used.</li>
+  <li>When a keyboard key is being remapped to become a mouse button (e.g. RCtrl::RButton), the hotkeys above use SetMouseDelay in place of SetKeyDelay. In addition, the first hotkey above is replaced by the following, which prevents the keyboard's auto-repeat feature from generating repeated mouse clicks:
+    <pre>*RCtrl::
+SetMouseDelay -1
+if not GetKeyState(&quot;RButton&quot;)  <span class="CodeCom">; i.e. the right mouse button isn't down yet.</span>
+    Send {Blind}{RButton DownTemp}
+return</pre>
+  </li>
+</ol>
+<p>Note that SetKeyDelay's second parameter (<a href="../commands/SetKeyDelay.htm#dur">press duration</a>) is omitted in the hotkeys above. This is because press-duration does not apply to down-only or up-only events such as {b down} and {b up}. However, it does apply to changes in the state of the Shift/Ctrl/Alt/Win keys, which affects remappings such as a::B or a::^b. Consequently, any press-duration a script puts into effect via its <a href="../Scripts.htm#auto">auto-execute section</a> will apply to all such remappings.</p>
+<p>Although a pair of keys cannot be directly remapped to single key (e.g. it's invalid to write <em>a &amp; c::b</em>), this effect can be achieved by explicitly adding the up and down hotkeys from the example higher above: simply replace <em>*a::</em> with <em>a &amp; c::</em>, and replace <em>*a up::</em> with <em>a &amp; c up::</em></p>
+<p>Since remappings are translated into hotkeys as described above, the <a href="../commands/Suspend.htm">Suspend</a> command affects them. Similarly, the <a href="../commands/Hotkey.htm">Hotkey</a> command can disable or modify a remapping. For example, the following two commands would disable the remapping <em>a::b</em>.</p>
+<pre>Hotkey, *a, off
+Hotkey, *a up, off</pre>
+<p><a name="AltTab"></a>Alt-tab issues: If you remap a key or mouse button to become an Alt key, that key will probably not be able to alt-tab properly. A possible work-around is to add the hotkey <em>*Tab::Send {Blind}{Tab}</em> -- but be aware that it will likely interfere with using the real Alt key to alt-tab. Therefore, it should be used only when you alt-tab solely by means of remapped keys and/or <a href="../Hotkeys.htm#alttab">alt-tab hotkeys</a>.</p>
+<p>In addition to the keys and mouse buttons on the <a href="../KeyList.htm">Key List</a> page, the source key may also be a virtual key (VKnn) or scan code (SCnnn) as described on the <a href="../KeyList.htm#SpecialKeys">special keys</a> page. The same is true for the destination key except that it may optionally specify a scan code after the virtual key. For example, <em>sc01e::vk42sc030</em> is equivalent to <em>a::b</em> on most keyboard layouts.</p>
+<p>To disable a key rather than remapping it, make it a hotkey that simply <a href="../commands/Return.htm">returns</a>. For example, <em>F1::return</em> would disable the F1 key.</p>
+<p>The following keys are not supported by the built-in remapping method:</p>
+<ul>
+  <li>The mouse wheel (WheelUp/Down/Left/Right).</li>
+  <li>Pause and Break as destination keys (since they match the names of commands).</li>
+  <li>Curly braces {} as destination keys. Instead use the <a href="../commands/Send.htm#vk">VK/SC method</a>; e.g. <em>x::+sc01A</em> and <em>y::+sc01B</em></li>
+  <li>A percent sign (%) as a destination key. Instead use the <a href="../commands/Send.htm#vk">VK/SC method</a>.</li>
+  <li>&quot;Return&quot; as a destination key. Instead use &quot;Enter&quot;.</li>
+</ul>
+<h2>Moving the Mouse Cursor via the Keyboard</h2>
+<p>The keyboard can be used to move the mouse cursor as demonstrated by the fully-featured <a href="../scripts/NumpadMouse.htm">Keyboard-To-Mouse script</a>. Since that script offers smooth cursor movement, acceleration, and other features, it is the recommended approach if you plan to do a lot of mousing with the keyboard. By contrast, the following example is a simpler demonstration:</p>
+<pre>*#up::MouseMove, 0, -10, 0, R  <span class="CodeCom">; Win+UpArrow hotkey =&gt; Move cursor upward</span>
+*#Down::MouseMove, 0, 10, 0, R  <span class="CodeCom">; Win+DownArrow =&gt; Move cursor downward</span>
+*#Left::MouseMove, -10, 0, 0, R  <span class="CodeCom">; Win+LeftArrow =&gt; Move cursor to the left</span>
+*#Right::MouseMove, 10, 0, 0, R  <span class="CodeCom">; Win+RightArrow =&gt; Move cursor to the right</span>
+
+*&lt;#RCtrl::  <span class="CodeCom">; LeftWin + RightControl =&gt; Left-click (hold down Control/Shift to Control-Click or Shift-Click).</span>
+SendEvent {Blind}{LButton down}
+KeyWait RCtrl  <span class="CodeCom">; Prevents keyboard auto-repeat from repeating the mouse click.</span>
+SendEvent {Blind}{LButton up}
+return
+
+*&lt;#AppsKey::  <span class="CodeCom">; LeftWin + AppsKey =&gt; Right-click</span>
+SendEvent {Blind}{RButton down}
+KeyWait AppsKey  <span class="CodeCom">; Prevents keyboard auto-repeat from repeating the mouse click.</span>
+SendEvent {Blind}{RButton up}
+return</pre>
+<h2><a name="registry"></a>Remapping via the Registry's &quot;Scancode Map&quot;</h2>
+<p><strong>Advantages:</strong></p>
+<ul>
+  <li>Registry remapping is generally more pure and effective than <a href="#Remap">AutoHotkey's remapping</a>. For example, it works in a broader variety of games, it has no known <a href="#AltTab">alt-tab issues</a>, and it is capable of firing AutoHotkey's hook hotkeys  (whereas AutoHotkey's remapping requires a <a href="#HookHotkeys">workaround</a>).</li>
+  <li>If you choose to make the registry entries manually (explained below), absolutely no external software is needed to remap your keyboard. Even if you use <a href="http://webpages.charter.net/krumsick/">KeyTweak</a> to make the registry entries for you, KeyTweak does not need to stay running all the time (unlike AutoHotkey).</li>
+</ul>
+<p><strong>Disadvantages:</strong></p>
+<ul>
+  <li>Registry remapping is relatively permanent: a reboot is required to undo the changes or put new ones into effect.</li>
+  <li>Its effect is global: it cannot create remappings specific to a particular user, application, or locale.</li>
+  <li>It cannot send keystrokes that are modified by Shift, Control, Alt, or AltGr. For example, it cannot remap a lowercase character to an uppercase one.</li>
+  <li>It is not supported on Windows 95/98/Me (AutoHotkey can do some <a href="#Win9x">limited Win9x remapping</a>).</li>
+  <li>It supports only the keyboard (AutoHotkey has <a href="#RemapMouse">mouse remapping</a> and some <a href="RemapJoystick.htm">limited joystick remapping</a>).</li>
+</ul>
+<p><strong>How to Apply Changes to the Registry:</strong> There are at least two methods to remap keys via the registry:</p>
+<ol>
+  <li>Use a program like <a href="http://webpages.charter.net/krumsick/">KeyTweak</a> (freeware) to visually remap your keys. It will change the registry for you. </li>
+  <li>Remap keys manually by creating a .reg file (plain text) and loading it into the registry. This is demonstrated at <a href="http://www.autohotkey.com/forum/post-56216.html#56216">www.autohotkey.com/forum/post-56216.html#56216</a></li>
+</ol>
+<h2><a name="alt"></a><a name="Win9x"></a>Remapping Method for Windows 95/98/Me</h2>
+<p>The recommended method is to use <a href="../commands/Send.htm">Send</a> and <a href="../commands/KeyWait.htm">KeyWait</a>. For example, the following hotkey makes the 'A' key become the left-arrow key:</p>
+<pre>a::
+Send {Left down}  <span class="CodeCom">; Hold down the left-arrow key.</span>
+KeyWait a  <span class="CodeCom">; Wait for the user to release the key.</span>
+Send {Left up}  <span class="CodeCom">; Release the left-arrow key.</span>
+return</pre>
+<h2>Related Topics</h2>
+<p><a href="../KeyList.htm#Joystick">List of keys and mouse buttons</a><br>
+<a href="../commands/GetKeyState.htm">GetKeyState</a><br>
+<a href="RemapJoystick.htm">Remapping a joystick</a></p>
+</body>
+</html>

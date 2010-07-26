@@ -1,0 +1,95 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<title>GuiControl</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link href="../css/commands.css" rel="stylesheet" type="text/css">
+<link href="../css/print.css" rel="stylesheet" type="text/css" media="print">
+</head>
+<body>
+
+<h1>GuiControl</h1>
+<hr size="2">
+<p>Makes a variety of changes to a control in a GUI window.</p>
+
+<p class="CommandSyntax">GuiControl, Sub-command, ControlID [, Param3] </p>
+<h4>Parameters</h4>
+<table border="1" width="100%" cellspacing="0" cellpadding="3" bordercolor="#C0C0C0">
+  <tr>
+    <td>Sub-command</td>
+    <td>See list below.</td>
+  </tr>
+  <tr>
+    <td width="15%">ControlID</td>
+    <td width="85%"><p>If the target control has an associated variable, specify the variable's name as the <em>ControlID</em> (this method takes precedence over the ones described next). For this reason, it is usually best to assign a variable to any control that will later be accessed via GuiControl or GuiControlGet, even if that control is not an input-capable type (such as GroupBox or Text).</p>
+      <p>Otherwise, <em>ControlID</em> can be either ClassNN (the classname and instance number of the control) or the name/text of the control, both of which can be determined via Window Spy. When using name/text, the matching behavior is determined by <a href="SetTitleMatchMode.htm">SetTitleMatchMode</a>. Note: a picture control's file name (as it was specified at the time the control was created) may be used as its <em>ControlID</em>.</p></td>
+  </tr>
+  <tr>
+    <td>Param3</td>
+    <td>This parameter is omitted except where noted in the list of sub-commands below.</td>
+  </tr>
+</table>
+
+<h4>ErrorLevel</h4>
+<p><a href="../misc/ErrorLevel.htm">ErrorLevel</a> is set to 1 if the specified window/control does not exist or some other problem prevented the command from working. Otherwise, it is set to 0.</p>
+<h4>Sub-commands</h4>
+<p><strong>(Blank)</strong>: Leave <em>Sub-command</em> blank to put new contents into the control via <em>Param3</em>. Specifically:</p>
+<p><a href="GuiControls.htm#Picture">Picture</a>: <em>Param3</em> should be the filename of the new image to load (see <a href="GuiControls.htm#Picture">Gui Picture</a> for supported file types). Zero or more of the following options may be specified immediately in front of the filename: *wN (width N), *hN (height N), and *IconN (icon group number N in a DLL or EXE file).  In the following example, the default icon from the second icon group is loaded with a width of 100 and an automatic height via &quot;keep aspect ratio&quot;: <em>GuiControl,, MyPic, *icon2 *w100 *h-1 C:\My Application.exe</em>. Specify <em>*w0 *h0</em> to use the image's actual width and height. If *w and *h are omitted, the image will be scaled to fit the current size of the control. When loading from a multi-icon .ICO file, specifying a width and height also determines which icon to load. Note: Use only one space or tab between the final option and the filename itself; any other spaces and tabs are treated as part of the filename.</p>
+<p><a href="GuiControls.htm#Text">Text</a>/<a href="GuiControls.htm#Button">Button</a>/<a href="GuiControls.htm#GroupBox">GroupBox</a>/<a href="GuiControls.htm#StatusBar">StatusBar</a>: Specify for <em>Param3</em> the control's new text. Since the control will not expand automatically, use <em><a href="#Move">GuiControl, Move, MyText, W300</a></em> if the control needs to be widened. For <a href="GuiControls.htm#StatusBar">StatusBar</a>, this sets the text of the first part only. (use <a href="GuiControls.htm#SB_SetText">SB_SetText()</a> for greater flexibility).</p>
+<p><a href="GuiControls.htm#Edit">Edit</a>: Any linefeeds (`n) in <em>Param3</em> that lack a preceding carriage return (`r) are automatically translated to CR+LF (`r`n) to make them display properly. However, this is usually not a concern because the &quot;Gui Submit&quot; and &quot;GuiControlGet OutputVar&quot; commands will automatically undo this translation by replacing CR+LF with LF (`n).</p>
+<p><a href="GuiControls.htm#Hotkey">Hotkey</a>: <em>Param3</em> can be blank to clear the control, or a set of modifiers with a key name. Examples: ^!c, ^Numpad1, +Home. The only modifiers supported are ^ (Control), ! (Alt), and + (Shift). See the <a href="../KeyList.htm">key list</a> for available key names.</p>
+<p><a href="GuiControls.htm#Checkbox">Checkbox</a>: <em>Param3</em> can be 0 to uncheck the button, 1 to check it, or -1 to give it a gray checkmark. Otherwise, <em>Param3</em> is assumed to be the control's new caption/text. See <strong>Text</strong> below for how to override this behavior.</p>
+<p><a href="GuiControls.htm#Radio">Radio</a>: Same as Checkbox above. However, if the radio button is being checked (turned on) and it is a member of a multi-radio group, the other radio buttons in its group will be automatically unchecked. To check a new button within a radio group that only has one variable, specify for <em>ControlID</em> the name/text of the button if it is not the button with which the variable is directly associated.</p>
+<p><a href="GuiControls.htm#DateTime">DateTime</a>/<a href="GuiControls.htm#MonthCal">MonthCal</a>: Specify for <em>Param3</em> a date-time stamp in <a href="FileSetTime.htm#YYYYMMDD">YYYYMMDDHH24MISS</a> format. Specify %A_Now% to use the current date and time (today). For DateTime controls, <em>Param3 </em>may be omitted to cause the control to have no date/time selected (if it was created with <a href="GuiControls.htm#ChooseNone">that ability</a>). For MonthCal controls, a range may be specified if the control is <a href="GuiControls.htm#MonthCalMulti">multi-select</a>.</p>
+<p><a href="GuiControls.htm#UpDown">UpDown</a>/<a href="GuiControls.htm#Slider">Slider</a>/<a href="GuiControls.htm#Progress">Progress</a>: <em>Param3</em> should be the new position of the control. If a <em>Param3</em>'s first character is a plus sign, the number will be assumed to be an offset from the current position. For example, +10 would increase the position by 10 and +-10 (plus minus ten) would decrease it by 10. If the new position would be outside the range of the control, the control is generally set to the nearest valid value.</p>
+<p><a href="GuiControls.htm#Tab">Tab</a>/<a href="GuiControls.htm#DropDownList">DropDownList</a>/<a href="GuiControls.htm#ComboBox">ComboBox</a>/<a href="GuiControls.htm#ListBox">ListBox</a>: <em>Param3</em> should contain a pipe-delimited list of entries to be appended at the end of the control's list. To replace (overwrite) the list instead, include a pipe as the first character (e.g. |Red|Green|Blue). To make the control empty, specify only a pipe character (|). To have one of the entries pre-selected, include two pipes after it (e.g. Red|Green||Blue). The separator between fields may be changed to something other than pipe. For example <em><a href="Gui.htm#Delimiter">Gui +Delimiter`n</a></em> would change it to linefeed and <em>Gui +DelimiterTab</em> would change it to tab (`t).</p>
+<p><a href="GuiControls.htm#Tab">Tab controls</a>: In addition to the behavior described in the paragraph above, a tab's sub-controls stay associated with their original tab number; that is, they are never associated with their tab's actual display-name. For this reason, renaming or removing a tab will not change the tab number to which the sub-controls belong. For example, if there are three tabs &quot;Red|Green|Blue&quot; and the second tab is removed by means of &quot;<em>GuiControl,, MyTab, |Red|Blue</em>&quot;, the sub-controls originally associated with Green will now be associated with Blue. Because of this behavior, only tabs at the end should generally be removed. Tabs that are removed in this way can be added back later, at which time they will reclaim their original set of controls.</p>
+<p><a href="ListView.htm">ListView</a> and <a href="TreeView.htm">TreeView</a>: These are not supported when <em>Sub-command</em> is blank. Instead, use the built-in <a href="ListView.htm#BuiltIn">ListView functions</a> and <a href="TreeView.htm#BuiltIn">TreeView functions</a>.</p>
+<p><strong><br>
+    <a name="Text"></a><span class="CommandSyntax">GuiControl</span>, Text</strong>: Behaves the same as the above except for:<br>
+<a href="GuiControls.htm#Checkbox">Checkbox</a>/<a href="GuiControls.htm#Radio">Radio</a>: <em>Param3</em> is treated as the new text/caption even if it is -1, 0, or 1.<br>
+<a href="GuiControls.htm#DateTime">DateTime</a>: <em>Param3</em> is treated as the new <a href="GuiControls.htm#DateTimeFormat">date/time format</a> displayed by the control. If Param3 is omitted, any custom format is removed and the short-date format is put into effect.<br>
+<a href="GuiControls.htm#ComboBox">ComboBox</a>: <em>Param3</em> is treated as the text to put directly into the ComboBox's Edit control.</p>
+<p><strong><a name="Move"></a><span class="CommandSyntax">GuiControl</span>, Move</strong>: Moves and/or resizes the control. Specify one or more of the following option letters in <em>Param3</em>: X (the x-coordinate relative to the GUI window's client area, which is the area not including title bar, menu bar, and borders); Y (the y-coordinate), W (Width), H (Height). (Specify each number as decimal, not hexadecimal.) For example:</p>
+<pre>GuiControl, Move, MyEdit, x10 y20 w200 h100
+GuiControl, Move, MyEdit, % &quot;x&quot; VarX+10 &quot;y&quot; VarY+5 &quot;w&quot; VarW*2 &quot;h&quot; VarH*1.5 <span class="CodeCom">; Uses an <a href="../Variables.htm#Expressions">expression</a> via &quot;% &quot; prefix.</span></pre>
+<p><strong><a name="MoveDraw" id="MoveDraw"></a><span class="CommandSyntax">GuiControl</span>, MoveDraw</strong>: Same as &quot;Move&quot; (above) except that it also repaints the region of the GUI window occupied by the control. Although this may cause an unwanted flickering effect when called repeatedly and rapidly, it solves painting artifacts for certain control types such as <a href="GuiControls.htm#GroupBox">GroupBoxes</a>. In v1.0.48.04+, the last parameter may be omitted to redraw the control without moving it.</p>
+<p><strong><span class="CommandSyntax">GuiControl</span>, Focus</strong>: Sets keyboard focus to the control. To be effective, the window generally must not be minimized or hidden.</p>
+<p><strong><span class="CommandSyntax">GuiControl</span>, Enable / Disable</strong>: Enables or disables (grays out) the control. For Tab controls, this will also enable or disable all of the tab's sub-controls. However, any sub-control explicitly disabled via &quot;GuiControl Disable&quot; will remember that setting and thus remain disabled even after its Tab control is re-enabled. The word Disable or Enable may optionally be followed immediately by a 0 or 1. A zero causes the effect to be inverted. For example, <em>Enable</em> and <em>Enable%VarContainingOne%</em> would both enable the control, but <em>Enable%VarContainingZero%</em> would disable it.</p>
+<p><strong><span class="CommandSyntax">GuiControl</span>, Hide / Show</strong>: Hides or shows the control. For Tab controls, this will also show or hide all of the tab's sub-controls. If you additionally want to prevent a control's shortcut key (underlined letter) from working, disable the control via &quot;GuiControl Disable&quot;. The word Hide or Show may optionally be followed immediately by a 0 or 1. A zero causes the effect to be inverted. For example, <em>Show</em> and <em>Show%VarContainingOne%</em> would both show the control, but <em>Show%VarContainingZero%</em> would hide it.</p>
+<p><strong><span class="CommandSyntax">GuiControl</span>, Delete (not yet implemented)</strong>: This sub-command does not yet exist. As a workaround, use <strong>Hide</strong> and/or <strong>Disable</strong> (above), or destroy and recreate the entire window via <a href="Gui.htm#Destroy">Gui Destroy</a>.</p>
+<p><strong><span class="CommandSyntax">GuiControl</span>, Choose, ControlID, N</strong>: Sets the selection in a ListBox, DropDownList, ComboBox, or Tab control to be the Nth entry. <em>N</em> should be 1 for the first entry, 2 for the second, etc (if <em>N</em> is not an integer, the ChooseString method described below will be used instead). Unlike <a href="Control.htm">Control Choose</a>, this sub-command will not trigger any <a href="Gui.htm#label">g-label</a> associated with the control unless <em>N</em> is preceded by a pipe character (even then, the g-label is triggered only when the new selection is different than the old one, at least for <a href="GuiControls.htm#Tab">Tab controls</a>). For example: GuiControl, Choose, MyListBox, <strong>|3</strong>.</p>
+<p>To additionally cause a finishing event to occur (a double-click in the case of ListBox), include two leading pipes instead of one (this is not supported for Tab controls).</p>
+<p>To select or deselect <u>all</u> items in a <a href="GuiControls.htm#ListBoxMulti">multi-select ListBox</a>, follow this example:</p>
+<pre>Gui +LastFound  <span class="CodeCom">; Avoids the need to specify WinTitle below.</span>
+<a href="PostMessage.htm">PostMessage</a>, 0x185, 1, -1, ListBox1  <span class="CodeCom">; Select all items. 0x185 is LB_SETSEL.</span>
+<a href="PostMessage.htm">PostMessage</a>, 0x185, 0, -1, ListBox1  <span class="CodeCom">; Deselect all items.</span></pre>
+<p><strong><span class="CommandSyntax">GuiControl</span>, ChooseString, ControlID, String</strong>: Sets the selection (choice) in a ListBox, DropDownList, ComboBox, or Tab control to be the entry whose leading part matches <em>String</em>. The search is not case sensitive. For example, if a the control contains the item &quot;UNIX Text&quot;, specifying the word unix (lowercase) would be enough to select it. The pipe and double-pipe prefix are also supported (see &quot;Choose&quot; above for details).</p>
+<p><strong><span class="CommandSyntax">GuiControl</span>, Font</strong>: Changes the control's font to the typeface, size, color, and style currently in effect for its window. For example:</p>
+<pre><a href="Gui.htm#Font">Gui, Font</a>, s18 cRed Bold, Verdana  <span class="CodeCom">; If desired, use a line like this to set a new default font for the window.</span>
+GuiControl, Font, MyEdit  <span class="CodeCom">; Put the above font into effect for a control.</span></pre>
+<p><strong><span class="CommandSyntax">GuiControl</span>, +/-Option1 +/-Option2 ... </strong>: Add or remove various options and styles. All GUI options (<a href="GuiControls.htm">control-specific</a> and <a href="Gui.htm#OtherOptions">general</a>) are recognized. In the following example, the <a href="Gui.htm#AltSubmit">AltSubmit</a> option is enabled but control's <a href="Gui.htm#label">g-label</a> is removed:
+
+GuiControl,  +AltSubmit -g, MyListBox</p>
+<p>In the next example, the OK button is made the new default button:<br>
+  GuiControl, +Default, OK </p>
+<p>Although <a href="../misc/Styles.htm">styles</a> and extended styles are also recognized, some of them cannot be applied or removed after a control has been created. ErrorLevel is set to 0 if at least one of the specified changes was successfully applied. Otherwise, it is set to 1 to indicate that none of the changes could be applied. Even if a change is successfully applied, the control might choose to ignore it.</p>
+<h4>Remarks</h4>
+<p>To operate upon a window number other than the default (see below), include a number followed by a colon in front of the sub-command as in these examples:<br>
+GuiControl, 2:Show, MyButton<br>
+GuiControl, 2:, MyListBox, Item1|Item2</p>
+<p>A GUI <a href="../misc/Threads.htm">thread</a> is defined as any thread launched as a result of a GUI action. GUI actions include selecting an item from a GUI window's menu bar, or triggering one of its <a href="Gui.htm#label">g-labels</a> (such as by pressing a button).</p>
+<p>The default window number for a GUI thread is that of the window that launched the thread. Non-GUI threads use 1 as their default.</p>
+
+<h4>Related</h4>
+<p><a href="Gui.htm">Gui</a>, <a href="GuiControlGet.htm">GuiControlGet</a>, <a href="Control.htm">Control</a></p>
+<h4>Examples</h4>
+<pre class="NoIndent">GuiControl,, MyListBox, |Red|Green|Blue  <span class="CodeCom">; Replace the current list with a new list.</span>
+GuiControl,, MyEdit, New text line 1.`nNew text line 2.
+GuiControl,, MyRadio2, 1  <span class="CodeCom">; Turn on this radio button and turn off all the others in its group.</span>
+GuiControl, Move, OK, x100 y200  <span class="CodeCom">; Move the OK button to a new location.</span>
+GuiControl, Focus, LastName  <span class="CodeCom">; Set keyboard focus to the control whose variable or text is &quot;LastName&quot;.</span></pre>
+
+</body>
+</html>

@@ -1,0 +1,266 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<title>Minimize Window to Tray Menu</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link rel="alternate" type="application/rss+xml" title="AutoHotkey Forum RSS" href="/forum/rss.php">
+<link href="/docs/css/default.css" rel="stylesheet" type="text/css">
+<link href="/docs/css/print.css" rel="stylesheet" type="text/css" media="print">
+</head>
+<body>
+
+<h6>Minimize Window to Tray Menu</h6>
+
+<p> This script assigns a hotkey of your choice to hide any window so that
+ it becomes an entry at the bottom of the script's tray menu.  Hidden
+ windows can then be unhidden individually or all at once by selecting
+ the corresponding item on the menu.  If the script exits for any reason,
+ all the windows that it hid will be unhidden automatically.
+</p>
+<p><a href="MinimizeToTrayMenu.ahk">Download This Script</a> &nbsp;| &nbsp;<a href="index.htm">Other Sample Scripts</a> &nbsp;| &nbsp;<a href="http://www.autohotkey.com">Home</a></p>
+<hr>
+<pre class="NoIndent"><span class="CodeCom">; CHANGES:</span>
+<span class="CodeCom">; July 22, 2005 (changes provided by egilmour):</span>
+<span class="CodeCom">; - Added new hotkey to unhide the last hidden window (Win+U)</span>
+<span class="CodeCom">;</span>
+<span class="CodeCom">; November 3, 2004 (changes provided by trogdor):</span>
+<span class="CodeCom">; - Program manager is prevented from being hidden.</span>
+<span class="CodeCom">; - If there is no active window, the minimize-to-tray hotkey will have</span>
+<span class="CodeCom">;   no effect rather than waiting indefinitely.</span>
+<span class="CodeCom">;</span>
+<span class="CodeCom">; October 23, 2004:</span>
+<span class="CodeCom">; - The taskbar is prevented from being hidden.</span>
+<span class="CodeCom">; - Some possible problems with long window titles have been fixed.</span>
+<span class="CodeCom">; - Windows without a title can be hidden without causing problems.</span>
+<span class="CodeCom">; - If the script is running under AHK v1.0.22 or greater, the</span>
+<span class="CodeCom">;   maximum length of each menu item is increased from 100 to 260.</span>
+
+<span class="CodeCom">; CONFIGURATION SECTION: Change the below values as desired.</span>
+
+<span class="CodeCom">; This is the maximum number of windows to allow to be hidden (having a</span>
+<span class="CodeCom">; limit helps performance):</span>
+mwt_MaxWindows = 50
+
+<span class="CodeCom">; This is the hotkey used to hide the active window:</span>
+mwt_Hotkey = #h  <span class="CodeCom">; Win+H</span>
+
+<span class="CodeCom">; This is the hotkey used to unhide the last hidden window:</span>
+mwt_UnHotkey = #u  <span class="CodeCom">; Win+U</span>
+
+<span class="CodeCom">; If you prefer to have the tray menu empty of all the standard items,</span>
+<span class="CodeCom">; such as Help and Pause, use N.  Otherwise, use Y:</span>
+mwt_StandardMenu = N
+
+<span class="CodeCom">; These next few performance settings help to keep the action within the</span>
+<span class="CodeCom">; #HotkeyModifierTimeout period, and thus avoid the need to release and</span>
+<span class="CodeCom">; press down the hotkey's modifier if you want to hide more than one</span>
+<span class="CodeCom">; window in a row.  These settings are not needed you choose to have the</span>
+<span class="CodeCom">; script use the keyboard hook via #InstallKeybdHook or other means:</span>
+#HotkeyModifierTimeout 100
+SetWinDelay 10
+SetKeyDelay 0
+
+#SingleInstance  <span class="CodeCom">; Allow only one instance of this script to be running.</span>
+
+<span class="CodeCom">; END OF CONFIGURATION SECTION (do not make changes below this point</span>
+<span class="CodeCom">; unless you want to change the basic functionality of the script).</span>
+
+Hotkey, %mwt_Hotkey%, mwt_Minimize
+Hotkey, %mwt_UnHotkey%, mwt_UnMinimize
+
+<span class="CodeCom">; If the user terminates the script by any means, unhide all the</span>
+<span class="CodeCom">; windows first:</span>
+OnExit, mwt_RestoreAllThenExit
+
+if mwt_StandardMenu = Y
+    Menu, Tray, Add
+else
+{
+    Menu, Tray, NoStandard
+    Menu, Tray, Add, E&amp;xit and Unhide All, mwt_RestoreAllThenExit
+}
+Menu, Tray, Add, &amp;Unhide All Hidden Windows, mwt_RestoreAll
+Menu, Tray, Add  <span class="CodeCom">; Another separator line to make the above more special.</span>
+
+if a_AhkVersion =   <span class="CodeCom">; Since it's blank, version is older than 1.0.22.</span>
+    mwt_MaxLength = 100
+else
+    mwt_MaxLength = 260  <span class="CodeCom">; Reduce this to restrict the width of the menu.</span>
+
+return  <span class="CodeCom">; End of auto-execute section.</span>
+
+
+mwt_Minimize:
+if mwt_WindowCount &gt;= %mwt_MaxWindows%
+{
+    MsgBox No more than %mwt_MaxWindows% may be hidden simultaneously.
+    return
+}
+
+<span class="CodeCom">; Set the &quot;last found window&quot; to simplify and help performance.</span>
+<span class="CodeCom">; Since in certain cases it is possible for there to be no active window,</span>
+<span class="CodeCom">; a timeout has been added:</span>
+WinWait, A,, 2
+if ErrorLevel &lt;&gt; 0  <span class="CodeCom">; It timed out, so do nothing.</span>
+    return
+
+<span class="CodeCom">; Otherwise, the &quot;last found window&quot; has been set and can now be used:</span>
+WinGet, mwt_ActiveID, ID
+WinGetTitle, mwt_ActiveTitle
+WinGetClass, mwt_ActiveClass
+if mwt_ActiveClass in Shell_TrayWnd,Progman
+{
+    MsgBox The desktop and taskbar cannot be hidden.
+    return
+}
+<span class="CodeCom">; Because hiding the window won't deactivate it, activate the window</span>
+<span class="CodeCom">; beneath this one (if any). I tried other ways, but they wound up</span>
+<span class="CodeCom">; activating the task bar.  This way sends the active window (which is</span>
+<span class="CodeCom">; about to be hidden) to the back of the stack, which seems best:</span>
+Send, !{esc}
+<span class="CodeCom">; Hide it only now that WinGetTitle/WinGetClass above have been run (since</span>
+<span class="CodeCom">; by default, those commands cannot detect hidden windows):</span>
+WinHide
+
+<span class="CodeCom">; If the title is blank, use the class instead.  This serves two purposes:</span>
+<span class="CodeCom">; 1) A more meaningful name is used as the menu name.</span>
+<span class="CodeCom">; 2) Allows the menu item to be created (otherwise, blank items wouldn't</span>
+<span class="CodeCom">;    be handled correctly by the various routines below).</span>
+if mwt_ActiveTitle =
+    mwt_ActiveTitle = ahk_class %mwt_ActiveClass%
+<span class="CodeCom">; Ensure the title is short enough to fit. mwt_ActiveTitle also serves to</span>
+<span class="CodeCom">; uniquely identify this particular menu item.</span>
+StringLeft, mwt_ActiveTitle, mwt_ActiveTitle, %mwt_MaxLength%
+
+<span class="CodeCom">; In addition to the tray menu requiring that each menu item name be</span>
+<span class="CodeCom">; unique, it must also be unique so that we can reliably look it up in</span>
+<span class="CodeCom">; the array when the window is later unhidden.  So make it unique if it</span>
+<span class="CodeCom">; isn't already:</span>
+Loop, %mwt_MaxWindows%
+{
+    if mwt_WindowTitle%a_index% = %mwt_ActiveTitle%
+    {
+        <span class="CodeCom">; Match found, so it's not unique.</span>
+        <span class="CodeCom">; First remove the 0x from the hex number to conserve menu space:</span>
+        StringTrimLeft, mwt_ActiveIDShort, mwt_ActiveID, 2
+        StringLen, mwt_ActiveIDShortLength, mwt_ActiveIDShort
+        StringLen, mwt_ActiveTitleLength, mwt_ActiveTitle
+        mwt_ActiveTitleLength += %mwt_ActiveIDShortLength%
+        mwt_ActiveTitleLength += 1 <span class="CodeCom">; +1 the 1 space between title &amp; ID.</span>
+        if mwt_ActiveTitleLength &gt; %mwt_MaxLength%
+        {
+            <span class="CodeCom">; Since menu item names are limted in length, trim the title</span>
+            <span class="CodeCom">; down to allow just enough room for the Window's Short ID at</span>
+            <span class="CodeCom">; the end of its name:</span>
+            TrimCount = %mwt_ActiveTitleLength%
+            TrimCount -= %mwt_MaxLength%
+            StringTrimRight, mwt_ActiveTitle, mwt_ActiveTitle, %TrimCount%
+        }
+        <span class="CodeCom">; Build unique title:</span>
+        mwt_ActiveTitle = %mwt_ActiveTitle% %mwt_ActiveIDShort%
+        break
+    }
+}
+
+<span class="CodeCom">; First, ensure that this ID doesn't already exist in the list, which can</span>
+<span class="CodeCom">; happen if a particular window was externally unhidden (or its app unhid</span>
+<span class="CodeCom">; it) and now it's about to be re-hidden:</span>
+mwt_AlreadyExists = n
+Loop, %mwt_MaxWindows%
+{
+    if mwt_WindowID%a_index% = %mwt_ActiveID%
+    {
+        mwt_AlreadyExists = y
+        break
+    }
+}
+
+<span class="CodeCom">; Add the item to the array and to the menu:</span>
+if mwt_AlreadyExists = n
+{
+    Menu, Tray, add, %mwt_ActiveTitle%, RestoreFromTrayMenu
+    mwt_WindowCount += 1
+    Loop, %mwt_MaxWindows%  <span class="CodeCom">; Search for a free slot.</span>
+    {
+        <span class="CodeCom">; It should always find a free slot if things are designed right.</span>
+        if mwt_WindowID%a_index% =  <span class="CodeCom">; An empty slot was found.</span>
+        {
+            mwt_WindowID%a_index% = %mwt_ActiveID%
+            mwt_WindowTitle%a_index% = %mwt_ActiveTitle%
+            break
+        }
+    }
+}
+return
+
+
+RestoreFromTrayMenu:
+Menu, Tray, delete, %A_ThisMenuItem%
+<span class="CodeCom">; Find window based on its unique title stored as the menu item name:</span>
+Loop, %mwt_MaxWindows%
+{
+    if mwt_WindowTitle%a_index% = %A_ThisMenuItem%  <span class="CodeCom">; Match found.</span>
+    {
+        StringTrimRight, IDToRestore, mwt_WindowID%a_index%, 0
+        WinShow, ahk_id %IDToRestore%
+        WinActivate ahk_id %IDToRestore%  <span class="CodeCom">; Sometimes needed.</span>
+        mwt_WindowID%a_index% =  <span class="CodeCom">; Make it blank to free up a slot.</span>
+        mwt_WindowTitle%a_index% =
+        mwt_WindowCount -= 1
+        break
+    }
+}
+return
+
+
+<span class="CodeCom">;; This will pop the last minimized window off the stack and unhide it.</span>
+mwt_UnMinimize:
+<span class="CodeCom">;; Make sure there's something to unhide.</span>
+if mwt_WindowCount &gt; 0 
+{
+    <span class="CodeCom">;; Get the id of the last window minimized and unhide it</span>
+    StringTrimRight, IDToRestore, mwt_WindowID%mwt_WindowCount%, 0
+    WinShow, ahk_id %IDToRestore%
+    WinActivate ahk_id %IDToRestore%
+    
+    <span class="CodeCom">;; Get the menu name of the last window minimized and remove it</span>
+    StringTrimRight, MenuToRemove, mwt_WindowTitle%mwt_WindowCount%, 0
+    Menu, Tray, delete, %MenuToRemove%
+    
+    <span class="CodeCom">;; clean up our 'arrays' and decrement the window count</span>
+    mwt_WindowID%mwt_WindowCount% =
+    mwt_WindowTitle%mwt_WindowCount% = 
+    mwt_WindowCount -= 1
+}
+return
+
+
+mwt_RestoreAllThenExit:
+Gosub, mwt_RestoreAll
+ExitApp  <span class="CodeCom">; Do a true exit.</span>
+
+
+mwt_RestoreAll:
+Loop, %mwt_MaxWindows%
+{
+    if mwt_WindowID%a_index% &lt;&gt;
+    {
+        StringTrimRight, IDToRestore, mwt_WindowID%a_index%, 0
+        WinShow, ahk_id %IDToRestore%
+        WinActivate ahk_id %IDToRestore%  <span class="CodeCom">; Sometimes needed.</span>
+        <span class="CodeCom">; Do it this way vs. DeleteAll so that the sep. line and first</span>
+        <span class="CodeCom">; item are retained:</span>
+        StringTrimRight, MenuToRemove, mwt_WindowTitle%a_index%, 0
+        Menu, Tray, delete, %MenuToRemove%
+        mwt_WindowID%a_index% =  <span class="CodeCom">; Make it blank to free up a slot.</span>
+        mwt_WindowTitle%a_index% =
+        mwt_WindowCount -= 1
+    }
+    if mwt_WindowCount = 0
+        break
+}
+return
+</pre>
+</body>
+</html>

@@ -1,0 +1,122 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<title>Run / RunWait</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link href="../css/commands.css" rel="stylesheet" type="text/css">
+<link href="../css/print.css" rel="stylesheet" type="text/css" media="print">
+<style type="text/css">
+<!--
+.style3 {color: #FF0000; font-weight: bold; }
+-->
+</style>
+</head>
+<body>
+
+<h1>Run / RunWait</h1>
+<hr size="2">
+<p>Runs an external program. Unlike Run, RunWait will wait until
+the program finishes before continuing.</p>
+
+<p class="CommandSyntax">Run, Target [, WorkingDir, Max|Min|Hide|UseErrorLevel, OutputVarPID]</p>
+<h4>Parameters</h4>
+<table border="1" width="100%" cellspacing="0" cellpadding="3" bordercolor="#C0C0C0">
+  <tr>
+    <td width="15%">Target</td>
+    <td width="85%"><p>A document, URL, executable file (.exe, .com, .bat, etc.), shortcut (.lnk), or system verb  to launch (see remarks). If <em>Target</em> is a local file and no path was specified with it, <a href="../Variables.htm#WorkingDir">A_WorkingDir</a> will be searched first. If no matching file is found there, the system will search for and launch the file if it is integrated (&quot;known&quot;), e.g. by being contained in one of the PATH folders.</p>
+      <p>To pass parameters, add them immediately after the program or document name. If a parameter contains spaces, it is  safest to enclose it in double quotes (even though it may work without them in some cases).</p></td>
+  </tr>
+  <tr>
+    <td>WorkingDir</td>
+    <td>The working directory for the launched item. Do not enclose the name in double quotes even if it contains spaces. If omitted, the script's own working directory (<a href="../Variables.htm#WorkingDir">A_WorkingDir</a>) will be used. </td>
+  </tr>
+  <tr>
+    <td>Max|Min|Hide<br>
+      UseErrorLevel</td>
+    <td><p>If omitted, <em>Target</em> will be launched normally. Alternatively, it can contain one or more of these words: </p>
+      <p><strong>Max</strong>: launch maximized</p>
+      <p><strong>Min</strong>: launch minimized</p>
+      <p><strong>Hide</strong>: launch hidden (cannot be used in combination with either of the above)</p>
+      <p>Note: Some applications (e.g. Calc.exe) do not obey the requested startup state and thus Max/Min/Hide will have no effect.</p>
+      <p><strong><a name="UseErrorLevel"></a>UseErrorLevel</strong>: UseErrorLevel can be specified alone or in addition to one of the above words (by separating it from the other word with a space). If the launch fails, this option skips the warning dialog, sets <a href="../misc/ErrorLevel.htm">ErrorLevel</a> to the word ERROR, and allows the <a href="../misc/Threads.htm">current thread</a> to continue. If the launch succeeds, RunWait sets <a href="../misc/ErrorLevel.htm">ErrorLevel</a> to the program's exit code, and  Run sets it to 0.</p>
+      <p><a name="LastError"></a>When UseErrorLevel is specified, the variable <strong>A_LastError</strong> is set to the result of the operating system's GetLastError() function. A_LastError is a number between 0 and 4294967295 (always formatted as decimal, not hexadecimal). Zero (0) means success, but any other number means the launch failed. Each number corresponds to a specific error condition (to get a list, search <a href="http://www.microsoft.com">www.microsoft.com</a> for &quot;system error codes&quot;). Like <a href="../misc/ErrorLevel.htm">ErrorLevel</a>, A_LastError is a per-thread setting; that is, interruptions by other <a href="../misc/Threads.htm">threads</a> cannot change it. However, A_LastError is also set by <a href="DllCall.htm#LastError">DllCall</a>.</p></td>
+  </tr>
+  <tr>
+    <td>OutputVarPID</td>
+    <td><p>The name of the variable in which to store the newly launched program's unique <a href="Process.htm">Process ID (PID)</a>. The variable will be made blank if the PID could not be determined, which usually happens if a system verb, document, or shortcut is launched rather than a direct executable file. RunWait also supports this parameter, though its <em>OuputVarPID</em> must be checked in <a href="../misc/Threads.htm">another thread</a> (otherwise, the PID will be invalid because the process will have terminated by the time the line following RunWait executes).</p>
+      <p>After the Run command retrieves a PID, any windows to be created by the process might not exist yet. To wait for at least one window to be created, use <em><a href="WinWait.htm">WinWait</a> ahk_pid %OutputVarPID%</em></p></td>
+  </tr>
+</table>
+<h4>ErrorLevel</h4>
+<p>Run: Does not set <a href="../misc/ErrorLevel.htm">ErrorLevel</a> unless UseErrorLevel (above) is in effect, in which case ErrorLevel is set to the word ERROR upon failure or 0 upon success.</p>
+<p>RunWait: Sets ErrorLevel to the program's exit code (a signed 32-bit integer). If UseErrorLevel is in effect and the launch failed, the word ERROR is stored.</p>
+<h4>Remarks</h4>
+<p>Unlike Run, RunWait will wait until <em>Target</em> is closed or exits, at which time <a href="../misc/ErrorLevel.htm">ErrorLevel</a> will be set to the program's exit code (as a signed 32-bit integer). Some programs will appear to return immediately even though they are still running; these programs spawn another process.</p>
+<p>If <em>Target</em> contains any commas, they must be <a href="_EscapeChar.htm">escaped</a> as shown three times in the following example:</p>
+<pre>Run rundll32.exe shell32.dll<span class="style3">`,</span>Control_RunDLL desk.cpl<span class="style3">`,`,</span> 3  <span class="CodeCom">; Opens Control Panel &gt; Display Properties &gt; Settings</span></pre>
+<p>When running a program via <a href="../Variables.htm#ComSpec">Comspec</a> (cmd.exe) -- perhaps because you need to redirect the program's input or output -- if the path or name of the executable contains spaces, the entire string should be enclosed in an outer pair of quotes. In the following example, the outer quotes are shown in red and all the inner quotes are shown in black:<br>
+Run %comspec% /c <span class="style3">&quot;</span>&quot;C:\My Utility.exe&quot; &quot;param 1&quot; &quot;second param&quot; &gt;&quot;C:\My File.txt&quot;<span class="style3">&quot;</span></p>
+<p>If <em>Target</em> cannot be launched, an error window is displayed, after which the script will behave as though it encountered an <a href="Exit.htm">Exit </a>command. To prevent this, include the string <strong>UseErrorLevel</strong> in the third parameter.</p>
+<p>Performance may be slightly improved if <em>Target</em> is an exact path, e.g. Run, C:\Windows\Notepad.exe &quot;C:\My Documents\Test.txt&quot; rather than
+
+
+  Run, C:\My Documents\Test.txt</p>
+<p>Special <a href="../misc/CLSID-List.htm">CLSID folders</a> may be opened via Run. For example:</p>
+<pre>Run ::{20d04fe0-3aea-1069-a2d8-08002b30309d}  <span class="CodeCom">; Opens the &quot;My Computer&quot; folder.</span>
+Run ::{645ff040-5081-101b-9f08-00aa002f954e}  <span class="CodeCom">; Opens the Recycle Bin.</span></pre>
+<p>System verbs correspond to actions available in a file's right-click menu in the Explorer. If a file is launched without a verb, the default verb (usually &quot;open&quot;) for that particular file type will be used. If specified, the verb should be followed by the name of the target file. The following verbs are currently supported:</p>
+<table width="100%" border="1" cellpadding="3" cellspacing="0" bordercolor="#C0C0C0">
+  <tr>
+    <td width="8%">properties</td>
+    <td width="92%">Displays the Explorer's properties window for the indicated file. For example: Run, properties &quot;C:\My File.txt&quot;<br>
+    Note: The properties window will automatically close when the script terminates. To prevent this, use <a href="WinWait.htm">WinWait</a> to wait for the window to appear, then use <a href="WinWaitClose.htm">WinWaitClose</a> to wait for the user to close it.</td>
+  </tr>
+  <tr>
+    <td>find</td>
+    <td>Opens an instance of the Explorer's Search Companion or Find File window at the indicated folder. For example: Run, find D:\ </td>
+  </tr>
+  <tr>
+    <td>explore</td>
+    <td>Opens an instance of Explorer at the indicated folder. For example: Run, explore %A_ProgramFiles%</td>
+  </tr>
+  <tr>
+    <td>edit</td>
+    <td>Opens the indicated file for editing. It might not work if the indicated file's type does not have an &quot;edit&quot; action associated with it. For example: Run, edit &quot;C:\My File.txt&quot; </td>
+  </tr>
+  <tr>
+    <td>open</td>
+    <td>Opens the indicated file (normally not needed because it is the default action for most file types). For example: Run, open &quot;My File.txt&quot;</td>
+  </tr>
+  <tr>
+    <td>print</td>
+    <td>Prints the indicated file with the associated application, if any. For example: Run, print &quot;My File.txt&quot; </td>
+  </tr>
+</table>
+<p>While RunWait is in a waiting state, new <a href="../misc/Threads.htm">threads</a> can be launched via <a href="../Hotkeys.htm">hotkey</a>, <a href="Menu.htm">custom menu item</a>, or <a href="SetTimer.htm">timer</a>.</p>
+<h4>Related</h4>
+<p><a href="RunAs.htm">RunAs</a>, <a href="Process.htm">Process</a>, <a href="Exit.htm">Exit</a>, <a href="../misc/CLSID-List.htm">CLSID List</a>, <a href="DllCall.htm">DllCall</a> </p>
+<h4>Examples</h4>
+<pre class="NoIndent">Run, Notepad.exe, C:\My Documents, max
+
+Run, mailto:someone@domain.com?subject=This is the subject line&amp;body=This is the message body's text.
+Run, ReadMe.doc, , Max UseErrorLevel  <span class="CodeCom">; Launch maximized and don't display dialog if it fails.</span>
+if ErrorLevel = ERROR
+    MsgBox The document could not be launched.
+
+RunWait, %comspec% /c dir c:\ &gt;&gt;c:\DirTest.txt, , min
+Run, c:\DirTest.txt
+Run, properties c:\DirTest.txt
+
+Run, www.autohotkey.com <span class="CodeCom">; i.e. any URL can be launched.</span>
+Run, mailto:someone@somedomain.com  <span class="CodeCom">; This should open the default e-mail application.</span>
+
+Run ::{20d04fe0-3aea-1069-a2d8-08002b30309d}  <span class="CodeCom">; Opens the &quot;My Computer&quot; folder.</span>
+Run ::{645ff040-5081-101b-9f08-00aa002f954e}  <span class="CodeCom">; Opens the Recycle Bin.</span>
+
+<span class="CodeCom">; To run multiple commands consecutively, use &quot;&amp;&amp;&quot; between each:</span>
+Run, %comspec% /c dir /b &gt; C:\list.txt &amp;&amp; type C:\list.txt &amp;&amp; pause
+</pre>
+
+</body>
+</html>

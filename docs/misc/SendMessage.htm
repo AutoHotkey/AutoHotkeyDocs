@@ -1,0 +1,79 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<title>PostMessage/SendMessage Tutorial</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link href="../css/default.css" rel="stylesheet" type="text/css">
+<link href="../css/print.css" rel="stylesheet" type="text/css" media="print">
+</head>
+
+<body>
+<h1>Send Messages to a Window or Its Controls<br>
+<span class="small80">by Rajat</span></h1>
+<hr size="2">
+<p>This page discusses the <a href="../commands/PostMessage.htm">PostMessage</a> and <a href="../commands/PostMessage.htm">SendMessage</a> commands and will answer some questions like:</p>
+<p>&quot;How do I press a button on a minimized window?&quot; <br>
+&quot;How do I select a menu item when <a href="../commands/WinMenuSelectItem.htm">WinMenuSelectItem</a> doesn't work with it?!&quot;<br>
+&quot;This is a skinnable window.... how do I send a command that works every time?&quot;<br>
+&quot;and what about <strong>hidden</strong> windows?!&quot;<br>
+<br>
+<br>
+Requirements: AutoHotkey v1.0.09+ and Winspector Spy (<a href="http://www.windows-spy.com">www.windows-spy.com</a>)</p>
+<p>As a first example, note that <a href="../commands/WinMenuSelectItem.htm">WinMenuSelectItem</a> fails to work with the menu bar on Outlook Express's &quot;New Message&quot; window. In other words, this code will not work:</p>
+<p><em> WinMenuSelectItem, New Message,, &amp;Insert, &amp;Picture...</em></p>
+<p>&nbsp;</p>
+<p>But <a href="../commands/PostMessage.htm">PostMessage</a> can get the job done:</p>
+<p><em> PostMessage, 0x111, 40239, 0, , New Message</em></p>
+<p>Works like a charm! But what the heck is that? 0x111 is the hex code of <a href="SendMessageList.htm">wm_command message</a> and 40239 is the code that this particular window understands as menu-item 'Insert Picture' selection. Now let me tell you how to find a value such as 40239:</p>
+<ol>
+  <li>Open Winspector Spy and a &quot;New Message&quot; window.</li>
+  <li>Drag the crosshair from Winspector Spy's window to &quot;New Message&quot; window's titlebar (the portion not covered by Winspector Spy's overlay).</li>
+  <li>Right click the selected window in the list on left and select 'Messages'.</li>
+  <li>Right click the blank window and select 'Edit message filter'.</li>
+  <li>Press the 'filter all' button and then dbl click 'wm_command' on the list on left. This way you will only monitor this message.</li>
+  <li>Now go to the &quot;New Message&quot; window and select from its menu bar: Insert &gt; Picture.</li>
+  <li>Come back to Winspector Spy and press the traffic light button to pause monitoring.</li>
+  <li>Expand the wm_command messages that've accumulated (forget others if any).</li>
+  <li>What you want to look for (usually) is a code 0 message. sometimes there are wm_command messages saying 'win activated' or 'win destroyed' and other stuff.. not needed. You'll find that there's a message saying 'Control ID: 40239' ...that's it!</li>
+  <li>Now put that in the above command and you've got it! It's the wParam value.</li>
+</ol>
+<p>For the next example I'm taking Paint because possibly everyone will have that. Now let's say it's an app where you have to select a tool from a toolbar using AutoHotkey; say the dropper tool is to be selected.</p>
+<p>What will you do? Most probably a mouse click at the toolbar button, right? But toolbars can be moved and hidden! This one can be moved/hidden too. So if the target user has done any of this then your script will fail at that point. But the following command will still work:</p>
+<p><em> PostMessage, 0x111, 639,,,untitled - Paint</em></p>
+<p>Another advantage to <a href="../commands/PostMessage.htm">PostMessage</a> is that the Window can be in the background; by contrast, sending mouse clicks would require it to be active.<br>
+  <br>
+  <br>
+Here are some more examples. Note: I'm using WinXP Pro (SP1) ... if you use a different OS then your params may change (only applicable to apps like Wordpad and Notepad that come with windows; for others the params shouldn't vary):</p>
+<p><span class="CodeCom">;makes writing color teal in Wordpad </span><br>
+  <a href="../commands/PostMessage.htm">PostMessage</a>, 0x111, 32788, 0, , Document - WordPad </p>
+<p><span class="CodeCom">;opens about box in Notepad </span><br>
+  <a href="../commands/PostMessage.htm">PostMessage</a>, 0x111, 65, 0, , Untitled - Notepad </p>
+<p><span class="CodeCom">;toggles word-wrap in Notepad </span><br>
+  <a href="../commands/PostMessage.htm">PostMessage</a>, 0x111, 32, 0, , Untitled - Notepad </p>
+<p><span class="CodeCom">;play/pause in Windows Media Player </span><br>
+<a href="../commands/PostMessage.htm">PostMessage</a>, 0x111, 32808, 0, , Windows Media Player </p>
+<p><span class="CodeCom">;suspend the hotkeys of a running AHK script!</span><br>
+  DetectHiddenWindows, on<br>
+  SetTitleMatchMode, 2<br>
+  PostMessage, 0x111, 65305,,, MyScript.ahk - AutoHotkey <span class="CodeCom">; Use 65306 to Pause vs. Suspend.</span><br>
+  <br>
+  <br>
+  This above was for PostMessage. <a href="../commands/PostMessage.htm">SendMessage</a> works the same way but additionally waits for a return value, which can be used for things such as getting the currently playing track in Winamp (see <a href="Winamp.htm">Automating Winamp</a> for an example). <br>
+</p>
+<p>Here are some more notes:</p>
+<ul>
+  <li>The note above regarding OS being XP and msg values changing with different OSes is purely cautionary. if you've found a msg that works on your system (with a certain version of a software) then you can be sure it'll work on another system too with the same version of the software. In addition, most apps keep these msg values the same even on different versions of themselves (e.g. Windows Media Player and Winamp).</li>
+  <li>If you've set the filter to show only wm_command in Winspector Spy and still you're getting a flood of messages then right click that message and select hide (msg name)... you don't want to have a look at a msg that appears without you interacting with the target software. </li>
+  <li>The right pointing arrow in Winspector Spy shows the msg values and the blurred left pointing arrows show the returned value. A 0 (zero) value can by default safely be taken as 'no error' (use it with SendMessage, the return value will be in <a href="ErrorLevel.htm">%ErrorLevel%</a>). </li>
+  <li>For posting to partial title match add this to script:<br>
+    SetTitleMatchMode, 2 </li>
+  <li>For posting to hidden windows add this to script: <br>
+    DetectHiddenWindows, On</li>
+</ul>
+<p>Note: There are apps with which this technique doesn't work. I've had mixed luck with VB and Delphi apps. This technique is best used with C, C++ apps. With VB apps the 'LParam' of the same command keeps changing from one run to another. With Delphi apps... the GUI of some apps doesn't even use wm_command. It probably uses mouse pos &amp; clicks. </p>
+<p>Go and explore.... and share your experiences in the AutoHotkey Forum. Feedback is welcome!</p>
+<p>This tutorial is not meant for total newbies (no offense meant) since these commands are considered advanced features. So if after reading the above you've not made heads or tails of it, please forget it.</p>
+<p>-Rajat</p>
+</body>
+</html>

@@ -1,0 +1,161 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<title>Loop (registry)</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link href="../css/commands.css" rel="stylesheet" type="text/css">
+<link href="../css/print.css" rel="stylesheet" type="text/css" media="print">
+</head>
+<body>
+
+<h1>Loop (registry)</h1>
+<hr size="2">
+<p>Retrieves the contents of the specified registry subkey, one item at a time.</p>
+
+<p class="CommandSyntax">
+    Loop, RootKey [, Key, IncludeSubkeys?, Recurse?]</p>
+<h4>Parameters</h4>
+<table border="1" width="100%" cellspacing="0" cellpadding="3" bordercolor="#C0C0C0">
+  <tr>
+    <td width="15%">RootKey</td>
+    <td width="85%"><p>Must be either HKEY_LOCAL_MACHINE (or HKLM), HKEY_USERS (or HKU), HKEY_CURRENT_USER (or HKCU), HKEY_CLASSES_ROOT (or HKCR), or HKEY_CURRENT_CONFIG (or HKCC).</p>
+      <p>To access a remote registry, prepend the computer name and a colon, as in this example: \\workstation01:HKEY_LOCAL_MACHINE</p></td>
+  </tr>
+  <tr>
+    <td>Key</td>
+    <td>The name of the key (e.g. Software\SomeApplication). If blank or omitted, the contents of <em>RootKey</em> will be retrieved.</td>
+  </tr>
+  <tr>
+    <td>IncludeSubkeys?</td>
+    <td><p>0 (default) Subkeys contained within <em>Key</em> are not retrieved (only the values).<br>
+  1 All values and subkeys are retrieved.<br>
+  2 Only the subkeys are retrieved (not the values).</p>    </td>
+  </tr>
+  <tr>
+    <td>Recurse?</td>
+    <td>0 (default) Subkeys are not recursed into.<br>
+1 Subkeys are recursed into, so that all values and subkeys contained therein are retrieved.</td>
+  </tr>
+</table>
+
+<h4>Remarks</h4>
+<p>A registry-loop is useful when you want to operate on a collection registry values or subkeys, one at a time. The values and subkeys are retrieved in reverse order (bottom to top) so that <a href="RegDelete.htm">RegDelete</a> can be used inside the loop without disrupting the loop.</p>
+<p>The following variables exist within any registry-loop. If an inner registry-loop is enclosed by an outer registry-loop, the innermost loop's registry item will take precedence:</p>
+<table width="100%" border="1">
+  <tr>
+    <td>A_LoopRegName</td>
+    <td>Name of the currently retrieved item, which can be either a value name or the name of a subkey. Value names displayed by Windows RegEdit as &quot;(Default)&quot; will be retrieved if a value has been assigned to them, but A_LoopRegName will be blank for them. </td>
+  </tr>
+  <tr>
+    <td>A_LoopRegType</td>
+    <td>The type of the currently retrieved item, which is one of the following words: KEY (i.e. the currently retrieved item is a subkey not a value), REG_SZ, REG_EXPAND_SZ, REG_MULTI_SZ, REG_DWORD, REG_QWORD, REG_BINARY, REG_LINK, REG_RESOURCE_LIST, REG_FULL_RESOURCE_DESCRIPTOR, REG_RESOURCE_REQUIREMENTS_LIST, REG_DWORD_BIG_ENDIAN (probably rare on most Windows hardware). It will be empty if the currently retrieved item is of an unknown type. </td>
+  </tr>
+  <tr>
+    <td>A_LoopRegKey</td>
+    <td>The name of the root key being accessed  (HKEY_LOCAL_MACHINE, HKEY_USERS, HKEY_CURRENT_USER, HKEY_CLASSES_ROOT, or HKEY_CURRENT_CONFIG). For remote registry access, this value will <strong>not </strong>include the computer name. </td>
+  </tr>
+  <tr>
+    <td>A_LoopRegSubKey</td>
+    <td>Name of the current SubKey. This will be the same as the <em>Key</em> parameter unless the <em>Recurse</em> parameter is being used to recursively explore other subkeys. In that case, it will be the full path of the currently retrieved item, not including the root key. For example: Software\SomeApplication\My SubKey</td>
+  </tr>
+  <tr>
+    <td>A_LoopRegTimeModified</td>
+    <td>The time the current subkey or any of its values was last modified. Format <a href="FileSetTime.htm">YYYYMMDDHH24MISS</a>. This variable will be empty if the currently retrieved item is not a subkey (i.e. <em>A_LoopRegType</em> is not the word KEY) or if the operating system is Win9x (since Win9x does not track this info). </td>
+  </tr>
+</table>
+<p>When used inside a registry-loop, the following commands can be used in a simplified way to indicate that the currently retrieved item should be operated upon:</p>
+<table width="100%" border="1" cellpadding="3" cellspacing="0" bordercolor="#C0C0C0">
+  <tr>
+    <td width="21%"><a href="RegRead.htm">RegRead</a>, OutputVar</td>
+    <td width="79%">Reads the current item. If the current item is a key, ErrorLevel will be set to 1 and <em>OutputVar</em> will be made empty. </td>
+  </tr>
+  <tr>
+    <td><a href="RegWrite.htm">RegWrite</a> [, Value]</td>
+    <td>Writes to the current item. If <em>Value</em> is omitted, the item will be made 0 or blank depending on its type. If the current item is a key, ErrorLevel will be set to 1 and there will be no other effect. </td>
+  </tr>
+  <tr>
+    <td><a href="RegDelete.htm">RegDelete</a></td>
+    <td>Deletes the current item. If the current item is a key, it will be deleted along with any subkeys and values it contains. </td>
+  </tr>
+</table>
+<p>When accessing a remote registry (via the <em>RootKey</em> parameter described above), the following notes apply:</p>
+<ul>
+  <li>The target machine must be running the Remote Registry service, or (for Windows Me/98/95) have the Microsoft Remote Registry service installed (this can be obtained from Microsoft).</li>
+  <li>Access to a remote registry may fail if the target computer is not in the same domain as yours or the local or remote username  lacks sufficient permissions (however, see below for possible workarounds). </li>
+  <li>Depending on your username's domain, workgroup, and/or permissions, you may have to connect to a shared device, such as by mapping a drive, prior to attempting remote registry access. Making such a connection -- using a remote username and password that has permission to access or edit the registry -- may as a side-effect enable remote registry access.</li>
+  <li>If you're already connected to the target computer as a different user (for example, a mapped drive via user Guest), you may have to terminate that connection to allow the remote registry feature to reconnect and re-authenticate you as your own currently logged-on username.</li>
+  <li>For Windows Server 2003 and Windows XP Professional, MSDN states: &quot;If the [registry server] computer is joined to a workgroup and the <em>Force network logons using local accounts to authenticate as Guest</em> policy is enabled, the function fails. Note that this policy is enabled by default if the computer is joined to a workgroup.&quot;</li>
+  <li>For Windows XP Home Edition, MSDN states that &quot;this function always fails&quot;. Home Edition lacks both the registry server and client, though the client can be extracted from one of the OS cab files.</li>
+</ul>
+<p>See <a href="Loop.htm">Loop</a> for information about <a href="Block.htm">Blocks</a>, <a href="Break.htm">Break</a>, <a href="Continue.htm">Continue</a>, and the A_Index variable (which exists in every type of loop).</p>
+<h4>Related</h4>
+<p><a href="Loop.htm">Loop</a>, <a href="Break.htm">Break</a>, <a href="Continue.htm">Continue</a>, <a href="Block.htm">Blocks</a>, <a href="RegRead.htm">RegRead</a>, <a href="RegWrite.htm">RegWrite</a>, <a href="RegDelete.htm">RegDelete</a> </p>
+<h4>Examples</h4>
+<pre class="NoIndent"><span class="CodeCom">; Example: Delete Internet Explorer's history of URLs typed by the user:</span>
+Loop, HKEY_CURRENT_USER, Software\Microsoft\Internet Explorer\TypedURLs
+    RegDelete</pre>
+<p>&nbsp;</p>
+<pre class="NoIndent"><span class="CodeCom">; Example: A working test script:</span>
+Loop, HKEY_CURRENT_USER, Software\Microsoft\Windows, 1, 1
+{
+    if a_LoopRegType = key
+        value =
+    else
+    {
+        RegRead, value
+        if ErrorLevel
+            value = *error*
+    }
+    MsgBox, 4, , %a_LoopRegName% = %value% (%a_LoopRegType%)`n`nContinue?
+    IfMsgBox, NO, break
+}</pre>
+<p>&nbsp;</p>
+<pre class="NoIndent"><span class="CodeCom">; Example: A working example to recursively search the entire</span>
+<span class="CodeCom">; registry for particular value(s).</span>
+SetBatchLines -1  <span class="CodeCom">; Makes searching occur at maximum speed.</span>
+RegSearchTarget = Notepad  <span class="CodeCom">; Tell the subroutine what to search for.</span>
+Gosub, RegSearch
+return
+
+RegSearch:
+ContinueRegSearch = y
+Loop, HKEY_LOCAL_MACHINE, , 1, 1
+{
+    Gosub, CheckThisRegItem
+    if ContinueRegSearch = n <span class="CodeCom">; It told us to stop.</span>
+        return
+}
+Loop, HKEY_USERS, , 1, 1
+{
+    Gosub, CheckThisRegItem
+    if ContinueRegSearch = n <span class="CodeCom">; It told us to stop.</span>
+        return
+}
+Loop, HKEY_CURRENT_CONFIG, , 1, 1
+{
+    Gosub, CheckThisRegItem
+    if ContinueRegSearch = n <span class="CodeCom">; It told us to stop.</span>
+        return
+}
+<span class="CodeCom">; Note: I believe HKEY_CURRENT_USER does not need to be searched if HKEY_USERS</span>
+<span class="CodeCom">; is being searched.  The same might also be true for HKEY_CLASSES_ROOT if</span>
+<span class="CodeCom">; HKEY_LOCAL_MACHINE is being searched.</span>
+return
+
+CheckThisRegItem:
+if A_LoopRegType = KEY  <span class="CodeCom">; Remove these two lines if you want to check key names too.</span>
+    return
+RegRead, RegValue
+if ErrorLevel
+    return
+IfInString, RegValue, %RegSearchTarget%
+{
+    MsgBox, 4, , The following match was found:`n%A_LoopRegKey%\%A_LoopRegSubKey%\%A_LoopRegName%`nValue = %RegValue%`n`nContinue?
+    IfMsgBox, No
+        ContinueRegSearch = n  <span class="CodeCom">; Tell our caller to stop searching.</span>
+}
+return</pre>
+
+</body>
+</html>

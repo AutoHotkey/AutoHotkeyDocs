@@ -1,0 +1,244 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<title>Notes for AutoIt v2 Users</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link href="css/default.css" rel="stylesheet" type="text/css">
+<link href="css/print.css" rel="stylesheet" type="text/css" media="print">
+</head>
+<body>
+
+<h1>Notes for AutoIt v2 Users</h1>
+<hr>
+
+<h2>Benefits</h2>
+<ul>
+<li> Enjoy nearly complete backward compatibility with AutoIt v2. There is no need to learn  new syntax and commands unless you want to.</li>
+<li>Use <a href="commands/Else.htm">Else</a> with every <a href="commands/IfEqual.htm">IF-type</a> command.</li>
+<li> Use <a href="commands/Block.htm">blocks</a> (multi-line sections) with IFs and ELSEs (virtually eliminating the need for Goto).</li>
+<li> Use <a href="commands/Break.htm">break</a> and <a href="commands/Continue.htm">continue</a> inside <a href="commands/Loop.htm">loops</a> (another way to eliminate Goto's).</li>
+<li> Use many new commands and benefit from enhancements to old ones (see below).</li>
+<li> Catch silly errors and typos early (at load-time) rather than later (during runtime) when you may be less prepared to deal with them: Syntax errors are caught as part of the <a href="misc/Performance.htm">optimization</a> process.</li>
+<li>Gain a significant boost in <a href="misc/Performance.htm">performance</a>.</li>
+</ul>
+
+<h2>Running AutoIt v2 (.aut) Scripts</h2>
+<p>AutoHotkey will run most existing .aut scripts without the need to change them. Only the following AutoIt v2 features are not supported:</p>
+<ul>
+  <li>Adlib section (<a href="commands/SetTimer.htm">SetTimer</a> can be used instead)</li>
+  <li>Break (<a href="commands/Break.htm">break</a> is now used for <a href="commands/Loop.htm">loops</a> instead)</li>
+  <li>HideAutoItDebug</li>
+</ul>
+
+<h2><a name="convert"></a>Converting Scripts from .aut to .ahk</h2>
+<p>Although .aut scripts can be run, to take full advantage of AutoHotkey's new features  (that is, if you plan to make improvements to the script) you should convert the script to a .ahk file. This is necessary because some commands  accept new, optional parameters that if enabled for AutoIt v2 scripts, would cause some of them to behave incorrectly (see further below for details).</p>
+<p>You can automatically convert an AutoIt v2 (.aut) script to AutoHotkey format (.ahk) . The conversion will make the <a href="commands/_EscapeChar.htm">escape character</a> an accent/backtick (`) instead of backslash (\). This is harder than it sounds due to the precise ordering of escape sequences in each line, which is why you  can't just do a search-and-replace in a text editor. This automated way should take care of all the details: </p>
+<ol>
+  <li>Append a .ahk to the end of an existing .aut filename, so that it now ends in &quot;.aut.ahk&quot;</li>
+  <li>Run this file with AutoHotkey, which, rather than than running the file, will create a new file in the same directory that ends in &quot;-NEW.ahk&quot;. This is the converted version. The original version will be unchanged.</li>
+  <li>If you were using <a href="commands/_EscapeChar.htm">#EscapeChar</a> in the script, remove it from the converted version.</li>
+</ol>
+<p>After converting a script from .aut to .ahk, the main problem areas to check for are commands that accept additional parameters in .ahk files but not in .aut files. If you used any non-escaped commas in the parameter that was formerly the last parameter (in AutoIt v2) but is now not the last parameter, those commas will be interpreted as delimiters. For example:</p>
+<pre>WinActivate, title, text with literal comma, here.</pre>
+<p>The above would be a problem after conversion; The string &quot;here.&quot; would be interpreted as the new &quot;exclude title&quot; parameter.<br>
+  <br>
+  Here is a list of commands that both accept new parameters and that might be problematic: <br>
+  <a href="commands/StringReplace.htm">StringReplace</a> <br>
+  <a href="commands/StringGetPos.htm">StringGetPos</a> <br>
+  <a href="commands/FileSelectFile.htm">FileSelectFile<br>
+  </a><a href="commands/FileRemoveDir.htm">FileRemoveDir</a>  <br>
+  <a href="commands/WinClose.htm">WinClose</a>/<a href="commands/WinKill.htm">Kill</a>/<a href="commands/WinActivate.htm">Activate</a>/<a href="commands/WinMinimize.htm">Minimize</a>/<a href="commands/WinMaximize.htm">Maximize</a>/<a href="commands/WinRestore.htm">Restore</a>/<a href="commands/WinHide.htm">Hide</a>/<a href="commands/WinShow.htm">Show</a> <br>
+  <a href="commands/WinSetTitle.htm">WinSetTitle</a>/<a href="commands/WinGetTitle.htm">WinGetTitle</a> <br>
+<br>Note: Even though they accept new parameters in .ahk files, commands such as <a href="commands/IfWinExist.htm">IfWinExist</a> are not troublesome with respect to the above because the program can tell the difference between the AutoIt v2 and AutoHotkey methods. The <a href="commands/WinWait.htm">WinWait</a> family of commands should also not be a problem, nor should the <a href="commands/MsgBox.htm">MsgBox</a> command since it has smart handling of commas.</p>
+
+<h2>Enhanced Syntax</h2>
+<p>With a few exceptions, floating point numbers (e.g. 3.5) and hexadecimal notation (e.g. 0xFF) are supported by all commands.</p>
+<p>The keyword <a href="commands/Else.htm">ELSE</a> is supported with all IF-type commands. In addition, <a href="commands/Block.htm">blocks</a> are supported. For example: </p>
+<p>OLD STYLE:</p>
+<pre>IfWinExist, Notepad, , WinActivate, Notepad</pre>
+<p> </p>
+<p>NEW STYLE (use {&hellip;} to create a block if there&rsquo;s more than one line to be executed):</p>
+<pre>IfWinExist, Untitled - Notepad
+{
+    WinActivate   <span class="CodeCom">; no need to specify title again, since it will automatically use the &quot;last found&quot; window.</span>
+    WinMaximize  <span class="CodeCom">; if this line weren't here, you wouldn't need a block (braces) around this section</span>
+}
+else
+    Run Notepad</pre>
+<p><br>
+Nested IFs and blocks example:</p>
+<pre>if varx = 1
+{
+    if vary = 2
+        if varz = 3
+            sleep, 1
+        else  <span class="CodeCom">; this else goes with the nearest IF</span>
+            sleep, 1
+}
+else  <span class="CodeCom">; this else goes with the top IF because the block prevents it from going with &quot;if vary = y&quot;</span>
+    sleep, 1</pre>
+<p><br>
+Also, blocks can be used with loops. But this first example doesn't need a block because the if+else is considered only a single statement: </p>
+<pre>Loop, 5000
+    IfNotExist, c:\semaphore.txt
+        sleep, 1000
+    else
+        break  <span class="CodeCom">; terminate the loop early</span>
+</pre>
+<p><br>
+Here's one that does require a block:</p>
+<pre>Loop  <span class="CodeCom">; Since there's no count specified, it's an infinite loop unless an Exit, Return, or Break is encountered.</span>
+{
+    ...
+    if var &lt;= 5
+        continue  <span class="CodeCom">; skip the rest of the block and begin at the top of the block for the next iteration.</span>
+    ...
+    if var &gt; 25
+        break  <span class="CodeCom">; break out of the loop</span>
+}</pre>
+<p><br>
+Example of a <a href="commands/LoopFile.htm">file-loop</a> to explore the contents of a folder (<a href="commands/LoopReg.htm">registry-loops</a> and <a href="commands/LoopParse.htm">parsing-loops</a> are also supported):</p>
+<pre>Loop, %A_ProgramFiles%\*.txt, , 1  <span class="CodeCom">; Recurse into subfolders.</span>
+{
+    MsgBox, 4, , Filename = %A_LoopFileFullPath%`n`nContinue?
+    IfMsgBox, No
+        break
+}</pre>
+<br>
+<p>Finally, <a href="Variables.htm#Expressions">complex expressions</a> and <a href="Functions.htm">function calls</a> are supported, such as the following:</p>
+<pre>NetPrice := Price * (1 - Discount/100)
+
+LargestOfTwo := Max(x, y)
+
+if (CurrentSetting &gt; 100 or FoundColor &lt;&gt; &quot;Blue&quot;)
+    MsgBox The setting is too high or the wrong color is present.</pre>
+
+<h2>Other differences between AutoIt v2 and AutoHotkey</h2>
+<p>AutoIt v2 (.aut) scripts are run by AutoHotkey.exe with:</p>
+<ul>
+  <li>backslash (\) as their escape character. But other script types (.ahk, .ini) use accent (`). Use <a href="commands/_EscapeChar.htm">#EscapeChar</a> to change these defaults.</li>
+  <li>support for same-line comments disabled (use <a href="commands/_AllowSameLineComments.htm">#AllowSameLineComments</a> to enable them). </li>
+  <li>the pound sign (#) as a comment character in the <a href="commands/Send.htm">Send</a> command. Other script types use # to indicate the windows key. For example, #y would send Win-Y.</li>
+  <li><a href="commands/DetectHiddenText.htm">DetectHiddenText</a> defaulting to OFF. Other script types default to ON because it performs better.</li>
+  <li><a href="commands/SetBatchLines.htm">SetBatchLines</a> defaulting to 1, meaning that scripts run fairly slowly by default. Other script types use 10ms.</li>
+  <li><a href="commands/SetWinDelay.htm">SetWinDelay</a> defaulting to 500. Other script types default to 100, which makes windowing operations much faster.</li>
+  <li>extended (new)  parameters disabled for the following commands. This is done for compatibility reasons (see conversion notes above):<br>
+        <a href="commands/MsgBox.htm"> MsgBox</a><br>
+        <a href="commands/FileSelectFile.htm">FileSelectFile</a>        <br>
+        <a href="commands/FileRemoveDir.htm">FileRemoveDir</a>        <br>
+        <a href="commands/IniRead.htm">IniRead</a><br>
+        <a href="commands/StringReplace.htm">StringReplace</a><br>
+        <a href="commands/StringGetPos.htm">StringGetPos</a><br>
+        <a href="commands/WinClose.htm">WinClose</a><br>
+        <a href="commands/WinKill.htm">WinKill</a><br>
+        <a href="commands/WinActivate.htm">WinActivate</a><br>
+        <a href="commands/WinMinimize.htm">WinMinimize</a><br>
+        <a href="commands/WinMaximize.htm">WinMaximize</a><br>
+        <a href="commands/WinRestore.htm">WinRestore</a><br>
+        <a href="commands/WinHide.htm">WinHide</a><br>
+        <a href="commands/WinShow.htm">WinShow</a><br>
+        <a href="commands/WinSetTitle.htm">WinSetTitle</a><br>
+        <a href="commands/WinGetTitle.htm">WinGetTitle</a></li>
+</ul>
+<p>AutoIt v2 (.aut) scripts are not supported by the script compiler (<a href="Scripts.htm#ahk2exe">Ahk2Exe</a>) because there's no way for the compiled script to figure out whether to run in AutoIt v2 mode or AutoHotkey mode. So first convert your .aut script to .ahk before compiling it (see above).</p>
+<p>Unlike AutoIt v2, <a href="commands/IfEqual.htm">IfGreater/Less</a> compare alphabetically whenever one of the inputs isn't purely numeric.</p>
+<p><a href="commands/IniWrite.htm">IniWrite</a> and <a href="commands/IniDelete.htm">IniDelete</a>: For AutoIt v2 (.aut) scripts: <a href="misc/ErrorLevel.htm">ErrorLevel</a> is not set by these commands. For other script types, ErrorLevel is set to 1 if there was a problem or 0 otherwise. </p>
+<p><a href="commands/InputBox.htm">InputBox</a>: For AutoIt v2 (.aut) scripts: If the user presses the cancel button,  the output variable is made blank so that there is a way to detect that the cancel button was pressed.   For AutoHotkey scripts: The output variable is set to whatever the user entered, even if the user pressed the cancel button. To tell the difference, <a href="misc/ErrorLevel.htm">ErrorLevel</a> is set to 1 if Cancel, Alt-F4, or the X-button was pressed to dismiss the window. Otherwise, ErrorLevel is set to 0. This allows the cancel button to specify
+  that a different operation should be performed on the entered text.</p>
+<p><a href="commands/SplashTextOn.htm">SplashTextOn</a>: AutoIt v2 (.aut) scripts use splash windows that are a little less tall than those in AutoHotkey scripts. So if you convert a .aut script to .ahk, or copy &amp; paste code from a .aut script into a .ahk script, you might want to reduce the height of the window by the height of its title bar (probably around 20 pixels, but it depends on your desktop settings).</p>
+<p>Finally, unlike AutoIt v2, AutoHotkey does not store its <a href="Variables.htm">variables</a> as environment variables. This is because performance would be worse and also because the operating system limits such variables to 32 KBytes. To explicitly place a value into an environment variable, use <a href="commands/EnvSet.htm">EnvSet</a>, not <a href="commands/SetEnv.htm">SetEnv</a>.</p>
+
+<h2>New Language and Command Style</h2>
+<p>Same-line comments can be used if the file extension of the script isn't .aut (AutoIt v2). The semicolon is used as a prefix character for these comments, just as it is for whole line comments. However, a semicolon is not considered a comment unless there is at least one space or tab to the left of it. If there's ever a need to have a <em>literal</em> semicolon with a space or tab to its left, you can escape it by preceding it with an accent/backtick (`). In both of the following examples, a literal semicolon is stored in the variable:<br>
+  var = `;<br>
+var =;</p>
+<p>For convenience, the first comma may be omitted (except when the first parameter is blank or starts with := or =, or the command is alone at the top of a <a href="Scripts.htm#continuation">continuation section</a>). For example: Sleep 1, MsgBox test, etc.</p>
+<p>For some commands, you can optionally use a new style in lieu the original AutoIt v2 style. These are:</p>
+<ul>
+  <li>Var = value <span class="CodeCom">; can be used instead of SetEnv, var, value. Value can be blank, i.e. var =</span></li>
+  <li>    if var &lt;&gt; value <span class="CodeCom">; you can use &lt;&gt; != &lt; = &gt; as comparison operators rather than ifequal/notequal/greater, etc. </span></li>
+  <li>var += 5 <span class="CodeCom">; This is equivalent to envadd, var, 5. The other operators are -=, *=, /= </span></li>
+  <li> But don't use the new command style on the same line as an old command:
+<pre>IfEqual, x, 35, y = 55 <span class="CodeCom">; The y = 55 part will not be properly recognized as the action of the IF.</span>
+<span class="CodeCom">; Instead, do this:</span>
+IfEqual, x, 35, SetEnv, y, 55
+<span class="CodeCom">; Or this:</span>
+IfEqual, x, 35
+    y = 55</pre></li>
+</ul>
+<p>You can also check whether a variable <a href="commands/IfIn.htm">matches</a> one of the items in a list:<br>
+  if var [not] in item1,item2,item3 <span class="CodeCom">; Exact match </span><br>
+  if var [not] contains item1,item2,item3 <span class="CodeCom">; Substring match. </span></p>
+<p>... or whether a variable is <a href="commands/IfBetween.htm">between</a> two values:<br>
+  if var [not] between 5 and 10</p>
+<p>... or whether a variable conforms to a <a href="commands/IfIs.htm">specified data type</a>:<br>
+  if var is number<br>
+  if var is not float <span class="CodeCom">; not floating point</span>
+</p>
+<p>The <a href="commands/SetTitleMatchMode.htm">SetTitleMatchMode</a> command has been improved: In addition to supporting the traditional modes of 1 &amp; 2, the command now supports the words fast and slow (for example: SetTitleMatchMode, slow). The default is fast, which is what AutoIt v2 uses. By contrast, the slow mode can &quot;see&quot; more text for certain types of windows. The fast mode performs significantly better, which may help the speed of scripts that that do a lot of windowing commands. The slow mode need only be used when there is no other way to uniquely identify a given window. The version of Window Spy included with the program indicates which text of a window is available only in the slow mode.</p>
+
+<h2>Enhanced Commands</h2>
+<p>For most of the window commands, such as WinActivate, passing zero parameters results in activating the window <a href="LastFoundWindow.htm">most recently found</a> by IfWinExist or WinWait. In addition, passing the letter A for the window title tells the command to act upon the currently-active (foreground) window. For example: WinClose, A </p>
+<p>Also, most of the Window commands support new parameters for Exclude-Title and Exclude-Text. A window that would otherwise be a match will be disqualified if its Title contains Exclude-Title or its text contains Exclude-Text. </p>
+<p><a href="commands/StringGetPos.htm">StringGetPos</a> now supports a new optional last parameter. If that parameter is the letter R, the search will be conducted from the right instead of the left, that is,  the last occurrence will be found rather than the first. </p>
+<p><a href="commands/MouseClick.htm">MouseClick</a> supports a new parameter, which if the letter D, holds down the button until it is released by the user physically clicking it or via another action in the script. If this last parameter is U, the button will be released (even if it wasn't down before, an up-event will still be sent). In addition, you may find the syntax of the new <a href="commands/Click.htm">Click command</a> to be easier and more flexible.</p>
+<p> A_Space and A_Tab are two new built-in variables, which contain a single space and single tab character, respectively. This avoids the need for a workaround to get a variable to contain a space. For example:</p>
+<pre>String = String with spaces 
+IfInString, String, %A_SPACE% 
+    MsgBox, A space was found.
+<span class="CodeCom">; But to assign a naked space to a variable of your own, be sure to turn off AutoTrim so that the</span>
+<span class="CodeCom">; assignment won't remove all leading and trailing spaces:</span>
+AutoTrim, off 
+MySpace = %A_SPACE%</pre>
+<p><a href="misc/Clipboard.htm#ClipboardAll">ClipboardAll</a> is a new built-in variable containing everything on the clipboard (such as pictures and formatting). It can be used to back up one or more &quot;saved clipboards&quot; to memory or disk, which can be restored at a later time. This is especially useful for allowing a script to make temporary use of the clipboard without fear of disturbing whatever the user may have stored on it.</p>
+<p><a href="commands/Run.htm">Run</a> and <a href="commands/Run.htm">RunWait</a> can run shortcuts (.lnk files), documents, and URLs. For example:</p>
+<pre>Run, www.yahoo.com
+RunWait, New Document.doc</pre>
+<p>In addition, they now support the following system verbs: properties, edit, print, find, explore, open, and print. For example:</p>
+<pre>Run, properties c:\autoexec.bat  <span class="CodeCom">; Bring up the properties dialog for this file.</span>
+Run, edit %A_SCRIPTFULLPATH%  <span class="CodeCom">; Perform the associated &quot;edit&quot; action for this file (if it has one).</span></pre>
+<p><a href="commands/Send.htm">Send</a> and <a href="commands/ControlSend.htm">ControlSend</a> have been enhanced so that you do not need to use the Sleep command to allow the user time to release the modifier keys (Ctrl/Alt/Shift/Win) with hotkeys that use the Send command. The Send command knows to change the modifiers to what they need to be for every key that will be sent. </p>
+<p><a href="commands/StringReplace.htm">StringReplace</a> can optionally replace all occurrences, via passing a last parameter &quot;A&quot;. </p>
+<p><a href="commands/StringGetPos.htm">StringGetPos</a> now supports a new optional last parameter. If that parameter is the letter R, the search will be conducted from the right instead of the left. In other words, the last occurrence will be found rather than the first. </p>
+<p><a href="commands/MsgBox.htm">MsgBox</a> supports a new optional last parameter: Timeout value (in seconds, after which the MsgBox will close. <a href="commands/IfMsgBox.htm">IfMsgBox</a> will see the value TIMEOUT in this case). For compatibility reasons, this new parameter is only supported if the script filename doesn't end in .aut. </p>
+<p><a href="commands/IniRead.htm">IniRead</a> supports a new optional last parameter: the default value to put into the output variable if the command fails for any reason. For compatibility reasons, this new parameter is only supported if the script filename doesn't end in .aut. </p>
+<p><a href="commands/FileSelectFile.htm">FileSelectFile</a> has been improved with new capabilities. </p>
+
+<h2>New Commands and Features</h2>
+<p>Here are some of the most noteworthy new commands and features:</p>
+<p><a href="commands/Gui.htm">GUI</a>: Create and manage graphical user interface (GUI) windows and controls. Build your own professional looking applications and forms without the hassle and complexity of a programming language.</p>
+<p><a href="commands/Menu.htm">Menu</a>: Build your own custom menu bars, tray icon menus, and popup menus.</p>
+<p><a href="Hotkeys.htm">Hotkeys</a>: For keyboard, joystick, and mouse. </p>
+<p><a href="commands/SoundSet.htm"></a><a href="Hotstrings.htm">Hotstrings</a>: Have abbreviations expand automatically as you type them (auto-replace).</p>
+<p><a href="commands/DllCall.htm">DllCall</a>: Call functions inside DLLs, such as standard Windows API functions.</p>
+<p><a href="commands/OnMessage.htm">OnMessage</a>: Specifies a <a href="Functions.htm">function</a> to run automatically when the script receives the specified message (from the operating system, an external program, or some other script).</p>
+<p><a href="commands/Send.htm#SendInput">SendInput</a> and <a href="commands/Send.htm#SendInput">SendPlay</a>: These are two new methods for sending keystrokes and mouse clicks with greater speed and reliability. In addition, SendPlay is able to send keystrokes and mouse clicks to a broader variety of games than other modes.</p>
+<p><a href="commands/Progress.htm">Progress</a> and <a href="commands/Progress.htm">SplashImage</a>: Display progress bars and images, with optional accompanying text. </p>
+<p><a href="commands/OnExit.htm">OnExit</a>: Have a subroutine run automatically whenever the script exits. A script can also use this to detect whether the user is logging off or the system is shutting down.</p>
+<p><a href="commands/Process.htm">Process</a>: Performs one of the following operations on a process: checks if it exists; changes its priority; closes it; waits for it to close.</p>
+<p><a href="commands/SoundSet.htm">SoundSet</a>: Changes various settings of a sound device (master mute, master volume, etc.)</p>
+<p><a href="commands/SetTimer.htm">SetTimer</a>: Run one or more subroutines automatically at intervals of your choice.</p>
+<p><a href="commands/ClipWait.htm">ClipWait</a>: Wait for the clipboard to contain text (become non-empty).</p>
+<p><a href="commands/StatusBarWait.htm">StatusBarWait</a>: Wait for the status bar of a window to contain the specified text, or become blank. </p>
+<p><a href="commands/StatusBarGetText.htm">StatusBarGetText</a>: Retrieve text from the status bar.</p>
+<p><a href="commands/WinActivateBottom.htm">WinActivateBottom</a>: This command is similar to WinActivate but activates the oldest (bottom-most) window rather than the newest. If there is only one window that matches, this command will perform identically to WinActivate. </p>
+<p><a href="commands/DriveSpaceFree.htm">DriveSpaceFree</a>, <a href="commands/DriveGet.htm">DriveGet</a>, and <a href="commands/Drive.htm">Drive</a>: Retrieves and changes various information about a Drive (e.g. its free space).</p>
+<p><a href="commands/AutoTrim.htm">AutoTrim</a>, on/off (defaults to on): When you assign a value to a variable, this controls whether whitespace is automatically trimmed from the left and right of the string. For this purpose, whitespace consists of spaces and tabs, but NOT newlines/linefeeds. Thus, I believe the &quot;on&quot; setting yields the same behavior as AutoIt v2 in this regard. </p>
+<p><a href="commands/StringLower.htm">StringUpper</a> and <a href="commands/StringLower.htm">StringLower</a>: Convert a string to uppercase or lowercase. </p>
+<p><a href="commands/ControlFocus.htm">ControlFocus</a>, <a href="commands/ControlSetText.htm">ControlSetText</a>, <a href="commands/Control.htm">Control</a>, <a href="commands/ControlGet.htm">ControlGet</a>: These and other Control commands operate directly upon the controls of a window.</p>
+<p><a href="commands/SoundPlay.htm">SoundPlay</a>: Play virtually any type of media file that the OS supports. </p>
+<p><a href="commands/SoundGet.htm">SoundGet</a>, <a href="commands/SoundSet.htm">SoundSet</a>, and <a href="commands/SoundSetWaveVolume.htm">SoundSetWaveVolume</a>: Retrieves and changes various settings of a sound device (master mute, master volume, wave volume, etc.)</p>
+<p><a href="commands/PixelGetColor.htm">PixelGetColor</a> and <a href="commands/PixelSearch.htm">PixelSearch: </a>These commands are capable of detecting the colors of dots on the screen, which can help respond to the changing state of an application or game.</p>
+<p><a href="commands/GetKeyState.htm">GetKeyState</a>: Find out whether a key or mouse/joystick button is down or up; find out the position of a joystick axis; etc.</p>
+<p><a href="commands/WinMenuSelectItem.htm">WinMenuSelectItem</a>: Invoke menu bar items directly, even if the target window isn't active.</p>
+<p><a href="commands/_AllowSameLineComments.htm">#AllowSameLineComments</a>: To increase compatibility with AutoIt v2, scripts that end in .aut are normally not permitted to have same-line comments (for example: Run, notepad <span class="CodeCom">; this is a comment). Add the line #AllowSameLineComments to the top of your script to allow them.</span></p>
+<p><a href="commands/_SingleInstance.htm">#SingleInstance</a>: Specifying this anywhere in a script will prevent new instances of that script from being launched once there is already one running. Instead, you will be prompted for whether to keep the original (old) instance or replace it with the new instance. </p>
+<p><a href="commands/_EscapeChar.htm">#EscapeChar</a>: The escape character is normally &quot;`&quot; but this allows you to change it to AutoIt v2's escape character (backslash) or some other char of your choice. Note that by default, scripts that end in .aut will use the backslash for their escape char. </p>
+<p><a href="commands/Suspend.htm">Suspend</a> (and tray menu item of the same name): This function prevents new hotkey subroutines from launching (it will not halt any subroutines that are already running -- use Pause for that).</p>
+<p>  <a href="commands/Pause.htm">Pause</a> (and tray menu item of the same name): Unlike Suspend -- which disables hotkeys entirely -- pause will freeze the currently running subroutine (if none, pause will have no effect).</p>
+<p><a href="commands/LoopFile.htm">Files-and-folders loops</a>, <a href="commands/LoopReg.htm">registry-loops</a>, and enhanced <a href="commands/Loop.htm">loops</a>.</p>
+<p>The concept of a <a href="commands/GroupAdd.htm">Window Group</a> is supported. Once defined, a group can be traversed via the <a href="commands/GroupActivate.htm">GroupActivate</a> command.</p>
+<p>Finally, there are many other new commands, which can be viewed in the <a href="commands.htm">alphabetical command list</a>.</p>
+</body>
+</html>

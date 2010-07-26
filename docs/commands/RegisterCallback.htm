@@ -1,0 +1,122 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<title>RegisterCallback</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link href="../css/commands.css" rel="stylesheet" type="text/css">
+<link href="../css/print.css" rel="stylesheet" type="text/css" media="print">
+</head>
+<body>
+
+<h1>RegisterCallback() <span class="small65">[v1.0.47+]</span></h1>
+<hr size="2">
+<p>Creates a machine-code address that when called, redirects the call to a <a href="../Functions.htm">function</a> in the script.</p>
+
+<p class="CommandSyntax">Address := RegisterCallback(&quot;FunctionName&quot; [, Options = &quot;&quot;, ParamCount = FormalCount, EventInfo = Address])</p>
+<h4>Parameters</h4>
+<table border="1" width="100%" cellspacing="0" cellpadding="3" bordercolor="#C0C0C0">
+  <tr>
+    <td>Address</td>
+    <td><span class="CommandSyntax">Upon success, RegisterCallback() </span>returns a numeric address that may be called by <a href="DllCall.htm">DllCall()</a> or anything else capable of calling a machine-code function. Upon failure, it returns an empty string. Failure occurs when <em>FunctionName</em>: 1)  does not exist; 2) accepts too many or too few parameters according to <em>ParamCount</em>; or 3) accepts any <a href="../Functions.htm#ByRef">ByRef parameters</a>.</td>
+  </tr>
+  <tr>
+    <td>FunctionName</td>
+    <td>A <a href="../Functions.htm">function</a>'s name, which must be enclosed in quotes if it is a literal string. This function is called automatically whenever <em>Address</em> is called. The function also receives the parameters that were passed to <em>Address</em>.</td>
+  </tr>
+  <tr>
+    <td>Options</td>
+    <td><p>Specify zero or more of the following words. Separate each option from the next with a space (e.g. &quot;C Fast&quot;).</p>
+    <p><strong><a name="Fast" id="Fast"></a>Fast</strong> or <strong>F</strong>: Avoids starting a new <a href="../misc/Threads.htm">thread</a> each time <em>FunctionName</em> is called. Although this performs better, it must be avoided whenever the thread from which <em>Address</em> is called varies (e.g. when the callback is triggered by an incoming message). This is because <em>FunctionName</em> will be able to change global settings such as <a href="../misc/ErrorLevel.htm">ErrorLevel</a>, <a href="../Variables.htm#LastError">A_LastError</a>, and the <a href="../LastFoundWindow.htm">last-found window</a> for whichever thread happens to be running at the time it is called. For more information, see <a href="#Threads">Remarks</a>.</p>
+    <p><strong>CDecl</strong> or <strong>C </strong>: Makes <em>Address</em> conform to the &quot;C&quot; calling convention. This is typically omitted because the standard calling convention is much more common for callbacks.</p></td>
+  </tr>
+  <tr>
+    <td>ParamCount</td>
+    <td>The number of parameters that <em>Address</em>'s caller will pass to it. If entirely omitted, it defaults to the number of mandatory parameters in the <a href="../Functions.htm#define">definition</a> of <em>FunctionName</em>. In either case, ensure that the caller passes exactly this number of parameters.</td>
+  </tr>
+  <tr>
+    <td>EventInfo</td>
+    <td>An integer between 0 and 4294967295 that <em>FunctionName</em> will see in <a href="../Variables.htm#EventInfo">A_EventInfo</a> whenever it is called via this <em>Address</em>. This is useful when <em>FunctionName</em> is called by more than one <em>Address</em>. If omitted, it defaults to <em>Address</em>. Note: Unlike other global settings, the <a href="../misc/Threads.htm">current thread</a>'s A_EventInfo is not disturbed by the <a href="#Fast">fast mode</a>.</td>
+  </tr>
+</table>
+
+<h4>The Callback Function's Parameters</h4>
+<p>A <a href="../Functions.htm">function</a> assigned to a callback address may accept up to 31 parameters. <a href="../Functions.htm#optional">Optional parameters</a> are permitted, which is useful when the function is called by more than one caller.</p>
+<p>All incoming parameters are integers between 0 and 4294967295. If an incoming parameter is intended to be a signed integer, any negative numbers can be revealed by following this example:</p>
+<pre>if wParam &gt; 0x7FFFFFFF
+    wParam := -(~wParam) - 1</pre>
+<p>If an incoming parameter is intended by its caller to be a string, that string may be retrieved by copying it into a variable. For example:</p>
+<pre><span class="NoIndent">VarSetCapacity(MyString, DllCall(&quot;lstrlen&quot;, UInt, MyParameter))  </span><span class="CodeCom">; Unnecessary if MyString is already big enough.</span><span class="NoIndent">
+DllCall(&quot;lstrcpy&quot;, Str, MyString, UInt, MyParameter)  <span class="CodeCom">; Copy the string into the script's MyString variable.</span>
+VarSetCapacity(MyString, -1)  <span class="CodeCom">; Update the variable's internally-stored length to reflect its new contents.</span></span></pre>
+<p>If an incoming parameter is the address of a structure, the individual members may be extracted by following the steps at <a href="DllCall.htm#struct">DllCall structures</a>.</p>
+<h4>What the Function Should <em>Return</em></h4>
+<p>If the function uses <a href="Return.htm">Return</a> without any parameters, or it specifies a blank value such as &quot;&quot; (or it never uses Return at all), 0 is returned to <em>Address</em>'s caller. Otherwise, the function should return an integer between -2147483648 and 4294967295, which is then returned to <em>Address</em>'s caller.</p>
+<h4><a name="Threads"></a>Fast vs. Slow</h4>
+<p>The default/slow mode causes the function to start off fresh with the default values for settings such as <a href="SendMode.htm">SendMode</a> and <a href="DetectHiddenWindows.htm">DetectHiddenWindows</a>. These defaults can be changed in the <a href="../Scripts.htm#auto">auto-execute section</a>.</p>
+<p>By contrast, the <a href="#Fast">fast mode</a> inherits global settings from whichever <a href="../misc/Threads.htm">thread</a> happens to be running at the time the function is called. Furthermore, any changes the function makes to global settings (including <a href="../misc/ErrorLevel.htm">ErrorLevel</a> and the <a href="../LastFoundWindow.htm">last-found window</a>) will go into effect for the <a href="../misc/Threads.htm">current thread</a>. Consequently, the fast mode should be used only when it is known exactly which thread(s) the function will be called from.</p>
+<p>To avoid being interrupted by itself (or any other thread), a callback may use <a href="Critical.htm">Critical</a> as its first line. However, this is not completely effective when the function is called indirectly via the arrival of a message less than 0x312 (increasing Critical's <a href="Critical.htm#Interval">interval</a> may help). Furthermore, <a href="Critical.htm">Critical</a> does not prevent the function from doing something that might indirectly result in a call to itself, such as calling <a href="PostMessage.htm">SendMessage</a> or <a href="DllCall.htm">DllCall</a>.</p>
+<h4>Memory</h4>
+<p>Each use of RegisterCallback() allocates a small amount of memory (32 bytes plus system overhead). Since the OS frees this memory automatically when the script exits, any script that allocates a small, <em>fixed</em> number of callbacks does not have to explicitly free the memory. By contrast, a script that calls RegisterCallback() an indefinite/unlimited number of times should explicitly call the following on any unused callbacks: <em>DllCall(&quot;GlobalFree&quot;, UInt, Address)</em></p>
+<h4>Related</h4>
+<p><a href="DllCall.htm">DllCall()</a>, <a href="OnMessage.htm">OnMessage()</a>, <a href="OnExit.htm">OnExit</a>, <a href="../misc/Clipboard.htm#OnClipboardChange">OnClipboardChange</a>, <a href="Sort.htm#callback">Sort's callback</a>, <a href="Critical.htm">Critical</a>, <a href="PostMessage.htm">Post/SendMessage</a>, <a href="../Functions.htm">Functions</a>, <a href="../misc/SendMessageList.htm">List of Windows Messages</a>, <a href="../misc/Threads.htm">Threads</a></p>
+<h4>Examples</h4>
+<pre class="NoIndent"><span class="CodeCom">; Example: The following is a working script that displays a summary of all top-level windows.</span>
+
+<span class="CodeCom">; For performance and memory conservation, call RegisterCallback() only once for a given callback:</span>
+if not EnumAddress  <span class="CodeCom">; Fast-mode is okay because it will be called only from this thread:</span>
+    EnumAddress := <strong>RegisterCallback</strong>(&quot;EnumWindowsProc&quot;, &quot;Fast&quot;)
+
+DetectHiddenWindows On  <span class="CodeCom">; Due to fast-mode, this setting will go into effect for the callback too.</span>
+
+<span class="CodeCom">; Pass control to EnumWindows(), which calls the callback repeatedly:</span>
+DllCall(&quot;EnumWindows&quot;, UInt, EnumAddress, UInt, 0)
+MsgBox %Output%  <span class="CodeCom">; Display the information accumulated by the callback.</span>
+    
+EnumWindowsProc(hwnd, lParam)
+{
+    global Output
+    WinGetTitle, title, ahk_id %hwnd%
+    WinGetClass, class, ahk_id %hwnd%
+    if title
+        Output .= &quot;HWND: &quot; . hwnd . &quot;`tTitle: &quot; . title . &quot;`tClass: &quot; . class . &quot;`n&quot;
+    return true  <span class="CodeCom">; Tell EnumWindows() to continue until all windows have been enumerated.</span>
+}</pre>
+<p>&nbsp;</p>
+<pre class="NoIndent"><span class="CodeCom">; Example: The following is a working script that demonstrates how to subclass a GUI window by</span>
+<span class="CodeCom">; redirecting its WindowProc to a new WindowProc in the script. In this case, the background</span>
+<span class="CodeCom">; color of a text control is changed to a custom color.</span>
+
+TextBackgroundColor := 0xFFBBBB  <span class="CodeCom">; A custom color in BGR format.</span>
+TextBackgroundBrush := DllCall(&quot;CreateSolidBrush&quot;, UInt, TextBackgroundColor)
+
+Gui, Add, Text, HwndMyTextHwnd, Here is some text that is given`na custom background color.
+Gui +LastFound
+GuiHwnd := WinExist()
+
+WindowProcNew := <strong>RegisterCallback</strong>(&quot;WindowProc&quot;, &quot;&quot;  <span class="CodeCom">; Specifies &quot;&quot; to avoid fast-mode for subclassing.</span>
+    , <strong>4</strong>, MyTextHwnd)  <span class="CodeCom">; Must specify exact ParamCount when EventInfo parameter is present.</span>
+WindowProcOld := DllCall(&quot;SetWindowLong&quot;, UInt, GuiHwnd, Int, -4  <span class="CodeCom">; -4 is GWL_WNDPROC</span>
+    , Int, WindowProcNew, <strong>UInt</strong>)  <span class="CodeCom">; Return value must be set to UInt vs. Int.</span>
+
+Gui Show
+return
+
+WindowProc(hwnd, uMsg, wParam, lParam)
+{
+    Critical
+    global TextBackgroundColor, TextBackgroundBrush, WindowProcOld
+    if (uMsg = 0x138 &amp;&amp; lParam = A_EventInfo)  <span class="CodeCom">; 0x138 is WM_CTLCOLORSTATIC.</span>
+    {
+        DllCall(&quot;SetBkColor&quot;, UInt, wParam, UInt, TextBackgroundColor)
+        return TextBackgroundBrush  <span class="CodeCom">; Return the HBRUSH to notify the OS that we altered the HDC.</span>
+    }
+    <span class="CodeCom">; Otherwise (since above didn't return), pass all unhandled events to the original WindowProc.</span>
+    return DllCall(&quot;CallWindowProcA&quot;, UInt, WindowProcOld, UInt, hwnd, UInt, uMsg, UInt, wParam, UInt, lParam)
+}
+
+GuiClose:
+ExitApp</pre>
+
+</body>
+</html>

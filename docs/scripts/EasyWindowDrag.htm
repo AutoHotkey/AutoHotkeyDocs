@@ -1,0 +1,62 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<title>Easy Window Dragging (requires XP/2k/NT)</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link rel="alternate" type="application/rss+xml" title="AutoHotkey Forum RSS" href="/forum/rss.php">
+<link href="/docs/css/default.css" rel="stylesheet" type="text/css">
+<link href="/docs/css/print.css" rel="stylesheet" type="text/css" media="print">
+</head>
+<body>
+
+<h6>Easy Window Dragging (requires XP/2k/NT)</h6>
+
+<p> Normally, a window can only be dragged by clicking on its title bar.
+ This script extends that so that any point inside a window can be dragged.
+ To activate this mode, hold down CapsLock or the middle mouse button while
+ clicking, then drag the window to a new position.
+</p>
+<p><a href="EasyWindowDrag.ahk">Download This Script</a> &nbsp;| &nbsp;<a href="index.htm">Other Sample Scripts</a> &nbsp;| &nbsp;<a href="http://www.autohotkey.com">Home</a></p>
+<hr>
+<pre class="NoIndent"><span class="CodeCom">; Note: You can optionally release Capslock or the middle mouse button after</span>
+<span class="CodeCom">; pressing down the mouse button rather than holding it down the whole time.</span>
+<span class="CodeCom">; This script requires v1.0.25+.</span>
+
+~MButton &amp; LButton::
+CapsLock &amp; LButton::
+CoordMode, Mouse  <span class="CodeCom">; Switch to screen/absolute coordinates.</span>
+MouseGetPos, EWD_MouseStartX, EWD_MouseStartY, EWD_MouseWin
+WinGetPos, EWD_OriginalPosX, EWD_OriginalPosY,,, ahk_id %EWD_MouseWin%
+WinGet, EWD_WinState, MinMax, ahk_id %EWD_MouseWin% 
+if EWD_WinState = 0  <span class="CodeCom">; Only if the window isn't maximized </span>
+    SetTimer, EWD_WatchMouse, 10 <span class="CodeCom">; Track the mouse as the user drags it.</span>
+return
+
+EWD_WatchMouse:
+GetKeyState, EWD_LButtonState, LButton, P
+if EWD_LButtonState = U  <span class="CodeCom">; Button has been released, so drag is complete.</span>
+{
+    SetTimer, EWD_WatchMouse, off
+    return
+}
+GetKeyState, EWD_EscapeState, Escape, P
+if EWD_EscapeState = D  <span class="CodeCom">; Escape has been pressed, so drag is cancelled.</span>
+{
+    SetTimer, EWD_WatchMouse, off
+    WinMove, ahk_id %EWD_MouseWin%,, %EWD_OriginalPosX%, %EWD_OriginalPosY%
+    return
+}
+<span class="CodeCom">; Otherwise, reposition the window to match the change in mouse coordinates</span>
+<span class="CodeCom">; caused by the user having dragged the mouse:</span>
+CoordMode, Mouse
+MouseGetPos, EWD_MouseX, EWD_MouseY
+WinGetPos, EWD_WinX, EWD_WinY,,, ahk_id %EWD_MouseWin%
+SetWinDelay, -1   <span class="CodeCom">; Makes the below move faster/smoother.</span>
+WinMove, ahk_id %EWD_MouseWin%,, EWD_WinX + EWD_MouseX - EWD_MouseStartX, EWD_WinY + EWD_MouseY - EWD_MouseStartY
+EWD_MouseStartX := EWD_MouseX  <span class="CodeCom">; Update for the next timer-call to this subroutine.</span>
+EWD_MouseStartY := EWD_MouseY
+return
+</pre>
+</body>
+</html>

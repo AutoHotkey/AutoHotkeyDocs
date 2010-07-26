@@ -1,0 +1,81 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<title>TrayTip</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link href="../css/commands.css" rel="stylesheet" type="text/css">
+<link href="../css/print.css" rel="stylesheet" type="text/css" media="print">
+</head>
+<body>
+
+<h1>TrayTip</h1>
+<hr size="2">
+<p>Creates a balloon message window near the tray icon. Requires Windows 2000/XP or later.</p>
+
+<p class="CommandSyntax">TrayTip [, Title, Text, Seconds, Options]</p>
+<h4>Parameters</h4>
+<table border="1" width="100%" cellspacing="0" cellpadding="3" bordercolor="#C0C0C0">
+  <tr>
+    <td>Title</td>
+    <td><p>If all parameters are omitted, any TrayTip window currently displayed will be removed.</p>
+    <p>Otherwise, this parameter is the title of the window, which can be up to 73 characters long (characters beyond this length are not shown).</p>
+    <p>If <em>Title</em> is blank, the title line will be entirely omitted from the balloon window, making it vertically shorter.</p></td>
+  </tr>
+  <tr> 
+    <td width="15%">Text</td>
+    <td width="85%"><p>If this parameter is omitted or blank, any TrayTip window currently displayed will be removed.</p>
+      <p>Otherwise, specify the message to display, which appears beneath <em>Title</em>. Only the first 265 characters of <em>Text</em> will be displayed. Carriage return (`r) or linefeed (`n) may be used to create multiple lines of text. For example: Line1`nLine2</p>
+      <p>If <em>Text</em> is long, it can be broken up into several shorter lines by means of a <a href="../Scripts.htm#continuation">continuation section</a>, which might improve readability and maintainability.</p>
+    </td>
+  </tr>
+  <tr> 
+    <td width="15%">Seconds</td>
+    <td width="85%"><p>The approximate number of seconds to display the window, after which it will be automatically removed by the OS. Specifying a number less than 10 or greater than 30 will usually cause the minimum (10) or maximum (30) display time to be used instead. If blank or omitted, the minimum time will usually be used. This parameter can be an <a href="../Variables.htm#Expressions">expression</a>.</p>
+    <p>The actual timeout may vary from the one specified. Microsoft explains, &quot;if the user does not appear to be using the computer, the system does not count this time towards the timeout.&quot; (Technical details <a href="http://msdn.microsoft.com/library/default.asp?url=/library/en-us/shellcc/platform/shell/reference/structures/notifyicondata.asp">here</a>.) Therefore, to have precise control over how long the TrayTip is displayed, use the <a href="Sleep.htm">Sleep</a> command followed by TrayTip with no parameters, or use <a href="SetTimer.htm">SetTimer</a> as illustrated in the Examples section below.</p>
+    </td>
+  </tr>
+  <tr>
+    <td>Options</td>
+    <td><p>Specify one of the following digits to have a small icon appear to the left of <em>Title</em>:</p>
+      <p>1: Info icon<br>
+        2: Warning icon<br>
+        3: Error icon </p>      
+      <p>If omitted, it defaults to 0, which is no icon. This parameter can be an <a href="../Variables.htm#Expressions">expression</a>.<br>
+      </p></td>
+  </tr>
+</table>
+<h4>Remarks</h4>
+<p> TrayTip requires Windows 2000/XP or later. On Windows 9x/NT, the command does nothing.</p>
+<p>The TrayTip balloon window cannot be shown if the script lacks a tray icon (via <a href="_NoTrayIcon.htm">#NoTrayIcon</a> or <em><a href="Menu.htm">Menu</a>, tray, NoIcon</em>). Similarly, if the following REG_DWORD value exists and has been set to 0, TrayTip will not function:<br>
+HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced &gt;&gt; EnableBalloonTips</p>
+<p>The OS usually plays a sound when displaying a balloon tip. This sound can be disabled by adding 16 to the <em>Options </em> parameter (e.g. 16 is no sound and no icon, 17 is no sound with info icon, etc.)</p>
+<p>On a related note, there is a tooltip displayed whenever the user hovers the mouse over the script's tray icon. The contents of this tooltip can be changed via: <em><a href="Menu.htm">Menu</a>, Tray, Tip, My New Text</em></p>
+<h4>Related</strong></h4>
+<p><a href="ToolTip.htm">ToolTip</a>, <a href="SetTimer.htm">SetTimer</a>, <a href="Menu.htm">Menu</a>, <a href="SplashTextOn.htm">SplashTextOn</a>, <a href="MsgBox.htm">MsgBox</a>, <a href="InputBox.htm">InputBox</a>, <a href="FileSelectFile.htm">FileSelectFile</a>, <a href="FileSelectFolder.htm">FileSelectFolder</a></p>
+<h4>Examples</h4>
+<pre class="NoIndent">TrayTip, My Title, Multiline`nText, 20, 17
+
+<span class="CodeCom">; To have more precise control over the display time without</span>
+<span class="CodeCom">; having to use Sleep (which stops the current thread):</span>
+#Persistent
+TrayTip, Timed TrayTip, This will be displayed for 5 seconds.
+SetTimer, RemoveTrayTip, 5000
+return
+
+RemoveTrayTip:
+SetTimer, RemoveTrayTip, Off
+TrayTip
+return
+
+<span class="CodeCom">; To have a TrayTip permanently displayed, use a timer to refresh it periodically:</span>
+SetTimer, RefreshTrayTip, 1000
+Gosub, RefreshTrayTip  <span class="CodeCom">; Call it once to get it started right away.</span>
+return
+
+RefreshTrayTip:
+TrayTip, Refreshed TrayTip, This is a more permanent TrayTip., , 16
+return</pre>
+
+</body>
+</html>

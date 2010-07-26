@@ -1,0 +1,841 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<title>Seek -- by Phi</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link rel="alternate" type="application/rss+xml" title="AutoHotkey Forum RSS" href="/forum/rss.php">
+<link href="/docs/css/default.css" rel="stylesheet" type="text/css">
+<link href="/docs/css/print.css" rel="stylesheet" type="text/css" media="print">
+</head>
+<body>
+
+<h6>Seek -- by Phi</h6>
+
+<p> Navigating the Start Menu can be a hassle, especially
+ if you have installed many programs over time. 'Seek'
+ lets you specify a case-insensitive key word/phrase
+ that it will use to filter only the matching programs
+ and directories from the Start Menu, so that you can
+ easily open your target program from a handful of
+ matched entries. This eliminates the drudgery of
+ searching and traversing the Start Menu.
+</p>
+<p><a href="Seek_(SearchTheStartMenu).ahk">Download This Script</a> &nbsp;| &nbsp;<a href="index.htm">Other Sample Scripts</a> &nbsp;| &nbsp;<a href="http://www.autohotkey.com">Home</a></p>
+<hr>
+<pre class="NoIndent"><span class="CodeCom">;*****************************************************************</span>
+<span class="CodeCom">;</span>
+<span class="CodeCom">;  Program : Seek</span>
+<span class="CodeCom">;  Coder   : Phi</span>
+<span class="CodeCom">;  Updated : Mon Jan 31 10:08:37 2005</span>
+<span class="CodeCom">;</span>
+<span class="CodeCom">;  What do you seek, my friend?</span>
+<span class="CodeCom">;</span>
+<span class="CodeCom">;*****************************************************************</span>
+<span class="CodeCom">;</span>
+<span class="CodeCom">;  I have a lot of fun coding this, and hope you will</span>
+<span class="CodeCom">;  enjoy using it too. Feel free to drop me an email with</span>
+<span class="CodeCom">;  your comments and feedback at: phi1618 (*a.t*) gmail</span>
+<span class="CodeCom">;  :D0T: com.</span>
+<span class="CodeCom">;</span>
+<span class="CodeCom">;  Options:</span>
+<span class="CodeCom">;    -cache Use the cached directory-listing if available</span>
+<span class="CodeCom">;           (this is the default mode when no option is specified)</span>
+<span class="CodeCom">;    -scan  Force a directory scan to retrieve the latest</span>
+<span class="CodeCom">;           directory listing</span>
+<span class="CodeCom">;    -scex  Scan &amp; exit (this is useful for scheduling the</span>
+<span class="CodeCom">;           potentially time-consuming directory-scanning as</span>
+<span class="CodeCom">;           a background job)</span>
+<span class="CodeCom">;    -help  Show this help</span>
+<span class="CodeCom">;</span>
+<span class="CodeCom">;*****************************************************************</span>
+<span class="CodeCom">;</span>
+<span class="CodeCom">; HOW TO 'SEEK':</span>
+<span class="CodeCom">;</span>
+<span class="CodeCom">; 1. 'Seek' is an AutoHotkey script. You can either run it</span>
+<span class="CodeCom">;    as Seek.ahk (original script) or Seek.exe (compiled</span>
+<span class="CodeCom">;    executable).</span>
+<span class="CodeCom">;</span>
+<span class="CodeCom">;    To obtain Seek.exe, you can download Seek.zip (includes</span>
+<span class="CodeCom">;    both the source code and the compiled binary) from</span>
+<span class="CodeCom">;    http://home.ripway.com/2004-10/188589/</span>
+<span class="CodeCom">;    Otherwise, you can compile Seek.ahk on your own by</span>
+<span class="CodeCom">;    using AutoHotkey's Ahk2Exe.exe compiler, or you can</span>
+<span class="CodeCom">;    ask me for a copy via email. The filesize is small at</span>
+<span class="CodeCom">;    about 200 kbytes. I can be reached at: phi1618 (*a.t*)</span>
+<span class="CodeCom">;    gmail :D0T: com.</span>
+<span class="CodeCom">;</span>
+<span class="CodeCom">;    To use Seek.ahk, first, you'll need to install</span>
+<span class="CodeCom">;    AutoHotkey v1.0.25 or higher on your PC (download from</span>
+<span class="CodeCom">;    http://www.autohotkey.com). Next, run the command:</span>
+<span class="CodeCom">;</span>
+<span class="CodeCom">;    X:\myTools\AutoHotkey\AutoHotkey.exe Y:\myAHK\Seek.ahk</span>
+<span class="CodeCom">;</span>
+<span class="CodeCom">;    Remember to replace X:\myTools and Y:\myAHK with</span>
+<span class="CodeCom">;    the proper directory names on your PC.</span>
+<span class="CodeCom">;</span>
+<span class="CodeCom">; 2. You can place the executable Seek.exe anywhere you</span>
+<span class="CodeCom">;    want. There is no installation required, it doesn't</span>
+<span class="CodeCom">;    write anything to your registry, and it doesn't</span>
+<span class="CodeCom">;    access the Internet at all (no phoning home). To</span>
+<span class="CodeCom">;    uninstall, simply delete Seek.exe.</span>
+<span class="CodeCom">;</span>
+<span class="CodeCom">;    The only 2 files 'Seek' creates are placed in your</span>
+<span class="CodeCom">;    TMP directory:</span>
+<span class="CodeCom">;</span>
+<span class="CodeCom">;      a. _Seek.key  (cache file for last query string)</span>
+<span class="CodeCom">;      b. _Seek.list (cache file for directory listing)</span>
+<span class="CodeCom">;</span>
+<span class="CodeCom">;    If you're a purist, you can delete them manually</span>
+<span class="CodeCom">;    when you decide to remove 'Seek' from your system.</span>
+<span class="CodeCom">;</span>
+<span class="CodeCom">; 3. The most convenient way to run 'Seek' is via a</span>
+<span class="CodeCom">;    shortcut/hotkey. If you are not already using any</span>
+<span class="CodeCom">;    hotkey management program on your PC, I highly</span>
+<span class="CodeCom">;    recommend AutoHotkey. If you don't intend to install</span>
+<span class="CodeCom">;    any hotkey management program at the moment, you can</span>
+<span class="CodeCom">;    make use of Windows shortcut feature and bind a</span>
+<span class="CodeCom">;    shortcut key (e.g. ALT-F1) to launch 'Seek'. This is</span>
+<span class="CodeCom">;    important so that you can run 'Seek' at anytime and</span>
+<span class="CodeCom">;    anywhere.</span>
+<span class="CodeCom">;</span>
+<span class="CodeCom">; 4. When you run 'Seek' for the first time, it'll scan</span>
+<span class="CodeCom">;    your Start Menu, and save the directory listing into</span>
+<span class="CodeCom">;    a cache file.</span>
+<span class="CodeCom">;</span>
+<span class="CodeCom">;    The following directories are included in the scanning:</span>
+<span class="CodeCom">;    - %A_StartMenu%</span>
+<span class="CodeCom">;    - %A_StartMenuCommon%</span>
+<span class="CodeCom">;</span>
+<span class="CodeCom">;    By default, subsequent runs will read from the</span>
+<span class="CodeCom">;    cache file so as to reduce the loading time. For</span>
+<span class="CodeCom">;    more info on options, run 'Seek.exe -help'. If you</span>
+<span class="CodeCom">;    think your Start Menu doesn't contain too many</span>
+<span class="CodeCom">;    programs, you can choose not to use the cache and</span>
+<span class="CodeCom">;    instruct 'Seek' to always do a directory scan (via</span>
+<span class="CodeCom">;    option -scan).  That way, you will always get the</span>
+<span class="CodeCom">;    latest listing.</span>
+<span class="CodeCom">;</span>
+<span class="CodeCom">; 5. When you run 'Seek', a window will appear, waiting</span>
+<span class="CodeCom">;    for you to enter a key word/phrase. After you have</span>
+<span class="CodeCom">;    entered a query string, a list of matching records</span>
+<span class="CodeCom">;    will be displayed. Next, you need to highlight an</span>
+<span class="CodeCom">;    entry and press &lt;Enter&gt; or click on the 'Open'</span>
+<span class="CodeCom">;    button to run the selected program or open the</span>
+<span class="CodeCom">;    selected directory.</span>
+<span class="CodeCom">;</span>
+<span class="CodeCom">;*****************************************************************</span>
+<span class="CodeCom">;</span>
+<span class="CodeCom">; TECHNICAL NOTES:</span>
+<span class="CodeCom">;</span>
+<span class="CodeCom">; - 'Seek' requires Chris Mallett's AutoHotkey v1.0.25</span>
+<span class="CodeCom">;   or higher version (http://www.autohotkey.com).</span>
+<span class="CodeCom">;   Thanks to Chris for his great work on AutoHotkey. :)</span>
+<span class="CodeCom">;</span>
+<span class="CodeCom">; - The following environment variables must be valid:</span>
+<span class="CodeCom">;   a. TMP</span>
+<span class="CodeCom">;</span>
+<span class="CodeCom">;*****************************************************************</span>
+<span class="CodeCom">;</span>
+<span class="CodeCom">; KNOWN PROBLEMS:</span>
+<span class="CodeCom">;</span>
+<span class="CodeCom">; - Nil</span>
+<span class="CodeCom">;</span>
+<span class="CodeCom">;*****************************************************************</span>
+<span class="CodeCom">;</span>
+<span class="CodeCom">; IMPLEMENTED SUGGESTIONS:</span>
+<span class="CodeCom">;</span>
+<span class="CodeCom">; - Highlight 1st matching record by default so that</span>
+<span class="CodeCom">;   user can just hit &lt;Enter&gt; to run it.</span>
+<span class="CodeCom">;   (Suggested by Yih Yeong)</span>
+<span class="CodeCom">;</span>
+<span class="CodeCom">; - Enable double-click on the listing of the search</span>
+<span class="CodeCom">;   results to launch the program.</span>
+<span class="CodeCom">;   (Suggested by Yih Yeong &amp; Jack)</span>
+<span class="CodeCom">;</span>
+<span class="CodeCom">; - Auto real-time incremental search.</span>
+<span class="CodeCom">;   (Suggested by Rajat)</span>
+<span class="CodeCom">;</span>
+<span class="CodeCom">; - Fuzzy search when user enters multiple query strings,</span>
+<span class="CodeCom">;   separated by space.</span>
+<span class="CodeCom">;   (Suggested by Rajat)</span>
+<span class="CodeCom">;</span>
+<span class="CodeCom">;*****************************************************************</span>
+<span class="CodeCom">;</span>
+<span class="CodeCom">; SUGGESTED FEATURES (MAY OR MAY NOT BE IMPLEMENTED):</span>
+<span class="CodeCom">;</span>
+<span class="CodeCom">; - Log the launch history. List the most frequently</span>
+<span class="CodeCom">;   used programs at the top of the search results.</span>
+<span class="CodeCom">;   (Suggested by Yih Yeong)</span>
+<span class="CodeCom">;</span>
+<span class="CodeCom">; - Instead of using list box, can it display a series</span>
+<span class="CodeCom">;   of application icons so that hovering the cursor</span>
+<span class="CodeCom">;   over the icon will display a tooltip containing the</span>
+<span class="CodeCom">;   program information (path, etc).</span>
+<span class="CodeCom">;   (Suggested by Yih Yeong)</span>
+<span class="CodeCom">;</span>
+<span class="CodeCom">; - Instead of matching text in the middle, match only</span>
+<span class="CodeCom">;   those program/directory names that begin with the</span>
+<span class="CodeCom">;   query string.</span>
+<span class="CodeCom">;   (Suggested by Stefan)</span>
+<span class="CodeCom">;</span>
+<span class="CodeCom">; - Add favorites management. Launch group of programs</span>
+<span class="CodeCom">;   in a single run.</span>
+<span class="CodeCom">;   (Suggested by Atomhrt)</span>
+<span class="CodeCom">;</span>
+<span class="CodeCom">; - Integrate Seek into the Windows taskbar/toolbar so that</span>
+<span class="CodeCom">;   it is always available and there is no need to bind a</span>
+<span class="CodeCom">;   hotkey to launch Seek.</span>
+<span class="CodeCom">;   (Suggested by Deniz Akay)</span>
+<span class="CodeCom">;</span>
+<span class="CodeCom">; - Search by wildcards/regex.</span>
+<span class="CodeCom">;   (Suggested by Steve)</span>
+<span class="CodeCom">;</span>
+<span class="CodeCom">;*****************************************************************</span>
+<span class="CodeCom">;</span>
+<span class="CodeCom">; CHANGE HISTORY:</span>
+<span class="CodeCom">;</span>
+<span class="CodeCom">; * v1.1.0</span>
+<span class="CodeCom">; - Initial release.</span>
+<span class="CodeCom">;</span>
+<span class="CodeCom">; * v1.1.1</span>
+<span class="CodeCom">; - Removed maximise-window option since some programs don't</span>
+<span class="CodeCom">;   function well with it.</span>
+<span class="CodeCom">; - Added double-click detection to trigger 'Open' function.</span>
+<span class="CodeCom">;</span>
+<span class="CodeCom">; * v2.0.0</span>
+<span class="CodeCom">; - Integrated the 'Seek' popup window into the output screen</span>
+<span class="CodeCom">;   so that user can re-enter the query string to search for</span>
+<span class="CodeCom">;   something else without having to exit and run Seek again.</span>
+<span class="CodeCom">; - Added 'Scan Start-Menu' button.</span>
+<span class="CodeCom">; - Added real-time incremental search which will auto</span>
+<span class="CodeCom">;   filter for matching records while you type away,</span>
+<span class="CodeCom">;   without waiting for you to press &lt;Enter&gt;.</span>
+<span class="CodeCom">; - Added internal switch (TrackKeyPhrase) to track search-string.</span>
+<span class="CodeCom">; - Added internal switch (ToolTipFilename) to show filename</span>
+<span class="CodeCom">;   using tooltip.</span>
+<span class="CodeCom">;</span>
+<span class="CodeCom">; * v2.0.1</span>
+<span class="CodeCom">; - Added horizontal scrollbar to ListBox so that very</span>
+<span class="CodeCom">;   long records will not be cut-off in the middle.</span>
+<span class="CodeCom">;</span>
+<span class="CodeCom">; * v2.0.2</span>
+<span class="CodeCom">; - Allowed user to add their own customised list of directories</span>
+<span class="CodeCom">;   to be included in the scanning. User just needs to create a</span>
+<span class="CodeCom">;   text file 'Seek.dir' in the same directory as Seek.exe or</span>
+<span class="CodeCom">;   Seek.ahk, and specify the full path of the directory to be</span>
+<span class="CodeCom">;   added, one directory per line. Do not enclose the path in</span>
+<span class="CodeCom">;   quotes or double-quotes.</span>
+<span class="CodeCom">;</span>
+<span class="CodeCom">; * v2.0.3</span>
+<span class="CodeCom">; - Added /on option to DIR-command to sort by name.</span>
+<span class="CodeCom">; - Fuzzy search when user enters multiple query strings,</span>
+<span class="CodeCom">;   separated by space, for e.g. &quot;med pla&quot;. It's a match</span>
+<span class="CodeCom">;   when all the strings (&quot;med&quot; &amp; &quot;pla&quot;) are found. This</span>
+<span class="CodeCom">;   will match &quot;Media Player&quot;, &quot;Macromedia Flash Player&quot;,</span>
+<span class="CodeCom">;   &quot;Play Medieval King&quot;, &quot;medpla&quot;, &quot;plamed&quot;.</span>
+<span class="CodeCom">; - Corrected tab-movement sequence by adding all buttons</span>
+<span class="CodeCom">;   right from the start, but disable them until they can</span>
+<span class="CodeCom">;   be used.</span>
+<span class="CodeCom">; - Added status bar to replace tooltip-feedback.</span>
+<span class="CodeCom">; - Removed obsolete internal switch (ToolTipFilename).</span>
+<span class="CodeCom">; - Replaced the use of &quot;dir&quot; command with AutoHotkey's</span>
+<span class="CodeCom">;   own &quot;Loop&quot; command for scanning directory contents.</span>
+<span class="CodeCom">;   &quot;dir&quot; cannot handle extended character set and thus</span>
+<span class="CodeCom">;   non-English (e.g German) directory and filename are</span>
+<span class="CodeCom">;   captured wrongly. (Thanks Wolfgang Bujatti and</span>
+<span class="CodeCom">;   Sietse Fliege for testing this modification)</span>
+<span class="CodeCom">; - Added internal switch (ScanMode) to define whether</span>
+<span class="CodeCom">;   files and/or directories are to be included in scan.</span>
+<span class="CodeCom">; - Replaced hardcoded directory paths of Start Menu with</span>
+<span class="CodeCom">;   built-in variables A_StartMenu, A_StartMenuCommon.</span>
+<span class="CodeCom">;   With this, Seek now works for different locales with</span>
+<span class="CodeCom">;   different naming convention of the Start Menu.</span>
+<span class="CodeCom">;   (Thanks Wolfgang Bujatti and Sietse Fliege for help</span>
+<span class="CodeCom">;   in testing another method before these new variables</span>
+<span class="CodeCom">;   are available.)</span>
+<span class="CodeCom">; - Added the pre-selection of the last-run program</span>
+<span class="CodeCom">;   record so that a quick double-&lt;ENTER&gt; will run it.</span>
+<span class="CodeCom">;</span>
+<span class="CodeCom">;*****************************************************************</span>
+
+<span class="CodeCom">;**************************</span>
+<span class="CodeCom">;&lt;--- BEGIN OF PROGRAM ---&gt;</span>
+<span class="CodeCom">;**************************</span>
+
+<span class="CodeCom">;==== Your Customisation ===================================</span>
+
+<span class="CodeCom">; Specify which program to use when opening a directory.</span>
+<span class="CodeCom">; If the program cannot be found or is not specified</span>
+<span class="CodeCom">; (i.e. variable is unassigned or assigned a null value),</span>
+<span class="CodeCom">; the default Explorer will be used.</span>
+dirExplorer = E:\utl\xplorer2_lite\xplorer2.exe
+
+<span class="CodeCom">; User's customised list of additional directories to be</span>
+<span class="CodeCom">; included in the scanning. The full path must not be</span>
+<span class="CodeCom">; enclosed by quotes or double-quotes. If this file is</span>
+<span class="CodeCom">; missing, only the default directories will be scanned.</span>
+SeekMyDir = %A_ScriptDir%\Seek.dir
+
+<span class="CodeCom">; Specify the filename and directory location to save</span>
+<span class="CodeCom">; the cached directory/program listing. There is no</span>
+<span class="CodeCom">; need to change this unless you want to.</span>
+dirListing = %A_Temp%\_Seek.list
+
+<span class="CodeCom">; Specify the filename and directory location to save</span>
+<span class="CodeCom">; the cached key word/phrase of last search. There is</span>
+<span class="CodeCom">; no need to change this unless you want to.</span>
+keyPhrase = %A_Temp%\_Seek.key
+
+<span class="CodeCom">; Track search string (ON/OFF)</span>
+<span class="CodeCom">; If ON, the last-used query string will be re-used as</span>
+<span class="CodeCom">; the default query string the next time you run Seek.</span>
+<span class="CodeCom">; If OFF, the last-used query string will not be tracked</span>
+<span class="CodeCom">; and there will not be a default query string value the</span>
+<span class="CodeCom">; next time you run Seek.</span>
+TrackKeyPhrase = ON
+
+<span class="CodeCom">; Specify what should be included in scan.</span>
+<span class="CodeCom">; 0: Directories are excluded (only files).</span>
+<span class="CodeCom">; 1: All files and directories are included.</span>
+<span class="CodeCom">; 2: Only directories are included (no files).</span>
+ScanMode = 1
+
+<span class="CodeCom">;...........................................................</span>
+
+<span class="CodeCom">; INIT</span>
+<span class="CodeCom">;#NoTrayIcon</span>
+StringCaseSense, Off
+version = Seek v2.0.3
+
+<span class="CodeCom">; DISPLAY HELP INSTRUCTIONS</span>
+If 1 in --help,-help,/h,-h,/?,-?
+{
+    MsgBox,, %version%, Navigating the Start Menu can be a hassle, especially if you have installed many programs over time. 'Seek' lets you specify a case-insensitive key word/phrase that it will use to filter only the matching programs and directories from the Start Menu, so that you can easily open your target program from a handful of matched entries. This eliminates the drudgery of searching and traversing the Start Menu.`n`nI have a lot of fun coding this, and hope you will enjoy using it too. Feel free to drop me an email with your comments and feedback at: phi1618 (*a.t*) gmail :D0T: com.`n`nOptions:`n  -cache`tUse the cached directory-listing if available (this is the default mode when no option is specified)`n  -scan`tForce a directory scan to retrieve the latest directory listing`n  -scex`tScan &amp; exit (this is useful for scheduling the potentially time-consuming directory-scanning as a background job)`n  -help`tShow this help
+    Goto QuitNoSave
+}
+
+<span class="CodeCom">; CHECK THAT THE MANDATORY ENVIRONMENT VARIABLES EXIST AND ARE VALID</span>
+<span class="CodeCom">; *TMP*</span>
+IfNotExist, %A_Temp% <span class="CodeCom">; PATH DOES NOT EXIST</span>
+{
+    MsgBox This mandatory environment variable is either not defined or invalid:`n`n    TMP = %A_Temp%`n`nPlease fix it before running Seek.
+    Goto QuitNoSave
+}
+
+<span class="CodeCom">; IF NOT SCAN-AND-EXIT</span>
+IfNotEqual 1, -scex
+{
+    <span class="CodeCom">; RETRIEVE THE LAST USED KEY-PHRASE FROM CACHE FILE</span>
+    <span class="CodeCom">; TO BE USED AS THE DEFAULT QUERY STRING</span>
+    If TrackKeyPhrase = ON
+    {
+        FileReadLine, PrevKeyPhrase, %keyPhrase%, 1
+        FileReadLine, PrevOpenTarget, %keyPhrase%, 2
+    }
+    NewKeyPhrase = %PrevKeyPhrase%
+    NewOpenTarget = %PrevOpenTarget%
+
+    <span class="CodeCom">; ADD THE TEXT BOX FOR USER TO ENTER THE QUERY STRING</span>
+    Gui, 1:Add, Edit, vFilename W600, %NewKeyPhrase%
+
+    <span class="CodeCom">; ADD MY FAV TAGLINE</span>
+    Gui, 1:Add, Text, X625 Y10, What do you seek, my friend?
+
+    <span class="CodeCom">; ADD THE STATUS BAR FOR PROVIDING FEEDBACK TO USER</span>
+    Gui, 1:Add, Text, vStatusBar X10 Y31 R1 W764
+
+    <span class="CodeCom">; ADD THE SELECTION LISTBOX FOR DISPLAYING SEARCH RESULTS</span>
+    Gui, 1:Add, ListBox, vOpenTarget gTargetSelection X10 Y53 R28 W764 HScroll Disabled, %List%
+
+    <span class="CodeCom">; ADD THESE BUTTONS, BUT DISABLE THEM FOR NOW</span>
+    Gui, 1:Add, Button, gButtonOPEN vButtonOPEN Default X10 Y446 Disabled, Open
+    Gui, 1:Add, Button, gButtonOPENDIR vButtonOPENDIR X59 Y446 Disabled, Open Directory
+    Gui, 1:Add, Button, gButtonSCANSTARTMENU vButtonSCANSTARTMENU X340 Y446 Disabled, Scan Start-Menu
+
+    <span class="CodeCom">; ADD THE EXIT BUTTON</span>
+    Gui, 1:Add, Button, gButtonEXIT X743 Y446, Exit
+
+    <span class="CodeCom">; POP-UP THE QUERY WINDOW</span>
+    Gui, 1:Show, Center, %version%
+}
+
+<span class="CodeCom">; ENABLE RE-SCANNING OF LATEST DIRECTORY LISTING</span>
+If 1 in -scan,-scex
+    rescan = Y
+<span class="CodeCom">; CHECK WHETHER THE DIRECTORY LISTING CACHE FILE ALREADY EXISTS. IF NOT, DO A RE-SCAN.</span>
+Else IfNotExist, %dirListing%
+    rescan = Y
+
+If rescan = Y <span class="CodeCom">; DO A RE-SCAN</span>
+{
+    <span class="CodeCom">; SHOW STATUS UNLESS USER SPECIFIES SCAN-AND-EXIT OPTION</span>
+    IfNotEqual 1, -scex
+        GuiControl,, StatusBar, Scanning directory listing...
+
+    <span class="CodeCom">; SCAN START-MENU AND STORE DIRECTORY/PROGRAM LISTINGS IN CACHE FILE</span>
+    Gosub ScanStartMenu
+
+    <span class="CodeCom">; QUIT IF USER SPECIFIES SCAN-AND-EXIT OPTION</span>
+    IfEqual 1, -scex, Goto, QuitNoSave
+}
+
+GuiControl,, StatusBar, Retrieving last query result...
+
+<span class="CodeCom">; RETRIEVE THE MATCHING LIST FOR THE LAST USED KEY-PHRASE</span>
+Gosub SilentFindMatches
+
+<span class="CodeCom">; REMOVE THE STATUS TEXT</span>
+GuiControl,, StatusBar,
+
+<span class="CodeCom">; DIRECTORY LISTING IS NOW LOADED. ENABLE THE OTHER BUTTONS.</span>
+<span class="CodeCom">; THESE BUTTONS ARE DISABLED EARLIER BECAUSE THEY SHOULD NOT</span>
+<span class="CodeCom">; BE FUNCTIONAL UNTIL THIS PART OF THE SCRIPT.</span>
+GuiControl, 1:Enable, ButtonOPEN
+GuiControl, 1:Enable, ButtonOPENDIR
+GuiControl, 1:Enable, ButtonSCANSTARTMENU
+
+<span class="CodeCom">; TURN ON INCREMENTAL SEARCH</span>
+SetTimer, tIncrementalSearch, 500
+
+<span class="CodeCom">; REFRESH THE GUI</span>
+Gosub EnterQuery
+
+Return
+
+<span class="CodeCom">;***********************************************************</span>
+<span class="CodeCom">;                                                          *</span>
+<span class="CodeCom">;                 END OF MAIN PROGRAM                      *</span>
+<span class="CodeCom">;                                                          *</span>
+<span class="CodeCom">;***********************************************************</span>
+
+
+<span class="CodeCom">;=== BEGIN ButtonSCANSTARTMENU EVENT =======================</span>
+
+ButtonSCANSTARTMENU:
+
+Gui, 1:Submit, NoHide
+GuiControl,, StatusBar, Scanning directory listing...
+
+<span class="CodeCom">; DISABLE LISTBOX WHILE SCANNING IS IN PROGRESS</span>
+GuiControl, 1:Disable, OpenTarget
+GuiControl, 1:Disable, ButtonEXIT
+GuiControl, 1:Disable, ButtonOPEN
+GuiControl, 1:Disable, ButtonOPENDIR
+GuiControl, 1:Disable, ButtonSCANSTARTMENU
+
+<span class="CodeCom">; DO THE SCANNING</span>
+Gosub ScanStartMenu
+
+<span class="CodeCom">; INFORM USER THAT SCANNING HAS COMPLETED</span>
+If Filename =
+{
+    <span class="CodeCom">; IF QUERY STRING IS EMPTY...</span>
+    GuiControl, 1:Enable, ButtonEXIT
+    GuiControl, 1:Enable, ButtonOPEN
+    GuiControl, 1:Enable, ButtonSCANSTARTMENU
+    GuiControl,, StatusBar, Scan completed.
+    Gosub EnterQuery
+}
+Else
+{
+    <span class="CodeCom">; IF QUERY STRING EXISTS...</span>
+    <span class="CodeCom">; FILTER FOR SEARCH STRING WITH THE NEW LISTING</span>
+    NewKeyPhrase =
+    Gosub FindMatches
+}
+Return
+
+<span class="CodeCom">;... END ButtonSCANSTARTMENU EVENT .........................</span>
+
+
+<span class="CodeCom">;=== BEGIN ScanStartMenu SUBROUTINE ========================</span>
+<span class="CodeCom">; SCAN THE START-MENU AND STORE THE DIRECTORY/PROGRAM</span>
+<span class="CodeCom">; LISTINGS IN A CACHE FILE</span>
+ScanStartMenu:
+
+<span class="CodeCom">; DEFINE THE DIRECTORY PATHS TO RETRIEVE.</span>
+<span class="CodeCom">; THE PATH MUST NOT BE ENCLOSED BY QUOTES OR DOUBLE-QUOTES.</span>
+<span class="CodeCom">;</span>
+<span class="CodeCom">; FOR ENGLISH VERSION OF WINDOWS</span>
+scanPath = %A_StartMenu%|%A_StartMenuCommon%
+
+<span class="CodeCom">; INCLUDE ADDITIONAL USER-DEFINED PATHS FOR SCANNING</span>
+IfExist, %SeekMyDir%
+{
+    Loop, read, %SeekMyDir%
+    {
+        IfNotExist, %A_LoopReadLine%
+            MsgBox, 8192, %version%, Processing your customised directory list...`n`n&quot;%A_LoopReadLine%&quot; does not exist and will be excluded from the scanning.`nPlease update [ %SeekMyDir% ].
+        Else
+            scanPath = %scanPath%|%A_LoopReadLine%
+    } 
+}
+
+<span class="CodeCom">; DELETE EXISTING FILE BEFORE CREATING A NEW VERSION</span>
+FileDelete, %dirListing%
+
+<span class="CodeCom">; SCAN DIRECTORY LISTING (DELIMITER = |) BY RECURSING</span>
+<span class="CodeCom">; EACH DIRECTORY TO RETRIEVE THE CONTENTS. HIDDEN FILES</span>
+<span class="CodeCom">; ARE EXCLUDED.</span>
+Loop, parse, scanPath, |
+{
+    Loop, %A_LoopField%\*, %ScanMode%, 1
+    {
+        FileGetAttrib, fileAttrib, %A_LoopFileFullPath%
+        IfNotInString, fileAttrib, H <span class="CodeCom">; EXCLUDE HIDDEN FILE</span>
+            FileAppend, %A_LoopFileFullPath%`n, %dirListing%
+    }
+}
+
+Return
+
+<span class="CodeCom">;... END ScanStartMenu SUBROUTINE ..........................</span>
+
+
+<span class="CodeCom">;=== BEGIN FindMatches SUBROUTINE ==========================</span>
+<span class="CodeCom">; SEARCH AND DISPLAY ALL MATCHING RECORDS IN THE LISTBOX</span>
+FindMatches:
+
+Gui, 1:Submit, NoHide
+CurFilename = %Filename%
+GuiControl,, StatusBar, 
+
+<span class="CodeCom">; CHECK FOR EMPTY QUERY STRING</span>
+If CurFilename =
+{
+    MsgBox, 8192, %version%, Please enter the key word/phrase to search for.
+    Goto EnterQuery
+}
+
+<span class="CodeCom">; tIncrementalSearch IS BEING INTERRUPTED. LET IT FINISHES.</span>
+If NewKeyPhrase &lt;&gt; %CurFilename%
+{
+    <span class="CodeCom">; INFORM USER THAT PATIENCE IS A VIRTUE</span>
+    GuiControl,, StatusBar, Seeking...
+    ResumeFindMatches = TRUE
+    Return
+}
+
+If List = |
+{
+    <span class="CodeCom">; NOT EVEN A SINGLE MATCHING RECORD IS FOUND.</span>
+    <span class="CodeCom">; LET USER MODIFY THE QUERY STRING AND TRY AGAIN.</span>
+    MsgBox, 8192, %version%, The query string &quot;%CurFilename%&quot; does not match any record. Try again.
+    GuiControl, 1:Disable, ButtonOPENDIR
+    GuiControl, 1:Enable, ButtonSCANSTARTMENU
+    Goto EnterQuery
+}
+Else
+{
+    <span class="CodeCom">; SELECT THE FIRST RECORD IF NO OTHER RECORD HAS BEEN SELECTED</span>
+    Gui, 1:Submit, NoHide
+    GuiControl, 1:Enable, OpenTarget
+    GuiControl, 1:Enable, ButtonOPEN
+    GuiControl, 1:Enable, ButtonOPENDIR
+    GuiControl, 1:Enable, ButtonSCANSTARTMENU
+    GuiControl, Focus, OpenTarget
+    If OpenTarget =
+        GuiControl, 1:Choose, OpenTarget, |1
+}
+
+<span class="CodeCom">; REFRESH GUI</span>
+Gui, 1:Show, Center, %version%
+
+Return
+
+<span class="CodeCom">;... END FindMatches SUBROUTINE ............................</span>
+
+
+<span class="CodeCom">;=== BEGIN SilentFindMatches SUBROUTINE ====================</span>
+
+SilentFindMatches:
+
+Gui, 1:Submit, NoHide
+sfmFilename = %Filename%
+
+<span class="CodeCom">; FILTER MATCHING RECORDS BASED ON USER QUERY STRING</span>
+List = |
+If sfmFilename &lt;&gt;
+{
+    Loop, read, %dirListing%
+    {
+        Gui, 1:Submit, NoHide
+        tFilename = %Filename%
+        If sfmFilename &lt;&gt; %tFilename%
+        {
+            <span class="CodeCom">; USER HAS CHANGED THE SEARCH STRING. THERE IS NO POINT</span>
+            <span class="CodeCom">; TO CONTINUE SEARCHING USING THE OLD STRING, SO ABORT.</span>
+            Return
+        }
+        Else
+        {
+            <span class="CodeCom">; APPEND MATCHING RECORDS INTO THE LIST</span>
+            SplitPath, A_LoopReadLine, name, dir, ext, name_no_ext, drive
+            MatchFound = Y
+            Loop, parse, sfmFilename, %A_Space%
+            {
+                IfNotInString, name, %A_LoopField%
+                {
+                    MatchFound = N
+                    Break
+                }
+            }
+            IfEqual, MatchFound, Y
+            {
+                <span class="CodeCom">; ADD RECORD TO LIST</span>
+                List = %List%%A_LoopReadLine%|
+
+                <span class="CodeCom">; PRE-SELECT IF THIS MATCHES THE LAST-RUN PROGRAM</span>
+                If (A_LoopReadLine = PrevOpenTarget &amp;&amp; sfmFilename = PrevKeyPhrase)
+                    List = %List%|
+            }
+        }
+    }
+}
+
+<span class="CodeCom">; REFRESH LIST WITH SEARCH RESULTS</span>
+GuiControl, 1:, OpenTarget, %List%
+
+If List = |
+{
+    <span class="CodeCom">; NO MATCHING RECORD IS FOUND</span>
+    <span class="CodeCom">; DISABLE LISTBOX</span>
+    GuiControl, 1:Disable, OpenTarget
+    GuiControl, 1:Disable, ButtonOPENDIR
+}
+Else
+{
+    <span class="CodeCom">; MATCHING RECORDS ARE FOUND</span>
+    <span class="CodeCom">; ENABLE LISTBOX</span>
+    GuiControl, 1:Enable, OpenTarget
+    GuiControl, 1:Enable, ButtonOPENDIR
+}
+
+<span class="CodeCom">; REFRESH GUI</span>
+Gui, 1:Show, Center, %version%
+
+Return
+
+<span class="CodeCom">;... END SilentFindMatches SUBROUTINE ......................</span>
+
+
+<span class="CodeCom">;=== BEGIN EnterQuery SUBROUTINE ===========================</span>
+<span class="CodeCom">; REFRESH GUI AND LET USER ENTERS SEARCH STRING</span>
+EnterQuery:
+GuiControl, Focus, Filename
+GuiControl, 1:Enable, ButtonOPEN
+Gui, 1:Show, Center, %version%
+Return
+<span class="CodeCom">;... END EnterQuery SUBROUTINE .............................</span>
+
+
+<span class="CodeCom">;=== BEGIN TargetSelection EVENT ===========================</span>
+
+TargetSelection:
+Gui, 1:Submit, NoHide
+
+<span class="CodeCom">; DOUBLE-CLICK DETECTION TO LAUNCH PROGRAM</span>
+If A_GuiControlEvent = DoubleClick
+{
+    Gosub ButtonOPEN
+}
+Else
+{
+    <span class="CodeCom">; STUB - FOR FUTURE USE</span>
+    If A_GuiControlEvent = Normal
+    {
+        <span class="CodeCom">; DO NOTHING FOR NOW</span>
+    }
+}
+
+Return
+
+<span class="CodeCom">;... END TargetSelection EVENT .............................</span>
+
+
+<span class="CodeCom">;=== BEGIN ButtonOPEN EVENT ================================</span>
+
+<span class="CodeCom">; USER CLICKED ON 'OPEN' BUTTON OR PRESSED &lt;ENTER&gt;</span>
+ButtonOPEN:
+Gui, 1:Submit, NoHide
+
+<span class="CodeCom">; FIND OUT WHERE THE KEYBOARD FOCUS WAS. IF IT'S THE</span>
+<span class="CodeCom">; TEXT FIELD, RUN THE QUERY TO FIND MATCHES. ELSE, IT</span>
+<span class="CodeCom">; MUST BE FROM THE LISTBOX.</span>
+GuiControlGet, focusControl, 1:Focus
+If focusControl = Edit1
+{
+    GuiControl, Focus, OpenTarget
+    GuiControl, 1:Disable, OpenTarget
+    GuiControl, 1:Disable, ButtonOPENDIR
+    GuiControl, 1:Disable, ButtonSCANSTARTMENU
+    Goto FindMatches
+}
+
+<span class="CodeCom">; NO RECORD FROM THE LISTBOX IS SELECTED</span>
+If OpenTarget =
+{
+    MsgBox, 8192, %version%, Please make a selection before hitting &lt;Enter&gt;.`nPress &lt;Esc&gt; to exit.
+    Goto EnterQuery
+}
+
+<span class="CodeCom">; SELECTED RECORD DOES NOT EXIST (FILE OR DIRECTORY NOT FOUND)</span>
+IfNotExist, %OpenTarget%
+{
+    MsgBox, 8192, %version%, %OpenTarget% does not exist. This means that the directory cache is outdated. You may click on the 'Scan Start-Menu' button below to update the directory cache with your latest directory listing now.
+    Goto EnterQuery
+}
+
+<span class="CodeCom">; CHECK WHETHER THE SELECTED RECORD IS A FILE OR DIRECTORY</span>
+FileGetAttrib, fileAttrib, %OpenTarget%
+IfInString, fileAttrib, D <span class="CodeCom">; IS DIRECTORY</span>
+{
+    Gosub sOpenDir
+}
+Else If fileAttrib &lt;&gt; <span class="CodeCom">; IS FILE</span>
+{
+    Run, %OpenTarget%
+}
+Else
+{
+    MsgBox %OpenTarget% is neither a DIRECTORY or a FILE. This shouldn't happen. Seek cannot proceed. Quitting...
+}
+
+Goto Quit
+
+<span class="CodeCom">;... END ButtonOPEN EVENT ..................................</span>
+
+
+<span class="CodeCom">;=== BEGIN ButtonOPENDIR EVENT =============================</span>
+
+<span class="CodeCom">; USER CLICKED ON 'OPEN DIRECTORY' BUTTON</span>
+ButtonOPENDIR:
+Gui, 1:Submit, NoHide
+
+<span class="CodeCom">; CHECK THAT USER HAS SELECTED A RECORD ALREADY</span>
+If OpenTarget =
+{
+    MsgBox, 8192, %version%, Please make a selection first.
+    Goto EnterQuery
+}
+
+<span class="CodeCom">; RUN SUBROUTINE TO OPEN A DIRECTORY</span>
+Gosub sOpenDir
+
+Goto Quit
+
+<span class="CodeCom">;... END ButtonOPENDIR EVENT ...............................</span>
+
+
+<span class="CodeCom">;=== BEGIN sOpenDir SUBROUTINE =============================</span>
+
+sOpenDir:
+
+<span class="CodeCom">; IF USER SELECTED A FILE-RECORD INSTEAD OF A DIRECTORY-RECORD,</span>
+<span class="CodeCom">; EXTRACT THE DIRECTORY PATH. (I'M USING DriveGet INSTEAD OF</span>
+<span class="CodeCom">; FileGetAttrib TO ALLOW THE SCENARIO WHEREBY OpenTarget IS</span>
+<span class="CodeCom">; INVALID BUT THE DIRECTORY PATH OF OpenTarget IS VALID.</span>
+DriveGet, status, status, %OpenTarget%
+If status &lt;&gt; Ready <span class="CodeCom">; NOT A DIRECTORY</span>
+{
+    SplitPath, OpenTarget, name, dir, ext, name_no_ext, drive
+    OpenTarget = %dir%
+}
+
+<span class="CodeCom">; CHECK WHETHER DIRECTORY EXISTS</span>
+IfNotExist, %OpenTarget%
+{
+    MsgBox, 8192, %version%, %OpenTarget% does not exist. This means that the directory cache is outdated. You may click on the 'Scan Start-Menu' button below to update the directory cache with your latest directory listing now.
+    Goto EnterQuery
+}
+
+<span class="CodeCom">; OPEN THE DIRECTORY</span>
+IfExist, %dirExplorer%
+{
+    Run, &quot;%dirExplorer%&quot; &quot;%OpenTarget%&quot;, , Max <span class="CodeCom">; OPEN WITH CUSTOMISED FILE EXPLORER</span>
+}
+Else
+{
+    Run, %OpenTarget%, , Max <span class="CodeCom">; OPEN WITH DEFAULT WINDOWS FILE EXPLORER</span>
+}
+Return
+
+<span class="CodeCom">;... END sOpenDir SUBROUTINE ...............................</span>
+
+
+<span class="CodeCom">;=== BEGIN tIncrementalSearch EVENT ========================</span>
+<span class="CodeCom">; AUTOMATICALLY CONDUCT REAL-TIME INCREMENTAL SEARCH</span>
+<span class="CodeCom">; TO FIND MATCHING RECORDS WITHOUT WAITING FOR USER</span>
+<span class="CodeCom">; TO PRESS &lt;ENTER&gt;</span>
+tIncrementalSearch:
+
+Loop
+<span class="CodeCom">; REPEAT SEARCHING UNTIL USER HAS STOPPED CHANGING THE QUERY STRING</span>
+{
+    Gui, 1:Submit, NoHide
+    CurFilename = %Filename%
+    If NewKeyPhrase &lt;&gt; %CurFilename%
+    {
+        OpenTarget =
+        Gosub SilentFindMatches
+        NewKeyPhrase = %CurFilename%
+        Sleep, 100 <span class="CodeCom">; DON'T HOG THE CPU!</span>
+    }
+    Else
+    {
+        <span class="CodeCom">; QUERY STRING HAS STOPPED CHANGING</span>
+        Break
+    }
+}
+
+<span class="CodeCom">; USER HAS HIT &lt;ENTER&gt; TO LOOK FOR MATCHING RECORDS.</span>
+<span class="CodeCom">; RUN FindMatches NOW.</span>
+If ResumeFindMatches = TRUE
+{
+    ResumeFindMatches = FALSE
+    Gosub FindMatches
+}
+
+<span class="CodeCom">; CONTINUE MONITORING FOR CHANGES</span>
+SetTimer, tIncrementalSearch, 500
+
+Return
+
+<span class="CodeCom">;... END tIncrementalSearch EVENT ..........................</span>
+
+
+<span class="CodeCom">;=== BEGIN Quit SUBROUTINE =================================</span>
+
+Quit:
+ButtonEXIT:
+GuiClose:
+GuiEscape:
+
+Gui, 1:Submit, NoHide
+
+<span class="CodeCom">; SAVE THE KEY WORD/PHRASE FOR NEXT RUN IF IT HAS CHANGED</span>
+If TrackKeyPhrase = ON
+{
+    If (PrevKeyPhrase &lt;&gt; Filename || PrevOpenTarget &lt;&gt; OpenTarget)
+    {
+        FileDelete, %keyPhrase%
+        FileAppend, %Filename%`n, %keyPhrase%
+        FileAppend, %OpenTarget%`n, %keyPhrase%
+    }
+}
+
+QuitNoSave:
+ExitApp <span class="CodeCom">; JOB DONE. G'DAY!</span>
+
+<span class="CodeCom">;... END Quit SUBROUTINE ...................................</span>
+
+
+<span class="CodeCom">;************************</span>
+<span class="CodeCom">;&lt;--- END OF PROGRAM ---&gt;</span>
+<span class="CodeCom">;************************</span>
+
+<span class="CodeCom">; /* vim: set noexpandtab shiftwidth=4: */</span>
+</pre>
+</body>
+</html>

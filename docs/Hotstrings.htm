@@ -1,0 +1,175 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<title>Hotstrings and Auto-replace (similar to AutoText and AutoCorrect)</title>
+<meta name="description" content="Free utility to auto-replace abbreviations as you type (similar to AutoText and AutoCorrect); e.g. &quot;btw&quot; becomes &quot;by the way&quot; wherever you type it.">
+<meta name="keywords" content="auto-replace,autotext,autocorrect,auto text,auto correct,abbreviation expansion,abbreviation,abbreviations,autoreplace,auto replace,text,expander,free,type,typing,word,words">
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link rel="alternate" type="application/rss+xml" title="AutoHotkey Forum RSS" href="../forum/rss.php">
+<link href="css/default.css" rel="stylesheet" type="text/css">
+<link href="css/print.css" rel="stylesheet" type="text/css" media="print">
+</head>
+<body>
+
+<h1>Hotstrings and Auto-replace</h1>
+<hr>
+
+<p>Note: Hotstrings require Windows NT/2000/XP or later.</p>
+<h2>Introduction and Simple Examples</h2>
+<p>Although hotstrings are mainly used to expand abbreviations as you type them (auto-replace), they can also be used to launch any scripted action. In this respect, they are similar to <a href="Hotkeys.htm">hotkeys</a> except that they are typically composed of more than one character (that is, a string).</p>
+<p>To define a hotstring, enclose the triggering abbreviation between pairs of colons as in this example:</p>
+<pre>::btw::by the way</pre>
+<p>In the above example, the abbreviation btw will be automatically replaced with &quot;by the way&quot; whenever you type it (however, by default you must type an <a href="#EndChars">ending character</a> after typing btw, such as a space, period, or enter).</p>
+<p><a name="auto"></a>The &quot;by the way&quot; example above is known as an auto-replace hotstring because the typed text is automatically erased and replaced by the string specified after the second pair of colons. By contrast, a hotstring may also be defined to perform any custom action as in the following examples. Note that the commands must appear <u>beneath</u> the hotstring:</p>
+<pre>::btw::
+MsgBox You typed &quot;btw&quot;.
+return
+
+:*:]d::  <span class="CodeCom">; This hotstring replaces &quot;]d&quot; with the current date and time via the commands below.</span>
+<a href="commands/FormatTime.htm">FormatTime</a>, CurrentDateTime,, M/d/yyyy h:mm tt  <span class="CodeCom">; It will look like 9/1/2005 3:53 PM</span>
+SendInput %CurrentDateTime%
+return</pre>
+<p>Even though the two examples above are not auto-replace hotstrings, the abbreviation you type is erased by default. This is done via automatic backspacing, which can be disabled via the <a href="#b0">b0 option</a>.</p>
+<h2><a name="EndChars"></a>Ending Characters</h2>
+<p> Unless the <a href="#Asterisk">asterisk option</a> is in effect, you must type an <em>ending character</em> after a hotstring's abbreviation to trigger it. Ending characters initially consist of the following: <strong>-()[]{}':;&quot;/\,.?!`n `t </strong>(note that `n is Enter, `t is Tab, and there is a plain space between `n and `t). This set of characters can be changed by editing the following example, which sets the new ending characters for <u>all</u> hotstrings, not just the ones beneath it:</p>
+<pre>#Hotstring EndChars -()[]{}:;'&quot;/\,.?!`n `t</pre>
+<h2><a name="Options"></a>Options</h2>
+<p>A hotstring's default behavior can be changed in two possible ways:</p>
+<ol>
+  <li>The <a href="commands/_Hotstring.htm">#Hotstring</a> directive, which affects all hotstrings physically beneath that point in the script. The following example puts the C and R options into effect:<br>
+    #Hotstring <strong>c r</strong></li>
+  <li>Putting options inside a hotstring's first pair of colons. The following example puts the C and * options into effect for a single hotstring:<br>
+    :<strong>c*</strong>:j@::john@somedomain.com <span class="CodeCom">; Case sensitive and &quot;ending character not required&quot;. </span></li>
+</ol>
+<p>The list below describes each option. When specifying more than one option using the methods above, spaces optionally may be included between them.<br>
+  <br>
+<strong><a name="Asterisk"></a>*</strong> (asterisk): An ending character (e.g. space, period, or enter) is not required to trigger the hotstring. For example:</p>
+<pre>:*:j@::jsmith@somedomain.com</pre>
+<p>The example above would send its replacement the moment you type the @ character. When using the <a href="commands/_Hotstring.htm">#Hotstring directive</a>, use <strong>*0</strong> to turn this option back off.</p>
+<p><strong><a name="Question"></a>?</strong> (question mark): The hotstring will be triggered even when it is inside another word; that is, when the character typed immediately before it is alphanumeric. For example, if <em>:?:al::airline</em> is a hotstring, typing &quot;practical &quot; would produce &quot;practicairline &quot;. Use <strong>?0</strong> to turn this option back off.</p>
+<p><strong><a name="b0"></a>B0</strong> (B followed by a zero): Automatic backspacing is <u>not</u> done to erase the abbreviation you type. Use a plain <strong>B</strong> to turn backspacing back on after it was previously turned off. A script may also do its own backspacing via {bs 5}, which sends 5 backspaces. Similarly, it may send left-arrow keystrokes via {left 5}. For example, the following hotstring produces <em>&lt;em&gt;&lt;/em&gt;</em> and moves the caret 5 places to the left (so that it's between the tags):</p>
+<pre>:*b0:&lt;em&gt;::&lt;/em&gt;{left 5}</pre>
+<p><strong>C</strong>: Case sensitive: When you type an abbreviation, it must exactly match the case defined in the script. Use <strong>C0</strong> to turn case sensitivity back off.</p>
+<p><strong>C1</strong>: Do not conform to typed case. Use this option to make <a href="#auto">auto-replace hotstrings</a> case insensitive and prevent them from conforming to the case of the characters you actually type. Case-conforming hotstrings (which are the default) produce their replacement text in all caps if you type the abbreviation in all caps. If  you type only the first letter in caps, the first letter of the replacement will also be capitalized (if it is a letter). If you type the case in any other way, the replacement is sent exactly as defined. When using the <a href="commands/_Hotstring.htm">#Hotstring directive</a>, <strong>C0</strong> can be used to turn this option back off, which makes hotstrings conform again.</p>
+<p><strong>Kn</strong>: Key-delay: This rarely-used option sets the delay between keystrokes produced by auto-backspacing or <a href="#auto">auto-replacement</a>. Specify the new delay for <strong>n</strong>; for example, specify k10 to have a 10ms delay and k-1 to have no delay. The exact behavior of this option depends on which <a href="#SendMode">sending mode</a> is in effect:</p>
+<ul>
+  <li>SI (SendInput): Key-delay is ignored because a delay is not possible in this mode. The exception to this is when SendInput is <a href="commands/Send.htm#SendInputUnavail">unavailable</a>, in which case hotstrings revert to SendPlay mode below (which does obey key-delay).</li>
+  <li>SP (SendPlay): A delay of length zero is the default, which for SendPlay is the same as -1 (no delay). In this mode, the delay is actually a <a href="commands/SetKeyDelay.htm#dur">PressDuration</a> rather than a delay between keystrokes.</li>
+  <li>SE (SendEvent): A delay of length zero is the default. Zero is recommended for most purposes since it is fast but still cooperates well with other processes (due to internally doing a <a href="commands/Sleep.htm">Sleep 0</a>). Specify k-1 to have no delay at all, which is useful to make auto-replacements faster if your CPU is frequently under heavy load. When set to -1, a script's process-priority becomes an important factor in how fast it can send keystrokes. To raise a script's priority, use <em><a href="commands/Process.htm">Process</a>, Priority,, High</em>.</li>
+</ul>
+<p><strong>O</strong>: Omit the ending character of <a href="#auto">auto-replace hotstrings</a> when the replacement is produced. This is useful when you want a hotstring to be kept unambiguous by still requiring an ending character, but don't actually want the ending character to be shown on the screen. For example, if <em>:o:ar::aristocrat</em> is a hotstring, typing &quot;ar&quot; followed by the spacebar will produce &quot;aristocrat&quot; with no trailing space, which allows you to make the word plural or possessive without having to backspace. Use <strong>O0</strong> (the letter O followed by a zero) to turn this option back off. </p>
+<p><strong>Pn</strong>: The <a href="misc/Threads.htm">priority</a> of the hotstring (e.g. P1). This rarely-used option has no effect on <a href="#auto">auto-replace hotstrings</a>.</p>
+<p><strong><a name="raw"></a>R</strong>: Send the replacement text raw; that is, exactly as it appears rather than translating {Enter} to an ENTER keystroke, ^c to Control-C, etc. This option is put into effect automatically for hotstrings that have a <a href="#continuation">continuation section</a>. Use <strong>R0</strong> to turn this option back off.</p>
+<p><strong><a name="SendMode"></a>S</strong><strong>I</strong> or <strong>SP</strong> or <strong>SE</strong> [v1.0.43+]: Sets the method by which <a href="#auto">auto-replace hotstrings</a> send their keystrokes. These options are mutually exclusive: only one can be in effect at a time. The following describes each option:</p>
+<ul>
+  <li>SI stands for <a href="commands/Send.htm#SendInputDetail">SendInput</a>, which became the default in v1.0.43+ because of its superior speed and reliability. Another benefit is that like SendPlay below, SendInput postpones anything you type during a hotstring's <a href="#auto">auto-replacement text</a>. This prevents your keystrokes from being interspersed with those of the replacement. When SendInput is <a href="commands/Send.htm#SendInputUnavail">unavailable</a>, hotstrings automatically use SendPlay instead.</li>
+  <li>SP stands for <a href="commands/Send.htm#SendEvent">SendPlay</a>, which may allow hotstrings to work in a broader variety of games.</li>
+  <li>SE stands for <a href="commands/Send.htm#SendEvent">SendEvent</a>, which is the default in versions older than 1.0.43.</li>
+</ul>
+<p><strong><a name="z"></a>Z</strong>: This rarely-used option resets the hotstring recognizer after each triggering of the hotstring. In other words, the script will begin waiting for an entirely new hotstring, eliminating from consideration anything you previously typed. This can prevent unwanted triggerings of hotstrings. To illustrate, consider the following hotstring:</p>
+<pre>:b0*?:11::
+SendInput xx
+return</pre>
+<p>Since the above lacks the Z option, typing 111 (three consecutive 1's) would trigger the hotstring twice because the middle 1 is the <em>last</em> character of the first triggering but also the <em>first</em> character of the second triggering. By adding the letter Z in front of b0, you would have to type four 1's instead of three to trigger the hotstring twice. Use <strong>Z0</strong> to turn this option back off.</p>
+<h2><a name="continuation"></a>Long Replacements</h2>
+<p>Hotstrings that produce a large amount of replacement text can be made more readable and maintainable by using a <a href="Scripts.htm#continuation">continuation section</a>. For example:</p>
+<pre>::text1::
+(
+Any text between the top and bottom parentheses is treated literally, including commas and percent signs.
+By default, the hard carriage return (Enter) between the previous line and this one is also preserved.
+    By default, the indentation (tab) to the left of this line is preserved.
+
+See <a href="Scripts.htm#continuation">continuation section</a> for how to change these default behaviors.
+)</pre>
+<p>The presence of a continuation section also causes the hotstring to default to <a href="#raw">raw mode</a>. The only way to override this special default is to specify the <a href="#raw">r0 option </a>in each hotstring that has a continuation section (e.g. <em>:r0:text1::</em>).</p>
+<h2><a name="variant" id="variant"></a>Context-sensitive Hotstrings</h2>
+<p>The directives <a href="commands/_IfWinActive.htm">#IfWinActive/Exist</a> can be used to make selected hotstrings context sensitive. Such hotstrings send a different replacement, perform a different action, or do nothing at all depending on the type of window that is active or exists. For example:</p>
+<pre>#IfWinActive ahk_class Notepad
+::btw::This replacement text will appear only in Notepad.
+#IfWinActive
+::btw::This replacement text appears in windows other than Notepad.</pre>
+<h2><a name="AutoCorrect"></a>AutoCorrect</h2>
+<p>The following script uses hotstrings to correct about 4700 common English misspellings on-the-fly. It also includes a Win+H hotkey to make it easy to add more misspellings:</p>
+<p>Download: <a href="http://www.autohotkey.com/download/AutoCorrect.ahk">AutoCorrect.ahk</a> (127 KB)</p>
+<p>Author: <a href="http://www.biancolo.com/articles/universal-autocorrect-with-autohotkey-and-wikipedia">Jim Biancolo</a> and <a href="http://en.wikipedia.org/wiki/Wikipedia:Lists_of_common_misspellings">Wikipedia's Lists of Common Misspellings</a></p>
+<h2>Remarks</h2>
+<p>Variable references such as %MyVar% are not currently supported within the replacement text. To work around this, don't make such hotstrings <a href="#auto">auto-replace</a>. Instead, use the <a href="commands/Send.htm#SendInput">SendInput</a> command beneath the abbreviation, followed by a line containing only the word Return.</p>
+<p>To send an extra space or tab after a replacement, include the space or tab at the end of the replacement but make the last character an accent/backtick (`). For example:</p>
+<pre>:*:btw::By the way `</pre>
+<p><a name="NoMouse"></a>Any click of the left or right mouse button will reset the hotstring recognizer. In other words, the script will begin waiting for an entirely new hotstring, eliminating from consideration anything you previously typed (if this is undesirable, specify the line <em><a href="commands/_Hotstring.htm">#Hotstring NoMouse</a></em> anywhere in the script). This &quot;reset upon mouse click&quot; behavior is the default because each click typically moves the text insertion point (caret) or sets keyboard focus to a new control/field. In such cases, it is usually desirable to: 1) fire a hotstring even if it lacks the <a href="#Question">question mark option</a>; 2) prevent a firing when something you type after clicking the mouse accidentally forms a valid abbreviation with what you typed before.</p>
+<p>The built-in variable <strong>A_EndChar</strong> contains the ending character that you typed to trigger the most recent non-auto-replace hotstring. If no ending character was required (due to the <a href="#asterisk">* option</a>), it will be blank. <em>A_EndChar</em> is useful when making hotstrings that use the Send command or whose behavior should vary depending on which ending character you typed. To send the ending character itself, use <em>SendRaw %A_EndChar%</em> (<a href="commands/Send.htm">SendRaw</a> is used because characters such as !{} would not be sent correctly by the normal Send command).</p>
+<p>Although commas, percent signs, and single-colons within hotstring definitions do not need to be <a href="commands/_EscapeChar.htm">escaped</a>, backticks and those semicolons having a space or tab to their left require it. See <a href="commands/_EscapeChar.htm">escape sequences</a> for a complete list.</p>
+<p>Although the <a href="commands/Send.htm">Send command</a>'s special characters such as {Enter} are supported in <a href="#auto">auto-replacement text</a> (unless the <a href="#raw">raw option</a> is used), the hotstring abbreviations themselves do not use this. Instead, specify `n for the ENTER key and `t (or a literal tab) for TAB (see <a href="commands/_EscapeChar.htm">escape sequences</a> for a complete list). For example, the hotstring <em>:*:ab`t::</em> would be triggered when you type &quot;ab&quot; followed by a tab.</p>
+<p>Spaces and tabs are treated literally within hotstring definitions. For example, the following would produce two different results:<br>
+  ::btw::by the way<br>
+::btw:: by the way</p>
+<p>Each hotstring abbreviation can be no more than 40 characters long. The program will warn you if this length is exceeded. By contrast, the length of hotstring's replacement text is limited to about 5000 characters when the <a href="#SendMode">sending mode</a> is at its default of SendInput. That limit can be increased to 16,383 characters by switching to one of the other <a href="#SendMode">sending modes</a>. Furthermore, an unlimited amount of text can be sent by using <em><a href="commands/Send.htm#SendPlayDetail">SendPlay %MyVariable%</a></em> in the body of the hotstring.</p>
+<p>The order in which hotstrings are defined determines their precedence with respect to each other. In other words, if more than one hotstring matches something you type, only the one listed first in the script will take effect. Related topic: <a href="#variant">context-sensitive hotstrings.</a> </p>
+<p>Any backspacing you do is taken into account for the purpose of detecting hotstrings. However, the use of arrow keys, PageUp, PageDown, Home, and End to navigate within an editor will cause the hotstring recognition process to reset. In other words, it will begin waiting for an entirely new hotstring.</p>
+<p>A hotstring may be typed even when the active window is ignoring your keystrokes. In other words, the hotstring will still fire even though the triggering abbreviation is never visible. In addition, you may still press the backspace key to undo the most recently typed keystroke (even though you can't see the effect).</p>
+<p><a name="label"></a>It is possible to <a href="commands/Gosub.htm">Gosub</a> or <a href="commands/Goto.htm">Goto</a> a hotstring label by including its first pair of colons (including any option symbols) in front of its name. For example: <em>Gosub ::xyz</em>. However, jumping to a <a href="#auto">single-line (auto-replace) hotstring</a> will do nothing other than execute a <a href="commands/Return.htm">return</a>.</p>
+<p>Although hotstrings are not monitored and will not be triggered during the course of an invisible <a href="commands/Input.htm">Input</a> command, visible Inputs are capable of triggering them. </p>
+<p>Hotstrings can never be triggered by keystrokes produced by any AutoHotkey script. This avoids the possibility of an infinite loop where hotstrings trigger each other over and over.</p>
+<p>The <a href="commands/Input.htm">Input</a> command is more flexible than hotstrings for certain purposes. For example, it allows your keystrokes to be invisible in the active window (such as a game). It also supports non-character ending keys such as Escape. </p>
+<p>The <a href="commands/_InstallKeybdHook.htm">keyboard hook</a> is automatically used by any script that contains hotstrings.</p>
+<p>Hotstrings behave identically to hotkeys in the following ways:</p>
+<ul>
+  <li>They are affected by the <a href="commands/Suspend.htm">Suspend</a> command.</li>
+  <li>They obey <a href="commands/_MaxThreads.htm">#MaxThreads</a> and <a href="commands/_MaxThreadsPerHotkey.htm">#MaxThreadsPerHotkey</a> (but not <a href="commands/_MaxThreadsBuffer.htm">#MaxThreadsBuffer</a>).</li>
+  <li>Scripts containing hotstrings are automatically <a href="commands/_Persistent.htm">persistent</a>.</li>
+  <li>Non-auto-replace hotstrings will create a new <a href="misc/Threads.htm">thread</a> when launched. In addition, they will update the built-in hotkey variables such as <a href="Variables.htm#ThisHotkey">A_ThisHotkey</a>.</li>
+</ul>
+<p>Known limitation: On some systems in Java applications, hotstrings might interfere with the user's ability to type diacritical letters (via dead keys).  To work around this, <a href="commands/Suspend.htm">Suspend</a> can be turned on temporarily (which disables all hotstrings).</p>
+<h2><a name="Helper"></a>Hotstring Helper</h2>
+<p>Andreas Borutta suggested the following script, which might be useful if you are a heavy user of hotstrings. By pressing Win+H (or another hotkey of your choice), the currently selected text can be turned into a hotstring.  For example, if you have &quot;by the way&quot; selected in a word processor, pressing Win+H will prompt you for its abbreviation (e.g. btw) and then add the new hotstring to the script. It will then reload the script to activate the hotstring.</p>
+<pre class="NoIndent">#h::  <span class="CodeCom">; Win+H hotkey</span>
+<span class="CodeCom">; Get the text currently selected. The clipboard is used instead of</span>
+<span class="CodeCom">; &quot;ControlGet Selected&quot; because it works in a greater variety of editors</span>
+<span class="CodeCom">; (namely word processors).  Save the current clipboard contents to be</span>
+<span class="CodeCom">; restored later. Although this handles only plain text, it seems better</span>
+<span class="CodeCom">; than nothing:</span>
+AutoTrim Off  <span class="CodeCom">; Retain any leading and trailing whitespace on the clipboard.</span>
+ClipboardOld = %ClipboardAll%
+Clipboard =  <span class="CodeCom">; Must start off blank for detection to work.</span>
+Send ^c
+ClipWait 1
+if ErrorLevel  <span class="CodeCom">; ClipWait timed out.</span>
+    return
+<span class="CodeCom">; Replace CRLF and/or LF with `n for use in a &quot;send-raw&quot; hotstring:</span>
+<span class="CodeCom">; The same is done for any other characters that might otherwise</span>
+<span class="CodeCom">; be a problem in raw mode:</span>
+StringReplace, Hotstring, Clipboard, ``, ````, All  <span class="CodeCom">; Do this replacement first to avoid interfering with the others below.</span>
+StringReplace, Hotstring, Hotstring, `r`n, ``r, All  <span class="CodeCom">; Using `r works better than `n in MS Word, etc.</span>
+StringReplace, Hotstring, Hotstring, `n, ``r, All
+StringReplace, Hotstring, Hotstring, %A_Tab%, ``t, All
+StringReplace, Hotstring, Hotstring, `;, ```;, All
+Clipboard = %ClipboardOld%  <span class="CodeCom">; Restore previous contents of clipboard.</span>
+<span class="CodeCom">; This will move the InputBox's caret to a more friendly position:</span>
+SetTimer, MoveCaret, 10
+<span class="CodeCom">; Show the InputBox, providing the default hotstring:</span>
+InputBox, Hotstring, New Hotstring, Type your abreviation at the indicated insertion point. You can also edit the replacement text if you wish.`n`nExample entry: :R:btw`::by the way,,,,,,,, :R:`::%Hotstring%
+if ErrorLevel  <span class="CodeCom">; The user pressed Cancel.</span>
+    return
+IfInString, Hotstring, :R`:::
+{
+    MsgBox You didn't provide an abbreviation. The hotstring has not been added.
+    return
+}
+<span class="CodeCom">; Otherwise, add the hotstring and reload the script:</span>
+FileAppend, `n%Hotstring%, %A_ScriptFullPath%  <span class="CodeCom">; Put a `n at the beginning in case file lacks a blank line at its end.</span>
+Reload
+Sleep 200 <span class="CodeCom">; If successful, the reload will close this instance during the Sleep, so the line below will never be reached.</span>
+MsgBox, 4,, The hotstring just added appears to be improperly formatted.  Would you like to open the script for editing? Note that the bad hotstring is at the bottom of the script.
+IfMsgBox, Yes, Edit
+return
+
+MoveCaret:
+IfWinNotActive, New Hotstring
+    return
+<span class="CodeCom">; Otherwise, move the InputBox's insertion point to where the user will type the abbreviation.</span>
+Send {Home}{Right 3}
+SetTimer, MoveCaret, Off
+return</pre>
+</body>
+</html>

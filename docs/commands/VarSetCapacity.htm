@@ -1,0 +1,58 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<title>VarSetCapacity()</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link href="../css/commands.css" rel="stylesheet" type="text/css">
+<link href="../css/print.css" rel="stylesheet" type="text/css" media="print">
+</head>
+<body>
+
+<h1>VarSetCapacity()</h1>
+<hr size="2">
+<p>Enlarges a variable's holding capacity or frees its memory. Normally, this is necessary only for unusual circumstances such as <a href="DllCall.htm">DllCall</a>.</p>
+
+<p class="CommandSyntax">GrantedCapacity := VarSetCapacity(UnquotedVarName [, RequestedCapacity, FillByte])</p>
+<h4>Parameters</h4>
+<table border="1" width="100%" cellspacing="0" cellpadding="3" bordercolor="#C0C0C0">
+  <tr> 
+    <td width="15%">GrantedCapacity</td>
+    <td width="85%">The length of string that Var can now hold, which will be greater or equal to <em>RequestedCapacity</em>. If <em>VarName</em> is not a valid variable name (such as a literal string or number), 0 is returned. If the system has insufficient memory to make the change (very rare), an error dialog will be displayed and the <a href="../misc/Threads.htm">current thread</a> will exit.</td>
+  </tr>
+  <tr>
+    <td>UnquotedVarName</td>
+    <td>The name of the variable (<em>not in quotes</em>). For example: VarSetCapacity(MyVar, 1000). This can also be a dynamic variable such as Array%i% or a <a href="../Functions.htm#ByRef">function's ByRef parameter</a>.</td>
+  </tr>
+  <tr>
+    <td>RequestedCapacity</td>
+    <td><p>If omitted, the variable's current capacity will be returned and its contents will not be altered. Otherwise, anything currently in the variable is lost (the variable becomes blank).</p>
+      <p>Specify for <em>RequestedCapacity</em> the length of string that the variable should be able to hold after the adjustment. This length does not include the internal zero terminator. For example, specifying 1 would allow the variable to hold up to one character in addition to its internal terminator. Note: the variable will auto-expand if the script assigns it a larger value later.</p>      
+      <p>Since this function is often called simply to ensure the variable has a certain minimum capacity, for performance reasons, it shrinks the variable only when <em>RequestedCapacity</em> is 0. In other words, if the variable's capacity is already greater than <em>RequestedCapacity</em>, it will not be reduced (but the variable will still made blank for consistency).</p>
+      <p>Therefore, to explicitly shrink a variable, first free its memory with <em>VarSetCapacity(Var, 0)</em> and then use <em>VarSetCapacity(Var, NewCapacity) -- </em>or simply let it auto-expand from zero as needed.</p>
+      <p>For performance reasons, freeing a variable whose previous capacity was between 1 and 63 might have no effect because its memory is of a permanent type. In this case, the current capacity will be returned rather than 0.</p>
+      <p>For performance reasons, the memory of a variable whose capacity is under 4096 is not freed by storing an empty string in it (e.g. <em>Var := &quot;&quot;</em>). However, <em>VarSetCapacity(Var, 0)</em> does free it.</p>
+      <p><a name="neg1"></a>In v1.0.44.03+, specify -1 for <em>RequestedCapacity</em> to update the variable's internally-stored length to the length of its current contents. This is useful in cases where the variable has been altered indirectly, such as by passing its <a href="../Variables.htm#amp">address</a> via <a href="DllCall.htm">DllCall()</a>. In this mode, VarSetCapacity() returns the length rather than the capacity.</p></td>
+  </tr>
+  <tr>
+    <td>FillByte</td>
+    <td>This parameter is normally omitted, in which case the memory of the target variable is not initialized (instead, the variable is simply made blank as described above). Otherwise, specify a number between 0 and 255. Each byte in the target variable's memory area (its current capacity) is set to that number.  Zero is by far the most common value, which is useful in cases where the variable will hold raw binary data such as a <a href="DllCall.htm#struct">DllCall structure</a>.</td>
+  </tr>
+</table>
+
+<h4>Remarks</h4>
+<p>In addition to its uses described at <a href="DllCall.htm#str">DllCall</a>, this function can also be used to enhance performance when building a string by means of gradual concatenation. This is because multiple automatic resizings can be avoided when you have some idea of what the string's final length will be. In such a case, <em>RequestedCapacity</em> need not be accurate: if the capacity is too small, performance is still improved and the variable will begin auto-expanding when the capacity has been exhausted. If the capacity is too large, some of the memory is wasted, but only temporarily because all the memory can be freed after the operation by means of <em>VarSetCapacity(Var, 0)</em> or <em>Var := &quot;&quot;</em>.</p>
+<p><a href="_MaxMem.htm">#MaxMem</a> restricts only the automatic expansion that a variable does on its own. It does not affect <a href="VarSetCapacity.htm">VarSetCapacity</a>.</p>
+<h4>Related</h4>
+<p><a href="DllCall.htm">DllCall</a>, <a href="_MaxMem.htm">#MaxMem</a></p>
+<h4>Example</h4>
+<pre class="NoIndent">VarSetCapacity(MyVar, 10240000)  <span class="CodeCom">; ~10 MB</span>
+Loop
+{
+    ...
+    MyVar = %MyVar%%StringToConcatenate%
+    ...
+}</pre>
+
+</body>
+</html>

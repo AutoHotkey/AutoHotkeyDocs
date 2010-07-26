@@ -1,0 +1,109 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<title>FileSetTime</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link href="../css/commands.css" rel="stylesheet" type="text/css">
+<link href="../css/print.css" rel="stylesheet" type="text/css" media="print">
+</head>
+<body>
+
+<h1>FileSetTime</h1>
+<hr size="2">
+<p>Changes the  datetime stamp of one or more files or folders. Wildcards are supported.</p>
+
+<p class="CommandSyntax">FileSetTime [, YYYYMMDDHH24MISS, FilePattern, WhichTime, OperateOnFolders?, Recurse?]</p>
+<h4>Parameters</h4>
+<table border="1" width="100%" cellspacing="0" cellpadding="3" bordercolor="#C0C0C0">
+  <tr>
+    <td width="15%">YYYYMMDDHH24MISS</td>
+    <td width="85%"><p>If blank or omitted, it defaults to the current time. Otherwise, specify the time to use for the operation (see Remarks for the format).
+  Years prior to 1601 are not supported.</p>
+    <p>This parameter is an <a href="../Variables.htm#Expressions">expression</a>. Consequently, if multiple variables need to be concatenated to form a single timestamp, the <a href="../Variables.htm#concat">dot operator</a> should be used instead of percent signs. For example: <em>FileSetTime, Year <strong>.</strong> Month <strong>.</strong> Day, C:\My File.txt</em></p></td>
+  </tr>
+  <tr>
+    <td width="15%">FilePattern</td>
+    <td width="85%"><p>The name of a single file or folder, or a wildcard pattern such as C:\Temp\*.tmp. <em>FilePattern</em> is assumed to be in <a href="../Variables.htm#WorkingDir">%A_WorkingDir%</a> if an absolute path isn't specified.</p>
+    <p>If omitted, the current file of the innermost enclosing <a href="LoopFile.htm">File-Loop</a> will be used instead.</p></td>
+  </tr>
+  <tr>
+    <td>WhichTime</td>
+    <td>Which timestamp to set:<br>
+      M = Modification time (this is the default if the parameter is blank or omitted)<br>
+      C = Creation time<br>
+      A = Last access time </td>
+  </tr>
+  <tr>
+    <td>OperateOnFolders?</td>
+    <td><p>0 (default) Folders are not operated upon (only files). <br>
+1 All files and folders that match the wildcard pattern are operated upon.<br>
+2 Only folders  are operated upon (no files). </p>
+      <p>Note: If FilePattern is a single folder rather than a wildcard pattern, it will always be operated upon regardless of this setting.</p>
+      <p>This parameter can be an <a href="../Variables.htm#Expressions">expression</a>.</p></td>
+  </tr>
+  <tr>
+    <td>Recurse?</td>
+    <td><p>0 (default) Subfolders are not recursed into.<br>
+  1 Subfolders are recursed into so that files and folders contained therein are operated upon if they match <em>FilePattern</em>. All subfolders will be recursed into, not just those whose names match <em>FilePattern</em>. However, files and folders with a complete path name longer than 259 characters are skipped over as though they do not exist. Such files are rare because normally, the operating system does not allow their creation.</p>
+      <p>This parameter can be an <a href="../Variables.htm#Expressions">expression</a>.</p></td>
+  </tr>
+</table>
+<h4>ErrorLevel</h4>
+<p><a href="../misc/ErrorLevel.htm">ErrorLevel</a> is set to the number of files that <u>failed</u> to be changed or 0 otherwise. If the specified timestamp is invalid, or <em>FilePattern</em> resolves to a blank value, ErrorLevel is set to 1.</p>
+<h4>Remarks</h4>
+<p>Under Windows 95/98/ME, changing the timestamp of folders is not supported. Attempts to do so are ignored.</p>
+<p>A file's last access time might not be as precise on FAT16 &amp; FAT32 volumes as it is on NTFS volumes.</p>
+<p><a name="YYYYMMDD"></a>The elements of the YYYYMMDDHH24MISS format are:</p>
+<table width="100%" border="1">
+  <tr>
+    <td width="46">YYYY</td>
+    <td width="538">The 4-digit year</td>
+  </tr>
+  <tr>
+    <td>MM</td>
+    <td>The 2-digit month (01-12) </td>
+  </tr>
+  <tr>
+    <td>DD</td>
+    <td>The 2-digit day of the month (01-31)</td>
+  </tr>
+  <tr>
+    <td>HH24</td>
+    <td>The 2-digit hour in 24-hour format (00-23). For example, 09 is 9am and 21 is 9pm.</td>
+  </tr>
+  <tr>
+    <td>MI</td>
+    <td>The 2-digit minutes (00-59)</td>
+  </tr>
+  <tr>
+    <td>SS</td>
+    <td>The 2-digit seconds (00-59)</td>
+  </tr>
+</table>
+<p>If only a partial string is given for YYYYMMDDHH24MISS (e.g. 200403), any remaining element that has been omitted will be supplied with the following default values:</p>
+<p>MM: Month 01<br>
+  DD: Day 01<br>
+  HH24: Hour 00<br>
+  MI: Minute 00<br>
+SS: Second 00</p>
+<p>The built-in variable <a href="../Variables.htm#Now">A_Now</a> contains the current local time in the above format. Similarly, <a href="../Variables.htm#NowUTC">A_NowUTC</a> contains the current Coordinated Universal Time.</p>
+<p><strong>Note:</strong> Date-time values can be compared, added to, or subtracted from via <a href="EnvAdd.htm">EnvAdd</a> and <a href="EnvSub.htm">EnvSub</a>. Also, it is best to not use greater-than or less-than to compare times unless they are both the same string length. This is because they would be compared as numbers; for example, 20040201 is always numerically less (but chronologically greater) than 200401010533. So instead use <a href="EnvSub.htm">EnvSub</a> to find out whether the amount of time between them is positive or negative.</p>
+<h4>Related</h4>
+<p><a href="FileGetTime.htm">FileGetTime</a>, <a href="FileGetAttrib.htm">FileGetAttrib</a>, <a href="FileSetAttrib.htm">FileSetAttrib</a>, <a href="FileGetSize.htm">FileGetSize</a>, <a href="FileGetVersion.htm">FileGetVersion</a>, <a href="FormatTime.htm">FormatTime</a>, <a href="LoopFile.htm">File-loop</a>, <a href="EnvAdd.htm">EnvAdd</a>, <a href="EnvSub.htm">EnvSub</a></p>
+<h4>Example</h4>
+<pre class="NoIndent"><span class="CodeCom">; Set the modification time to the current time for all matching files:</span>
+FileSetTime, , C:\temp\*.txt
+
+<span class="CodeCom">; Set the modification date (time will be midnight):</span>
+FileSetTime, 20040122, C:\My Documents\test.doc
+
+<span class="CodeCom">; Set the creation date. The time will be set to 4:55pm:</span>
+FileSetTime, 200401221655, C:\My Documents\test.doc, C
+
+<span class="CodeCom">; Change the mod-date of all files  that match a pattern.</span>
+<span class="CodeCom">; Any matching folders will also be changed due to the last parameter:</span>
+FileSetTime, 20040122165500, C:\Temp\*.*, M, 1</pre>
+
+</body>
+</html>
