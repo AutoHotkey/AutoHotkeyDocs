@@ -13,12 +13,12 @@
 <p>As of revision 42, AutoHotkey_L includes Unicode support via separate ANSI and Unicode builds.  Scripts written for ANSI builds (or mainstream AutoHotkey) face a number of compatibility issues with Unicode builds.</p>
 <p>Other known incompatibilities with mainstream AutoHotkey are documented <a href="#Other">below</a>.</p>
 
-<h2><a name="Format"></a>Native String Format</h2>
+<h2 id="Format">Native String Format</h2>
 <p><b>Unicode:</b> Strings are stored in <a href="http://en.wikipedia.org/wiki/UTF-16">UTF-16</a> format.  Each character consumes a multiple of two bytes in this format, so care must be taken when <a href="commands/DllCall.htm">DllCall</a>, <a href="commands/VarSetCapacity.htm">VarSetCapacity</a>, <a href="Functions.htm#NumPut">NumPut</a> or <a href="Functions.htm#NumGet">NumGet</a> are used with strings.</p>
 <p><b>ANSI:</b> Strings are stored in the system default ANSI code page, as in mainstream AutoHotkey.  Each character consumes one or more bytes in this format.</p>
 <p>Note that in either case, some characters may be represented with multiple 8-bit or 16-bit values, but for performance and simplicity these are typically treated as a <i>sequence</i> of characters.  For convenience, the rest of this document considers a "character" to be a single 8-bit or 16-bit value, depending on whether the string is UTF-16.</p>
 
-<h3><a name="VarSetCapacity"></a>VarSetCapacity</h3>
+<h3 id="VarSetCapacity">VarSetCapacity</h3>
 <p>VarSetCapacity sets the capacity of a var <i>in bytes</i>.  Since the size of a character varies depending on the string format, some calculation may be necessary:</p>
 <pre>VarSetCapacity(ansi_var,    size_in_chars)
 VarSetCapacity(unicode_var, size_in_chars * 2)
@@ -27,7 +27,7 @@ VarSetCapacity(native_var, t_size(size_in_chars))  <em>; see <a href="#NumPutGet
 </pre>VarSetCapacity will internally add one <i>character</i> to the capacity to ensure the var is null-terminated.  However, <code>size_in_chars</code> should generally include the null-terminator for consistency if a string in a <i>non-native</i> format will be stored in the var.
 <p></p>
 
-<h3><a name="DllCall"></a>DllCall</h3>
+<h3 id="DllCall">DllCall</h3>
 <p>When the "Str" type is used, it means a string in the native format of the current build.  Since some functions may require or return strings in a particular format, the following string types are available:</p>
 <table class="info">
   <tr><th></th><th>Char Size</th><th>C / Win32 Types</th><th>Encoding</th></tr>
@@ -36,14 +36,14 @@ VarSetCapacity(native_var, t_size(size_in_chars))  <em>; see <a href="#NumPutGet
   <tr><td class="Syntax" style="text-align:center">Str</td><td style="text-align:center">--</td><td>TCHAR*, LPTSTR, LPCTSTR</td><td>Equivalent to <b>WStr</b> in Unicode builds and <b>AStr</b> in ANSI builds.</td></tr>
 </table>
 <br>
-<p>If "Str" or the equivalent type for the current build is used as a parameter, the address of the string or var is passed to the function; otherwise a temporary copy of the string is created in the desired format and passed instead.  Functions may modify a temporary copy, but <b>must not</b> write beyond the <i>length</i> of the converted string (indicated by its null-terminator).</p>
+<p>If "Str" or the equivalent type for the current build is used as a parameter, the address of the string or var is passed to the function, otherwise a temporary copy of the string is created in the desired format and passed instead. Functions may modify a temporary copy, but <b>must not</b> write to any position to the right of the string's null-terminator. As a general rule, "AStr" and "WStr" should not be used for output parameters.</p>
 <p><b>Note:</b> "AStr" and "WStr" are equally valid for parameters and the function's return value.</p>
 <p>In general, if a script calls a function via DllCall which accepts a string as a parameter, one of the following approaches must be taken:</p>
 <ol>
   <li>If both Unicode (W) and ANSI (A) versions of the function are available, call the appropriate one for the current build.  In the following example, "DeleteFile" is internally known as "DeleteFileA" or "DeleteFileW".  Since "DeleteFile" itself doesn't really exist, DllCall automatically tries "A" or "W" as appropriate for the current build:
-  <pre>DllCall("DeleteFile", "UInt", &filename)
+  <pre>DllCall("DeleteFile", "Ptr", &filename)
 DllCall("DeleteFile", "Str", filename)</pre>
-  <p>In this example, <code>&amp;filename</code> passes the address of the string exactly as-is, so the function must expect a string in the same format as the "Str" type.
+  <p>In this example, <code>&amp;filename</code> passes the address of the string exactly as-is, so the function must expect a string in the same format as the "Str" type. Note that "UInt" must be used in place of "Ptr" in mainstream AutoHotkey, but the resulting code may not be 64-bit compatible.
   <p><b>Note:</b> If the function cannot be found exactly as specified, AutoHotkey_L appends the "A" or "W" suffix regardless of which DLL is specified.  However, mainstream AutoHotkey appends the "A" suffix only for functions in User32.dll, Kernel32.dll, ComCtl32.dll, or Gdi32.dll.</p></li>
   <li>If the function only accepts a specific type of string as input, the script may use the appropriate string type:</li>
   <pre>DllCall("DeleteFileA", "AStr", filename)
@@ -52,7 +52,7 @@ DllCall("DeleteFileW", "WStr", filename)</pre>
   <p></p>
 </ol>
 
-<h3><a name="NumPutGet"></a>NumPut / NumGet</h3>
+<h3 id="NumPutGet">NumPut / NumGet</h3>
 <p>When NumPut or NumGet are used with strings, the offset and type must be correct for the given type of string.  The following may be used as a guide:</p>
 <pre><em>;  8-bit/ANSI   strings:  size_of_char=1  type_of_char="Char"
 ; 16-bit/UTF-16 strings:  size_of_char=2  type_of_char="UShort"</em>
@@ -70,18 +70,43 @@ t_size(char_count=1) {
     return A_IsUnicode ? char_count : char_count*2
 }</pre>
 
-<h2><a name="Other"></a>Other Changes</h2>
+<h2 id="ptr">Pointer Size</h2>
+<p>Pointers are 4 bytes in 32-bit builds (including mainstream AutoHotkey) and 8 bytes in 64-bit builds. Scripts using structures or DllCalls may need to account for this to run correctly on both platforms. Specific areas which are affected include:</p>
+<ul>
+  <li>Offset calculation for fields in structures which contain one or more pointers.</li>
+  <li>Size calculation for structures containing one or more pointers.</li>
+  <li>Type names used with <a href="commands/DllCall.htm">DllCall</a>, <a href="commands/NumPut.htm">NumPut</a> or <a href="commands/NumGet.htm">NumGet</a>.</li>
+</ul>
+<p>For size and offset calculations, use <a href="Variables#PtrSize">A_PtrSize</a>. For DllCall, NumPut and NumGet, use the <a href="commands/DllCall.htm">Ptr</a> type where appropriate.</p>
+<p>Remember that the offset of a field is usually the total size of all fields preceding it. Also note that handles (including types like HWND and HBITMAP) are essentially pointer-types.</p>
+<pre><em>/*
+  typedef struct _PROCESS_INFORMATION {
+    HANDLE hProcess;    // Ptr
+    HANDLE hThread;
+    DWORD  dwProcessId; // UInt (4 bytes)
+    DWORD  dwThreadId;
+  } <a href="http://msdn.microsoft.com/en-us/library/ms684873.aspx">PROCESS_INFORMATION</a>, *LPPROCESS_INFORMATION;
+*/</em>
+VarSetCapacity(pi, A_PtrSize*2 + 8) <em>; Ptr + Ptr + UInt + UInt</em>
+DllCall("<a href="http://msdn.microsoft.com/en-us/library/ms682425.aspx">CreateProcess</a>", <span class="dull">&lt;omitted for brevity&gt;</span>, "Ptr", &amp;pi, <span class="dull">&lt;omitted&gt;</span>)
+hProcess    := NumGet(pi, 0)         <em>; Defaults to "Ptr".</em>
+hThread     := NumGet(pi, A_PtrSize) <em>; </em>
+dwProcessId := NumGet(pi, A_PtrSize*2,     "UInt")
+dwProcessId := NumGet(pi, A_PtrSize*2 + 4, "UInt")
+</pre>
+
+<h2 id="Other">Other Changes</h2>
 
 <h3>Default Script</h3>
-<p>When AutoHotkey_L is launched without specifying a script, the default script filename is based on the filename of the current executable, and always has the "ahk" extension.  For instance, if the executable is named "AutoHotkey_L.exe", it will look for "AutoHotkey_L.ahk" in the current directory or in My Documents. See also <a href="Scripts.htm#cmd">Passing Command Line Parameters to a Script</a>.</p>
+<p>When AutoHotkey_L is launched without specifying a script, the default script filename is the same as the filename of the current executable but always has the "ahk" extension.  For more details, see <a href="Scripts.htm#cmd">Passing Command Line Parameters to a Script</a>.</p>
 
-<h3><a name="Names"></a>Variable and Function Names</h3>
+<h3 id="Names">Variable and Function Names</h3>
 <p>Characters [ ] and ? are no longer valid in variable names.  Consequently, ? (used in ternary operations) no longer requires a space on either side.  See also <a href="Objects.htm#Syntax">object syntax</a>.</p>
 
-<h3><a name="Validation"></a>Syntax Validation</h3>
+<h3 id="Validation">Syntax Validation</h3>
 <p>Command names must be terminated with a space, tab or comma.  Unlike in mainstream AutoHotkey, none of the following characters bypass this requirement: <code>&lt;&gt;:+-*/!~&|^[]</code>. As a consequence, syntax errors such as <code>MsgBox< foo</code> and <code>If!foo</code> are caught at load-time, not interpreted as <code>MsgBox,< foo</code> or <code>If !foo</code>.</p>
 
-<h3><a name="Transform"></a>Transform</h3>
+<h3 id="Transform">Transform</h3>
 <p>Some <i>Transform</i> sub-commands have changed in the <b>Unicode</b> build:</p>
 <ul>
   <li><span class="Syntax">Unicode</span> has been replaced with <span class="Syntax"><a href="commands/Transform.htm#ToCodePage">ToCodePage</a></span> and <span class="Syntax"><a href="commands/Transform.htm#FromCodePage">FromCodePage</a></span>.</li>
@@ -89,10 +114,10 @@ t_size(char_count=1) {
 </ul>
 
 
-<h3><a name="IfIs"></a>If var is</h3>
+<h3 id="IfIs">If var is</h3>
 <p>This command ignores the system locale unless <i>StringCaseSense, Locale</i> has been used.</p>
 
-<h3><a name="FileRead"></a>FileRead</h3>
+<h3 id="FileRead">FileRead</h3>
 <p>FileRead may attempt to translate text between code pages.  If the file contains binary data, the retrieved data will be incorrect.</p>
 <p>Code page translation will not occur in specific cases, such as:</p>
 <ul>
@@ -102,7 +127,7 @@ t_size(char_count=1) {
 </ul>
 <a href="commands/FileOpen.htm">FileOpen</a> is the preferred method for accessing binary files.
 
-<h3><a name="SetFormat"></a>SetFormat, Integer[Fast], H</h3>
+<h3 id="SetFormat">SetFormat, Integer[Fast], H</h3>
 <p>When an uppercase H is used, hexadecimal digits A-F will also be in uppercase.  This contrasts with mainstream AutoHotkey, which always uses lowercase digits. See <a href="commands/SetFormat.htm">SetFormat</a>.</p>
 
 <h3>Compatibility Mode</h3>

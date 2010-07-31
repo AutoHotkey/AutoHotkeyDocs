@@ -8,9 +8,9 @@
 </head>
 <body>
 
-<h1>Regular Expression Callouts</h1>
+<h1>Regular Expression Callouts <span class="ver">[AHK_L 14+]</span></h1>
 
-<p>Callouts provide a means of temporarily passing control to the script in the middle of regular expression pattern matching. Available in AutoHotkey_L only. For detailed information about the PCRE-standard callout feature, see <a href="http://www.pcre.org/pcre.txt">pcre.txt</a>.</p>
+<p>Callouts provide a means of temporarily passing control to the script in the middle of regular expression pattern matching. For detailed information about the PCRE-standard callout feature, see <a href="http://www.pcre.org/pcre.txt">pcre.txt</a>.</p>
 
 <p>Callouts are currently supported only by <a href="../commands/RegExMatch.htm">RegExMatch</a> and <a href="../commands/RegExReplace.htm">RegExReplace</a>.</p>
 
@@ -53,24 +53,25 @@ Func(m) {
 }</pre>
 <p>In the above example, <em>Func</em> is called once for each substring which matches the part of the pattern preceding the callout. <span class="Syntax">\b</span> is used to exclude incomplete words in matches such as <em>The quic</em>, <em>The qui</em>, <em>The qu</em>, etc.</p>
 
-<h3>EventInfo</h3>
+<h3 id="EventInfo">EventInfo</h3>
 
 <p>Additional information is available by accessing the pcre_callout_block structure via <b>A_EventInfo</b>.</p>
-<pre>version := NumGet(A_EventInfo, 0, "Int")
-callout_number := NumGet(A_EventInfo, 4, "Int")
-offset_vector := NumGet(A_EventInfo, 8)
-subject := NumGet(A_EventInfo, 12)
-subject_length := NumGet(A_EventInfo, 16, "Int")
-start_match := NumGet(A_EventInfo, 20, "Int")
-current_position := NumGet(A_EventInfo, 24, "Int")
-capture_top := NumGet(A_EventInfo, 28, "Int")
-capture_last := NumGet(A_EventInfo, 32, "Int")
-callout_data := NumGet(A_EventInfo, 36)
-pattern_position := NumGet(A_EventInfo, 40, "Int")
-next_item_length := NumGet(A_EventInfo, 44, "Int")</pre>
-<p>For more information, see <a href="http://www.pcre.org/pcre.txt">pcre.txt</a>.</p>
+<pre>version           := NumGet(A_EventInfo,  0, "Int")
+callout_number    := NumGet(A_EventInfo,  4, "Int")
+offset_vector     := NumGet(A_EventInfo,  8)
+subject           := NumGet(A_EventInfo,  8 + A_PtrSize)
+subject_length    := NumGet(A_EventInfo,  8 + A_PtrSize*2, "Int")
+start_match       := NumGet(A_EventInfo, 12 + A_PtrSize*2, "Int")
+current_position  := NumGet(A_EventInfo, 16 + A_PtrSize*2, "Int")
+capture_top       := NumGet(A_EventInfo, 20 + A_PtrSize*2, "Int")
+capture_last      := NumGet(A_EventInfo, 24 + A_PtrSize*2, "Int")
+pad := A_PtrSize=8 ? 4 : 0  <em>; Compensate for 64-bit data alignment.</em>
+callout_data      := NumGet(A_EventInfo, 28 + pad + A_PtrSize*2)
+pattern_position  := NumGet(A_EventInfo, 28 + pad + A_PtrSize*3, "Int")
+next_item_length  := NumGet(A_EventInfo, 32 + pad + A_PtrSize*3, "Int")</pre>
+<p>For more information, see <a href="http://www.pcre.org/pcre.txt">pcre.txt</a>, <a href="../Functions.htm#NumGet">NumGet</a> and <a href="../Variables.htm#PtrSize">A_PtrSize</a>.</p>
 
-<h3><a name="auto"></a>Auto-Callout</h3>
+<h3 id="auto">Auto-Callout</h3>
 
 <p>Including <span class="Syntax">C</span> in the options of the pattern enables the auto-callout mode. In this mode, callouts equivalent to <span class="Syntax">(?C255)</span> are inserted before each item in the pattern. For example, the following template may be used to debug regular expressions:</p>
 <pre><em>; Set the default callout function.</em>
@@ -82,10 +83,11 @@ RegExMatch("xxxabc123xyz", "C)abc.*xyz")
 DebugRegEx(Match, CalloutNumber, FoundPos, Haystack, NeedleRegEx)
 {
     <em>; See pcre.txt for descriptions of these fields.</em>
-    start_match := NumGet(A_EventInfo, 20, "Int")
-    current_position := NumGet(A_EventInfo, 24, "Int")
-    pattern_position := NumGet(A_EventInfo, 40, "Int")
-    next_item_length := NumGet(A_EventInfo, 44, "Int")
+    start_match       := NumGet(A_EventInfo, 12 + A_PtrSize*2, "Int")
+    current_position  := NumGet(A_EventInfo, 16 + A_PtrSize*2, "Int")
+    pad := A_PtrSize=8 ? 4 : 0
+    pattern_position  := NumGet(A_EventInfo, 28 + pad + A_PtrSize*3, "Int")
+    next_item_length  := NumGet(A_EventInfo, 32 + pad + A_PtrSize*3, "Int")
 
     <em>; Point out &gt;&gt;current match&lt;&lt;.</em>
     _HAYSTACK:=SubStr(Haystack, 1, start_match)
