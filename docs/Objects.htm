@@ -66,28 +66,28 @@
 
 
 <a name="Refs"></a><h2>Reference-Counting</h2>
-<p>A basic reference-counting mechanism is used to automatically deallocate an object when it is no longer referenced by the script.  Scripts should not typically invoke this mechanism explicitly; it is invoked automatically as the script deals with objects.</p>
-<p>However, taking the address of an object (via <span class="Code">address := &amp;<i>object</i></span>) does not increment its reference count.  To ensure the address remains valid when all other references to the object are released, follow this example:</p>
+<p>Objects use a basic reference-counting mechanism to automatically deallocate the memory they occupy when no longer referenced by the script.  Scripts should not typically invoke this mechanism explicitly; it is invoked automatically as the script deals with objects.</p>
+<p>However, if a script obtains an unmanaged pointer to an object (for instance, via <code><a href="#AddressCast">Object(obj)</a></code>), the reference count may go out of sync, in which case Bad Things will happen. To prevent this, use the following functions as appropriate:</p>
 <pre><em>; Increment the object's reference count to "keep it alive":</em>
-DllCall(NumGet(NumGet(address+0)+4), "uint", address)
+<a href="commands/ObjAddRef.htm">ObjAddRef</a>(address)
 ...
 <em>; Decrement the object's reference count to allow it to be freed:</em>
-DllCall(NumGet(NumGet(address+0)+8), "uint", address)
+ObjRelease(address)
 </pre>
 <p>To run code when the last reference to an object is being released, implement the <a href="#Cleanup">__Delete</a> meta-function.</p>
 <p><b>Known Limitations:</b></p>
 <ul>
   <li>No exception or allowance is made for cyclic references - an object is not freed if any references to it exist, even if the script ultimately has no way to access the object.</li>
   <li>Although references in static and global variables are released automatically when the program exits, references in non-static local variables or in temporary storage during expression evaluation are not.  These references are only released if the function or expression is allowed to complete normally.</li>
-  <p>Although memory used by the object is reclaimed by the operating system when the program exits, <a href="#Cleanup">__Delete</a> will not be called unless all references to the object are freed.  This can be important if it frees other resources which are not automatically reclaimed by the operating system, such as temporary files.</p>
 </ul>
+<p>Although memory used by the object is reclaimed by the operating system when the program exits, <a href="#Cleanup">__Delete</a> will not be called unless all references to the object are freed.  This can be important if it frees other resources which are not automatically reclaimed by the operating system, such as temporary files.</p>
 
 
 <h2 id="Arrays">Object()</h2>
 <p>Creates a scriptable object which is also an associative array.</p>
 <pre class="Syntax">Object := Object()
 Object := Object(Key1, Value1 [, Key2, Value2 ... ])</pre>
-<p>Parameters must be in pairs of two, except when the only parameter is an <a href="#AddressCast">object address</a>.</p>
+<p>Parameters must be in pairs of two, except in <a href="#AddressCast">single-parameter mode</a>.</p>
 <pre><em>; Explicit initialization:</em>
 obj := Object()
 obj[a] := b
@@ -137,11 +137,18 @@ table.base.__Set(table, x, y, content)     <em>; B</em></pre>
 %n%(param)</pre>
 <p>If <code>index</code> contains the name of a built-in method, the name of a method defined in a <a href="#Extensibility"><i>base</i> object</a>, or an object representing a function, only the first example will work.</p>
 
-<p><a name="ExitLimitation"></a><b>Known limitation:</b> If an object-call exists on the stack of running functions and subroutines, <a href="commands/Exit.htm">Exit</a> behaves as though the object-call created a new thread; that is, it returns immediately to the caller of the object-call.  However, Exit still causes the script to terminate when appropriate.</p>
+<p><a name="ExitLimitation"></a><b>Known limitations:</b></p>
+<ul>
+  <li>If an object-call exists on the stack of running functions and subroutines, <a href="commands/Exit.htm">Exit</a> behaves as though the object-call created a new thread; that is, it returns immediately to the caller of the object-call.  However, Exit still causes the script to terminate when appropriate.</li>
+  <li>Currently <code><span class="dull">x</span>.y[z]<span class="dull">()</span></code> is treated as <code><span class="dull">x</span>["y", z]<span class="dull">()</span></code>, which is not supported. As a workaround, <code><span class="dull">`</span><span class="red">(</span><span class="dull">x.y</span><span class="red">)</span>[z]()</code> forces <code>x.y</code> to be evaluated first, then the result used as the target of the object-call. Escaping the open-parenthesis (<code>`(</code>) allows the expression to be used at the beginning of a line, where the parenthesis would otherwise begin a continuation section.</li>
+</ul>
 
 
-<h2 id="AddressCast">Object(<i>address</i>)</h2>
-<p>To cast an address previously retrieved via <code>address := &amp;<i>object</i></code> back into a usable object reference, use <code>Object(address)</code>.  Note that this also works for objects not created by <a href="#Arrays">Object()</a>.  This is an advanced feature which should be used only when absolutely necessary; see <a href="#Refs">Reference Counting</a>.  It may be useful for associating an object with a <a href="commands/RegisterCallback.htm">callback</a> via A_EventInfo.</p>
+<h2 id="AddressCast">Object( <i>address</i> | <i>object</i> )</h2>
+<p>Retrieves an interface pointer from an object reference or vice versa. This is an advanced feature which should be used only if you <i><b>really</b></i> know what you're doing; see <a href="#Refs">Reference Counting</a>.  One important use is for associating an object with a <a href="commands/RegisterCallback.htm">callback</a> via A_EventInfo.</p>
+<pre class="Syntax">address := Object(object)<br>object := Object(address)</pre>
+<p>In either case the object's <a href="#Refs">reference-count</a> is automatically incremented so that the object is not freed prematurely. Generally each new copy of the address should be treated as an object reference, except that the script is responsible for calling <a href="commands/ObjAddRef.htm">ObjAddRef</a> and/or <a href="commands/ObjAddRef.htm">ObjRelease</a> as appropriate. For example, instead of <code>x := address</code>, consider using <code>ObjAddRef(x := address)</code> and <code>ObjRelease(x)</code> when finished with <i>x</i> if <i>address</i> may be released in the mean-time. This ensures the object is freed when the last reference to it is lost - and not before then.</p>
+<p>Note that this function applies equally to objects not created by <a href="#Arrays">Object()</a>, such as <a href="commands/ComObjCreate.htm">COM object wrappers</a> or <a href="objects/File.htm">File objects</a>.</p>
 
 
 <h2 id="Extensibility">Extensibility</h2>
