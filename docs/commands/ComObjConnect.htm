@@ -1,0 +1,70 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<title>ComObjConnect()</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link href="../css/default.css" rel="stylesheet" type="text/css">
+</head>
+<body>
+
+<h1>ComObjConnect() <span class="ver">[AHK_L 53+]</span></h1>
+<p>Connects the object's event sources to functions with a given prefix.</p>
+<pre class="Syntax">ComObjConnect(ComObject [, Prefix])</pre>
+
+<h3>Parameters</h3>
+<table class="info">
+  <tr>
+    <td>ComObject</td>
+    <td>The object which raises events.</td>
+  </tr>
+  <tr>
+    <td>Prefix</td>
+    <td>A string to prefix to the event name to determine which function to call when an event occurs.<br /> If omitted entirely, the object is "disconnected"; that is, the script will no longer receive notification of its events.</td>
+  </tr>
+</table>
+
+<h3 id="Usage">Usage</h3>
+<p>To make effective use of ComObjConnect, you must first write functions in the script to handle any events of interest. Such functions, or "event-handlers," have the following structure:</p>
+<pre class="Syntax Short NoIndent"><i>Prefix</i><b>EventName</b>([<i>Params...</i>, ComObject])
+{
+    <i class="dull">... event-handling code ...</i>
+    return <i>returnValue</i>
+}</pre>
+<p><i>Prefix</i> is a prefix of your choosing, while <b>EventName</b> is the name of whatever event the function should handle.</p>
+<p><i>Params</i> corresponds to whatever parameters the event has. If the event has no parameters, <i>Params</i> should be omitted entirely. <i>ComObject</i> is optional, and can only be used if the correct number of <i>Params</i> are defined; it contains a reference to the original wrapper object which was passed to ComObjConnect. &quot;ComObject&quot; should be replaced with a name more meaningful in the context of your script.</p>
+<p>Note that event handlers may have return values. To return a COM-specific type of value, use <a href="ComObjActive.htm#param">ComObjParameter</a>, which may also be written as <code>ComObjRetVal(type, value)</code> or simply <code>ComObj(type, value)</code>.</p>
+<p>Call <code>ComObjConnect(yourObject, "<i>Prefix</i>")</code> to enable event-handling.</p>
+<p>Call <code>ComObjConnect(yourObject)</code> to disconnect the object (stop handling events).</p>
+
+<h3>Related</h3>
+<p><a href="ComObjCreate.htm">ComObjCreate</a>, <a href="ComObjGet.htm">ComObjGet</a>, <a href="ComObjActive.htm">ComObjActive</a>, <a href="ComObjConnect.htm">ComObjConnect</a>, <a href="ComObjError.htm">ComObjError</a>, <a href="http://msdn.microsoft.com/en-us/library/ccxe1xe6.aspx">WScript.ConnectObject (MSDN)</a></p>
+
+<h3 id="Examples">Examples</h3>
+<pre class="NoIndent">
+ie := ComObjCreate("<a href="http://msdn.microsoft.com/en-us/library/aa752084.aspx">InternetExplorer.Application</a>")
+
+<em>; Connects events to corresponding script functions with the prefix "IE_".</em>
+<b>ComObjConnect</b>(ie, "IE_")
+
+ie.Visible := true
+ie.Navigate("http://www.autohotkey.net/~Lexikos/AutoHotkey_L/")
+#Persistent
+
+<b>IE_<a href="http://msdn.microsoft.com/en-us/library/aa768329.aspx">DocumentComplete</a></b>(ieEventParam, url, ieFinalParam) {
+    global ie
+    if (ie != ieEventParam)
+        s .= <em>"First parameter is a new wrapper object.`n"</em>
+    if (ie == ieFinalParam)
+        s .= <em>"Final parameter is the original wrapper object.`n"</em>
+    if ((disp1:=<a href="ComObjActive.htm#enwrap">ComObjUnwrap</a>(ieEventParam)) == (disp2:=ComObjUnwrap(ieFinalParam)))
+        s .= <em>"Both wrapper objects refer to the same IDispatch instance.`n"</em>
+    <a href="ObjAddRef.htm">ObjRelease</a>(disp1), ObjRelease(disp2)
+    MsgBox % s . "Finished loading " ie.Document.title " @ " url
+    ie.Quit()
+    ExitApp
+}
+</pre>
+
+</body>
+</html>
