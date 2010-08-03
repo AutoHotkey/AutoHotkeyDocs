@@ -10,6 +10,59 @@
 <body>
 <h1>Arrays</h1>
 
+<h2>Associative Arrays <span class="ver">[AHK_L 31+]</span></h2>
+<p>Self-contained associative arrays can be created by calling <a href="../Objects.htm#Arrays">Object()</a>. For example:</p>
+<pre><em>; Create the array, initially empty:</em>
+Array := Object()
+
+<em>; Write to the array:</em>
+Loop, Read, C:\Guest List.txt <em>; This loop retrieves each line from the file, one at a time.</em>
+{
+    Array._Insert(A_LoopReadLine) <em>; Append this line to the array.</em>
+}
+
+<em>; Read from the array:
+; Loop % enum._MaxIndex()   ; More traditional approach.</em>
+enum := Array._NewEnum()    <em>; Recommended approach in most cases.</em>
+while enum[index, element]
+{
+    <em>; Using Loop, indices must be consecutive numbers from 1 to the number
+    ; of elements in the array (or must be calculated within the loop).
+    ; With _NewEnum, indices don't even need to be numeric. Array elements
+    ; don't need to be looked up as they are returned by the enumerator.</em>
+    MsgBox % "Element number " . index . " is " . element
+}</pre>
+<p>This shows only a small subset of the <a href="../objects/Object.htm">functionality</a> provided by <a href="../Objects.htm">objects</a>. Items can be set, retrieved, inserted, removed and enumerated. Strings and objects can be used as keys in addition to numbers. Objects can be stored as values in other objects and passed as function parameters or return values. Objects can also be <a href="../Objects.htm#Extensibility">extended</a> with new functionality.</p>
+<p>Though Insert() and enumerators have their uses, some users might find it easier to use the more traditional approach:</p>
+<pre>
+  <em>; Each array must be initialized before use:</em>
+  Array := Object()
+
+<em>; Array%j% := A_LoopField</em>
+  Array[j] := A_LoopField
+
+<em>; Array%j%_%k% := A_LoopReadLine</em>
+  Array[j, k] := A_LoopReadLine
+
+  ArrayCount := 0                        
+  Loop, Read, C:\Guest List.txt
+  {
+      ArrayCount += 1
+    <em>; Array%ArrayCount% := A_LoopReadLine</em>
+      Array[ArrayCount] := A_LoopReadLine
+  }
+
+  Loop %ArrayCount%
+  {
+    <em>; element := Array%A_Index%</em>
+      element := Array[A_Index]
+    <em>; MsgBox % "Element number " . A_Index . " is " . Array%A_Index%</em>
+      MsgBox % "Element number " . A_Index . " is " . Array[A_Index]
+  }
+</pre>
+<p><i>ArrayCount</i> is left as a variable for convenience, but can be stored in the array itself with <code>Array.Count := <i>n</i></code> or it can be removed and <code>Array.<a href="../objects/Object.htm#MinMaxIndex">_MaxIndex()</a></code> used in its place. If a starting index other than 1 is desired, <code>Array.<a href="../objects/Object.htm#MinMaxIndex">_MinIndex()</a></code> can also be used.</p>
+
+<h2>Pseudo-Arrays</h2>
 <p>In AutoHotkey, arrays are mostly conceptual: Each array is really just a collection of sequentially numbered <a href="../Variables.htm">variables</a> or <a href="../Functions.htm">functions</a>, each one being perceived as an <em>element</em> of the array. AutoHotkey does not link these elements together in any way.</p>
 <p>In addition to array-creating commands like <a href="../commands/StringSplit.htm">StringSplit</a> and &quot;<a href="../commands/WinGet.htm">WinGet List</a>&quot;, any command that accepts an OutputVar or that assigns a value to a variable can be used to create an array. The simplest example is the <a href="../commands/SetExpression.htm">assignment operator (:=)</a>, as shown below:</p>
 <pre>Array%j% := A_LoopField</pre>
@@ -34,7 +87,6 @@ Loop %ArrayCount%
     MsgBox % &quot;Element number &quot; . A_Index . &quot; is &quot; . Array%A_Index%
 }</pre>
 <p>A concept related to arrays is the use of <a href="../Functions.htm#NumPut">NumPut()</a> and <a href="../Functions.htm#NumGet">NumGet()</a> to store/retrieve a collection of numbers in binary format. This might be helpful in cases where performance and/or memory conservation are important.</p>
-<h2>Associative Arrays and Hashing via &quot;Scripting.Dictionary&quot;</h2>
-<p>&quot;Scripting.Dictionary&quot; is an operating system feature that has more capabilities and flexibility than AutoHotkey's pseudo-arrays. Its use is demonstrated at <a href="http://www.autohotkey.com/forum/topic17838.html">www.autohotkey.com/forum/topic17838.html</a>.</p>
+
 </body>
 </html>
