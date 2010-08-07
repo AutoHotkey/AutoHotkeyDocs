@@ -20,6 +20,7 @@
   <li><a href="#continuation">Splitting a Long Line into a Series of Shorter Ones</a>: This can improve a script's readability and maintainability.</li>
   <li><a href="#ahk2exe">Convert a Script to an EXE (ahk2exe)</a>: Convert a .ahk script into a .exe file that can run on any PC.</li>
   <li><a href="#cmd">Passing Command Line Parameters to a Script</a>: The variables %1%, %2%, etc. contain the incoming parameters.</li>
+  <li><a href="#cp">Script File Codepage</a>: Using non-ASCII characters safely in scripts.</li>
   <li><a href="#debug">Debugging a Script</a>: How to find the flaws in a misbehaving script.</li>
   <li><a href="#port">Portability of AutoHotkey.exe</a>: Having a copy of AutoHotkey.exe is enough to execute any .ahk file.</li>
   <li><a href="#install">Installer Options</a>: How to do unattended/silent installations or uninstallations.</li>
@@ -159,7 +160,7 @@ Usage:
 /r or /restart -- Indicate that the script is being restarted (this is also used by the <a href="commands/Reload.htm">Reload</a> command, internally).<br>
 /ErrorStdOut -- Send syntax errors that prevent a script from launching to stdout rather than displaying a dialog. See <a href="commands/_ErrorStdOut.htm">#ErrorStdOut</a> for details.<br>
 /Debug -- <span class="ver">[AHK_L 11+]:</span> Connect to a debugging client. For more details, see <a href="#idebug">Interactive Debugging</a>.<br>
-/CP<i>n</i> -- <span class="ver">[AHK_L 51+]:</span> Overrides the default codepage used to read script files. Default is /CP0 (ANSI) for ANSI builds and /CP65001 (UTF-8) for Unicode builds. If the script file has a UTF-8 or UTF-16 BOM, this is ignored.</p>
+<a name="CPn"></a>/CP<i>n</i> -- <span class="ver">[AHK_L 51+]:</span> Overrides the default codepage used to read script files. For more details, see <a href="#cp">Script File Codepage</a>.</p>
 <p><a name="defaultfile"></a><strong>Script Filename:</strong> This can be omitted if there are no <em>Script Parameters</em>. If omitted, it will run (or prompt you to create) a file in one of the following default locations:</p>
 <p><span class="ver">[AHK_L 51+]:</span> <code>%AhkExeDir%\%AhkExeName%.ahk</code> or <code><a href="Variables.htm#MyDocuments">%A_MyDocuments%</a>\%AhkExeName%.ahk</code>, where <em>%AhkExeDir%</em> and <em>%AhkExeName%</em> are replaced with the directory and filename of the executable used to run the script, excluding the ".exe" extension.</p>
 <p><span class="ver">[Earlier versions]:</span> <code>AutoHotkey.ini</code> (in the current working directory) or <code><a href="Variables.htm#MyDocuments">%A_MyDocuments%</a>\AutoHotkey.ahk</code>.</p>
@@ -187,6 +188,35 @@ Usage:
     MsgBox The case-corrected long path name of file`n%GivenPath%`nis:`n%LongPath%
 }</pre>
 <p>Known limitation: dragging files onto a .ahk script may fail to work properly if 8-dot-3 (short) names have been turned off in an NTFS file system. One work-around is to <a href="#ahk2exe">compile</a> the script then drag the files onto the resulting EXE.</p>
+
+<h2 id="cp">Script File Codepage <span class="ver">[AHK_L 51+]</span></h2>
+<p>The characters a script file may contain are restricted by the codepage used to load the file.</p>
+<ul>
+  <li>Source files for compiled scripts <b class="red">must</b> be encoded as <b>UTF-8</b> or contain only ASCII characters.</li>
+  <li>If the file begins with a UTF-8 or UTF-16 (LE) byte order mark, the appropriate codepage is used and the <a href="#CPn">/CP<i>n</i></a> switch is ignored.</li>
+  <li>If the <a href="#CPn">/CP<i>n</i></a> switch is passed on the command-line, codepage <i>n</i> is used. For a list of valid numeric codepage identifiers, see <a href="http://msdn.microsoft.com/en-us/library/dd317756.aspx">MSDN</a>.</li>
+  <li>In all other cases, Unicode builds use UTF-8 and ANSI builds use the system default ANSI codepage.</li>
+</ul>
+<p>As all text is converted (where necessary) to the <a href="Compat.htm#Format">native string format</a>, characters which are invalid or don't exist in the native codepage are replaced with a placeholder: ANSI '?' or Unicode '&#65533;'. In Unicode builds, this should only occur if there are encoding errors in the script file or the codepages used to save and load the file don't match.</p>
+<p><b class="red">Please note:</b><br>
+On Unicode builds, non-ASCII characters are likely to be misinterpreted or replaced with &#65533; if the codepage is not specified correctly. UTF-8 is the recommended encoding to use. If your preferred editor does not suport UTF-8 (or UTF-16 with BOM), use the <a href="#CPn">/CP<i>n</i></a> switch - replace <i>n</i> with 0 or the appropriate numeric identifier of your system's ANSI codepage.</p>
+<p><a href="commands/RegWrite.htm">RegWrite</a> may be used to set the default for scripts launched from Explorer (e.g. by double-clicking a file):</p>
+<pre><em>; Uncomment the appropriate line below or leave them all commented to
+;   reset to the default of the current build.  Modify as necessary:
+; codepage = 0        ; System default ANSI codepage
+; codepage = 65001    ; UTF-8
+; codepage = 1200     ; UTF-16
+; codepage = 1252     ; ANSI Latin 1; Western European (Windows)</em>
+if (codepage != "")
+    codepage := " /CP" . codepage
+cmd="%A_AhkPath%"%codepage% "`%1" `%*
+key=AutoHotkeyScript\Shell\Open\Command
+if A_IsAdmin    <em>; Set for all users.</em>
+    RegWrite, REG_SZ, HKCR, %key%,, %cmd%
+else            <em>; Set for current user only.</em>
+    RegWrite, REG_SZ, HKCU, Software\Classes\%key%,, %cmd%
+</pre><p>This assumes AutoHotkey_L has already been installed. Results may be less than ideal if it has not.</p>
+
 <h2 id="debug">Debugging a Script</h2>
 <p>Commands such as <a href="commands/ListVars.htm">ListVars</a> and <a href="commands/Pause.htm">Pause</a> can help you debug a script. For example, the following two lines, when temporarily inserted at carefully chosen positions, create &quot;break points&quot; in the script:</p>
 <pre>ListVars<br>Pause</pre>
