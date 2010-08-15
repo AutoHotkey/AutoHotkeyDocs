@@ -5,6 +5,7 @@
 <title>FileOpen</title>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
 <link href="../css/default.css" rel="stylesheet" type="text/css">
+<style>.fopt{width:3em;text-align:center}.fnum{width:4em;text-align:right}</style>
 </head>
 <body>
 
@@ -16,27 +17,32 @@
 <h3>Parameters</h3>
 <table class="info">
   <tr><td width="15%">Filename</td><td width="85%">The path of the file to open, which is assumed to be in <a href="../Variables.htm#WorkingDir">A_WorkingDir</a> if an absolute path isn't specified.</td></tr>
-  <tr><td>Flags</td><td>A combination (sum) of the values described below. </td></tr>
+  <tr><td>Flags</td><td>Either <span class="ver">[in AHK_L 54+]</span> a string of characters indicating the desired access mode followed by other options (with optional spaces or tabs in between); or <span class="ver">[in AHK_L 42+]</span> a combination (sum) of numeric flags. Supported values are described in the table below.</td></tr>
   <tr><td>Encoding</td><td>The code page to use for text I/O if the file does not contain a UTF-8 or UTF-16 <a href="http://en.wikipedia.org/wiki/Byte_order_mark">byte order mark</a>.<br> If omitted, the current value of <a href="../Variables.htm#FileEncoding">A_FileEncoding</a> is used.</td></tr>
 </table>
-<br>
+<h3>Flags</h3>
+<p></p>
 <table class="info">
-  <tr><th></th><th style="text-align:left">Access modes (mutually-exclusive)</th></tr>
-  <tr><td style="width:3em">0x00</td><td><i>Read:</i> Fails when the file doesn't exist.</td></tr>
-  <tr><td>0x01</td><td><i>Write:</i> Creates a new file, <b style="color:red">overwriting any existing file.</b></td></tr>
-  <tr><td>0x02</td><td><i>Append:</i> Creates a new file if the file didn't exist.</td></tr>
-  <tr><td>0x03</td><td><i>Update (read/write):</i> Fails if the file doesn't exist.</td></tr>
-  <tr><th></th><th style="text-align:left">Sharing mode flags <span class="ver" style="font-weight: normal">[AHK_L 50+]</span></th></tr>
-  <tr><td>0x100</td><td>Shares <i>read</i> access.</td></tr>
-  <tr><td>0x200</td><td>Shares <i>write</i> access.</td></tr>
-  <tr><td>0x400</td><td>Shares <i>delete</i> access.</td></tr>
-  <tr><th></th><th style="text-align:left">End of line (EOL) options</th></tr>
-  <tr><td>0x04</td><td>Replace <code>`r`n</code> with <code>`n</code> when reading and <code>`n</code> with <code>`r`n</code> when writing.</td></tr>
-  <tr><td>0x08</td><td>Replace standalone <code>`r</code> with <code>`n</code> when reading.</td></tr>
+  <tr><th></th><th></th><th style="text-align:left">Access modes (mutually-exclusive)</th></tr>
+  <tr><td class="fopt">r</td><td class="fnum">0</td><td><i>Read:</i> Fails when the file doesn't exist.</td></tr>
+  <tr><td class="fopt">w</td><td class="fnum">1</td><td><i>Write:</i> Creates a new file, <b style="color:red">overwriting any existing file.</b></td></tr>
+  <tr><td class="fopt">a</td><td class="fnum">2</td><td><i>Append:</i> Creates a new file if the file didn't exist.</td></tr>
+  <tr><td class="fopt">rw</td><td class="fnum">3</td><td><i>Read/Write:</i> Creates a new file if the file didn't exist.</td></tr>
+  <tr><td class="fopt">h</td><td></td><td>Indicates that <i>Filename</i> is a file handle to wrap in an object. Sharing mode flags are ignored. The file handle is <b>not</b> closed automatically when the file object is destroyed and calling <a href="../objects/File.htm#Close">Close</a> has no effect. Note that <a href="../objects/File.htm#Seek">Seek</a>, <a href="../objects/File.htm#Tell">Tell</a> and <a href="../objects/File.htm#Length">Length</a> should not be used if <i>Filename</i> is a handle to a nonseeking device such as a pipe or a communications device.</td></tr>
+  <tr><th></th><th></th><th style="text-align:left">Sharing mode flags</th></tr>
+  <tr><td class="fopt">-rwd</td><td></td><td>Locks the file for read, write and/or delete access. Any combination of <code>r</code>, <code>w</code> and <code>d</code> may be used. Specifying <code>-</code> is the same as specifying <code>-rwd</code>. If omitted entirely, the default is to share all access.</td></tr>
+  <tr><td></td><td class="fnum">0</td><td>If <i>Flags</i> is numeric, the absence of sharing mode flags causes the file to be locked.</td></tr>
+  <tr><td></td><td class="fnum">0x100</td><td>Shares <i>read</i> access.</td></tr>
+  <tr><td></td><td class="fnum">0x200</td><td>Shares <i>write</i> access.</td></tr>
+  <tr><td></td><td class="fnum">0x400</td><td>Shares <i>delete</i> access.</td></tr>
+  <tr><th></th><th></th><th style="text-align:left">End of line (EOL) options</th></tr>
+  <tr><td class="fopt"><code>`n</code></td><td class="fnum">4</td><td>Replace <code>`r`n</code> with <code>`n</code> when reading and <code>`n</code> with <code>`r`n</code> when writing.</td></tr>
+  <tr><td class="fopt"><code>`r</code></td><td class="fnum">8</td><td>Replace standalone <code>`r</code> with <code>`n</code> when reading.</td></tr>
 </table>
 
 <h3>Return Value</h3>
-<p>If the file is opened successfully, the return value is a <a href="../objects/File.htm">File object</a>.  If the function fails, the return value is 0.</p>
+<p>If the file is opened successfully, the return value is a <a href="../objects/File.htm">File object</a>.</p>
+<p>If the function fails, the return value is 0 and <span class="ver">[in AHK_L 54+]</span> <a href="../Variables.htm#LastError">A_LastError</a> contains an error code.</p>
 <p>Use <code>if file</code> or <code>IsObject(file)</code> to check if the function succeeded.
 
 <h3>Remarks</h3>
@@ -44,6 +50,20 @@
 
 <h3>Related</h3>
 <p><a href="FileEncoding.htm">FileEncoding</a>, <a href="../objects/File.htm">File Object</a>, <a href="FileRead.htm">FileRead</a></p>
+
+<h3>Examples</h3>
+<pre class="NoIndent"><em>; Open the script in read-only mode and read its first line:</em>
+file := FileOpen(A_ScriptFullPath, "r")
+MsgBox % file.ReadLine()
+
+<em>; Open the application's stdin/stdout handles in newline-translated mode.
+; This can be tested by typing into the output pane of SciTE4AutoHotkey.</em>
+stdin  := FileOpen(DllCall("GetStdHandle", "int", -10, "ptr"), "h `n")
+stdout := FileOpen(DllCall("GetStdHandle", "int", -11, "ptr"), "h `n")
+stdout.Write("Enter your query.`n\> ")
+query := RTrim(stdin.ReadLine(), "`n")
+stdout.WriteLine("Your query was '" query "'. Have a nice day.")
+</pre>
 
 </body>
 </html>
