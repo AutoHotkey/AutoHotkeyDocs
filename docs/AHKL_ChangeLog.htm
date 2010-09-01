@@ -163,12 +163,189 @@
 <p>Fixed: obj.Func() resulting in a random integer when it should be an empty string.</p>
 
 <h2>Revision 42 - January 28, 2010</h2>
-<p>Merged with AutoHotkeyU.  See <a href="http://www.autohotkey.net/~Lexikos/AutoHotkey_L/docs/LvsU.htm">comparison of features</a>.</p>
+<p>Merged with AutoHotkeyU.</p>
 <p>Numerous bug-fixes and improvements, some relating to the merge.</p>
+
+<h2>Revision 41 - December 20, 2009</h2>
+<p>Fixed: Floating-point numbers were equivalent to an empty string when used as keys in objects.  They are now converted to numeric strings in the current <a href="commands/SetFormat.htm">float format</a>, as originally intended.</p>
+
+<h2>Revision 40 - December 13, 2009</h2>
+<p>Changed meta-functions and multi-param behaviour to improve flexibility.  Meta-functions are now invoked *before* searching for an appropriate field in each base object; however, values in x.base will override meta-functions defined in x.base.base.  Chaining meta-functions (inheritence) is now possible by avoiding "Return"</p>
+<p>Improved Default Base functionality to be more consistent with real objects.</p>
+<p>Changed (Debugger): While stepping through code, skip all braces except those which end a function.</p>
+<p>Changed (Debugger): When stepping onto the hidden "Exit" at end of the script, consider it to be *below* the last physical line to avoid confusion.</p>
+
+<h2>Revision 39 - December 2, 2009</h2>
+<p>Fixed (Debugger): Error in Base64 decoding used by property_set.</p>
+
+<h2>Revision 38 - November 17, 2009</h2>
+<p>Added: <a href="commands/_MenuMaskKey.htm">#MenuMaskKey</a> directive to change which key is used to mask Alt/Win keyup events.  See <a href="http://www.autohotkey.com/forum/topic22378.html">this thread</a> for background information.</p>
+<p>Changed: If <code>x[1,2]:=3</code> creates an object for <code>x[1]</code>, it's base is no longer automatically set to <code>x.base</code>.  See <a href="Objects.htm#JaggedArraysEx">the documentation</a> for a method of controlling this behaviour.</p>  
+
+<h2>Revision 37 - November 7, 2009</h2>
+<p>Added: Support for <code>obj[method_name](params)</code> object-call syntax.</p>
+
+<h2>Revision 36 - November 4, 2009</h2>
+<p>Changed: If <code>x.y</code> or similar is immediately followed by an open-bracket (<code>[</code>), the right-most identifier preceding the bracket is treated as the first parameter of the operation.  For instance, <code>a.b.c[d]</code> is equivalent to <code>ObjGet(a.b,"c",d)</code> and <code>x.y[z]:=v</code> is equivalent to <code>ObjSet(x,"y",z,v)</code>. Previously each sub-expression preceding a bracket was evaluated separately.</p>
+<p>Changed: If a method-call such as <code>x.y()</code> is followed immediately by an assignment, the parentheses are treated as brackets. For instance, <code>x.y(z):=v</code> is now equivalent to <code>ObjSet(x,"y",z,v)</code>.</p>
+<p>Fixed: If(expr) and While(expr) with no delimiting space or comma.</p>  
+
+<h2>Revision 35 - October 25, 2009</h2>
+<p>Fixed: Standalone expressions beginning with two or more "dots", such as <code>x.y.z()</code>. (Broken by L34.) Note that '(' or '[' or ':=' is still required.</p>
+
+<h2>Revision 34 - October 24, 2009</h2>
+<p>Changed: Setting a value within an object to an empty string now stores the empty string rather than removing the key-value pair from the object.  _Remove can still be used to completely remove key-value pairs.</p>
+<p>Changed: Command names must be terminated with a space, tab or comma.  The following characters no longer bypass this requirement: <span class="Code">&lt;&gt;:+-*/!~&|^[]</span>.  For instance, syntax errors such as <span class="Code">MsgBox< foo</span> and <code>If!foo</code> are now caught at load-time.</p>
+<p>Fixed: Return now properly handles expressions which result in a variable containing an object.  For instance, <code>Return x:=y</code>, <code>Return (x)</code>, <code>Return x,...</code> and similar should work now (<code>Return x</code> already worked).</p>
+<p>Fixed: Multi-parameter get/set did not correctly support meta-functions for multiple objects (such as for <code>x</code> <i>and</i> <code>x[y]</code> in the expression <code>x[y,z]</code>).</p>
+<p>Fixed: Cascading object-assignments such as the <code>x[y]:=z</code> in <code>r:=x[y]:=z</code> could not yield numbers or objects - broken by L33.</p>
+<p>Fixed: <code>x._Remove(y)</code> crashed the script or removed the wrong item if <code>x</code> did not contain <code>y</code>.</p>
+<p>Fixed: <code>x.=y</code>, <code>if x.y=...</code> and similar.  May affect other expressions.</p>
+<p>Fixed: Standalone ternary expressions no longer requires spaces.  For instance, <code>x? F(1) : F(2)</code> is now allowed.</p>
+<p>Debugger: On script exit, disconnect debugger *after* releasing objects to allow debugging of __Delete handlers.</p>
+
+<h2>Revision 33 - October 3, 2009</h2>
+<p>Fixed: Local variables were not automatically freed for functions which return objects or pure numbers.</p>
+<p>Fixed: Two separate reference-counting errors related to ternary operator and Object().</p>
+<p>Fixed: If a string returned by a scripted object function was assigned directly to a variable, the variable's length was set incorrectly.</p>
+<p>Fixed: If the last operation in an expression retrieved a string from a temporary object, the object and string were freed prematurely.</p>
+<p>Fixed: Numeric strings with special formatting were not preserved when returned from a function via a variable or passed to a recursive function.</p>
+<p>Fixed: If the final result of an expression (other than for Return) is an object, correctly yield an empty string instead of silently aborting the thread.</p>
+<p>Fixed: __Delete meta-functions sometimes overwrote temporary values in the deref buffer.</p>
+<p>Added: An address retrieved via &amp;object may be cast back into an object reference by using Object(address).</p>  
+
+<h2>Revision 32 - September 26, 2009</h2>
+<p>Fixed: Send/PostMessage crash when less than three parameters were specified.</p>
+
+<h2>Revision 31 - September 26, 2009</h2>
+<p>Added: Object/array support and numerous minor changes to make this possible.</p>
+<p>Added: Support for While(expression) with no delimiting space.</p>
+<p>Added: Trim, LTrim, RTrim.</p>
+<p>Added: A ~= B; equivalent to RegExMatch(A, B).  May be removed in a future revision.</p>
+<p>Fixed: An incompatibility with LowLevel.</p>
+<p>Changed: Characters [, ] and ? are no longer valid in variable names.  Consequently, ? (ternary) no longer requires a space on either side.</p>
+<p>Changed: Optional parameters may now be omitted at any position in the parameter list of a non-dynamic function call. Since this works by automatically inserting the parameter's default value at load-time, it is not supported or allowed for dynamic function-calls.</p>
+<p>Debugger: Various minor changes to make program flow easier to follow while stepping through code.</p>
+<p>Optimization: If DllCall's first parameter is a literal string which identifies a function already present in memory, it is replaced with the actual address of the function.</p>
+<p>Updated from v1.0.48.03 to v1.0.48.04.</p>
+
+<h2>Revision 30 - May 31, 2009</h2>
+<p>Updated from v1.0.48.02 to v1.0.48.03.</p>
+
+<h2>Revision 29 - May 2, 2009</h2>
+<p>All supported image formats may now be used as menu icons.  Currently it is necessary to specify "actual size" when setting the icon to preserve transparency on Windows Vista and later. For example:
+<pre>Menu, Icon, MenuItemName, Filename.png,, 0</pre></p>  
+
+<h2>Revision 28 - May 2, 2009</h2>
+<p>Improved average-case performance of dynamic function calls by implementing binary search for function name look-ups. This change also applies to other areas, such as load-time resolution of function references in expressions and run-time resolution by OnMessage, RegisterCallback, etc.</p>  
+
+<h2>Revision 27 - April 26, 2009</h2>
+<p>Updated from v1.0.48.00 to v1.0.48.02.</p>  
+
+<h2>Revision 26 - April 11, 2009</h2>
+<p>Fixed: Menu icons were not drawn on items which have sub-menus if owner-drawing was in use.</p>
+<p>Fixed: Menu icons were not freed if all menu items were deleted at once.</p>
+<p>Changed (Source): Renamed AutoHotkey.sln to AutoHotkey_L.sln to allow VS window to be identified more easily.</p>  
+
+<h2>Revision 25 - March 30, 2009</h2>
+<p>Fixed: Send {U+xxxx} correctly sets modifier key-state as with any normal key.</p>
+<p>Fixed: Send {U+..xx} no longer triggers hotkey SCxx.</p>
+
+<h2>Revision 24 - March 30, 2009</h2>
+<p>Added: Support for Send {U+xxxx}. SendInput() is used where available for proper unicode support, otherwise falls back to Alt+Numpad.</p>
+
+<h2>Revision 23 - March 30, 2009</h2>
+<p>Fixed: GuiControl, Enable/Disable now only resets focus if the focused control was disabled.</p>  
+
+<h2>Revision 22 - March 26, 2009</h2>
+<p>Optimized If var [not] in/contains MatchList, especially for long lists containing shorter fields.</p>  
+
+<h2>Revision 21 - March 16, 2009</h2>
+<p>Minor optimizations to While. [thanks Chris]</p>
+<p>Fixed (Debugger): Revisions 19 and 20 omitted timer threads from the call stack.</p>
+<p>Fixed (Debugger): XML-reserved characters were not escaped in most situations.</p>
+<p>Fixed (Debugger): Incorrect command and transaction_id were used in the final response before exiting the script.</p>  
+
+<h2>Revision 20 - February 27, 2009</h2>
+<p>Changed: If an icon cannot be loaded with the new method, fall back to the old method.</p>
+
+<h2>Revision 19 - February 26, 2009</h2>
+<p>Added: Gui, Font, qN option to set font quality/control anti-aliasing, where N is between 0 and 5.</p>
+<p>Fixed: IL_Add now loads icons at the most appropriate size when multiple sizes exist.</p>
+<p>Merged with AutoHotkey v1.0.48, introducing bug fixes, optimizations and other changes by Chris. Some AutoHotkey_L features were integrated into the mainstream release; changes to these features since previous revisions are as follows:</p>
+<ul>
+  <li>Legacy behaviour is no longer applied to While - e.g. "While %x%" is correctly interpreted as a double-deref rather than as "While x".</li>
+  <li>One-True-Brace style is now supported for While.</li>
+  <li>Static vars may now be declared and initialized in assume-static functions.</li>
+  <li>Passing too <em>few</em> parameters in a dynamic function call is no longer allowed, as it allows the function's caller to second-guess the function's designer, reduces the ability to detect script bugs at runtime, and may cause the application to crash if calling a built-in function.</li>
+</ul>
+
+<h2>Revision 18 - February 21, 2009</h2>
+<p>Fixed: Incomplete bug-fix in previous revision causing concat followed by assignment to skip the rest of the expression in some cases.</p>
+
+<h2>Revision 17 - February 20, 2009</h2>
+<p>Added: Menu icons via Icon and NoIcon sub-commands of the Menu command.</p>
+<p>Changed: Negative icon numbers can now be used to indicate a resource ID within an executable.</p>
+<p>Changed: Set default style of menus to include MNS_CHECKORBMP.</p>
+<p>Changed: Load both small and large versions of custom tray icons to allow the correct icons to be shown in the appropriate places.</p>
+<p>Fixed: Loading of icons from executable files at sizes other than the system small/large.</p>
+
+<h2>Revision 16 - February 4, 2009</h2>
+<p>Fixed: Deleting a menu item partially deleted its associated sub-menu.</p>  
+
+<h2>Revision 15 - February 1, 2009</h2>
+<p>Fixed: SetFormat's presence in a *compiled* script was not disabling binary number write-caching. SetFormat should now work correctly in compiled scripts.</p>
+
+<h2>Revision 14 - February 1, 2009</h2>
+<p>Numerous bug-fixes and optimizations by Chris (pre-v1.0.48 beta).</p>
+<p>Added: Support for regex callouts and the auto-callout option 'C'.</p>
+<p>Changed: A_AhkVersion now includes the revision number. For instance, this is 1.0.47.07.L14.</p>
+<p>Fixed: HWND's/window ID's were sign-extended to 64-bit. For instance, 0xb482057e became 0xffffffffb482057e.</p>
+
+<h2>Revision 13 - November 29, 2008</h2>
+<p>Fixed: Invalid DllCall types were treated as INT in some build environments.</p>
+<p>Added: Workaround for GuiEscape issue when disabling focused control.</p>
+<p>Changed version info: InternalName, ProductName and FileDescription are now "AutoHotkey_L" instead of "AutoHotkey".</p>
+
+<h2>Revision 12 - September 6, 2008</h2>
+<p>Fixed: Potential access violation when using property_get on a built-in variable. -- DBGP</p>
+
+<h2>Revision 11 - September 5, 2008</h2>
+<p>Fixed: Remove checksum from AutoHotkeySC.bin via post-build script (AutoHotkey must be installed).</p>
+<p>Added: .L suffix to A_AhkVersion.</p>
+<p>Added: Preliminary support for DBGp (interactive debugging).</p>
+
+<h2>Revision 10 - August 2, 2008</h2>
+<p>Fixed: WheelLeft/WheelRight support, which was broken in revision 9.</p>
+
+<h2>Revision 9 - July 29, 2008</h2>
+<p>Fixed: Allow Break/Continue in While.</p>
+<p>Fixed: TrayTip in non-English Windows and possibly other side-effects of using Vista headers.</p>
+
+<h2>Revision 8 - July 27, 2008</h2>
+<p>Added: #IfTimeout directive to set the timeout for evaluation of #If expressions, in milliseconds. Default is 1000.</p>
+<p>Added: Assume-static mode for functions. "Static" must precede any local/global variable declarations.</p>
+<p>Added: One-true-brace support for While.</p>
+<p>Changed: While now sets A_Index to the iteration about to begin.</p>
+
+<h2>Revision 7 - July 26, 2008</h2>
+<p>Added: IsFunc(FuncName) - Returns a non-zero number if FuncName exists in the script or as a built-in function.</p>
+
+<h2>Revision 5 - July 19, 2008</h2>
+<p>Cleaned up obsolete references to test scripts.</p>
+<p>Added basic default test script.</p>
+
+<h2>Revision 4 - July 18, 2008</h2>
+<p>Added: #if (expression) - Similar to #IfWinActive, but for arbitrary expressions.</p>
+<p>Added: WheelLeft, WheelRight - Support for WM_MOUSEHWHEEL, which was introduced with Windows Vista. (Requires Vista.)</p>
+<p>Added: While, expression - Loop while a condition is true.</p>
+<p>Added: A_IsPaused - True if the underlying thread is paused.</p>
+<p>Added: A_IsCritical - True if the current thread has been marked uninterruptible by the "Critical" command.</p>
+<p>Changed: Allow any number of parameters to be passed in dynamic function calls.</p>
+<p>Fixed: Access Violation caused by WinGetClass and subclassed windows.</p>
+<p>Fixed: Access Violation caused by empty dynamic function references.</p>
 
 <p>&nbsp;</p>
 </div>
-<hr>
-<p>History from previous years can be found under <a href="AHKL_ChangeLogOld.htm">Ancient History</a>; detailed history at <a href="http://github.com/Lexikos/AutoHotkey_L/commits/master">github</a>.</p>
 </body>
 </html>
