@@ -231,12 +231,22 @@ else            <em>; Set for current user only.</em>
   <li>Inspect all variables or a specific variable.</li>
   <li>View the stack of running subroutines and functions.</li>
 </ul>
-<p>Use the <b>/Debug</b> switch when running the script to connect to a debugger client, enabling interactive debugging.</p>
+<p>Note that this functionality is disabled for compiled scripts.</p>
+<p>To enable interactive debugging, first launch a supported debugger client then launch the script with the <b>/Debug</b> command-line switch.</p>
 <pre class="Syntax">AutoHotkey.exe /Debug[=<i>SERVER</i>:<i>PORT</i>] ...</pre>
 <p><i>SERVER</i> and <i>PORT</i> may be omitted.  For example, the following are equivalent:</p>
 <pre>AutoHotkey /Debug "myscript.ahk"
 AutoHotkey /Debug=localhost:9000 "myscript.ahk"</pre>
-<p>Note that this functionality is disabled for compiled scripts.</p>
+<p id="debug_attach"><span class="ver">[AHK_L 59+]:</span> To attach the debugger to a script which is already running, send it a message as shown below:</p>
+<pre>ScriptPath = <em>; SET THIS TO THE FULL PATH OF THE SCRIPT</em>
+DetectHiddenWindows On
+ifWinExist %ScriptPath% ahk_class AutoHotkey
+    <em>; Optional parameters:
+    ;   wParam  = the IPv4 address of the debugger client, as a 32-bit integer.
+    ;   lParam  = the port which the debugger client is listening on.</em>
+    PostMessage DllCall("RegisterWindowMessage", "str", "AHK_ATTACH_DEBUGGER")
+</pre>
+<p>Once the debugger client is connected, it may detach without terminating the script by sending the "detach" DBGp command.</p>
 
 <h2 id="port">Portability of AutoHotkey.exe</h2>
 <p>The file AutoHotkey.exe is all that is needed to launch any .ahk script. The only exception is Windows NT4, which requires a copy of psapi.dll (from the AutoHotkey folder) for any script that uses the <a href="commands/Process.htm">Process command</a>.</p>
