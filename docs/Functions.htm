@@ -15,6 +15,7 @@
   <li><a href="#intro">Introduction and Simple Examples</a></li>
   <li><a href="#param">Parameters</a></li>
   <li><a href="#optional">Optional Parameters</a></li>
+  <li><a href="#Variadic">Variadic Functions</a></li>
   <li><a href="#Locals">Local Variables</a></li>
   <li><a href="#DynCall">Dynamically Calling a Function </a></li>
   <li><a href="#ShortCircuit">Short-circuit Boolean Evaluation</a></li>
@@ -54,9 +55,10 @@
 <p>By contrast, if <em>ByRef</em> were not used in the example above, <em>Left</em> and <em>Right</em> would be copies of the caller's variables and thus the Swap function would have no external effect.</p>
 <p>Since <a href="commands/Return.htm">return</a> can send back only one value to a function's caller, <em>ByRef</em> can be used to send back extra results. This is achieved by having the caller pass in a variable (usually empty) in which the function stores a value.</p>
 <p>When passing large strings to a function, <em>ByRef</em> enhances performance and conserves memory by avoiding the need to make a copy of the string. Similarly, using <em>ByRef</em> to send a long string back to the caller usually performs better than something like <code>Return HugeString</code>.</p>
+<p><span class="ver">[AHK_L 60+]:</span> If something other than a modifiable variable is passed to a ByRef parameter, the function behaves as though the keyword "ByRef" is absent. For example, <code>Swap(A_Index, i)</code> stores the value of <i>A_Index</i> in <i>i</i>, but the value assigned to <i>Left</i> is discarded once the <i>Swap</i> function returns.</p>
 <p>Known limitations:</p>
 <ul>
-  <li>It is not possible to pass <a href="misc/Clipboard.htm">Clipboard</a>, <a href="Variables.htm#BuiltIn">built-in variables</a>, or <a href="Variables.htm#env">environment variables</a> to a function's <em>ByRef</em> parameter, even when <a href="commands/_NoEnv.htm">#NoEnv</a> is absent from the script. Passing a built-in variable to a <em>ByRef</em> parameter causes an error dialog to be displayed.</li>
+  <li>It is not possible to pass <a href="misc/Clipboard.htm">Clipboard</a>, <a href="Variables.htm#BuiltIn">built-in variables</a>, or <a href="Variables.htm#env">environment variables</a> to a function's <em>ByRef</em> parameter, even when <a href="commands/_NoEnv.htm">#NoEnv</a> is absent from the script.</li>
   <li><a name="recurse"></a>Although a function may call itself recursively, if it passes one of its own <a href="#Locals">local variables</a> or non-ByRef parameters to itself <em>ByRef</em>, the new layer's <em>ByRef </em>parameter will refer to its own local variable of that name rather than the previous layer's. However, this issue does not occur when a function passes to itself a <a href="#Global">global variable</a>, <a href="#static">static variable</a>, or <em>ByRef</em> parameter.</li>
   <li>If a parameter in a function-call resolves to a variable (e.g. <code>Var</code> or <code>++Var</code> or <code>Var*=2</code>), other parameters to its left or right can alter that variable before it is passed to the function. For example, <code>func(Var, Var++)</code> would unexpectedly pass 1 and 0 when <em>Var</em> is initially 0, even when the function's first parameter is not <em>ByRef</em>. Since this behavior is counterintuitive, it might change in a future release.</li>
 </ul>
@@ -73,6 +75,47 @@ Func(X, Y=2, Z=0) {  <em>; Note that Z must still be optional in this case.</em>
 }</pre>
 <p><a name="OptionalByRef"></a>In v1.0.46.13+, <a href="#ByRef">ByRef parameters</a> also support default values; for example: <code>Func(ByRef p1 = &quot;&quot;)</code>. Whenever the caller omits such a parameter, the function creates a local variable to contain the default value; in other words, the function behaves as though the keyword &quot;ByRef&quot; is absent.</p>
 <p>A parameter's default value must be one of the following: true, false, a literal integer, a literal floating point number, or a quoted/literal string such as &quot;fox&quot; or &quot;&quot; (but strings in versions prior to 1.0.46.13+ support only &quot;&quot;).</p>
+<h2 id="Variadic">Variadic Functions <span class="ver">[AHK_L 60+]</span></h2>
+<p>When defining a function, write an asterisk after the final parameter to mark the function as variadic, allowing it to receive a variable number of parameters:</p>
+<pre>Join(sep, <b class="blue">params*</b>) {
+    for index,param in params
+        str .= param . sep
+    return SubStr(str, 1, -StrLen(sep))
+}
+MsgBox % Join("`n", "one", "two", "three")</pre>
+<p>When a variadic function is called, surplus parameters can be accessed via an object which is stored in the function's final parameter. The first surplus parameter is at <code><i>params</i>[1]</code>, the second at <code><i>params</i>[2]</code> and so on. As with any standard object, <code><i>params</i>.MaxIndex()</code> can be used to determine the highest numeric index (in this case the number of parameters). However, if there are no parameters, MaxIndex returns an empty string.</p>
+<p>Since a new object is created for the parameter list, the simplest variadic function allows convenient shorthand for creating an array:</p>
+<pre><em>; Three methods of creating an array:</em>
+arr := Object(1, x, 2, y, 3, z)
+arr := Object(), arr.Insert(1, x, y, z)
+arr := Array(x, y, z)
+
+Array(values*) {
+    return values
+}</pre>
+<p>Notes:</p>
+<ul>
+  <li>The "variadic" parameter can only appear at the end of the formal parameter list.</li>
+  <li><a href="misc/RegExCallout.htm">RegEx callouts</a> cannot be variadic; the "variadic" parameter is tolerated but left blank.</li>
+  <li><a href="commands/RegisterCallback.htm">Callbacks</a> pass surplus parameters <a href="commands/RegisterCallback.htm#Indirect">by address</a> rather than via an array.</li>
+</ul>
+<h3 id="VariadicCall">Variadic Function Calls</h3>
+<p>While variadic functions can <i>accept</i> a variable number of parameters, an array of parameters can be passed to <i>any</i> function or <a href="Objects.htm#SyntaxInvoke">object getter/setter</a> by applying the same syntax to a function-call:</p>
+<pre>substrings := Object(), substrings._Insert(1, "one", "two", "three")
+MsgBox % Join("`n", <b class="blue">substrings*</b>)</pre>
+<p>Notes:</p>
+<ul>
+  <li>Numbering of parameters within the source array begins at 1.</li>
+  <li>Optional parameters may be entirely omitted from the array.</li>
+  <li>Parameters within the array may be passed by number or by name.</li>
+  <li>The target function may also be variadic, in which case named items are copied even if they have no corresponding formal parameter.</li>
+</ul>
+<p>Known limitations:</p>
+<ul>
+  <li>Only the last physical parameter can be expanded this way. For example, <code>Func(x, y*)</code> is supported but <code>Func(x*, y)</code> is not.</li>
+  <li>There must not be any non-whitespace characters between the asterisk (<code>*</code>) and the symbol which ends the parameter list.</li>
+  <li>Object getters/setters/methods do not support named parameters.</li>
+</ul>
 <h2 id="Locals">Local and Global Variables </h2>
 <h3>Local Variables</h3>
 <p>All variables accessed or created inside a function are <em>local</em> by default (except built-in variables such as <a href="misc/Clipboard.htm">Clipboard</a>, <a href="misc/ErrorLevel.htm">ErrorLevel</a>, and <a href="Variables.htm#TimeIdle">A_TimeIdle</a>). Each local variable's contents are visible only to lines that lie inside the function. Consequently, a local variable may have the same name as a global variable and both will have separate contents. Finally, all local variables start off blank each time the function is called.</p>

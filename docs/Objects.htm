@@ -33,8 +33,9 @@
   <li>Ternary (<code>a ? b : c</code>): any of the operands may be objects.
   <li>When an expression is required to evaluate to true or false, objects are considered true.
   <li>Dot and brackets work as outlined in the next section.</li>
-  <li>Unsupported operators treat objects as empty strings.</li>
+  <li><code>Func(Params*)</code> requires <i>Params</i> to be an object.</li>
 </ul>
+<p>Unsupported operators treat objects as empty strings.</p>
 
 <h3 id="SyntaxInvoke">Invoking an Object</h3>
 <p>Two primary forms of syntax are available for invoking functionality of an object: <code>Object[Params]</code> and <code>Object.Param</code>.  In both cases, <code>Object</code> may be a variable or a more complex expression which evaluates to an object.  In each case, the actual result of the operation is defined by the object.  Typically a SET operation will return the value being stored if it is stored successfully.</p>
@@ -67,14 +68,14 @@
 
 
 <a name="Refs"></a><h2>Reference-Counting</h2>
-<p>Objects use a basic reference-counting mechanism to automatically deallocate the memory they occupy when no longer referenced by the script.  Scripts should not typically invoke this mechanism explicitly; it is invoked automatically as the script deals with objects.</p>
-<p>However, if a script obtains an unmanaged pointer to an object (for instance, via <code><a href="#AddressCast">Object(obj)</a></code>), the reference count may go out of sync, in which case Bad Things will happen. To prevent this, use the following functions as appropriate:</p>
+<p>Scripts internally use a basic reference-counting mechanism to automatically free the resources used by an object when it is no longer referenced by the script.  Script authors should not invoke this mechanism explicitly, except when dealing directly with unmanaged pointers to objects. For more information, see <a href="commands/ObjAddRef.htm">ObjAddRef</a>.</p>
 <pre><em>; Increment the object's reference count to "keep it alive":</em>
 <a href="commands/ObjAddRef.htm">ObjAddRef</a>(address)
 ...
 <em>; Decrement the object's reference count to allow it to be freed:</em>
 ObjRelease(address)
 </pre>
+<p>However, ObjAddRef does not need to be used when initially obtaining an address via <code><a href="#AddressCast">Object(obj)</a></code>.</p>
 <p>To run code when the last reference to an object is being released, implement the <a href="#Cleanup">__Delete</a> meta-function.</p>
 <p><b>Known Limitations:</b></p>
 <ul>
@@ -234,9 +235,7 @@ Color_Set(clr, name, val)
 <p>This behaviour can be used to bypass a meta-function, or for performance in cases where the base is not required for that particular key.</p>
 
 <p><b>Known limitations:</b></p>
-<ul><li><p>Each meta-function can accept only as many individual parameters as it defines; excess parameters are discarded.  Since the r-value of a <i>set</i> operation is treated as the final parameter, it is the first to be discarded if too many parameters are passed.</p>
-<p>Although a varying number of parameters can be handled by declaring some as optional, the actual number of available parameters can be determined only by comparing each parameter to its default value.  Consequently, a value must be reserved for this purpose.</p></li>
-<li><p>If <code>return</code> is used without parameters, it behaves the same as <code>return ""</code> and therefore cannot be used to "escape" from a meta-function.  For example:</p>
+<ul><li><p>If <code>return</code> is used without parameters, it behaves the same as <code>return ""</code> and therefore cannot be used to "escape" from a meta-function.  For example:</p>
 <pre><em>; Incorrect method:</em>
 x_Set(x, name, value)
 {

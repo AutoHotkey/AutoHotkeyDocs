@@ -49,6 +49,17 @@
 DllCall(&quot;lstrcpy&quot;, Str, MyString, UInt, MyParameter)  <em>; Copy the string into the script's MyString variable.</em>
 VarSetCapacity(MyString, -1)  <em>; Update the variable's internally-stored length to reflect its new contents.</em></span></pre>
 <p>If an incoming parameter is the address of a structure, the individual members may be extracted by following the steps at <a href="DllCall.htm#struct">DllCall structures</a>.</p>
+<p id="Indirect"><span class="ver">[AHK_L 60+]:</span> If the function is declared as <a href="../Functions.htm#Variadic">variadic</a>, its final parameter is assigned the <i>address</i> of the first callback parameter which was not assigned to a script parameter. For example:</p>
+<pre>callback := RegisterCallback("Func", "F", 1)  <em>; Parameter count must be specified.</em>
+Func("Func was called directly.")  <em>; Call Func directly.</em>
+DllCall(callback, float, 10.5)  <em>; Call Func via callback.</em>
+Func(params*) {
+    if IsObject(params)
+        MsgBox % params[1]
+    else
+        MsgBox % <a href="../Functions.htm#NumGet">NumGet</a>(params+0, 0, "float")
+}</pre>
+<p>Most callbacks use the <i>stdcall</i> calling convention, which requires a fixed number of parameters. In those cases, <i>ParamCount</i> must be specified when the callback is created. <i>ParamCount</i> may be omitted on 64-bit builds and for <i>Cdecl</i> callbacks on 32-bit builds - in such cases all optional parameters receive their default values and are ignored for the purpose of calculating the address to store in <i>params</i>.</p>
 <h3>What the Function Should <em>Return</em></h3>
 <p>If the function uses <a href="Return.htm">Return</a> without any parameters, or it specifies a blank value such as &quot;&quot; (or it never uses Return at all), 0 is returned to <em>Address</em>'s caller. Otherwise, the function should return an integer between -2147483648 and 4294967295, which is then returned to <em>Address</em>'s caller.</p>
 <h3 id="Threads">Fast vs. Slow</h3>
