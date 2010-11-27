@@ -44,10 +44,8 @@
 <p>All incoming parameters are integers between 0 and 4294967295. If an incoming parameter is intended to be a signed integer, any negative numbers can be revealed by following this example:</p>
 <pre>if wParam &gt; 0x7FFFFFFF
     wParam := -(~wParam) - 1</pre>
-<p>If an incoming parameter is intended by its caller to be a string, that string may be retrieved by copying it into a variable. For example:</p>
-<pre><span class="NoIndent">VarSetCapacity(MyString, DllCall(&quot;lstrlen&quot;, UInt, MyParameter))  </span><em>; Unnecessary if MyString is already big enough.</em><span class="NoIndent">
-DllCall(&quot;lstrcpy&quot;, Str, MyString, UInt, MyParameter)  <em>; Copy the string into the script's MyString variable.</em>
-VarSetCapacity(MyString, -1)  <em>; Update the variable's internally-stored length to reflect its new contents.</em></span></pre>
+<p>If an incoming parameter is intended by its caller to be a string, what it actually receives is the address of the string. To retrieve the string itself, use <a href="StrPutGet.htm">StrGet</a>:</p>
+<pre>MyString := StrGet(MyParameter)  <em>; AHK_L 46+</em></pre>
 <p>If an incoming parameter is the address of a structure, the individual members may be extracted by following the steps at <a href="DllCall.htm#struct">DllCall structures</a>.</p>
 <p id="Indirect"><span class="ver">[AHK_L 60+]:</span> If the function is declared as <a href="../Functions.htm#Variadic">variadic</a>, its final parameter is assigned the <i>address</i> of the first callback parameter which was not assigned to a script parameter. For example:</p>
 <pre>callback := RegisterCallback("Func", "F", 1)  <em>; Parameter count must be specified.</em>
@@ -122,7 +120,7 @@ WindowProc(hwnd, uMsg, wParam, lParam)
         return TextBackgroundBrush  <em>; Return the HBRUSH to notify the OS that we altered the HDC.</em>
     }
     <em>; Otherwise (since above didn't return), pass all unhandled events to the original WindowProc.</em>
-    return DllCall(&quot;CallWindowProcA&quot;, UInt, WindowProcOld, UInt, hwnd, UInt, uMsg, UInt, wParam, UInt, lParam)
+    return DllCall(&quot;CallWindowProc&quot;, UInt, WindowProcOld, UInt, hwnd, UInt, uMsg, UInt, wParam, UInt, lParam)
 }
 
 GuiClose:
