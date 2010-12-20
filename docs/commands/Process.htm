@@ -104,44 +104,60 @@ else
     MsgBox Error: Its priority could not be changed to &quot;%MyListBox%&quot;.
 return</pre>
 <p>&nbsp;</p>
-<pre class="NoIndent"><a name="ListEx"></a><em>; Example #4: Retrieves a list of running processes via <a href="DllCall.htm">DllCall</a> then shows them in a MsgBox.</em>
+<pre class="NoIndent" id="ListEx"><em>; Example #4: Retrieves a list of running processes via DllCall then shows them in a MsgBox.</em>
 
-d = `n  <em>; string separator</em>
+d := "  |  "  <em>; string separator</em>
 s := 4096  <em>; size of buffers and arrays (4 KB)</em>
 
-Process, Exist  <em>; sets ErrorLevel to the PID of this running script
-; Get the handle of this script with PROCESS_QUERY_INFORMATION (0x0400)</em>
-h := DllCall(&quot;OpenProcess&quot;, &quot;UInt&quot;, 0x0400, &quot;Int&quot;, false, &quot;UInt&quot;, ErrorLevel)
+Process, Exist  <em>; sets ErrorLevel to the PID of this running script</em>
+<em>; Get the handle of this script with PROCESS_QUERY_INFORMATION (0x0400)</em>
+h := DllCall("OpenProcess", "UInt", 0x0400, "Int", false, "UInt", ErrorLevel, "Ptr")
 <em>; Open an adjustable access token with this process (TOKEN_ADJUST_PRIVILEGES = 32)</em>
-DllCall(&quot;Advapi32.dll\OpenProcessToken&quot;, &quot;UInt&quot;, h, &quot;UInt&quot;, 32, &quot;UIntP&quot;, t)
+DllCall("Advapi32.dll\OpenProcessToken", "Ptr", h, "UInt", 32, "PtrP", t)
 VarSetCapacity(ti, 16, 0)  <em>; structure of privileges</em>
-NumPut(1, ti, 0)  <em>; one entry in the privileges array...
-; Retrieves the locally unique identifier of the debug privilege:</em>
-DllCall(&quot;Advapi32.dll\LookupPrivilegeValue&quot;, &quot;UInt&quot;, 0, &quot;Str&quot;, &quot;SeDebugPrivilege&quot;, &quot;Int64P&quot;, luid)
-NumPut(luid, ti, 4, &quot;int64&quot;)
-NumPut(2, ti, 12)  <em>; enable this privilege: SE_PRIVILEGE_ENABLED = 2
-; Update the privileges of this process with the new access token:</em>
-DllCall(&quot;Advapi32.dll\AdjustTokenPrivileges&quot;, &quot;UInt&quot;, t, &quot;Int&quot;, false, &quot;UInt&quot;, &amp;ti, &quot;UInt&quot;, 0, &quot;UInt&quot;, 0, &quot;UInt&quot;, 0)
-DllCall(&quot;CloseHandle&quot;, &quot;UInt&quot;, h)  <em>; close this process handle to save memory</em>
+NumPut(1, ti, 0, "UInt")  <em>; one entry in the privileges array...</em>
+<em>; Retrieves the locally unique identifier of the debug privilege:</em>
+DllCall("Advapi32.dll\LookupPrivilegeValue", "Ptr", 0, "Str", "SeDebugPrivilege", "Int64P", luid)
+NumPut(luid, ti, 4, "Int64")
+NumPut(2, ti, 12, "UInt")  <em>; enable this privilege: SE_PRIVILEGE_ENABLED = 2</em>
+<em>; Update the privileges of this process with the new access token:</em>
+r := DllCall("Advapi32.dll\AdjustTokenPrivileges", "Ptr", t, "Int", false, "Ptr", &ti, "UInt", 0, "Ptr", 0, "Ptr", 0)
+DllCall("CloseHandle", "Ptr", t)  <em>; close this access token handle to save memory</em>
+DllCall("CloseHandle", "Ptr", h)  <em>; close this process handle to save memory</em>
 
-hModule := DllCall(&quot;LoadLibrary&quot;, &quot;Str&quot;, &quot;Psapi.dll&quot;)  <em>; increase performance by preloading the libaray</em>
+hModule := DllCall("LoadLibrary", "Str", "Psapi.dll")  <em>; increase performance by preloading the library</em>
 s := VarSetCapacity(a, s)  <em>; an array that receives the list of process identifiers:</em>
 c := 0  <em>; counter for process idendifiers</em>
-DllCall(&quot;Psapi.dll\EnumProcesses&quot;, &quot;UInt&quot;, &amp;a, &quot;UInt&quot;, s, &quot;UIntP&quot;, r)
+DllCall("Psapi.dll\EnumProcesses", "Ptr", &a, "UInt", s, "UIntP", r)
 Loop, % r // 4  <em>; parse array for identifiers as DWORDs (32 bits):</em>
 {
-   id := NumGet(a, A_Index * 4)
+   id := NumGet(a, A_Index * 4, "UInt")
    <em>; Open process with: PROCESS_VM_READ (0x0010) | PROCESS_QUERY_INFORMATION (0x0400)</em>
-   h := DllCall(&quot;OpenProcess&quot;, &quot;UInt&quot;, 0x0010 | 0x0400, &quot;Int&quot;, false, &quot;UInt&quot;, id)
+   h := DllCall("OpenProcess", "UInt", 0x0010 | 0x0400, "Int", false, "UInt", id, "Ptr")
+   if !h
+      continue
    VarSetCapacity(n, s, 0)  <em>; a buffer that receives the base name of the module:</em>
-   e := DllCall(&quot;Psapi.dll\GetModuleBaseName&quot;, &quot;UInt&quot;, h, &quot;UInt&quot;, 0, &quot;Str&quot;, n, &quot;UInt&quot;, s)
-   DllCall(&quot;CloseHandle&quot;, &quot;UInt&quot;, h)  <em>; close process handle to save memory</em>
-   if (n &amp;&amp; e)  <em>; if image is not null add to list:</em>
+   e := DllCall("Psapi.dll\GetModuleBaseName", "Ptr", h, "Ptr", 0, "Str", n, "UInt", A_IsUnicode ? s//2 : s)
+   if !e    <em>; fall-back method for 64-bit processes when in 32-bit mode:</em>
+      if e := DllCall("Psapi.dll\GetProcessImageFileName", "Ptr", h, "Str", n, "UInt", A_IsUnicode ? s//2 : s)
+         SplitPath n, n
+   DllCall("CloseHandle", "Ptr", h)  <em>; close process handle to save memory</em>
+   if (n && e)  <em>; if image is not null add to list:</em>
       l .= n . d, c++
 }
-DllCall(&quot;FreeLibrary&quot;, &quot;UInt&quot;, hModule)  <em>; unload the library to free memory
-;Sort, l, C  ; uncomment this line to sort the list alphabetically</em>
+DllCall("FreeLibrary", "Ptr", hModule)  <em>; unload the library to free memory</em>
+<em>;Sort, l, C  ; uncomment this line to sort the list alphabetically</em>
 MsgBox, 0, %c% Processes, %l%</pre>
+<p>&nbsp;</p>
+<pre class="NoIndent" id="ListCom"><em>; Example #5: Retrieves a list of running processes via COM.</em>
+
+Gui, Add, ListView, x2 y0 w400 h500, Process Name|Command Line
+for process in ComObjGet("winmgmts:").ExecQuery("Select * from Win32_Process")
+    LV_Add("", process.Name, process.CommandLine)
+Gui, Show,, Process List
+
+<em>; Win32_Process: <a href="http://msdn.microsoft.com/en-us/library/aa394372.aspx">http://msdn.microsoft.com/en-us/library/aa394372.aspx</a></em>
+</pre>
 
 </body>
 </html>
