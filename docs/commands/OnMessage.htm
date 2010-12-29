@@ -153,16 +153,9 @@ return
 Receive_WM_COPYDATA(wParam, lParam)
 {
     StringAddress := NumGet(lParam + 8)  <em>; lParam+8 is the address of CopyDataStruct's lpData member.</em>
-    StringLength := DllCall(&quot;lstrlen&quot;, UInt, StringAddress)
-    if StringLength &lt;= 0
-        ToolTip %A_ScriptName%`nA blank string was received or there was an error.
-    else
-    {
-        VarSetCapacity(CopyOfData, StringLength)
-        DllCall(&quot;lstrcpy&quot;, &quot;str&quot;, CopyOfData, &quot;uint&quot;, StringAddress)  <em>; Copy the string out of the structure.</em>
-        <em>; Show it with ToolTip vs. MsgBox so we can return in a timely fashion:</em>
-        ToolTip %A_ScriptName%`nReceived the following string:`n%CopyOfData%
-    }
+    CopyOfData := StrGet(StringAddress)  <em>; Copy the string out of the structure.</em>
+    <em>; Show it with ToolTip vs. MsgBox so we can return in a timely fashion:</em>
+    ToolTip %A_ScriptName%`nReceived the following string:`n%CopyOfData%
     return true  <em>; Returning 1 (true) is the traditional way to acknowledge this message.</em>
 }
 
@@ -184,10 +177,11 @@ Send_WM_COPYDATA(ByRef StringToSend, ByRef TargetScriptTitle)  <em>; ByRef saves
 ; This function sends the specified string to the specified window and returns the reply.
 ; The reply is 1 if the target window processed the message, or 0 if it ignored it.</em>
 {
-    VarSetCapacity(CopyDataStruct, 12, 0)  <em>; Set up the structure's memory area.</em>
+    VarSetCapacity(CopyDataStruct, 3*A_PtrSize, 0)  <em>; Set up the structure's memory area.</em>
     <em>; First set the structure's cbData member to the size of the string, including its zero terminator:</em>
-    NumPut(StrLen(StringToSend) + 1, CopyDataStruct, 4)  <em>; OS requires that this be done.</em>
-    NumPut(&amp;StringToSend, CopyDataStruct, 8)  <em>; Set lpData to point to the string itself.</em>
+    SizeInBytes := (StrLen(StringToSend) + 1) * (A_IsUnicode ? 2 : 1)
+    NumPut(SizeInBytes, CopyDataStruct, A_PtrSize)  <em>; OS requires that this be done.</em>
+    NumPut(&amp;StringToSend, CopyDataStruct, 2*A_PtrSize)  <em>; Set lpData to point to the string itself.</em>
     Prev_DetectHiddenWindows := A_DetectHiddenWindows
     Prev_TitleMatchMode := A_TitleMatchMode
     DetectHiddenWindows On

@@ -18,8 +18,85 @@
 <h2>Fundamentals</h2>
 <p><strong>Match anywhere</strong>: By default, a regular expression matches a substring <em>anywhere</em> inside the string to be searched. For example, the regular expression <span class="regex">abc</span> matches <span class="subj">abc</span>123, 123<span class="subj">abc</span>, and 123<span class="subj">abc</span>xyz. To require the match to occur only at the beginning or end, use an <a href="#anchor">anchor</a>.</p>
 <p><strong>Escaped characters</strong>: Most characters like abc123 can be used literally inside a regular expression. However, the characters <strong>\.*?+[{|()^$</strong> must be preceded by a backslash to be seen as literal. For example, <span class="regex">\.</span> is a literal period and <span class="regex">\\</span> is a literal backslash. Escaping can be avoided by using \Q...\E. For example: \QLiteral Text\E.</p>
-<p><strong>Case-sensitive</strong>: By default, regular expressions are case-sensitive. This can be changed via the &quot;i&quot; option. For example, the pattern <span class="regex">i)abc</span> searches for &quot;abc&quot; without regard to case. See <a href="../commands/RegExMatch.htm#Options">options</a> for other modifiers.</p>
-<h2>Commonly Used Symbols and Syntax </h2>
+<p><strong>Case-sensitive</strong>: By default, regular expressions are case-sensitive. This can be changed via the &quot;i&quot; option. For example, the pattern <span class="regex">i)abc</span> searches for &quot;abc&quot; without regard to case. See below for other modifiers.</p>
+
+<h2 id="Options">Options (case sensitive)</h2>
+<p>At the very beginning of a regular expression, specify zero or more of the following options followed by a close-parenthesis. For example, the pattern &quot;<span class="red">im)</span>abc&quot; would search for <em>abc</em> with the case-insensitive and multiline options (the parenthesis may be omitted when there are no options). Although this syntax breaks from tradition, it requires no special delimiters (such as forward-slash), and thus there is no need to escape such delimiters inside the pattern. In addition, performance is improved because the options are easier to parse.</p>
+<table class="info">
+  <tr>
+    <td><strong>i</strong></td>
+    <td>Case-insensitive matching, which treats the letters A through Z as identical to their lowercase counterparts. </td>
+  </tr>
+  <tr>
+    <td><strong>m</strong></td>
+    <td><p><a name="Multiline"></a>Multiline. Views <em>Haystack</em> as a collection of individual lines (if it contains newlines) rather than as a single continuous line. Specifically, it changes the following:</p>
+      <p>1) Circumflex (^) matches immediately after all internal newlines -- as well as at the start of <em>Haystack</em> where it always matches (but it does not match after a newline <em>at the very end</em> of <em>Haystack</em>).</p>
+      <p>2) Dollar-sign ($) matches before any newlines in <em>Haystack</em> (as well as at the very end where it always matches).</p>
+      <p>For example, the pattern &quot;<span class="red">m)</span>^abc$&quot; would not match the <em>Haystack</em>&quot;xyz`r`nabc&quot; unless the &quot;m&quot; option is present.</p>
+      <p>The &quot;D&quot; option is ignored when &quot;m&quot; is present.</p></td>
+  </tr>
+  <tr>
+    <td><strong>s</strong></td>
+    <td>DotAll. This causes a period (.) to match all characters including newlines (normally, it does not match newlines). However, when the newline character is at its default of CRLF (`r`n), two dots are required to match it (not one). Regardless of this option, a negative class such as [^a] always matches newlines.</td>
+  </tr>
+  <tr>
+    <td><strong>x</strong></td>
+    <td>Ignores whitespace characters in the pattern except when escaped or inside a character class. The characters `n and `t are among those ignored because by the time they get to PCRE, they are already raw/literal whitespace characters (by contrast, \n and \t are not ignored because they are PCRE escape sequences). The <strong>x</strong> option also ignores characters between a non-escaped # outside a character class and the next newline character, inclusive. This makes it possible to include comments inside complicated patterns. However, this applies only to data characters; whitespace may never appear within special character sequences such as (?(, which begins a conditional subpattern.</td>
+  </tr>
+  <tr>
+    <td><strong>A</strong></td>
+    <td>Forces the pattern to be anchored; that is, it can match only at the start of <em>Haystack</em>. Under most conditions, this is equivalent to explicitly anchoring the pattern by means such as &quot;^&quot;.</td>
+  </tr>
+  <tr>
+    <td><strong>D</strong></td>
+    <td>Forces dollar-sign ($) to match at the very end of <em>Haystack</em>, even if <em>Haystack</em>'s last item is a newline. Without this option, $ instead matches right before the final newline (if there is one). Note: This option is ignored when the &quot;m&quot; option is present.</td>
+  </tr>
+  <tr>
+    <td><strong>J</strong></td>
+    <td>Allows duplicate <a href="../commands/RegExMatch.htm#NamedSubPat">named subpatterns</a>. 
+
+
+ This can be useful for patterns in which only one of a collection of identically-named subpatterns can match. Note: If more than one instance of a particular name matches something, only the leftmost one is stored. Also, variable names are not case-sensitive.</td>
+  </tr>
+  <tr>
+    <td><strong>U</strong></td>
+    <td>Ungreedy. 
+
+
+ Makes the quantifiers *+?{} consume only those characters absolutely necessary to form a match, leaving the remaining ones available for the next part of the pattern. When the &quot;U&quot; option is not in effect, an individual quantifier can be made non-greedy by following it with a question mark. Conversely, when &quot;U&quot; <em>is</em> in effect, the question mark makes an individual quantifier greedy.</td>
+  </tr>
+  <tr>
+    <td><strong>X</strong></td>
+    <td> PCRE_EXTRA. Enables PCRE features that are incompatible with Perl. Currently, the only such feature is that any backslash in a pattern that is followed by a letter that has no special meaning causes the match to fail and ErrorLevel to be set accordingly. This option helps reserve unused backslash sequences for future use. Without this option, a backslash followed by a letter with no special meaning is treated as a literal (e.g. \g and g are both recognized as a literal g). Regardless of this option, non-alphabetic backslash sequences that have no special meaning are always treated as literals (e.g. \/ and / are both recognized as forward-slash). </td>
+  </tr>
+  <tr>
+    <td><strong>P</strong></td>
+    <td>Position mode. This causes RegExMatch() to yield the position and length of the match and its subpatterns rather than their matching substrings. For details, see <a href="../commands/RegExMatch.htm#PosMode">UnquotedOutputVar</a>.</td>
+  </tr>
+  <tr>
+    <td><strong>S</strong></td>
+    <td><a name="Study"></a>Studies the pattern to try improve its performance. This is useful when a particular pattern (especially a complex one) will be executed many times. If PCRE finds a way to improve performance, that discovery is stored alongside the pattern in the cache for use by subsequent executions of the same pattern (subsequent uses of that pattern should also specify the S option because finding a match in the cache requires that the option letters exactly match, including their order).</td>
+  </tr>
+  <tr>
+    <td><strong>C</strong></td>
+    <td>Enables the auto-callout mode. See <a href="../misc/RegExCallout.htm#auto">Regular Expression Callouts</a> for more info.</td>
+  </tr>
+  <tr>
+    <td><strong>`n</strong></td>
+    <td>Switches from the default newline character (`r`n) to a solitary linefeed (`n), which is the standard on UNIX systems. The chosen newline character affects the behavior of <a href="../misc/RegEx-QuickRef.htm#anchor">anchors (^ and $)</a> and the <a href="../misc/RegEx-QuickRef.htm#dot">dot/period pattern</a>.</td>
+  </tr>
+  <tr>
+    <td><strong>`r</strong></td>
+    <td>Switches from the default newline character (`r`n) to a solitary carriage return (`r).</td>
+  </tr>
+  <tr>
+    <td><strong>`a</strong></td>
+    <td><a name="NEWLINE_ANY"></a>In v1.0.46.06+, `a recognizes any type of newline, namely `r, `n, `r`n, `v/VT/vertical tab/chr(0xB), `f/FF/formfeed/chr(0xC), and NEL/next-line/chr(0x85). In v1.0.47.05+, newlines can be restricted to only CR, LF, and CRLF by instead specifying (*ANYCRLF) in uppercase at the beginning of the pattern (after the options); e.g. <em>im)(*ANYCRLF)^abc$</em></td>
+  </tr>
+</table>
+<p>Note: Spaces and tabs may optionally be used to separate each option from the next.</p>
+
+<h2 id="Common">Commonly Used Symbols and Syntax </h2>
 <table class="info">
 	<tr>
 		<td align="center"><strong>.</strong></td>
@@ -73,7 +150,7 @@
 	    <p><span class="regex">^</span> may appear at the beginning of a pattern to require the match to occur at the very beginning of a line. For example, <span class="regex">^abc</span> matches <span class="subj">abc</span>123 but not 123abc.</p>
 	    <p><span class="regex">$</span> may appear at the end of a pattern to require the match to occur at the very end of a line. For example, <span class="regex">abc$</span> matches 123<span class="subj">abc</span> but not abc123.</p>
       <p>The two anchors may be combined. For example, <span class="regex">^abc$</span> matches only <span class="subj">abc</span> (i.e. there must be no other characters before or after it).</p>
-      <p>If the text being searched contains multiple lines, the anchors can be made to apply to each line rather than the text as a whole by means of the <a href="../commands/RegExMatch.htm#Multiline">&quot;m&quot; option</a>. For example, <span class="regex">m)^abc$</span> matches 123`r`n<span class="subj">abc</span>`r`n789. But without the &quot;m&quot; option, it wouldn't match.</p></td>
+      <p>If the text being searched contains multiple lines, the anchors can be made to apply to each line rather than the text as a whole by means of the <a href="#Multiline">&quot;m&quot; option</a>. For example, <span class="regex">m)^abc$</span> matches 123`r`n<span class="subj">abc</span>`r`n789. But without the &quot;m&quot; option, it wouldn't match.</p></td>
   </tr>
 	<tr>
 	  <td align="center"><strong>\b</strong></td>
@@ -90,7 +167,7 @@
 	      <li>Determine the order of evaluation. For example, <span class="regex">(Sun|Mon|Tues|Wednes|Thurs|Fri|Satur)day</span> matches the name of any day.</li>
 	      <li>Apply <span class="regex">*</span>, <span class="regex">?</span>, <span class="regex">+</span>, or <span class="regex">{min,max}</span> to a <em>series</em> of characters rather than just one. For example, <span class="regex">(abc)+</span> matches one or more occurrences of the string &quot;abc&quot;; thus it matches <span class="subj">abcabc</span>123 but not ab123 or bc123.</li>
           <li><a name="capture"></a>Capture a subpattern such as the dot-star in <span class="regex">abc<span class="red">(.*)</span>xyz</span>. For example, <a href="../commands/RegExMatch.htm">RegExMatch()</a> stores the substring that matches each subpattern in its <a href="../commands/RegExMatch.htm#Array">output array</a>. Similarly, <a href="../commands/RegExReplace.htm">RegExReplace()</a> allows the substring that matches each subpattern to be reinserted into the result via <a href="../commands/RegExReplace.htm#BackRef">backreferences</a> like $1. To use the parentheses without the side-effect of capturing a subpattern, specify <span class="regex">?:</span> as the first two characters inside the parentheses; for example: <span class="regex">(<span class="red">?:</span>.*)</span></li>
-	      <li>Change <a href="../commands/RegExMatch.htm#Options">options</a> on-the-fly. For example, <span class="regex">(?im)</span> turns on the case-insensitive and multiline options for the remainder of the pattern (or subpattern if it occurs inside a subpattern). Conversely, <span class="regex">(?-im)</span> would turn them both off. All options are supported except DPS`r`n`a.</li>
+	      <li>Change <a href="#Options">options</a> on-the-fly. For example, <span class="regex">(?im)</span> turns on the case-insensitive and multiline options for the remainder of the pattern (or subpattern if it occurs inside a subpattern). Conversely, <span class="regex">(?-im)</span> would turn them both off. All options are supported except DPS`r`n`a.</li>
 	    </ul></td>
   </tr>
 	<tr>
