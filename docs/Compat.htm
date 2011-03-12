@@ -10,14 +10,17 @@
 
 <h1>Script Compatibility</h1>
 
-<p>As of revision 42, AutoHotkey_L includes Unicode support via separate ANSI and Unicode builds.  Scripts written for ANSI builds (or mainstream AutoHotkey) face a number of compatibility issues with Unicode builds.</p>
-<p>Other known incompatibilities with mainstream AutoHotkey are documented <a href="#Other">below</a>.</p>
+<p>Due to some fundamental differences between AutoHotkey Basic and AutoHotkey_L (particularly Unicode and x64 builds), scripts written for AutoHotkey Basic may not work as expected on AutoHotkey_L. This document outlines known compatibility problems and solutions.</p>
 
-<h2 id="Format">Native String Format</h2>
+<h2 id="Format">Unicode vs ANSI</h2>
+<p>All in-memory strings expected or returned by the built-in commands, functions and operators have a particular binary format, referred to as the <i>native format</i>. What this format is depends on which version of AutoHotkey you are using: <i>Unicode</i> or <i>ANSI</i>. Scripts designed with one particular format in mind will often encounter problems when run on the wrong version of AutoHotkey. If you aren't sure which version you're using, run the following script:</p>
 <pre>MsgBox % A_IsUnicode ? "Unicode" : "ANSI"</pre>
-<p><b>Unicode:</b> Strings are stored in <a href="http://en.wikipedia.org/wiki/UTF-16">UTF-16</a> format.  Each character consumes a multiple of two bytes in this format, so care must be taken when <a href="commands/DllCall.htm">DllCall</a>, <a href="commands/VarSetCapacity.htm">VarSetCapacity</a>, <a href="Functions.htm#NumPut">NumPut</a> or <a href="Functions.htm#NumGet">NumGet</a> are used with strings.</p>
-<p><b>ANSI:</b> Strings are stored in the system default ANSI code page, as in mainstream AutoHotkey.  Each character consumes one or more bytes in this format.</p>
-<p>Note that in either case, some characters may be represented with multiple 8-bit or 16-bit values, but for performance and simplicity these are typically treated as a <i>sequence</i> of characters.  For convenience, the rest of this document considers a "character" to be a single 8-bit or 16-bit value, depending on whether the string is UTF-16.</p>
+<p><b>ANSI:</b> Strings are stored in the system default ANSI code page, as in AutoHotkey Basic.  Each character is one byte (8 bits).</p>
+<p><b>Unicode:</b> Strings are stored in <a href="http://en.wikipedia.org/wiki/UTF-16">UTF-16</a> format, where each character is two bytes (16 bits).</p>
+<p>Technically, some Unicode characters are represented by <i>two</i> 16-bit code units, collectively known as a "surrogate pair." Similarly, some <a href="http://msdn.microsoft.com/en-us/library/dd317752.aspx">ANSI code pages</a> (commonly known as <a href="http://msdn.microsoft.com/en-us/library/dd317794.aspx">Double Byte Character Sets</a>) contain some double-byte characters. However, these are typically treated as two individual "characters" for convenience and practicality.</p>
+
+<h3>Script Files</h3>
+<p>Note that although each version of AutoHotkey only supports one specific format for strings in memory, a number of different encodings may be used for script source files. If a script contains non-ASCII characters in the wrong encoding, they will be loaded incorrectly. Ahk2Exe and Unicode versions of AutoHotkey_L expect <a href="http://en.wikipedia.org/wiki/UTF-8">UTF-8</a> by default, whereas scripts running on an ANSI version expect ANSI. For more information, see <a href="http://www.autohotkey.net/~Lexikos/AutoHotkey_L/docs/Scripts.htm#cp">Script File Codepage</a>.</p>
 
 <h3 id="VarSetCapacity">VarSetCapacity</h3>
 <p>VarSetCapacity sets the capacity of a var <i>in bytes</i>.  Since the size of a character varies depending on the string format, some calculation may be necessary:</p>
@@ -44,8 +47,8 @@ VarSetCapacity(native_var, t_size(size_in_chars))  <em>; see <a href="#NumPutGet
   <li>If both Unicode (W) and ANSI (A) versions of the function are available, call the appropriate one for the current build.  In the following example, "DeleteFile" is internally known as "DeleteFileA" or "DeleteFileW".  Since "DeleteFile" itself doesn't really exist, DllCall automatically tries "A" or "W" as appropriate for the current build:
   <pre>DllCall("DeleteFile", "Ptr", &filename)
 DllCall("DeleteFile", "Str", filename)</pre>
-  <p>In this example, <code>&amp;filename</code> passes the address of the string exactly as-is, so the function must expect a string in the same format as the "Str" type. Note that "UInt" must be used in place of "Ptr" in mainstream AutoHotkey, but the resulting code may not be 64-bit compatible.
-  <p><b>Note:</b> If the function cannot be found exactly as specified, AutoHotkey_L appends the "A" or "W" suffix regardless of which DLL is specified.  However, mainstream AutoHotkey appends the "A" suffix only for functions in User32.dll, Kernel32.dll, ComCtl32.dll, or Gdi32.dll.</p></li>
+  <p>In this example, <code>&amp;filename</code> passes the address of the string exactly as-is, so the function must expect a string in the same format as the "Str" type. Note that "UInt" must be used in place of "Ptr" in AutoHotkey Basic, but the resulting code may not be 64-bit compatible.
+  <p><b>Note:</b> If the function cannot be found exactly as specified, AutoHotkey_L appends the "A" or "W" suffix regardless of which DLL is specified.  However, AutoHotkey Basic appends the "A" suffix only for functions in User32.dll, Kernel32.dll, ComCtl32.dll, or Gdi32.dll.</p></li>
   <li>If the function only accepts a specific type of string as input, the script may use the appropriate string type:</li>
   <pre>DllCall("DeleteFileA", "AStr", filename)
 DllCall("DeleteFileW", "WStr", filename)</pre>
@@ -72,7 +75,7 @@ t_size(char_count=1) {
 }</pre>
 
 <h2 id="ptr">Pointer Size</h2>
-<p>Pointers are 4 bytes in 32-bit builds (including mainstream AutoHotkey) and 8 bytes in 64-bit builds. Scripts using structures or DllCalls may need to account for this to run correctly on both platforms. Specific areas which are affected include:</p>
+<p>Pointers are 4 bytes in 32-bit builds (including AutoHotkey Basic) and 8 bytes in 64-bit builds. Scripts using structures or DllCalls may need to account for this to run correctly on both platforms. Specific areas which are affected include:</p>
 <ul>
   <li>Offset calculation for fields in structures which contain one or more pointers.</li>
   <li>Size calculation for structures containing one or more pointers.</li>
@@ -105,12 +108,12 @@ dwProcessId := NumGet(pi, A_PtrSize*2 + 4, "UInt")
 <p>Characters [ ] and ? are no longer valid in variable names.  Consequently, ? (used in ternary operations) no longer requires a space on either side.  See also <a href="Objects.htm#Syntax">object syntax</a>.</p>
 
 <h3 id="Validation">Syntax Validation</h3>
-<p>Command names must be terminated with a space, tab or comma.  Unlike in mainstream AutoHotkey, none of the following characters bypass this requirement: <code>&lt;&gt;:+-*/!~&|^[]</code>. As a consequence, syntax errors such as <code>MsgBox< foo</code> and <code>If!foo</code> are caught at load-time, not interpreted as <code>MsgBox,< foo</code> or <code>If !foo</code>.</p>
+<p>Command names must be terminated with a space, tab or comma.  Unlike in AutoHotkey Basic, none of the following characters bypass this requirement: <code>&lt;&gt;:+-*/!~&|^[]</code>. As a consequence, syntax errors such as <code>MsgBox< foo</code> and <code>If!foo</code> are caught at load-time, not interpreted as <code>MsgBox,< foo</code> or <code>If !foo</code>.</p>
 
 <h3 id="Transform">Transform</h3>
 <p>Some <i>Transform</i> sub-commands have changed in the <b>Unicode</b> build:</p>
 <ul>
-  <li><span class="Syntax">Unicode</span> is unavailable. Use <a href="commands/StrPutGet.htm">StrPut/StrGet</a> instead.</li>
+  <li><span class="Syntax">Unicode</span> is unavailable. To assign Unicode text to the clipboard, use a regular assignment. See also: <a href="commands/StrPutGet.htm">StrPut/StrGet</a>.</li>
   <li><span class="Syntax">HTML</span> supports <a href="commands/Transform.htm#HTML">additional features</a>.</li>
 </ul>
 
@@ -121,8 +124,11 @@ dwProcessId := NumGet(pi, A_PtrSize*2 + 4, "UInt")
 <h3 id="FileRead">FileRead</h3>
 <p><a href="commands/FileRead.htm#Binary">FileRead</a> translates text between code pages in certain common cases and therefore might output corrupt binary data.</p>
 
+<h3 id="ControlZ">Control-Z</h3>
+<p><a href="commands/LoopReadFile.htm">Loop Read</a> and <a href="commands/FileReadLine.htm">FileReadLine</a> do not interpret the character Control-Z (0x1A) as an end-of-file marker. Thus any Control-Z, even one appearing at the very end of the file, is loaded as-is. <a href="commands/FileRead.htm">FileRead</a> already behaved this way.</p>
+
 <h3 id="SetFormat">SetFormat, Integer[Fast], H</h3>
-<p>When an uppercase H is used, hexadecimal digits A-F will also be in uppercase.  This contrasts with mainstream AutoHotkey, which always uses lowercase digits. See <a href="commands/SetFormat.htm">SetFormat</a>.</p>
+<p>When an uppercase H is used, hexadecimal digits A-F will also be in uppercase.  This contrasts with AutoHotkey Basic, which always uses lowercase digits. See <a href="commands/SetFormat.htm">SetFormat</a>.</p>
 
 <h3>Compatibility Mode</h3>
 <p>If <a href="http://www.microsoft.com/windowsxp/using/helpandsupport/learnmore/appcompat.mspx#ECD">Compatibility mode</a> is set to Windows 95, 98/ME or NT4 in the properties of the EXE file used to run the script, the script may not behave correctly.  This is because compatibility mode causes a specific version of Windows to be reported to the application, but the pre-built binaries exclude support for these versions.  For example, setting compatibility mode to Windows 95 or 98/ME will cause <code>MsgBox %A_OSVersion%</code> to report <code>WIN_NT4</code>.</p>
