@@ -1,0 +1,89 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<title>ComObjArray()</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link href="../css/default.css" rel="stylesheet" type="text/css">
+</head>
+<body>
+
+<h1>ComObjArray() <span class="ver">[v1.0.91+]</span></h1>
+
+<p>Creates a SafeArray for use with COM.</p>
+
+<pre class="Syntax">ArrayObj := ComObjArray(VarType, Count1 [, Count2, ... Count8])</pre>
+
+<h3>Parameters</h3>
+<table class="info">
+  <tr>
+    <td>VarType</td>
+    <td>The base type of the array (the VARTYPE of each element of the array). The VARTYPE is restricted to a subset of the variant types. Neither the VT_ARRAY nor the VT_BYREF flag can be set. VT_EMPTY and VT_NULL are not valid base types for the array. All other types are legal.
+    <p>See <a href="ComObjType.htm">ComObjType</a> for a list of possible values.</p></td>
+  </tr>
+  <tr>
+    <td>Count<i>N</i></td>
+    <td>The size of each dimension. Arrays containing up to 8 dimensions are supported.</td>
+  </tr>
+  <tr>
+    <td>ArrayObj</td>
+    <td>A wrapper object containing the SafeArray.</td>
+  </tr>
+</table>
+
+<h3>Methods</h3>
+<p>Array wrapper objects support the following methods:</p>
+<p><code class="Syntax">Array.MaxIndex(n)</code>: Returns the upper bound of the <i>n</i>th dimension. If <i>n</i> is omitted, it defaults to 1.</p>
+<p><code class="Syntax">Array.MinIndex(n)</code>: Returns the lower bound of the <i>n</i>th dimension. If <i>n</i> is omitted, it defaults to 1.</p>
+<p><code class="Syntax">Array.Clone()</code> <span class="ver">[v1.0.96.00+]</span>: Returns a copy of the array.</p>
+<p><code class="Syntax">Array._NewEnum()</code> <span class="ver">[v1.0.96.00+]</span>: Not typically called by script; allows <a href="For.htm">for-loops</a> to be used with SafeArrays.</p>
+
+<h3>General Remarks</h3>
+<p>Array wrapper objects may also be returned by COM methods and <a href="ComObjActive.htm">ComObjActive</a>. Scripts may determine if a value is an array as follows:</p>
+<pre>if ComObjType(<i>obj</i>) &amp; 0x2000
+    MsgBox % "Array subtype: " . ComObjType(obj) &amp; 0xfff
+else
+    MsgBox Not an array.</pre>
+<p>Arrays with up to 8 dimensions are supported.</p>
+<p><span class="ver">[v1.0.96.00+]:</span> Since SafeArrays are not designed to support multiple references, when one SafeArray is assigned to an element of another SafeArray, a separate copy is created. However, this only occurs if the wrapper object has the F_OWNVALUE flag, which indicates it is responsible for destroying the array. This flag can be removed by using <a href="ComObjFlags.htm">ComObjFlags</a>.</p>
+
+<h3>Related</h3>
+<p><a href="ComObjType.htm">ComObjType</a>, <a href="ComObjValue.htm">ComObjValue</a>, <a href="ComObjActive.htm">ComObjActive</a>, <a href="ComObjFlags.htm">ComObjFlags</a>, <a href="http://msdn.microsoft.com/en-us/library/ms221145.aspx">Array Manipulation Functions (MSDN)</a></p>
+
+<h3>Examples</h3>
+<pre class="NoIndent" id="Ex1"><em>; Example #1: Simple usage.</em>
+
+arr := ComObjArray(VT_VARIANT:=12, 3)
+arr[0] := "Auto"
+arr[1] := "Hot"
+arr[2] := "key"
+Loop % arr.MaxIndex() + 1
+   t .= arr[A_Index-1]
+MsgBox % t
+</pre>
+
+<pre class="NoIndent" id="Ex2"><em>; Example #2: Multiple dimensions.</em>
+
+arr := ComObjArray(VT_VARIANT:=12, 3, 4)
+
+<em>; Get the number of dimensions:</em>
+dim := DllCall("oleaut32\SafeArrayGetDim", "ptr", ComObjValue(arr))
+
+<em>; Get the bounds of each dimension:</em>
+Loop %dim%
+    dims .= arr.MinIndex(A_Index) " .. " arr.MaxIndex(A_Index) "`n"
+MsgBox %dims%
+
+<em>; Simple usage:</em>
+Loop 3 {
+    x := A_Index-1
+    Loop 4 {
+        y := A_Index-1
+        arr[x, y] := x * y
+    }
+}
+MsgBox % arr[2, 3]
+</pre>
+
+</body>
+</html>

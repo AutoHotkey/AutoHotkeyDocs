@@ -1,0 +1,63 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<title>#Warn</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link href="../css/default.css" rel="stylesheet" type="text/css">
+</head>
+<body>
+
+<h1>#Warn <span class="ver">[v1.0.95.00+]</span></h1>
+
+<p>Enables or disables warnings for selected load-time or run-time conditions that may be indicative of developer errors, such as typos or missing "global" declarations.</p>
+
+<pre class="Syntax">#Warn [, WarningType, WarningMode]</pre>
+
+<p>This is intended to be a developer tool that helps speed up script development by making such errors easily discoverable.</p>
+
+<p>This feature is conceptually related to Visual Basic's "Option Explicit" setting and Perl's "Strict" pragma, though it only provides added-on warnings, rather than requiring any up-front changes to the script (such as explicit declarations for all variables).</p>
+
+<h3>Parameters</h3>
+<table class="info">
+  <tr>
+    <td width="15%" height="24">WarningType</td>
+    <td width="85%">
+      <p>One of the values listed below. If omitted, it defaults to <i>All</i>.</p>
+      <p><strong>All</strong>: Apply the given <em>WarningMode</em> to all supported warning types.</p>
+      <p><strong>UseUnsetLocal</strong> or <strong>UseUnsetGlobal</strong>: Warn when a variable is used (i.e. its value is read) before being explicitly assigned a value.  This is split into separate warning types for locals and globals because, while the use of an unset local is very likely a developer error, many AutoHotkey scripts intentionally check unset globals by design, so it may make sense to enable this type of warning for locals but disable it for globals.  These are run-time warnings; they may be generated at any time while the script is running.</p>
+      <p><strong>UseEnv</strong>: Warn when an environment variable is automatically used in place of an empty script variable.  This sometimes occurs when an environment variable's name unexpectedly matches a variable used by the script, but will not occur if the script uses <a href="_NoEnv.htm">#NoEnv</a> (recommended).  This is a run-time warning; it may be generated at any time while running the script.</p>
+      <p><strong>LocalSameAsGlobal</strong>: Warn when a local variable has the same name as a global variable anywhere in the script. Note that this warning only applies to implicitly introduced local variables - it doesn't apply to variables that are explicitly declared such as <code>local x</code> or <code>static y</code>, or to function parameters). This is a load-time warning; it will only be generated when the script is first loaded.</p></td>
+  </tr>
+  <tr>
+    <td width="15%" height="24">WarningMode</td>
+    <td width="85%">
+      <p>One of the values listed below. If omitted, it defaults to <em>MsgBox</em>.</p>
+      <p><strong>MsgBox</strong>: A message box describing the warning will be shown (note that once the message box is dismissed, the script will continue as usual).</p>
+      <p><strong>OutputDebug</strong>: A description of the warning will be sent to the debugger (if any) for display. For more details, see <a href="OutputDebug.htm">OutputDebug</a>.</p>
+      <p><strong>Off</strong>: The specified warning(s) will be disabled.</p>
+    </td>
+  </tr>
+</table>
+<h3>Remarks</h3>
+	<p>By default, all warnings are off.</p>
+	<p>Warnings can't be enabled or disabled at run-time; the settings are determined when a script loads.  Therefore, the location in the script is not significant (and, like other # directives, #Warn cannot be executed conditionally).</p>
+	<p>However, the ordering of multiple #Warn directives is significant: the last occurrence that sets a given warning determines the mode for that warning.  So, for example, the two statements below have the combined effect of enabling all warnings except UseEnv:</p>
+<pre>#Warn All
+#Warn UseEnv, Off
+
+EnvSet EnvVar, 1
+x := EnvVar       <em>; Okay since #NoEnv has not been used.</em>
+x := NotAnEnvVar  <em>; Warning.</em>
+</pre>
+<h3>Related</h3>
+<p><a href="../Functions.htm#Locals">Local and Global Variables</a></p>
+<h3>Example</h3>
+<pre class="NoIndent">
+#Warn All, Off                    <em>; Disable all warnings.  This is the default state.</em>
+#Warn                             <em>; Enable every type of warning; show each warning in a message box.</em>
+#Warn UseUnsetLocal, OutputDebug  <em>; Warn when a local variable is used before it's set; send warning to OutputDebug.</em>
+</pre>
+
+</body>
+</html>

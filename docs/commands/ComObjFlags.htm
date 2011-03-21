@@ -1,0 +1,79 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<title>ComObjFlags()</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link href="../css/default.css" rel="stylesheet" type="text/css">
+</head>
+<body>
+
+
+<h1>ComObjFlags() <span class="ver">[v1.0.96.00+]</span></h1>
+<p>Retrieves or changes flags which control a COM wrapper object's behaviour.</p>
+<pre class="Syntax">Flags := ComObjFlags(ComObject [, NewFlags, Mask])</pre>
+
+<h3>Parameters</h3>
+<table class="info">
+  <tr>
+    <td>ComObject</td>
+    <td>A COM wrapper object.</td>
+  </tr>
+  <tr>
+    <td>NewFlags</td>
+    <td>New values for the flags identified by <i>Mask</i>, or flags to add or remove.</td>
+  </tr>
+  <tr>
+    <td>Mask</td>
+    <td>A bitmask of flags to change.</td>
+  </tr>
+  <tr>
+    <td>Flags</td>
+    <td>All of <i>ComObject</i>'s flags (after applying <i>NewFlags</i>, if specified).</td>
+  </tr>
+</table>
+
+<h3>Flags</h3>
+<table class="info">
+  <tr>
+    <td>F_OWNVALUE<br>1</td>
+    <td>Currently only affects SafeArrays. If this flag is set, the SafeArray is destroyed when the wrapper object is freed. Since SafeArrays have no reference counting mechanism, if a SafeArray with this flag is assigned to an element of another SafeArray, a separate copy is created.</td>
+  </tr>
+</table>
+
+<h3>General Remarks</h3>
+<p>If <i>Mask</i> is omitted, <i>NewFlags</i> specifies the flags to add (if positive) or remove (if negative). For example, <code>ComObjFlags(obj, -1)</code> removes the F_OWNVALUE flag. Do not specify any value for <i>Mask</i> other than 0 or 1; all other bits are reserved for future use.</p>
+
+<h3>Related</h3>
+<p><a href="ComObjActive.htm">ComObjActive</a>, <a href="ComObjArray.htm">ComObjArray</a></p>
+
+<h3>Examples</h3>
+<pre class="NoIndent"><em>; Example: Check for the presence of the F_OWNVALUE flag.</em>
+
+arr := ComObjArray(0xC, 1)
+if ComObjFlags(arr) &amp; 1
+    MsgBox arr will be automatically destroyed.
+else
+    MsgBox arr will not be automatically destroyed.
+</pre>
+
+<pre class="NoIndent"><em>; Example: Change array-in-array behaviour.</em>
+
+arr1 := ComObjArray(0xC, 3)
+arr2 := ComObjArray(0xC, 1)
+arr2[0] := "original value"
+arr1[0] := arr2         <em>; Assign implicit copy.</em>
+ComObjFlags(arr2, -1)   <em>; Remove F_OWNVALUE.</em>
+arr1[1] := arr2         <em>; Assign original array.</em>
+arr1[2] := arr2.Clone() <em>; Assign explicit copy.</em>
+arr2[0] := "new value"
+for arr in arr1
+    MsgBox % arr[0]
+
+arr1 := ""
+<em>; Not valid since arr2 == arr1[1], which has been destroyed: 
+;  arr2[0] := "foo"</em>
+</pre>
+
+</body>
+</html>

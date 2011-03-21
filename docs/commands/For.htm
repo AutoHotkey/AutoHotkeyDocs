@@ -1,0 +1,66 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<title>For-loop</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link href="../css/default.css" rel="stylesheet" type="text/css">
+</head>
+<body>
+
+<h1>For-loop <span class="ver">[AHK_L 59+]</span></h1>
+
+<p>Repeats a series of commands once for each key-value pair in an object.</p>
+
+<pre class="Syntax">For Key [, Value] in Expression</pre>
+<h3>Parameters</h3>
+<table class="info">
+  <tr> 
+    <td width="15%">Key</td>
+    <td width="85%">Name of the variable in which to store the key at the beginning of each iteration.</td>
+  </tr>
+  <tr>
+    <td>Value</td>
+    <td>Name of the variable in which to store the value associated with the current key.</td>
+  </tr>
+  <tr>
+    <td>Expression</td>
+    <td>An <a href="../Variables.htm#Expressions">expression</a> which results in an object, or a variable which contains an object.</td>
+  </tr>
+</table>
+
+<h3>Remarks</h3>
+<p><i>Expression</i> is evaluated only once, before the loop begins. If its result is not an object, execution jumps immediately to the line following the loop's body; otherwise, the object's <code>_NewEnum()</code> method is called to retrieve an <a href="../objects/Enumerator.htm"><i>enumerator</i></a> object. At the beginning of each iteration, the enumerator's <a href="../objects/Enumerator.htm#Next">Next()</a> method is used to retrieve the next key-value pair. If Next() returns zero or an empty string, the loop terminates.</p>
+<p>Existing key-value pairs may be modified during the loop, but inserting or removing keys may cause some items to be skipped or enumerated multiple times. One workaround is to build a list of keys to remove, then use a second loop to remove the keys after the first loop completes. Note that <code><a href="../objects/Object.htm#Remove">Object.Remove</a>(<i>first</i>, <i>last</i>)</code> can be used to remove a range of keys without looping.</p>
+<p>Prior to revision 59, the following was used in place of a for-loop:</p>
+<pre>_enum := (<i>Expression</i>)._NewEnum()
+while _enum.Next(Key, Value)
+{
+    ...
+}
+</pre>
+<p>A for-loop is usually followed by a <a href="Block.htm">block</a>, which is a collection of statements that form the <em>body</em> of the loop. However, a loop with only a single statement does not require a block (an &quot;if&quot; and its &quot;else&quot; count as a single statement for this purpose). The One True Brace (OTB) style may optionally be used, which allows the open-brace to appear on the same line rather than underneath. For example: <em>for x, y in z {</em></p>
+<p>As with all loops, <a href="Break.htm">Break</a>, <a href="Continue.htm">Continue</a> and <a href="../Variables.htm#Index">A_Index</a> may be used.</p>
+
+<h3>COM Objects</h3>
+<p>Since <i>Key</i> and <i>Value</i> are passed directly to the enumerator's Next() method, the values they are assigned depends on what type of object is being enumerated. For COM objects, <i>Key</i> contains the value returned by <a href="http://msdn.microsoft.com/en-us/library/ms221369.aspx">IEnumVARIANT::Next()</a> and <i>Value</i> contains a number which represents its <a href="http://msdn.microsoft.com/en-us/library/cc237865.aspx">variant type</a>. For example, when used with a <a href="http://msdn.microsoft.com/en-us/library/x4k5wbx4.aspx">Scripting.Dictionary</a> object, each <i>Key</i> contains a key from the dictionary and <i>Value</i> is typically 8 for strings and 3 for integers. See <a href="ComObjType.htm">ComObjType</a> for a list of type codes.</p>
+<p><span class="ver">[v1.0.96.00+]:</span> When enumerating a <a href="ComObjArray.htm">SafeArray</a>, <i>Key</i> contains the current element and <i>Value</i> contains its variant type.</p>
+
+<h3>Related</h3>
+<p><a href="../objects/Enumerator.htm">Enumerator object</a>, <a href="../objects/Object.htm#NewEnum">Object.NewEnum()</a>, <a href="While.htm">While-loop</a>, <a href="Loop.htm">Loop</a>, <a href="Until.htm">Until</a>, <a href="Break.htm">Break</a>, <a href="Continue.htm">Continue</a>, <a href="Block.htm">Blocks</a></p>
+
+<h3>Examples</h3>
+<pre class="NoIndent"><em>; List the key-value pairs of an object:</em>
+colours := <a href="../Objects.htm#Arrays">Object</a>("red", 0xFF0000, "blue", 0x0000FF, "green", 0x00FF00)
+<em>; The above expression could be used directly in place of "colours" below:</em>
+For k, v in colours
+    s .= k "=" v "`n"
+MsgBox % s
+</pre>
+<pre class="NoIndent"><em>; List all open Explorer and Internet Explorer windows:</em>
+for window in <a href="ComObjCreate.htm">ComObjCreate</a>("<a href="http://msdn.microsoft.com/en-us/library/bb774094.aspx">Shell.Application</a>").Windows
+    windows .= window.<a href="http://msdn.microsoft.com/en-us/library/aa752057.aspx">LocationName</a> " :: " window.<a href="http://msdn.microsoft.com/en-us/library/aa752058.aspx">LocationURL</a> "`n"
+MsgBox % windows</pre>
+
+</body>
+</html>

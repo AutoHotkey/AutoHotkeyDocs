@@ -64,12 +64,12 @@ DispPtr := ComObjUnwrap(ComObject)</pre>
 </table>
 
 <h3 id="Remarks">General Remarks</h3>
-<p>ComObjActive is <i>polymorphic</i>; that is, any function-call beginning with "ComObj" that does not match one of the other COM functions actually calls ComObjActive. For example, <code>ComObj(9, DispPtr)</code> and <code>ComObjActive(DispPtr)</code> are both equivalent to <code>ComObjEnwrap(DispPtr)</code>.</p>
-<p>When this function is used to wrap or retrieve an IDispatch or IUnknown interface pointer, the default behaviour is to call <a href="http://msdn.microsoft.com/en-us/library/ms691379.aspx">AddRef</a> to increment the COM object's reference count. When the last reference to the wrapper object is released, it calls <a href="http://msdn.microsoft.com/en-us/library/ms682317.aspx">Release</a> on the interface pointer. Scripts may use <a href="ObjAddRef.htm">ObjAddRef/ObjRelease</a> in place of these interface functions to manage object lifetime. For more detail on this topic, see <a href="http://support.microsoft.com/kb/104138">Reference Counting Rules (MSDN)</a>.</p>
+<p>ComObjActive is <i>polymorphic</i>; that is, any function-call beginning with "ComObj" that does not match one of the other COM functions actually calls ComObjActive. For example, <code>ComObj(9, DispPtr)</code> and <code>ComObjActive(DispPtr)</code> are both equivalent to <code>ComObjEnwrap(DispPtr)</code>. However, as this behaviour may be changed (or new functions may be implemented) in a future version, it is best to use only the forms demonstrated on this page, with the addition that &quot;ComObject&quot; may be used in place of ComObjEnwrap or ComObjParameter.</p>
+<p>When this function is used to wrap or retrieve an IDispatch or IUnknown interface pointer, the default behaviour is to increment the COM object's reference count. As a general rule, the script's original copy of the pointer is considered a separate reference which must be <a href="ObjAddRef.htm">manually released</a> by the script when it is no longer needed. When the wrapper object is freed, it also releases its reference to the COM object.</p>
 <p><b>Known limitation:</b> Each time a COM object is wrapped, a new wrapper object is created. Comparisons and assignments such as <code>obj1 == obj2</code> and <code>array[obj1] := value</code> treat the two wrapper objects as unique, even though they contain the same COM object.</p>
 
 <h3 id="Related">Related</h3>
-<p><a href="ComObjCreate.htm">ComObjCreate</a>, <a href="ComObjGet.htm">ComObjGet</a>, <a href="ComObjConnect.htm">ComObjConnect</a>, <a href="ComObjError.htm">ComObjError</a>, <a href="ObjAddRef.htm">ObjAddRef/ObjRelease</a>, <a href="http://msdn.microsoft.com/en-us/library/ms221467.aspx">GetActiveObject (MSDN)</a></p>
+<p><a href="ComObjCreate.htm">ComObjCreate</a>, <a href="ComObjGet.htm">ComObjGet</a>, <a href="ComObjConnect.htm">ComObjConnect</a>, <a href="ComObjError.htm">ComObjError</a>, <a href="ComObjFlags.htm">ComObjFlags</a>, <a href="ObjAddRef.htm">ObjAddRef/ObjRelease</a>, <a href="http://msdn.microsoft.com/en-us/library/ms221467.aspx">GetActiveObject (MSDN)</a></p>
 
 <h3>Examples</h3>
 <p>ComObjUnwrap: See <a href="ComObjConnect.htm#Examples">ComObjConnect</a>.</p>
@@ -93,16 +93,16 @@ MsgBox % var[]
 ;   ComVar[] retrieves the value.
 ;   ComVar[] := Val sets the value.
 ;   ComVar.ref retrieves a ByRef object for passing to a COM function.</em>
-ComVar()
+ComVar(Type=0xC)
 {
     static <a href="../Objects.htm#Extensibility">base</a> := Object("__Get","ComVarGet","__Set","ComVarSet","__Delete","ComVarDel")
     <em>; Create an array of 1 VARIANT.  This method allows built-in code to take
     ; care of all conversions between VARIANT and AutoHotkey internal types.</em>
-    arr := <a href="ComObjArray.htm">ComObjArray</a>(0xC, 1)
+    arr := <a href="ComObjArray.htm">ComObjArray</a>(Type, 1)
     <em>; Lock the array and retrieve a pointer to the VARIANT.</em>
     DllCall("oleaut32\SafeArrayAccessData", "ptr", <a href="ComObjValue.htm">ComObjValue</a>(arr), "ptr*", arr_data)
     <em>; Store the array and an object which can be used to pass the VARIANT ByRef.</em>
-    return <a href="../Objects.htm#Arrays">Object</a>("ref", ComObjParameter(0x400C, arr_data), "_", arr, "base", base)
+    return <a href="../Objects.htm#Arrays">Object</a>("ref", ComObjParameter(0x4000|Type, arr_data), "_", arr, "base", base)
 }
 ComVarGet(cv, <a href="../Functions.htm#Variadic">p*</a>) { <em>; Called when script accesses an unknown field.</em>
     if p.MaxIndex() = "" <em>; No name/parameters, i.e. cv[]</em>

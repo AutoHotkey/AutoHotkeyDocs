@@ -32,7 +32,7 @@
   </tr>
   <tr>
     <td>Cdecl ReturnType</td>
-    <td><p><a name="cdecl"></a>The word <em>Cdecl</em> is normally omitted because most functions use the standard calling convention rather than the &quot;C&quot; calling convention (functions such as wsprintf that accept a varying number of arguments are one exception to this). If you omit Cdecl but the call yields <a href="#An">ErrorLevel A<strong>n</strong></a> -- where <strong>n</strong> is the total size of the arguments you passed -- <em>Cdecl</em> might be required.</p>
+    <td><p><a name="cdecl"></a>The word <em>Cdecl</em> is normally omitted because most functions use the standard calling convention rather than the &quot;C&quot; calling convention (functions such as wsprintf that accept a varying number of arguments are one exception to this). If you omit Cdecl but the call yields <a href="#An">ErrorLevel A<strong>n</strong></a> -- where <strong>n</strong> is the total size of the arguments you passed -- <em>Cdecl</em> might be required. Note that most object-oriented C++ functions use the <i>thiscall</i> convention, which is not supported.</p>
       <p>If present, the word <em>Cdecl</em> should be listed before the return type (if any). Separate each word from the next with a space or tab. For example: &quot;Cdecl Str&quot;</p>
       <p><span class="ver">[AHK_L 53+]:</span> As the "C" calling convention is not used in 64-bit code, <i>Cdecl</i> may be specified but has no effect on x64 builds of AutoHotkey_L.</p>
       <p><em>ReturnType</em>: If the function returns a 32-bit signed integer (Int), BOOL, or nothing at all, <em>ReturnType</em> may be omitted. Otherwise, specify one of the argument types from the <a href="#types">types table</a> below. The <a href="#asterisk">asterisk suffix</a> is also supported.</p>    </td>
@@ -150,10 +150,11 @@ Loop 500
 result := DllCall(&quot;CharLower&quot;, <strong><u>str</u></strong>, DllCall(&quot;CharUpper&quot;, Str, MyVar, <strong><u>Str</u></strong>), Str)</pre>
 <p>To work around this, change the two underlined &quot;Str&quot; values above to Ptr. This interprets CharUpper's return value as a pure address that will get passed as an integer to CharLower.</p>
 <p>Certain limitations may be encountered when dealing with strings. For details, see <a href="../Compat.htm#DllCall">Script Compatibility</a>.</p>
-<h3 id="COM">VBScript, JScript, and Component Object Model (COM)</h3>
-<p><span class="ver">[AHK_L 53+]:</span> COM objects which implement <a href="http://msdn.microsoft.com/en-us/library/dd318520.aspx">IDispatch</a> are supported natively via <a href="ComObjCreate.htm">ComObjCreate</a>, <a href="ComObjGet.htm">ComObjGet</a> or <a href="ComObjActive.htm">ComObjActive</a>. </p>
-<p>VBScript and JScript may be embedded in a script via <a href="http://www.autohotkey.net/%7Eeasycom/">Windows Scripting for AutoHotkey</a>, which also provides access to COM.</p>
-<p>Also, COM may be used directly via DllCall as demonstrated at <a href="http://www.autohotkey.com/wiki/index.php?title=COM_Wrappers">www.autohotkey.com/wiki/index.php?title=COM_Wrappers</a>.</p>
+<h3 id="COM">Component Object Model (COM)</h3>
+<p>COM objects which are accessible to VBScript and similar languages are typically also accessible to AutoHotkey_L via <a href="ComObjCreate.htm">ComObjCreate</a>, <a href="ComObjGet.htm">ComObjGet</a> or <a href="ComObjActive.htm">ComObjActive</a> and the built-in <a href="../Objects.htm#SyntaxInvoke">object syntax</a>.</p>
+<p>COM objects which don't support <a href="http://msdn.microsoft.com/en-us/library/ms221608.aspx">IDispatch</a> can be used with DllCall by retrieving the address of a function from the virtual function table of the object's interface. For more details, see <a href="#ExTaskbar">the example</a> further below.</p>
+<p>Much of the .NET Framework is also accessible via COM and DllCall. See <a href="http://www.autohotkey.com/forum/topic26191.html">http://www.autohotkey.com/forum/topic26191.html</a>.
+</p>
 
 <h3>Related</h3>
 <p><a href="../Compat.htm#DllCall">Script Compatibility</a>, <a href="PostMessage.htm">PostMessage</a>, <a href="OnMessage.htm">OnMessage()</a>, <a href="RegisterCallback.htm">RegisterCallback()</a>, <a href="Run.htm">Run</a>, <a href="VarSetCapacity.htm">VarSetCapacity</a>, <a href="../Functions.htm">Functions</a>, <a href="SysGet.htm">SysGet</a>, <a href="http://msdn.microsoft.com/library/">MSDN Library</a></p>
@@ -371,6 +372,45 @@ to a TCP/IP server and receive data from it.
 These dialogs use structures and are demonstrated at <a href="http://www.autohotkey.com/forum/topic17230.html">www.autohotkey.com/forum/topic17230.html</a>.
 
 */</em></pre>
+
+<pre id="ExTaskbar" class="NoIndent"><em>/*
+  Example: Temporarily remove the active window from the taskbar by using COM.
+
+  Methods in <a href="http://msdn.microsoft.com/en-us/library/bb774652.aspx">ITaskbarList</a>'s VTable:
+    IUnknown:
+      0 QueryInterface  -- use <a href="ComObjQuery.htm">ComObjQuery</a> instead
+      1 AddRef          -- use <a href="ObjAddRef.htm">ObjAddRef</a> instead
+      2 Release         -- use <a href="ObjAddRef.htm">ObjRelease</a> instead
+    ITaskbarList:
+      3 HrInit
+      4 AddTab
+      5 DeleteTab
+      6 ActivateTab
+      7 SetActiveAlt
+*/</em>
+IID_ITaskbarList  := "{56FDF342-FD6D-11d0-958A-006097C9A090}"
+CLSID_TaskbarList := "{56FDF344-FD6D-11d0-958A-006097C9A090}"
+
+<em>; Create the TaskbarList object and store its address in tbl.</em>
+tbl := <a href="ComObjCreate.htm">ComObjCreate</a>(CLSID_TaskbarList, IID_ITaskbarList)
+
+activeHwnd := WinExist("A")
+
+DllCall(vtable(tbl,3), "ptr", tbl)                     <em>; tbl.<a href="http://msdn.microsoft.com/en-us/library/bb774650.aspx">HrInit</a>()</em>
+DllCall(vtable(tbl,5), "ptr", tbl, "ptr", activeHwnd)  <em>; tbl.<a href="http://msdn.microsoft.com/en-us/library/bb774648.aspx">DeleteTab</a>(activeHwnd)</em>
+Sleep 3000
+DllCall(vtable(tbl,4), "ptr", tbl, "ptr", activeHwnd)  <em>; tbl.<a href="http://msdn.microsoft.com/en-us/library/bb774646.aspx">AddTab</a>(activeHwnd)</em>
+
+<em>; Non-dispatch objects must always be manually freed.</em>
+ObjRelease(tbl)
+
+vtable(ptr, n) {
+    <em>; NumGet(ptr+0) returns the address of the object's virtual function
+    ; table (vtable for short). The remainder of the expression retrieves
+    ; the address of the nth function's address from the vtable.</em>
+    return NumGet(NumGet(ptr+0), n*A_PtrSize)
+}
+</pre>
 
 </body>
 </html>
