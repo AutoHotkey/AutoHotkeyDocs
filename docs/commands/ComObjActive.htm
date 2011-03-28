@@ -13,15 +13,16 @@
 <p>Retrieves a running object that has been registered with OLE.</p>
 <pre class="Syntax">ComObject := ComObjActive(CLSID)</pre>
 
-<p id="enwrap">Wraps or unwraps a raw <a href="http://msdn.microsoft.com/en-us/library/dd318520.aspx">IDispatch</a> pointer in a usable object.</p>
-<pre class="Syntax">ComObject := ComObjEnwrap(DispPtr)
-DispPtr := ComObjUnwrap(ComObject)</pre>
-
 <p id="param">Creates an object representing a typed value to be passed as a parameter or return value.</p>
 <pre class="Syntax">ParamObj := ComObjParameter(VarType, Value [, Flags])</pre>
 
 <p id="missing">Creates an object which may be used in place of an optional parameter's default value when calling a method of a COM object.</p>
 <pre class="Syntax">ParamObj := ComObjMissing()</pre>
+
+<h4>Advanced</h4>
+<p id="enwrap">Wraps or unwraps a raw <a href="http://msdn.microsoft.com/en-us/library/dd318520.aspx">IDispatch</a> pointer in a usable object.</p>
+<pre class="Syntax">ComObject := ComObjEnwrap(DispPtr)
+DispPtr := ComObjUnwrap(ComObject)</pre>
 
 <h3>Parameters</h3>
 <table class="info">
@@ -34,10 +35,6 @@ DispPtr := ComObjUnwrap(ComObject)</pre>
     <td>COM object usable with <a href="../Objects.htm#SyntaxInvoke">object syntax</a>.</td>
   </tr>
   <tr>
-    <td>DispPtr</td>
-    <td>Raw IDispatch pointer.</td>
-  </tr>
-  <tr>
     <td>VarType</td>
     <td>An integer indicating the type of value. See <a href="ComObjType.htm#vt">ComObjType()</a> for a list of types.</td>
   </tr>
@@ -48,6 +45,10 @@ DispPtr := ComObjUnwrap(ComObject)</pre>
   <tr>
     <td>Flags</td>
     <td>Flags affecting the behaviour of this function and the wrapper object; see below.</td>
+  </tr>
+  <tr>
+    <td>DispPtr</td>
+    <td>Raw IDispatch pointer.</td>
   </tr>
 </table>
 
@@ -95,14 +96,14 @@ MsgBox % var[]
 ;   ComVar.ref retrieves a ByRef object for passing to a COM function.</em>
 ComVar(Type=0xC)
 {
-    static <a href="../Objects.htm#Extensibility">base</a> := Object("__Get","ComVarGet","__Set","ComVarSet","__Delete","ComVarDel")
+    static <a href="../Objects.htm#Extensibility">base</a> := { __Get: "ComVarGet", __Set: "ComVarSet", __Delete: "ComVarDel" }
     <em>; Create an array of 1 VARIANT.  This method allows built-in code to take
     ; care of all conversions between VARIANT and AutoHotkey internal types.</em>
     arr := <a href="ComObjArray.htm">ComObjArray</a>(Type, 1)
     <em>; Lock the array and retrieve a pointer to the VARIANT.</em>
     DllCall("oleaut32\SafeArrayAccessData", "ptr", <a href="ComObjValue.htm">ComObjValue</a>(arr), "ptr*", arr_data)
     <em>; Store the array and an object which can be used to pass the VARIANT ByRef.</em>
-    return <a href="../Objects.htm#Arrays">Object</a>("ref", ComObjParameter(0x4000|Type, arr_data), "_", arr, "base", base)
+    return { ref: ComObjParameter(0x4000|Type, arr_data), _: arr, base: base }
 }
 ComVarGet(cv, <a href="../Functions.htm#Variadic">p*</a>) { <em>; Called when script accesses an unknown field.</em>
     if p.MaxIndex() = "" <em>; No name/parameters, i.e. cv[]</em>
