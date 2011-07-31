@@ -123,7 +123,7 @@ obj.item[x] := y</pre>
   <li>As a consequence of the point above, the string format of integer values is not retained. For example, <code>x[0x10]</code>, <code>x[16]</code> and <code>x[00016]</code> are equivalent. This also applies to numeric strings which don't have a decimal point.</li>
   <li>Quoted literal strings are considered purely non-numeric in v1.x, so <code>x[1]</code> and <code>x["1"]</code> are <i>not</i> equivalent. Additionally, if a quoted literal string is concatenated with another value (as in <code>"0x" x</code>), the result is treated as purely non-numeric. However, this does not apply to variables, so <code>x[1]</code> and <code>x[y:="1"]</code> are equivalent. This issue will be resolved in v2, so scripts should avoid using quoted numeric literals as keys.</li>
   <li>Floating-point numbers are not supported as keys - instead they are converted to strings.  In v1.x, floating-point literals retain their original format whereas pure floating-point numbers (such as the result of <code>0+1.0</code> or <code>Sqrt(y)</code>) are forced into the current <a href="http://www.autohotkey.com/docs/commands/SetFormat.htm">float format</a>. For consistency and clarity, scripts should avoid using floating-point literals as keys.</li>
-  <li>The string key <a href="#Extensibility">"base"</a> has special meaning, except when used with <a href="objects/Object.htm#Insert">Insert</a>.</p></li>
+  <li>The string key <a href="#Custom_Objects">"base"</a> has special meaning, except when used with <a href="objects/Object.htm#Insert">Insert</a>.</p></li>
 </ul>
 
 <h2 id="Extended_Usage">Extended Usage</h2>
@@ -143,7 +143,7 @@ table[x, y] := content  <em>; B</em></pre>
 <p>If <code>table[x]</code> does not exist, <span class="Code"><em>A</em></span> and <span class="Code"><em>B</em></span> differ in two ways:</p>
 <ul>
   <li><span class="Code"><em>A</em></span> fails whereas <span class="Code"><em>B</em></span> automatically creates an object and stores it in <code>table[x]</code>.</li>
-  <li>If <code>table</code>'s <a href="#Extensibility">base</a> defines <a href="#MetaFunc">meta-functions</a>, they are invoked as follows:
+  <li>If <code>table</code>'s <a href="#Custom_Objects">base</a> defines <a href="#Meta_Functions">meta-functions</a>, they are invoked as follows:
   <pre>table.base.__Get(table, x)<span class="dull">[y] := content</span>   <em>; A</em>
 table.base.__Set(table, x, y, content)     <em>; B</em></pre>
   Consequently, <span class="Code"><em>B</em></span> allows the object to define custom behaviour for the overall assignment.</li>
@@ -168,7 +168,7 @@ FirstFunc(param) {
 SecondFunc(param) {
     MsgBox % A_ThisFunc ": " (IsObject(param) ? "object" : param)
 }</pre>
-<p>For backward-compatibility, the second form will not pass <i>array</i> as a parameter if <code>array[A_Index]</code> contains a function name instead of a function reference. However, if <code>array[A_Index]</code> is <a href="#Extensibility">inherited</a> from <code>array.base[A_Index]</code>, <i>array</i> will be passed as a parameter.</p>
+<p>For backward-compatibility, the second form will not pass <i>array</i> as a parameter if <code>array[A_Index]</code> contains a function name instead of a function reference. However, if <code>array[A_Index]</code> is <a href="#Custom_Objects">inherited</a> from <code>array.base[A_Index]</code>, <i>array</i> will be passed as a parameter.</p>
 
 <h2 id="Custom_Objects">Custom Objects</h2>
 <p>Objects in AutoHotkey are prototype-based rather than class-based. That is, an object can inherit properties and methods from its prototype or <code>base</code> object, but do not need to have a pre-defined structure. Properties and methods can also be added to (or removed from) an object or any of the objects it derives from at any time. However, AutoHotkey emulates classes by translating <a href="#Custom_Classes">class definitions</a> into ordinary objects. For more complex or specialized situations, the base object can override the standard behaviour by defining <a href="#Meta_Functions"><i>meta-functions</i></a>.</p>
@@ -340,7 +340,7 @@ class Color
 }</pre>
 
 <h4 id="Objects_as_Functions">Objects as Functions</h4>
-<p>When a call such as <code>obj.func(param)</code> is made, <i>obj.func</i> may contain a function name or an object.  If <i>obj.func</i> contains an object, it is invoked using <i>obj</i> as the key.  In most cases <code>obj.func[obj]</code> does not exist and <i>obj.func</i>'s __Call <a href="#MetaFunc">meta-function</a> is invoked instead.  This may be used to change the behaviour of function calls in an abstract way, as shown in the example below:</p>
+<p>When a call such as <code>obj.func(param)</code> is made, <i>obj.func</i> may contain a function name or an object.  If <i>obj.func</i> contains an object, it is invoked using <i>obj</i> as the key.  In most cases <code>obj.func[obj]</code> does not exist and <i>obj.func</i>'s __Call <a href="#Meta_Functions">meta-function</a> is invoked instead.  This may be used to change the behaviour of function calls in an abstract way, as shown in the example below:</p>
 <pre><em>; Create a prototype for an array of functions.</em>
 FuncArrayType := {__Call: "FuncType_Call"}
 <em>; Create an array of functions.</em>
@@ -499,7 +499,7 @@ ObjRelease(address)
 </pre>
 <p>However, ObjAddRef does not need to be used when initially obtaining an address via <code><a href="#AddressCast">Object(obj)</a></code>.</p>
 <p>Generally each new copy of an object's address should be treated as an object reference, except that the script is responsible for calling ObjAddRef and/or ObjRelease as appropriate. For example, whenever an address is copied via something like <code>x := address</code>, ObjAddRef should be called to increment the reference count. Similarly, whenever the script is finished with a particular copy of the object's address, it should call ObjRelease. This ensures the object is freed when the last reference to it is lost - and not before then.</p>
-<p>To run code when the last reference to an object is being released, implement the <a href="#Cleanup">__Delete</a> meta-function.</p>
+<p>To run code when the last reference to an object is being released, implement the <a href="#Custom_NewDelete">__Delete</a> meta-function.</p>
 <p><b>Known Limitations:</b></p>
 <ul>
   <li>Circular references must be broken before an object can be freed. For example:
@@ -516,7 +516,7 @@ y.parent := ""  <em>; Break the cycle.</em>
 x := "", y := ""</pre></li>
   <li>Although references in static and global variables are released automatically when the program exits, references in non-static local variables or on the expression evaluation stack are not.  These references are only released if the function or expression is allowed to complete normally.</li>
 </ul>
-<p>Although memory used by the object is reclaimed by the operating system when the program exits, <a href="#Cleanup">__Delete</a> will not be called unless all references to the object are freed.  This can be important if it frees other resources which are not automatically reclaimed by the operating system, such as temporary files.</p>
+<p>Although memory used by the object is reclaimed by the operating system when the program exits, <a href="#Custom_NewDelete">__Delete</a> will not be called unless all references to the object are freed.  This can be important if it frees other resources which are not automatically reclaimed by the operating system, such as temporary files.</p>
 
 <a name="AddressCast"></a><h3 id="Implementation_Pointers">Pointers to Objects</h3>
 <p>In some rare cases it may be necessary to pass an object to external code via DllCall or store it in a binary data structure for later retrieval. An object's address can be retrieved by <code>x := &amp;obj</code>; however, if the variable <i>obj</i> is cleared, the object may be freed prematurely. To ensure this does not occur, use ObjAddRef as shown above or the <code>Object()</code> function as shown below:</p>
