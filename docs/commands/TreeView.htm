@@ -15,7 +15,7 @@ hr {margin-bottom: 0em;}
 </head>
 
 <body>
-<h1>TreeView <span class="small80">[v1.0.44+]</span></h1>
+<h1>TreeView <span class="ver">[v1.0.44+]</span></h1>
 
 <h2>Table of Contents</h2>
 <ul>
@@ -54,7 +54,7 @@ ExitApp</pre>
 
 
  Comctl32.dll 5.8 or greater (distributed with applications such as Internet Explorer 5 or later).</p>
-<p><strong><a name="ImageList"></a>ImageList</strong>: This is the means by which icons are added to a TreeView. Specify the word <em>ImageList</em> followed immediately by the ImageListID returned from a previous call to <a href="ListView.htm#IL_Create">IL_Create()</a>. This option has an effect only when creating a TreeView. Here is a working example:</p>
+<p><strong><a name="ImageList"></a>ImageList</strong>: This is the means by which icons are added to a TreeView. Specify the word <em>ImageList</em> followed immediately by the ImageListID returned from a previous call to <a href="ListView.htm#IL_Create">IL_Create()</a>. This option has an effect only when creating a TreeView (however, <a href="#TV_SetImageList">TV_SetImageList()</a> does not have this limitation). Here is a working example:</p>
 <pre>ImageListID := <a href="ListView.htm#IL_Create">IL_Create</a>(10)  <em>; Create an ImageList with initial capacity for 10 icons.</em>
 Loop 10  <em>; Load the ImageList with some standard system icons.</em>
     <a href="ListView.htm#IL_Add">IL_Add</a>(ImageListID, &quot;shell32.dll&quot;, A_Index)  <em>; Omits the DLL's path so that it works on Windows 9x too.</em>
@@ -75,6 +75,7 @@ return</pre>
 <h2 id="BuiltIn">Built-in Functions for TreeViews</h2>
 <p>All of the TreeView functions operate upon the current thread's <a href="Gui.htm#DefaultWin">default GUI window</a> (which can be changed via <a href="Gui.htm#Default"><em>Gui, 2:Default</em></a>). If the default window does not exist or has no TreeView controls, all functions return zero to indicate the problem.</p>
 <p><a name="GuiTV"></a>If the window has more than one TreeView control, by default the functions operate upon the one most recently added. To change this, specify <em>Gui, TreeView, TreeViewName</em>, where <em>TreeViewName</em> is the name of the TreeView's <a href="Gui.htm#var">associated variable</a> or its ClassNN as shown by Window Spy. Once changed, all existing and future <a href="../misc/Threads.htm">threads</a> will use the indicated TreeView.</p>
+<p id="TV_SetImageList"><strong>TV_SetImageList(ImageListID [, 0|2])</strong> <span class="ver">[v1.1.02+]</span>: Sets or replaces the TreeView's <a href="#ImageList">ImageList</a>. ImageListID is the number returned from a previous call to <a href="ListView.htm#IL_Create">IL_Create()</a>. The second parameter is normally omitted, in which case it defaults to 0. Otherwise, specify 2 for state icons (which are not yet directly supported, but could be used via <a href="PostMessage.htm">SendMessage</a>). If successful, TV_SetImageList() returns the ImageListID that was previously associated with the TreeView (or 0 if none). Any such detached ImageList should normally be destroyed via <a href="ListView.htm#IL_Destroy">IL_Destroy(ImageListID)</a>.</p>
 <h2 id="bifAddModifyDelete">Add, Modify, and Delete Items</h2>
 <p><strong><a name="TV_Add"></a>TV_Add(Name, [ParentItemID, Options]):</strong> Adds a new item to the TreeView and returns its unique Item ID number (or 0 upon failure). <em>Name</em> is the displayed text of the item, which can be text or numeric (including numeric <a href="../Variables.htm#Expressions">expression</a> results). <em>ParentItemID</em> is the ID number of the new item's parent (omit it or specify 0 to add the item at the top level). When adding a large number of items, performance can be improved by using <em>GuiControl, -Redraw, MyTreeView</em> before adding the items, and <em>GuiControl, +Redraw, MyTreeView</em> afterward.</p>
 <p><span class="greenbold">Options for TV_Add() and TV_Modify():</span> The <em>Options</em> parameter is a string containing zero or more words from the list below (not case sensitive). Separate each word from the next with a space or tab. To remove an option, precede it with a minus sign. To add an option, a plus sign is permitted but not required.</p>
@@ -158,11 +159,7 @@ return</pre>
 <p>In addition to navigating from item to item with the keyboard, the user may also perform incremental search by typing the first few characters of an item's name. This causes the selection to jump to the nearest matching item.</p>
 <p>Although any length of text can be stored in each item of a TreeView, only the first 260 characters are displayed.</p>
 <p>Although the theoretical maximum number of items in a TreeView is 65536, item-adding performance will noticeably decrease long before then. This can be alleviated somewhat by using the redraw tip described in <a href="#TV_Add">TV_Add()</a>.</p>
-<p><a name="ILremarks"></a>Unlike <a href="ListView.htm">ListViews</a>, a TreeView's ImageList is not automatically destroyed when the TreeView is destroyed. Therefore, a script should call <a href="ListView.htm#IL_Destroy">IL_Destroy(ImageListID)</a> after destroying a TreeView's window if the ImageList will not be used for anything else. However, this is not necessary if the script will soon be exiting because all ImageLists are automatically destroyed at that time. On a related note, a TreeView's <a href="#ImageList">original ImageList</a> can be replaced with a new one via the following example:</p>
-<pre>Gui <a href="Gui.htm#LastFound">+LastFound</a>
-<a href="PostMessage.htm">SendMessage</a>, 0x1109, 0, NewImageListID, SysTreeView321  <em>; 0x1109 is TVM_SETIMAGELIST</em>
-if ErrorLevel  <em>; The TreeView had a previous ImageList.</em>
-    <a href="ListView.htm#IL_Destroy">IL_Destroy</a>(ErrorLevel)  <em>; Destroying it is the most typical action.</em></pre>
+<p><a name="ILremarks"></a>Unlike <a href="ListView.htm">ListViews</a>, a TreeView's ImageList is not automatically destroyed when the TreeView is destroyed. Therefore, a script should call <a href="ListView.htm#IL_Destroy">IL_Destroy(ImageListID)</a> after destroying a TreeView's window if the ImageList will not be used for anything else. However, this is not necessary if the script will soon be exiting because all ImageLists are automatically destroyed at that time.</p>
 <p>A script may create more than one TreeView per window. To operate upon a TreeView other than the default one, see <a href="#BuiltIn">built-in functions</a>.</p>
 <p>To perform actions such as resizing, hiding, or changing the font of a TreeView, use <a href="GuiControl.htm">GuiControl</a>.</p>
 <p> Tree View eXtension (TVX) extends TreeViews to support moving, inserting and deleting. It is demonstrated at <a href="http://www.autohotkey.com/forum/topic19021.html">www.autohotkey.com/forum/topic19021.html</a></p>
