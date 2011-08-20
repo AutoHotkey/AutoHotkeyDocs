@@ -79,7 +79,7 @@ if not EnumAddress  <em>; Fast-mode is okay because it will be called only from 
 DetectHiddenWindows On  <em>; Due to fast-mode, this setting will go into effect for the callback too.</em>
 
 <em>; Pass control to EnumWindows(), which calls the callback repeatedly:</em>
-DllCall(&quot;EnumWindows&quot;, UInt, EnumAddress, UInt, 0)
+DllCall(&quot;EnumWindows&quot;, Ptr, EnumAddress, Ptr, 0)
 MsgBox %Output%  <em>; Display the information accumulated by the callback.</em>
     
 EnumWindowsProc(hwnd, lParam)
@@ -103,10 +103,13 @@ Gui, Add, Text, HwndMyTextHwnd, Here is some text that is given`na custom backgr
 Gui +LastFound
 GuiHwnd := WinExist()
 
-WindowProcNew := <strong>RegisterCallback</strong>(&quot;WindowProc&quot;, &quot;&quot;  <em>; Specifies &quot;&quot; to avoid fast-mode for subclassing.</em>
+<em>; 64-bit scripts must call SetWindowLongPtr instead of SetWindowLong:</em>
+SetWindowLong := A_PtrSize=8 ? "SetWindowLongPtr" : "SetWindowLong"
+
+WindowProcNew := <strong>RegisterCallback</strong>(&quot;WindowProc&quot;, &quot;&quot;  <em>; Specify &quot;&quot; to avoid fast-mode for subclassing.</em>
     , <strong>4</strong>, MyTextHwnd)  <em>; Must specify exact ParamCount when EventInfo parameter is present.</em>
-WindowProcOld := DllCall(&quot;SetWindowLong&quot;, UInt, GuiHwnd, Int, -4  <em>; -4 is GWL_WNDPROC</em>
-    , Int, WindowProcNew, <strong>UInt</strong>)  <em>; Return value must be set to UInt vs. Int.</em>
+WindowProcOld := DllCall(SetWindowLong, Ptr, GuiHwnd, Int, -4  <em>; -4 is GWL_WNDPROC</em>
+    , Ptr, WindowProcNew, Ptr) <em>; Return value must be set to Ptr or UPtr vs. Int.</em>
 
 Gui Show
 return
@@ -117,11 +120,11 @@ WindowProc(hwnd, uMsg, wParam, lParam)
     global TextBackgroundColor, TextBackgroundBrush, WindowProcOld
     if (uMsg = 0x138 &amp;&amp; lParam = A_EventInfo)  <em>; 0x138 is WM_CTLCOLORSTATIC.</em>
     {
-        DllCall(&quot;SetBkColor&quot;, UInt, wParam, UInt, TextBackgroundColor)
+        DllCall(&quot;SetBkColor&quot;, Ptr, wParam, UInt, TextBackgroundColor)
         return TextBackgroundBrush  <em>; Return the HBRUSH to notify the OS that we altered the HDC.</em>
     }
     <em>; Otherwise (since above didn't return), pass all unhandled events to the original WindowProc.</em>
-    return DllCall(&quot;CallWindowProc&quot;, UInt, WindowProcOld, UInt, hwnd, UInt, uMsg, UInt, wParam, UInt, lParam)
+    return DllCall(&quot;CallWindowProc&quot;, Ptr, WindowProcOld, Ptr, hwnd, UInt, uMsg, Ptr, wParam, Ptr, lParam)
 }
 
 GuiClose:
