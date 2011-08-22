@@ -31,7 +31,7 @@
       <p>Therefore, to explicitly shrink a variable, first free its memory with <code>VarSetCapacity(Var, 0)</code> and then use <code>VarSetCapacity(Var, NewCapacity)</code> -- or simply let it auto-expand from zero as needed.</p>
       <p>For performance reasons, freeing a variable whose previous capacity was less than 64 characters (128 bytes in Unicode builds) might have no effect because its memory is of a permanent type. In this case, the current capacity will be returned rather than 0.</p>
       <p>For performance reasons, the memory of a variable whose capacity is less than 4096 bytes is not freed by storing an empty string in it (e.g. <code>Var := &quot;&quot;</code>). However, <code>VarSetCapacity(Var, 0)</code> does free it.</p>
-      <p><a name="neg1"></a>In v1.0.44.03+, specify -1 for <em>RequestedCapacity</em> to update the variable's internally-stored length to the length of its current contents. This is useful in cases where the variable has been altered indirectly, such as by passing its <a href="../Variables.htm#amp">address</a> via <a href="DllCall.htm">DllCall()</a>. In this mode, VarSetCapacity() returns the length in bytes rather than the capacity.</p></td>
+      <p><a name="neg1"></a>In v1.0.44.03+, specify -1 for <em>RequestedCapacity</em> to update the variable's internally-stored string length to the length of its current contents. This is useful in cases where the variable has been altered indirectly, such as by passing its <a href="../Variables.htm#amp">address</a> via <a href="DllCall.htm">DllCall()</a>. In this mode, VarSetCapacity() returns the length in bytes rather than the capacity.</p></td>
   </tr>
   <tr>
     <td>FillByte</td>
@@ -45,13 +45,54 @@
 <h3>Related</h3>
 <p><a href="DllCall.htm">DllCall</a>, <a href="_MaxMem.htm">#MaxMem</a></p>
 <h3>Example</h3>
-<pre class="NoIndent">VarSetCapacity(MyVar, 10240000)  <em>; ~10 MB</em>
+<pre class="NoIndent"><em>; Optimize by ensuring MyVar has plenty of space to work with.</em>
+VarSetCapacity(MyVar, 10240000)  <em>; ~10 MB</em>
 Loop
 {
     ...
     MyVar = %MyVar%%StringToConcatenate%
     ...
 }</pre>
+
+<pre class="NoIndent"><em>; Calculate required buffer space for a string.</em>
+bytes_per_char := A_IsUnicode ? 2 : 1
+max_chars := 500
+max_bytes := max_chars * bytes_per_char
+
+Loop 2
+{
+    <em>; Allocate space for use with DllCall.</em>
+    VarSetCapacity(buf, max_bytes)
+
+    if A_Index = 1
+        <em>; Alter the variable indirectly via DllCall.</em>
+        DllCall("wsprintf", <span class="red">"ptr", &amp;buf</span>, "str", "0x%08x", "uint", 4919)
+    else
+        <em>; Use "str" to update the length automatically:</em>
+        DllCall("wsprintf", <span class="blue">"str", buf</span>, "str", "0x%08x", "uint", 4919)
+
+    <em>; Concatenate a string to demonstrate why the length needs to be updated:</em>
+    wrong_str := buf . "&lt;end&gt;"
+    wrong_len := StrLen(buf)
+
+    <em>; Update the variable's length.</em>
+    VarSetCapacity(buf, -1)
+
+    right_str := buf . "&lt;end&gt;"
+    right_len := StrLen(buf)
+
+    MsgBox,
+    (
+    Before updating
+      String: %wrong_str%
+      Length: %wrong_len%
+
+    After updating
+      String: %right_str%
+      Length: %right_len%
+    )
+}
+</pre>
 
 </body>
 </html>
