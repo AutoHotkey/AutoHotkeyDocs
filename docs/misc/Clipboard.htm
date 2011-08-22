@@ -11,13 +11,13 @@
 <h1>Clipboard, <a href="#ClipboardAll">ClipboardAll</a>, and <a href="#OnClipboardChange">OnClipboardChange</a></h1>
 
 <p><em>Clipboard</em> is a built-in <a href="../Variables.htm">variable</a> that reflects the current contents of the Windows clipboard if those contents can be expressed as text. By contrast, <em> <a href="#ClipboardAll">ClipboardAll</a></em> contains everything on the clipboard, such as pictures and formatting.</p>
-<p><a name="CopiedFiles"></a>Each line of text on <em>Clipboard</em> typically ends with carriage return and linefeed (CR+LF), which can be expressed in the script as `r`n. Files (such as those copied from an open Explorer window via Control-C) are considered to be text: They are automatically converted to their filenames (with full path) whenever <em>Clipboard</em> is referenced in the script. To extract the files one by one, follow this example:</p>
+<p><a name="CopiedFiles"></a>Each line of text on <em>Clipboard</em> typically ends with carriage return and linefeed (CR+LF), which can be expressed in the script as <code>`r`n</code>. Files (such as those copied from an open Explorer window via Control-C) are considered to be text: They are automatically converted to their filenames (with full path) whenever <em>Clipboard</em> is referenced in the script. To extract the files one by one, follow this example:</p>
 <pre><a href="../commands/LoopParse.htm">Loop, parse</a>, clipboard, `n, `r
 {
     MsgBox, 4, , File number %A_Index% is %A_LoopField%.`n`nContinue?
     IfMsgBox, No, break
 }</pre>
-<p>To arrange the filenames in alphabetical order, use the <a href="../commands/Sort.htm">Sort</a> command. To write the filenames on the clipboard to a file, use <em>  <a href="../commands/FileAppend.htm">FileAppend</a>, %clipboard%`r`n, C:\My File.txt</em>. To change how long the script will keep trying to open the clipboard -- such as when it is in use by another application -- use <a href="../commands/_ClipboardTimeout.htm">#ClipboardTimeOut</a>.</p>
+<p>To arrange the filenames in alphabetical order, use the <a href="../commands/Sort.htm">Sort</a> command. To write the filenames on the clipboard to a file, use <code><a href="../commands/FileAppend.htm">FileAppend</a>, %clipboard%`r`n, C:\My File.txt</code>. To change how long the script will keep trying to open the clipboard -- such as when it is in use by another application -- use <a href="../commands/_ClipboardTimeout.htm">#ClipboardTimeOut</a>.</p>
 <strong>Basic examples:</strong>
 <pre>clipboard = my text   <em>; Give the clipboard entirely new contents.</em>
 clipboard =   <em>; Empty the clipboard.</em>
@@ -36,17 +36,17 @@ MsgBox Control-C copied the following contents to the clipboard:`n`n%clipboard%<
 ; ... here make temporary use of the clipboard, such as for pasting Unicode text via <a href="../commands/Transform.htm#Unicode">Transform Unicode</a> ...</em>
 Clipboard := ClipSaved   <em>; Restore the original clipboard. Note the use of <i>Clipboard</i> (not <i>ClipboardAll</i>).</em>
 ClipSaved =   <em>; Free the memory in case the clipboard was very large.</em></pre>
-<p><em>ClipboardAll</em> may also be saved to a file (in this mode, FileAppend always overwrites any existing file):<br>
-<a href="../commands/FileAppend.htm">FileAppend</a>, %ClipboardAll%, C:\Company Logo.clip <em>; The file extension does not matter.</em></p>
-<p>To later load the file back onto the clipboard (or into a variable), follow this example:<br>
-<a href="../commands/FileRead.htm">FileRead</a>, Clipboard, <strong>*c</strong> C:\Company Logo.clip <em>; Note the use of *c, which must precede the filename. </em></p>
+<p><em>ClipboardAll</em> may also be saved to a file (in this mode, FileAppend always overwrites any existing file):</p>
+<pre><a href="../commands/FileAppend.htm">FileAppend</a>, %ClipboardAll%, C:\Company Logo.clip <em>; The file extension does not matter.</em></pre>
+<p>To later load the file back onto the clipboard (or into a variable), follow this example:</p>
+<pre><a href="../commands/FileRead.htm">FileRead</a>, Clipboard, <strong>*c</strong> C:\Company Logo.clip <em>; Note the use of *c, which must precede the filename. </em></pre>
 <p><strong><u>Notes</u></strong></p>
-<p><em>ClipboardAll</em> is blank when used in ways other than those described above. In addition, <em>ClipboardAll</em> is not supported inside <a href="../Variables.htm#comma">comma-separated expressions</a>; that is, it should be assigned on a line by itself such as <em>ClipSaved := ClipboardAll.</em></p>
+<p><em>ClipboardAll</em> is blank when used in ways other than those described above. In addition, <em>ClipboardAll</em> is not supported inside <a href="../Variables.htm#comma">comma-separated expressions</a>; that is, it should be assigned on a line by itself such as <code>ClipSaved := ClipboardAll.</code></p>
 <p>Variables to which <em>ClipboardAll</em> has been assigned are in binary format and thus will appear as gibberish when displayed with <a href="../commands/MsgBox.htm">MsgBox</a> or similar. Also, altering a binary-clipboard variable (by means such as <a href="../commands/StringReplace.htm">StringReplace</a>) will revert it to a normal variable, resulting in the loss of its clipboard data. In v1.0.46+, binary-clipboard variables may be passed to <a href="../Functions.htm#ByRef">functions</a> by value (formerly they only worked <a href="../Functions.htm#ByRef">ByRef</a>).</p>
 <p>If <em>ClipboardAll</em> cannot retrieve one or more of the data objects (formats) on the clipboard, they will be omitted but all the remaining objects will be stored. Retrieval is reattempted according to <a href="../commands/_ClipboardTimeout.htm">#ClipboardTimeOut</a> (rather than being attempted only once).</p>
-<p>A variable containing clipboard data can be copied to another variable as in this example: ClipSaved2 := ClipSaved</p>
+<p>A variable containing clipboard data can be copied to another variable as in this example: <code>ClipSaved2 := ClipSaved</code></p>
 <p><a href="../commands/ClipWait.htm">ClipWait</a> may be used to detect when the clipboard contains data (optionally including non-text data).</p>
-<p><a href="../commands/StringLen.htm">StringLen</a> may be used to discover the total size of a variable to which <em>ClipboardAll</em> has been assigned.</p>
+<p><a href="../commands/StringLen.htm">StringLen</a> or <a href="../Functions.htm#StrLen">StrLen</a> may be used to discover the total size of a variable to which <em>ClipboardAll</em> has been assigned. However, to get the size in bytes on Unicode versions of AutoHotkey, the length must be multiplied by 2. <a href="../Variables.htm#IsUnicode">A_IsUnicode</a> can be used to support ANSI and Unicode versions, as in this example: <code>size := StrLen(ClipSaved) * (A_IsUnicode ? 2 : 1)</code></p>
 <p>Variables to which <em>ClipboardAll</em> has been assigned can be compared to each other (but not directly to <em>ClipboardAll</em>) by means of the &lt;&gt; and = operators. In the following example, the length of each variable is checked first. If that is not enough to make the determination, the contents are compared to break the tie:</p>
 <pre>if ClipSaved1 &lt;&gt; %ClipSaved2%   <em>; This <u>must</u> be an old-style IF statement, not an expression.</em>
     MsgBox The two saved clipboards are different.</pre>
