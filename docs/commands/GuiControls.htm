@@ -24,7 +24,8 @@ hr {margin-bottom: 0em;}
   <li><a href="#ListBox">ListBox</a>, <a href="ListView.htm">ListView</a>, <a href="TreeView.htm">TreeView</a></li>
   <li><a href="#Hotkey">Hotkey</a>, <a href="#DateTime">DateTime</a>, <a href="#MonthCal">MonthCal</a></li>
   <li><a href="#Slider">Slider</a>, <a href="#Progress">Progress</a></li>
-  <li><a href="#GroupBox">GroupBox</a>, <a href="#Tab">Tab2</a>, <a href="#StatusBar">StatusBar</a>, <a href="#IE_Control">Internet Explorer Control</a></li>
+  <li><a href="#GroupBox">GroupBox</a>, <a href="#Tab">Tab2</a>, <a href="#StatusBar">StatusBar</a></li>
+  <li><a href="#ActiveX">ActiveX</a> (e.g. Internet Explorer Control)</li>
 </ul>
 
 <h2 id="Text">Text</h2>
@@ -339,8 +340,35 @@ SB_SetText(&quot;There are &quot; . RowCount . &quot; rows selected.&quot;)</pre
 <p><strong>Styles</strong> (rarely used): See the <a href="../misc/Styles.htm#StatusBar">StatusBar styles table</a>.</p>
 <p><strong>Known Limitations</strong>: 1) Any control that overlaps the status bar might sometimes get drawn on top of it.  One way to avoid this is to dynamically shrink such controls via the <a href="Gui.htm#GuiSize">GuiSize label</a>. 2) There is a limit of one status bar per window.</p>
 <p><strong>Example</strong>: The bottom of the <a href="TreeView.htm#Examples">TreeView page</a> demonstrates a multipart status bar.</p>
-<h2 id="IE_Control">Internet Explorer Control</h2>
-<p>An MSIE browser control can be embedded into a GUI window via DllCall. The control can display a web page or other browser-compatible content. This is demonstrated at <a href="http://www.autohotkey.com/wiki/index.php?title=Internet_Explorer_Control">www.autohotkey.com/wiki/index.php?title=Internet_Explorer_Control</a></p>
+<h2 id="ActiveX"><a name="IE_Control"></a>ActiveX <span class="ver">[v1.1.03+]</span></h2>
+<p>ActiveX components such as the MSIE browser control can be embedded into a GUI window by following this example:</p>
+<pre>Gui Add, ActiveX, w980 h640 vWB, <a href="http://msdn.microsoft.com/en-us/library/aa752085">Shell.Explorer</a>  <em>; The final parameter is the name of the ActiveX component.</em>
+WB.<a href="http://msdn.microsoft.com/en-us/library/aa752093">Navigate</a>("http://www.autohotkey.com/forum/")  <em>; This is specific to the web browser control.</em>
+Gui Show</pre>
+<p>When the control is created, an ActiveX object is stored in the control's associated variable, if it has one. <a href="GuiControlGet.htm">GuiControlGet</a> can also be used to retrieve the object. </p>
+<p>To handle events exposed by the object, use <a href="ComObjConnect.htm">ComObjConnect</a> as demonstrated below:</p>
+<pre>Gui Add, Edit, w930 r1 vURL, http://www.autohotkey.com/forum/
+Gui Add, Button, x+6 yp w44 Default, Go
+Gui Add, ActiveX, xm w980 h640 vWB, Shell.Explorer
+<strong>ComObjConnect</strong>(WB, WB_events)  <em>; Connect WB's events to the WB_events class object.</em>
+Gui Show
+<em>; Continue on to load the initial page:</em>
+ButtonGo:
+Gui Submit, NoHide
+WB.Navigate(URL)
+return
+
+class WB_events
+{
+    <a href="http://msdn.microsoft.com/en-us/library/aa768334">NavigateComplete2</a>(wb, NewURL)
+    {
+        GuiControl,, URL, %NewURL%  <em>; Update the URL edit control.</em>
+    }
+}
+
+GuiClose:
+ExitApp</pre>
+<p><a href="ComObjType.htm">ComObjType</a> can be used to determine the type of object stored in the control's variable.</p>
 <h2>Related Pages</h2>
 <p><a href="ListView.htm">ListView</a>, <a href="TreeView.htm">TreeView</a>, <a href="Gui.htm">Gui</a>, <a href="GuiControl.htm">GuiControl</a>, <a href="GuiControlGet.htm">GuiControlGet</a>, <a href="Menu.htm">Menu</a></p>
 
