@@ -1,0 +1,91 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<title>Catch</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link href="../css/default.css" rel="stylesheet" type="text/css">
+</head>
+<body>
+
+<h1>Catch <span class="ver">[v1.1.04+]</span></h1>
+
+<p>Specifies the command(s) to perform if an exception is raised while the body of a <a href="Try.htm"><code>try</code></a> command is being executed. When more than one command is present, enclose them in a <a href="Block.htm">block</a> (braces).</p>
+
+<pre class="Syntax">Catch [, OutputVar]</pre>
+<h3>Parameters</h3>
+<table class="info">
+  <tr>
+    <td width="15%">OutputVar</td>
+    <td width="85%"><em>(Optional)</em> The variable in which to store the value of the exception.</td>
+  </tr>
+</table>
+
+<h3>Remarks</h3>
+<p>Every use of <code>catch</code> must belong to (be associated with) a <code>try</code> statement above it. A <code>catch</code> always belongs to the nearest unclaimed <code>try</code> statement above it unless a <a href="Block.htm">block</a> is used to change that behavior.</p>
+<p>In normal script execution, a <code>catch</code>'s body is not executed. But if a <a href="Throw.htm"><code>throw</code></a> statement is found or a runtime error is detected while executing the body of the associated <code>try</code>'s body, execution is transferred to the <code>catch</code>'s body.</p>
+<p>The <a href="Block.htm#otb">One True Brace (OTB) style</a> may optionally be used with the <code>catch</code> command. For example:</p>
+<pre>try <strong>{</strong>
+    ...
+<strong>}</strong> catch e <strong>{</strong>
+    ...
+<strong>}</strong></pre>
+
+<h3 id="RuntimeErrors">Runtime errors</h3>
+<p>The <code>try/catch</code> structure can also be used to handle AutoHotkey runtime errors. For compatibility reasons, runtime errors only throw exceptions if there's an active <code>try</code> block, if not then the original behaviour is followed (displaying an error message box or setting ErrorLevel). Most commands support this way of handling errors instead of setting ErrorLevel (however, ErrorLevel is still set to 0 if the command succeeds).</p>
+<p>The value that is stored in <code>OutputVar</code> (if present) is an <a href="../objects/Object.htm">object</a> that contains the following fields:</p>
+<div class="methodShort" id="what"><h2>what</h2>
+<p>Contains the string "AhkRuntimeError" (without the quotes).</p>
+<pre class="Syntax">OutputVar.what</pre>
+</div>
+<div class="methodShort" id="file"><h2>file</h2>
+<p>Contains the full path of the script file which contains the line that produced the runtime error.</p>
+<pre class="Syntax">OutputVar.file</pre>
+</div>
+<div class="methodShort" id="line"><h2>line</h2>
+<p>Contains the line number of the line that produced the runtime error.</p>
+<pre class="Syntax">OutputVar.line</pre>
+</div>
+<div class="methodShort" id="message"><h2>message</h2>
+<p>Contains a message that describes the reason of the runtime error. If the exception was thrown by a command or built-in function, it (usually) contains its name.</p>
+<pre class="Syntax">OutputVar.message</pre>
+</div>
+<div class="methodShort" id="extra"><h2>extra</h2>
+<p>Some runtime errors set this field to useful additional debugging information. If the exception was thrown by a command or built-in function, it contains the value which would have been stored in ErrorLevel.</p>
+<pre class="Syntax">OutputVar.extra</pre>
+</div>
+
+<h3>Related</h3>
+<p><a href="Try.htm">Try</a>, <a href="Throw.htm">Throw</a>, <a href="Block.htm">Blocks</a></p>
+<h3>Examples</h3>
+<pre class="NoIndent"><em>; This example shows how to use try/catch instead of ErrorLevel</em>
+
+try
+{
+    <em>; The following tries to back up certain types of files</em>
+    FileCopy, %A_MyDocuments%\*.txt, D:\Backup\Text documents
+    FileCopy, %A_MyDocuments%\*.doc, D:\Backup\Text documents
+    FileCopy, %A_MyDocuments%\*.jpg, D:\Backup\Photos
+}catch
+{
+    MsgBox, 16,, There was a problem while backing the files up!
+    ExitApp
+}
+
+</pre>
+
+<pre class="NoIndent"><em>; This example shows how to deal with COM errors</em>
+
+try
+{
+    obj := <a href="ComObjCreate.htm">ComObjCreate</a>(&quot;<a href="http://msdn.microsoft.com/en-us/library/aa227633(v=vs.60).aspx">ScriptControl</a>&quot;)
+    obj.ExecuteStatement(&quot;MsgBox &quot;&quot;This is embedded VBScript&quot;&quot;&quot;)
+    obj.InvalidMethod() <em>; this line produces a runtime error</em>
+}catch e
+{
+    <em>; For more info on the fields of the object that e contains, see the "<a href="#RuntimeErrors">Runtime errors</a>" section.</em>
+    MsgBox, 16,, % &quot;Exception thrown!`n`nwhat: &quot; e.what &quot;`nfile: &quot; e.file &quot;`nline: &quot; e.line &quot;`nmessage: &quot; e.message &quot;`nextra: &quot; e.extra
+}</pre>
+
+</body>
+</html>
