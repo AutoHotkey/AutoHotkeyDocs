@@ -10,15 +10,18 @@
 
 <h1>Try <span class="ver">[v1.1.04+]</span></h1>
 
-<p>Wraps one or more statements so that errors ("<em>exceptions</em>") raised by <a href="Throw.htm"><code>throw</code></a>, runtime errors or the failure of certain commands can be easily caught.</p>
+<p>Guards one or more statements (commands or expressions) against runtime errors and exceptions thrown by the <a href="Throw.htm">throw</a> command.</p>
 
-<pre class="Syntax">Try</pre>
+<pre class="Syntax">Try <i>Statement</i></pre>
+<pre class="Syntax" style="line-height: 100%">Try
+{
+    <i>Statements</i>
+}</pre>
 <h3>Remarks</h3>
-<p>The <code>try</code> command is usually followed by a <a href="Block.htm">block</a>, which is a collection of statements that form the <em>body</em> of the <code>try</code>. However, a <code>try</code> with only a single statement does not require a block.</p>
-<p>The <code>try</code> command can be followed immediately by any other single command on the same line. This is most often used for one-line statements (see example at the bottom).</p>
-<p>Common uses of this command are to easily handle <a href="DllCall.htm">DllCall</a> errors, COM errors and other kinds of runtime errors.</p>
-<p>If a <code><a href="Throw.htm">throw</a></code> statement is found or a runtime error is detected while executing the body of the <code>try</code>, execution stops and AutoHotkey checks if said body is followed by a <code><a href="Catch.htm">catch</a></code> statement. If so, then it transfers control to said statement, which is normally not executed; otherwise it transfers control to the end of the body. The most recently executed <code>try</code> statement is the one that always handles exceptions.</p>
-<p>The <a href="Block.htm#otb">One True Brace (OTB) style</a> may optionally be used with the <code>try</code> command. For example:</p>
+<p>The <em>try</em> command is usually followed by a <a href="Block.htm">block</a> - one or more statements (commands or expressions) enclosed in braces. If only a single statement is to be executed, it can be placed on the same line as <em>try</em> or on the next line, and the braces can be omitted. To specify code that executes only when <em>try</em> catches an error, use the <a href="Catch.htm">catch</a> command.</p>
+<p>If the <a href="Throw.htm">throw</a> command is used or a runtime error is detected during execution of a <em>try</em> block, execution immediately jumps out of the block. If there is a <a href="Catch.htm">catch</a> statement, it is executed. If an exception is thrown while no <em>try</em> blocks are executing, an error message is shown and the current thread exits.</p>
+<p>If multiple <em>try</em> commands are executing, the most recent one which is still executing takes precedence.</p>
+<p>The <a href="Block.htm#otb">One True Brace (OTB) style</a> may optionally be used with the <em>try</em> command. For example:</p>
 <pre>try <strong>{</strong>
     ...
 <strong>}</strong> catch e <strong>{</strong>
@@ -26,40 +29,41 @@
 <strong>}</strong></pre>
 <h3>Related</h3>
 <p><a href="Catch.htm">Catch</a>, <a href="Throw.htm">Throw</a>, <a href="Block.htm">Blocks</a></p>
-<h3>Examples</h3>
-<pre class="NoIndent"><em>; This example is very trivial, but still shows the basic concept of try/catch/throw</em>
+<h3 id="Examples">Examples</h3>
+<pre class="NoIndent" id="ex_basic"><em>; Example #1: The basic concept of try/catch/throw.</em>
 
-try <em>; Indicates that AutoHotkey should attempt to execute the code below.</em>
+try  <em>; Attempts to execute code.</em>
 {
     HelloWorld()
     MakeToast()
-}<a href="Catch.htm">catch</a> e <em>; Provides an error handler for the try block above.</em>
+}
+<a href="Catch.htm">catch</a> e  <em>; Handles the first error/exception raised by the block above.</em>
 {
     MsgBox, An exception was thrown!`nSpecifically: %e%
     <a href="Exit.htm">Exit</a>
 }
 
-<em>; This function always succeeds</em>
-HelloWorld()
+HelloWorld()  <em>; Always succeeds.</em>
 {
     MsgBox, Hello, world!
 }
 
-<em>; This function always fails</em>
-MakeToast()
+MakeToast()  <em>; Always fails.</em>
 {
-    <a href="Throw.htm">throw</a> A_ThisFunc &quot; is not implemented, sorry&quot; <em>; This instructs AutoHotkey to stop executing and jump to the most recently executed try block's error handler</em>
+    <em>; Jump immediately to the try block's error handler:</em>
+    <a href="Throw.htm">throw</a> A_ThisFunc &quot; is not implemented, sorry&quot;
 }</pre>
 
-<pre class="NoIndent"><em>; This example shows how to use try/catch instead of ErrorLevel</em>
+<pre class="NoIndent" id="ex_el"><em>; Example #2: Using try/catch instead of ErrorLevel.</em>
 
 try
 {
-    <em>; The following tries to back up certain types of files</em>
+    <em>; The following tries to back up certain types of files:</em>
     FileCopy, %A_MyDocuments%\*.txt, D:\Backup\Text documents
     FileCopy, %A_MyDocuments%\*.doc, D:\Backup\Text documents
     FileCopy, %A_MyDocuments%\*.jpg, D:\Backup\Photos
-}catch
+}
+catch
 {
     MsgBox, 16,, There was a problem while backing the files up!
     ExitApp
@@ -67,20 +71,22 @@ try
 
 </pre>
 
-<pre class="NoIndent"><em>; This example shows how to deal with COM errors</em>
+<pre class="NoIndent" id="ex_com"><em>; Example #3: Dealing with COM errors.</em>
 
 try
 {
     obj := <a href="ComObjCreate.htm">ComObjCreate</a>(&quot;<a href="http://msdn.microsoft.com/en-us/library/aa227633(v=vs.60).aspx">ScriptControl</a>&quot;)
     obj.ExecuteStatement(&quot;MsgBox &quot;&quot;This is embedded VBScript&quot;&quot;&quot;)
-    obj.InvalidMethod() <em>; this line produces a runtime error</em>
-}catch e
+    obj.InvalidMethod() <em>; This line produces a runtime error.</em>
+}
+catch e
 {
-    <em>; For more info on the fields of the object that e contains, see <a href="Catch.htm#RuntimeErrors">Catch</a>.</em>
-    MsgBox, 16,, % &quot;Exception thrown!`n`nwhat: &quot; e.what &quot;`nfile: &quot; e.file &quot;`nline: &quot; e.line &quot;`nmessage: &quot; e.message &quot;`nextra: &quot; e.extra
+    <em>; For more detail about the object that e contains, see <a href="Catch.htm#RuntimeErrors">Catch</a>.</em>
+    MsgBox, 16,, % &quot;Exception thrown!`n`nwhat: &quot; e.what &quot;`nfile: &quot; e.file
+        . &quot;`nline: &quot; e.line &quot;`nmessage: &quot; e.message &quot;`nextra: &quot; e.extra
 }</pre>
 
-<pre class="NoIndent"><em>; This example shows the behaviour of nested Try commands.</em>
+<pre class="NoIndent" id="ex_nesting"><em>; Example #4: Nesting try-catch statements.</em>
 
 try Example1() <em>; Any single statement can be on the same line with a Try command.</em>
 catch e
