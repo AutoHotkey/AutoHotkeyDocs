@@ -21,6 +21,7 @@ h1 {font-size: 200%; margin-top: 0.5em}
 <pre class="Syntax">Gui, sub-command [, Param2, Param3, Param4]</pre>
 <h2>Table of Contents</h2>
 <ul>
+  <li><a href="#New">New</a>: Creates a new window.</li>
   <li><a href="#Add">Add</a>: Creates a control such as text, button, or checkbox.</li>
   <li><a href="#Show">Show</a>: Displays the window. It can also minimize, maximize, or move the window.</li>
   <li><a href="#Submit">Submit</a>: Saves the user's input and optionally hides the window.</li>
@@ -40,9 +41,20 @@ h1 {font-size: 200%; margin-top: 0.5em}
   <li><a href="#Labels">Window Events</a>: <a href="#GuiClose">GuiClose</a> | <a href="#GuiEscape">GuiEscape</a> | <a href="#GuiSize">GuiSize</a> | <a href="#GuiContextMenu">GuiContextMenu</a> | <a href="#GuiDropFiles">GuiDropFiles</a></li>
   <li><a href="#MultiWin">Creating Multiple GUI windows</a></li>
   <li><a href="#DefaultWin">GUI Events, Threads, and Subroutines</a></li>
-  <li>Miscellaneous: <a href="#Navigate">Keyboard Navigation | </a><a href="#Appear">Window Appearance</a> | <a href="#GenRemarks">General Remarks</a></li>
+  <li>Miscellaneous: <a href="#Navigate">Keyboard Navigation</a> | <a href="#Appear">Window Appearance</a> | <a href="#GenRemarks">General Remarks</a></li>
   <li><a href="#Examples">Examples</a>: Contains working scripts that demonstrate GUI windows and controls.</li>
 </ul>
+
+<h2 id="New">Gui, New [, Options, Title] <span class="ver">[v1.1.04]</span></h2>
+<p>Creates a new window. This command has two different modes:</p>
+<pre>Gui, New  <em>; Creates a new unnamed GUI and makes it the default.</em>
+Gui, Name:New  <em>; Creates a new GUI, destroying any existing GUI with that name.</em>
+</pre>
+<p>If no name is given, the new window is set as the <a href="#Default">default</a> for the current thread. Special <a href="#Labels">labels</a> such as <a href="#GuiClose"><em>GuiClose</em></a> have the default &quot;Gui&quot; prefix unless overridden by <a href="#PlusLabel">+Label<em>Prefix</em></a> in the options. If the GUI which launched the current thread was created this way, <a href="../Variables.htm#Gui">A_Gui</a> contains a HWND instead of a name. On a related note, if <a href="#GuiHwndOutputVar">+Hwnd<em>OutputVar</em></a> is used in the options, the HWND of the new window is stored in <em>OutputVar</em>.</p>
+<p>If a name is specified, any existing GUI with that name is <strong>destroyed</strong> and the current thread's <a href="#Default">default GUI</a> is not changed.</p>
+<p><em>Options</em> can contain any of the <a href="#Options">options</a> supported by the main GUI command.</p>
+<p>If <em>Title</em> is omitted, the script's file name is used.</p>
+<p>Note that if this command is not used, simply using one of the other Gui sub-commands such as <a href="#Add">Gui, Add</a> may cause a GUI to be created.</p>
 
 <h2 id="Add">Gui, Add, ControlType [, Options, Text]</h2>
 <p>Adds a control to a GUI window (first creating the GUI window itself, if necessary).</p>
@@ -183,24 +195,14 @@ Gui, MyGui:+Owner  <em>; Make <i>MyGui</i> owned by <a href="Menu.htm#MainWindow
 
 <h2 id="Menu">Gui, Menu [, MenuName]</h2>
 <p>Attaches a menu bar to the window. Use the <a href="Menu.htm">Menu</a> command to create an ordinary menu for this purpose. For example:</p>
-<pre>Menu, FileMenu, Add, &amp;Open    Ctrl+O, MenuFileOpen  <em>; See remarks below about Ctrl+O.</em>
+<pre>Menu, FileMenu, Add, &amp;Open<a href="_EscapeChar.htm">`t</a>Ctrl+O, MenuFileOpen  <em>; See remarks below about Ctrl+O.</em>
 Menu, FileMenu, Add, E&amp;xit, MenuHandler
 Menu, HelpMenu, Add, &amp;About, MenuHandler
 Menu, MyMenuBar, Add, &amp;File, :FileMenu  <em>; Attach the two sub-menus that were created above.</em>
 Menu, MyMenuBar, Add, &amp;Help, :HelpMenu
 <strong>Gui, Menu, MyMenuBar</strong></pre>
-<p>In the first line above, notice that &amp;Open is followed by Ctrl+O (with a tab character in between). This indicates a keyboard shortcut that the user may press instead of selecting the menu item. To enable such a shortcut in the script, use a context-sensitive hotkey:</p>
-<pre><a href="_IfWinActive.htm">#IfWinActive</a> GUI Window's Title ahk_class AutoHotkeyGUI
-^o::  <em>; The Ctrl+O hotkey.</em>
-MenuFileOpen:
-Gui <a href="#OwnDialogs">+OwnDialogs</a>  <em>; Force the user to dismiss the FileSelectFile dialog before returning to the main window.</em>
-<a href="FileSelectFile.htm">FileSelectFile</a>, SelectedFile
-MsgBox You selected the file %SelectedFile%.
-return
-
-<em>; The following part is needed only if the script will be run on Windows 95/98/Me:</em>
-#IfWinActive
-$^o::Send ^o</pre>
+<p>In the first line above, notice that &amp;Open is followed by Ctrl+O (with a tab character in between). This indicates a keyboard shortcut that the user may press instead of selecting the menu item. <span class="ver">[v1.1.04+]:</span> If the shortcut uses only the standard modifier key names Ctrl, Alt and Shift, it is automatically registered as a <em>keyboard accelerator</em> for the GUI. Single-character accelerators with no modifiers are case-sensitive and can be triggered by unusual means such as IME or Alt+NNNN.</p>
+<p>If a particular key combination does not work automatically, the use of a <a href="_IfWinActive.htm">context-sensitive hotkey</a> may be required. However, such hotkeys typically cannot be triggered by <a href="Send.htm">Send</a> and are more likely to interfere with other scripts than a standard keyboard accelerator.</p>
 <p>To remove a window's current menu bar, use <em>Gui Menu</em> (that is, omit the last parameter).</p>
 <p>Once a menu has been used as a menu bar, it should not be used as a popup menu or a submenu. This is because menu bars internally require a different format (however, this restriction applies only to the menu bar itself, not its submenus). If you need to work around this, create one menu to use as the menu bar and another identical menu to use for everything else.</p>
 <p>The use of certain destructive <a href="Menu.htm">menu sub-commands</a> such as Delete and DeleteAll against a menu that is currently being used as a menu bar (and in some cases, its submenus) is not supported and will cause an error dialog to be displayed (unless <a href="Menu.htm">UseErrorLevel</a> is in effect). Use the following steps to make such changes: 1) detach the menu bar via <em>Gui Menu</em> (that is, omit <em>MenuName</em>); 2) make the changes; 3) reattach the menu bar via <em>Gui, Menu, MyMenuBar</em></p>
@@ -330,12 +332,13 @@ Loop, parse, FileList, `n
 <p>To temporarily disable drag-and-drop for a window, remove the WS_EX_ACCEPTFILES style via <em>Gui -E0x10</em>. To re-enable it later, use <em>Gui +E0x10</em>.</p>
 <p><strong>Detecting and responding to other events</strong>: Other types of GUI events can be detected and acted upon via <a href="OnMessage.htm">OnMessage()</a>. For example, a script can display context-sensitive help via ToolTip whenever the user moves the mouse over particular controls in the window. This is demonstrated in the <a href="#ExToolTip">GUI ToolTip example</a>.</p>
 <h2><a name="MultiWin" id="MultiWin"></a>Creating Multiple GUI Windows</h2>
-<p>For windows other than number 1, the window's name or number is used as a prefix for the special labels mentioned above; for example, 2GuiEscape and 2GuiClose would be the default labels for window number 2, while <em>MyGui</em>GuiEscape and <em>MyGui</em>GuiClose would be the default labels for <em>MyGui</em>. To use custom label names, see <a href="#PlusLabel">Gui +Label</a>.</p>
-<p>To operate upon a window other than the <a href="#DefaultWin">default</a>, include its name or number followed by a colon in front of the sub-command as in these examples:</p>
+<p>For windows other than number 1, the window's name or number (if it has one) is used as a prefix for the special labels mentioned above; for example, 2GuiEscape and 2GuiClose would be the default labels for window number 2, while <em>MyGui</em>GuiEscape and <em>MyGui</em>GuiClose would be the default labels for <em>MyGui</em>. To use custom label names, see <a href="#PlusLabel">Gui +Label</a>.</p>
+<p>To operate upon a window other than the <a href="#DefaultWin">default</a>, include its name or number (or in v1.1.03+, its <a href="#GuiHwndOutputVar">HWND</a>) followed by a colon in front of the sub-command, as in these examples:</p>
 <pre>Gui, <strong>MyGui:</strong>Add, Text,, Text for about-box.
 Gui, <strong>MyGui:</strong>Show</pre>
-<p><a href="#Default">Gui MyGui:Default</a> can be used to avoid the need for the &quot;MyGui:&quot; prefix above. In addition, the prefix is not necessary inside a <a href="#DefaultWin">GUI thread</a> that operates upon the same window that launched the thread. </p>
-<p id="Name"><span class="ver">[v1.1.03+]:</span> Instead of a number between 1 and 99, a name or <a href="WinGet.htm#ID">HWND</a> can be used. Gui names must conform to the same rules as <a href="../Variables.htm#Variable_names">variable names</a>. Any number which is either not between 1 and 99 or is longer than two characters (such as 0x01) must be the HWND of an existing Gui, or the command will fail. The number of named windows that can be created is limited only by available system resources.</p>
+<p><a href="#Default">Gui MyGui:Default</a> can be used to avoid the need for the &quot;MyGui:&quot; prefix above. In addition, the prefix is not necessary inside a <a href="#DefaultWin">GUI thread</a> that operates upon the same window that launched the thread.</p>
+<p id="Name"><span class="ver">[v1.1.03+]:</span> Gui names must conform to the same rules as <a href="../Variables.htm#Variable_names">variable names</a>. Any number which is either not between 1 and 99 or is longer than two characters (such as 0x01) must be the HWND of an existing Gui, or the command will fail. The number of windows that can be created is limited only by available system resources.</p>
+<p><span class="ver">[v1.1.04+]:</span> Any number of unnamed GUI windows can be created using <a href="#New">Gui, New</a>.</p>
 <h2 id="DefaultWin">GUI Events</strong>, Threads, and Subroutines</h2>
 <p>A GUI <a href="../misc/Threads.htm">thread</a> is defined as any thread launched as a result of a GUI action. GUI actions include selecting an item from a GUI window's <a href="#Menu">menu bar</a>, or triggering one of its <a href="#label">g-labels</a> (such as by pressing a button).</p>
 <p>The <strong>default <a href="#MultiWin">window name</a></strong> for a GUI thread is that of the window that launched the thread. Non-GUI threads use 1 as their default.</p>
