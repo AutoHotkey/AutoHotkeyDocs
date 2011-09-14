@@ -91,31 +91,21 @@ Loop, read, C:\Database Export.csv
     }
 }</pre>
 <p>&nbsp;</p>
-<pre class="NoIndent"><em>; The following example is similar to a parsing loop but also provides awareness
-; of which delimiter was encountered.</em>
+<pre class="NoIndent"><em>; Example #5: Determining which delimiter was encountered.</em>
 
 <em>; Initialize string to search.</em>
 Colors = red,green|blue;yellow|cyan,magenta
-<em>; Initialize zero-based offset to begin search at.</em>
-field_begin := 0
-<em>; Initialize delimiters.</em>
-delimiters = ,|;
-Loop
+<em>; Initialize counter to keep track of our position in the string.</em>
+Position := 0
+
+Loop, Parse, Colors, `,|;
 {
-    <em>; Find zero-based index of next delimiter, relative to beginning of current field.</em>
-    field_length := DllCall(&quot;shlwapi\StrCSpn&quot;, &quot;uint&quot;, &amp;Colors + field_begin, &quot;uint&quot;, &amp;delimiters, &quot;uint&quot;)
-    <em>; Extract field from input string.</em>
-    field := SubStr(Colors, field_begin + 1, field_length)
-    <em>; Extract delimiter from input string.</em>
-    delimiter := SubStr(Colors, field_begin + field_length + 1, 1)
-    
-    MsgBox % &quot;field: &quot; field &quot;`ndelimiter: &quot; delimiter
-    
-    <em>; If delimiter is blank, StrCSpn reached the end of the input string.</em>
-    if delimiter =
-        break
-    <em>; Advanced to the beginning of the next field.</em>
-    field_begin += field_length + 1
+    <em>; Calculate the position of the delimiter at the end of this field.</em>
+    Position += StrLen(A_LoopField) + 1
+    <em>; Retrieve the delimiter found by the parsing loop.</em>
+    Delimiter := SubStr(Colors, Position, 1)
+
+    MsgBox Field: %A_LoopField%`nDelimiter: %Delimiter%
 }</pre>
 
 </body>

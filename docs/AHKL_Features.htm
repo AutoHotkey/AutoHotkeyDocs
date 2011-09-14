@@ -20,9 +20,10 @@
 
 <tr><th id="commands">Commands</th><th></th></tr>
 <tr><td><a href="commands/FileEncoding.htm">FileEncoding</a></td><td>Sets the default encoding for <a href="commands/FileRead.htm">FileRead</a>, <a href="commands/FileReadLine.htm">FileReadLine</a>, <a href="commands/LoopReadFile.htm">Loop Read</a>, <a href="commands/FileAppend.htm">FileAppend</a>, and <a href="commands/FileOpen.htm">FileOpen</a>.<br/><i>See also:</i> <a href="#enc">Text Encodings</a></td></tr>
-<tr><td><a href="commands/Gui.htm#New">Gui, New</a></td><td>Creates a new anonymous GUI. Any number of GUIs can be created.</td></tr>
-<tr><td><a href="commands/GuiControlGet.htm#Name">GuiControlGet, ..., Name</a></td><td>Gets the name of the variable associated with a GUI control.</td></tr>
+<tr><td><a href="commands/Gui.htm">Gui</a></td><td>See <a href="#GUI_Enhancements">GUI Enhancements</a> below.</td></tr>
+<tr><td><a href="commands/IniRead.htm">IniRead</a>/<a href="commands/IniWrite.htm">Write</a>/<a href="commands/IniDelete.htm">Delete</a></td><td>Read, write or delete entire sections, or retrieve a list of all section names.</td></tr>
 <tr><td><a href="commands/Menu.htm#MenuIcon">Menu, Icon</a></td><td>Sets or removes a menu item's icon.</td></tr>
+<tr><td><a href="commands/Run.htm">Run</a></td><td><a href="Compat.htm#Run">Improvements</a> were made to the way parameters are parsed.</tr>
 <tr><td><a href="commands/Send.htm#Unicode">SendInput {U+nnnn}</a></td><td>Sends a Unicode character. Unicode characters may be used directly in Unicode builds.</td></tr>
 <tr><td><a href="commands/SetFormat.htm">SetFormat, IntegerFast, h|H</a></td><td>Set lower-case or upper-case hexadecimal format.</td></tr>
 <tr><td><a href="commands/Transform.htm#HTML">Transform, HTML</a></td><td>Perform code page or HTML transformations.</td></tr>
@@ -50,6 +51,7 @@
 <tr><td><a href="commands/FileOpen.htm">FileOpen</a></td><td>Provides object-oriented file I/O.</td></tr>
 <tr><td><a href="Functions.htm#Func">Func</a></td><td>Retrieves a <a href="Objects.htm#Function_References">reference</a> to a function.</td></tr>
 <tr><td><a href="Functions.htm#GetKeyName">GetKeyName/VK/SC</a></td><td>Retrieves the name or text, virtual key code or scan code of a key.</td></tr>
+<tr><td><a href="Functions.htm#InStr">InStr</a></td><td>Searches for a given <em>occurrence</em> of a string, from the left or the right.</td></tr>
 <tr><td><a href="Functions.htm#IsByRef">IsByRef</a></td><td>Determines whether a ByRef parameter was supplied with a variable.</td></tr>
 <tr><td><a href="Objects.htm">IsObject</a></td><td>Determines whether a value is an object.</td></tr>
 <tr><td><a href="commands/StrPutGet.htm">StrPut / StrGet</a></td><td>Copies a string to or from a memory address, optional converting it between code pages.</td></tr>
@@ -93,17 +95,8 @@
 </table>
 
 
-<h2>Changes to Commands</h2>
-
-<h3 id="enc">Text Encodings</h3>
-<p><a href="commands/FileRead.htm">FileRead</a>, <a href="commands/FileReadLine.htm">FileReadLine</a>, <a href="commands/LoopReadFile.htm">Loop Read</a> and <a href="commands/FileAppend.htm">FileAppend</a> support the majority of Windows-supported text encodings, not just the system default ANSI code page.  <a href="commands/FileEncoding.htm">FileEncoding</a> can be used to set the default encoding, which can be overridden for FileRead and FileAppend as follows:</p>
-<pre class="Syntax">FileRead, OutputVar, *P<i>nnn</i> Filename
-FileAppend [, Text, Filename, Encoding]</pre>
-<p>While <i>nnn</i> must be a numeric <a href="http://msdn.microsoft.com/en-us/library/dd317756.aspx">code page identifier</a>, <i>Encoding</i> follows the same format as <a href="commands/FileEncoding.htm">FileEncoding</a>.</p>
-<p><b>See also:</b> <a href="Compat.htm#FileRead">Script Compatibility</a></p>
-
-<h3 id="excpt">Structured Exception Handling</h3>
-<p>Many commands support using try/catch instead of ErrorLevel for error handling. For example:</p>
+<h2 id="Error_Handling">Error Handling</h2>
+<p>Many commands support using <a href="commands/Try.htm">try</a>/<a href="commands/Catch.htm">catch</a> instead of ErrorLevel for error handling. For example:</p>
 <pre class="NoIndent">try
 {
     FileCopy, file1.txt, C:\folder
@@ -111,7 +104,34 @@ FileAppend [, Text, Filename, Encoding]</pre>
 }
 catch
     MsgBox An error occured!</pre>
-<p><b>See also:</b> <a href="commands/Try.htm">Try</a>, <a href="commands/Catch.htm">Catch</a>
+<p>Additionally, the following commands now set <a href="commands/Variables.htm#LastError">A_LastError</a> to assist with debugging: FileAppend, FileRead, FileReadLine, FileDelete, FileCopy, FileMove, FileGetAttrib/Time/Size/Version, FileSetAttrib/Time, FileCreateDir, RegRead, RegWrite, RegDelete.</p>
+
+<h2 id="GUI_Enhancements">GUI Enhancements</h2>
+<p>A number of enhancements have been made to the <a href="commands/Gui.htm">Gui</a> command and related:</p>
+<ul>
+  <li>A <a href="commands/Gui.htm#MultiWin">name or HWND</a> can be used instead of a number between 1 and 99 when referring to a GUI.</li>
+  <li><a href="commands/Gui.htm#New">Gui, New</a> creates a new anonymous GUI.</li>
+  <li>Any number of named or anonymous GUIs can be created.</li>
+  <li>New GUI options: <a href="commands/Gui.htm#GuiHwndOutputVar">+Hwnd<em>OutputVar</em></a>, <a href="commands/Gui.htm#Parent">+Parent<em>GUI</em></a></li>
+  <li>A GUI's owner can be any arbitrary window: <a href="commands/Gui.htm#Owner">+Owner<em>%HWND%</em></a>.</li>
+  <li><a href="commands/Gui.htm#fontq">Gui, Font</a> can control anti-aliasing of text.</li>
+  <li><a href="commands/GuiControls.htm#ActiveX">ActiveX controls</a> such as the Internet Explorer WebBrowser control are supported.</li>
+  <li><a href="commands/GuiControlGet.htm#Name">GuiControlGet, <em>OutputVar</em>, Name</a> gets the name of the variable associated with a GUI control.</li>
+  <li>Keyboard accelerators such as Ctrl+O are supported automatically when used in <a href="commands/Gui.htm#Menu">Gui menus</a>.</li>
+</ul>
+
+<h2 id="Static">Static Variables</h2>
+<p>Static variables can now be initialized using any expression.</p>
+
+<h2 id="enc">Text Encodings</h2>
+<p><a href="commands/FileRead.htm">FileRead</a>, <a href="commands/FileReadLine.htm">FileReadLine</a>, <a href="commands/LoopReadFile.htm">Loop Read</a> and <a href="commands/FileAppend.htm">FileAppend</a> support the majority of Windows-supported text encodings, not just the system default ANSI code page.  <a href="commands/FileEncoding.htm">FileEncoding</a> can be used to set the default encoding, which can be overridden for FileRead and FileAppend as follows:</p>
+<pre class="Syntax">FileRead, OutputVar, *P<i>nnn</i> Filename
+FileAppend [, Text, Filename, Encoding]</pre>
+<p>While <i>nnn</i> must be a numeric <a href="http://msdn.microsoft.com/en-us/library/dd317756.aspx">code page identifier</a>, <i>Encoding</i> follows the same format as <a href="commands/FileEncoding.htm">FileEncoding</a>.</p>
+<p><b>See also:</b> <a href="Compat.htm#FileRead">Script Compatibility</a></p>
+
+<h2 id="Variadic">Variadic Functions and Function-Calls</h2>
+<p><a href="Functions.htm#Variadic">Variadic functions</a> can receive a variable number of parameters via an array, while <a href="Functions.htm#VariadicCall">variadic function-calls</a> can be used to pass a variable number of parameters to a function.</p>
 
 
 <h2 id="icons">Improvements to Icon Support</h2>
