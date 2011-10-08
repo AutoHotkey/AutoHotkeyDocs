@@ -33,6 +33,7 @@
       <p><a name="Array"></a>If any <a href="../misc/RegEx-QuickRef.htm#subpat">capturing subpatterns</a> are present inside <em>NeedleRegEx</em>, their matches are stored in an <a href="../misc/Arrays.htm">array</a> whose base name is <em>OutputVar</em>. For example, if the variable's name is <em>Match</em>, the substring that matches the first subpattern would be stored in <em>Match1</em>, the second would be stored in <em>Match2</em>, and so on. The exception to this is <a href="#NamedSubPat">named subpatterns</a>: they are stored by name instead of number. For example, the substring that matches the named subpattern <em>(?P&lt;Year&gt;\d{4})</em> would be stored in <em>MatchYear</em>. If a particular subpattern does not match anything (or if the function returns zero), the corresponding variable is made blank.</p>
       <p>Within a <a href="../Functions.htm">function</a>, to create an array that is global instead of local, <a href="../Functions.htm#Global">declare</a> the base name of the array (e.g. Match) as a global variable prior to using it. The converse is true for <a href="../Functions.htm#AssumeGlobal">assume-global</a> functions.</p>      
       <p><a name="PosMode"></a><strong>Mode 2 (position-and-length):</strong> If a capital P is present in the RegEx's options -- such as &quot;<span class="red">P)</span>abc.*123&quot; -- the <em>length</em> of the entire-pattern match is stored in <em>OutputVar</em> (or 0 if no match). If any <a href="../misc/RegEx-QuickRef.htm#subpat">capturing subpatterns</a> are present, their positions and lengths are stored in two arrays: <em>OutputVarPos</em> and <em>OutputVarLen</em>. For example, if the variable's base name is <em>Match</em>, the one-based <em>position</em> of the first subpattern's match would be stored in <em>MatchPos1</em>, and its length in <em>MatchLen1</em> (zero is stored in both if the subpattern was not matched or the function returns 0).  The exception to this is <a href="#NamedSubPat">named subpatterns</a>: they are stored by name instead of number (e.g. <em>MatchPosYear</em> and <em>MatchLenYear</em>).</p>
+      <p id="ObjectMode"><strong>Mode 3 (match object)</strong> <span class="ver">[v1.1.05+]</span><strong>:</strong> If a capital O is present in the RegEx's options -- such as &quot;<span class="red">O)</span>abc.*123&quot; -- a <a href="#MatchObject">match object</a> is stored in <em>UnquotedOutputVar</em>. This object can be used to retrieve the position, length and value of the overall match and of each <a href="../misc/RegEx-QuickRef.htm#subpat">captured subpattern</a>, if present.</p>
     </td>
   </tr>
   <tr>
@@ -52,12 +53,29 @@
 </ul>
 <h3>Options</h3>
 <p>See <a href="../misc/RegEx-QuickRef.htm#Options">Options</a> for modifiers such as &quot;<span class="red">i)</span>abc&quot;, which turns off case-sensitivity in the pattern &quot;abc&quot;.</p>
+<h3 id="MatchObject">Match Object <span class="ver">v1.1.05+</span></h3>
+<p>If a capital O is present in the RegEx's options, a match object is stored in <em>UnquotedOutputVar</em>. This object has the following properties:</p>
+<p><strong>Match.Pos(N)</strong>: Returns the position of the overall match or a captured subpattern.</p>
+<p><strong>Match.Len(N)</strong>: Returns the length of the overall match or a captured subpattern.</p>
+<p><strong>Match.Value(N)</strong>: Returns the overall match or a captured subpattern.</p>
+<p><strong>Match.Name(N)</strong>: Returns the name of the given subpattern, if it has one.</p>
+<p><strong>Match.Count()</strong>: Returns the overall number of subpatterns.</p>
+<p><strong>Match[N]</strong>: If <em>N</em> is 0 or a valid subpattern number or name, this is equivalent to <code>Match.Value(N)</code>. Otherwise, <em>N</em> can be the name of one of the above properties. For example, <code>Match[&quot;Pos&quot;]</code> and <code>Match.Pos</code> are equivalent to <code>Match.Pos()</code> unless a subpattern named &quot;Pos&quot; exists, in which case they are equivalent to <code>Match.Value("Pos")</code>.</p>
+<p><strong>Match.N</strong>: Same as above, except that <em>N</em> is an unquoted name or number.</p>
+<p>For all of the above properties, <em>N</em> can be any of the following:</p>
+<ul>
+  <li>0 for the overall match.</li>
+  <li>The number of a subpattern, even one that also has a name.</li>
+  <li>The name of a subpattern.</li>
+</ul>
+<p>Brackets [] may be used in place of parentheses () if <em>N</em> is specified.</p>
+
 <h3>Performance</h3>
 <p>To search for a simple substring inside a larger string, use <a href="../Functions.htm#InStr">InStr()</a> because it is faster than RegExMatch().</p>
 <p>To improve performance, the 100 most recently used regular expressions are kept cached in memory (in compiled form).</p>
 <p>The <a href="../misc/RegEx-QuickRef.htm#Study">study option (S)</a> can sometimes improve the performance of a regular expression that is used many times (such as in a loop).</p>
 <h3>Remarks</h3>
-<p><a name="NamedSubPat"></a>A subpattern may be given a name such as the word <em>Year</em> in the pattern <em>(?P&lt;Year&gt;\d{4})</em>. Such names may consist of up to 32 alphanumeric characters and underscores. Although named subpatterns are also available by their numbers during the RegEx operation itself (e.g. \1 is a backreference to the string that actually matched the first capturing subpattern), they are stored in the <a href="#Array">output array </a><em>only</em> by name (not by number). For example, if &quot;Year&quot; is the first subpattern, <em>OutputVarYear</em> would be set to the matching substring, but <em>OutputVar1</em> would not be changed at all (it would retain its previous value, if any). However, if an <a href="../misc/RegEx-QuickRef.htm#subpat">unnamed subpattern</a> occurs after &quot;Year&quot;, it would be stored in <em>OutputVar2</em>, not <em>OutputVar1</em>.</p>
+<p><a name="NamedSubPat"></a>A subpattern may be given a name such as the word <em>Year</em> in the pattern <em>(?P&lt;Year&gt;\d{4})</em>. Such names may consist of up to 32 alphanumeric characters and underscores. The following limitation does not apply to the &quot;O&quot; (match object) mode: Although named subpatterns are also available by their numbers during the RegEx operation itself (e.g. \1 is a backreference to the string that actually matched the first capturing subpattern), they are stored in the <a href="#Array">output array </a><em>only</em> by name (not by number). For example, if &quot;Year&quot; is the first subpattern, <em>OutputVarYear</em> would be set to the matching substring, but <em>OutputVar1</em> would not be changed at all (it would retain its previous value, if any). However, if an <a href="../misc/RegEx-QuickRef.htm#subpat">unnamed subpattern</a> occurs after &quot;Year&quot;, it would be stored in <em>OutputVar2</em>, not <em>OutputVar1</em>.</p>
 <p>Most characters like abc123 can be used literally inside a regular expression. However, the characters <strong>\.*?+[{|()^$</strong> must be preceded by a backslash to be seen as literal. For example, <strong>\.</strong> is a literal period and <strong>\\</strong> is a literal backslash. Escaping can be avoided by using \Q...\E. For example: \QLiteral Text\E.</p>
 <p>Within a regular expression, special characters such as tab and newline can be escaped with either an accent (`) or a backslash (\). For example, `t is the same as \t except when the <b>x</b> option is used.</p>
 <p>To learn the basics of regular expressions (or refresh your memory of pattern syntax), see the <a href="../misc/RegEx-QuickRef.htm">RegEx Quick Reference</a>.</p>

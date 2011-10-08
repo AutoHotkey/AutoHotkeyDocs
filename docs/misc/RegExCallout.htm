@@ -28,7 +28,7 @@
 }</pre>
 <p>Callout functions may define up to 5 parameters:</p>
 <ul>
-  <li><b>Match</b>: Equivalent to the <em>UnquotedOutputVar</em> of RegExMatch, including the creation of array variables.</li>
+  <li><b>Match</b>: Equivalent to the <em>UnquotedOutputVar</em> of RegExMatch, including the creation of array variables if appropriate.</li>
   <li><b>CalloutNumber</b>: Receives the <em>Number</em> of the callout.</li>
   <li><b>FoundPos</b>: Receives the position of the current potential match.</li>
   <li><b>Haystack</b>: Receives the <em>Haystack</em> passed to RegExMatch or RegExReplace.</li>
@@ -68,7 +68,10 @@ capture_last      := NumGet(A_EventInfo, 24 + A_PtrSize*2, "Int")
 pad := A_PtrSize=8 ? 4 : 0  <em>; Compensate for 64-bit data alignment.</em>
 callout_data      := NumGet(A_EventInfo, 28 + pad + A_PtrSize*2)
 pattern_position  := NumGet(A_EventInfo, 28 + pad + A_PtrSize*3, "Int")
-next_item_length  := NumGet(A_EventInfo, 32 + pad + A_PtrSize*3, "Int")</pre>
+next_item_length  := NumGet(A_EventInfo, 32 + pad + A_PtrSize*3, "Int")
+if version >= 2
+    mark   := StrGet(NumGet(A_EventInfo, 36 + pad + A_PtrSize*3, "Int"), "UTF-8")
+</pre>
 <p>For more information, see <a href="http://www.pcre.org/pcre.txt">pcre.txt</a>, <a href="../Functions.htm#NumGet">NumGet</a> and <a href="../Variables.htm#PtrSize">A_PtrSize</a>.</p>
 
 <h3 id="auto">Auto-Callout</h3>
@@ -106,7 +109,8 @@ DebugRegEx(Match, CalloutNumber, FoundPos, Haystack, NeedleRegEx)
 
 <h3>Remarks</h3>
 
-<p>Callouts are executed on the current quasi-thread, but the previous value of A_EventInfo will be restored after the callout function returns. ErrorLevel is not set until immediatley before RegExMatch or RegExReplace returns.</p>
+<p>Callouts are executed on the current quasi-thread, but the previous value of A_EventInfo will be restored after the callout function returns. ErrorLevel is not set until immediately before RegExMatch or RegExReplace returns.</p>
+<p>PCRE is optimized to abort early in some cases if it can determine that a match is not possible. For all callouts to be called in such cases, it may be necessary to disable these optimizations by specifying <code>(*NO_START_OPT)</code> at the start of the pattern. This requires v1.1.05 or later.</p>
 
 </body>
 </html>
