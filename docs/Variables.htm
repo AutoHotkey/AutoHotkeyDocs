@@ -21,58 +21,53 @@
   <li><a href="#cap">Variable Capacity and Memory</a></li>
 </ul>
 <h2 id="Intro"><a name="Variables"></a>Variables</h2>
-<p><strong>Variable types</strong>: AutoHotkey has no explicitly defined variable types. However, a variable containing only digits (with an optional decimal point) is automatically interpreted as a number when a math operation or comparison requires it. (To improve performance, numbers are cached internally to avoid conversions to/from strings.)</p>
+<p><strong>Variable types</strong>: AutoHotkey has no explicitly defined variable types. Instead, any variable can contain a string, integer, floating-point number, or reference to an object. Additionally, numbers are automatically converted to or from strings as required. The <a href="commands/Type.htm">Type</a> function can be used to determine the actual type of a value.</p>
 <p><strong>Variable scope and declarations</strong>: With the exception of <a href="Functions.htm#Locals">local variables</a> in functions, all variables are global; that is, their contents may be read or altered by any part of the script. Except where noted on the <a href="Functions.htm#Global">functions page</a>, variables are not declared; they come into existence simply by using them (and each variable starts off empty/blank).</p>
 <p id="Variable_names"><strong>Variable names</strong>: Variable names are not case sensitive (for example, <em>CurrentDate</em> is the same as <em>currentdate</em>). Variable names may be up to 253 characters long and may consist of letters, numbers, underscore and non-ASCII characters. Variable names must not start with a digit.</p>
-<p>Due to style conventions, it is generally better to name your variables using only letters, numbers, and the underscore character (for example: <em>CursorPosition</em>, <em>Total_Items</em>, and <em>entry_is_valid</em>). This style allows people familiar with other computer languages to understand your scripts more easily. Also, if you use&nbsp;the same conventions in AutoHotkey as you use&nbsp;in other languages, you may find it easier to re-read your own scripts.</p>
 <p>Since the words <em>AND</em>, <em>OR</em>, and <em>NOT</em> are used as <a href="#Operators">operators</a> in expressions, generally they should not be used as variable names. Using such names in an expression would prevent proper evaluation.</p>
-<p><strong>Storing values in variables</strong>: To store a string or number in a variable, there are two methods: traditional and expression. The traditional method uses the <a href="commands/SetEnv.htm">equal sign operator (=)</a> to assign <strong>unquoted</strong> literal strings or variables enclosed in percent signs. For example:</p>
-<pre>MyNumber = 123
-MyString = This is a literal string.
-CopyOfVar = %Var%  <em>; With the = operator, percent signs are required to retrieve a variable's contents.</em></pre>
-<p> By contrast, the expression method uses the <a href="commands/SetExpression.htm">colon-equal operator (:=)</a> to store numbers, <strong>quoted</strong> strings, and other types of <a href="#Expressions">expressions</a>. The following examples are functionally identical to the previous ones:</p>
+<p><strong>Storing values in variables</strong>: To store a string or number in a variable, use the <a href="commands/SetExpression.htm">colon-equal operator (:=)</a> followed by a number, quoted string or any other type of <a href="#Expressions">expression</a>. For example:</p>
 <pre>MyNumber := 123
 MyString := &quot;This is a literal string.&quot;
-CopyOfVar := Var  <em>; Unlike its counterpart in the previous section, percent signs are not used with the := operator.</em></pre>
-<p>The latter method is preferred by many due to its greater clarity, and because it supports an <a href="#Expressions">expression syntax</a> nearly identical to that in many other languages.</p>
-<p>You may have guessed from the above that there are two methods to erase the contents of a variable (that is, to make it blank):</p>
-<pre>MyVar =
-MyVar := &quot;&quot;</pre>
-<p>The empty pair of quotes above should be used only with the := operator because if it were used with the = operator, it would store two literal quote-characters inside the variable.</p>
-<p><strong>Retrieving the contents of variables</strong>: Like the two methods of storing values, there are also two methods for retrieving them: traditional and expression. The traditional method requires that each variable name be enclosed in percent signs to retrieve its contents. For example:</p>
-<pre><a href="commands/MsgBox.htm">MsgBox</a> The value in the variable named Var is %Var%.
-CopyOfVar = %Var%</pre>
-<p>By contrast, the expression method omits the percent signs around variable names, but encloses literal strings in quotes. Thus, the following are the expression equivalents of the previous examples:</p>
-<pre>MsgBox <strong>%</strong> &quot;The value in the variable named Var is &quot; . Var . &quot;.&quot;  <em>; A period is used to concatenate (join) two strings.</em>
 CopyOfVar := Var</pre>
-<p>In the MsgBox line above, a percent sign and a space is used to change the parameter from traditional to expression mode. This is necessary because the traditional method is used by default by all commands (except where otherwise documented). However, certain parameters of some commands are documented as accepting expressions, in which case the leading percent sign is permitted but not necessary. For example, all of the following are effectively identical because <a href="commands/Sleep.htm">Sleep</a>'s first parameter is expression-capable:</p>
-<pre>Sleep MillisecondsToWait
-Sleep %MillisecondsToWait%
-Sleep % MillisecondsToWait</pre>
-<p><strong>Comparing variables</strong>: Please read the expressions section below for important notes about the different kinds of comparisons, especially  about when to use parentheses.</p>
+<p>Variables which have not been assigned a value contain an empty string by default. Therefore, to erase the contents of a variable, simply assign an empty string:</p>
+<pre>MyVar := &quot;&quot;</pre>
+<p>A variable can also be assigned a value indirectly, by using it as an <em>output variable</em> of a command. For example:</p>
+<pre><a href="commands/WinGetTitle.htm">WinGetTitle</a> <strong>Title</strong>, A</pre>
+<p><strong>Retrieving the contents of variables</strong>: There are two methods for retrieving the contents of a variable: traditional and expression. The traditional method requires that each variable name be enclosed in percent signs to retrieve its contents. For example:</p>
+<pre><a href="commands/MsgBox.htm">MsgBox</a> The value in the variable named Var is %Var%.
+</pre>
+<p>The closing percent sign can be omitted, except when the character following the variable reference is one that would be valid in a variable name. For example:</p>
+<pre>MsgBox The value in the variable named Var is %Var.
+</pre>
+<p>By contrast, the expression method omits the percent signs around variable names, but encloses literal strings in quotes. Thus, the following is the expression equivalent of the previous example:</p>
+<pre>MsgBox <strong>%</strong> &quot;The value in the variable named Var is &quot; . Var . &quot;.&quot;  <em>; A period is used to concatenate (join) two strings.</em>
+</pre>
+<p>In the MsgBox line above, a percent sign and a space is used to change the parameter from traditional to expression mode. This is necessary because the traditional method is used by default by all commands (except where otherwise documented).</p>
+<p><strong>Comparing variables</strong>: Please read the expressions section below for important notes about the different kinds of comparisons.</p>
 <h2 id="Expressions">Expressions</h2>
 <p>Expressions are used to perform one or more operations upon a series of variables, literal strings, and/or literal numbers.</p>
 <p>Variable names in an expression are not enclosed in percent signs (except for arrays and other <a href="#ref">double references</a>). Consequently, literal strings must be enclosed in double quotes to distinguish them from variables. For example:</p>
 <pre>if (CurrentSetting &gt; 100 or FoundColor &lt;&gt; &quot;Blue&quot;)
     MsgBox The setting is too high or the wrong color is present.</pre>
-<p>In the example above, &quot;Blue&quot; appears in quotes because it is a literal string. To include an <em>actual</em> quote-character inside a literal string, specify two consecutive quotes as shown twice in this example: &quot;She said, <span class="red">&quot;&quot;</span>An apple a day.<span class="red">&quot;&quot;</span>&quot;</p>
+<p>In the example above, &quot;Blue&quot; appears in quotes because it is a literal string. Single-quote marks (&apos;) and double-quote marks (&quot;) function identically, except that a string enclosed in single-quote marks can contain literal double-quote marks and vice versa. Therefore, to include an <em>actual</em> quote mark inside a literal string, <a href="misc/EscapeChar.htm">escape</a> the quote mark or enclose the string in the opposite type of quote mark. For example:</p>
+<pre>MsgBox % &quot;She said, <span class="red">`&quot;</span>An apple a day.<span class="red">`&quot;</span>&quot;
+MsgBox % <span class="red">&apos;</span>She said, &quot;An apple a day.&quot;<span class="red">&apos;</span></pre>
 <p><strong>Empty strings</strong>: To specify an empty string in an expression, use an empty pair of quotes. For example, the statement <em>if (MyVar &lt;&gt; &quot;&quot;)</em> would be true if <em>MyVar</em> is not blank.</p>
-<p>On a related note, any invalid expression such as (x +* 3) yields an empty string.</p>
+<p>On a related note, any invalid expression such as (x +/ 3) yields an empty string.</p>
 <p><strong>Storing the result of an expression</strong>: To assign a result to a variable, use the <a href="commands/SetExpression.htm">:= operator</a>. For example:</p>
 <pre>NetPrice := Price * (1 - Discount/100)</pre>
 <p id="Boolean"><strong>Boolean values</strong>: When an expression is required to evaluate to true or false (such as an IF-statement), a blank or zero result is considered false and all other results are considered true. For example, the statement &quot;if ItemCount&quot; would be false only if ItemCount is blank or 0. Similarly, the expression &quot;if not ItemCount&quot; would yield the opposite result.</p>
 <p>Operators such as NOT/AND/OR/&gt;/=/&lt; automatically produce a true or false value: they yield 1 for true and 0 for false. For example, in the following expression, the variable <em>Done</em> is assigned 1 if either of the conditions is true:</p>
 <pre>Done := A_Index &gt; 5 or FoundIt</pre>
 <p>As hinted above, a variable can be used to hold a false value simply by making it blank or assigning 0 to it. To take advantage of this, the shorthand statement &quot;if Done&quot; can be used to check whether the variable Done is true or false.</p>
-<p><a name="True"></a><a name="False"></a>The words <em>true</em> and <em>false</em> are built-in variables containing 1 and 0. They can be used to make a script more readable as in these examples:</p>
+<p><a name="True"></a><a name="False"></a>In an expression, the keywords <em>true</em> and <em>false</em> resolve to 1 and 0. They can be used to make a script more readable as in these examples:</p>
 <pre>CaseSensitive := false
 ContinueSearch := true</pre>
 <p><strong>Integers and floating point</strong>: Within an expression, numbers are considered to be floating point if they contain a decimal point or scientific notation; otherwise, they are integers. For most operators -- such as addition and multiplication -- if either of the inputs is a floating point number, the result will also be a floating point number.</p>
 <p>Within expressions and non-expressions alike, integers may be written in either hexadecimal or decimal format. Hexadecimal numbers all start with the prefix 0x. For example, <em>Sleep 0xFF</em> is equivalent to <em>Sleep 255</em>. Floating point numbers can optionally be written in scientific notation, with or without a decimal point (e.g. 1e4 or -2.1E-4).</p>
-<p><strong>Force an expression</strong>: An expression can be used in a parameter that does not directly support it (except an OutputVar parameter) by preceding the expression with a percent sign and a space or tab. This technique is often used to access <a href="misc/Arrays.htm">arrays</a>. For example:</p>
-<pre><a href="commands/FileAppend.htm">FileAppend</a>, <strong>%</strong> MyArray%i%, My File.txt
+<p><strong>Force an expression</strong>: An expression can be used in a parameter that does not directly support it (except an OutputVar parameter) by preceding the expression with a percent sign and a space or tab. For example:</p>
+<pre>
 <a href="commands/MsgBox.htm">MsgBox</a> <strong>%</strong> &quot;The variable MyVar contains &quot; . MyVar . &quot;.&quot;
-<a href="commands/Loop.htm">Loop</a> <strong>%</strong> Iterations + 1
 <a href="commands/WinSet.htm">WinSet</a>, Transparent, <strong>%</strong> X + 100
 <a href="commands/WinSet.htm">Control</a>, Choose, <strong>%</strong> CurrentSelection - 1</pre>
 <h2 id="Operators">Operators in Expressions</h2>
