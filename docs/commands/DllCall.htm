@@ -149,13 +149,13 @@ Loop 500
 <p>A structure is a collection of <em>members</em> (fields) stored adjacently in memory. Most members tend to be integers.</p>
 <p>Functions that accept the address of a structure (or a memory-block array) can be called by storing the structure's raw binary data in a normal variable. The following steps are generally used:</p>
 <p>1) Call <code><a href="VarSetCapacity.htm">VarSetCapacity</a>(MyStruct, 123, 0)</code> to ensure that the target variable is large enough to hold the structure's data. Replace 123 with a number that is at least as large as the size of the structure. Specifying zero as the last parameter is optional; it initializes all members to be binary zero, which is typically used to avoid calling NumPut() as often in the next step.</p>
-<p>2) If the target function uses the values initially in the structure, call <code><a href="../Functions.htm#NumPut">NumPut</a>(123, MyStruct, 4, "UInt")</code> to initialize any members that should be non-zero. Replace 123 with the integer to be put into the target member (or specify <code>&amp;Var</code> to store the <a href="../Variables.htm#amp">address</a> of a variable). Replace 4 with the offset of the target member (see step #4 for description of &quot;offset&quot;). Replace "UInt" with the appropriate type or omit it if the member is a pointer or handle.</p>
+<p>2) If the target function uses the values initially in the structure, call <code><a href="NumPut.htm">NumPut</a>(123, MyStruct, 4, "UInt")</code> to initialize any members that should be non-zero. Replace 123 with the integer to be put into the target member (or specify <code>&amp;Var</code> to store the <a href="../Variables.htm#amp">address</a> of a variable). Replace 4 with the offset of the target member (see step #4 for description of &quot;offset&quot;). Replace "UInt" with the appropriate type or omit it if the member is a pointer or handle.</p>
 <p>3) Call the target function, passing the <a href="../Variables.htm#amp">address</a> of MyStruct as a UInt (or Ptr in AHK_L 42+) argument. For example, <code>DllCall(&quot;MyDll\MyFunc&quot;, Ptr, <strong>&amp;</strong>MyStruct)</code>. The function will examine and/or change some of the members.</p>
-<p>4) Use <code>MyInteger := <a href="../Functions.htm#NumGet">NumGet</a>(MyStruct, 4, "UInt")</code> to retrieve any desired integers from the structure. Replace 4 with the offset of the target member in the structure. The first member is always at offset 0. The second member is at offset 0 plus the size of the first member (typically 4). Members beyond the second are at the offset of the previous member plus the size of the previous member. Most members -- such as DWORD, Int, and <a href="#Int">other types of 32-bit integers</a> -- are 4 bytes in size. Replace "UInt" with the appropriate type or omit it if the member is a pointer or handle.</p>
+<p>4) Use <code>MyInteger := <a href="NumGet.htm">NumGet</a>(MyStruct, 4, "UInt")</code> to retrieve any desired integers from the structure. Replace 4 with the offset of the target member in the structure. The first member is always at offset 0. The second member is at offset 0 plus the size of the first member (typically 4). Members beyond the second are at the offset of the previous member plus the size of the previous member. Most members -- such as DWORD, Int, and <a href="#Int">other types of 32-bit integers</a> -- are 4 bytes in size. Replace "UInt" with the appropriate type or omit it if the member is a pointer or handle.</p>
 <p>See <a href="#ExStruct">Structure Examples</a> for actual usages.</p>
 <h3 id="limits">Known Limitations</h3>
 <p>When a <a href="../Variables.htm#amp">variable's address</a> (e.g. &amp;MyVar) is passed to a function and that function alters the length of the variable's contents, subsequent uses of the variable may behave incorrectly. To fix this, do one of the following: 1) Pass MyVar as a <a href="#str">&quot;Str&quot;</a> argument rather than as a Ptr/address; 2) In v1.0.44.03+, call <a href="VarSetCapacity.htm#neg1">VarSetCapacity(MyVar, -1)</a> to update the variable's internally-stored length after calling DllCall.</p>
-<p>Any binary zero stored in a variable by a function hides all data to the right of the zero; that is, such data cannot be accessed or changed by most commands and functions. However, such data can be manipulated by the <a href="../Variables.htm#amp">address operator</a> and <a href="../Functions.htm#NumPut">NumPut</a>/<a href="../Functions.htm#NumGet">NumGet</a>, as well as DllCall itself.</p>
+<p>Any binary zero stored in a variable by a function hides all data to the right of the zero; that is, such data cannot be accessed or changed by most commands and functions. However, such data can be manipulated by the <a href="../Variables.htm#amp">address operator</a> and <a href="NumPut.htm">NumPut</a>/<a href="NumGet.htm">NumGet</a>, as well as DllCall itself.</p>
 <p>A function that returns the address of one of the strings that was passed into it might return an identical string in a different memory address than expected. For example calling CharLower(CharUpper(MyVar)) in a programming language would convert <em>MyVar</em>'s contents to lowercase. But when the same is done with DllCall(), <em>MyVar</em> would be uppercase after the following call because CharLower would have operated on a different/temporary string whose contents were identical to <em>MyVar</em>:</p>
 <pre>MyVar = ABC
 result := DllCall(&quot;CharLower&quot;, <strong><u>str</u></strong>, DllCall(&quot;CharUpper&quot;, Str, MyVar, <strong><u>Str</u></strong>), Str)</pre>
@@ -326,14 +326,14 @@ Run Notepad
 WinWait Untitled - Notepad  <em>; This also sets the &quot;<a href="../LastFoundWindow.htm">last found window</a>&quot; for use with WinExist() below.</em>
 VarSetCapacity(Rect, 16)  <em>; A RECT is a struct consisting of four 32-bit integers (i.e. 4*4=16).</em>
 <strong>DllCall</strong>(&quot;GetWindowRect&quot;, Ptr, WinExist(), Ptr, &amp;Rect)  <em>; WinExist() returns an HWND.</em>
-MsgBox % &quot;Left &quot; . <a href="../Functions.htm#NumGet">NumGet</a>(Rect, 0, "Int") . &quot; Top &quot; . NumGet(Rect, 4, "Int")
+MsgBox % &quot;Left &quot; . <a href="NumGet.htm">NumGet</a>(Rect, 0, "Int") . &quot; Top &quot; . NumGet(Rect, 4, "Int")
     . &quot; Right &quot; . NumGet(Rect, 8, "Int") . &quot; Bottom &quot; . NumGet(Rect, 12, "Int")</pre>
 
 <pre class="NoIndent"><em>; Structure Example: Pass to FillRect() the address of a RECT structure that indicates a part of the
 ; screen to temporarily paint red.</em>
 
 VarSetCapacity(Rect, 16, 0)  <em>; Set capacity to hold four 4-byte integers and initialize them all to zero.</em>
-<a href="../Functions.htm#NumPut">NumPut</a>(A_ScreenWidth//2, Rect, 8, "Int")  <em>; The third integer in the structure is &quot;rect.right&quot;.</em>
+<a href="NumPut.htm">NumPut</a>(A_ScreenWidth//2, Rect, 8, "Int")  <em>; The third integer in the structure is &quot;rect.right&quot;.</em>
 NumPut(A_ScreenHeight//2, Rect, 12, "Int") <em>; The fourth integer in the structure is &quot;rect.bottom&quot;.</em>
 hDC := <strong>DllCall</strong>(&quot;GetDC&quot;, "Ptr", 0, "Int")  <em>; Pass zero to get the desktop's device context.</em>
 hBrush := <strong>DllCall</strong>(&quot;CreateSolidBrush&quot;, "UInt", 0x0000FF)  <em>; Create a red brush (0x0000FF is in BGR format).</em>
@@ -359,7 +359,7 @@ SetSystemTime(YYYYMMDDHHMISS)
     VarSetCapacity(SystemTime, 16, 0)  <em>; This struct consists of 8 UShorts (i.e. 8*2=16).</em>
 
     StringLeft, Int, YYYYMMDDHHMISS, 4    <em>; YYYY (year)</em>
-    <a href="../Functions.htm#NumPut">NumPut</a>(Int, SystemTime, 0, &quot;UShort&quot;)
+    <a href="NumPut.htm">NumPut</a>(Int, SystemTime, 0, &quot;UShort&quot;)
     StringMid, Int, YYYYMMDDHHMISS, 5, 2  <em>; MM (month of year, 1-12)</em>
     NumPut(Int, SystemTime, 2, &quot;UShort&quot;)
     StringMid, Int, YYYYMMDDHHMISS, 7, 2  <em>; DD (day of month)</em>
