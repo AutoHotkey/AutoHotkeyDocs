@@ -48,12 +48,12 @@
     <td>The file's extension (e.g. TXT, DOC, or EXE). The period (.) is not included.</td>
   </tr>
   <tr>
-    <td>A_LoopFileFullPath</td>
-    <td><a name="LoopFileFullPath"></a>The full path and name of the file/folder currently retrieved. However, if <em>FilePattern </em>contains a relative path rather than an absolute path, the path here will also be relative. In addition, any short (8.3) folder names in <em>FilePattern</em> will still be short (see next item to get the long version). </td>
+    <td>A_LoopFilePath</td>
+    <td><a name="LoopFilePath"></a>The path and name of the file/folder currently retrieved. If <em>FilePattern </em>contains a relative path rather than an absolute path, the path here will also be relative. In addition, any short (8.3) folder names in <em>FilePattern</em> will still be short (see next item to get the long version). </td>
   </tr>
   <tr>
-    <td>A_LoopFileLongPath</td>
-    <td><a name="LoopFileLongPath"></a>This is different than A_LoopFileFullPath in the following ways: 1) It always contains the absolute/complete path of the file even if <em>FilePattern</em> contains a relative path; 2) Any short (8.3) folder names in <em>FilePattern</em> itself are converted to their long names; 3) Characters in <em>FilePattern</em> are converted to uppercase or lowercase to match the case stored in the file system. This is useful for converting file names -- such as those passed into a script as command line parameters -- to their exact path names as shown by Explorer.</td>
+    <td>A_LoopFileFullPath</td>
+    <td><a name="LoopFileFullPath"></a>This is different than A_LoopFilePath in the following ways: 1) It always contains the absolute/complete path of the file even if <em>FilePattern</em> contains a relative path; 2) Any short (8.3) folder names in <em>FilePattern</em> itself are converted to their long names; 3) Characters in <em>FilePattern</em> are converted to uppercase or lowercase to match the case stored in the file system. This is useful for converting file names -- such as those passed into a script as command line parameters -- to their exact path names as shown by Explorer.</td>
   </tr>
   <tr>
     <td>A_LoopFileShortPath</td>
@@ -105,7 +105,7 @@
 <p>All matching files are retrieved, including hidden files. By contrast, OS features such as the DIR command omit hidden files by default. To avoid processing hidden, system, and/or read-only files, use something like the following inside the loop:</p>
 <pre>if A_LoopFileAttrib contains H,R,S  <em>; Skip any file that is either H (Hidden), R (Read-only), or S (System). Note: No spaces in &quot;H,R,S&quot;.</em>
     continue  <em>; Skip this file and move on to the next one.</em></pre>
-<p>To retrieve files' relative paths instead of absolute paths during a recursive search, use <a href="SetWorkingDir.htm">SetWorkingDir</a> to change to the base folder prior to the loop, and then omit the path from the Loop (e.g. Loop, *.*, 0, 1). That will cause <a href="#LoopFileFullPath">A_LoopFileFullPath</a> to contain the file's path relative to the base folder.</p>
+<p>To retrieve files' relative paths instead of absolute paths during a recursive search, use <a href="SetWorkingDir.htm">SetWorkingDir</a> to change to the base folder prior to the loop, and then omit the path from the Loop (e.g. Loop, *.*, 0, 1). That will cause <a href="#LoopFilePath">A_LoopFilePath</a> to contain the file's path relative to the base folder.</p>
 <p>A file-loop can disrupt itself if it creates or renames files or folders within its own purview. For example, if it renames files via <a href="FileMove.htm">FileMove</a> or other means, each such file might be found twice: once as its old name and again as its new name. To work around this, rename the files only after creating a list of them. For example:</p>
 <pre>FileList =
 Loop *.jpg
@@ -121,7 +121,7 @@ Loop, parse, FileList, `n
 <pre class="NoIndent"><em>; Example #1:</em>
 Loop, %A_ProgramFiles%\*.txt, , 1  <em>; Recurse into subfolders.</em>
 {
-    MsgBox, 4, , Filename = %A_LoopFileFullPath%`n`nContinue?
+    MsgBox, 4, , Filename = %A_LoopFilePath%`n`nContinue?
     IfMsgBox, No
         break
 }</pre>
@@ -181,9 +181,9 @@ Loop, %CopySourcePattern%
     }
     if copy_it = y
     {
-        FileCopy, %A_LoopFileFullPath%, %CopyDest%\%A_LoopFileName%, 1   <em>; Copy with overwrite=yes</em>
+        FileCopy, %A_LoopFilePath%, %CopyDest%\%A_LoopFileName%, 1   <em>; Copy with overwrite=yes</em>
         if ErrorLevel
-            MsgBox, Could not copy &quot;%A_LoopFileFullPath%&quot; to &quot;%CopyDest%\%A_LoopFileName%&quot;.
+            MsgBox, Could not copy &quot;%A_LoopFilePath%&quot; to &quot;%CopyDest%\%A_LoopFileName%&quot;.
     }
 }
 Return</pre>
@@ -194,7 +194,7 @@ Loop Args.MaxIndex()  <em>; For each parameter (or file dropped onto a script):<
 {
     GivenPath := Args[A_Index]
     Loop Files, %GivenPath%, FD  <em>; Include files and directories.</em>
-        LongPath := A_LoopFileFullPath
+        LongPath := A_LoopFilePath
     MsgBox The case-corrected long path name of file`n%GivenPath%`nis:`n%LongPath%
 }</pre>
 
