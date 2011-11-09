@@ -116,29 +116,28 @@ MsgBox % Join("`n", <b class="blue">substrings*</b>)</pre>
 <p>To refer to an existing global variable inside a function (or create a new one), declare the variable as global prior to using it. For example:</p>
 <pre>LogToFile(TextToLog)
 {
-    global LogFileName  <em>; This global variable was previously given a value somewhere outside this function.</em>
+    <strong>global</strong> LogFileName  <em>; This global variable was previously given a value somewhere outside this function.</em>
     FileAppend, %TextToLog%`n, %LogFileName%
 }</pre>
 <p><a name="AssumeGlobal"></a><strong>Assume-global mode</strong>: If a function needs to access or create a large number of global variables, it can be defined to assume that all its variables are global (except its parameters) by making its first line either the word &quot;global&quot; or the declaration of a local variable. For example:</p>
 <pre>SetDefaults()
 {
-    global  <em>; This word may be omitted if the first line of this function will be something like &quot;local MyVar&quot;.</em>
+    <strong>global</strong>
     MyGlobal := 33  <em>; Assigns 33 to a global variable, first creating the variable if necessary.</em>
     local x, y:=0, z  <em>; Local variables must be declared in this mode, otherwise they would be assumed global.</em>
 }</pre>
-<p>This assume-global mode can also be used by a function to create a global <a href="misc/Arrays.htm">array</a>, such as a loop that assigns values to <code>Array%A_Index%</code>.</p>
+<p>This assume-global mode can also be used by a function to create a global <a href="misc/Arrays.htm">pseudo-array</a>, such as a loop that assigns values to <code>Array%A_Index%</code>.</p>
 <p id="SuperGlobal"><strong>Super-global variables</strong> <span class="ver">[v1.1.05+]</span>: If a global declaration appears outside of any function, it takes effect for all functions by default. This avoids the need to redeclare the variable in each function. However, if a function parameter or local variable with the same name is declared, it takes precedence over the global variable. Variables created by the <a href="Objects.htm#Custom_Classes">class</a> keyword are also super-global.</p>
 <h3 id="static">Static variables</h3>
 <p>Static variables are always implicitly local, but differ from locals because their values are remembered between calls. For example:</p>
 <pre>LogToFile(TextToLog)
 {
-    <strong>static</strong> LoggedLines = 0
+    <strong>static</strong> LoggedLines := 0
     LoggedLines += 1  <em>; Maintain a tally locally (its value is remembered between calls).</em>
     global LogFileName
     FileAppend, %LineCount%: %TextToLog%`n, %LogFileName%
 }</pre>
-<p><a name="InitStatic"></a><strong>Static Initializers</strong>: In versions prior to 1.0.46, all static variables started off blank; so the only way to detect that one was being used for the first time was to check whether it was blank. In v1.0.46+, a static variable may be initialized to something other than <code>&quot;&quot;</code> by following it with <code>:=</code> or <code>=</code> followed by one of the following: true, false, a literal integer, a literal floating point number, or a literal/quoted string such as <code>&quot;fox&quot;</code>. For example: <code>static X:=0, Y:=&quot;fox&quot;</code>. Each static variable is initialized only once (before the script begins executing).</p>
-<p><span class="ver">[AHK_L 58+]:</span> <code>Static var := expression</code> is supported. All such expressions are evaluated immediately before the script's auto-execute section in the order they are encountered in the script.</p>
+<p><a name="InitStatic"></a>A local or global variable may be initialized on the same line as its declaration by following it with <code>:=</code> followed by any <a href="Variables.htm#Expressions">expression</a>. For example: <code>static X:=0, Y:=&quot;fox&quot;</code>. Each static variable is initialized only once. Static variables are initialized in the order they are encountered in the script, but before the script's auto-execute section.</p>
 <p><a name="AssumeStatic"></a><strong>Assume-static mode</strong> <span class="ver">[v1.0.48+]:</span> A function may be defined to assume that all its variables are static (except its parameters) by making its first line the word &quot;static&quot;. For example:</p>
 <pre>GetFromStaticArray(WhichItemNumber)
 {
