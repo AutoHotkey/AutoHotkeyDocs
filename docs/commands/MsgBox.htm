@@ -35,8 +35,8 @@ MsgBox [, Options, Title, Text, Timeout]</pre>
   <tr> 
     <td width="15%">Timeout</td>
     <td width="85%"><p><a name="Timeout"></a>(optional) Timeout in seconds (can contain a decimal point but cannot be an expression).&nbsp; If this value exceeds 2147483 (24.8 days), it will be set to 2147483.&nbsp; After the timeout has 
-      elapsed the message box will be automatically closed and the <a href="IfMsgBox.htm">IfMsgBox</a> command will see the value TIMEOUT.</p>
-      <p>Known limitation: If the MsgBox contains only an OK button, <a href="IfMsgBox.htm">IfMsgBox</a> will think that the OK button was pressed if the MsgBox times out while its own <a href="../misc/Threads.htm">thread</a> is interrupted by another.</p></td>
+      elapsed the message box will be automatically closed and <a href="#Result">A_MsgBoxResult</a> will contain the value &quot;Timeout&quot;.</p>
+      <p>Known limitation: If the MsgBox contains only an OK button, <a href="#Result">A_MsgBoxResult</a> will indicate that the OK button was pressed if the MsgBox times out while its own <a href="../misc/Threads.htm">thread</a> is interrupted by another.</p></td>
   </tr>
 </table>
 
@@ -165,12 +165,26 @@ values.</p>
     <td align="center">0x100000</td>
   </tr>
 </table>
+
+<h3 id="Result">Result</h3>
+<p>The built-in variable <em>A_MsgBoxResult</em> returns one of the following strings to represent which button the user pressed in the most recent MsgBox command:</p>
+<p>OK<br>
+Cancel<br>
+Yes<br>
+No<br>
+Abort<br>
+Retry<br>
+Ignore<br>
+TryAgain<br>
+Continue<br>
+Timeout (that is, the word "timeout" is present if the MsgBox timed out)</p>
+
 <h3>Remarks</h3>
 <p>The table above is used by adding up the values you wish to be present in the MsgBox. For example, to specify a Yes/No box with the default button being No instead of Yes, the <em>Options</em> value would be 256+4 (260). In hex, it would be 0x100+0x4 (0x104).</p>
 <p>MsgBox has smart comma handling, so it is usually not necessary to <a href="../misc/EscapeChar.htm">escape</a> commas in the <em>Text</em> parameter.</p>
-<p>To determine which button the user pressed in the most recent MsgBox, use the <a href="IfMsgBox.htm">IfMsgBox</a> command. For example:</p>
+<p>To determine which button the user pressed in the most recent MsgBox, use the <a href="#Result">A_MsgBoxResult</a> variable. For example:</p>
 <pre>MsgBox, 4,, Would you like to continue? (press Yes or No)
-IfMsgBox Yes
+if A_MsgBoxResult = "Yes"
     MsgBox You pressed Yes.
 else
     MsgBox You pressed No.</pre>
@@ -190,12 +204,12 @@ else
 <pre class="NoIndent">MsgBox This is the 1-parameter method. Commas (,) do not need to be escaped.
 MsgBox, 4, , This is the 3-parameter method. Commas (,) do not need to be escaped.
 MsgBox, 4, , Do you want to continue? (Press YES or NO)
-IfMsgBox No
+if A_MsgBoxResult = "No"
     return
 MsgBox, 4, , 4-parameter method: this MsgBox will time out in 5 seconds.  Continue?, 5
-IfMsgBox Timeout
+if A_MsgBoxResult = "Timeout"
     MsgBox You didn't press YES or NO within the 5-second period.
-else IfMsgBox No
+else if A_MsgBoxResult = "No"
     return
     
 <em>; By preceding any parameter with &quot;% &quot;, it becomes an expression. In the following example,
