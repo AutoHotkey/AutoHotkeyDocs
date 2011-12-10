@@ -12,28 +12,24 @@
 
 <p>Retrieves the contents of the specified registry subkey, one item at a time.</p>
 
-<pre class="Syntax">Loop, RootKey [, Key, IncludeSubkeys?, Recurse?]</pre>
+<pre class="Syntax">Loop, Reg, RootKey\Key [, Mode]</pre>
 <h3>Parameters</h3>
 <table class="info">
   <tr>
     <td width="15%">RootKey</td>
     <td width="85%"><p>Must be either HKEY_LOCAL_MACHINE (or HKLM), HKEY_USERS (or HKU), HKEY_CURRENT_USER (or HKCU), HKEY_CLASSES_ROOT (or HKCR), or HKEY_CURRENT_CONFIG (or HKCC).</p>
-      <p>To access a remote registry, prepend the computer name and a colon, as in this example: \\workstation01:HKEY_LOCAL_MACHINE</p></td>
+      <p>To access a remote registry, prepend the computer name and a slash, as in this example:<br> \\workstation01\HKEY_LOCAL_MACHINE</p></td>
   </tr>
   <tr>
     <td>Key</td>
     <td>The name of the key (e.g. Software\SomeApplication). If blank or omitted, the contents of <em>RootKey</em> will be retrieved.</td>
   </tr>
   <tr>
-    <td>IncludeSubkeys?</td>
-    <td><p>0 (default) Subkeys contained within <em>Key</em> are not retrieved (only the values).<br>
-  1 All values and subkeys are retrieved.<br>
-  2 Only the subkeys are retrieved (not the values).</p>    </td>
-  </tr>
-  <tr>
-    <td>Recurse?</td>
-    <td>0 (default) Subkeys are not recursed into.<br>
-1 Subkeys are recursed into, so that all values and subkeys contained therein are retrieved.</td>
+    <td>Mode</td>
+    <td><p>One or more of the following characters (case-insensitive), optionally separated by spaces or tabs:</p>
+      <p><strong>V</strong>: Retrieve values which match the pattern. This is the default if &quot;D&quot; is not specified.<br>
+      <strong>K</strong>: Retrieve subkeys which match the pattern.<br>
+      <strong>R</strong>: Recurse into subkeys so that all values and subkeys contained therein are retrieved.</p></td>
   </tr>
 </table>
 
@@ -91,19 +87,19 @@
 <p><a href="Loop.htm">Loop</a>, <a href="Break.htm">Break</a>, <a href="Continue.htm">Continue</a>, <a href="Block.htm">Blocks</a>, <a href="RegRead.htm">RegRead</a>, <a href="RegWrite.htm">RegWrite</a>, <a href="RegDelete.htm">RegDelete</a> </p>
 <h3>Examples</h3>
 <pre class="NoIndent"><em>; Example: Delete Internet Explorer's history of URLs typed by the user:</em>
-Loop, HKEY_CURRENT_USER, Software\Microsoft\Internet Explorer\TypedURLs
+Loop, Reg, HKEY_CURRENT_USER\Software\Microsoft\Internet Explorer\TypedURLs
     RegDelete</pre>
 <p>&nbsp;</p>
 <pre class="NoIndent"><em>; Example: A working test script:</em>
-Loop, HKEY_CURRENT_USER, Software\Microsoft\Windows, 1, 1
+Loop, Reg, HKCU\Software\Microsoft\Windows, R KV  <em>; Recursively retrieve keys and values.</em>
 {
-    if a_LoopRegType = key
-        value =
+    if a_LoopRegType = &quot;key&quot;
+        value := &quot;&quot;
     else
     {
         RegRead, value
         if ErrorLevel
-            value = *error*
+            value := &quot;*error*&quot;
     }
     MsgBox, 4, , %a_LoopRegName% = %value% (%a_LoopRegType%)`n`nContinue?
     if A_MsgBoxResult = "No", break
@@ -111,49 +107,51 @@ Loop, HKEY_CURRENT_USER, Software\Microsoft\Windows, 1, 1
 <p>&nbsp;</p>
 <pre class="NoIndent"><em>; Example: A working example to recursively search the entire
 ; registry for particular value(s).</em>
-SetBatchLines -1  <em>; Makes searching occur at maximum speed.</em>
-RegSearchTarget = Notepad  <em>; Tell the subroutine what to search for.</em>
-Gosub, RegSearch
+RegSearch(&quot;Notepad&quot;)
 return
 
-RegSearch:
-ContinueRegSearch = y
-Loop, HKEY_LOCAL_MACHINE, , 1, 1
+RegSearch(Target)
 {
-    Gosub, CheckThisRegItem
-    if ContinueRegSearch = n <em>; It told us to stop.</em>
-        return
-}
-Loop, HKEY_USERS, , 1, 1
-{
-    Gosub, CheckThisRegItem
-    if ContinueRegSearch = n <em>; It told us to stop.</em>
-        return
-}
-Loop, HKEY_CURRENT_CONFIG, , 1, 1
-{
-    Gosub, CheckThisRegItem
-    if ContinueRegSearch = n <em>; It told us to stop.</em>
-        return
-}
-<em>; Note: I believe HKEY_CURRENT_USER does not need to be searched if HKEY_USERS
-; is being searched.  The same might also be true for HKEY_CLASSES_ROOT if
-; HKEY_LOCAL_MACHINE is being searched.</em>
-return
+    ContinueRegSearch := true
+    Loop, Reg, HKEY_LOCAL_MACHINE, KVR
+    {
+        Gosub, CheckThisRegItem
+        if !ContinueRegSearch  <em>; It told us to stop.</em>
+            return
+    }
+    Loop, Reg, HKEY_USERS, KVR
+    {
+        Gosub, CheckThisRegItem
+        if !ContinueRegSearch  <em>; It told us to stop.</em>
+            return
+    }
+    Loop, Reg, HKEY_CURRENT_CONFIG, KVR
+    {
+        Gosub, CheckThisRegItem
+        if !ContinueRegSearch  <em>; It told us to stop.</em>
+            return
+    }
+    <em>; Note: I believe HKEY_CURRENT_USER does not need to be searched if HKEY_USERS is
+    ; being searched.  Similarly, HKEY_CLASSES_ROOT provides a combined view of keys from
+    ; HKEY_LOCAL_MACHINE and HKEY_CURRENT_USER, so searching all three isn't necessary.</em>
+    return
 
 CheckThisRegItem:
-if A_LoopRegType = KEY  <em>; Remove these two lines if you want to check key names too.</em>
+    if A_LoopRegType = &quot;KEY&quot;  <em>; Remove these two lines if you want to check key names too.</em>
+        return
+    RegRead, RegValue
+    if ErrorLevel
+        return
+    if InStr(RegValue, Target)
+    {
+        MsgBox, 4, , The following match was found:`n%A_LoopRegKey%\%A_LoopRegSubKey%\%A_LoopRegName%`nValue = %RegValue%`n`nContinue?
+        if A_MsgBoxResult = &quot;No&quot;
+            ContinueRegSearch := false  <em>; Tell our caller to stop searching.</em>
+    }
     return
-RegRead, RegValue
-if ErrorLevel
-    return
-IfInString, RegValue, %RegSearchTarget%
-{
-    MsgBox, 4, , The following match was found:`n%A_LoopRegKey%\%A_LoopRegSubKey%\%A_LoopRegName%`nValue = %RegValue%`n`nContinue?
-    if A_MsgBoxResult = "No"
-        ContinueRegSearch = n  <em>; Tell our caller to stop searching.</em>
 }
-return</pre>
+return
+</pre>
 
 </body>
 </html>
