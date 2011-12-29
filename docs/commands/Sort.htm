@@ -12,12 +12,16 @@
 
 <p>Arranges a variable's contents in alphabetical, numerical, or random order (optionally removing duplicates).</p>
 
-<pre class="Syntax">Sort, VarName [, Options]</pre>
+<pre class="Syntax">Sort, OutputVar, String [, Options]</pre>
 <h3>Parameters</h3>
 <table class="info">
   <tr> 
-    <td width="15%">VarName</td>
-    <td width="85%">The name of the variable whose contents will be sorted.</td>
+    <td width="15%">OutputVar</td>
+    <td width="85%">The name of the variable in which to store the result.</td>
+  </tr>
+  <tr>
+    <td>String</td>
+    <td>The string to sort.</td>
   </tr>
   <tr>
     <td>Options</td>
@@ -29,7 +33,7 @@
 <p><u>A string of zero or more of the following letters (in any order, with optional spaces in between):</u></p>
 <p><strong>C</strong>: Case sensitive sort (ignored if the <strong>N</strong> option is also present). If both <strong>C</strong> and <strong>CL</strong> are omitted, the uppercase letters A-Z are considered identical to their lowercase counterparts for the purpose of the sort.</p>
 <p><strong>CL</strong> <span class="ver">[v1.0.43.03+]:</span> Case insensitive sort based on the current user's locale. For example, most English and Western European locales treat the letters A-Z and ANSI letters like &Auml; and &Uuml; as identical to their lowercase counterparts. This method also uses a &quot;word sort&quot;, which treats hyphens and apostrophes in such a way that words like &quot;coop&quot; and &quot;co-op&quot; stay together. Depending on the content of the items being sorted, the performance will be 1 to 8 times worse than the default method of insensitivity.</p>
-<p><strong>Dx</strong>: Specifies <strong>x</strong> as the delimiter character, which determines where each item in <em>VarName </em>begins and ends. If this option is not present, <strong>x</strong> defaults to linefeed (`n), which correctly sorts <em>VarName</em> if its lines end in either LF (`n) or CR+LF (`r`n).</p>
+<p><strong>Dx</strong>: Specifies <strong>x</strong> as the delimiter character, which determines where each item begins and ends. If this option is not present, <strong>x</strong> defaults to linefeed (`n), which correctly sorts the string if its lines end in either LF (`n) or CR+LF (`r`n).</p>
 <p><strong><a name="callback"></a>F MyFunction</strong> <span class="ver">[v1.0.47+]:</span> Uses custom sorting according to the criteria in <em>MyFunction</em> (though sorting takes much longer). Specify the letter &quot;F&quot; followed by optional spaces/tabs followed by the name of a <a href="../Functions.htm">function</a> to be used for comparing any two items in the list. The function must accept two or three parameters. When the function deems the first parameter to be greater than the second, it should return a positive integer; when it deems the two parameters to be equal, it should return 0, &quot;&quot;, or nothing; otherwise, it should return a negative integer. If a decimal point is present in the returned value, that part is ignored (i.e. 0.8 is the same as 0). If present, the third parameter receives the offset (in characters) of the second item from the first as seen in the original/unsorted list (see examples). Finally, the function uses the same global settings (e.g. <a href="StringCaseSense.htm">StringCaseSense</a>) as the Sort command that called it.</p>
 <p>Note: the <strong>F</strong> option causes all other options except <strong>D</strong>, <strong>Z</strong>, and <strong>U</strong> to be ignored (though <strong>N</strong>, <strong>C</strong>, and <strong>CL</strong> still affect how <a href="#unique">duplicates</a> are detected). Also, sorting does not occur when the specified function: 1) does not exist; 2) accepts fewer than two parameters; or 3) the first or second parameter is <a href="../Functions.htm#ByRef">ByRef</a>.</p>
 <p><strong>N</strong>: Numeric sort: Each item is assumed to be a number rather than a string (for example, if this option is not present, the string 233 is considered to be less than the string 40 due to alphabetical ordering). Both decimal and hexadecimal strings (e.g. 0xF1) are considered to be numeric. Strings that do not start with a number are considered to be zero for the purpose of the sort. Numbers are treated as 64-bit floating point values so that the decimal portion of each number (if any) is taken into account.</p>
@@ -44,13 +48,15 @@ Sort, MyVar, Random Z D|</pre>
   C:\BBB\AAA.txt<br>
   C:\AAA\BBB.txt<br>
 Note: Options <strong>N</strong> and <strong>P</strong> are ignored when the backslash option is present. </p>
+
 <h3>Remarks</h3>
 <p>This command is typically used to sort a variable that contains a list of lines, with each line ending in a linefeed character (`n). One way to get a list of lines into a variable is to load an entire file via <a href="FileRead.htm">FileRead</a>.</p>
-<p>If <em>VarName</em> is <em>Clipboard</em> and the clipboard contains files (such as those copied from an open Explorer window), those files will be replaced with a sorted list of their filenames. In other words, after the operation, the clipboard will no longer contain the files themselves.</p>
 <p><a href="../misc/ErrorLevel.htm">ErrorLevel</a> is changed by this command only when the <strong>U</strong> option is in effect.</p>
 <p>If a large variable was sorted and later its contents are no longer needed, you can free its memory by making it blank, e.g. MyVar = </p>
+
 <h3>Related</h3>
 <p><a href="FileRead.htm">FileRead</a>, <a href="LoopReadFile.htm">file-reading loop</a>, <a href="LoopParse.htm">parsing loop</a>, <a href="StrSplit.htm">StrSplit</a>, <a href="RegisterCallback.htm">RegisterCallback()</a>, <a href="../misc/Clipboard.htm">Clipboard</a></p>
+
 <h3>Examples</h3>
 <pre class="NoIndent">MyVar = 5,3,7,9,1,13,999,-4
 <strong>Sort</strong> MyVar, N D,  <em>; Sort numerically, use comma as delimiter.</em>
