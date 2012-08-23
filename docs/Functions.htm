@@ -15,6 +15,7 @@
   <li><a href="#intro">Introduction and Simple Examples</a></li>
   <li><a href="#param">Parameters</a></li>
   <li><a href="#optional">Optional Parameters</a></li>
+  <li><a href="#return">Returning Values to Caller</a></li>
   <li><a href="#Variadic">Variadic Functions</a></li>
   <li><a href="#Locals">Local Variables</a></li>
   <li><a href="#DynCall">Dynamically Calling a Function </a></li>
@@ -77,6 +78,56 @@ Func(X, Y=2, Z=0) {  <em>; Note that Z must still be optional in this case.</em>
 }</pre>
 <p><a name="OptionalByRef"></a>In v1.0.46.13+, <a href="#ByRef">ByRef parameters</a> also support default values; for example: <code>Func(ByRef p1 = &quot;&quot;)</code>. Whenever the caller omits such a parameter, the function creates a local variable to contain the default value; in other words, the function behaves as though the keyword &quot;ByRef&quot; is absent.</p>
 <p>A parameter's default value must be one of the following: true, false, a literal integer, a literal floating point number, or a quoted/literal string such as &quot;fox&quot; or &quot;&quot; (but strings in versions prior to 1.0.46.13+ support only &quot;&quot;).</p>
+<h2 id="return">Returning Values to Caller</h2>
+<p>As described in <a href="#intro">introduction</a>, a function may optionally <a href="commands/Return.htm">return</a> a value to its caller.</p>
+<pre>
+Test := returnTest()
+MsgBox % Test
+
+returnTest() {
+  return 123
+}
+</pre>
+<p>If you want to return extra results from a function, you may also use <a href="#ByRef">ByRef</a>:</p>
+<pre>
+returnByRef(A,B,C)
+MsgBox % A "," B "," C
+
+returnByRef(ByRef val1, ByRef val2, ByRef val3)
+{
+  val1 := "A"
+  val2 := 100
+  val3 := 1.1
+  return
+}
+</pre>
+<p><span class="ver">[v1.0.97+]:</span><a href="Objects.htm#Usage_Objects">Objects</a> and <a href="Objects.htm#Usage_Simple_Arrays">Arrays</a> can be used to return multiple values or even named values:</p>
+<pre>
+Test1 := returnArray1()
+MsgBox % Test1[1] "," Test1[2]
+
+Test2 := returnArray2()
+MsgBox % Test2[1] "," Test2[2]
+
+Test3 := returnObject()
+MsgBox % Test3.id "," Test3.val
+
+returnArray1() {
+  Test := [123,"ABC"]
+  return Test
+}
+
+returnArray2() {
+  x := 456
+  y := "EFG"
+  return [x, y]
+}
+
+returnObject() {
+  Test := {id: 789, val: "HIJ"}
+  return Test
+}
+</pre>
 <h2 id="Variadic">Variadic Functions <span class="ver">[AHK_L 60+]</span></h2>
 <p>When defining a function, write an asterisk after the final parameter to mark the function as variadic, allowing it to receive a variable number of parameters:</p>
 <pre>Join(sep, <b class="blue">params*</b>) {
