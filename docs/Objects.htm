@@ -31,7 +31,7 @@
 
 <h2>Table of Contents</h2>
 <ul>
-  <li><a href="#Usage">Basic Usage</a> - <a href="#Usage_Simple_Arrays">Simple Arrays</a>, <a href="#Usage_Associative_Arrays">Associative Arrays</a>, <a href="#Usage_Objects">Objects</a>, <a href="#Usage_Remarks">Remarks</a></li>
+  <li><a href="#Usage">Basic Usage</a> - <a href="#Usage_Simple_Arrays">Simple Arrays</a>, <a href="#Usage_Associative_Arrays">Associative Arrays</a>, <a href="#Usage_Objects">Objects</a>, <a href="#Usage_Freeing_Objects">Freeing Objects</a>, <a href="#Usage_Remarks">Remarks</a></li>
   <li><a href="#Extended_Usage">Extended Usage</a> - <a href="#Function_References">Function References</a>, <a href="#Usage_Arrays_of_Arrays">Arrays of Arrays</a>, <a href="#Usage_Arrays_of_Functions">Arrays of Functions</a></li>
   <li><a href="#Custom_Objects">Custom Objects</a> - <a href="#Custom_Prototypes">Prototypes</a>, <a href="#Custom_Classes">Classes</a>, <a href="#Custom_NewDelete">Construction and Destruction</a>, <a href="#Meta_Functions">Meta-Functions</a></li>
   <li><a href="#Default_Base_Object">Default Base Object</a> - <a href="#Automatic_Var_Init">Automatic Var Init</a>, <a href="#Pseudo_Properties">Pseudo-Properties</a>, <a href="#Default__Warn">Debugging</a></li>
@@ -99,6 +99,24 @@ Object.Property[Parameters] := Value</pre>
 <p><strong>Related:</strong> <a href="objects/Object.htm">Object</a>, <a href="objects/File.htm">File Object</a>, <a href="objects/Func.htm">Func Object</a>, <a href="commands/ComObjCreate.htm">COM object</a></p>
 <p><b>Known limitation:</b></p>
 <ul><li>Currently <code><span class="dull">x</span>.y[z]<span class="dull">()</span></code> is treated as <code><span class="dull">x</span>["y", z]<span class="dull">()</span></code>, which is not supported. As a workaround, <code><span class="red">(</span><span class="dull">x.y</span><span class="red">)</span>[z]()</code> evaluates <code>x.y</code> first, then uses the result as the target of the method call. Note that <code>x.y[z].()</code> does not have this limitation since it is evaluated the same as <code>(x.y[z]).()</code>.</li></ul>
+
+<h3 id="Usage_Freeing_Objects">Freeing Objects</h3>
+<p>Scripts do not free objects explicitly. When the last reference to an object is released, the object is freed automatically. A reference stored in a variable is released automatically when that variable is assigned some other value. For example:</p>
+<pre>obj := {}  <em>; Creates an object.</em>
+obj := ""  <em>; Releases the last reference, and therefore frees the object.</em></pre>
+<p>Similarly, a reference stored in a field of another object is released when that field is assigned some other value or removed from the object. This also applies to arrays, which are actually objects.</p>
+<pre>arr := [{}]  <em>; Creates an array containing an object.</em>
+arr[1] := {}  <em>; Creates a second object, implicitly freeing the first object.</em>
+arr.Remove(1)  <em>; Removes and frees the second object.</em></pre>
+<p id="Circular_References">Because all references to an object must be released before the object can be freed, objects containing circular references aren't freed automatically. For instance, if <code>x.child</code> refers to <code>y</code> and <code>y.parent</code> refers to <code>x</code>, clearing <code>x</code> and <code>y</code> is not sufficient since the parent object still contains a reference to the child and vice versa. To resolve this situation, remove the circular reference.</p>
+<pre>
+x := {}, y := {}             <em>; Create two objects.</em>
+x.child := y, y.parent := x  <em>; Create a circular reference.</em>
+
+y.parent := ""               <em>; The circular reference must be removed before the objects can be freed.</em>
+x := "", y := ""             <em>; Without the above line, this would not free the objects.</em>
+</pre>
+<p>For more advanced usage and details, see <a href="#Reference_Counting">Reference Counting</a>.</p>
 
 <h3 id="Usage_Remarks">Remarks</h3>
 
@@ -502,18 +520,7 @@ ObjRelease(address)
 <p>To run code when the last reference to an object is being released, implement the <a href="#Custom_NewDelete">__Delete</a> meta-function.</p>
 <p><b>Known Limitations:</b></p>
 <ul>
-  <li>Circular references must be broken before an object can be freed. For example:
-  <pre><em>; Create two objects.</em>
-x := {}, y := {}
-<em>; Create a circular reference.</em>
-x.child := y, y.parent := x
-
-<em>; BAD:</em>
-x := "", y := ""
-
-<em>; Good:</em>
-y.parent := ""  <em>; Break the cycle.</em>
-x := "", y := ""</pre></li>
+  <li>Circular references must be broken before an object can be freed. For details and an example, see <a href="#Circular_References">Freeing Objects</a>.</li>
   <li>Although references in static and global variables are released automatically when the program exits, references in non-static local variables or on the expression evaluation stack are not.  These references are only released if the function or expression is allowed to complete normally.</li>
 </ul>
 <p>Although memory used by the object is reclaimed by the operating system when the program exits, <a href="#Custom_NewDelete">__Delete</a> will not be called unless all references to the object are freed.  This can be important if it frees other resources which are not automatically reclaimed by the operating system, such as temporary files.</p>
