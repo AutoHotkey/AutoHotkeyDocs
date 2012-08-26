@@ -16,7 +16,7 @@
 <p>Reads a string of characters from the file and advances the file pointer.</p>
 <pre class="Syntax">String := File.Read([Characters])</pre>
 <table class="info">
-  <tr><td width="15%">Characters</td><td width="85%">The maximum number of characters to read. If omitted, the rest of the file is read and returned as one string.</td></tr>
+  <tr><td width="15%">Characters</td><td width="85%">The maximum number of characters to read. If omitted, the rest of the file is read and returned as one string. If the File object was created from a handle to a non-seeking device such as a console buffer or pipe, omitting this parameter may cause the method to fail or return only what data is currently available.</td></tr>
   <tr><td><b>Returns</b></td><td>A string.</td></tr>
 </table></div>
 
@@ -108,13 +108,15 @@ File.Length := NewSize</pre>
 <table class="info">
   <tr><td width="15%">NewSize</td><td width="85%">The new size of the file, in bytes.</td></tr>
   <tr><td><b>Returns</b></td><td>The size of the file, in bytes.</td></tr>
-</table></div>
+</table>
+<p>This property should be used only with an actual file. If the File object was created from a handle to a pipe, it may return the amount of data currently available in the pipe's internal buffer, but this behaviour is not guaranteed.</p></div>
 
 <div class="methodShort" id="AtEOF"><h2>AtEOF</h2>
 <pre class="Syntax">IsAtEOF := File.AtEOF</pre>
 <table class="info">
   <tr><td width="15%"><b>Returns</b></td><td width="85%">A non-zero value if the file pointer has reached the end of the file, otherwise zero.</td></tr>
-</table></div>
+</table>
+<p>This property should be used only with an actual file. If the File object was created from a handle to a non-seeking device such as a console buffer or pipe, the returned value may not be meaningful, as such devices do not logically have an "end of file".</p></div>
 
 <div class="methodShort" id="Close"><h2>Close</h2>
 <p>Closes the file, flushes any data in the cache to disk and releases the share locks.  Although the file is closed automatically when the object is freed, it is recommended to close the file as soon as possible.</p>
@@ -133,7 +135,8 @@ File.Encoding := Encoding</pre>
 <pre class="Syntax">File.__Handle</pre>
 <table class="info">
   <tr><td width="15%"><b>Returns</b></td><td width="85%">A system file handle, intended for use with DllCall. See <a href="http://msdn.microsoft.com/en-us/library/aa363858.aspx">CreateFile</a>.</td></tr>
-</table></div>
+</table>
+<p>File objects internally buffer reads or writes. If data has been written into the object's internal buffer, it is committed to disk before the handle is returned. If the buffer contains data read from file, it is discarded and the actual file pointer is reset to the logical position indicated by <code>File.Pos</code>.</p></div>
 
 </body>
 </html>
