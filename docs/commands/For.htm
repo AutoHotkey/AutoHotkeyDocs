@@ -54,7 +54,7 @@ if IsObject(_enum)
 <pre class="NoIndent"><em>; List the key-value pairs of an object:</em>
 colours := <a href="../Objects.htm#Arrays">Object</a>("red", 0xFF0000, "blue", 0x0000FF, "green", 0x00FF00)
 <em>; The above expression could be used directly in place of "colours" below:</em>
-For k, v in colours
+for k, v in colours
     s .= k "=" v "`n"
 MsgBox % s
 </pre>
@@ -62,6 +62,65 @@ MsgBox % s
 for window in <a href="ComObjCreate.htm">ComObjCreate</a>("<a href="http://msdn.microsoft.com/en-us/library/bb774094.aspx">Shell.Application</a>").Windows
     windows .= window.<a href="http://msdn.microsoft.com/en-us/library/aa752057.aspx">LocationName</a> " :: " window.<a href="http://msdn.microsoft.com/en-us/library/aa752058.aspx">LocationURL</a> "`n"
 MsgBox % windows</pre>
+<pre class="NoIndent"><em>/*
+Class: CEnumerator
 
+Generic enumerator object that can be used for iterating over numeric keys.
+The array must not be modified during iteration, otherwise the iterated range will be invalid.
+It's possible to define a custom MaxIndex() functions for array boundaries.
+If there are missing array members between 1 and max index, they will be iterated but will have a value of "".
+This means that real sparse arrays are not supported by this enumerator by design.
+To make an object use this iterator, insert this function in the class definition:
+
+    _NewEnum()
+    {
+    	return new CEnumerator(this)
+    }
+
+Source: http://www.autohotkey.com/board/topic/2667-suggestions-on-documentation-improvements/?p=531509
+*/</em>
+
+<em>; Iterate over the enumerator</em>
+For k, v in Test
+	MsgBox %k%=%v%
+
+<em>; Test class for demonstrating usage</em>
+class Test
+{
+	static Data := ["abc", "def", "ghi"]
+
+	_NewEnum()
+	{
+		return new CEnumerator(this.Data)
+	}
+}
+
+class CEnumerator
+{
+	__New(Object)
+	{
+		this.Object := Object
+		this.first := true
+		<em>; Cache for speed. Useful if custom MaxIndex() functions have poor performance.</em>
+		<em>; In return, that means that no key-value pairs may be inserted during iteration or the range will become invalid.</em>
+		this.ObjMaxIndex := Object.MaxIndex()
+	}
+
+	Next(ByRef key, ByRef value)
+	{
+		if (this.first)
+		{
+			this.Remove("first")
+			key := 1
+		}
+		else
+			key ++
+		if (key &lt;= this.ObjMaxIndex)
+			value := this.Object[key]
+		else
+			key := ""
+		return key != ""
+	}
+}</pre>
 </body>
 </html>
