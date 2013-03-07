@@ -381,15 +381,79 @@ ExitApp</pre>
 
 <h2 id="Custom">Custom <span class="ver">[v1.1.10+]</span></h2>
 <p>Other controls which are not directly supported by AutoHotkey can be also embedded into a GUI window. In order to do so, the Win32 class name must be specified through the <code>Class</code> option in <code>Gui, Add</code>. Examples:</p>
-<pre>Gui, Add, Custom, ClassComboBoxEx32 <em>; Adds a <a href="http://msdn.microsoft.com/en-us/library/windows/desktop/bb775740.aspx">ComboBoxEx</a> control.</em>
-Gui, Add, Custom, ClassScintilla <em>; Adds a <a href="http://scintilla.org/">Scintilla</a> control. Note that the SciLexer.dll library must be loaded before the control can be added.</em>
-</pre>
+<pre>Gui, Add, Custom, ClassComboBoxEx32  <em>; Adds a <a href="http://msdn.microsoft.com/en-us/library/windows/desktop/bb775740.aspx">ComboBoxEx</a> control.</em>
+Gui, Add, Custom, ClassScintilla  <em>; Adds a <a href="http://scintilla.org/">Scintilla</a> control. Note that the SciLexer.dll library must be loaded before the control can be added.</em></pre>
 <p>AutoHotkey uses the standard Windows control text routines when text is to be retrieved/replaced in the control via <code>Gui, Add</code> or <code>GuiControl/Get</code>.</p>
 <p><strong>G-Label Notifications</strong>: A <a href="Gui.htm#label">g-label</a> such as <code><strong>g</strong>MySubroutine</code> may be listed in the control's options in order to capture events coming from the control. This subroutine may consult the built-in variables <a href="../Variables.htm#Gui">A_Gui</a> and <a href="../Variables.htm#GuiControl">A_GuiControl</a>. More importantly, it may consult <strong>A_GuiEvent</strong>, which contains one of the following strings (for compatibility with future versions, a script should not assume these are the only possible values):</p>
 <ul>
   <li><strong>Normal</strong>: A <a href="http://msdn.microsoft.com/en-us/library/windows/desktop/ms647591.aspx"><code>WM_COMMAND</code></a> message was received. <code>A_EventInfo</code> contains a control-defined notification code (equivalent to <code>HIWORD(wParam)</code> in C/C++).</li>
   <li><strong>N</strong>: A <a href="http://msdn.microsoft.com/en-us/library/windows/desktop/bb775583.aspx"><code>WM_NOTIFY</code></a> message was received. <code>A_EventInfo</code> contains a pointer to the control notification structure (<code>NMHDR</code>). A 32-bit signed integer value may be returned to the control by assigning it to <code>ErrorLevel</code> (by default, the g-label thread's <code>ErrorLevel</code> is set to zero). Invalid values are treated as zero.</li>
 </ul>
+<p>Here is an example that shows how to add and use an <a href="http://msdn.microsoft.com/en-us/library/windows/desktop/bb761374.aspx">IP address control</a>:</p>
+<pre>Gui, Add, Custom, ClassSysIPAddress32 r1 w150 hwndhIPControl gIPControlEvent
+Gui, Add, Button, Default, OK
+IPCtrlSetAddress(hIPControl, A_IPAddress1)
+Gui, Show
+return
+
+GuiClose:
+ExitApp
+
+ButtonOK:
+Gui, Hide
+ToolTip
+MsgBox % &quot;You chose &quot; IPCtrlGetAddress(hIPControl)
+ExitApp
+
+IPControlEvent:
+if A_GuiEvent = Normal
+{
+    <em>; WM_COMMAND was received.</em>
+
+    if (A_EventInfo = 0x0300)  <em>; EN_CHANGE</em>
+        ToolTip Control changed!
+}
+else if A_GuiEvent = N
+{
+    <em>; WM_NOTIFY was received.
+
+    ; Get the notification code. Normally this field is UInt but the IP address
+    ; control uses negative codes, so for convenience we read it as a signed int.</em>
+    nmhdr_code := NumGet(A_EventInfo + 2*A_PtrSize, &quot;int&quot;)
+    if (nmhdr_code != -860)  <em>; IPN_FIELDCHANGED</em>
+        return
+
+    <em>; Extract info from the NMIPADDRESS structure</em>
+    iField := NumGet(A_EventInfo + 2*A_PtrSize + 4, &quot;int&quot;)
+    iValue := NumGet(A_EventInfo + 2*A_PtrSize + 8, &quot;int&quot;)
+    if iValue &gt; 0
+        ToolTip Field #%iField% modified: %iValue%
+    else
+        ToolTip Field #%iField% left empty
+}
+return
+
+IPCtrlSetAddress(hControl, ipaddress)
+{
+    static WM_USER := 0x400
+    static IPM_SETADDRESS := WM_USER + 101
+
+    <em>; Pack the IP address into a 32-bit word for use with SendMessage.</em>
+    ipaddrword := 0
+    Loop, Parse, ipaddress, .
+        ipaddrword := (ipaddrword * 256) + A_LoopField
+    SendMessage IPM_SETADDRESS, 0, ipaddrword,, ahk_id %hControl%
+}
+
+IPCtrlGetAddress(hControl)
+{
+    static WM_USER := 0x400
+    static IPM_GETADDRESS := WM_USER + 102
+
+    VarSetCapacity(addrword, 4)
+    SendMessage IPM_GETADDRESS, 0, &amp;addrword,, ahk_id %hControl%
+    return NumGet(addrword, 3, &quot;UChar&quot;) &quot;.&quot; NumGet(addrword, 2, &quot;UChar&quot;) &quot;.&quot; NumGet(addrword, 1, &quot;UChar&quot;) &quot;.&quot; NumGet(addrword, 0, &quot;UChar&quot;)
+}</pre>
 
 <h2>Related Pages</h2>
 <p><a href="ListView.htm">ListView</a>, <a href="TreeView.htm">TreeView</a>, <a href="Gui.htm">Gui</a>, <a href="GuiControl.htm">GuiControl</a>, <a href="GuiControlGet.htm">GuiControlGet</a>, <a href="Menu.htm">Menu</a></p>
