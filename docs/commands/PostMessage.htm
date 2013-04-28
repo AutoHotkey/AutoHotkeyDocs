@@ -14,7 +14,7 @@
 <p>Sends a message to a window or control (SendMessage additionally waits for acknowledgement).</p>
 
 <pre class="Syntax">PostMessage, Msg [, wParam, lParam, Control, WinTitle, WinText, ExcludeTitle, ExcludeText]
-SendMessage, Msg [, wParam, lParam, Control, WinTitle, WinText, ExcludeTitle, ExcludeText]</pre>
+SendMessage, Msg [, wParam, lParam, Control, WinTitle, WinText, ExcludeTitle, ExcludeText, Timeout]</pre>
 <h3>Parameters</h3>
 <table class="info">
   <tr>
@@ -51,16 +51,20 @@ SendMessage, Msg [, wParam, lParam, Control, WinTitle, WinText, ExcludeTitle, Ex
     <td>ExcludeText</td>
     <td>Windows whose text include this value will not be considered.</td>
   </tr>
+  <tr>
+    <td>Timeout</td>
+    <td><span class="ver">[AHK_L 42+]:</span> The maximum number of milliseconds to wait for the target window to process the message. If omitted, it defaults to 5000 (milliseconds), which is also the default behaviour in older versions of AutoHotkey which did not support this parameter. If the message is not processed within this time, the command finishes and sets ErrorLevel to the word FAIL. This parameter can be an <a href="../Variables.htm#Expressions">expression</a>.</td>
+  </tr>
 </table>
 
 <h3>ErrorLevel</h3>
 <p><span class="ver">[v1.1.04+]</span> These commands are able to throw an exception on failure. For more information, see <a href="Catch.htm#RuntimeErrors">Runtime Errors</a>.</p>
 <p>PostMessage: <a href="../misc/ErrorLevel.htm">ErrorLevel</a> is set to 1 if there was a problem such as the target window or control not existing. Otherwise, it is set to 0.</p>
-<p>SendMessage: <a href="../misc/ErrorLevel.htm">ErrorLevel</a> is set to the word FAIL if there was a problem. Otherwise, it is set to the numeric result of the message, which might sometimes be a &quot;reply&quot; depending on the nature of the message and its target window. This result is an integer between 0 and 4294967295. If the result is intended to be a signed integer, a negative number can be revealed by following this example:</p>
+<p>SendMessage: <a href="../misc/ErrorLevel.htm">ErrorLevel</a> is set to the word FAIL if there was a problem or the command timed out. Otherwise, it is set to the numeric result of the message, which might sometimes be a &quot;reply&quot; depending on the nature of the message and its target window. This result is an integer between 0 and 4294967295. If the result is intended to be a signed integer, a negative number can be revealed by following this example:</p>
 <pre>MsgReply := ErrorLevel &gt; 0x7FFFFFFF ? -(~ErrorLevel) - 1 : ErrorLevel</pre>
 <h3>Remarks</h3>
 <p>These commands should be used with caution because sending a message to the wrong window (or sending an invalid message) might cause unexpected behavior or even crash the target application. This is because most applications are not designed to expect certain types of messages from external sources.</p>
-<p>PostMessage places the message in the message queue associated with the target window. It does not wait for acknowledgement or reply. By contrast, SendMessage waits up to 5 seconds for the target window to process the message. If the message is not processed within this time, the command finishes and sets ErrorLevel to the word FAIL.</p>
+<p>PostMessage places the message in the message queue associated with the target window. It does not wait for acknowledgement or reply. By contrast, SendMessage waits for the target window to process the message, up until the timeout period expires.</p>
 <p>The parameters <em>Msg</em>, <em>wParam</em>, and <em>lParam</em> should all be integers between -2147483648 and 4294967295 (0xFFFFFFFF). As with all integer values in AutoHotkey, a prefix of 0x indicates a hex value. For example, 0xFF is equivalent to 255.</p>
 <p>A string may be sent via <em>wParam</em> or <em>lParam</em> by specifying the address of a variable. The following example uses the <a href="../Variables.htm#amp">address operator (&amp;)</a> to do this:</p>
 <pre>SendMessage, 0xC, 0, <strong>&amp;MyVar</strong>, ClassNN, WinTitle  <em>; 0XC is WM_SETTEXT</em></pre>
