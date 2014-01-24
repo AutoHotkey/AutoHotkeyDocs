@@ -41,14 +41,15 @@
     ... body of function...
 }</pre>
 <p>Although the names you give the parameters do not matter, the following information is sequentially assigned to them:</p>
-<p>Parameter #1: The message's WPARAM value, which is an integer between 0 and 4294967295.<br>
-Parameter #2: The message's LPARAM value, which is an integer between 0 and 4294967295.<br>
+<p>Parameter #1: The message's WPARAM value.<br>
+Parameter #2: The message's LPARAM value.<br>
 Parameter #3: The message number, which is useful in cases where a function monitors more than one message.<br>
 Parameter #4: The HWND (unique ID) of the window or control to which the message was sent. The HWND can be used with <a href="../misc/WinTitle.htm#ahk_id">ahk_id</a>.</p>
-<p>You can omit one or more parameters from the end of the list if the corresponding information is not needed. For example, a function defined as <code>MyMsgMonitor(wParam, lParam)</code> would receive only the first two parameters, and one defined as <code>MyMsgMonitor()</code> would receive none of them.</p>
-<p>If an incoming WPARAM or LPARAM is intended to be a signed integer, any negative numbers can be revealed by following this example:</p>
-<pre>if wParam &gt; 0x7FFFFFFF
+<p>WPARAM and LPARAM are unsigned 32-bit integers (from 0 to 2<sup>32</sup>-1) or signed 64-bit integers (from -2<sup>63</sup> to 2<sup>63</sup>-1) depending on whether the exe running the script is 32-bit or 64-bit. For 32-bit scripts, if an incoming parameter is intended to be a signed integer, any negative numbers can be revealed by following this example:</p>
+<pre>if (A_PtrSize = 4 &amp;&amp; wParam &gt; 0x7FFFFFFF)  <em>; Checking <a href="../Variables.htm#PtrSize">A_PtrSize</a> ensures the script is 32-bit.</em>
     wParam := -(~wParam) - 1</pre>
+<p>You can omit one or more parameters from the end of the list if the corresponding information is not needed. For example, a function defined as <code>MyMsgMonitor(wParam, lParam)</code> would receive only the first two parameters, and one defined as <code>MyMsgMonitor()</code> would receive none of them.</p>
+
 <h3>Additional Information Available to the Function</h3>
 <p>In addition to the parameters received above, the function may also consult the values in the following built-in variables:</p>
 <ul>
@@ -60,8 +61,11 @@ Parameter #4: The HWND (unique ID) of the window or control to which the message
 <p>A monitor function's <a href="../misc/WinTitle.htm#LastFoundWindow">last found window</a> starts off as the parent window to which the message was sent (even if it was sent to a control). If the window is hidden but not a GUI window (such as the script's main window), turn on <a href="DetectHiddenWindows.htm">DetectHiddenWindows</a> before using it. For example:</p>
 <pre>DetectHiddenWindows On
 MsgParentWindow := WinExist()  <em>; This stores the unique ID of the window to which the message was sent.</em></pre>
+
 <h3>What the Function Should <em>Return</em></h3>
-<p>If a monitor function uses <a href="Return.htm">Return</a> without any parameters, or it specifies a blank value such as &quot;&quot; (or it never uses Return at all), the incoming message goes on to be processed normally when the function finishes. The same thing happens if the function <a href="Exit.htm">Exits</a> or causes a runtime error such as <a href="Run.htm">running</a> a nonexistent file. By contrast, returning an integer between -2147483648 and 4294967295 causes that number to be sent immediately as a reply; that is, the program does not process the message any further. For example, a function monitoring WM_LBUTTONDOWN (0x201) may return an integer to prevent the target window from being notified that a mouse click has occurred. In many cases (such as a message arriving via <a href="PostMessage.htm">PostMessage</a>), it does not matter which integer is returned; but if in doubt, 0 is usually safest.</p>
+<p>If a monitor function uses <a href="Return.htm">Return</a> without any parameters, or it specifies a blank value such as &quot;&quot; (or it never uses Return at all), the incoming message goes on to be processed normally when the function finishes. The same thing happens if the function <a href="Exit.htm">Exits</a> or causes a runtime error such as <a href="Run.htm">running</a> a nonexistent file. By contrast, returning an integer causes it to be sent immediately as a reply; that is, the program does not process the message any further. For example, a function monitoring WM_LBUTTONDOWN (0x201) may return an integer to prevent the target window from being notified that a mouse click has occurred. In many cases (such as a message arriving via <a href="PostMessage.htm">PostMessage</a>), it does not matter which integer is returned; but if in doubt, 0 is usually safest.</p>
+<p>The range of valid return values depends on whether the exe running the script is 32-bit or 64-bit. Non-empty return values must be between -2<sup>31</sup> and 2<sup>32</sup>-1 for 32-bit scripts (<code><a href="../Variables.htm#PtrSize">A_PtrSize</a> = 4</code>) and between -2<sup>63</sup> and 2<sup>63</sup>-1 for 64-bit scripts (<code><a href="../Variables.htm#PtrSize">A_PtrSize</a> = 8</code>).</p>
+
 <h3 id="Remarks">General Remarks</h3>
 <p>Unlike a normal function-call, the arrival of a monitored message calls the function as a new <a href="../misc/Threads.htm">thread</a>. Because of this, the function starts off fresh with the default values for settings such as <a href="SendMode.htm">SendMode</a> and <a href="DetectHiddenWindows.htm">DetectHiddenWindows</a>. These defaults can be changed in the <a href="../Scripts.htm#auto">auto-execute section</a>.</p>
 <p>Messages sent to a control (rather than being posted) are not monitored because the system routes them directly to the control behind the scenes. This is seldom an issue for system-generated messages because most of them are posted.</p>
