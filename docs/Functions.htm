@@ -4,6 +4,7 @@
 <head>
 <title>Functions</title>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
 <link href="css/default.css" rel="stylesheet" type="text/css">
 </head>
 
@@ -15,6 +16,7 @@
   <li><a href="#intro">Introduction and Simple Examples</a></li>
   <li><a href="#param">Parameters</a></li>
   <li><a href="#optional">Optional Parameters</a></li>
+  <li><a href="#return">Returning Values to Caller</a></li>
   <li><a href="#Variadic">Variadic Functions</a></li>
   <li><a href="#Locals">Local Variables</a></li>
   <li><a href="#DynCall">Dynamically Calling a Function </a></li>
@@ -43,7 +45,7 @@
 <pre>MsgBox <strong>%</strong> &quot;The answer is: &quot; <strong>.</strong> Add(3, 2)</pre>
 <p>The &quot;% &quot; prefix is also permitted in parameters that natively support expressions, but it is simply ignored.</p>
 <h2><a name="param" id="param"></a>Parameters</h2>
-<p>When a function is defined, its parameters are listed in parentheses next to its name (there must be no spaces between its name and the open-parenthesis). If a function does not accept any parameters, leave the parentheses empty; for example: GetCurrentTimestamp().</p>
+<p>When a function is defined, its parameters are listed in parentheses next to its name (there must be no spaces between its name and the open-parenthesis). If a function does not accept any parameters, leave the parentheses empty; for example: <code>GetCurrentTimestamp()</code>.</p>
 <p><a name="ByRef"></a><strong>ByRef Parameters</strong>: From the function's point of view, parameters are essentially the same as <a href="#Locals">local variables</a> unless they are defined as <em>ByRef</em> as in this example:</p>
 <pre>Swap(ByRef Left, ByRef Right)
 {
@@ -69,13 +71,62 @@
     return X + Y + Z
 }</pre>
 <p>When the caller passes <strong>three</strong> parameters to the function above, Z's default value is ignored. But when the caller passes only <strong>two</strong> parameters, Z automatically receives the value 0.</p>
-<p>It is not possible to have optional parameters isolated in the middle of the parameter list. In other words, all parameters that lie to the right of the first optional parameter must also be marked optional. Optional parameters may be omitted from the middle of the parameter list when calling the function, unless the function call is dynamic:</p>
+<p id="missing">It is not possible to have optional parameters isolated in the middle of the parameter list. In other words, all parameters that lie to the right of the first optional parameter must also be marked optional. However, optional parameters may be omitted from the middle of the parameter list when calling the function, as shown below:</p>
 <pre>Func(1,, 3)
 Func(X, Y:=2, Z:=0) {  <em>; Note that Z must still be optional in this case.</em>
     MsgBox %X%, %Y%, %Z%
 }</pre>
 <p><a name="OptionalByRef"></a><a href="#ByRef">ByRef parameters</a> also support default values; for example: <code>Func(ByRef p1 = &quot;&quot;)</code>. Whenever the caller omits such a parameter, the function creates a local variable to contain the default value; in other words, the function behaves as though the keyword &quot;ByRef&quot; is absent.</p>
-<p>A parameter's default value must be one of the following: true, false, a literal integer, a literal floating point number, or a quoted/literal string such as &quot;fox&quot; or &quot;&quot;.</p>
+<p>A parameter's default value must be one of the following: <code>true</code>, <code>false</code>, a literal integer, a literal floating point number, or a quoted/literal string such as &quot;fox&quot; or &quot;&quot;.</p>
+<h2 id="return">Returning Values to Caller</h2>
+<p>As described in <a href="#intro">introduction</a>, a function may optionally <a href="commands/Return.htm">return</a> a value to its caller.</p>
+<pre>
+Test := returnTest()
+MsgBox % Test
+
+returnTest() {
+  return 123
+}
+</pre>
+<p>If you want to return extra results from a function, you may also use <a href="#ByRef">ByRef</a>:</p>
+<pre>
+returnByRef(A,B,C)
+MsgBox % A "," B "," C
+
+returnByRef(ByRef val1, ByRef val2, ByRef val3)
+{
+  val1 := "A"
+  val2 := 100
+  val3 := 1.1
+  return
+}
+</pre>
+<pre>
+Test1 := returnArray1()
+MsgBox % Test1[1] "," Test1[2]
+
+Test2 := returnArray2()
+MsgBox % Test2[1] "," Test2[2]
+
+Test3 := returnObject()
+MsgBox % Test3.id "," Test3.val
+
+returnArray1() {
+  Test := [123,"ABC"]
+  return Test
+}
+
+returnArray2() {
+  x := 456
+  y := "EFG"
+  return [x, y]
+}
+
+returnObject() {
+  Test := {id: 789, val: "HIJ"}
+  return Test
+}
+</pre>
 <h2 id="Variadic">Variadic Functions</h2>
 <p>When defining a function, write an asterisk after the final parameter to mark the function as variadic, allowing it to receive a variable number of parameters:</p>
 <pre>Join(sep, <b class="blue">params*</b>) {
@@ -99,14 +150,13 @@ MsgBox % Join("`n", <b class="blue">substrings*</b>)</pre>
 <ul>
   <li>Numbering of parameters within the source array begins at 1.</li>
   <li>Optional parameters may be entirely omitted from the array.</li>
-  <li>The array of parameters may contain named items when directly calling a user-defined function.</li>
+  <li>The array of parameters may contain named items when calling a user-defined function; in any other case, named items are not supported.</li>
   <li>The target function may also be variadic, in which case named items are copied even if they have no corresponding formal parameter.</li>
-  <li>This syntax can also be used when calling methods or retrieving properties of objects; for example, <code>Object.Property[Params*]</code>.</li>
+  <li>This syntax can also be used when calling methods or setting or retrieving properties of objects; for example, <code>Object.Property[Params*]</code>.</li>
 </ul>
 <p>Known limitations:</p>
 <ul>
-  <li>Only the last physical parameter can be expanded this way. For example, <code>Func(x, y*)</code> is supported but <code>Func(x*, y)</code> is not.</li>
-  <li>This syntax cannot be used when setting properties of objects, since the last physical parameter is actually the value being assigned.</li>
+  <li>Only the right-most parameter can be expanded this way. For example, <code>Func(x, y*)</code> is supported but <code>Func(x*, y)</code> is not.</li>
   <li>There must not be any non-whitespace characters between the asterisk (<code>*</code>) and the symbol which ends the parameter list.</li>
 </ul>
 <h2 id="Locals">Local and Global Variables </h2>
@@ -135,9 +185,9 @@ MsgBox % Join("`n", <b class="blue">substrings*</b>)</pre>
     <strong>static</strong> LoggedLines := 0
     LoggedLines += 1  <em>; Maintain a tally locally (its value is remembered between calls).</em>
     global LogFileName
-    FileAppend, %LineCount%: %TextToLog%`n, %LogFileName%
+    FileAppend, %LoggedLines%: %TextToLog%`n, %LogFileName%
 }</pre>
-<p><a name="InitStatic"></a>A local or global variable may be initialized on the same line as its declaration by following it with <code>:=</code> followed by any <a href="Variables.htm#Expressions">expression</a>. For example: <code>static X:=0, Y:=&quot;fox&quot;</code>. Each static variable is initialized only once. Static variables are initialized in the order they are encountered in the script, but before the script's auto-execute section.</p>
+<p><a name="InitStatic"></a>A static variable may be initialized on the same line as its declaration by following it with <code>:=</code> followed by any <a href="Variables.htm#Expressions">expression</a>. For example: <code>static X:=0, Y:=&quot;fox&quot;</code>. Each static variable is initialized only once. Static variables are initialized in the order that they appear in the script file, but before the script's auto-execute section.</p>
 <p><a name="AssumeStatic"></a><strong>Assume-static mode</strong>: A function may be defined to assume that all its variables are static (except its parameters) by making its first line the word &quot;static&quot;. For example:</p>
 <pre>GetFromStaticArray(WhichItemNumber)
 {
@@ -161,6 +211,7 @@ static TotalAttempts := 0, PrevResult</pre>
 
 <h2 id="DynCall"><a name="dynamic"></a>Dynamically Calling a Function </h2>
 <p>A function (even a <a href="#BuiltIn">built-in function</a>) may be called dynamically via percent signs. For example, <code>%Var%(x, &quot;fox&quot;) </code>would call the function whose name is contained in <em>Var</em>. Similarly, <code>Func%A_Index%()</code> would call Func1() or Func2(), etc., depending on the current value of A_Index.</p>
+<p><em>Var</em> in <code>%Var%()</code> can contain a function name, <a href="objects/Func.htm">function reference</a> or <a href="Objects.htm#Objects_as_Functions">object imitating a function</a>. If the function does not exist, the <a href="Objects.htm#Default_Base_Object">default base object</a>'s __Call meta-function is invoked instead.</p>
 <p>If the function cannot be called due to one of the reasons below, the evaluation of the expression containing the call stops silently and prematurely, which may lead to inconsistent results:</p>
 <ul>
   <li>Calling a nonexistent function, which can be avoided by using <code>If <a href="#IsFunc">IsFunc</a>(VarContainingFuncName)</code>. Except for <a href="#BuiltIn">built-in functions</a>, the called function's <a href="#define">definition</a> must exist explicitly in the script by means such as <a href="commands/_Include.htm">#Include</a> or a non-dynamic call to a <a href="#lib">library function</a>.</li>
@@ -191,9 +242,9 @@ static TotalAttempts := 0, PrevResult</pre>
 </ul>
 <h2 id="remarks">Return, Exit, and General Remarks</h2>
 <p>If the flow of execution within a function reaches the function's closing brace prior to encountering a <a href="commands/Return.htm">Return</a>, the function ends and returns a blank value (empty string) to its caller. A blank value is also returned whenever the function explicitly omits <a href="commands/Return.htm">Return</a>'s parameter.</p>
-<p>When a function uses the <a href="commands/Exit.htm">Exit</a> command to terminate the <a href="misc/Threads.htm">current thread</a>, its caller does not receive a return value at all. For example, the statement <code>Var := Add(2, 3)</code> would leave <em>Var</em> unchanged if <em>Add()</em> exits. The same thing happens if a function causes a runtime error such as <a href="commands/Run.htm">running</a> a nonexistent file (when <a href="commands/Run.htm#UseErrorLevel">UseErrorLevel</a> is not in effect).</p>
+<p>When a function uses the <a href="commands/Exit.htm">Exit</a> command to terminate the <a href="misc/Threads.htm">current thread</a>, its caller does not receive a return value at all. For example, the statement <code>Var := Add(2, 3)</code> would leave <code>Var</code> unchanged if <code>Add()</code> exits. The same thing happens if a function causes a runtime error such as <a href="commands/Run.htm">running</a> a nonexistent file (when <a href="commands/Run.htm#UseErrorLevel">UseErrorLevel</a> is not in effect).</p>
 <p>A function may alter the value of <a href="misc/ErrorLevel.htm">ErrorLevel</a> for the purpose of returning an extra value that is easy to remember.</p>
-<p>To call a function with one or more blank values (empty strings), use an empty pair of quotes as in this example: <code>FindColor(ColorName, &quot;&quot;)</code></p>
+<p>To call a function with one or more blank values (empty strings), use an empty pair of quotes as in this example: <code>FindColor(ColorName, &quot;&quot;)</code>.</p>
 <p>Since calling a function does not start a new <a href="misc/Threads.htm">thread</a>, any changes made by a function to settings such as <a href="commands/SendMode.htm">SendMode</a> and <a href="commands/SetTitleMatchMode.htm">SetTitleMatchMode</a> will go into effect for its caller too.</p>
 <p>The caller of a function may pass a nonexistent variable or <a href="misc/Arrays.htm">array</a> element to it, which is useful when the function expects the corresponding parameter to be <a href="#ByRef">ByRef</a>. For example, calling <code>GetNextLine(BlankArray%i%)</code> would create the variable <code>BlankArray%i%</code> automatically as a <a href="#Locals">local</a> or global (depending on whether the caller is inside a function and whether it has the <a href="#AssumeGlobal">assume-global mode</a> in effect).</p>
 <p>When used inside a function, <a href="commands/ListVars.htm">ListVars</a> displays a function's <a href="#Locals">local variables</a> along with their contents. This can help debug a script.</p>
@@ -211,7 +262,7 @@ static TotalAttempts := 0, PrevResult</pre>
 <pre><a href="Variables.htm#ScriptDir">%A_ScriptDir%</a>\Lib\  <em>; Local library.</em>
 <a href="Variables.htm#MyDocuments">%A_MyDocuments%</a>\AutoHotkey\Lib\  <em>; User library.</em>
 path-to-the-currently-running-AutoHotkey.exe\Lib\  <em>; Standard library.</em></pre>
-<p>For example, if a script calls a nonexistent function <em>MyFunc()</em>, the program searches for a file named <em>MyFunc.ahk</em> in the user library. If not found there, it searches for it in the standard library. If a match is still not found and the function's name contains an underscore (e.g. <em>MyPrefix_MyFunc</em>), the program searches both libraries for a file named <em>MyPrefix.ahk</em> and loads it if it exists. This allows <em>MyPrefix.ahk</em> to contain both the function <em>MyPrefix_MyFunc</em> and other related functions whose names start with <em>MyPrefix_</em>.</p>
+<p>For example, if a script calls a nonexistent function <code>MyFunc()</code>, the program searches for a file named &quot;MyFunc.ahk&quot; in the user library. If not found there, it searches for it in the standard library. If a match is still not found and the function's name contains an underscore (e.g. <code>MyPrefix_MyFunc</code>), the program searches both libraries for a file named <code>MyPrefix.ahk</code> and loads it if it exists. This allows <code>MyPrefix.ahk</code> to contain both the function <code>MyPrefix_MyFunc</code> and other related functions whose names start with <code>MyPrefix_</code>.</p>
 <p>The local library is searched before the user library and standard library.</p>
 <p>Although a library file generally contains only a single function of the same name as its filename, it may also contain private functions and subroutines that are called only by it. However, such functions should have fairly distinct names because they will still be in the global namespace; that is, they will be callable from anywhere in the script.</p>
 <p>If a library file uses <a href="commands/_Include.htm">#Include</a>, the working directory for #Include is the library file's own directory. This can be used to create a redirect to a larger library file that contains that function and others related to it.</p>
@@ -226,17 +277,18 @@ path-to-the-currently-running-AutoHotkey.exe\Lib\  <em>; Standard library.</em><
 <p id="DirExist"><strong>DirExist(FilePattern)</strong>: Equivalent to <a href="#FileExist">FileExist()</a>, but returns a blank value (empty string) if <em>FilePattern</em> is not a directory.</p>
 <p><strong><a name="GetKeyState"></a>GetKeyState(<a href="KeyList.htm">KeyName</a> [, &quot;P&quot;</strong> or <strong>&quot;T&quot;])</strong>: See <a href="commands/GetKeyState.htm">GetKeyState</a>.</p>
 <p><strong><a name="InStr"></a>InStr(Haystack, Needle [, CaseSensitive = false, StartingPos = 1, Occurrence = 1])</strong>: Returns the position of an occurrence of the string <em>Needle</em> in the string <em>Haystack</em>. Position 1 is the first character; this is because 0 is synonymous with &quot;false&quot;, making it an intuitive &quot;not found&quot; indicator. If the parameter <em>CaseSensitive</em> is omitted or false, the search is not case sensitive (the method of insensitivity depends on <a href="commands/StringCaseSense.htm">StringCaseSense</a>); otherwise, the case must match exactly. If <em>StartingPos</em> is omitted, it defaults to 1 (the beginning of <em>Haystack</em>). Otherwise, specify 2 to start at <em>Haystack</em>'s second character, 3 to start at the third, etc. If <em>StartingPos</em> is beyond the length of <em>Haystack</em>, 0 is returned. If <em>StartingPos</em> is negative, the search is conducted in reverse (right-to-left) beginning at that position counting from the right. Regardless of the value of <em>StartingPos</em>, the returned position is always relative to the first character of <em>Haystack</em>. For example, the position of &quot;abc&quot; in &quot;123abc789&quot; is always 4. Specify 2 for <i>Occurrence</i> to return the position of the second match, 3 for the third match, etc.  Related: <a href="commands/RegExMatch.htm">RegExMatch()</a>.</p>
-<p><span class="CommandSyntax"><strong>RegExMatch(Haystack, NeedleRegEx [, UnquotedOutputVar = &quot;&quot;, StartingPos = 1])</strong>: See <a href="commands/RegExMatch.htm">RegExMatch</a></span><a href="commands/RegExMatch.htm">()</a>.</p>
-<p><span class="CommandSyntax"><strong>RegExReplace(Haystack, NeedleRegEx [, Replacement = &quot;&quot;, OutputVarCount = &quot;&quot;, Limit = -1, StartingPos = 1])</strong></span>: See <span class="CommandSyntax"><a href="commands/RegExReplace.htm">RegExReplace</a></span><a href="commands/RegExReplace.htm">()</a>.</p>
+<p><strong>RegExMatch(Haystack, NeedleRegEx [, UnquotedOutputVar = &quot;&quot;, StartingPos = 1])</strong>: See <a href="commands/RegExMatch.htm">RegExMatch</a></span><a href="commands/RegExMatch.htm">()</a>.</p>
+<p><strong>RegExReplace(Haystack, NeedleRegEx [, Replacement = &quot;&quot;, OutputVarCount = &quot;&quot;, Limit = -1, StartingPos = 1])</strong></span>: See <span class="CommandSyntax"><a href="commands/RegExReplace.htm">RegExReplace</a></span><a href="commands/RegExReplace.htm">()</a>.</p>
 <p><strong><a name="SubStr"></a>SubStr(String, StartingPos [, Length])</strong>: Copies a substring from <em>String</em> starting at <em>StartingPos</em> and proceeding rightward to include at most <em>Length</em> characters (if <em>Length</em> is omitted, it defaults to &quot;all characters&quot;). For <em>StartingPos</em>, specify 1 to start at the first character, 2 to start at the second, and so on (if <em>StartingPos</em> is beyond <em>String</em>'s length, an empty string is returned). If <em>StartingPos</em> is negative, it is considered to be an offset from the end of the string. For example, -1 extracts the last character and -2 extracts the two last characters (but if <em>StartingPos</em> tries to go beyond the left end of the string, the extraction starts at the first character). <em>Length</em> is the maximum number of characters to retrieve (fewer than the maximum are retrieved whenever the remaining part of the string is too short). Specify a negative <em>Length </em>to omit that many characters from the end of the returned string (an empty string is returned if all or too many characters are omitted). Related: <a href="commands/RegExMatch.htm">RegExMatch()</a>.</p>
-<p><strong><a name="StrLen"></a>StrLen(String)</strong>: Returns the length of <em>String</em>. If <em>String</em> is a variable to which <a href="misc/Clipboard.htm#ClipboardAll">ClipboardAll</a> was previously assigned, its total size is returned.</p>
-<p><strong><a name="WinActive"></a>WinActive([WinTitle, WinText, ExcludeTitle, ExcludeText])</strong>: See <a href="commands/WinActive.htm">WinActive()</a></p>
-<p><strong><a name="WinExist"></a>WinExist([WinTitle, WinText, ExcludeTitle, ExcludeText])</strong>: See <a href="commands/WinExist.htm">WinExist()</a></p>
-<h3><a></a>Miscellaneous Functions</h3>
+<p><strong><a name="StrLen"></a>StrLen(String)</strong>: Returns the length of <em>String</em>. See <a href="commands/StringLen.htm">StrLen()</a> for details.</p>
+<p><strong><a name="StrSplit"></a>StrSplit(String [, Delimiters, OmitChars])</strong> Separates a string into an array of substrings using the specified delimiters. See <a href="commands/StrSplit.htm">StrSplit()</a> for details.</p>
+<p><strong><a name="WinActive"></a>WinActive([WinTitle, WinText, ExcludeTitle, ExcludeText])</strong>: Returns the Unique ID (HWND) of the active window if it matches the specified criteria. See <a href="commands/WinActive.htm">WinActive()</a> for details.</p>
+<p><strong><a name="WinExist"></a>WinExist([WinTitle, WinText, ExcludeTitle, ExcludeText])</strong>: Returns the <a href="commands/WinGet.htm">Unique ID (HWND)</a> of the first matching window. See <a href="commands/WinExist.htm">WinExist()</a> for details.</p>
+<h3>Miscellaneous Functions</h3>
 <p id="Ord"><strong>Ord(String)</strong>: Returns the ordinal value of the first Unicode character in <em>String</em>. This is typically a number between 1 and 65535 (0xFFFF), but can be a number between 0x10000 and 0x10FFFF if <em>String</em> begins with a supplementary character (encoded as a UTF-16 surrogate pair). If <em>String</em> is empty, 0 is returned.</p>
 <p><strong><a name="Chr"></a>Chr(Number)</strong>: Returns the character corresponding to the Unicode character code indicated by <em>Number</em>. If <em>Number</em> is not in the valid range of character codes, an empty string is returned. Common character codes include 9 (tab), 10 (linefeed), 13 (carriage return), 32 (space), 48-57 (the digits 0-9), 65-90 (uppercase A-Z), and 97-122 (lowercase a-z). Numbers in the range 0x10000 to 0x10FFFF produce rarely-used supplementary characters (encoded as a UTF-16 surrogate pair).</p>
-<p><strong>DllCall()</strong>: See <a href="commands/DllCall.htm">DllCall()</a>. </p>
-<p><strong>FileOpen()</strong>: Provides object-oriented file I/O. See <a href="commands/FileOpen.htm">FileOpen()</a> for more details.
+<p><strong>DllCall()</strong>: Calls a function inside a DLL, such as a standard Windows API function. See <a href="commands/DllCall.htm">DllCall()</a> for details.</p>
+<p><strong>FileOpen()</strong>: Provides object-oriented file I/O. See <a href="commands/FileOpen.htm">FileOpen()</a> for details.
 <p><strong><a name="Func"></a>Func(FunctionName)</strong>: If <em>FunctionName</em> does not exist explicitly in the script (by means such as <a href="commands/_Include.htm">#Include</a> or a non-dynamic call to a <a href="#lib">library function</a>), Func() returns 0. Otherwise, it returns a <a href="Objects.htm#Function_References">reference to the function</a>. This can be used to call the function or retrieve <a href="objects/Func.htm">information</a> such as the minimum and maximum number of parameters.</p>
 <p><strong><a name="GetKeyName"></a>GetKeyName(Key), GetKeyVK(Key), GetKeySC(Key)</strong>: Retrieves the name/text, virtual key code or scan code of a key. <em>Key</em> can be a VK or SC code, such as "vkA2" or "sc01D", a combination of both, or a key name. For example, both <code>GetKeyName("vk1B")</code> and <code>GetKeyName("Esc")</code> return "Escape", while <code>GetKeyVK("Esc")</code> returns 27.</p>
 <p><strong><a name="IsByRef"></a>IsByRef(Var)</strong>: Returns 1 if <em>Var</em> is a ByRef parameter and the caller supplied a variable; or 0 if <em>Var</em> is any other kind of variable.</p>
@@ -249,8 +301,8 @@ path-to-the-currently-running-AutoHotkey.exe\Lib\  <em>; Standard library.</em><
 <p><strong>OnMessage(MsgNumber [, &quot;FunctionName&quot;])</strong>: Monitors a message/event. See <a href="commands/OnMessage.htm">OnMessage()</a> for details.</p>
 <p><strong>StrGet(Address [, Length] [, Encoding = None ] )</strong>: Copies a string from a memory address, optionally converting it between code pages. See <a href="commands/StrPutGet.htm">StrGet()</a> for details.</p>
 <p><strong>StrPut(String, Address [, Length] [, Encoding = None ] )</strong>: Copies a string to a memory address, optionally converting it between code pages. See <a href="commands/StrPutGet.htm">StrPut()</a> for details.</p>
-<p><strong>RegisterCallback()</strong>: See <a href="commands/RegisterCallback.htm">RegisterCallback()</a>.</p>
-<p><strong>Trim()</strong>: See <a href="commands/Trim.htm">Trim()</a>.</p>
+<p><strong>RegisterCallback()</strong>: Creates a machine-code address that when called, redirects the call to a function in the script. See <a href="commands/RegisterCallback.htm">RegisterCallback()</a> for details.</p>
+<p><strong>Trim()</strong> Trims characters from the beginning and/or end of a string. See <a href="commands/Trim.htm">Trim()</a> for details.</p>
 <p><strong>VarSetCapacity(UnquotedVarName [, RequestedCapacity, FillByte])</strong>: Enlarges a variable's holding capacity or frees its memory. See <a href="commands/VarSetCapacity.htm">VarSetCapacity()</a> for details.</p>
 <h3 id="Math">General Math </h3>
 <p>Note: Math functions generally return a blank value (empty string) if any of the incoming parameters are non-numeric.</p>
@@ -260,8 +312,8 @@ path-to-the-currently-running-AutoHotkey.exe\Lib\  <em>; Standard library.</em><
 <p><strong><a name="Floor"></a>Floor(Number)</strong>: Returns <em>Number</em> rounded down to the nearest integer (without any .00 suffix). For example, <code>Floor(1.2)</code> is 1 and <code>Floor(-1.2)</code> is -2.</p>
 <p><strong><a name="Log"></a>Log(Number)</strong>: Returns the logarithm (base 10) of <em>Number</em>, as a floating-point number. If <em>Number</em> is negative, an empty string is returned.</p>
 <p><strong><a name="Ln"></a>Ln(Number)</strong>: Returns the natural logarithm (base e) of <em>Number</em>, as a floating-point number. If <em>Number</em> is negative, an empty string is returned.</p>
-<p><strong><a name="Mod"></a>Mod(Dividend, Divisor)</strong>: Modulo. Returns the remainder when <em>Dividend</em> is divided by <em>Divisor</em>. The sign of the result is always the same as the sign of the first parameter. For example, both <code>mod(5, 3)</code> and <code>mod(5, -3)</code> yield 2, but <code>mod(-5, 3)</code> and<code>mod(-5, -3)</code> yield -2. If either input is a floating point number, the result is also a floating point number. For example, <code>mod(5.0, 3)</code> is 2.0 and <code>mod(5, 3.5)</code> is 1.5. If the second parameter is zero, the function yields a blank result (empty string).</p>
-<p><strong><a name="Round"></a>Round(Number [, N])</strong>: If <em>N</em> is omitted or 0, <em>Number</em> is rounded to the nearest integer. If <em>N</em> is positive number, <em>Number</em> is rounded to <em>N</em> decimal places. If <em>N</em> is negative, <em>Number</em><em> </em>is rounded by <em>N</em> digits to the left of the decimal point. For example, <code>Round(345, -1)</code> is 350 and Round (345, -2) is 300. The result has no .000 suffix whenever <em>N</em> is omitted or less than 1. Otherwise, the result is a numeric string with exactly <em>N </em>decimal places rather than a pure floating-point number. To avoid this, perform another math operation on Round()'s return value; for example: <code>Round(3.333, 1)<strong>+0</strong></code>.</p>
+<p><strong><a name="Mod"></a>Mod(Dividend, Divisor)</strong>: Modulo. Returns the remainder when <em>Dividend</em> is divided by <em>Divisor</em>. The sign of the result is always the same as the sign of the first parameter. For example, both <code>mod(5, 3)</code> and <code>mod(5, -3)</code> yield 2, but <code>mod(-5, 3)</code> and <code>mod(-5, -3)</code> yield -2. If either input is a floating point number, the result is also a floating point number. For example, <code>mod(5.0, 3)</code> is 2.0 and <code>mod(5, 3.5)</code> is 1.5. If the second parameter is zero, the function yields a blank result (empty string).</p>
+<p><strong><a name="Round"></a>Round(Number [, N])</strong>: If <em>N</em> is omitted or 0, <em>Number</em> is rounded to the nearest integer. If <em>N</em> is positive number, <em>Number</em> is rounded to <em>N</em> decimal places. If <em>N</em> is negative, <em>Number</em> is rounded by <em>N</em> digits to the left of the decimal point. For example, <code>Round(345, -1)</code> is 350 and <code>Round(345, -2)</code> is 300. The result has no .000 suffix whenever <em>N</em> is omitted or less than 1. Otherwise, the result is a numeric string with exactly <em>N </em>decimal places rather than a pure floating-point number. To avoid this, perform another math operation on Round()'s return value; for example: <code>Round(3.333, 1)<strong>+0</strong></code>.</p>
 <p><strong><a name="Sqrt"></a>Sqrt(Number)</strong>: Returns the square root of <em>Number</em>, as a floating-point number. If <em>Number</em> is negative, the function yields a blank result (empty string).</p>
 <h3>Trigonometry</h3>
 <p><strong><a name="Sin"></a><a name="Cos"></a><a name="Tan"></a>Sin(Number)</strong> | <strong>Cos(Number)</strong> | <strong>Tan(Number) </strong>: Returns the trigonometric sine|cosine|tangent of <em>Number</em>. <em>Number</em> must be expressed in radians.</p>

@@ -4,6 +4,7 @@
 <head>
 <title>SoundSet</title>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
 <link href="../css/default.css" rel="stylesheet" type="text/css">
 </head>
 <body>
@@ -23,13 +24,14 @@
   <dt>ComponentType</dt>
   <dd><p>If omitted or blank, it defaults to the word MASTER. Otherwise, it can be one of the following words: MASTER (synonymous with SPEAKERS), DIGITAL, LINE, MICROPHONE, SYNTH, CD, TELEPHONE, PCSPEAKER, WAVE, AUX, ANALOG, HEADPHONES, or N/A. If the sound device lacks the specified <em>ComponentType</em>, ErrorLevel will indicate the problem.</p>
       <p>The component labeled Auxiliary in some mixers might be accessible as ANALOG rather than AUX.</p>
-    <p>If a device has more than one instance of <em>ComponentType</em> (two of type LINE, for example), usually the first contains the playback settings and the second contains the recording settings. To access an instance other than the first, append a colon and a number to this parameter. For example: Analog:2 is the second instance of the analog component.</p></dd>
+    <p>If a device has more than one instance of <em>ComponentType</em> (two of type LINE, for example), usually the first contains the playback settings and the second contains the recording settings. To access an instance other than the first, append a colon and a number to this parameter. For example: <code>Analog:2</code> is the second instance of the analog component.</p></dd>
 
   <dt>ControlType</dt>
-  <dd><p>If omitted or blank, it defaults to VOLUME. Otherwise, it can be one of the following words: VOLUME (or VOL), ONOFF, MUTE, MONO, LOUDNESS, STEREOENH, BASSBOOST, PAN, QSOUNDPAN, BASS, TREBLE, EQUALIZER, or the number of a valid control type (see <a href="#Ex">soundcard analysis script</a>). If the specified <em>ComponentType</em> lacks the specified <em>ControlType</em>, ErrorLevel will indicate the problem.</p></dd>
+  <dd><p>If omitted or blank, it defaults to VOLUME. Otherwise, it can be one of the following words: VOLUME (or VOL), ONOFF, MUTE, MONO, LOUDNESS, STEREOENH, BASSBOOST, PAN, QSOUNDPAN, BASS, TREBLE, EQUALIZER, or the number of a valid control type (see <a href="#Ex">soundcard analysis script</a>). If the specified <em>ComponentType</em> lacks the specified <em>ControlType</em>, ErrorLevel will indicate the problem.</p>
+    <p><strong>Note:</strong> sound devices usually support only VOLUME (or VOL) and MUTE, although others may be available depending on Windows and the sound device.</p></dd>
 
   <dt>DeviceNumber</dt>
-  <dd><p>If this parameter is omitted, it defaults to 1 (the first sound device), which is usually the system's default device for recording and playback. Specify a number higher than 1 to operate upon a different sound device.</p></dd>
+  <dd><p>A number between 1 and the total number of supported devices. If this parameter is omitted, it defaults to 1 (the first sound device), or on Windows Vista or above, the system's default device for playback. The <a href="#Ex">soundcard analysis script</a> may help determine which number to use.</p></dd>
 
 </dl>
 <h3>ErrorLevel</h3>
@@ -59,14 +61,14 @@
   </tr>
 </table>
 <h3>Remarks</h3>
-<p>On Windows Vista or later, SoundSet and SoundGet affect only the script itself (this may be resolved in a future version). There are at least two ways to work around this:</p>
-<p>1) In the properties dialog for the file &quot;AutoHotkey.exe&quot; (or a <a href="../Scripts.htm#ahk2exe">compiled script</a>), change the compatibility setting to &quot;Windows XP&quot;.</p>
-<p>2) Have the script send volume-control keystrokes to change the master volume for the entire system. For example:</p>
+<p>For more functionality and finer grained control over audio, consider using the <a href="http://www.autohotkey.com/board/topic/21984-vista-audio-control-functions/">VA library</a>.</p>
+<p>An alternative way to adjust the volume is to have the script send volume-control keystrokes to change the master volume for the entire system, such as in the example below:</p>
 <pre>Send {Volume_Up}  <em>; Raise the master volume by 1 interval (typically 5%).</em>
 Send {Volume_Down 3}  <em>; Lower the master volume by 3 intervals.</em>
 Send {Volume_Mute}  <em>; Mute/unmute the master volume.</em></pre>
 <p>To discover the capabilities of the sound devices (mixers) installed on the system -- such as the available component types and control types -- run the <a href="#Ex">soundcard analysis script</a>.</p>
-<p>When SoundSet changes the volume of a component, all of that component's channels (e.g. left and right) are set to the same level. In other words, any off-center &quot;balance&quot; that may have been set previously is lost.</p>
+<p>Windows 2000/XP/2003: When SoundSet changes the volume of a component, all of that component's channels (e.g. left and right) are set to the same level. In other words, any off-center &quot;balance&quot; that may have been set previously is lost.</p>
+<p>Windows Vista and later: SoundSet attempts to preserve the existing balance when changing the volume level.</p>
 <p>Use <a href="SoundGet.htm">SoundGet</a> to retrieve the current value of a setting.</p>
 <h3>Related</h3>
 <p><a href="SoundGet.htm">SoundGet</a>, <a href="SoundPlay.htm">SoundPlay</a></p>
@@ -80,12 +82,9 @@ SoundSet, +1, , mute  <em>; Toggle the master mute (set it to the opposite state
 SoundSet, +20, Master, bass  <em>; Increase bass level by 20%.</em>
 if ErrorLevel
     MsgBox, The BASS setting is not supported for MASTER.</pre>
-<p>&nbsp;</p>
-<pre class="NoIndent"><a name="Ex"></a><em>; SOUNDCARD ANALYSIS
-; Use the following script to discover your soundcard's capabilities (component types and control types).
-; It displays the results in a simple ListView.</em>
-
-SetBatchLines -1
+<h4 id="Ex">Soundcard Analysis</h4>
+<p>Use the following script to discover your soundcard's capabilities (component types and control types). It displays the results in a simple ListView. Alternatively, a script for Windows Vista and later which provides more detail (such as display names of devices) can be downloaded from the following forum topic: <a href="http://www.autohotkey.com/board/topic/90877-/">http://www.autohotkey.com/board/topic/90877-/</a></p>
+<pre class="NoIndent">SetBatchLines -1
 SplashTextOn,,, Gathering Soundcard Info...
 
 <em>; Most of the pure numbers below probably don't exist in any mixer, but they're queried for completeness.

@@ -1,0 +1,68 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<title>SetRegView</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<link href="../css/default.css" rel="stylesheet" type="text/css">
+</head>
+<body>
+
+<h1>SetRegView</h1>
+<p>Sets the registry view used by RegRead, RegWrite, RegDelete and registry loops.</p>
+<pre class="Syntax">SetRegView, RegView</pre>
+
+<h3>Parameters</h3>
+<dl>
+
+  <dt>RegView</dt>
+  <dd>
+      <p>Specify <strong>32</strong> to view the registry as a 32-bit application would, or <strong>64</strong> to view the registry as a 64-bit application would.</p>
+      <p>Specify the word <strong>Default</strong> to restore normal behaviour.</p>
+    </dd>
+
+</dl>
+
+<h3>General Remarks</h3>
+<p>This command is only useful on Windows 64-bit.  It has no effect on Windows 32-bit.</p>
+<p>On 64-bit systems, 32-bit applications run on a subsystem of Windows called <a href="http://msdn.microsoft.com/en-us/library/aa384249">WOW64</a>.  By default, the system redirects certain <a href="http://msdn.microsoft.com/en-us/library/aa384253">registry keys</a> to prevent conflicts.  For example, in a 32-bit script, <code>HKLM\SOFTWARE\AutoHotkey</code> is redirected to <code>HKLM\SOFTWARE\Wow6432Node\AutoHotkey</code>.  SetRegView allows the registry commands in a 32-bit script to access redirected keys in the 64-bit registry view and vice versa.</p>
+
+<p>The built-in variable <em>A_RegView</em> contains the current setting.  Every newly launched <a href="../misc/Threads.htm">thread</a> (such as a <a href="../Hotkeys.htm">hotkey</a>, <a href="Menu.htm">custom menu item</a>, or <a href="SetTimer.htm">timed</a> subroutine) starts off fresh with the default setting for this command. That default may be changed by using this command in the auto-execute section (top part of the script).</p>
+
+<h3>Related</h3>
+<p><a href="RegRead.htm">RegRead</a>, <a href="RegWrite.htm">RegWrite</a>, <a href="RegDelete.htm">RegDelete</a>, <a href="LoopReg.htm">Loop (registry)</a></p>
+
+<h3>Examples</h3>
+<p id="example1">Example 1 shows how to set a specific registry view, and how registry redirection affects the script.</p>
+<pre><em>; Access the registry as a 32-bit application would.</em>
+SetRegView 32
+RegWrite REG_SZ, HKLM, SOFTWARE\Test.ahk, Value, 123
+
+<em>; Access the registry as a 64-bit application would.</em>
+SetRegView 64
+RegRead value, HKLM, SOFTWARE\Wow6432Node\Test.ahk, Value
+RegDelete HKLM, SOFTWARE\Wow6432Node\Test.ahk
+
+MsgBox Read value '%value%' via Wow6432Node.
+
+<em>; Restore the registry view to the default, which
+; depends on whether the script is 32-bit or 64-bit.</em>
+SetRegView Default
+<em>;...</em>
+</pre>
+<p id="example2">Example 2 shows how to detect the type of EXE and operating system on which the script is running.</p>
+<pre>if (A_PtrSize = 8)
+    script_is := "64-bit"
+else <em>; if (A_PtrSize = 4)</em>
+    script_is := "32-bit"
+
+if (A_Is64bitOS)
+    OS_is := "64-bit"
+else
+    OS_is := "32-bit, which has only a single registry view"
+
+MsgBox This script is %script_is%, and the OS is %OS_is%.</pre>
+
+</body>
+</html>

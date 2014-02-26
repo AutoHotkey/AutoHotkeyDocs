@@ -4,6 +4,7 @@
 <head>
 <title>Objects</title>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
 <link href="css/default.css" rel="stylesheet" type="text/css">
 </head>
 <body>
@@ -31,7 +32,7 @@
 
 <h2>Table of Contents</h2>
 <ul>
-  <li><a href="#Usage">Basic Usage</a> - <a href="#Usage_Simple_Arrays">Simple Arrays</a>, <a href="#Usage_Associative_Arrays">Associative Arrays</a>, <a href="#Usage_Objects">Objects</a>, <a href="#Usage_Remarks">Remarks</a></li>
+  <li><a href="#Usage">Basic Usage</a> - <a href="#Usage_Simple_Arrays">Simple Arrays</a>, <a href="#Usage_Associative_Arrays">Associative Arrays</a>, <a href="#Usage_Objects">Objects</a>, <a href="#Usage_Freeing_Objects">Freeing Objects</a>, <a href="#Usage_Remarks">Remarks</a></li>
   <li><a href="#Extended_Usage">Extended Usage</a> - <a href="#Function_References">Function References</a>, <a href="#Usage_Arrays_of_Arrays">Arrays of Arrays</a>, <a href="#Usage_Arrays_of_Functions">Arrays of Functions</a></li>
   <li><a href="#Custom_Objects">Custom Objects</a> - <a href="#Custom_Prototypes">Prototypes</a>, <a href="#Custom_Classes">Classes</a>, <a href="#Custom_NewDelete">Construction and Destruction</a>, <a href="#Meta_Functions">Meta-Functions</a></li>
   <li><a href="#Default_Base_Object">Default Base Object</a> - <a href="#Automatic_Var_Init">Automatic Var Init</a>, <a href="#Pseudo_Properties">Pseudo-Properties</a>, <a href="#Default__Warn">Debugging</a></li>
@@ -100,6 +101,24 @@ Object.Property[Parameters] := Value</pre>
 <p><b>Known limitation:</b></p>
 <ul><li>Currently <code><span class="dull">x</span>.y[z]<span class="dull">()</span></code> is treated as <code><span class="dull">x</span>["y", z]<span class="dull">()</span></code>, which is not supported. As a workaround, <code><span class="red">(</span><span class="dull">x.y</span><span class="red">)</span>[z]()</code> evaluates <code>x.y</code> first, then uses the result as the target of the method call. Note that <code>x.y[z].()</code> does not have this limitation since it is evaluated the same as <code>(x.y[z]).()</code>.</li></ul>
 
+<h3 id="Usage_Freeing_Objects">Freeing Objects</h3>
+<p>Scripts do not free objects explicitly. When the last reference to an object is released, the object is freed automatically. A reference stored in a variable is released automatically when that variable is assigned some other value. For example:</p>
+<pre>obj := {}  <em>; Creates an object.</em>
+obj := ""  <em>; Releases the last reference, and therefore frees the object.</em></pre>
+<p>Similarly, a reference stored in a field of another object is released when that field is assigned some other value or removed from the object. This also applies to arrays, which are actually objects.</p>
+<pre>arr := [{}]  <em>; Creates an array containing an object.</em>
+arr[1] := {}  <em>; Creates a second object, implicitly freeing the first object.</em>
+arr.Remove(1)  <em>; Removes and frees the second object.</em></pre>
+<p id="Circular_References">Because all references to an object must be released before the object can be freed, objects containing circular references aren't freed automatically. For instance, if <code>x.child</code> refers to <code>y</code> and <code>y.parent</code> refers to <code>x</code>, clearing <code>x</code> and <code>y</code> is not sufficient since the parent object still contains a reference to the child and vice versa. To resolve this situation, remove the circular reference.</p>
+<pre>
+x := {}, y := {}             <em>; Create two objects.</em>
+x.child := y, y.parent := x  <em>; Create a circular reference.</em>
+
+y.parent := ""               <em>; The circular reference must be removed before the objects can be freed.</em>
+x := "", y := ""             <em>; Without the above line, this would not free the objects.</em>
+</pre>
+<p>For more advanced usage and details, see <a href="#Reference_Counting">Reference Counting</a>.</p>
+
 <h3 id="Usage_Remarks">Remarks</h3>
 
 <h4>Syntax</h4>
@@ -122,7 +141,7 @@ obj.item[x] := y</pre>
   <li>Integer keys are stored using the native signed integer type. AutoHotkey 32-bit supports integer keys in the range -2147483648 to 2147483647. AutoHotkey supports 64-bit integers, but only AutoHotkey 64-bit supports the full range as keys in an object.</li>
   <li>Strings which form valid integers are treated the same as pure integers. For example, <code>x["0x10"]</code>, <code>x["16"]</code> and <code>x["00016"]</code> are equivalent.</li>
   <li>Floating-point numbers are not supported as keys - instead they are converted to strings.  For consistency and clarity, scripts should avoid using floating-point literals as keys.</li>
-  <li>The string key <a href="#Custom_Objects">"base"</a> has special meaning, except when used with <a href="objects/Object.htm#Insert">Insert</a>.</p></li>
+  <li>The string key <a href="#Custom_Objects">"base"</a> has special meaning, except when used with <a href="objects/Object.htm#Insert">Insert</a>.</li>
 </ul>
 
 <h2 id="Extended_Usage">Extended Usage</h2>
@@ -133,7 +152,6 @@ obj.item[x] := y</pre>
 <pre>RetVal := Func.(<i>Params</i>)</pre>
 <p>For details about additional properties of function references, see <a href="objects/Func.htm">Func Object</a>.</p>
 <p><a name="ExitLimitation"></a><b>Known limitation:</b></p>
-<ul><li>If the function or a subroutine or function called by it uses <a href="commands/Exit.htm">Exit</a>, it acts as though the function-call created a new thread. That is, it returns immediately to the caller of the function rather than terminating the current thread.</li></ul>
 
 <h3 id="Usage_Arrays_of_Arrays"><a name="JaggedArrays"></a>Arrays of Arrays</h3>
 <p>AutoHotkey supports "multi-dimensional" arrays by transparently storing arrays inside other arrays. For example, a table could be represented as an array of rows, where each row is itself an array of columns. In that case, the content of column <code>y</code> of row <code>x</code> can be set using either of the methods below:</p>
@@ -146,6 +164,14 @@ table[x, y] := content  <em>; B</em></pre>
   <pre>table.base.__Get(table, x)<span class="dull">[y] := content</span>   <em>; A</em>
 table.base.__Set(table, x, y, content)     <em>; B</em></pre>
   Consequently, <span class="Code"><em>B</em></span> allows the object to define custom behaviour for the overall assignment.</li>
+</ul>
+<p>Multi-dimensional assignments such as <code>table[a, b, c, d] := value</code> are handled as follows:</p>
+<ul>
+  <li>If there is only one key remaining, perform the assignment and return. Otherwise:</li>
+  <li>Search the object for the first key in the list.</li>
+  <li>If a non-object is found, fail.</li>
+  <li>If an object is not found, create one and store it.</li>
+  <li>Recursively invoke the sub-object, passing the remaining keys and value - repeat from the top.</li>
 </ul>
 <p>This behaviour only applies to script-created objects, not more specialized types of objects such as COM objects or COM arrays.</p>
 
@@ -217,7 +243,7 @@ other.test()</pre>
     }
 }
 </pre>
-<p>When the script is loaded, this constructs an object and stores it in the global (or <a href="Functions.htm#SuperGlobal">super-global</a>) variable <i>ClassName</i>. If <code>extends BaseClassName</code> is present, <i>BaseClassName</i> must be the full name of a previously defined class. The full name of each class is stored in <code><i>object</i>.__Class</code>.</p>
+<p>When the script is loaded, this constructs an object and stores it in the <a href="Functions.htm#SuperGlobal">super-global</a> variable <i>ClassName</i>. If <code>extends BaseClassName</code> is present, <i>BaseClassName</i> must be the full name of another class, but the order that they are defined in does not matter. The full name of each class is stored in <code><i>object</i>.__Class</code>.</p>
 <p>Class definitions can contain variable declarations, method definitions and nested class definitions.</p>
 <pre id="Custom_Classes_var">
     InstanceVar := Expression
@@ -241,7 +267,7 @@ other.test()</pre>
     }
 </pre>
 <p><b>Method</b> definitions look identical to function definitions. Each method has a hidden parameter named <code>this</code>, which typically contains a reference to an object derived from the class. However, it could contain a reference to the class itself or a derived class, depending on how the method was called. Methods are stored <a href="#Function_References">by reference</a> in the class object.</p>
-<p id="Custom_Classes_base">In addition to the hidden parameter <code>this</code>, method definitions can use the pseudo-keyword <code>base</code> to invoke the base class of the class which contains the method definition. For example, <code>base.Method()</code> in the method above would be equivalent to <code>BaseClassName.Method.(this)</code>, except that the global variable <i>BaseClassName</i> does not need to be declared. Note that this differs from <code>this.base.base.Method()</code> in two other ways:</p>
+<p id="Custom_Classes_base">In addition to the hidden parameter <code>this</code>, method definitions can use the pseudo-keyword <code>base</code> to invoke the base class of the class which contains the method definition. For example, <code>base.Method()</code> in the method above would be equivalent to <code>BaseClassName.Method.(this)</code>. Note that this differs from <code>this.base.base.Method()</code> in two other ways:</p>
 <ul>
   <li>It always invokes the base of the current class, even if <code>this</code> is derived from a <i>sub-class</i> of the current class.</li>
   <li>It passes <code>this</code> automatically, not <code>this.base.base</code>.</li>
@@ -261,6 +287,7 @@ class GMem
         if !this.ptr
             return ""
         MsgBox % "New GMem of " aSize " bytes at address " this.ptr "."
+        return this  <em>; This line can be omitted when using the 'new' operator.</em>
     }
 
     __Delete()
@@ -271,6 +298,21 @@ class GMem
 }</pre>
 
 <h3 id="Meta_Functions">Meta-Functions</h3>
+<pre class="Syntax">
+<strong>Method syntax:</strong>
+class <i>ClassName</i> {
+    __Get([Key, Key2, ...])
+    __Set([Key, Key2, ...], Value)
+    __Call(Name [, Params...])
+}
+
+<strong>Function syntax:</strong>
+<i>MyGet</i>(this [, Key, Key2, ...])
+<i>MySet</i>(this [, Key, Key2, ...], Value)
+<i>MyCall</i>(this, Name [, Params...])
+
+<i>ClassName</i> := { __Get: Func("<i>MyGet</i>"), __Set: Func("<i>MySet</i>"), __Call: Func("<i>MyCall</i>") }
+</pre>
 <p>Meta-functions are methods defined by an object's base which can define exactly how the object should act when an unknown key is requested. For example, if <code>obj.key</code> has not been assigned a value, it invokes the <i>__Get</i> meta-function. Similarly, <code>obj.key := value</code> invokes <i>__Set</i> and <code>obj.key()</code> invokes <i>__Call</i>.</p>
 <p>In these cases, the base object is invoked as follows:</p>
 <ul>
@@ -339,7 +381,7 @@ class Color
 }</pre>
 
 <h4 id="Objects_as_Functions">Objects as Functions</h4>
-<p>When a call such as <code>obj.func(param)</code> is made, <i>obj.func</i> may contain a function name or an object.  If <i>obj.func</i> contains an object, it is invoked using <i>obj</i> as the key.  In most cases <code>obj.func[obj]</code> does not exist and <i>obj.func</i>'s __Call <a href="#Meta_Functions">meta-function</a> is invoked instead.  This may be used to change the behaviour of function calls in an abstract way, as shown in the example below:</p>
+<p>When a call such as <code>obj.func(param)</code> is made, <i>obj.func</i> may contain a function name or an object.  If <i>obj.func</i> contains an object, that object is invoked with <i>obj</i> in place of the method name, as in <code>(obj.func)[obj]()</code>.  In most cases <code>obj.func[obj]</code> does not exist and <i>obj.func</i>'s __Call <a href="#Meta_Functions">meta-function</a> is invoked instead.  This may be used to change the behaviour of function calls in an abstract way, as shown in the example below:</p>
 <pre><em>; Create a prototype for an array of functions.</em>
 FuncArrayType := {__Call: "FuncType_Call"}
 <em>; Create an array of functions.</em>
@@ -417,20 +459,20 @@ x_Setter(x, p1, p2, p3) {
 }
 
 x_Addr(x) {
-    return &x
+    return &amp;x
 }</pre>
 <p>Since <code>x_Setter</code> has four mandatory parameters, it will only be called when there are two or more key parameters.  When the assignment above occurs, the following takes place:</p>
 <ul>
-  <li><code>x[1]</code> does not exist, so <code>x_Setter(x,1,2,3)</code> is called (<code>"..."</code> is not passed as there are too few parameters).</li>
+  <li><code>x[1]</code> does not exist, so <code>x_Setter(x,1,2,3)</code> is called (<code>"..."</code> is not passed as there are too few parameters).
   <ul>
     <li><code>x[1]</code> is assigned a new object with the same base as <code>x</code>.</li>
     <li>No value is returned &ndash; the assignment continues.</li>
-  </ul>
-  <li><code>x[1][2]</code> does not exist, so <code>x_Setter(x[1],2,3,"...")</code> is called.</li>
+  </ul></li>
+  <li><code>x[1][2]</code> does not exist, so <code>x_Setter(x[1],2,3,"...")</code> is called.
   <ul>
     <li><code>x[1][2]</code> is assigned a new object with the same base as <code>x[1]</code>.</li>
     <li>No value is returned &ndash; the assignment continues.</li>
-  </ul>
+  </ul></li>
   <li><code>x[1][2][3]</code> does not exist, but since <code>x_Setter</code> requires four parameters and there are only three (<code>x[1][2], 3, "..."</code>), it is not called and the assignment completes as normal.</li>
 </ul>
 
@@ -501,18 +543,7 @@ ObjRelease(address)
 <p>To run code when the last reference to an object is being released, implement the <a href="#Custom_NewDelete">__Delete</a> meta-function.</p>
 <p><b>Known Limitations:</b></p>
 <ul>
-  <li>Circular references must be broken before an object can be freed. For example:
-  <pre><em>; Create two objects.</em>
-x := {}, y := {}
-<em>; Create a circular reference.</em>
-x.child := y, y.parent := x
-
-<em>; BAD:</em>
-x := "", y := ""
-
-<em>; Good:</em>
-y.parent := ""  <em>; Break the cycle.</em>
-x := "", y := ""</pre></li>
+  <li>Circular references must be broken before an object can be freed. For details and an example, see <a href="#Circular_References">Freeing Objects</a>.</li>
   <li>Although references in static and global variables are released automatically when the program exits, references in non-static local variables or on the expression evaluation stack are not.  These references are only released if the function or expression is allowed to complete normally.</li>
 </ul>
 <p>Although memory used by the object is reclaimed by the operating system when the program exits, <a href="#Custom_NewDelete">__Delete</a> will not be called unless all references to the object are freed.  This can be important if it frees other resources which are not automatically reclaimed by the operating system, such as temporary files.</p>

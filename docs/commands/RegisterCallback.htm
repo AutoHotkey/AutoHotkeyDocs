@@ -4,6 +4,7 @@
 <head>
 <title>RegisterCallback</title>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
 <link href="../css/default.css" rel="stylesheet" type="text/css">
 </head>
 <body>
@@ -17,7 +18,7 @@
 <dl>
 
   <dt>Address</dt>
-  <dd><p><span class="CommandSyntax">Upon success, RegisterCallback() </span>returns a numeric address that may be called by <a href="DllCall.htm">DllCall()</a> or anything else capable of calling a machine-code function. Upon failure, it returns an empty string. Failure occurs when <em>FunctionName</em>: 1)  does not exist; 2) accepts too many or too few parameters according to <em>ParamCount</em>; or 3) accepts any <a href="../Functions.htm#ByRef">ByRef parameters</a>.</p></dd>
+  <dd><p>Upon success, RegisterCallback() returns a numeric address that may be called by <a href="DllCall.htm">DllCall()</a> or anything else capable of calling a machine-code function. Upon failure, it returns an empty string. Failure occurs when <em>FunctionName</em>: 1)  does not exist; 2) accepts too many or too few parameters according to <em>ParamCount</em>; or 3) accepts any <a href="../Functions.htm#ByRef">ByRef parameters</a>.</p></dd>
 
   <dt>FunctionName</dt>
   <dd>
@@ -26,8 +27,8 @@
   </dd>
 
   <dt>Options</dt>
-  <dd><p>Specify zero or more of the following words. Separate each option from the next with a space (e.g. &quot;C Fast&quot;).</p>
-    <p><strong><a name="Fast" id="Fast"></a>Fast</strong> or <strong>F</strong>: Avoids starting a new <a href="../misc/Threads.htm">thread</a> each time <em>FunctionName</em> is called. Although this performs better, it must be avoided whenever the thread from which <em>Address</em> is called varies (e.g. when the callback is triggered by an incoming message). This is because <em>FunctionName</em> will be able to change global settings such as <a href="../misc/ErrorLevel.htm">ErrorLevel</a>, <a href="../Variables.htm#LastError">A_LastError</a>, and the <a href="../LastFoundWindow.htm">last-found window</a> for whichever thread happens to be running at the time it is called. For more information, see <a href="#Threads">Remarks</a>.</p>
+  <dd><p>Specify zero or more of the following words. Separate each option from the next with a space (e.g. <code>C Fast</code>).</p>
+    <p><strong><a name="Fast" id="Fast"></a>Fast</strong> or <strong>F</strong>: Avoids starting a new <a href="../misc/Threads.htm">thread</a> each time <em>FunctionName</em> is called. Although this performs better, it must be avoided whenever the thread from which <em>Address</em> is called varies (e.g. when the callback is triggered by an incoming message). This is because <em>FunctionName</em> will be able to change global settings such as <a href="../misc/ErrorLevel.htm">ErrorLevel</a>, <a href="../Variables.htm#LastError">A_LastError</a>, and the <a href="../misc/WinTitle.htm#LastFoundWindow">last-found window</a> for whichever thread happens to be running at the time it is called. For more information, see <a href="#Threads">Remarks</a>.</p>
     <p><strong>CDecl</strong> or <strong>C </strong>: Makes <em>Address</em> conform to the &quot;C&quot; calling convention. This is typically omitted because the standard calling convention is much more common for callbacks.</p></dd>
 
   <dt>ParamCount</dt>
@@ -67,11 +68,11 @@ Func(params*) {
 <p>If the function uses <a href="Return.htm">Return</a> without any parameters, or it specifies a blank value such as &quot;&quot; (or it never uses Return at all), 0 is returned to <em>Address</em>'s caller. Otherwise, the function should return an integer between -2147483648 and 4294967295, which is then returned to <em>Address</em>'s caller.</p>
 <h3 id="Threads">Fast vs. Slow</h3>
 <p>The default/slow mode causes the function to start off fresh with the default values for settings such as <a href="SendMode.htm">SendMode</a> and <a href="DetectHiddenWindows.htm">DetectHiddenWindows</a>. These defaults can be changed in the <a href="../Scripts.htm#auto">auto-execute section</a>.</p>
-<p>By contrast, the <a href="#Fast">fast mode</a> inherits global settings from whichever <a href="../misc/Threads.htm">thread</a> happens to be running at the time the function is called. Furthermore, any changes the function makes to global settings (including <a href="../misc/ErrorLevel.htm">ErrorLevel</a> and the <a href="../LastFoundWindow.htm">last-found window</a>) will go into effect for the <a href="../misc/Threads.htm">current thread</a>. Consequently, the fast mode should be used only when it is known exactly which thread(s) the function will be called from.</p>
+<p>By contrast, the <a href="#Fast">fast mode</a> inherits global settings from whichever <a href="../misc/Threads.htm">thread</a> happens to be running at the time the function is called. Furthermore, any changes the function makes to global settings (including <a href="../misc/ErrorLevel.htm">ErrorLevel</a> and the <a href="../misc/WinTitle.htm#LastFoundWindow">last-found window</a>) will go into effect for the <a href="../misc/Threads.htm">current thread</a>. Consequently, the fast mode should be used only when it is known exactly which thread(s) the function will be called from.</p>
 <p>To avoid being interrupted by itself (or any other thread), a callback may use <a href="Critical.htm">Critical</a> as its first line. However, this is not completely effective when the function is called indirectly via the arrival of a message less than 0x312 (increasing Critical's <a href="Critical.htm#Interval">interval</a> may help). Furthermore, <a href="Critical.htm">Critical</a> does not prevent the function from doing something that might indirectly result in a call to itself, such as calling <a href="PostMessage.htm">SendMessage</a> or <a href="DllCall.htm">DllCall</a>.</p>
 <h3>Memory</h3>
 <p>Each use of RegisterCallback() allocates a small amount of memory (32 bytes plus system overhead). Since the OS frees this memory automatically when the script exits, any script that allocates a small, <em>fixed</em> number of callbacks does not have to explicitly free the memory. By contrast, a script that calls RegisterCallback() an indefinite/unlimited number of times should explicitly call the following on any unused callbacks:</p>
-<pre>DllCall(&quot;GlobalFree&quot;, &quot;Ptr&quot;, Address)</pre>
+<pre>DllCall(&quot;GlobalFree&quot;, &quot;Ptr&quot;, Address, &quot;Ptr&quot;)</pre>
 <h3>Related</h3>
 <p><a href="DllCall.htm">DllCall()</a>, <a href="OnMessage.htm">OnMessage()</a>, <a href="OnExit.htm">OnExit</a>, <a href="../misc/Clipboard.htm#OnClipboardChange">OnClipboardChange</a>, <a href="Sort.htm#callback">Sort's callback</a>, <a href="Critical.htm">Critical</a>, <a href="PostMessage.htm">Post/SendMessage</a>, <a href="../Functions.htm">Functions</a>, <a href="../misc/SendMessageList.htm">List of Windows Messages</a>, <a href="../misc/Threads.htm">Threads</a></p>
 <h3>Examples</h3>

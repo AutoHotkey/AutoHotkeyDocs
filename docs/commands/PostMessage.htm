@@ -5,6 +5,7 @@
 <title>PostMessage / SendMessage</title>
 <meta name="description" content="Send messages to a window with this free macro program. PostMessage puts a message in the window's message queue, but SendMessage waits for a reply.">
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
 <link href="../css/default.css" rel="stylesheet" type="text/css">
 </head>
 <body>
@@ -14,7 +15,7 @@
 <p>Sends a message to a window or control (SendMessage additionally waits for acknowledgement).</p>
 
 <pre class="Syntax">PostMessage, Msg [, wParam, lParam, Control, WinTitle, WinText, ExcludeTitle, ExcludeText]
-SendMessage, Msg [, wParam, lParam, Control, WinTitle, WinText, ExcludeTitle, ExcludeText]</pre>
+SendMessage, Msg [, wParam, lParam, Control, WinTitle, WinText, ExcludeTitle, ExcludeText, Timeout]</pre>
 <h3>Parameters</h3>
 <dl>
 
@@ -28,12 +29,12 @@ SendMessage, Msg [, wParam, lParam, Control, WinTitle, WinText, ExcludeTitle, Ex
   <dd><p>The second component of the message. If blank or omitted, 0 will be sent.</p></dd>
 
   <dt>Control</dt>
-  <dd><p>If this parameter is blank or omitted, the message will be sent directly to the target window rather than one of its controls. Otherwise, this parameter can be either ClassNN (the classname and instance number of the control) or the name/text of the control, both of which can be determined via Window Spy. When using name/text, the matching behavior is determined by <a href="SetTitleMatchMode.htm">SetTitleMatchMode</a>.</p>
-    <p>To operate upon a control's HWND (window handle), leave the <em>Control </em>parameter blank and specify <em>ahk_id %ControlHwnd%</em> for the <em>WinTitle</em> parameter (this also works on hidden controls even when <a href="DetectHiddenWindows.htm">DetectHiddenWindows</a> is Off). The HWND of a control is typically retrieved via <a href="ControlGet.htm#Hwnd">ControlGet Hwnd</a>, <a href="MouseGetPos.htm">MouseGetPos</a>, or <a href="DllCall.htm">DllCall</a>.</p>
+  <dd><p>If this parameter is blank or omitted, the message will be sent directly to the target window rather than one of its controls. Otherwise, this parameter can be either ClassNN (the classname and instance number of the control) or the control's text, both of which can be determined via Window Spy. When using text, the matching behavior is determined by <a href="SetTitleMatchMode.htm">SetTitleMatchMode</a>.</p>
+    <p>To operate upon a control's HWND (window handle), leave the <em>Control</em> parameter blank and specify <code>ahk_id %ControlHwnd%</code> for the <em>WinTitle</em> parameter (this also works on hidden controls even when <a href="DetectHiddenWindows.htm">DetectHiddenWindows</a> is Off). The HWND of a control is typically retrieved via <a href="ControlGet.htm#Hwnd">ControlGet Hwnd</a>, <a href="MouseGetPos.htm">MouseGetPos</a>, or <a href="DllCall.htm">DllCall</a>.</p>
     </dd>
 
   <dt>WinTitle</dt>
-  <dd><p>The title or partial title of the target window (the matching behavior is determined by <a href="SetTitleMatchMode.htm">SetTitleMatchMode</a>). If this and the next 3 parameters are omitted, the <a href="../LastFoundWindow.htm">Last Found Window</a> will be used. If this is the letter A and the next 3 parameters are omitted, the active window will be used. To use a window class, specify ahk_class ExactClassName (shown by Window Spy). To use a <a href="Process.htm">process identifier (PID)</a>, specify ahk_pid %VarContainingPID%. To use a <a href="GroupAdd.htm">window group</a>, specify ahk_group GroupName. To use a window's <a href="WinGet.htm">unique ID number</a>, specify ahk_id %VarContainingID% (also accepts a <a href="ControlGet.htm#Hwnd">control's HWND</a>). The search can be narrowed by specifying <a href="../LastFoundWindow.htm#multi">multiple criteria</a>. For example: <em>My File.txt ahk_class Notepad</em></p></dd>
+  <dd><p>A window title or other criteria identifying the target window. See <a href="../misc/WinTitle.htm">WinTitle</a>.</p></dd>
 
   <dt>WinText</dt>
   <dd><p>If present, this parameter must be a substring from a single text element of the target window (as revealed by the included Window Spy utility). Hidden text elements are detected if <a href="DetectHiddenText.htm">DetectHiddenText</a> is ON.</p></dd>
@@ -44,24 +45,28 @@ SendMessage, Msg [, wParam, lParam, Control, WinTitle, WinText, ExcludeTitle, Ex
   <dt>ExcludeText</dt>
   <dd><p>Windows whose text include this value will not be considered.</p></dd>
 
+  <dt>Timeout</dt>
+  <dd><p>The maximum number of milliseconds to wait for the target window to process the message. If omitted, it defaults to 5000 (milliseconds), which is also the default behaviour in older versions of AutoHotkey which did not support this parameter. If the message is not processed within this time, the command finishes and sets ErrorLevel to the word FAIL. This parameter can be an <a href="../Variables.htm#Expressions">expression</a>.</p></dd>
+
 </dl>
 
 <h3>ErrorLevel</h3>
 <p>These commands are able to throw an exception on failure. For more information, see <a href="Catch.htm#RuntimeErrors">Runtime Errors</a>.</p>
 <p>PostMessage: <a href="../misc/ErrorLevel.htm">ErrorLevel</a> is set to 1 if there was a problem such as the target window or control not existing. Otherwise, it is set to 0.</p>
-<p>SendMessage: <a href="../misc/ErrorLevel.htm">ErrorLevel</a> is set to the word ERROR if there was a problem. Otherwise, it is set to the numeric result of the message, which might sometimes be a &quot;reply&quot; depending on the nature of the message and its target window. This result is an integer between 0 and 4294967295. If the result is intended to be a signed integer, a negative number can be revealed by following this example: <em>MsgReply := ErrorLevel &gt; 0x7FFFFFFF ? -(~ErrorLevel) - 1 : ErrorLevel</em></p>
+<p>SendMessage: <a href="../misc/ErrorLevel.htm">ErrorLevel</a> is set to the word ERROR if there was a problem or the command timed out. Otherwise, it is set to the numeric result of the message, which might sometimes be a &quot;reply&quot; depending on the nature of the message and its target window. This result is an integer between 0 and 4294967295. If the result is intended to be a signed integer, a negative number can be revealed by following this example:</p>
+<pre>MsgReply := ErrorLevel &gt; 0x7FFFFFFF ? -(~ErrorLevel) - 1 : ErrorLevel</pre>
 <h3>Remarks</h3>
 <p>These commands should be used with caution because sending a message to the wrong window (or sending an invalid message) might cause unexpected behavior or even crash the target application. This is because most applications are not designed to expect certain types of messages from external sources.</p>
-<p>PostMessage places the message in the message queue associated with the target window. It does not wait for acknowledgement or reply. By contrast, SendMessage waits up to 5 seconds for the target window to process the message. If the message is not processed within this time, the command finishes and sets ErrorLevel to the word FAIL.</p>
+<p>PostMessage places the message in the message queue associated with the target window. It does not wait for acknowledgement or reply. By contrast, SendMessage waits for the target window to process the message, up until the timeout period expires.</p>
 <p>The parameters <em>Msg</em>, <em>wParam</em>, and <em>lParam</em> should all be integers between -2147483648 and 4294967295 (0xFFFFFFFF). As with all integer values in AutoHotkey, a prefix of 0x indicates a hex value. For example, 0xFF is equivalent to 255.</p>
 <p>A string may be sent via <em>wParam</em> or <em>lParam</em> by specifying the address of a variable. The following example uses the <a href="../Variables.htm#amp">address operator (&amp;)</a> to do this:</p>
 <pre>SendMessage, 0xC, 0, <strong>&amp;MyVar</strong>, ClassNN, WinTitle  <em>; 0XC is WM_SETTEXT</em></pre>
-<p>A string put into MyVar by the receiver of the message is properly recognized without the need for extra steps. However, this works only if the parameter's first character is an ampersand (&amp;); for example, <em>5+&amp;MyVar</em> would not work but <em>&amp;MyVar</em> or <em>&amp;MyVar+5</em> would work.</p>
+<p>A string put into MyVar by the receiver of the message is properly recognized without the need for extra steps. However, this works only if the parameter's first character is an ampersand (&amp;); for example, <code>5+&amp;MyVar</code> would not work but <code>&amp;MyVar</code> or <code>&amp;MyVar+5</code> would work.</p>
 <p>A quoted/literal string may also be sent as in the following working example (the &amp; operator should not be used in this case):</p>
 <pre>Run Notepad
 WinWait Untitled - Notepad
 SendMessage, 0xC, 0, <strong>&quot;New Notepad Title&quot;</strong>  <em>; 0XC is WM_SETTEXT</em></pre>
-<p>To send a message to all windows in the system, including those that are hidden or disabled, specify <em>ahk_id 0xFFFF</em> for <em>WinTitle</em> (0xFFFF is HWND_BROADCAST). This technique should be used only for messages intended to be broadcast, such as the following example:</p>
+<p>To send a message to all windows in the system, including those that are hidden or disabled, specify <code>ahk_id 0xFFFF</code> for <em>WinTitle</em> (0xFFFF is HWND_BROADCAST). This technique should be used only for messages intended to be broadcast, such as the following example:</p>
 <pre>SendMessage, 0x1A,,,, ahk_id 0xFFFF  <em>; 0x1A is WM_SETTINGCHANGE</em></pre>
 <p>To have a script receive a message, use <a href="OnMessage.htm">OnMessage()</a>.</p>
 <p>See the <a href="../misc/SendMessage.htm">Message Tutorial</a> for an introduction to using these commands.</p>
@@ -69,7 +74,7 @@ SendMessage, 0xC, 0, <strong>&quot;New Notepad Title&quot;</strong>  <em>; 0XC i
 
 <h3>Related</h3>
 <p><a href="../misc/SendMessageList.htm">Message List</a>, <a href="../misc/SendMessage.htm">Message Tutorial</a>, <a href="OnMessage.htm">OnMessage()</a>, <a href="../misc/Winamp.htm">Automating Winamp</a>, <a href="DllCall.htm">DllCall</a>, <a href="ControlSend.htm">ControlSend</a>, <a href="MenuSelect.htm">MenuSelect</a></p>
-<h3>Examples</h3>
+<h3 id="Examples">Examples</h3>
 <pre class="NoIndent">#o::  <em>; Win+O hotkey that turns off the monitor.</em>
 Sleep 1000  <em>; Give user a chance to release keys (in case their release would wake up the monitor again).
 ; Turn Monitor Off:</em>
