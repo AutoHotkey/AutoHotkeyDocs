@@ -24,7 +24,7 @@
 <p><strong>Variable types</strong>: AutoHotkey has no explicitly defined variable types. Instead, any variable can contain a string, integer, floating-point number, or reference to an object. Additionally, numbers are automatically converted to or from strings as required. The <a href="commands/Type.htm">Type</a> function can be used to determine the actual type of a value.</p>
 <p><strong>Variable scope and declarations</strong>: With the exception of <a href="Functions.htm#Locals">local variables</a> in functions, all variables are global; that is, their contents may be read or altered by any part of the script. Except where noted on the <a href="Functions.htm#Global">functions page</a>, variables do not need to be declared; they come into existence simply by using them (and each variable starts off empty/blank).</p>
 <p id="Variable_names"><strong>Variable names</strong>: Variable names are not case sensitive (for example, <em>CurrentDate</em> is the same as <em>currentdate</em>). Variable names may be up to 253 characters long and may consist of letters, numbers, underscore and non-ASCII characters. Variable names must not start with a digit.</p>
-<p>Since the words <em>AND</em>, <em>OR</em>, and <em>NOT</em> are used as <a href="#Operators">operators</a> in expressions, generally they should not be used as variable names. Using such names in an expression would prevent proper evaluation.</p>
+<p id="Reserved_words"><strong>Reserved words:</strong> <code>or</code>, <code>and</code>, <code>not</code>, <code>is</code>, <code>in</code> and <code>contains</code>. These words are reserved for use as <a href="#Operators">operators</a> and therefore cannot be used as variable names when written literally in an expression.</p>
 <p><strong>Storing values in variables</strong>: To store a string or number in a variable, use the <a href="commands/SetExpression.htm">colon-equal operator (:=)</a> followed by a number, quoted string or any other type of <a href="#Expressions">expression</a>. For example:</p>
 <pre>MyNumber := 123
 MyString := &quot;This is a literal string.&quot;
@@ -36,9 +36,6 @@ CopyOfVar := Var</pre>
 <p><strong>Retrieving the contents of variables</strong>: To include the contents of a variable in a string, enclose the variable name in percent signs. For example:</p>
 <pre><a href="commands/MsgBox.htm">MsgBox</a>, The value in the variable named Var is %Var%.
 MsgBox(&quot;The value in the variable named Var is %Var%.&quot;)
-</pre>
-<p>The closing percent sign is optional if the character following the variable name is one that cannot be used in a variable name, such as a punctuation character. For example:</p>
-<pre>MsgBox The value in the variable named Var is %Var.
 </pre>
 <p>By contrast, the percent signs are omitted for variable references in an expression (other than in a quoted string). For example:</p>
 <pre>MsgBox(&quot;The sum of X and Y is &quot; . (X + Y))  <em>; A period is used to concatenate (join) two strings.</em>
@@ -52,8 +49,7 @@ MsgBox(&quot;The value in the variable named Var is %Var%.&quot;)
 <p>In the example above, &quot;Blue&quot; appears in quotes because it is a literal string. Single-quote marks (&apos;) and double-quote marks (&quot;) function identically, except that a string enclosed in single-quote marks can contain literal double-quote marks and vice versa. Therefore, to include an <em>actual</em> quote mark inside a literal string, <a href="misc/EscapeChar.htm">escape</a> the quote mark or enclose the string in the opposite type of quote mark. For example:</p>
 <pre>MsgBox % &quot;She said, <span class="red">`&quot;</span>An apple a day.<span class="red">`&quot;</span>&quot;
 MsgBox % <span class="red">&apos;</span>She said, &quot;An apple a day.&quot;<span class="red">&apos;</span></pre>
-<p><strong>Empty strings</strong>: To specify an empty string in an expression, use an empty pair of quotes. For example, the statement <em>if (MyVar &lt;&gt; &quot;&quot;)</em> would be true if <em>MyVar</em> is not blank.</p>
-<p>On a related note, any invalid expression such as (x +/ 3) yields an empty string.</p>
+<p><strong>Empty strings</strong>: To specify an empty string in an expression, use an empty pair of quotes. For example, the statement <code>if (MyVar &lt;&gt; &quot;&quot;)</code> would be true if <em>MyVar</em> is not blank.</p>
 <p><strong>Storing the result of an expression</strong>: To assign a result to a variable, use the <a href="commands/SetExpression.htm">:= operator</a>. For example:</p>
 <pre>NetPrice := Price * (1 - Discount/100)</pre>
 <p id="Boolean"><strong>Boolean values</strong>: When an expression is required to evaluate to true or false (such as an IF-statement), a blank or zero result is considered false and all other results are considered true. For example, the statement <code>if ItemCount</code> would be false only if ItemCount is blank or 0. Similarly, the expression <code>if not ItemCount</code> would yield the opposite result.</p>
@@ -65,11 +61,15 @@ MsgBox % <span class="red">&apos;</span>She said, &quot;An apple a day.&quot;<sp
 ContinueSearch := true</pre>
 <p><strong>Integers and floating point</strong>: Within an expression, numbers are considered to be floating point if they contain a decimal point or scientific notation; otherwise, they are integers. For most operators -- such as addition and multiplication -- if either of the inputs is a floating point number, the result will also be a floating point number.</p>
 <p>Within expressions and non-expressions alike, integers may be written in either hexadecimal or decimal format. Hexadecimal numbers all start with the prefix 0x. For example, <code>Sleep 0xFF</code> is equivalent to <code>Sleep 255</code>. Floating point numbers can optionally be written in scientific notation, with or without a decimal point (e.g. <code>1e4</code> or <code>-2.1E-4</code>).</p>
-<p><strong>Force an expression</strong>: An expression can be used in a parameter that does not directly support it (except an OutputVar parameter) by preceding the expression with a percent sign and a space or tab. For example:</p>
+<p id="Force_an_expression"><strong>Force an expression</strong>: An expression can be used in a parameter that does not directly support it (except an OutputVar parameter) by preceding the expression with a percent sign and a space or tab. For example:</p>
 <pre>
 <a href="commands/MsgBox.htm">MsgBox</a> <strong>%</strong> &quot;The variable MyVar contains &quot; . MyVar . &quot;.&quot;
 <a href="commands/WinSet.htm">WinSet</a>, Transparent, <strong>%</strong> X + 100
 <a href="commands/WinSet.htm">Control</a>, Choose, <strong>%</strong> CurrentSelection - 1</pre>
+<p>An expression can also be inserted at any point in a string by enclosing it in percent signs, as in the following example:</p>
+<pre>MsgBox, The time is %FormatTime(A_Now, "Time")%.</pre>
+<p>OutputVar parameters also allow this, but the result of the expression should be the (full or partial) name of a variable, as a string.</p>
+
 <h2 id="Operators">Operators in Expressions</h2>
 <p> Operators of equal precedence such as multiply (*) and divide (/) are evaluated in left-to-right order unless otherwise specified below. By contrast, an operator of lower precedence such as add (+) is evaluated <em>after</em> a higher one such as multiply (*). For example, 3 + 2 * 2 is evaluated as 3 + (2 * 2). Parentheses may be used to override precedence as in this example: (3 + 2) * 2</p>
 <p>Any blank value (empty string) involved in a math operation is <strong>not</strong> assumed to be zero. Instead, it is treated as an error, which causes that part of the expression to evaluate to an empty string. For example, if the variable X is blank, the expression X+1 yields a blank value rather than 1.</p>
@@ -79,8 +79,7 @@ ContinueSearch := true</pre>
     <td align="center" style="white-space:nowrap"><strong>%Var%</strong></td>
     <td><p>If a variable is enclosed in percent signs within an expression (e.g. %Var%), whatever that variable <u>contains</u> is assumed to be the name or partial name of another variable (if there is no such variable, %Var% resolves to a blank string). This is most commonly used to reference <a href="misc/Arrays.htm#pseudo">pseudo-array</a> elements such as the following example:</p>
       <pre>Var := MyArray%A_Index% + 100</pre>
-      <p>The closing percent sign can be omitted, except when the character following the variable reference is one that would be valid in a variable name.</p>
-      <p>%Var% may also resolve to a <a href="#BuiltIn">built-in variable</a>.</p></td>
+    </td>
   </tr>
   <tr>
     <td align="center"><strong>x.y</strong></td>
