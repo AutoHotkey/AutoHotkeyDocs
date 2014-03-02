@@ -180,7 +180,7 @@ IfWinExist
 <p><strong><a name="MinSize"></a>MinSize</strong> and <strong>MaxSize</strong>: Determines the minimum and/or maximum size of the window, such as when the user drags its edges to resize it. Specify the word <em>MinSize</em> and/or <em>MaxSize</em> with no suffix to use the window's current size as the limit (if the window has no current size, it will use the size from the first use of <a href="#Show">Gui Show</a>). Alternatively, append the width, followed by an X, followed by the height; for example: <code>Gui +Resize +MinSize640x480</code>. The dimensions are in pixels, and they specify the size of the window's client area (which excludes borders, title bar, and <a href="#Menu">menu bar</a>). Specify each number as decimal, not hexadecimal.</p>
 <p>Either the width or the height may be omitted to leave it unchanged (e.g. <code>+MinSize640x</code> or <code>+MinSizex480</code>). Furthermore, Min/MaxSize can be specified more than once to use the window's current size for one dimension and an explicit size for the other. For example, <code>+MinSize +MinSize640x</code> would use the window's current size for the height and 640 for the width.</p>
 <p>If <em>MinSize</em> and <em>MaxSize</em> are never used, the operating system's defaults are used (similarly, <code>Gui -MinSize -MaxSize</code> can be used to return to the defaults). Note: the window must have <a href="#Resize">+Resize</a> to allow resizing by the user.</p>
-<p><strong><a name="OwnDialogs"></a>OwnDialogs</strong>: <code>Gui +OwnDialogs</code> should be specified in each <a href="../misc/Threads.htm">thread</a> (such as a ButtonOK subroutine) for which subsequently displayed <a href="MsgBox.htm">MsgBox</a>, <a href="InputBox.htm">InputBox</a>, <a href="FileSelectFile.htm">FileSelectFile</a>, and <a href="FileSelectFolder.htm">FileSelectFolder</a> dialogs should be owned by the window. Such dialogs become modal, meaning that the user cannot interact with the GUI window until dismissing the dialog. By contrast, <a href="ToolTip.htm">ToolTip</a> windows do not become modal even though they become owned; they will merely stay always on top of their owner. In either case, any owned dialog or window is automatically destroyed when its GUI window is <a href="#Destroy">destroyed</a>.</p>
+<p><strong><a name="OwnDialogs"></a>OwnDialogs</strong>: <code>Gui +OwnDialogs</code> should be specified in each <a href="../misc/Threads.htm">thread</a> (such as a ButtonOK subroutine) for which subsequently displayed <a href="MsgBox.htm">MsgBox</a>, <a href="InputBox.htm">InputBox</a>, <a href="FileSelect.htm">FileSelect</a>, and <a href="DirSelect.htm">DirSelect</a> dialogs should be owned by the window. Such dialogs become modal, meaning that the user cannot interact with the GUI window until dismissing the dialog. By contrast, <a href="ToolTip.htm">ToolTip</a> windows do not become modal even though they become owned; they will merely stay always on top of their owner. In either case, any owned dialog or window is automatically destroyed when its GUI window is <a href="#Destroy">destroyed</a>.</p>
 <p>There is typically no need to turn this setting back off because it does not affect other <a href="../misc/Threads.htm">threads</a>. However, if a thread needs to display both owned and unowned dialogs, it may turn off this setting via <code>Gui -OwnDialogs</code>.</p>
 <p>If no window name prefix is specified -- such as using <code>Gui +OwnDialogs</code> rather than <code>Gui MyGui:+OwnDialogs</code> -- the <a href="#DefaultWin">thread's default window</a> will own the dialogs.</p>
 <p><strong><a name="Owner"></a>Owner</strong>: Use <em>+Owner</em> to make the window owned by another. An owned window has no taskbar button by default, and when visible it is always on top of its owner. It is also automatically destroyed when its owner is destroyed. <em>+Owner</em> can be used before or after the owned window is created. There are two ways to use <em>+Owner</em>, as shown below:</p>
@@ -376,7 +376,7 @@ Gui Show</pre>
 <p>If the script is not <a href="../Scripts.htm#persistent">persistent</a> for any other reason, it will exit after the last visible GUI is closed; either when the last thread completes or immediately if no threads are running.</p>
 
 <h2>Related</h2>
-<p><a href="GuiControl.htm">GuiControl</a>, <a href="GuiControlGet.htm">GuiControlGet</a>, <a href="Menu.htm">Menu</a>, <a href="GuiControls.htm">Control Types</a>, <a href="ListView.htm">ListView</a>, <a href="TreeView.htm">TreeView</a>, <a href="Control.htm">Control</a>, <a href="ControlGet.htm">ControlGet</a>, <a href="MsgBox.htm">MsgBox</a>, <a href="FileSelectFile.htm">FileSelectFile</a>, <a href="FileSelectFolder.htm">FileSelectFolder</a></p>
+<p><a href="GuiControl.htm">GuiControl</a>, <a href="GuiControlGet.htm">GuiControlGet</a>, <a href="Menu.htm">Menu</a>, <a href="GuiControls.htm">Control Types</a>, <a href="ListView.htm">ListView</a>, <a href="TreeView.htm">TreeView</a>, <a href="Control.htm">Control</a>, <a href="ControlGet.htm">ControlGet</a>, <a href="MsgBox.htm">MsgBox</a>, <a href="FileSelect.htm">FileSelect</a>, <a href="DirSelect.htm">DirSelect</a></p>
 <h2 id="Examples">Examples</h2>
 <pre class="NoIndent"><em>; Example: Display a text pop-up:</em>
 
@@ -547,7 +547,7 @@ Gui, Show
 return
 
 ButtonLoadNewImage:
-FileSelectFile, file,,, Select an image:, Images (*.gif; *.jpg; *.bmp; *.png; *.tif; *.ico; *.cur; *.ani; *.exe; *.dll)
+FileSelect, file,,, Select an image:, Images (*.gif; *.jpg; *.bmp; *.png; *.tif; *.ico; *.cur; *.ani; *.exe; *.dll)
 if file =
     return
 Gui, Submit, NoHide <em>; Save the values of the radio buttons.</em>
@@ -598,8 +598,8 @@ GuiControl,, MainEdit  <em>; Clear the Edit control.</em>
 return
 
 FileOpen:
-Gui +OwnDialogs  <em>; Force the user to dismiss the FileSelectFile dialog before returning to the main window.</em>
-FileSelectFile, SelectedFileName, 3,, Open File, Text Documents (*.txt)
+Gui +OwnDialogs  <em>; Force the user to dismiss the FileSelect dialog before returning to the main window.</em>
+FileSelect, SelectedFileName, 3,, Open File, Text Documents (*.txt)
 if SelectedFileName =  <em>; No file selected.</em>
     return
 Gosub FileRead
@@ -624,8 +624,8 @@ Gosub SaveCurrentFile
 return
 
 FileSaveAs:
-Gui +OwnDialogs  <em>; Force the user to dismiss the FileSelectFile dialog before returning to the main window.</em>
-FileSelectFile, SelectedFileName, S16,, Save File, Text Documents (*.txt)
+Gui +OwnDialogs  <em>; Force the user to dismiss the FileSelect dialog before returning to the main window.</em>
+FileSelect, SelectedFileName, S16,, Save File, Text Documents (*.txt)
 if SelectedFileName =  <em>; No file selected.</em>
     return
 CurrentFileName = %SelectedFileName%
