@@ -165,27 +165,24 @@ Usage:
 <p><a name="defaultfile"></a><strong>Script Filename:</strong> This can be omitted if there are no <em>Script Parameters</em>. If omitted, it will run (or prompt you to create) a file in one of the following default locations:</p>
 <p><code>%AhkExeDir%\%AhkExeName%.ahk</code> or <code><a href="Variables.htm#MyDocuments">%A_MyDocuments%</a>\%AhkExeName%.ahk</code>, where <em>%AhkExeDir%</em> and <em>%AhkExeName%</em> are replaced with the directory and filename of the executable used to run the script, excluding the ".exe" extension.</p>
 <p><strong>Script Parameters:</strong> The string(s) you want to pass into the script, with each separated from the next by a space. Any parameter that contains spaces should be enclosed in quotation marks. A literal quotation mark may be passed in by preceding it with a backslash (\&quot;). Consequently, any trailing slash in a quoted parameter (such as &quot;C:\My Documents<span class="red">\&quot;</span>) is treated as a literal quotation mark (that is, the script would receive the string C:\My Documents<span class="red">&quot;</span>). To remove such quotes, use <code><a href="commands/StrReplace.htm">StrReplace, 1, 1, <span class="red">&quot;</span>,, All</a></code></p>
-<p>Incoming parameters, if present, are stored as an array in the global <a href="Variables.htm#CommandLine">Args</a> variable, and can be accessed using <a href="Objects.htm#Usage_Simple_Arrays">array syntax</a>. The following example exits the script when too few parameters are passed to it:</p>
-<pre>argc := Args.MaxIndex()
+<p>Incoming parameters, if present, are stored as an array in the <a href="Functions.htm#SuperGlobal">super-global</a> <a href="Variables.htm#CommandLine">A_Args</a> variable, and can be accessed using <a href="Objects.htm#Usage_Simple_Arrays">array syntax</a>. <code>A_Args[1]</code> contains the first parameter. The following example exits the script when too few parameters are passed to it:</p>
+<pre>argc := A_Args.MaxIndex() or 0
 if argc &lt; 3
 {
     MsgBox This script requires at least 3 incoming parameters but it only received %argc%.
     ExitApp
 }</pre>
 <p>If the number of parameters passed into a script varies (perhaps due to the user dragging and dropping a set of files onto a script), the following example can be used to extract them one by one:</p>
-<pre>Loop Args.MaxIndex()  <em>; For each parameter:</em>
+<pre>for n, param in A_Args  <em>; For each parameter:</em>
 {
-    param := Args[A_Index]
-    MsgBox, 4,, Parameter number %A_Index% is %param%.  Continue?
+    MsgBox, Parameter number %n% is %param%.
 }
-Until A_MsgBoxResult = "No"
 </pre>
 <p>If the parameters are file names, the following example can be used to convert them to their case-corrected long names (as stored in the file system), including complete/absolute path:</p>
-<pre>Loop Args.MaxIndex()  <em>; For each parameter (or file dropped onto a script):</em>
+<pre>for n, GivenPath in A_Args  <em>; For each parameter (or file dropped onto a script):</em>
 {
-    GivenPath := Args[A_Index]
     Loop Files, %GivenPath%, FD  <em>; Include files and directories.</em>
-        LongPath := A_LoopFilePath
+        LongPath := A_LoopFileFullPath
     MsgBox The case-corrected long path name of file`n%GivenPath%`nis:`n%LongPath%
 }</pre>
 <p>Known limitation: dragging files onto a .ahk script may fail to work properly if 8-dot-3 (short) names have been turned off in an NTFS file system. One work-around is to <a href="#ahk2exe">compile</a> the script then drag the files onto the resulting EXE.</p>
