@@ -14,104 +14,27 @@
 <p>Retrieves a running object that has been registered with OLE.</p>
 <pre class="Syntax">ComObject := ComObjActive(CLSID)</pre>
 
-<p id="param">Creates an object representing a typed value to be passed as a parameter or return value.</p>
-<pre class="Syntax">ParamObj := ComObjParameter(VarType, Value [, Flags])</pre>
-
-<h4>Advanced</h4>
-<p id="enwrap">Wraps or unwraps a raw <a href="http://msdn.microsoft.com/en-us/library/dd318520.aspx">IDispatch</a> pointer in a usable object.</p>
-<pre class="Syntax">ComObject := ComObjEnwrap(DispPtr)
-DispPtr := ComObjUnwrap(ComObject)</pre>
-
 <h3>Parameters</h3>
 <dl>
 
   <dt>CLSID</dt>
   <dd><p>CLSID or human-readable Prog ID of the COM object to retrieve.</p></dd>
 
-  <dt>ComObject</dt>
-  <dd><p>COM object usable with <a href="../Objects.htm#Usage_Objects">object syntax</a>.</p></dd>
-
-  <dt>VarType</dt>
-  <dd><p>An integer indicating the type of value. See <a href="ComObjType.htm#vt">ComObjType()</a> for a list of types.</p></dd>
-
-  <dt>Value</dt>
-  <dd><p>The value to wrap. Currently only integer and pointer values are supported.</p></dd>
-
-  <dt>Flags</dt>
-  <dd><p>Flags affecting the behaviour of this function and the wrapper object; see below.</p></dd>
-
-  <dt>DispPtr</dt>
-  <dd><p>Raw IDispatch pointer.</p></dd>
-
 </dl>
 
-<h3 id="Flags">Flags</h3>
-<table class="info">
-  <tr>
-    <td>&nbsp;0&nbsp;</td>
-    <td>Default behaviour. <a href="http://msdn.microsoft.com/en-us/library/ms691379.aspx">AddRef</a> is called automatically for IUnknown and IDispatch pointers, so the caller should use <a href="ObjAddRef.htm">ObjRelease</a> to release their copy of the pointer if appropriate.</td>
-  </tr>
-  <tr>
-    <td>&nbsp;1&nbsp;</td>
-    <td>Take ownership of an IUnknown, IDispatch or SAFEARRAY pointer. AddRef is not called. If the wrapper object contains a SAFEARRAY (excluding VT_BYREF), <a href="http://msdn.microsoft.com/en-us/library/ms221702.aspx">SafeArrayDestroy</a> is called automatically when the wrapper object is freed.</td>
-  </tr>
-</table>
-
-<h3 id="Remarks">General Remarks</h3>
-<p>ComObjActive is <i>polymorphic</i>; that is, any function-call beginning with "ComObj" that does not match one of the other COM functions actually calls ComObjActive. For example, <code>ComObj(9, DispPtr)</code> and <code>ComObjActive(DispPtr)</code> are both equivalent to <code>ComObjEnwrap(DispPtr)</code>. However, as this behaviour may be changed (or new functions may be implemented) in a future version, it is best to use only the forms demonstrated on this page, with the addition that &quot;ComObject&quot; may be used in place of ComObjEnwrap or ComObjParameter.</p>
-<p>When this function is used to wrap or retrieve an IDispatch or IUnknown interface pointer, the default behaviour is to increment the COM object's reference count. As a general rule, the script's original copy of the pointer is considered a separate reference which must be <a href="ObjAddRef.htm">manually released</a> by the script when it is no longer needed. When the wrapper object is freed, it also releases its reference to the COM object.</p>
-<p><b>Known limitation:</b> Each time a COM object is wrapped, a new wrapper object is created. Comparisons and assignments such as <code>obj1 == obj2</code> and <code>array[obj1] := value</code> treat the two wrapper objects as unique, even though they contain the same COM object.</p>
+<h3>Return Value</h3>
+<p>Returns a COM wrapper object which can be used with <a href="../Objects.htm#Usage_Objects">object syntax</a>.</p>
 
 <h3 id="Related">Related</h3>
-<p><a href="ComObjCreate.htm">ComObjCreate</a>, <a href="ComObjGet.htm">ComObjGet</a>, <a href="ComObjConnect.htm">ComObjConnect</a>, <a href="ComObjError.htm">ComObjError</a>, <a href="ComObjFlags.htm">ComObjFlags</a>, <a href="ObjAddRef.htm">ObjAddRef/ObjRelease</a>, <a href="ComObjQuery.htm">ComObjQuery</a>, <a href="http://msdn.microsoft.com/en-us/library/ms221467.aspx">GetActiveObject (MSDN)</a></p>
+<p><a href="ComObject.htm">ComObject</a>, <a href="ComObjCreate.htm">ComObjCreate</a>, <a href="ComObjGet.htm">ComObjGet</a>, <a href="ComObjConnect.htm">ComObjConnect</a>, <a href="ComObjError.htm">ComObjError</a>, <a href="ComObjFlags.htm">ComObjFlags</a>, <a href="ObjAddRef.htm">ObjAddRef/ObjRelease</a>, <a href="ComObjQuery.htm">ComObjQuery</a>, <a href="http://msdn.microsoft.com/en-us/library/ms221467.aspx">GetActiveObject (MSDN)</a></p>
 
-<h3>Examples</h3>
-<p>ComObjUnwrap: See <a href="ComObjConnect.htm#Examples">ComObjConnect</a>.</p>
-<pre class="NoIndent" id="ByRefEx"><em>; Example: Pass a VARIANT ByRef to a COM function.</em>
-
-code =
-(
-Sub Example(Var)
-    MsgBox Var
-    Var = "out value!"
-End Sub
-)
-sc := <a href="ComObjCreate.htm">ComObjCreate</a>("ScriptControl"), sc.Language := "VBScript", sc.AddCode(code)
-
-var := ComVar()
-var[] := "in value"
-sc.Run("Example", var.ref)
-MsgBox % var[]
-
-<em>; ComVar: Creates an object which can be used to pass a value ByRef.
-;   ComVar[] retrieves the value.
-;   ComVar[] := Val sets the value.
-;   ComVar.ref retrieves a ByRef object for passing to a COM function.</em>
-ComVar(Type:=0xC)
-{
-    static <a href="../Objects.htm#Custom_Objects">base</a> := { __Get: "ComVarGet", __Set: "ComVarSet", __Delete: "ComVarDel" }
-    <em>; Create an array of 1 VARIANT.  This method allows built-in code to take
-    ; care of all conversions between VARIANT and AutoHotkey internal types.</em>
-    arr := <a href="ComObjArray.htm">ComObjArray</a>(Type, 1)
-    <em>; Lock the array and retrieve a pointer to the VARIANT.</em>
-    DllCall("oleaut32\SafeArrayAccessData", "ptr", <a href="ComObjValue.htm">ComObjValue</a>(arr), "ptr*", arr_data)
-    <em>; Store the array and an object which can be used to pass the VARIANT ByRef.</em>
-    return { ref: ComObjParameter(0x4000|Type, arr_data), _: arr, base: base }
-}
-ComVarGet(cv, <a href="../Functions.htm#Variadic">p*</a>) { <em>; Called when script accesses an unknown field.</em>
-    if p.MaxIndex() = "" <em>; No name/parameters, i.e. cv[]</em>
-        return cv._[0]
-}
-ComVarSet(cv, v, p*) { <em>; Called when script sets an unknown field.</em>
-    if p.MaxIndex() = "" <em>; No name/parameters, i.e. cv[]:=v</em>
-        return cv._[0] := v
-}
-ComVarDel(cv) { <em>; Called when the object is being freed.
-    ; This must be done to allow the internal array to be freed.</em>
-    DllCall("oleaut32\SafeArrayUnaccessData", "ptr", ComObjValue(cv._))
-}
-
-</pre>
+<h3>Example</h3>
+<pre class="NoIndent"><em>; Displays the active document in Microsoft Word, if it is running.</em>
+word := ComObjActive("<a href="http://msdn.microsoft.com/en-us/library/office/ff838565">Word.Application</a>")
+if !word
+    MsgBox Word isn't open.
+else
+    MsgBox % word.<a href="http://msdn.microsoft.com/en-us/library/office/ff837737">ActiveDocument</a>.<a href="http://msdn.microsoft.com/en-us/library/office/ff821285">FullName</a></pre>
 
 </body>
 </html>
