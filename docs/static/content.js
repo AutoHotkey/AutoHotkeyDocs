@@ -91,6 +91,43 @@ function AddContent()
     });
 
     //
+    // Headings
+    //
+
+    // Change display of h1 header
+
+    $('h1').attr("class", "navh1");
+
+    // Provide anchor link
+
+    $('h1, h2, h3, h4, h5, h6').each(function(index) {
+
+      // Show paragraph sign on mouseover
+
+      $(this).hover(
+        function() {
+          $(this).append("<span style='color:#888;font-size:smaller;'> &para;</span>");
+        }, function() {
+          $(this).find("span:last").remove();
+        }
+      );
+
+      // Add anchor
+
+      if(!$(this).attr('id')) // if id anchor not exist, create one
+      {
+        
+        var str = $(this).text().replace(/\s/g, '_'); // replace spaces with _
+        var str = str.replace(/[():.,#\[\]\/{}&="|?!]/g, ''); // remove special chars
+        if($('#' + str).length) // if new id anchor exist already, set it to a unique one
+          $(this).attr('id', str + '_' + index);
+        else
+          $(this).attr('id', str);
+      }
+      $(this).wrap('<a href="#' + $(this).attr('id') + '" style="text-decoration:none;color:#000"></a>');
+    });
+
+    //
     // language button
     //
 
@@ -277,37 +314,6 @@ function AddContent()
           }
         }
       }
-    });
-
-    //
-    // Automatically adding anchor links to the headings
-    //
-
-    $('h1, h2, h3, h4, h5, h6').each(function(index) {
-
-      // Show paragraph sign on mouseover
-
-      $(this).hover(
-        function() {
-          $(this).append("<span style='color:#888;font-size:smaller;'> &para;</span>");
-        }, function() {
-          $(this).find("span:last").remove();
-        }
-      );
-
-      // Add link
-
-      if(!$(this).attr('id')) // if id anchor not exist, create one
-      {
-        
-        var str = $(this).text().replace(/\s/g, '_'); // replace spaces with _
-        var str = str.replace(/[():.,#\[\]\/{}&="|?!]/g, ''); // remove special chars
-        if($('#' + str).length) // if new id anchor exist already, set it to a unique one
-          $(this).attr('id', str + '_' + index);
-        else
-          $(this).attr('id', str);
-      }
-      $(this).wrap('<a href="#' + $(this).attr('id') + '" style="text-decoration:none;color:#000"></a>');
     });
   });
 };
