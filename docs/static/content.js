@@ -284,6 +284,19 @@ function AddContent()
     //
 
     $('h1, h2, h3, h4, h5, h6').each(function(index) {
+
+      // Show paragraph sign on mouseover
+
+      $(this).hover(
+        function() {
+          $(this).append("<span style='color:#888;font-size:smaller;'> &para;</span>");
+        }, function() {
+          $(this).find("span:last").remove();
+        }
+      );
+
+      // Add link
+
       if(!$(this).attr('id')) // if id anchor not exist, create one
       {
         
@@ -294,7 +307,7 @@ function AddContent()
         else
           $(this).attr('id', str);
       }
-      $(this).wrap('<a class="anchorlink" href="#' + $(this).attr('id') + '"></a>');
+      $(this).wrap('<a href="#' + $(this).attr('id') + '" style="text-decoration:none;color:#000"></a>');
     });
   });
 };
