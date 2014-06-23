@@ -91,6 +91,12 @@ function AddContent()
     });
 
     //
+    // Hide logo
+    //
+
+    $('#ahklogo').hide();
+
+    //
     // Headings
     //
 
