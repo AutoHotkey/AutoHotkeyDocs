@@ -124,7 +124,7 @@ function AddContent()
       {
         
         var str = $(this).text().replace(/\s/g, '_'); // replace spaces with _
-        var str = str.replace(/[():.,#\[\]\/{}&="|?!]/g, ''); // remove special chars
+        var str = str.replace(/[():.,;'#\[\]\/{}&="|?!]/g, ''); // remove special chars
         if($('#' + str).length) // if new id anchor exist already, set it to a unique one
           $(this).attr('id', str + '_' + index);
         else
