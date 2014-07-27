@@ -14,10 +14,11 @@
 
 <h1>Object</h1>
 
-<p>AutoHotkey's basic object datatype is an associative array with features which allow its behaviour to be <a href="../Objects.htm#Custom_Objects">customized</a>.  By default, all objects created by <code>{}</code>, <code>[]</code>, <code>Object()</code> and <code>Array()</code> support the following methods:</p>
+<p>AutoHotkey's basic object datatype is an associative array with features which allow its behaviour to be <a href="../Objects.htm#Custom_Objects">customized</a>.  By default, all objects created by <code>{}</code>, <code>[]</code>, <code>Object()</code> and <code>Array()</code> support the following methods and functions:</p>
 <ul>
-	<li><a href="#Insert">Insert</a></li>
 	<li><a href="#Remove">Remove</a></li>
+	<li><a href="#InsertAt">InsertAt</a></li>
+	<li><a href="#RemoveAt">RemoveAt</a></li>
 	<li><a href="#MinMaxIndex">MinIndex / MaxIndex</a></li>
 	<li><a href="#SetCapacity">SetCapacity</a></li>
 	<li><a href="#GetCapacity">GetCapacity</a></li>
@@ -25,46 +26,81 @@
 	<li><a href="#NewEnum">_NewEnum</a></li>
 	<li><a href="#HasKey">HasKey</a></li>
 	<li><a href="#Clone">Clone</a></li>
+	<li><a href="#RawSet">ObjRawSet</a> (function)</li>
 </ul>
-<p>Each method also has an equivalent function, which can be used to bypass any <a href="../Objects.htm#Custom_Objects">custom behaviour</a> implemented by the object -- it is recommended that these functions only be used for that purpose.  To call one, prefix the method name with "Obj" and pass the target object as the first parameter.  For example:</p>
+<p>Each method also has an equivalent function, which can be used to bypass any <a href="../Objects.htm#Custom_Objects">custom behaviour</a> implemented by the object -- it is recommended that these functions only be used for that purpose.  To call one, prefix the method name with "Obj" (but for _NewEnum, omit the underscore) and pass the target object as the first parameter.  For example:</p>
 <pre>array := [1, 2, 3]
 MsgBox % ObjMaxIndex(array) " = " array.MaxIndex()</pre>
-&nbsp;
 
-<div class="methodShort" id="Insert"><h2>Insert</h2>
-<p>Inserts key-value pairs into the object, automatically adjusting existing keys if appropriate.</p>
-<pre class="Syntax">Object.Insert(Index, Value1 [, Value2, ... Value<i>N</i> ])
-Object.Insert(Key, Value)</pre>
-<table class="info">
-  <tr><td width="15%">Index</td><td width="85%">An integer key to insert Value1 at. Subsequent values are inserted at Index+1, Index+2, etc.<br>
-  If omitted, it defaults to <code>MaxIndex()="" ? 1 : MaxIndex() + 1</code>.</td></tr>
-  <tr><td>Key</td><td>A string or object key.  If the key already exists, its value is overwritten.</td></tr>
-  <tr><td>Value</td><td>A string, number or object.</td></tr>
-  <tr><td><b>Returns</b></td><td>The number of values inserted or an empty string if the script is out of memory.</td></tr>
-</table>
-<pre class="Syntax" style="margin-top:15px">Object.Insert(Value)</pre>
-<table class="info">
-  <tr><td width="15%">Value</td><td>A string, number or object to append to the object.</td></tr>
-  <tr><td><b>Returns</b></td><td>The index of the newly appended value, which is typically <code>Object.MaxIndex()</code> after the insertion.</td></tr>
-</table>
-<h3>Remarks</h3>
-<p>Note that this method bypasses the <a href="../Objects.htm#Meta_Functions">__Set</a> mechanism and special behaviour of the <a href="../Objects.htm#Custom_Objects">base</a> key.  For instance, <code>Object.Insert("base","")</code> causes <code>Object.base</code> to return an empty string instead of the real base object, but doesn't prevent other operations from triggering the object's meta-functions.</p>
-</div>
+&nbsp;
 
 <div class="methodShort" id="Remove"><h2>Remove</h2>
 <p>Removes key-value pairs from an object.</p>
-<pre class="Syntax">Object.Remove(FirstKey, LastKey)</pre>
+<pre class="Syntax" style="margin-top:15px">Object.Remove(Key)</pre>
 <table class="info">
-  <tr><td width="15%">FirstKey, LastKey</td><td width="85%">A range of integer or string keys to remove.  If both keys are integers, any integer keys greater than <i>LastKey</i> are decremented by <code>(LastKey - FirstKey + 1)</code> to emulate a typical numerically-indexed array.  Both keys must be the same type (integer or string).</td></tr>
-  <tr><td><b>Returns</b></td><td>The actual number of key-value pairs which were removed if successful, zero if no keys were found, or an empty string on failure.</td></tr>
-</table>
-<pre class="Syntax" style="margin-top:15px">Object.Remove(Key := <i>MaxIndex()</i>)</pre>
-<table class="info">
-  <tr><td width="15%">Key</td><td width="85%">Any valid key.  If omitted, it defaults to the highest existing integer key; if none exist, nothing is removed. Existing keys are adjusted as though <code>Remove(Key,Key)</code> was used.</td></tr>
+  <tr><td width="15%">Key</td><td width="85%">Any valid key.</td></tr>
   <tr><td><b>Returns</b></td><td>The value which was removed, if any; otherwise an empty string.</td></tr>
 </table>
-<pre class="Syntax" style="margin-top:15px">Object.Remove(IntKey, "")</pre>
-<p>Removes an integer key and returns its value, but does not affect other integer keys.</p>
+<pre class="Syntax">Object.Remove(FirstKey, LastKey)</pre>
+<table class="info">
+  <tr><td width="15%">FirstKey, LastKey</td><td width="85%">A range of integer or string keys to remove.  Both keys must be the same type (integer or string).</td></tr>
+  <tr><td><b>Returns</b></td><td>The actual number of key-value pairs which were removed.</td></tr>
+</table>
+</div>
+
+<div class="methodShort" id="InsertAt"><h2>InsertAt</h2>
+<p>Inserts values into an array.</p>
+<pre class="Syntax">Object.InsertAt(Index, Value [, Value2, ... Value<i>N</i> ])</pre>
+<table class="info">
+  <tr><td width="15%">Index</td><td width="85%">The index to insert the first value at. Subsequent values are inserted at Index+1, Index+2, etc.  This parameter must be an integer.</td></tr>
+  <tr><td>Value</td><td>A string, number or object.</td></tr>
+</table>
+<h3>Remarks</h3>
+<p>This method should only be used when each integer key within the object represents a position with an array. Elements previously stored in the array have their keys adjusted as necessary to reflect their new positions within the array.</p>
+<p>A parameter can be omitted to leave the corresponding element unassigned. For example:</p>
+<pre>x := [3]
+x.InsertAt(1,,2)
+MsgBox % x[1] "," x[2] "," x[3]  <em>; ,2,3</em></pre>
+<p>There is no return value. If the method fails for any reason, an exception is thrown.</p>
+</div>
+
+<div class="methodShort" id="RemoveAt"><h2>RemoveAt</h2>
+<p>Removes elements from an array.</p>
+<pre class="Syntax" style="margin-top:15px">Object.RemoveAt(Index)</pre>
+<table class="info">
+  <tr><td width="15%">Index</td><td width="85%">The index (integer key) of the element to remove.</td></tr>
+  <tr><td><b>Returns</b></td><td>The value which was removed, if any; otherwise an empty string.</td></tr>
+</table>
+<pre class="Syntax">Object.RemoveAt(Index, VirtualCount)</pre>
+<table class="info">
+  <tr><td width="15%">Index</td><td width="85%">The index (integer key) of the first element to remove.</td></tr>
+  <tr><td>VirtualCount</td><td>The number of elements to remove. The index of the last element to be removed is always <code>Index + VirtualCount - 1</code>, even for sparse arrays (where some elements are left unassigned).</td></tr>
+  <tr><td><b>Returns</b></td><td>The actual number of key-value pairs which were removed.</td></tr>
+</table>
+<h3>Remarks</h3>
+<p>This method should only be used when each integer key within the object represents a position with an array. The remaining elements have their keys adjusted as necessary to reflect their new positions within the array.</p>
+</div>
+
+<div class="methodShort" id="Push"><h2>Push</h2>
+<p>Appends values to the end of an array.</p>
+<pre class="Syntax">Object.Push([ Value, Value2, ..., Value<i>N</i> ])</pre>
+<table class="info">
+  <tr><td width="15%">Value</td><td width="85%">A string, number or object.</td></tr>
+  <tr><td><b>Returns</b></td><td>The new array length; i.e. <code>Object.MaxIndex()</code>. Can be negative if the array only contained elements at negative indices.</td></tr>
+</table>
+<h3>Remarks</h3>
+<p>The first value is inserted at index 1 if the array is empty, otherwise at <code>Object.MaxIndex()</code>.</p>
+<p>A parameter can be omitted to leave the corresponding element unassigned. For example:</p>
+<pre>x := []
+x.Push(1,, 3)
+MsgBox % x[1] "," x[2] "," x[3]  <em>; 1,,3</em></pre>
+</div>
+
+<div class="methodShort" id="Pop"><h2>Pop</h2>
+<p>Removes and returns the last array element.</p>
+<pre class="Syntax">Value := Object.Pop()</pre>
+<p>If there are no array elements, the return value is an empty string. Otherwise, it is equivalent to the following:</p>
+<pre>Value := Object.RemoveAt(Object.MaxIndex())</pre>
 </div>
 
 <div class="methodShort" id="MinMaxIndex"><h2>MinIndex / MaxIndex</h2>
@@ -80,7 +116,7 @@ Object.SetCapacity(Key, ByteSize)</pre>
   <tr><td width="15%">MaxItems</td><td width="85%">The maximum number of key-value pairs the object should be able to contain before it must be automatically expanded.  If less than the current number of key-value pairs, that number is used instead, and any unused space is freed.</td></tr>
   <tr><td>Key</td><td>Any valid key.</td></tr>
   <tr><td>ByteSize</td><td>The new size in bytes of the field's string buffer, excluding the null-terminator.  If the field does not exist, it is created.  If <i>ByteSize</i> is zero, the buffer is freed but the empty field is not removed.  If <i>ByteSize</i> is less than the current size, excess data is truncated; otherwise all existing data is preserved.</td></tr>
-  <tr><td><b>Returns</b></td><td>The new capacity if successful, otherwise an empty string.</td></tr>
+  <tr><td><b>Returns</b></td><td>The new capacity. No return value is reserved to indicate failure; an exception is thrown in that case.</td></tr>
 </table></div>
 
 <div class="methodShort" id="GetCapacity"><h2>GetCapacity</h2>
@@ -92,7 +128,7 @@ ByteSize := Object.GetCapacity(Key)</pre>
 <pre class="Syntax">Ptr := Object.GetAddress(Key)</pre>
 <p>Returns the current address of the field's string buffer, if it has one.</p></div>
 
-<div class="methodShort" id="NewEnum"><h2>NewEnum</h2>
+<div class="methodShort" id="NewEnum"><h2>_NewEnum</h2>
 <pre class="Syntax">Enum := Object._NewEnum()</pre>
 <p>Returns a new <a href="Enumerator.htm">enumerator</a> to enumerate this object's key-value pairs.</p></div>
 
@@ -103,6 +139,12 @@ ByteSize := Object.GetCapacity(Key)</pre>
 <div class="methodShort" id="Clone"><h2>Clone</h2>
 <pre class="Syntax">Clone := Object.Clone()</pre>
 <p>Returns a shallow copy of the object.</p></div>
+
+<div class="methodShort" id="RawSet"><h2>ObjRawSet</h2>
+<p>Stores or overwrites a key-value pair in the object.</p>
+<pre class="Syntax">ObjRawSet(Object, Key, Value)</pre>
+<p>This function is provided to allow scripts to bypass the __Set <a href="../Objects.htm#Meta_Functions">meta-function</a>. If that isn't required, a normal assignment should be used instead. For example: <code>Object[Key] := Value</code></p>
+<p>Since the purpose is to bypass meta-functions, this is a function only, not a method. Calling a built-in method generally causes the __Call meta-function to be called.</p></div>
 
 </body>
 </html>
