@@ -325,23 +325,30 @@ class <i>ClassName</i> {
 
 <i>ClassName</i> := { __Get: Func("<i>MyGet</i>"), __Set: Func("<i>MySet</i>"), __Call: Func("<i>MyCall</i>") }
 </pre>
-<p>Meta-functions are methods defined by an object's base which can define exactly how the object should act when an unknown key is requested. For example, if <code>obj.key</code> has not been assigned a value, it invokes the <i>__Get</i> meta-function. Similarly, <code>obj.key := value</code> invokes <i>__Set</i> and <code>obj.key()</code> invokes <i>__Call</i>.</p>
-<p>In these cases, the base object is invoked as follows:</p>
+<p>Meta-functions define what happens when a key is requested but not found within the target object. For example, if <code>obj.key</code> has not been assigned a value, it invokes the <i>__Get</i> meta-function. Similarly, <code>obj.key := value</code> invokes <i>__Set</i> and <code>obj.key()</code> invokes <i>__Call</i>. These meta-functions (or methods) would need to be defined in <code>obj.base</code>, <code>obj.base.base</code> or such.</p>
+<p>When the script gets, sets or calls a key which does not exist within the target object, the base object is invoked as follows:</p>
 <ul>
-  <li>If this base object defines the appropriate meta-function, call it.  If the meta-function explicitly <code>return</code>s, the return value is used as the result of the operation and no further processing occurs.
-    <p><i>Set</i>: If the operation was successful, <i>__Set</i> should return the new value of the field, which may differ from the original r-value.  This allows assignments to be chained, as in <code>a.x := b.y := z</code>.  An empty string should be returned if the assignment failed, allowing the script to detect the error.</p></li>
+  <li>If this base object defines the appropriate meta-function, call it.  If the meta-function explicitly <code>return</code>s, use the return value as the result of the operation (whatever caused the meta-function to be called) and return control to the script. Otherwise, continue as described below.
+    <p><i>Set</i>: If the meta-function handled an assignment, it should return the value which was assigned. This allows assignments to be chained, as in <code>a.x := b.y := z</code>. The return value may differ from the original value of <code>z</code> (for instance, if restrictions are imposed on which values can be assigned).</p></li>
   <li>If this is a <i>get</i> or <i>call</i> operation, search for a matching key in the base object's own fields.
-    <p><i>Get</i>: If found, the value of that field is returned.<br>
-    <i>Call</i>: If found, the function stored in the field (by name or <a href="#Function_References">reference</a>) is called, passing the original target object as the <i>this</i> parameter.</p></li>
-  <li>Recursively invoke its own base object.  This allows properties of an object to be "inherited" from its base, its base's base and so on.</li>
+    <p>If multiple parameters were given for <i>get</i> or <i>set</i>, take some steps to support <a href="#Usage_Arrays_of_Arrays">multi-dimensional arrays</a>. If the key is found and its value is an object, handle the remaining parameters by invoking that object (instead of the steps outlined below).</p>
+    <p><i>Get</i>: If found, return the value.<br>
+    <i>Call</i>: If found, call the function (the value can be a name or <a href="#Function_References">reference</a>), passing the target object as <code>this</code>.</p></li>
+  <li>Repeat this process for each base object from which the target derives (the target's base, the target's base's base, and so on).</li>
 </ul>
-<p>If (and only if) no base object handles the operation, processing will continue as normal:</p>
+<p>If no base object returned a value for this key, the built-in methods and properties are handled:</p>
 <ul>
-  <li><i>Get</i>: If the key is "base", the object's base is retrieved.</li>
-  <li><i>Set</i>: If the key is "base", the object's base is set; non-object values cause the existing base to be removed.
-  <p style="margin-left:2.6em;margin-top:0.25em;">Otherwise a new key-value pair is created and stored in the object.</p></li>
-  <li><i>Call</i>: A <a href="objects/Object.htm">built-in method</a> may be called.</li>
+  <li><i>Get</i>: If the key is "base", return the object's base.</li>
+  <li><i>Set</i>: If the key is "base", set the object's base (or remove it if the value isn't an object).</li>
+  <li><i>Call</i>: Call a <a href="objects/Object.htm">built-in method</a> if applicable.</li>
 </ul>
+<p>If the operation still hasn't been handled,</p>
+<ul>
+  <li><i>Get</i> and <i>Call</i>: Return an empty string.</li>
+  <li><i>Set</i>: If only one key parameter was given, store the key and value in the target object and return the assigned value. If multiple parameters were given, create a new object and store it using the first parameter as a key (or use whatever value __Set stored there, if any) and handle the remaining parameters by invoking the new object.</li>
+
+</ul>
+    
 <p><b>Known limitations:</b></p>
 <ul><li>Using <code>return</code> without a value is equivalent to <code>return ""</code>. This may be changed in a future version so that <code>return</code> can be used to "escape" from a meta-function without overriding the default behaviour.</li>
 <li>See <a href="#ExitLimitation">Exit limitation</a>.</li></ul>
