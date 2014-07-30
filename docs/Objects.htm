@@ -9,6 +9,10 @@
 <script src="static/jquery.js" type="text/javascript"></script>
 <script src="static/tree.jquery.js" type="text/javascript"></script>
 <script src="static/content.js" type="text/javascript"></script>
+<style>
+ul.list_of_p p { margin: 0.5em 0; }
+ul.list_of_p li { margin: 1em 0; }
+</style>
 </head>
 <body>
 
@@ -327,16 +331,18 @@ class <i>ClassName</i> {
 </pre>
 <p>Meta-functions define what happens when a key is requested but not found within the target object. For example, if <code>obj.key</code> has not been assigned a value, it invokes the <i>__Get</i> meta-function. Similarly, <code>obj.key := value</code> invokes <i>__Set</i> and <code>obj.key()</code> invokes <i>__Call</i>. These meta-functions (or methods) would need to be defined in <code>obj.base</code>, <code>obj.base.base</code> or such.</p>
 <p>When the script gets, sets or calls a key which does not exist within the target object, the base object is invoked as follows:</p>
-<ul>
+<ul class="list_of_p">
   <li>If this base object defines the appropriate meta-function, call it.  If the meta-function explicitly <code>return</code>s, use the return value as the result of the operation (whatever caused the meta-function to be called) and return control to the script. Otherwise, continue as described below.
     <p><i>Set</i>: If the meta-function handled an assignment, it should return the value which was assigned. This allows assignments to be chained, as in <code>a.x := b.y := z</code>. The return value may differ from the original value of <code>z</code> (for instance, if restrictions are imposed on which values can be assigned).</p></li>
-  <li>If this is a <i>get</i> or <i>call</i> operation, search for a matching key in the base object's own fields.
-    <p>If multiple parameters were given for <i>get</i> or <i>set</i>, take some steps to support <a href="#Usage_Arrays_of_Arrays">multi-dimensional arrays</a>. If the key is found and its value is an object, handle the remaining parameters by invoking that object (instead of the steps outlined below).</p>
-    <p><i>Get</i>: If found, return the value.<br>
-    <i>Call</i>: If found, call the function (the value can be a name or <a href="#Function_References">reference</a>), passing the target object as <code>this</code>.</p></li>
-  <li>Repeat this process for each base object from which the target derives (the target's base, the target's base's base, and so on).</li>
+  <li>If this is a <i>get</i> or <i>call</i> operation, search for a matching key in the base object's own fields.</li>
+  <li>If no key was found, recursively invoke this base object's own base (apply each of these steps to it, starting at the top of this list).  If we're not finished yet, search this base object for a matching key again in case one was added by a meta-function.</li>
+  <li>If multiple parameters were given for <i>get</i> or <i>set</i> and a key was found, check its value. If that value is an object, handle the remaining parameters by invoking it, and do nothing further.</li>
+  <li>If a key was found,<br>
+    <i>Get</i>: Return the value.<br>
+    <i>Call</i>: If the value is a function name or <a href="#Function_References">reference</a>, call it, passing the target object as the first parameter (<code>this</code>).</p></li>
 </ul>
-<p>If no base object returned a value for this key, the built-in methods and properties are handled:</p>
+<p>If a meta-function stores a matching key in the object but does not <code>return</code>, the behaviour is the same as if the key initially existed in the object. For an example using __Set, see <a href="#Subclassing_aoa">Sub-classing Arrays of Arrays</a>.</p>
+<p>If the operation still hasn't been handled, check if this is a built-in method or property:</p>
 <ul>
   <li><i>Get</i>: If the key is "base", return the object's base.</li>
   <li><i>Set</i>: If the key is "base", set the object's base (or remove it if the value isn't an object).</li>
@@ -345,7 +351,7 @@ class <i>ClassName</i> {
 <p>If the operation still hasn't been handled,</p>
 <ul>
   <li><i>Get</i> and <i>Call</i>: Return an empty string.</li>
-  <li><i>Set</i>: If only one key parameter was given, store the key and value in the target object and return the assigned value. If multiple parameters were given, create a new object and store it using the first parameter as a key (or use whatever value __Set stored there, if any) and handle the remaining parameters by invoking the new object.</li>
+  <li><i>Set</i>: If only one key parameter was given, store the key and value in the target object and return the assigned value. If multiple parameters were given, create a new object and store it using the first parameter as a key, then handle the remaining parameters by invoking the new object. (See <a href="#Usage_Arrays_of_Arrays">Arrays of Arrays</a>.)</li>
 
 </ul>
     
