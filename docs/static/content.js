@@ -137,9 +137,9 @@ function AddContent()
     // language button
     //
 
-    var en = 'http://ahkscript.org/';
-    var de = 'http://ragnar-f.github.io/';
-    var cn = 'http://ahkcn.sourceforge.net/';
+    var en = 'http://lexikos.github.io/v2/';
+    var de = 'http://ragnar-f.github.io/v2/';
+    var cn = '';
 
     $('#lng-btn-en').on('click', function() { document.location = en + urlpath; } );
     $('#lng-btn-de').on('click', function() { document.location = de + urlpath; } );
