@@ -9,6 +9,10 @@
 <script src="static/jquery.js" type="text/javascript"></script>
 <script src="static/tree.jquery.js" type="text/javascript"></script>
 <script src="static/content.js" type="text/javascript"></script>
+<style>
+ul.list_of_p p { margin: 0.5em 0; }
+ul.list_of_p li { margin: 1em 0; }
+</style>
 </head>
 <body>
 
@@ -258,33 +262,44 @@ other.test()</pre>
 </pre>
 <p>When the script is loaded, this constructs an object and stores it in the <a href="Functions.htm#SuperGlobal">super-global</a> variable <i>ClassName</i>. If <code>extends BaseClassName</code> is present, <i>BaseClassName</i> must be the full name of another class, but the order that they are defined in does not matter. The full name of each class is stored in <code><i>object</i>.__Class</code>.</p>
 <p>Class definitions can contain variable declarations, method definitions and nested class definitions.</p>
-<pre id="Custom_Classes_var">
-    InstanceVar := Expression
+
+<h4 id="Custom_Classes_var">Instance Variables</h4>
+<p>An <em>instance variable</em> is one that each instance of the class (that is, each object derived from the class) has its own copy of. They are declared like normal assignments, but the <code>this.</code> prefix is omitted (only directly within the class body):</p>
+<pre>InstanceVar := Expression</pre>
+<p>These declarations are evaluated each time a new instance of the class is created with the <a href="#Custom_NewDelete">new</a> keyword. The method name <code>__Init</code> is reserved for this purpose, and should not be used by the script. The <a href="#Custom_NewDelete">__New()</a> method is called after all such declarations have been evaluated, including those defined in base classes. <em>Expression</em> can access other instance variables and methods via <code>this</code>, but all other variable references are assumed to be global.</p>
+<p>To access an instance variable (even within a method), always specify the target object; for example, <code><b>this</b>.InstanceVar</code>.</p>
+<p>Declarations like <code>x.y := z</code> are also supported, provided that <code>x</code> was previously declared in this class. For example, <code>x := {}, x.y := 42</code> declares <code>x</code> and also initializes <code>this.x.y</code>.</p>
+
+<h4 id="Custom_Classes_staticvar">Static/Class Variables</h4>
+<p>Static/class variables belong to the class itself, but can be inherited by derived objects (including sub-classes). They are declared like instance variables, but using the static keyword:</p>
+<pre>static ClassVar := Expression</pre>
+<p>Static declarations are evaluated only once, before the <a href="Scripts.htm#auto">auto-execute section</a>, in the order they appear in the script. Each declaration stores a value in the class object. Any variable references in <i>Expression</i> are assumed to be global.</p>
+<p>To access a class variable, always specify the class or derived object; for example, <code><b>ClassName</b>.ClassVar</code>.</p>
+<p>Declarations like <code>static x.y := z</code> are also supported, provided that <code>x</code> was previously declared in this class. For example, <code>static x := {}, x.y := 42</code> declares <code>x</code> and also initializes <code><i>ClassName</i>.x.y</code>.</p>
+
+<h4 id="Custom_Classes_class">Nested Classes</h4>
+<p>Nested class definitions allow a class object to be stored inside another class object rather than a separate global variable. In the example above, <code>class NestedClass</code> constructs an object and stores it in <code>ClassName.NestedClass</code>. Sub-classes could inherit <em>NestedClass</em> or override it with their own nested class (in which case <code>new this.NestedClass</code> could be used to instantiate whichever class is appropriate).</p>
+<pre>
+class NestedClass
+{
+	...
+}
 </pre>
-<p><b>Instance variable</b> declarations are evaluated each time a new instance of the class is created with the <a href="#Custom_NewDelete">new</a> keyword. The <a href="#Custom_NewDelete">__New()</a> method is called after all such declarations have been evaluated, including those defined in base classes. <i>Expression</i> can access other instance variables and methods via <code>this</code>, but all other variable references are assumed to be global. To access an instance variable, always specify the target object; for example, <code><b>this</b>.InstanceVar</code>.</p>
-<p>Unlike values set by the <a href="#Custom_NewDelete">__New()</a> method, instance and class variables initialized this way do not trigger the __Set <a href="#Meta_Functions">meta-function</a>.</p>
-<pre id="Custom_Classes_staticvar">
-    static ClassVar := Expression
+
+<h4 id="Custom_Classes_method">Methods</h4>
+<p>Method definitions look identical to function definitions. Each method has a hidden parameter named <code>this</code>, which typically contains a reference to an object derived from the class. However, it could contain a reference to the class itself or a derived class, depending on how the method was called. Methods are stored <a href="#Function_References">by reference</a> in the class object.</p>
+<pre>
+Method()
+{
+	...
+}
 </pre>
-<p><b>Class variable</b> declarations are evaluated only once, before the <a href="Scripts.htm#auto">auto-execute section</a>, in the order they appear in the script. Each declaration stores a value in the class object. As with any value or method contained by the class object, this value can be inherited by derived objects. Any variable references in <i>Expression</i> are assumed to be global. To access a class variable, always specify the class or derived object; for example, <code><b>ClassName</b>.ClassVar</code>.</p>
-<pre id="Custom_Classes_class">
-    class NestedClass
-    {
-        ...
-    }
-</pre>
-<p><b>Nested class</b> definitions allow a class object to be stored inside another class object rather than a separate global variable. In the example above, <code>class NestedClass</code> constructs an object and stores it in <code>ClassName.NestedClass</code>. Therefore, <i>NestedClass</i> may be inherited by any class or object which derives from <i>ClassName</i>.</p>
-<pre id="Custom_Classes_method">
-    Method()
-    {
-        ...
-    }
-</pre>
-<p><b>Method</b> definitions look identical to function definitions. Each method has a hidden parameter named <code>this</code>, which typically contains a reference to an object derived from the class. However, it could contain a reference to the class itself or a derived class, depending on how the method was called. Methods are stored <a href="#Function_References">by reference</a> in the class object.</p>
+
 <p id="Custom_Classes_base">In addition to the hidden parameter <code>this</code>, method definitions can use the pseudo-keyword <code>base</code> to invoke the base class of the class which contains the method definition. For example, <code>base.Method()</code> in the method above would be equivalent to <code>BaseClassName.Method.(this)</code>. Note that this differs from <code>this.base.base.Method()</code> in two other ways:</p>
 <ul>
   <li>It always invokes the base of the current class, even if <code>this</code> is derived from a <i>sub-class</i> of the current class.</li>
   <li>It passes <code>this</code> automatically, not <code>this.base.base</code>.</li>
+  <li>It never causes a <a href="#Meta_Functions">meta-function</a> to be called.</li>
 </ul>
 <p><code>base</code> only has special meaning if followed by a dot <code>.</code> or brackets <code>[]</code>, so code like <code>obj := base, obj.Method()</code> will not work. Scripts can disable the special behaviour of <i>base</i> by assigning it a non-empty value; however, this is not recommended.</p>
 
@@ -327,24 +342,32 @@ class <i>ClassName</i> {
 
 <i>ClassName</i> := { __Get: Func("<i>MyGet</i>"), __Set: Func("<i>MySet</i>"), __Call: Func("<i>MyCall</i>") }
 </pre>
-<p>Meta-functions are methods defined by an object's base which can define exactly how the object should act when an unknown key is requested. For example, if <code>obj.key</code> has not been assigned a value, it invokes the <i>__Get</i> meta-function. Similarly, <code>obj.key := value</code> invokes <i>__Set</i> and <code>obj.key()</code> invokes <i>__Call</i>.</p>
-<p>In these cases, the base object is invoked as follows:</p>
-<ul>
-  <li>If this base object defines the appropriate meta-function, call it.  If the meta-function explicitly <code>return</code>s, the return value is used as the result of the operation and no further processing occurs.
-    <p><i>Set</i>: If the operation was successful, <i>__Set</i> should return the new value of the field, which may differ from the original r-value.  This allows assignments to be chained, as in <code>a.x := b.y := z</code>.  An empty string should be returned if the assignment failed, allowing the script to detect the error.</p></li>
-  <li>Search for a matching key in the base object's own fields.
-    <p><i>Get</i>: If found, the value of that field is returned.<br>
-    <i>Set</i>: If found, processing continues as if the object had no base.<br>
-    <i>Call</i>: If found, the function stored in the field (by name or <a href="#Function_References">reference</a>) is called, passing the original target object as the <i>this</i> parameter.</p></li>
-  <li>Recursively invoke its own base object.  This allows properties of an object to be "inherited" from its base, its base's base and so on.</li>
+<p>Meta-functions define what happens when a key is requested but not found within the target object. For example, if <code>obj.key</code> has not been assigned a value, it invokes the <i>__Get</i> meta-function. Similarly, <code>obj.key := value</code> invokes <i>__Set</i> and <code>obj.key()</code> invokes <i>__Call</i>. These meta-functions (or methods) would need to be defined in <code>obj.base</code>, <code>obj.base.base</code> or such.</p>
+<p>When the script gets, sets or calls a key which does not exist within the target object, the base object is invoked as follows:</p>
+<ul class="list_of_p">
+  <li>If this base object defines the appropriate meta-function, call it.  If the meta-function explicitly <code>return</code>s, use the return value as the result of the operation (whatever caused the meta-function to be called) and return control to the script. Otherwise, continue as described below.
+    <p><i>Set</i>: If the meta-function handled an assignment, it should return the value which was assigned. This allows assignments to be chained, as in <code>a.x := b.y := z</code>. The return value may differ from the original value of <code>z</code> (for instance, if restrictions are imposed on which values can be assigned).</p></li>
+  <li>If this is a <i>get</i> or <i>call</i> operation, search for a matching key in the base object's own fields.</li>
+  <li>If no key was found, recursively invoke this base object's own base (apply each of these steps to it, starting at the top of this list).  If we're not finished yet, search this base object for a matching key again in case one was added by a meta-function.</li>
+  <li>If multiple parameters were given for <i>get</i> or <i>set</i> and a key was found, check its value. If that value is an object, handle the remaining parameters by invoking it, and do nothing further.</li>
+  <li>If a key was found,<br>
+    <i>Get</i>: Return the value.<br>
+    <i>Call</i>: If the value is a function name or <a href="#Function_References">reference</a>, call it, passing the target object as the first parameter (<code>this</code>).</p></li>
 </ul>
-<p>If (and only if) no base object handles the operation, processing will continue as normal:</p>
+<p>If a meta-function stores a matching key in the object but does not <code>return</code>, the behaviour is the same as if the key initially existed in the object. For an example using __Set, see <a href="#Subclassing_aoa">Sub-classing Arrays of Arrays</a>.</p>
+<p>If the operation still hasn't been handled, check if this is a built-in method or property:</p>
 <ul>
-  <li><i>Get</i>: If the key is "base", the object's base is retrieved.</li>
-  <li><i>Set</i>: If the key is "base", the object's base is set; non-object values cause the existing base to be removed.
-  <p style="margin-left:2.6em;margin-top:0.25em;">Otherwise a new key-value pair is created and stored in the object.</p></li>
-  <li><i>Call</i>: A <a href="objects/Object.htm">built-in method</a> may be called.</li>
+  <li><i>Get</i>: If the key is "base", return the object's base.</li>
+  <li><i>Set</i>: If the key is "base", set the object's base (or remove it if the value isn't an object).</li>
+  <li><i>Call</i>: Call a <a href="objects/Object.htm">built-in method</a> if applicable.</li>
 </ul>
+<p>If the operation still hasn't been handled,</p>
+<ul>
+  <li><i>Get</i> and <i>Call</i>: Return an empty string.</li>
+  <li><i>Set</i>: If only one key parameter was given, store the key and value in the target object and return the assigned value. If multiple parameters were given, create a new object and store it using the first parameter as a key, then handle the remaining parameters by invoking the new object. (See <a href="#Usage_Arrays_of_Arrays">Arrays of Arrays</a>.)</li>
+
+</ul>
+    
 <p><b>Known limitations:</b></p>
 <ul><li>Using <code>return</code> without a value is equivalent to <code>return ""</code>. This may be changed in a future version so that <code>return</code> can be used to "escape" from a meta-function without overriding the default behaviour.</li>
 <li>See <a href="#ExitLimitation">Exit limitation</a>.</li></ul>
