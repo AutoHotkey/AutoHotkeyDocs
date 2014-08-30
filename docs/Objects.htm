@@ -257,6 +257,16 @@ other.test()</pre>
     {
         ...
     }
+
+    Property[]
+    {
+        get {
+            return ...
+        }
+        set {
+            return ... := value
+        }
+    }
 }
 </pre>
 <p>When the script is loaded, this constructs an object and stores it in the global (or in v1.1.05+, <a href="Functions.htm#SuperGlobal">super-global</a>) variable <i>ClassName</i>. Prior to v1.1.05, to reference this class inside a function, a declaration such as <code>global ClassName</code> is required unless the function is <a href="Functions.htm#AssumeGlobal">assume-global</a>. If <code>extends BaseClassName</code> is present, <i>BaseClassName</i> must be the full name of another class (but as of v1.1.11, the order that they are defined in does not matter). The full name of each class is stored in <code><i>object</i>.__Class</code>.</p>
@@ -281,7 +291,7 @@ other.test()</pre>
 <pre>
 class NestedClass
 {
-	...
+    ...
 }
 </pre>
 
@@ -290,7 +300,7 @@ class NestedClass
 <pre>
 Method()
 {
-	...
+    ...
 }
 </pre>
 
@@ -301,6 +311,24 @@ Method()
   <li>It never causes a <a href="#Meta_Functions">meta-function</a> to be called.</li>
 </ul>
 <p><code>base</code> only has special meaning if followed by a dot <code>.</code> or brackets <code>[]</code>, so code like <code>obj := base, obj.Method()</code> will not work. Scripts can disable the special behaviour of <i>base</i> by assigning it a non-empty value; however, this is not recommended. Since the variable <i>base</i> must be empty, performance may be reduced if the script omits <a href="commands/_NoEnv.htm">#NoEnv</a>.</p>
+
+<h4 id="Custom_Classes_property">Properties <span class="ver">[v1.1.16+]</span></h4>
+<p>Property definitions allow a method to be executed whenever the script gets or sets a specific key.</p>
+<pre>Property[]
+{
+    get {
+        return ...
+    }
+    set {
+        return ... := value
+    }
+}</pre>
+<p><em>Property</em> is simply the name of the property, which will be used to invoke it. For example, <code>obj.Property</code> would call <em>get</em> while <code>obj.Property := value</code> would call <em>set</em>. Within <em>get</em> or <em>set</em>, <code>this</code> refers to the object being invoked. Within <em>set</em>, <code>value</code> contains the value being assigned.</p>
+<p>Parameters can be passed by enclosing them in square brackets to the right of the property name, both when defining the property and when calling it. Aside from using square brackets, parameters of properties are defined the same way as parameters of methods - optional, ByRef and variadic parameters are supported.</p>
+<p>The return value of <em>get</em> or <em>set</em> becomes the result of the sub-expression which invoked the property. For example, <code>val := obj.Property := 42</code> stores the return value of <em>set</em> in <code>val</code>.</p>
+<p>Each class can define one or both halves of a property. If a class overrides a property, it can use <code><a href="#Custom_Classes_base">base.Property</a></code> to access the property defined by its base class. If <em>get</em> or <em>set</em> is not defined, it can be handled by a base class. If <em>set</em> is not defined and is not handled by a meta-function or base class, assigning a value stores it in the object, effectively disabling the property.</p>
+<p>Internally, <em>get</em> and <em>set</em> are two separate methods, so cannot share variables (except by storing them in <code>this</code>).</p>
+<p><a href="#Meta_Functions">Meta-functions</a> provide a broader way of controlling access to properties and methods of an object, but are more complicated and error-prone.</p>
 
 <h3 id="Custom_NewDelete">Construction and Destruction</h3>
 <p>Whenever a derived object is created with the <code>new</code> keyword <span class="ver">[requires v1.1.00+]</span>, the <code>__New</code> method defined by its base object is called. This method can accept parameters, initialize the object and override the result of the <code>new</code> operator by returning a value. When an object is destroyed, <code>__Delete</code> is called. For example:</p>
@@ -346,8 +374,10 @@ class <i>ClassName</i> {
 <ul class="list_of_p">
   <li>If this base object defines the appropriate meta-function, call it.  If the meta-function explicitly <code>return</code>s, use the return value as the result of the operation (whatever caused the meta-function to be called) and return control to the script. Otherwise, continue as described below.
     <p><i>Set</i>: If the meta-function handled an assignment, it should return the value which was assigned. This allows assignments to be chained, as in <code>a.x := b.y := z</code>. The return value may differ from the original value of <code>z</code> (for instance, if restrictions are imposed on which values can be assigned).</p></li>
-  <li>If this is a <i>get</i> or <i>call</i> operation, search for a matching key in the base object's own fields.</li>
-  <li>If no key was found, recursively invoke this base object's own base (apply each of these steps to it, starting at the top of this list).  If we're not finished yet, search this base object for a matching key again in case one was added by a meta-function.</li>
+  <li>Search for a matching key in the base object's own fields.</li>
+  <li><span class="ver">[v1.1.16+]:</span> If a key corresponding to a property is found and it implements <em>get</em> or <em>set</em> (as appropriate), invoke the property and return. If this is a method call, invoke <em>get</em>.</li>
+  <li>If no key was found, recursively invoke this base object's own base (apply each of these steps to it, starting at the top of this list). If we're not finished yet, search this base object for a matching key again in case one was added by a meta-function.
+    <p>Due to backward-compatibility, this step is performed for <em>set</em> operations even if a key was found (unless it defines a property which implements <em>set</em>).</p></li>
   <li>If multiple parameters were given for <i>get</i> or <i>set</i> and a key was found, check its value. If that value is an object, handle the remaining parameters by invoking it, and do nothing further.</li>
   <li>If a key was found,<br>
     <i>Get</i>: Return the value.<br>
