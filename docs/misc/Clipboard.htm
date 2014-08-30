@@ -62,22 +62,37 @@ ClipSaved =   <em>; Free the memory in case the clipboard was very large.</em></
   <li>ClipStep: Control multiple clipboards using only the keyboard's Ctrl-X-C-V. <a href="http://www.autohotkey.com/forum/topic4836.html">www.autohotkey.com/forum/topic4836.html</a></li>
 </ul>
 <h2 id="OnClipboardChange">OnClipboardChange</h2>
-<p>A label named OnClipboardChange (if it exists) is launched automatically whenever any application (even the script itself) has changed the contents of the clipboard. The label also runs once when the script first starts.</p>
-<p>The built-in variable A_EventInfo contains:<br>
+<p>Specifies a <a href="../Functions.htm">function</a> to call automatically whenever any application (even the script itself) changes the contents of the clipboard.</p>
+<pre class="Syntax">OnClipboardChange([CallbackFunc])</pre>
+<h3>Parameters</h3>
+<dl>
+  <dt>CallbackFunc</dt>
+  <dd><p>A <a href="../Functions.htm">function</a> name or reference.</p>
+  <p>Specify an empty string to remove the current function.  If this parameter is omitted entirely, nothing is changed.</p></dd>
+</dl>
+<h3>CallbackFunc(Type)</h3>
+<p>The function can optionally accept one of the following values as a parameter:<br>
   0 if the clipboard is now empty;<br>
 1 if it contains something that can be expressed as text (this includes <a href="#CopiedFiles">files copied</a> from an Explorer window);<br>
 2 if it contains something entirely non-text such as a picture.</p>
-<p>The following example is a working script. Whenever it is running, it will briefly display a ToolTip for each clipboard change.</p>
-<pre>#Persistent
-return
 
-OnClipboardChange:
-ToolTip Clipboard data type: %A_EventInfo%
-Sleep 1000
-ToolTip  <em>; Turn off the tip.</em>
-return</pre>
-<p>If the clipboard changes while the OnClipboardChange label is already running, that notification event is lost. If this is undesirable,  specify <a href="../commands/Critical.htm">Critical</a> as the label's first line. However, this will also buffer/defer other <a href="../misc/Threads.htm">threads</a> (such as the press of a hotkey) that occur while the OnClipboardChange thread is running.</p>
-<p>If the script itself changes the clipboard, its OnClipboardChange label is typically not executed immediately; that is, commands immediately below the command that changed the clipboard are likely to execute beforehand. To force the label to execute immediately, use a short delay such as <code><a href="../commands/Sleep.htm">Sleep 20</a></code> after changing the clipboard.</p>
-<p>Related topics: <a href="../commands/OnExit.htm">OnExit</a>, <a href="../commands/OnMessage.htm">OnMessage()</a>, <a href="../commands/RegisterCallback.htm">RegisterCallback()</a></p>
+<h3>Remarks</h3>
+<p>If the clipboard changes while the callback function is already running, that notification event is lost. If this is undesirable,  specify <a href="../commands/Critical.htm">Critical</a> as the function's first line. However, this will also buffer/defer other <a href="../misc/Threads.htm">threads</a> (such as the press of a hotkey) that occur while the OnClipboardChange thread is running.</p>
+<p>If the script itself changes the clipboard, the callback function is typically not called immediately; that is, commands immediately below the command that changed the clipboard are likely to execute beforehand. To force the callback to execute immediately, use a short delay such as <code><a href="../commands/Sleep.htm">Sleep 20</a></code> after changing the clipboard.</p>
+
+<h3>Related</h3>
+<p><a href="../commands/OnExit.htm">OnExit</a>, <a href="../commands/OnMessage.htm">OnMessage()</a>, <a href="../commands/RegisterCallback.htm">RegisterCallback()</a></p>
+
+<h3>Example</h3>
+<p>The following example is a working script. Whenever it is running, it will briefly display a ToolTip for each clipboard change.</p>
+<pre>OnClipboardChange("ShowClipboardChanged")
+
+ShowClipboardChanged(type)
+{
+    ToolTip Clipboard data type: %type%
+    Sleep 1000
+    ToolTip  <em>; Turn off the tip.</em>
+}</pre>
+
 </body>
 </html>
