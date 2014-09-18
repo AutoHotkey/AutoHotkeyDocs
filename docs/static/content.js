@@ -81,13 +81,13 @@ function AddContent()
 
     $('.header #search-btn').on('click', function() {
       var query = $(".header #q").val();
-      document.location = 'http://www.google.com/cse?cx=010629462602499112316:ywoq_rufgic&q=' + query;
+      document.location = eval(sessionStorage.getItem("hdSearchLnk"));
     });
 
     $('.header #search-form').on('submit', function(event) {
         event.preventDefault();
         var query = $(".header #q").val();
-        document.location = 'http://www.google.com/cse?cx=010629462602499112316:ywoq_rufgic&q=' + query;
+        document.location = eval(sessionStorage.getItem("hdSearchLnk"));
     });
 
     //
