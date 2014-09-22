@@ -1,4 +1,4 @@
-if (!IsInsideCHM())
+if (!IsInsideCHM() && !IsSearchBot())
 {
   BuildStructure();
   AddContent();
@@ -345,4 +345,9 @@ function ShowIndex()
 function IsInsideCHM()
 {
   return (location.href.search(/::/) > 0) ? 1 : 0;
+}
+
+function IsSearchBot()
+{
+  return navigator.userAgent.match(/googlebot|bingbot|slurp/i);
 }
