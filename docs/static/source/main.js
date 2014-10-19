@@ -317,8 +317,8 @@ function AddContent()
     // open document when pressing enter or select item
     //
 
-    $("#indexcontainer, #IndexEntry").on('keydown change', function(event) {
-      if ((event.which && event.which==13) || (event.keyCode && event.keyCode==13) || (event.type == 'change')) {
+    $("#indexcontainer, #IndexEntry").on('keydown dblclick', function(event) {
+      if ((event.which && event.which==13) || (event.keyCode && event.keyCode==13) || (event.type == 'dblclick')) {
         var iSelect = document.getElementById("indexcontainer").selectedIndex;
         if (iSelect >= 0) {
           var URL = document.getElementById("indexcontainer").item(iSelect).value;
