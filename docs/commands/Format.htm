@@ -1,0 +1,188 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<title>Format</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<link href="../static/theme.css" rel="stylesheet" type="text/css" />
+<script src="../static/jquery.js" type="text/javascript"></script>
+<script src="../static/tree.jquery.js" type="text/javascript"></script>
+<script src="../static/content.js" type="text/javascript"></script>
+</head>
+<body>
+
+<h1>Format <span class="ver">[v1.1.17+]</span></h1>
+
+<p>Formats a variable number of input values according to a format string.</p>
+
+<pre class="Syntax">String := Format(FormatStr [, Values...])</pre>
+<h3>Parameters</h3>
+<dl>
+
+  <dt>FormatStr</dt>
+  <dd>
+    <p>A format string composed of literal text and placeholders of the form <code>{<i>Index</i>:<i><a href="#FormatSpec">Format</a></i>}</code>.</p>
+    <p><em>Index</em> is an integer indicating which input value to use, where 1 is the first value.</p>
+    <p><em>Format</em> is an optional format specifier, as described below.</p>
+    <p>Omit the index to use the next input value in the sequence (even if it has been used earlier in the string). For example, <code>"{2:i} {:i}"</code> formats the second and third input values as decimal integers, separated by a space. If <em>Index</em> is omitted, <em>Format</em> must still be preceded by <code>:</code>. Specify empty braces to use the next input value with default formatting: <code>{}</code></p>
+    <p>Use <code>{{}</code> and <code>{}}</code> to include literal braces in the string. Any other invalid placeholders are included in the result as is.</p>
+    <p>Whitespace inside the braces is not permitted (except as a flag).</p>
+  </dd>
+
+  <dt>Values</dt>
+  <dd>
+    <p>Input values to be formatted and inserted into the final string. Each value is a separate parameter. The first value has an index of 1.</p>
+    <p>To pass an array of values, use a <a href="../Functions.htm#VariadicCall">variadic function call</a>:</p>
+    <pre>arr := [13, 240]
+MsgBox % Format("{2:x}{1:02x}", arr*)</pre>
+  </dd>
+
+</dl>
+
+<h3 id="FormatSpec">Format Specifiers</h3>
+<p>Each format specifier can include the following components, in this order (without the spaces):</p>
+<pre class="Syntax">Flags Width .Precision Type</pre>
+<p><a href="#Flags"><strong>Flags</strong></a> which affect output justification and prefixes: <code>-</code> <code>+</code> <code>0</code> space <code>#</code></p>
+<p><strong>Width</strong>: a decimal integer which controls the minimum width of the formatted value, in characters. By default, values are right-aligned and spaces are used for padding. This can be overridden by using the <code>-</code> (left-align) and <code>0</code> (zero prefix) flags.</p>
+<p><strong>.Precision</strong>: a decimal integer which controls the maximum number of string characters, decimal places, or significant digits to output, depending on the output type. It must be preceded by a decimal point. Specifying a precision may cause the value to be be truncated or rounded.</p>
+<ul>
+  <li><code>f</code>, <code>e</code>, <code>E</code>: <em>Precision</em> specifies the number of digits after the decimal point. The default is 6.</li>
+  <li><code>g</code>, <code>G</code>: <em>Precision</em> specifies the maximum number of significant digits. The default is 6.</li>
+  <li><code>s</code>: <em>Precision</em> specifies the maximum number of characters to be printed. Characters in excess of this are not printed.</li>
+  <li>For the integer types (<code>d</code>, <code>i</code>, <code>u</code>, <code>x</code>, <code>X</code>, <code>o</code>), <em>Precision</em> acts like <em>Width</em> with the <code>0</code> prefix and a default of 1.</li>
+</ul>
+<p><a href="#Types"><strong>Type</strong></a>: a character indicating how the input value should be interpreted. If omitted, it defaults to <code>s</code>.</p>
+
+<table class="info" id="Flags">
+  <tr><th>Flag</th><th>Meaning</th><th>Default</th></tr>
+  <tr>
+    <td><code>-</code></td>
+    <td>Left align the result within the given field width (insert spaces to the right if needed).</td>
+    <td>Right align.</td>
+  </tr>
+  <tr>
+    <td><code>+</code></td>
+    <td>Use a sign (+ or -) to prefix the output value if it is of a signed type.</td>
+    <td>Sign appears only for negative signed values (-).</td>
+  </tr>
+  <tr>
+    <td><code>0</code></td>
+    <td>If <em>width</em> is prefixed by 0, leading zeros are added until the minimum width is reached. If both <code>0</code> and <code>-</code> appear, the 0 is ignored. If 0 is specified as an integer format (i, u, x, X, o, d) and a precision specification is also present - for example, <code>{:04.d}</code> - the 0 is ignored.</td>
+    <td>No padding.</td>
+  </tr>
+  <tr>
+    <td>space</td>
+    <td>Use a single space to prefix the output value with a space if it is signed and positive. The space is ignored if both the space and <code>+</code> flags appear.</td>
+    <td>No space appears.</td>
+  </tr>
+  <tr>
+    <td><code>#</code></td>
+    <td>
+      <p>When it's used with the o, x, or X format, the # flag uses <code>0</code>, <code>0x</code>, or <code>0X</code>, respectively, to prefix any nonzero output value.</p>
+      <p>When it's used with the e, E, f, a or A format, the # flag forces the output value to contain a decimal point.</p>
+      <p>When it's used with the g or G format, the # flag forces the output value to contain a decimal point and prevents the truncation of trailing zeros.</p>
+      <p>Ignored when used with c, d, i, u, or s.</p>
+    </td>
+    <td></td>
+  </tr>
+</table>
+<table class="info" id="Types">
+  <tr><th>Type Character</th><th style="min-width:7em">Argument</th><th>Output format</th></tr>
+  <tr>
+    <td><code>d</code> or <code>i</code></td>
+    <td>Integer</td>
+    <td>Signed decimal integer.</td>
+  </tr>
+  <tr>
+    <td><code>u</code></td>
+    <td>Integer</td>
+    <td>Unsigned decimal integer.</td>
+  </tr>
+  <tr>
+    <td><code>x</code> or <code>X</code></td>
+    <td>Integer</td>
+    <td>Unsigned hexadecimal integer; uses "abcdef" or "ABCDEF" depending on the case of <code>x</code>. The <code>0x</code> prefix is not included unless the <code>#</code> flag is used, as in <code>{:#x}</code>.</td>
+  </tr>
+  <tr>
+    <td><code>o</code></td>
+    <td>Integer</td>
+    <td>Unsigned octal integer.</td>
+  </tr>
+  <tr>
+    <td><code>f</code></td>
+    <td>Floating-point</td>
+    <td>Signed value that has the form [ - ]<em>dddd</em>.<em>dddd</em>, where <em>dddd</em> is one or more decimal digits. The number of digits before the decimal point depends on the magnitude of the number, and the number of digits after the decimal point depends on the requested precision.</td>
+  </tr>
+  <tr>
+    <td><code>e</code></td>
+    <td>Floating-point</td>
+    <td>Signed value that has the form [ - ]<em>d.dddd</em> e [<em>sign</em>]<em>dd[d]</em> where <em>d</em> is one decimal digit, <em>dddd</em> is one or more decimal digits, <em>dd[d]</em> is two or three decimal digits depending on the output format and size of the exponent, and sign is + or -.</td>
+  </tr>
+  <tr>
+    <td><code>E</code></td>
+    <td>Floating-point</td>
+    <td>Identical to the <code>e</code> format except that E rather than e introduces the exponent.</td>
+  </tr>
+  <tr>
+    <td><code>g</code></td>
+    <td>Floating-point</td>
+    <td>Signed values are displayed in <code>f</code> or <code>e</code> format, whichever is more compact for the given value and precision. The <code>e</code> format is used only when the exponent of the value is less than -4 or greater than or equal to the <em>precision</em> argument. Trailing zeros are truncated, and the decimal point appears only if one or more digits follow it.</td>
+  </tr>
+  <tr>
+    <td><code>G</code></td>
+    <td>Floating-point</td>
+    <td>Identical to the <code>g</code> format, except that E, rather than e, introduces the exponent (where appropriate).</td>
+  </tr>
+  <tr>
+    <td><code>a</code></td>
+    <td>Floating-point</td>
+    <td>Signed hexadecimal double-precision floating-point value that has the form [?]0x<em>h.hhhh</em> <strong>p</strong>±<em>dd</em>, where <em>h.hhhh</em> are the hex digits (using lower case letters) of the mantissa, and <em>dd</em> are one or more digits for the exponent. The precision specifies the number of digits after the point.</td>
+  </tr>
+  <tr>
+    <td><code>A</code></td>
+    <td>Floating-point</td>
+    <td>Identical to the <code>a</code> format, except that P, rather than p, introduces the exponent.</td>
+  </tr>
+  <tr>
+    <td><code>p</code></td>
+    <td>Integer</td>
+    <td>Displays the argument as a memory address in hexadecimal digits.</td>
+  </tr>
+  <tr>
+    <td><code>s</code></td>
+    <td>String</td>
+    <td>Specifies a string. If the input value is numeric, it is automatically converted to a string using the script's <a href="SetFormat.htm">current number format</a> before the <em>Width</em> and <em>Precision</em> arguments are applied.</td>
+  </tr>
+  <tr>
+    <td><code>c</code></td>
+    <td>Character code</td>
+    <td>Specifies a single character by its ordinal value, similar to <code><a href="../Functions.htm#Chr">Chr</a>(n)</code>. If the input value is outside the expected range, it wraps around.</td>
+  </tr>
+</table>
+
+<h3>Remarks</h3>
+<p>Unlike <a href="http://msdn.microsoft.com/en-us/library/56e442dc">printf</a>, size specifiers are not supported. All integers and floating-point input values are 64-bit.</p>
+
+<h3>Related</h3>
+<p><a href="SetFormat.htm">SetFormat</a>, <a href="FormatTime.htm">FormatTime</a></p>
+
+<h3>Example</h3>
+<pre class="NoIndent">
+<em>; Simple substitution</em>
+s .= Format("{2}, {1}!`r`n", "World", "Hello")
+<em>; Padding with spaces</em>
+s .= Format("|{:-10}|`r`n|{:10}|`r`n", "Left", "Right")
+<em>; Hexadecimal</em>
+s .= Format("{1:#x} {2:X} 0x{3:x}`r`n", 3735928559, 195948557, 0)
+<em>; Floating-point</em>
+s .= Format("{1:0.3f} {1:.10f}", 4*atan(1))
+
+ListVars  <em>; Use AutoHotkey's main window to display monospaced text.</em>
+WinWaitActive ahk_class AutoHotkey
+ControlSetText Edit1, %s%
+WinWaitClose
+</pre>
+
+</body>
+</html>
