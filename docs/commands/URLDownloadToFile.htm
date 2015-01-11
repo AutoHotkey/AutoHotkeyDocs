@@ -53,11 +53,42 @@ UrlDownloadToFile, ftp://user:pass@example.com/My Directory, C:\Dir Listing.html
 UrlDownloadToFile, http://someorg.org/archive.zip, C:\SomeOrg's Archive.zip</pre>
 <pre id="WHR" class="NoIndent"><em>; Example: Download text to a variable:</em>
 whr := ComObjCreate("WinHttp.WinHttpRequest.5.1")
-whr.Open("GET", "http://ahkscript.org/download/1.1/version.txt")
+whr.Open("GET", "http://ahkscript.org/download/1.1/version.txt", true)
 whr.Send()
+<em>; Using 'true' above and the call below allows the script to remain responsive.</em>
+whr.WaitForResponse()
 version := whr.ResponseText
 MsgBox % version
 </pre>
+<pre id="XHR" class="NoIndent"><em>; Example: Make an asynchronous HTTP request.</em>
+
+req := ComObjCreate("Msxml2.XMLHTTP")
+<em>; Open a request with async enabled.</em>
+req.open("GET", "http://ahkscript.org/download/1.1/version.txt", true)
+<em>; Set our callback function (v1.1.17+).</em>
+req.onreadystatechange := Func("Ready")
+<em>; Send the request.  Ready() will be called when it's complete.</em>
+req.send()
+<em>/*
+; If you're going to wait, there's no need for onreadystatechange.
+; Setting async=true and waiting like this allows the script to remain
+; responsive while the download is taking place, whereas async=false
+; will make the script unresponsive.
+while req.readyState != 4
+    sleep 100
+*/</em>
+#Persistent
+
+Ready() {
+    global req
+    if (req.readyState != 4)  ; Not done yet.
+        return
+    if (req.status == 200 || req.status == 304) ; OK.
+        MsgBox % "Latest AutoHotkey version: " req.responseText
+    else
+        MsgBox 16,, % "Status " req.status
+    ExitApp
+}</pre>
 
 </body>
 </html>
