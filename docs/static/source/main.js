@@ -17,6 +17,7 @@ if (!IsInsideCHM() && !IsSearchBot())
   BuildStructure();
   AddContent();
 }
+$(document).ready(ImproveCodeBoxes);
 
 function GetVirtualDir()
 {
@@ -119,81 +120,6 @@ function AddContent()
           $(this).attr('id', str);
       }
       $(this).wrap('<a href="#' + $(this).attr('id') + '" style="text-decoration:none;color:#000"></a>');
-    });
-
-    //
-    // Add useful features for code boxes
-    //
-
-    // Show select and download buttons in lower right corner of a pre box
-
-    var divStyle = {fontSize: "11px", float: "right"};
-    var aStyle = {cursor: "pointer", color: $("a:link").css("color")};
-    var selectLink = $('<a id="selectCode">').text(cdSelectBtn).css(aStyle);
-    var downloadLink = $('<a id="downloadCode">').text(cdDownloadBtn).css(aStyle);
-
-    $('pre').each(function(index) {
-      if ($(this).is(".Syntax")) {
-        $.extend(divStyle, {marginTop: "-32px", marginRight: "7px"});
-        $(this).after($('<div>').css(divStyle).prepend(selectLink.clone()));
-      }
-      else {
-        $.extend(divStyle, {marginTop: "-28px", marginRight: "28px"});
-        $(this).after($('<div>').css(divStyle).prepend(selectLink.clone(), [' | ', downloadLink.clone()]));
-      }
-    });
-
-    // Select complete code when clicking
-
-    $('a#selectCode').each(function(index) {
-      $(this).on('click', function(e) {
-        var doc = document
-          , text = $(this).parent().prev('pre')[0]
-          , range, selection
-        ;
-        if (doc.body.createTextRange) {
-          range = document.body.createTextRange();
-          range.moveToElementText(text);
-          range.select();
-        } else if (window.getSelection) {
-          selection = window.getSelection();        
-          range = document.createRange();
-          range.selectNodeContents(text);
-          selection.removeAllRanges();
-          selection.addRange(range);
-        }
-      });
-    });
-
-    // Download complete code when clicking
-
-    $('a#downloadCode').each(function(index) {
-      $(this).on('click', function(e) {
-        var textToWrite = '\ufeff' + $(this).parent().prev('pre').text().replace(/\n/g, "\r\n");
-        var textFileAsBlob = new Blob([textToWrite], {type:'text/csv'});
-        var fileNameToSaveAs = location.pathname.match(/([^\/]+)(?=\.\w+$)/)[0] + "-Script.ahk";
-
-        var downloadLink = document.createElement("a");
-        downloadLink.download = fileNameToSaveAs;
-        downloadLink.innerHTML = "Download File";
-
-        if (window.webkitURL != null) {
-          // Chrome
-          downloadLink.href = window.webkitURL.createObjectURL(textFileAsBlob);
-          downloadLink.click();
-        }
-        else if (navigator.userAgent.indexOf("Trident")>-1) {
-          // IE 10+
-          navigator.msSaveBlob(textFileAsBlob, fileNameToSaveAs)
-        }
-        else {
-          // Firefox
-          downloadLink.href = window.URL.createObjectURL(textFileAsBlob);
-          downloadLink.style.display = "none";
-          document.body.appendChild(downloadLink);
-          downloadLink.click();
-        }
-      });
     });
 
     //
@@ -330,6 +256,84 @@ function AddContent()
     });
   });
 };
+
+function ImproveCodeBoxes()
+{
+  //
+  // Add useful features for code boxes
+  //
+
+  // Show select and download buttons in lower right corner of a pre box
+
+  var divStyle = {fontSize: "11px", float: "right"};
+  var aStyle = {cursor: "pointer", color: $("a:link").css("color")};
+  var selectLink = $('<a id="selectCode">').text(cdSelectBtn).css(aStyle);
+  var downloadLink = $('<a id="downloadCode">').text(cdDownloadBtn).css(aStyle);
+
+  $('pre').each(function(index) {
+    if ($(this).is(".Syntax")) {
+      $.extend(divStyle, {marginTop: "-32px", marginRight: "7px"});
+      $(this).after($('<div>').css(divStyle).prepend(selectLink.clone()));
+    }
+    else {
+      $.extend(divStyle, {marginTop: "-28px", marginRight: "28px"});
+      $(this).after($('<div>').css(divStyle).prepend(selectLink.clone(), [' | ', downloadLink.clone()]));
+    }
+  });
+
+  // Select complete code when clicking
+
+  $('a#selectCode').each(function(index) {
+    $(this).on('click', function(e) {
+      var doc = document
+        , text = $(this).parent().prev('pre')[0]
+        , range, selection
+      ;
+      if (doc.body.createTextRange) {
+        range = document.body.createTextRange();
+        range.moveToElementText(text);
+        range.select();
+      } else if (window.getSelection) {
+        selection = window.getSelection();        
+        range = document.createRange();
+        range.selectNodeContents(text);
+        selection.removeAllRanges();
+        selection.addRange(range);
+      }
+    });
+  });
+
+  // Download complete code when clicking
+
+  $('a#downloadCode').each(function(index) {
+    $(this).on('click', function(e) {
+      var textToWrite = '\ufeff' + $(this).parent().prev('pre').text().replace(/\n/g, "\r\n");
+      var textFileAsBlob = new Blob([textToWrite], {type:'text/csv'});
+      var fileNameToSaveAs = location.pathname.match(/([^\/]+)(?=\.\w+$)/)[0] + "-Script.ahk";
+
+      var downloadLink = document.createElement("a");
+      downloadLink.download = fileNameToSaveAs;
+      downloadLink.innerHTML = "Download File";
+
+      if (window.webkitURL != null) {
+        // Chrome
+        downloadLink.href = window.webkitURL.createObjectURL(textFileAsBlob);
+        downloadLink.click();
+      }
+      else if (navigator.userAgent.indexOf("Trident")>-1) {
+        // IE 10+
+        navigator.msSaveBlob(textFileAsBlob, fileNameToSaveAs)
+      }
+      else {
+        // Firefox
+        downloadLink.href = window.URL.createObjectURL(textFileAsBlob);
+        downloadLink.style.display = "none";
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+      }
+    });
+  });
+}
 
 function ShowTOC()
 {
