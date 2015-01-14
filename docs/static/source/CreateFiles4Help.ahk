@@ -11,13 +11,16 @@ FileList := { MainJS:       "main.js"
 For var, file in FileList
     %var% := FileOpen(file, "r").Read()
 
-FileDelete, content.js
-FileAppend, % JQueryJS "`n" TreeJQueryJS "`n" TocJS "`n" IndexJS "`n" MainJS, content.js
-FileDelete, Table of Contents.hhc
-FileAppend, % TOC_CreateHHC(TocJS), Table of Contents.hhc
-FileDelete, Index.hhk
-FileAppend, % INDEX_CreateHHK(IndexJS), Index.hhk
-Return
+Overwrite("content.js", JQueryJS "`n" TreeJQueryJS "`n" TocJS "`n" IndexJS "`n" MainJS)
+Overwrite("content.chm.js", JQueryJS "`n" MainJS)
+Overwrite("Table of Contents.hhc", TOC_CreateHHC(TocJS))
+Overwrite("Index.hhk", INDEX_CreateHHK(IndexJS))
+return
+
+Overwrite(File, Text)
+{
+    FileOpen(File, "w").Write(Text)
+}
 
 TOC_CreateHHC(data)
 {
