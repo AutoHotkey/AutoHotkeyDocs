@@ -9,10 +9,12 @@ FileList := { MainJS:       "main.js"
             , TreeJQueryJS: "tree.jquery.js" }
 
 For var, file in FileList
-    %var% := FileOpen(file, "r").Read()
+	FileRead %var%, %A_ScriptDir%\%file%
 
+SetWorkingDir %A_ScriptDir%\..
 Overwrite("content.js", JQueryJS "`n" TreeJQueryJS "`n" TocJS "`n" IndexJS "`n" MainJS)
 Overwrite("content.chm.js", JQueryJS "`n" MainJS)
+SetWorkingDir %A_ScriptDir%\..\..\..
 Overwrite("Table of Contents.hhc", TOC_CreateHHC(TocJS))
 Overwrite("Index.hhk", INDEX_CreateHHK(IndexJS))
 return
