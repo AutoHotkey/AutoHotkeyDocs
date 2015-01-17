@@ -205,6 +205,38 @@ function AddContent()
     $("#indexcontainer").html(newContent);
     
     //
+    // Make keyword list fill and follow the viewport
+    //
+    
+    var nav = $('ul.nav')[0];
+    (function(top) {
+      if (window.name != 2)
+        $('#keywords').show(); // Make height() work.
+      var itemHeight = $('#indexcontainer').children().first().height() + 1;
+      if (window.name != 2)
+        $('#keywords').hide();
+      var wasFixed, margin;
+      function scrolled() {
+        var fixed = window.scrollY > top;
+        if (fixed != wasFixed) {
+          if (wasFixed = fixed) {
+            $('#keywords').css({position: 'fixed', top: '8px'});
+            margin = 8 + 20 + 44;
+          } else {
+            $('#keywords').css({position: '', top: ''});
+            margin = top + 20 + 8;
+          }
+          resized();
+        }
+      }
+      function resized() {
+        $('#indexcontainer').attr('size', ~~(($(window).height() - margin) / itemHeight));
+      }
+      $(window).on({scroll: scrolled, resize: resized});
+      scrolled();
+    })(nav.offsetTop + nav.offsetHeight);
+    
+    //
     // pre-select keyword list sidebar item
     //
 
