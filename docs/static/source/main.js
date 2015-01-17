@@ -22,6 +22,8 @@ $(document).ready(ImproveCodeBoxes);
 function GetVirtualDir()
 {
   var pathname = location.pathname;
+  if (pathname.substr(0,1) == '/')
+    pathname = pathname.substr(1); // IE11: /C:\foo -> C:\foo
   return pathname.substr(0, pathname.lastIndexOf('/docs'));
 }
 
@@ -210,27 +212,27 @@ function AddContent()
     
     var nav = $('ul.nav')[0];
     (function(top) {
-      if (window.name != 2)
-        $('#keywords').show(); // Make height() work.
-      var itemHeight = $('#indexcontainer').children().first().height() + 1;
-      if (window.name != 2)
-        $('#keywords').hide();
       var wasFixed, margin;
       function scrolled() {
-        var fixed = window.scrollY > top;
+        var fixed = $(window).scrollTop() > top;
         if (fixed != wasFixed) {
           if (wasFixed = fixed) {
             $('#keywords').css({position: 'fixed', top: '8px'});
+            $('#IndexEntry').css('display', 'block');
             margin = 8 + 20 + 44;
           } else {
             $('#keywords').css({position: '', top: ''});
+            $('#IndexEntry').css('display', '');
             margin = top + 20 + 8;
           }
           resized();
         }
       }
       function resized() {
-        $('#indexcontainer').attr('size', ~~(($(window).height() - margin) / itemHeight));
+        var ic = $('#indexcontainer');
+        // Child height seems to always return 0 on IE, so calculate it this way:
+        var itemHeight = ic.height() / (ic.attr('size') || 1);
+        ic.attr('size', ~~(($(window).height() - margin) / itemHeight));
       }
       $(window).on({scroll: scrolled, resize: resized});
       scrolled();
@@ -383,6 +385,7 @@ function ShowIndex()
   $('#sb_content').removeAttr('class');
   $('#sidebar').hide();
   $('#keywords').fadeIn();
+  $(window).trigger('resize');
 }
 
 function IsInsideCHM()
