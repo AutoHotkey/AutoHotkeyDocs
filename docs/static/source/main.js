@@ -17,7 +17,7 @@ if (!IsInsideCHM() && !IsSearchBot())
   BuildStructure();
   AddContent();
 }
-$(document).ready(ImproveCodeBoxes);
+$(document).ready(AddChmAndOnlineFeatures);
 
 function GetVirtualDir()
 {
@@ -291,8 +291,11 @@ function AddContent()
   });
 };
 
-function ImproveCodeBoxes()
+function AddChmAndOnlineFeatures()
 {
+  // Make all external links open a new tab/window.
+  $("a[href^='http:']").attr('target', '_blank');
+  
   //
   // Add useful features for code boxes
   //
