@@ -303,7 +303,7 @@ function AddChmAndOnlineFeatures()
   // Show select and download buttons in lower right corner of a pre box
 
   var divStyle = {fontSize: "11px", float: "right"};
-  var aStyle = {cursor: "pointer", color: $("a:link").css("color")};
+  var aStyle = {cursor: "pointer", color: $("a:not([href=])").css("color")};
   var selectLink = $('<a id="selectCode">').text(cdSelectBtn).css(aStyle);
   var downloadLink = $('<a id="downloadCode">').text(cdDownloadBtn).css(aStyle);
 
