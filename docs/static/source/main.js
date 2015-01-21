@@ -21,10 +21,8 @@ $(document).ready(AddChmAndOnlineFeatures);
 
 function GetVirtualDir()
 {
-  var pathname = location.pathname;
-  if (pathname.substr(0,1) == '/')
-    pathname = pathname.substr(1); // IE11: /C:\foo -> C:\foo
-  return pathname.substr(0, pathname.lastIndexOf('/docs'));
+  var href = location.href;
+  return href.substr(0, href.lastIndexOf('/docs'));
 }
 
 function GetScriptDir() {
@@ -51,7 +49,7 @@ function AddContent()
 
   $(document).ready(function() {
     var vdir = GetVirtualDir();
-    var urlpath = location.href.replace(location.host + vdir, '').replace(/.*?:\/*/, '');
+    var urlpath = location.href.replace(vdir + '/', '');
 
     //
     // set last used state of sidebar
