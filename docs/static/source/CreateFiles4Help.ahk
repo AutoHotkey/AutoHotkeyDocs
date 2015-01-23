@@ -63,7 +63,7 @@ TOC_CreateListCallback(byref output, data)
         if data[i].path
         {
             Transform, param_local, HTML, % data[i].path
-            output .= "<param name=""Local"" value=""" param_local """>"
+            output .= "<param name=""Local"" value=""docs/" param_local """>"
         }
 
         output .= "</object>"
@@ -100,7 +100,7 @@ INDEX_CreateHHK(data)
         Transform, param_name, HTML, % data[i].t
         output .= "<param name=""Name"" value=""" param_name """>"
         Transform, param_local, HTML, % data[i].v
-        output .= "<param name=""Local"" value=""" param_local """>"
+        output .= "<param name=""Local"" value=""docs/" param_local """>"
 
         output .= "</object>`n"
     }

@@ -147,7 +147,7 @@ function AddContent()
             return true;
       },
       onCreateLi:       function(node, $li) {
-        if (node.path == urlpath)
+        if ("docs/" + node.path == urlpath)
         {
           node_matched.push(node);
         }
@@ -158,7 +158,7 @@ function AddContent()
       var node = event.node;
       $(this).tree('toggle', node);
       if (node.path)
-        window.location = vdir + "/" + node.path;
+        window.location = vdir + "/docs/" + node.path;
     });
 
     //
@@ -185,7 +185,7 @@ function AddContent()
 
     for (var i = 0, len = index.length; i < len; i++)
     {
-      newContent += '<option value="' + index[i].v + '">' + index[i].t + '</option>';
+      newContent += '<option value="docs/' + index[i].v + '">' + index[i].t + '</option>';
     };
 
     $("#indexcontainer").html(newContent);
