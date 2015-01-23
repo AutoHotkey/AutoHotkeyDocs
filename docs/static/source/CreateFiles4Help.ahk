@@ -3,8 +3,8 @@
 SetBatchLines, -1
 
 FileList := { MainJS:       "main.js"
-            , IndexJS:      "index.js"
-            , TocJS:        "toc.js"
+            , IndexJS:      "data_index.js"
+            , TocJS:        "data_toc.js"
             , JQueryJS:     "jquery.js"
             , TreeJQueryJS: "tree.jquery.js" }
 
