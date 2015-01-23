@@ -97,9 +97,9 @@ INDEX_CreateHHK(data)
 
         output .= "<li><object type=""text/sitemap"">"
 
-        Transform, param_name, HTML, % data[i].t
+        Transform, param_name, HTML, % data[i][0]
         output .= "<param name=""Name"" value=""" param_name """>"
-        Transform, param_local, HTML, % data[i].v
+        Transform, param_local, HTML, % data[i][1]
         output .= "<param name=""Local"" value=""docs/" param_local """>"
 
         output .= "</object>`n"

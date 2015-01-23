@@ -179,13 +179,13 @@ function AddContent()
     var newContent = '';
 
     index.sort(function(a, b) {
-      var textA = a.t.toLowerCase(), textB = b.t.toLowerCase()
+      var textA = a[0].toLowerCase(), textB = b[0].toLowerCase()
       return textA.localeCompare(textB);
     });
 
     for (var i = 0, len = index.length; i < len; i++)
     {
-      newContent += '<option value="docs/' + index[i].v + '">' + index[i].t + '</option>';
+      newContent += '<option value="docs/' + index[i][1] + '">' + index[i][0] + '</option>';
     };
 
     $("#indexcontainer").html(newContent);
