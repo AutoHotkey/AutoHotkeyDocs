@@ -1,18 +1,4 @@
-﻿//
-// Translatable items
-//
-
-var hdSearchTxt = "Enter search term ...";
-var hdSearchBtn = "Search";
-var hdSearchLnk = "'http://www.google.com/cse?cx=010629462602499112316:ywoq_rufgic&q=' + query"
-var sbContent   = "Content";
-var sbIndex     = "Index";
-var ftLicense   = "License:";
-var ftExtra     = "";
-var cdSelectBtn = "Select";
-var cdDownloadBtn = "Download";
-
-if (!IsInsideCHM() && !IsSearchBot())
+﻿if (!IsInsideCHM() && !IsSearchBot())
 {
   BuildStructure();
   AddContent();
@@ -35,10 +21,10 @@ function GetScriptDir() {
 function BuildStructure()
 {
   var vdir = GetVirtualDir();
-  var header  = '<div class="header"><table class="hdr-table"><tr><td class="hdr-image"><a href="' + vdir + '/' + '"><img src="' + vdir + '/docs/static/ahk_logo_no_text.png" width="217" height="70" alt="AutoHotkey"></a></td><td class="hdr-search"><form id="search-form"><input id="q" size="30" type="text" placeholder="' + hdSearchTxt + '"></form><div id="search-btn">' + hdSearchBtn + '</div></td><td class="hdr-language"><ul><li>Language<ul class="second"><li id="lng-btn-en">English</li><li id="lng-btn-de">Deutsch</li><li id="lng-btn-cn">&#20013;&#25991;</li></ul></li></ul></td></tr></table></div>';
-  var main_1  = '<div class="main-content"><div id="app-body"><div id="headerbar"></div><div class="left-col"><ul class="nav"><li id="sb_content" class="selected"><span>' + sbContent + '</span></li><li id="sb_index"><span>' + sbIndex + '</span></li></ul><div id="sidebar"></div><div id="keywords" style="display: none;"><input id="IndexEntry" type="text"><select id="indexcontainer" name="IndexListbox" class="docstyle" size="20"></select></div></div><div class="right-col"><div id="main-content">';
+  var header  = '<div class="header"><table class="hdr-table"><tr><td class="hdr-image"><a href="' + vdir + '/' + '"><img src="' + vdir + '/docs/static/ahk_logo_no_text.png" width="217" height="70" alt="AutoHotkey"></a></td><td class="hdr-search"><form id="search-form"><input id="q" size="30" type="text" placeholder="' + translate.hdSearchTxt + '"></form><div id="search-btn">' + translate.hdSearchBtn + '</div></td><td class="hdr-language"><ul><li>Language<ul class="second"><li id="lng-btn-en">English</li><li id="lng-btn-de">Deutsch</li><li id="lng-btn-cn">&#20013;&#25991;</li></ul></li></ul></td></tr></table></div>';
+  var main_1  = '<div class="main-content"><div id="app-body"><div id="headerbar"></div><div class="left-col"><ul class="nav"><li id="sb_content" class="selected"><span>' + translate.sbContent + '</span></li><li id="sb_index"><span>' + translate.sbIndex + '</span></li></ul><div id="sidebar"></div><div id="keywords" style="display: none;"><input id="IndexEntry" type="text"><select id="indexcontainer" name="IndexListbox" class="docstyle" size="20"></select></div></div><div class="right-col"><div id="main-content">';
   var main_2  = '</div></div><div class="float-clear"></div></div></div>';
-  var footer  = '<div class="footer"><b>Copyright</b> &copy; 2003-' + new Date().getFullYear() + ' ' + location.host + ' - <span id="ftLicense">' + ftLicense + '</span> <a href="' + vdir + '/docs/license.htm">GNU General Public License</a><span id="ftExtra">' + ftExtra + '</span></div>';
+  var footer  = '<div class="footer"><b>Copyright</b> &copy; 2003-' + new Date().getFullYear() + ' ' + location.host + ' - <span id="ftLicense">' + translate.ftLicense + '</span> <a href="' + vdir + '/docs/license.htm">GNU General Public License</a><span id="ftExtra">' + translate.ftExtra + '</span></div>';
   document.write(header + main_1);
   $(document).ready(function() { $('body').append(main_2 + footer); });
 }
@@ -70,13 +56,13 @@ function AddContent()
 
     $('.header #search-btn').on('click', function() {
       var query = $(".header #q").val();
-      document.location = eval(hdSearchLnk);
+      document.location = eval(translate.hdSearchLnk);
     });
 
     $('.header #search-form').on('submit', function(event) {
         event.preventDefault();
         var query = $(".header #q").val();
-        document.location = eval(hdSearchLnk);
+        document.location = eval(translate.hdSearchLnk);
     });
 
     //
@@ -161,7 +147,7 @@ function AddContent()
             return true;
       },
       onCreateLi:       function(node, $li) {
-        if (node.path == urlpath)
+        if ("docs/" + node.path == urlpath)
         {
           node_matched.push(node);
         }
@@ -172,7 +158,7 @@ function AddContent()
       var node = event.node;
       $(this).tree('toggle', node);
       if (node.path)
-        window.location = vdir + "/" + node.path;
+        window.location = vdir + "/docs/" + node.path;
     });
 
     //
@@ -193,13 +179,13 @@ function AddContent()
     var newContent = '';
 
     index.sort(function(a, b) {
-      var textA = a.t.toLowerCase(), textB = b.t.toLowerCase()
+      var textA = a[0].toLowerCase(), textB = b[0].toLowerCase()
       return textA.localeCompare(textB);
     });
 
     for (var i = 0, len = index.length; i < len; i++)
     {
-      newContent += '<option value="' + index[i].v + '">' + index[i].t + '</option>';
+      newContent += '<option value="docs/' + index[i][1] + '">' + index[i][0] + '</option>';
     };
 
     $("#indexcontainer").html(newContent);
@@ -302,8 +288,8 @@ function AddChmAndOnlineFeatures()
 
   var divStyle = {fontSize: "11px", float: "right"};
   var aStyle = {cursor: "pointer", color: $("a:not([href=])").css("color")};
-  var selectLink = $('<a id="selectCode">').text(cdSelectBtn).css(aStyle);
-  var downloadLink = $('<a id="downloadCode">').text(cdDownloadBtn).css(aStyle);
+  var selectLink = $('<a id="selectCode">').text(translate.cdSelectBtn).css(aStyle);
+  var downloadLink = $('<a id="downloadCode">').text(translate.cdDownloadBtn).css(aStyle);
 
   $('pre').each(function(index) {
     if ($(this).is(".Syntax")) {

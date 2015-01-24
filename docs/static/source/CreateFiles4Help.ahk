@@ -3,8 +3,9 @@
 SetBatchLines, -1
 
 FileList := { MainJS:       "main.js"
-            , IndexJS:      "index.js"
-            , TocJS:        "toc.js"
+            , IndexJS:      "data_index.js"
+            , TocJS:        "data_toc.js"
+            , TranslateJS:  "data_translate.js"
             , JQueryJS:     "jquery.js"
             , TreeJQueryJS: "tree.jquery.js" }
 
@@ -12,8 +13,8 @@ For var, file in FileList
 	FileRead %var%, %A_ScriptDir%\%file%
 
 SetWorkingDir %A_ScriptDir%\..
-Overwrite("content.js", JQueryJS "`n" TreeJQueryJS "`n" TocJS "`n" IndexJS "`n" MainJS)
-Overwrite("content.chm.js", JQueryJS "`n" MainJS)
+Overwrite("content.js", JQueryJS "`n" TreeJQueryJS "`n" TocJS "`n" IndexJS "`n" TranslateJS "`n" MainJS)
+Overwrite("content.chm.js", JQueryJS "`n" TranslateJS "`n" MainJS)
 SetWorkingDir %A_ScriptDir%\..\..\..
 Overwrite("Table of Contents.hhc", TOC_CreateHHC(TocJS))
 Overwrite("Index.hhk", INDEX_CreateHHK(IndexJS))
@@ -62,7 +63,7 @@ TOC_CreateListCallback(byref output, data)
         if data[i].path
         {
             Transform, param_local, HTML, % data[i].path
-            output .= "<param name=""Local"" value=""" param_local """>"
+            output .= "<param name=""Local"" value=""docs/" param_local """>"
         }
 
         output .= "</object>"
@@ -96,10 +97,10 @@ INDEX_CreateHHK(data)
 
         output .= "<li><object type=""text/sitemap"">"
 
-        Transform, param_name, HTML, % data[i].t
+        Transform, param_name, HTML, % data[i][0]
         output .= "<param name=""Name"" value=""" param_name """>"
-        Transform, param_local, HTML, % data[i].v
-        output .= "<param name=""Local"" value=""" param_local """>"
+        Transform, param_local, HTML, % data[i][1]
+        output .= "<param name=""Local"" value=""docs/" param_local """>"
 
         output .= "</object>`n"
     }
