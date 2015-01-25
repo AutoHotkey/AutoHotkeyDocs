@@ -9,6 +9,7 @@ FileList := { MainJS:       "main.js"
             , JQueryJS:     "jquery.js"
             , TreeJQueryJS: "tree.jquery.js" }
 
+FileEncoding, UTF-8
 For var, file in FileList
 	FileRead %var%, %A_ScriptDir%\%file%
 
