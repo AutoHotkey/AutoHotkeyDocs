@@ -43,16 +43,16 @@
 <p>The target window must be active to have a focused control. If the window is not active, <em>OutputVar</em> will be made blank.</p>
 <p>If ControlGetFocus is executed repeatedly at a high frequency (i.e. every 500 ms or faster), it will probably disrupt the user's ability to double-click. One workaround is to call the OS's GetGUIThreadInfo() via <a href="DllCall.htm">DllCall</a>. For example:</p>
 <pre><em>; This script retrieves the ahk_id (HWND) of the active window's focused control.</em>
-GuiThreadInfoSize = 48
+GuiThreadInfoSize := 24 + (A_PtrSize * 6)
 VarSetCapacity(GuiThreadInfo, GuiThreadInfoSize)
 <a href="NumPut.htm">NumPut</a>(GuiThreadInfoSize, GuiThreadInfo, 0)
-if not DllCall(&quot;GetGUIThreadInfo&quot;, uint, 0, str, GuiThreadInfo)
+if not DllCall("GetGUIThreadInfo", "uint", 0, "ptr", &amp;GuiThreadInfo)
 {
     MsgBox GetGUIThreadInfo() indicated a failure.
     return
 }
-FocusedHWND := <a href="NumGet.htm">NumGet</a>(GuiThreadInfo, 12)  <em>; Retrieve the hwndFocus field from the struct.</em>
-MsgBox % &quot;The focused control's ahk_id (HWND) is &quot; . FocusedHWND
+FocusedHWND := <a href="NumGet.htm">NumGet</a>(GuiThreadInfo, 8 + A_PtrSize)  <em>; Retrieve the hwndFocus field from the struct.</em>
+MsgBox % "The focused control's ahk_id (HWND) is " . FocusedHWND
 <em>; This ID can be used all control commands.  For example:
 ; ControlGetText, OutputVar,, ahk_id %FocusedHWND%</em></pre>
 <p>Window titles and text are case sensitive. Hidden windows are not detected unless <a href="DetectHiddenWindows.htm">DetectHiddenWindows</a> has been turned on.</p>
