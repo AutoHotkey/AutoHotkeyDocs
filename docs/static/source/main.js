@@ -280,6 +280,35 @@ function AddChmAndOnlineFeatures()
   // Make all external links open a new tab/window.
   $("a[href^='http:']").attr('target', '_blank');
   
+  (function() {
+    var templ = $('<a class="ver"></a>');
+    $('span.ver').each(function(idx, el) {
+      // Give each version annotation a link to the changelog.
+      var jel = $(el);
+      var m, title, href, text = jel.text();
+      if (m = /AHK_L (\d+)\+/.exec(text)) {
+        title = 'Applies to:\n'
+          + '  AutoHotkey_L Revision ' + m[1] + ' and later\n'
+          + '  AutoHotkey v1.0.90.00 and later';
+        href = '/docs/AHKL_ChangeLog.htm#L' + m[1];
+        text = text.replace(m[0], 'v1.0.90+'); // For users who don't know what AHK_L was.
+      } else if (m = /v\d\.\d\.(\d+\.)?\d+/.exec(text)) {
+        title = 'Applies to AutoHotkey ' + m[0] + ' and later';
+        if (!m[1])
+          m[0] = m[0] + '.00';
+        if (m[0] <= 'v1.0.48.05')
+          href = '/docs/ChangeLogHelp.htm#' + m[0];
+        else
+          href = '/docs/AHKL_ChangeLog.htm#' + m[0];
+      } else return;
+      jel.replaceWith(templ.clone(true)
+        .attr('title', title)
+        .attr('href', GetVirtualDir() + href)
+        .text(text)
+        );
+    });
+  })();
+  
   //
   // Add useful features for code boxes
   //
