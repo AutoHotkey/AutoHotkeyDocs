@@ -56,13 +56,13 @@ function AddContent()
 
     $('.header #search-btn').on('click', function() {
       var query = $(".header #q").val();
-      document.location = eval(translate.hdSearchLnk);
+      document.location = translate.hdSearchLnk.format(query);
     });
 
     $('.header #search-form').on('submit', function(event) {
         event.preventDefault();
         var query = $(".header #q").val();
-        document.location = eval(translate.hdSearchLnk);
+        document.location = translate.hdSearchLnk.format(query);
     });
 
     //
@@ -287,13 +287,11 @@ function AddChmAndOnlineFeatures()
       var jel = $(el);
       var m, title, href, text = jel.text();
       if (m = /AHK_L (\d+)\+/.exec(text)) {
-        title = 'Applies to:\n'
-          + '  AutoHotkey_L Revision ' + m[1] + ' and later\n'
-          + '  AutoHotkey v1.0.90.00 and later';
+        title = translate.verToolTipAHK_L.format(m[1]);
         href = '/docs/AHKL_ChangeLog.htm#L' + m[1];
         text = text.replace(m[0], 'v1.0.90+'); // For users who don't know what AHK_L was.
       } else if (m = /v\d\.\d\.(\d+\.)?\d+/.exec(text)) {
-        title = 'Applies to AutoHotkey ' + m[0] + ' and later';
+        title = translate.verToolTipDefault.format(m[0]);
         if (!m[1])
           m[0] = m[0] + '.00';
         if (m[0] <= 'v1.0.48.05')
@@ -413,3 +411,8 @@ function IsSearchBot()
 {
   return navigator.userAgent.match(/googlebot|bingbot|slurp/i);
 }
+
+String.prototype.format = function() {
+  var args = arguments;
+  return this.replace(/\{(\d+)\}/g, function(m, n) { return args[n]; });
+};
