@@ -25,7 +25,7 @@ toc = [
       {label:"Object",path:"objects/Object.htm"},
       {label:"Enumerator Object",path:"objects/Enumerator.htm"},
       {label:"File Object",path:"objects/File.htm"},
-      {label:"Func Object",path:"objects/Func.htm"}
+      {label:"Function Objects",path:"objects/Functor.htm"}
     ]}
   ]},
   {label:"Moving to AutoHotkey 1.1 (AutoHotkey_L)",children:
@@ -156,7 +156,7 @@ toc = [
     {label:"Asc",path:"Functions.htm#Asc"},
     {label:"Chr",path:"Functions.htm#Chr"},
     {label:"FileExist",path:"Functions.htm#FileExist"},
-	{label:"Format",path:"commands/Format.htm"},
+    {label:"Format",path:"commands/Format.htm"},
     {label:"GetKeyName/VK/SC",path:"Functions.htm#GetKeyName"},
     {label:"GetKeyState",path:"Functions.htm#GetKeyState"},
     {label:"InStr",path:"Functions.htm#InStr"},
@@ -165,6 +165,8 @@ toc = [
     {label:"IsLabel",path:"Functions.htm#IsLabel"},
     {label:"NumGet",path:"commands/NumGet.htm"},
     {label:"NumPut",path:"commands/NumPut.htm"},
+    {label:"OnClipboardChange",path:"commands/OnClipboardChange.htm"},
+    {label:"OnExit",path:"commands/OnExit.htm"},
     {label:"OnMessage",path:"commands/OnMessage.htm"},
     {label:"RegExMatch",path:"commands/RegExMatch.htm"},
     {label:"RegExReplace",path:"commands/RegExReplace.htm"},
