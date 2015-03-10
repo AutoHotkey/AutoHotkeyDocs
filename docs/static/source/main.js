@@ -278,7 +278,7 @@ function AddContent()
 function AddChmAndOnlineFeatures()
 {
   // Make all external links open a new tab/window.
-  $("a[href^='http:']").attr('target', '_blank');
+  $("a[href^='http']").attr('target', '_blank');
   
   (function() {
     var templ = $('<a class="ver"></a>');
