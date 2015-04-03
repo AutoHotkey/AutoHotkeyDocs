@@ -14,57 +14,149 @@
 
 <p>AutoHotkey's basic object datatype is an associative array with features which allow its behaviour to be <a href="../Objects.htm#Custom_Objects">customized</a>.  By default, all objects created by <code>{}</code>, <code>[]</code>, <code>Object()</code> and <code>Array()</code> support the following methods:</p>
 <ul>
-	<li><a href="#Insert">Insert</a></li>
-	<li><a href="#Remove">Remove</a></li>
-	<li><a href="#MinMaxIndex">MinIndex / MaxIndex</a></li>
-	<li><a href="#SetCapacity">SetCapacity</a></li>
-	<li><a href="#GetCapacity">GetCapacity</a></li>
+  <li><a href="#InsertAt">InsertAt</a> / <a href="#RemoveAt">RemoveAt</a></li>
+  <li><a href="#Push">Push</a> / <a href="#Pop">Pop</a></li>
+  <li><a href="#Delete">Delete</a></li>
+	<li><a href="#MinMaxIndex">MinIndex / MaxIndex</a> / <a href="#Length">Length</a></li>
+	<li><a href="#SetCapacity">SetCapacity</a> / <a href="#GetCapacity">GetCapacity</a></li>
 	<li><a href="#GetAddress">GetAddress</a></li>
 	<li><a href="#NewEnum">_NewEnum</a></li>
 	<li><a href="#HasKey">HasKey</a></li>
 	<li><a href="#Clone">Clone</a></li>
+  <li><a href="#RawSet">ObjRawSet</a> (function)</li>
+</ul>
+<p><strong>Deprecated</strong> (not recommended for use):</p>
+<ul>
+	<li><a href="#Insert">Insert</a></li>
+	<li><a href="#Remove">Remove</a></li>
 </ul>
 <p>Each method also has an equivalent function, which can be used to bypass any <a href="../Objects.htm#Custom_Objects">custom behaviour</a> implemented by the object -- it is recommended that these functions only be used for that purpose.  To call one, prefix the method name with "Obj" and pass the target object as the first parameter.  For example:</p>
 <pre>array := [1, 2, 3]
 MsgBox % ObjMaxIndex(array) " = " array.MaxIndex()</pre>
+<p>If an Obj function is called with an object or value of the wrong type, it returns an empty string.</p>
 &nbsp;
 
-<div class="methodShort" id="Insert"><h2>Insert <span class="ver">[AHK_L 31+]</span></h2>
-<p>Inserts key-value pairs into the object, automatically adjusting existing keys if appropriate.</p>
-<pre class="Syntax">Object.Insert(Index, Value1 [, Value2, ... Value<i>N</i> ])
-Object.Insert(Value)
-Object.Insert(Key, Value)</pre>
-<table class="info">
-  <tr><td width="15%">Index</td><td width="85%">An integer key to insert Value1 at. Subsequent values are inserted at Index+1, Index+2, etc.<br>
-  If omitted, it defaults to <code>MaxIndex()="" ? 1 : MaxIndex() + 1</code>.</td></tr>
-  <tr><td>Key</td><td>A string or object key.  If the key already exists, its value is overwritten.</td></tr>
-  <tr><td>Value</td><td>A string, number or object.</td></tr>
-  <tr><td><b>Returns</b></td><td>A <i>true</i> value if successful or an empty string if the script is out of memory.</td></tr>
-</table>
+<div class="methodShort" id="InsertAt"><h2>InsertAt <span class="ver">[v1.1.21+]</span></h2>
+<p>Inserts one or more values at a given position within a linear array.</p>
+<pre class="Syntax">Object.InsertAt(Pos, Value1 [, Value2, ... Value<i>N</i>])</pre>
+<dl>
+  <dt>Pos</dt>
+  <dd><p>The position to insert <em>Value1</em> at. Subsequent values are inserted at Pos+1, Pos+2, etc.</p></dd>
+  <dt>Value1 ...</dt>
+  <dd><p>One or more values to insert. To insert an array of values, pass <code><a href="../Functions.htm#VariadicCall">theArray*</a></code> as the last parameter.</p></dd>
+</dl>
 <h3>Remarks</h3>
-<p>Note that this method bypasses the <a href="../Objects.htm#Meta_Functions">__Set</a> mechanism and special behaviour of the <a href="../Objects.htm#Custom_Objects">base</a> key.  For instance, <code>Object.Insert("base","")</code> causes <code>Object.base</code> to return an empty string instead of the real base object, but doesn't prevent other operations from triggering the object's meta-functions.</p>
+<p>InsertAt is the counterpart of <a href="#RemoveAt">RemoveAt</a>.</p>
+<p>As Objects are associative arrays, <em>Pos</em> is also the integer key which will be associated with <em>Value1</em>. Any items previously at or to the right of <em>Pos</em> are shifted to the right by the exact number of value parameters, even if some values are missing (i.e. the object is a sparse array). For example:</p>
+<pre>x := []
+x.InsertAt(1, "A", "B") <em>; =>  ["A", "B"]</em>
+x.InsertAt(2, "C")      <em>; =>  ["A", "C", "B"]</em>
+
+<em>; Sparse/unassigned elements are preserved:</em>
+x := ["A", , "C"]
+x.InsertAt(2, "B")      <em>; =>  ["A", "B",    , "C"]</em>
+
+x := ["C"]
+x.InsertAt(1, , "B")    <em>; =>  [   , "B", "C"]</em></pre>
+<p>InsertAt should be used only when the object's integer keys represent positions in a linear array. If the object contains arbitrary integer keys such as IDs or handles, InsertAt is likely to cause unwanted side-effects. For example:</p>
+<pre>x := [], handleX := 0x4321, handleY := 0x1234
+x.InsertAt(handleX, "A")
+MsgBox % x[handleX]  <em>; A - okay</em>
+x.InsertAt(handleY, "B")
+MsgBox % x[handleX]  <em>; Empty</em>
+MsgBox % x[handleX+1]  <em>; This is the new "position" of "B"</em></pre>
+<p>InsertAt does not affect string or object keys, so can be safely used with objects containing mixed key types.</p>
 </div>
 
-<div class="methodShort" id="Remove"><h2>Remove <span class="ver">[AHK_L 31+]</span></h2>
+<div class="methodShort" id="RemoveAt"><h2>RemoveAt <span class="ver">[v1.1.21+]</span></h2>
+<p>Removes items from the given position in a linear array.</p>
+<pre class="Syntax">Object.RemoveAt(Pos [, Length])</pre>
+<dl>
+  <dt>Pos</dt>
+  <dd><p>The position of the value or values to remove.</p></dd>
+  
+  <dt>Length</dt>
+  <dd><p>The length of the range of values to remove. Items from <code>Pos</code> to <code>Pos+Length-1</code> are removed. If omitted, one item is removed.</p></dd>
+  
+  <dt>Return Value</dt>
+  <dd><p>If <em>Length</em> is omitted, the value removed from <em>Pos</em> is returned (blank if none). Otherwise the return value is the number of removed items which had values, which can differ from <em>Length</em> in a sparse array, but is always between 0 and <em>Length</em> (inclusive).</p></dd>
+</dl>
+<h3>Remarks</h3>
+<p>RemoveAt is the counterpart of <a href="#InsertAt">InsertAt</a>.</p>
+<p>The remaining items to the right of <em>Pos</em> are shifted to the left by <em>Length</em> (or 1 if omitted), even if some items in the removed range did not have values. For example:</p>
+<pre>x := ["A", "B"]
+MsgBox % x.RemoveAt(1)  <em>; A</em>
+MsgBox % x[1]           <em>; B</em>
+
+x := ["A", , "C"]
+MsgBox % x.RemoveAt(1, 2)  <em>; 1</em>
+MsgBox % x[1]              <em>; C</em></pre>
+<p>RemoveAt should be used only when the object's integer keys represent positions in a linear array. If the object contains arbitrary integer keys such as IDs or handles, RemoveAt is likely to cause unwanted side-effects. For example:</p>
+<pre>x := {0x4321: "A", 0x1234: "B"}
+MsgBox % x.RemoveAt(0x1234) <em>; B</em>
+MsgBox % x[0x4321]          <em>; Empty</em>
+MsgBox % x[0x4321-1]        <em>; A</em></pre>
+<p>RemoveAt does not affect string or object keys, so can be safely used with objects containing mixed key types.</p>
+</div>
+
+<div class="methodShort" id="Push"><h2>Push <span class="ver">[v1.1.21+]</span></h2>
+<p>Appends values to the end of an array.</p>
+<pre class="Syntax">Object.Push([ Value, Value2, ..., Value<i>N</i> ])</pre>
+<dl>
+  <dt>Value ...</dt>
+  <dd><p>One or more values to insert. To insert an array of values, pass <code><a href="../Functions.htm#VariadicCall">theArray*</a></code> as the last parameter.</p></dd>
+  <dt>Return Value</dt>
+  <dd><p>The position of the last inserted value. Can be negative if the array only contained elements at negative indices.</p></dd>
+</dl>
+<h3>Remarks</h3>
+<p>The first value is inserted at position 1 if the array is empty or contains only string or object keys.</p>
+<p>Otherwise, the first value is inserted at <code>Object.MaxIndex() + 1</code>, even if that position is negative or zero. If this is undesired and the object can contain negative keys, <code>Object.InsertAt(Object.Length() + 1, ...)</code> can be used intead.</p>
+</div>
+
+<div class="methodShort" id="Pop"><h2>Pop <span class="ver">[v1.1.21+]</span></h2>
+<p>Removes and returns the last array element.</p>
+<pre class="Syntax">Value := Object.Pop()</pre>
+<p>If there are no array elements, the return value is an empty string. Otherwise, it is equivalent to the following:</p>
+<pre>Value := Object.RemoveAt(Object.Length())</pre>
+</div>
+
+<div class="methodShort" id="Delete"><h2>Delete <span class="ver">[v1.1.21+]</span></h2>
 <p>Removes key-value pairs from an object.</p>
-<pre class="Syntax">Object.Remove(FirstKey, LastKey)</pre>
-<table class="info">
-  <tr><td width="15%">FirstKey, LastKey</td><td width="85%">A range of integer or string keys to remove.  If both keys are integers, any integer keys greater than <i>LastKey</i> are decremented by <code>(LastKey - FirstKey + 1)</code> to emulate a typical numerically-indexed array.  Both keys must be the same type (integer or string).</td></tr>
-  <tr><td><b>Returns</b></td><td>The actual number of key-value pairs which were removed if successful, zero if no keys were found, or an empty string on failure.</td></tr>
-</table>
-<pre class="Syntax" style="margin-top:15px">Object.Remove(Key = <i>MaxIndex()</i>)</pre>
-<table class="info">
-  <tr><td width="15%">Key</td><td width="85%">Any valid key.  If omitted, it defaults to the highest existing integer key; if none exist, nothing is removed. Existing keys are adjusted as though <code>Remove(Key,Key)</code> was used.</td></tr>
-  <tr><td><b>Returns</b></td><td>The value which was removed, if any; otherwise an empty string.</td></tr>
-</table>
-<pre class="Syntax" style="margin-top:15px">Object.Remove(IntKey, "")</pre>
-<p><span class="ver">[AHK_L 61+]:</span> Removes an integer key and returns its value, but does not affect other integer keys.</p>
+<pre class="Syntax" style="margin-top:15px">Object.Delete(Key)
+Object.Delete(FirstKey, LastKey)</pre>
+<dl>
+  <dt>Key</dt>
+  <dd><p>Any single key.</p></dd>
+  <dt>FirstKey, LastKey</dt>
+  <dd><p>Any valid range of integer or string keys, where <em>FirstKey</em> &lt;= <em>LastKey</em>. Both keys must be the same type.</p></dd>
+  <dt>Return Value</dt>
+  <dd><p>If there is exactly one parameter, the removed value is returned (blank if none). Otherwise the return value is the number of matching keys which were found and removed.</p></dd>
+</dl>
+<h3>Remarks</h3>
+<p>Unlike <a href="#RemoveAt">RemoveAt</a>, Delete does not affect any of the key-value pairs that it does not remove. For example:</p>
+<pre>x := ["A", "B"]
+MsgBox % x.RemoveAt(1)  <em>; A</em>
+MsgBox % x[1]           <em>; B</em>
+
+x := ["A", "B"]
+MsgBox % x.Delete(1)    <em>; A</em>
+MsgBox % x[1]           <em>; Empty</em></pre>
 </div>
 
 <div class="methodShort" id="MinMaxIndex"><h2>MinIndex / MaxIndex <span class="ver">[AHK_L 31+]</span></h2>
 <pre class="Syntax">MinIndex := Object.MinIndex()
 MaxIndex := Object.MaxIndex()</pre>
 <p>If any integer keys are present, MinIndex returns the lowest and MaxIndex returns the highest.  Otherwise an empty string is returned.</p></div>
+
+<div class="methodShort" id="Length"><h2>Length <span class="ver">[v1.1.21+]</span></h2>
+<pre class="Syntax">Length := Object.Length()</pre>
+<p>Returns the length of a linear array beginning at position 1; that is, the highest positive integer key contained by the object, or 0 if there aren't any.</p>
+<pre>
+MsgBox % ["A", "B", "C"].Length()  <em>;  3</em>
+MsgBox % ["A",    , "C"].Length()  <em>;  3</em>
+MsgBox % {-10: 0, 10: 0}.Length()  <em>; 10</em>
+MsgBox % {-10: 0, -1: 0}.Length()  <em>;  0</em>
+</pre></div>
 
 <div class="methodShort" id="SetCapacity"><h2>SetCapacity <span class="ver">[AHK_L 31+]</span></h2>
 <p>Adjusts the capacity of an object or one of its fields.</p>
@@ -97,6 +189,41 @@ ByteSize := Object.GetCapacity(Key)</pre>
 <div class="methodShort" id="Clone"><h2>Clone <span class="ver">[AHK_L 60+]</span></h2>
 <pre class="Syntax">Clone := Object.Clone()</pre>
 <p>Returns a shallow copy of the object.</p></div>
+
+<div class="methodShort" id="RawSet"><h2>ObjRawSet</h2>
+<p>Stores or overwrites a key-value pair in the object.</p>
+<pre class="Syntax">ObjRawSet(Object, Key, Value)</pre>
+<p>This function is provided to allow scripts to bypass the __Set <a href="../Objects.htm#Meta_Functions">meta-function</a>. If that isn't required, a normal assignment should be used instead. For example: <code>Object[Key] := Value</code></p>
+<p>Since the purpose is to bypass meta-functions, this is a function only, not a method. Calling a built-in method generally causes the __Call meta-function to be called.</p></div>
+
+<div class="methodShort" id="Insert"><h2>Insert <span class="ver">[AHK_L 31+]</span></h2>
+<div class="warning"><strong>Deprecated:</strong> Insert is not recommended for use in new scripts. Use <a href="#InsertAt">InsertAt</a>, <a href="#Push">Push</a>, <a href="#RawSet">ObjRawSet</a> or a simple assignment instead.</div>
+<p>Inserts key-value pairs into the object, automatically adjusting existing keys if given an integer key.</p>
+<pre class="Syntax">Object.Insert(Pos, Value1 [, Value2, ... Value<i>N</i> ])
+Object.Insert(Value)
+Object.Insert(StringOrObjectKey, Value)</pre>
+<p>The behaviour of Insert depends on the number and type of its parameters:</p>
+<ul>
+  <li>If there are multiple parameters and the first parameter is an integer, Insert behaves like <a href="#InsertAt">InsertAt</a>.</li>
+  <li>If there are multiple parameters and the first parameter is not an integer, Insert behaves like <a href="#RawSet">ObjRawSet</a>.</li>
+  <li>If there is only one parameter, Insert behaves like <a href="#Push">Push</a>.</li>
+</ul>
+<p>Insert returns <i>true</i>. In v1.1.21 and later, an exception is thrown if a memory allocation fails. Earlier versions returned an empty string in that case.</p>
+</div>
+
+<div class="methodShort" id="Remove"><h2>Remove <span class="ver">[AHK_L 31+]</span></h2>
+<div class="warning"><strong>Deprecated:</strong> Remove is not recommended for use in new scripts. Use <a href="#RemoveAt">RemoveAt</a>, <a href="#Delete">Delete</a> or <a href="#Pop">Pop</a> instead.</div>
+<p>Removes key-value pairs from an object.</p>
+<pre class="Syntax">Object.Remove(FirstKey, LastKey)</pre>
+<p>The behaviour of Remove depends on the number and type of parameters:</p>
+<ul>
+  <li><code>Object.Remove(Integer)</code> behaves like <code>Object.<a href="#RemoveAt">RemoveAt</a>(Integer)</code>.</li>
+  <li><code>Object.Remove(Integer, "")</code> behaves like <code>Object.<a href="#Delete">Delete</a>(Integer)</code>.</li>
+  <li><code>Object.Remove(Integer1, Integer2)</code> behaves like <code>Object.<a href="#RemoveAt">RemoveAt</a>(Integer1, Integer2 - Integer1 + 1)</code>.</li>
+  <li><code>Object.Remove()</code> behaves like <code>Object.<a href="#Pop">Pop</a>()</code>.</li>
+  <li>Any other valid combination of parameters behaves like <a href="#Delete">Delete</a>.</li>
+</ul>
+</div>
 
 </body>
 </html>
