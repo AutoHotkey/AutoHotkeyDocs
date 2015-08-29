@@ -1,46 +1,36 @@
-﻿//
-// Translatable items
-//
-
-var hdSearchTxt = "Enter search term ...";
-var hdSearchBtn = "Search";
-var hdSearchLnk = "'http://www.google.com/cse?cx=010629462602499112316:ywoq_rufgic&q=' + query"
-var sbContent   = "Content";
-var sbIndex     = "Index";
-var ftLicense   = "License:";
-var ftExtra     = "";
-var cdSelectBtn = "Select";
-var cdDownloadBtn = "Download";
-
-if (!IsInsideCHM() && !IsSearchBot())
+﻿if (!IsInsideCHM() && !IsSearchBot())
 {
   BuildStructure();
   AddContent();
 }
 $(document).ready(AddChmAndOnlineFeatures);
 
-function GetVirtualDir()
+function GetWorkingDir() 
 {
-  var pathname = location.pathname;
-  if (pathname.substr(0,1) == '/')
-    pathname = pathname.substr(1); // IE11: /C:\foo -> C:\foo
-  return pathname.substr(0, pathname.lastIndexOf('/docs'));
+  var wDir = '';
+  var pathArray = GetScriptDir().split('/');
+  for (i = 0; i < pathArray.length - 1; i++)
+    wDir += pathArray[i] + "/";
+  return wDir.substr(0, wDir.lastIndexOf('/'));
 }
 
-function GetScriptDir() {
+function GetScriptDir()
+{
+  var scriptPath = '';
   var scriptEls = document.getElementsByTagName('script');
-  var thisScriptEl = scriptEls[scriptEls.length - 1];
-  var scriptPath = thisScriptEl.src;
-  return scriptPath.substr(0, scriptPath.lastIndexOf('/') + 1);
+  for (i = 0; i < scriptEls.length; i++)
+    if (scriptEls[i].src)
+      scriptPath = scriptEls[i].src;
+  return scriptPath.substr(0, scriptPath.lastIndexOf('/'));
 }
 
 function BuildStructure()
 {
-  var vdir = GetVirtualDir();
-  var header  = '<div class="header"><table class="hdr-table"><tr><td class="hdr-image"><a href="' + vdir + '/' + '"><img src="' + vdir + '/docs/static/ahk_logo_no_text.png" width="217" height="70" alt="AutoHotkey"></a></td><td class="hdr-search"><form id="search-form"><input id="q" size="30" type="text" placeholder="' + hdSearchTxt + '"></form><div id="search-btn">' + hdSearchBtn + '</div></td><td class="hdr-language"><ul><li>Language<ul class="second"><li id="lng-btn-en">English</li><li id="lng-btn-de">Deutsch</li><li id="lng-btn-cn">&#20013;&#25991;</li></ul></li></ul></td></tr></table></div>';
-  var main_1  = '<div class="main-content"><div id="app-body"><div id="headerbar"></div><div class="left-col"><ul class="nav"><li id="sb_content" class="selected"><span>' + sbContent + '</span></li><li id="sb_index"><span>' + sbIndex + '</span></li></ul><div id="sidebar"></div><div id="keywords" style="display: none;"><input id="IndexEntry" type="text"><select id="indexcontainer" name="IndexListbox" class="docstyle" size="20"></select></div></div><div class="right-col"><div id="main-content">';
+  var wDir = GetWorkingDir();
+  var header  = '<div class="header"><table class="hdr-table"><tr><td class="hdr-image"><a href="' + wDir + '/"><img src="' + wDir + '/static/ahk_logo_no_text.png" width="217" height="70" alt="AutoHotkey"></a></td><td class="hdr-search"><form id="search-form"><input id="q" size="30" type="text" placeholder="' + translate.hdSearchTxt + '"></form><div id="search-btn">' + translate.hdSearchBtn + '</div></td><td class="hdr-language"><ul><li>Language<ul class="second"><li id="lng-btn-en">English</li><li id="lng-btn-de">Deutsch</li><li id="lng-btn-cn">&#20013;&#25991;</li></ul></li></ul></td></tr></table></div>';
+  var main_1  = '<div class="main-content"><div id="app-body"><div id="headerbar"></div><div class="left-col"><ul class="nav"><li id="sb_content" class="selected"><span>' + translate.sbContent + '</span></li><li id="sb_index"><span>' + translate.sbIndex + '</span></li></ul><div id="sidebar"></div><div id="keywords" style="display: none;"><input id="IndexEntry" type="text"><select id="indexcontainer" name="IndexListbox" class="docstyle" size="20"></select></div></div><div class="right-col"><div id="main-content">';
   var main_2  = '</div></div><div class="float-clear"></div></div></div>';
-  var footer  = '<div class="footer"><b>Copyright</b> &copy; 2003-' + new Date().getFullYear() + ' ' + location.host + ' - <span id="ftLicense">' + ftLicense + '</span> <a href="' + vdir + '/docs/license.htm">GNU General Public License</a><span id="ftExtra">' + ftExtra + '</span></div>';
+  var footer  = '<div class="footer"><b>Copyright</b> &copy; 2003-' + new Date().getFullYear() + ' ' + location.host + ' - <span id="ftLicense">' + translate.ftLicense + '</span> <a href="' + wDir + '/license.htm">GNU General Public License</a><span id="ftExtra">' + translate.ftExtra + '</span></div>';
   document.write(header + main_1);
   $(document).ready(function() { $('body').append(main_2 + footer); });
 }
@@ -50,8 +40,8 @@ function AddContent()
   $(window).unload(function () { $(window).unbind('unload'); }); // disable firefox's bfcache
 
   $(document).ready(function() {
-    var vdir = GetVirtualDir();
-    var urlpath = location.href.replace(location.host + vdir, '').replace(/.*?:\/*/, '');
+    var wDir = GetWorkingDir();
+    var relPath = location.href.replace(wDir + '/', '');
 
     //
     // set last used state of sidebar
@@ -72,13 +62,13 @@ function AddContent()
 
     $('.header #search-btn').on('click', function() {
       var query = $(".header #q").val();
-      document.location = eval(hdSearchLnk);
+      document.location = translate.hdSearchLnk.format(query);
     });
 
     $('.header #search-form').on('submit', function(event) {
         event.preventDefault();
         var query = $(".header #q").val();
-        document.location = eval(hdSearchLnk);
+        document.location = translate.hdSearchLnk.format(query);
     });
 
     //
@@ -128,13 +118,13 @@ function AddContent()
     // language button
     //
 
-    var en = 'http://ahkscript.org/';
-    var de = 'http://ragnar-f.github.io/';
-    var cn = 'http://ahkcn.sourceforge.net/';
+    var en = 'http://ahkscript.org/docs/';
+    var de = 'http://ragnar-f.github.io/docs/';
+    var cn = 'http://ahkcn.sourceforge.net/docs/';
 
-    $('#lng-btn-en').on('click', function() { document.location = en + urlpath; } );
-    $('#lng-btn-de').on('click', function() { document.location = de + urlpath; } );
-    $('#lng-btn-cn').on('click', function() { document.location = cn + urlpath; } );
+    $('#lng-btn-en').on('click', function() { document.location = en + relPath; } );
+    $('#lng-btn-de').on('click', function() { document.location = de + relPath; } );
+    $('#lng-btn-cn').on('click', function() { document.location = cn + relPath; } );
 
     $('.hdr-table .hdr-language').find('li').mouseenter(function() {
       $(this).children('ul').show();
@@ -163,7 +153,7 @@ function AddContent()
             return true;
       },
       onCreateLi:       function(node, $li) {
-        if (node.path == urlpath)
+        if (node.path == relPath)
         {
           node_matched.push(node);
         }
@@ -174,7 +164,7 @@ function AddContent()
       var node = event.node;
       $(this).tree('toggle', node);
       if (node.path)
-        window.location = vdir + "/" + node.path;
+        window.location = wDir + "/" + node.path;
     });
 
     //
@@ -195,13 +185,13 @@ function AddContent()
     var newContent = '';
 
     index.sort(function(a, b) {
-      var textA = a.t.toLowerCase(), textB = b.t.toLowerCase()
+      var textA = a[0].toLowerCase(), textB = b[0].toLowerCase()
       return textA.localeCompare(textB);
     });
 
     for (var i = 0, len = index.length; i < len; i++)
     {
-      newContent += '<option value="' + index[i].v + '">' + index[i].t + '</option>';
+      newContent += '<option value="' + index[i][1] + '">' + index[i][0] + '</option>';
     };
 
     $("#indexcontainer").html(newContent);
@@ -242,7 +232,7 @@ function AddContent()
     // pre-select keyword list sidebar item
     //
 
-    var sb_index_lastselected = $('[value="' + urlpath + '"]').index() + 1;
+    var sb_index_lastselected = $('[value="' + relPath + '"]').index() + 1;
     var sb_index_item_last = $('#indexcontainer :nth-child(' + sb_index_lastselected + ')');
     sb_index_item_last.prop('selected', true);
 
@@ -283,7 +273,7 @@ function AddContent()
         if (iSelect >= 0) {
           var URL = document.getElementById("indexcontainer").item(iSelect).value;
           if (URL.length > 0) {
-            window.location = vdir + '/' + URL;
+            window.location = wDir + '/' + URL;
           }
         }
       }
@@ -294,7 +284,34 @@ function AddContent()
 function AddChmAndOnlineFeatures()
 {
   // Make all external links open a new tab/window.
-  $("a[href^='http:']").attr('target', '_blank');
+  $("a[href^='http']").attr('target', '_blank');
+  
+  (function() {
+    var templ = $('<a class="ver"></a>');
+    $('span.ver').each(function(idx, el) {
+      // Give each version annotation a link to the changelog.
+      var jel = $(el);
+      var m, title, href, text = jel.text();
+      if (m = /AHK_L (\d+)\+/.exec(text)) {
+        title = translate.verToolTipAHK_L.format(m[1]);
+        href = '/AHKL_ChangeLog.htm#L' + m[1];
+        text = text.replace(m[0], 'v1.0.90+'); // For users who don't know what AHK_L was.
+      } else if (m = /v\d\.\d\.(\d+\.)?\d+/.exec(text)) {
+        title = translate.verToolTipDefault.format(m[0]);
+        if (!m[1])
+          m[0] = m[0] + '.00';
+        if (m[0] <= 'v1.0.48.05')
+          href = '/ChangeLogHelp.htm#' + m[0];
+        else
+          href = '/AHKL_ChangeLog.htm#' + m[0];
+      } else return;
+      jel.replaceWith(templ.clone(true)
+        .attr('title', title)
+        .attr('href', GetWorkingDir() + href)
+        .text(text)
+        );
+    });
+  })();
   
   //
   // Add useful features for code boxes
@@ -304,8 +321,8 @@ function AddChmAndOnlineFeatures()
 
   var divStyle = {fontSize: "11px", float: "right"};
   var aStyle = {cursor: "pointer", color: $("a:not([href=])").css("color")};
-  var selectLink = $('<a id="selectCode">').text(cdSelectBtn).css(aStyle);
-  var downloadLink = $('<a id="downloadCode">').text(cdDownloadBtn).css(aStyle);
+  var selectLink = $('<a id="selectCode">').text(translate.cdSelectBtn).css(aStyle);
+  var downloadLink = $('<a id="downloadCode">').text(translate.cdDownloadBtn).css(aStyle);
 
   $('pre').each(function(index) {
     if ($(this).is(".Syntax")) {
@@ -400,3 +417,8 @@ function IsSearchBot()
 {
   return navigator.userAgent.match(/googlebot|bingbot|slurp/i);
 }
+
+String.prototype.format = function() {
+  var args = arguments;
+  return this.replace(/\{(\d+)\}/g, function(m, n) { return args[n]; });
+};

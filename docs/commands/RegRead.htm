@@ -14,7 +14,8 @@
 
 <p>Reads a value from the registry.</p>
 
-<pre class="Syntax">RegRead, OutputVar, RootKey, SubKey [, ValueName]</pre>
+<pre class="Syntax">RegRead, OutputVar, RootKey\SubKey [, ValueName]  <em>; v1.1.21+</em>
+RegRead, OutputVar, RootKey, SubKey [, ValueName]</pre>
 <h3>Parameters</h3>
 <dl>
 
@@ -22,10 +23,13 @@
   <dd><p>The name of the variable in which to store the retrieved value. If the value cannot be retrieved, the variable is made blank and <a href="../misc/ErrorLevel.htm">ErrorLevel</a> is set to 1.</p></dd>
 
   <dt>RootKey</dt>
-  <dd><p>Must be either HKEY_LOCAL_MACHINE, HKEY_USERS, HKEY_CURRENT_USER, HKEY_CLASSES_ROOT, or HKEY_CURRENT_CONFIG (or the abbreviations for each of these, such as HKLM). To access a remote registry, prepend the computer name and a colon, as in this example: \\workstation01:HKEY_LOCAL_MACHINE</p></dd>
+  <dd><p>Must be either HKEY_LOCAL_MACHINE, HKEY_USERS, HKEY_CURRENT_USER, HKEY_CLASSES_ROOT, or HKEY_CURRENT_CONFIG (or the abbreviations for each of these, such as HKLM). To access a remote registry, prepend the computer name and a colon (or in v1.1.21+, a slash), as in this example: <code>\\workstation01:HKEY_LOCAL_MACHINE</code></p></dd>
 
   <dt>SubKey</dt>
   <dd><p>The name of the subkey (e.g. Software\SomeApplication).</p></dd>
+  
+  <dt>RootKey\SubKey <span class="ver">[v1.1.21+]</span></dt>
+  <dd><p>If <em>RootKey</em> is followed immediately by a slash (<code>\</code>), <em>RootKey</em> and <em>SubKey</em> are merged into a single parameter.</p></dd>
 
   <dt>ValueName</dt>
   <dd><p>The  name of the value to retrieve. If omitted, <em>Subkey</em>'s default value will be retrieved, which is the value displayed as &quot;(Default)&quot; by RegEdit. If there is no default value (that is, if RegEdit displays &quot;value not set&quot;), <em>OutputVar</em> is made blank and ErrorLevel is set to 1.</p></dd>
@@ -48,8 +52,23 @@
 <h3>Related</h3>
 <p><a href="RegDelete.htm">RegDelete</a>, <a href="RegWrite.htm">RegWrite</a>, <a href="LoopReg.htm">Registry-loop</a>, <a href="SetRegView.htm">SetRegView</a>, <a href="IniRead.htm">IniRead</a></p>
 <h3>Example</h3>
-<pre class="NoIndent">RegRead, OutputVar, HKEY_LOCAL_MACHINE, SOFTWARE\Microsoft\Windows\CurrentVersion, ProgramFilesDir
-MsgBox, Program files are in: %OutputVar%</pre>
+<pre class="NoIndent"><em>; Example: Retrieve the path of the Program Files directory.
+
+; The line below ensures that the path of the 64-bit Program Files
+; directory is returned if the OS is 64-bit and the script is not.</em>
+<a href="SetRegView.htm">SetRegView</a> 64  <em>; Requires v1.1.08+</em>
+
+RegRead, OutputVar, HKEY_LOCAL_MACHINE<span class="red">,</span> SOFTWARE\Microsoft\Windows\CurrentVersion, ProgramFilesDir
+MsgBox, Program files are in: %OutputVar%
+
+<em>; Alternative syntax (requires v1.1.21+):</em>
+RegRead, OutputVar, HKEY_LOCAL_MACHINE<span class="red">\</span>SOFTWARE\Microsoft\Windows\CurrentVersion, ProgramFilesDir
+MsgBox, Program files are in: %OutputVar%
+
+<em>; Another way to retrieve the path of the Program Files directory:</em>
+EnvGet OutputVar, % <a href="../Variables.htm#Is64bitOS">A_Is64bitOS</a> ? "ProgramW6432" : "ProgramFiles"
+MsgBox, Program files are in: %OutputVar%
+</pre>
 <p>&nbsp;</p>
 <pre class="NoIndent"><em>; The following example retrieves  the TYPE of a registry value (e.g. REG_SZ or REG_DWORD).</em>
 MsgBox % RegKeyType(&quot;HKCU&quot;, &quot;Environment&quot;, &quot;TEMP&quot;)

@@ -14,9 +14,13 @@
 
 <p>Retrieves the contents of the specified registry subkey, one item at a time.</p>
 
+<pre class="Syntax">Loop, Reg, RootKey[\Key, Mode]  <em>; v1.1.21+ (recommended)</em></pre>
 <pre class="Syntax">Loop, RootKey [, Key, IncludeSubkeys?, Recurse?]</pre>
 <h3>Parameters</h3>
 <dl>
+
+  <dt>Reg <span class="ver">[v1.1.21+]</span></dt>
+  <dd><p>The literal word <code>Reg</code> (case-insensitive). This cannot be a variable or expression. If this keyword is present, <em>Key</em> must be separated from <em>RootKey</em> by a slash instead of a comma, and both can be contained within a single variable. For example, <code>Loop, Reg, HKLM\Software</code> or <code>Loop, Reg, %FullPathOfKey%</code>.</p></dd>
 
   <dt>RootKey</dt>
   <dd><p>Must be either HKEY_LOCAL_MACHINE (or HKLM), HKEY_USERS (or HKU), HKEY_CURRENT_USER (or HKCU), HKEY_CLASSES_ROOT (or HKCR), or HKEY_CURRENT_CONFIG (or HKCC).</p>
@@ -24,6 +28,13 @@
 
   <dt>Key</dt>
   <dd><p>The name of the key (e.g. Software\SomeApplication). If blank or omitted, the contents of <em>RootKey</em> will be retrieved.</p></dd>
+  
+  <dt>Mode <span class="ver">[v1.1.21+]</span></dt>
+  <dd><p>Zero or more of the following letters:</p>
+    <p><code>K</code>: Include keys.<br>
+    <code>V</code>: Include values. Values are also included if both K and V are omitted.<br>
+    <code>R</code>: Recurse into subkeys. If R is omitted, keys and values within subkeys of <em>Key</em> are not included.</p>
+  </dd>
 
   <dt>IncludeSubkeys?</dt>
   <dd><p>0 (default) Subkeys contained within <em>Key</em> are not retrieved (only the values).<br>
@@ -38,7 +49,7 @@
 
 <h3>Remarks</h3>
 <p>A registry-loop is useful when you want to operate on a collection registry values or subkeys, one at a time. The values and subkeys are retrieved in reverse order (bottom to top) so that <a href="RegDelete.htm">RegDelete</a> can be used inside the loop without disrupting the loop.</p>
-<p>The following variables exist within any registry-loop. If an inner registry-loop is enclosed by an outer registry-loop, the innermost loop's registry item will take precedence:</p>
+<p id="vars">The following variables exist within any registry-loop. If an inner registry-loop is enclosed by an outer registry-loop, the innermost loop's registry item will take precedence:</p>
 <table class="info">
   <tr>
     <td>A_LoopRegName</td>
@@ -95,7 +106,7 @@ Loop, HKEY_CURRENT_USER, Software\Microsoft\Internet Explorer\TypedURLs
     RegDelete</pre>
 <p>&nbsp;</p>
 <pre class="NoIndent"><em>; Example: A working test script:</em>
-Loop, HKEY_CURRENT_USER, Software\Microsoft\Windows, 1, 1
+Loop, Reg, HKEY_CURRENT_USER\Software\Microsoft\Windows, KVR
 {
     if a_LoopRegType = key
         value =
@@ -118,19 +129,19 @@ return
 
 RegSearch:
 ContinueRegSearch = y
-Loop, HKEY_LOCAL_MACHINE, , 1, 1
+Loop, Reg, HKEY_LOCAL_MACHINE, KVR
 {
     Gosub, CheckThisRegItem
     if ContinueRegSearch = n <em>; It told us to stop.</em>
         return
 }
-Loop, HKEY_USERS, , 1, 1
+Loop, Reg, HKEY_USERS, KVR
 {
     Gosub, CheckThisRegItem
     if ContinueRegSearch = n <em>; It told us to stop.</em>
         return
 }
-Loop, HKEY_CURRENT_CONFIG, , 1, 1
+Loop, Reg, HKEY_CURRENT_CONFIG, KVR
 {
     Gosub, CheckThisRegItem
     if ContinueRegSearch = n <em>; It told us to stop.</em>

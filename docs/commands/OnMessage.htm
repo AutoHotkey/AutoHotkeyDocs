@@ -12,28 +12,66 @@
 
 <h1>OnMessage()</h1>
 
-<p>Specifies a <a href="../Functions.htm">function</a> to call automatically when the script receives the specified message.</p>
+<p>Specifies a <a href="../Functions.htm">function</a> or <a href="../objects/Functor.htm">function object</a> to call automatically when the script receives the specified message.</p>
 
-<pre class="Syntax">OnMessage(MsgNumber [, &quot;FunctionName&quot;, MaxThreads])</pre>
+<pre class="Syntax">OnMessage(MsgNumber [, Function, MaxThreads])</pre>
 <h3>Parameters</h3>
 <dl>
 
   <dt>MsgNumber</dt>
   <dd><p>The number of the message to monitor or query, which should be between 0 and 4294967295 (0xFFFFFFFF). If you do not wish to monitor a <a href="../misc/SendMessageList.htm">system message</a> (that is, one below 0x400), it is best to choose a number greater than 4096 (0x1000) to the extent you have a choice. This reduces the chance of interfering with messages used internally by current and future versions of AutoHotkey.</p></dd>
 
-  <dt>FunctionName</dt>
-  <dd><p>A <a href="../Functions.htm">function</a>'s name, which must be enclosed in quotes if it is a literal string. This function will be called automatically when the script receives <em>MsgNumber</em>. Omit this parameter to retrieve the name of the function currently monitoring <em>MsgNumber</em> (blank if none). Specify an empty string (&quot;&quot;) or an empty variable to turn off the monitoring of <em>MsgNumber</em>.</p></dd>
+  <dt>Function</dt>
+  <dd><p>A <a href="../Functions.htm">function</a>'s name or, in <span class="ver">[v1.1.20+]</span>, a <a href="../objects/Functor.htm">function object</a>. To pass a literal function name, it must be enclosed in quotes.</p>
+  <p>How the function is registered and the return value of OnMessage depend on whether this parameter is a string or a function object.  See <a href="#Name_v_Object">Function Name vs Object</a> for details.</p>
+  </dd>
 
-  <dt>MaxThreads<br>
-    <span class="ver">[v1.0.47+]</span></dt>
-  <dd><p><a name="MaxThreads"></a>This integer is normally omitted, in which case the monitor function is limited to one <a href="../misc/Threads.htm">thread</a> at a time. This is usually best because otherwise, the script would process messages out of chronological order whenever the monitor function interrupts itself. Therefore, as an alternative to <em>MaxThreads</em>, consider using <em>Critical</em> as described <a href="#Critical">below</a>.</p></dd>
+  <dt>MaxThreads <span class="ver">[v1.0.47+]</span></dt>
+  <dd><p><a name="MaxThreads"></a>This integer is normally omitted, in which case the monitor function is limited to one <a href="../misc/Threads.htm">thread</a> at a time. This is usually best because otherwise, the script would process messages out of chronological order whenever the monitor function interrupts itself. Therefore, as an alternative to <em>MaxThreads</em>, consider using <em>Critical</em> as described <a href="#Critical">below</a>.</p>
+  <p><span class="ver">[v1.1.20+]:</span> By default, when multiple functions are registered for a single <em>MsgNumber</em>, they are called in the order that they were registered. To register a function to be called before any previously registered functions, specify a negative value for <em>MaxThreads</em>. For example, <code>OnMessage(Msg, Fn, -2)</code> registers <code>Fn</code> to be called before any other functions previously registered for <em>Msg</em>, and allows <em>Fn</em> a maximum of 2 threads. However, if the function is already registered, the order will not change unless it is unregistered and then re-registered.</p></dd>
 
 </dl>
 
-<h3>Return Values</h3>
-<p>If <em>FunctionName</em> is omitted, it returns the name of the function currently monitoring <em>MsgNumber</em> (blank if none).</p>
-<p>If <em>FunctionName</em> is explicitly blank (e.g. &quot;&quot;), it returns the name of the function currently monitoring <em>MsgNumber</em> (blank if none), then disables the monitoring of <em>MsgNumber</em>.</p>
-<p>If <em>FunctionName</em> is non-blank: If <em>MsgNumber</em> is already being monitored, it returns the name of that function then puts the new function into effect. Otherwise, it assigns <em>FunctionName</em> to monitor <em>MsgNumber</em> then returns the same <em>FunctionName</em>. In either case, a blank value is returned upon failure. Failure occurs when <em>FunctionName</em>: 1) does not exist (perhaps due to missing quotes around <em>FunctionName</em>); 2) accepts more than four parameters; or 3) in v1.0.48.05 or older, has any <a href="../Functions.htm#ByRef">ByRef</a> or <a href="../Functions.htm#optional">optional</a> parameters. It will also fail if the script attempts to monitor a new message when there are already 500 messages being monitored.</p>
+<h3 id="Name_v_Object">Function Name vs Object</h3>
+<p>OnMessage's return value and behavior depends on whether the <em>Function</em> parameter is a function name or an object.</p>
+
+<h4>Function Name</h4>
+<p>For backward compatibility, at most one function can be registered by name to monitor each unique <em>MsgNumber</em> -- this is referred to as the "legacy" monitor.</p>
+<p>When the legacy monitor is first registered, whether it is called before or after previously registered monitors depends on the <em>MaxThreads</em> parameter. Updating the monitor to call a different function does not affect the order unless the monitor is unregistered first.</p>
+<p>This registers or updates the current legacy monitor for <em>MsgNumber</em> (omit the quote marks if passing a variable):</p>
+<pre class="Syntax">Name := OnMessage(MsgNumber, "FunctionName")</pre>
+<p>The return value is one of the following:</p>
+<ul>
+  <li>An empty string on <a href="#Failure">failure</a>.</li>
+  <li>The name of the previous function, if there was one.</li>
+  <li>Otherwise, the name of the new function.</li>
+</ul>
+<p>This unregisters the current legacy monitor for <em>MsgNumber</em> (if any) and returns its name (blank if none):</p>
+<pre class="Syntax">Name := OnMessage(MsgNumber, "")</pre>
+<p>This returns the name of the current legacy monitor for <em>MsgNumber</em> (blank if none):</p>
+<pre class="Syntax">Name := OnMessage(MsgNumber)</pre>
+
+<h4>Function Object</h4>
+<p>Any number of <a href="../objects/Functor.htm">function objects</a> (including <a href="../objects/Func.htm">normal functions</a>) can monitor a given <em>MsgNumber</em>.</p>
+<p>Either of these two lines registers a function object to be called <strong>after</strong> any previously registered functions:</p>
+<pre class="Syntax">
+OnMessage(MsgNumber, FuncObj)     <em>; Option 1</em>
+OnMessage(MsgNumber, FuncObj, 1)  <em>; Option 2 (MaxThreads = 1)</em>
+</pre>
+<p>This registers a function object to be called <strong>before</strong> any previously registered functions:</p>
+<pre class="Syntax">OnMessage(MsgNumber, FuncObj, -1)</pre>
+<p>To unregister a function object, specify 0 for <em>MaxThreads</em>:</p>
+<pre class="Syntax">OnMessage(MsgNumber, FuncObj, 0)</pre>
+
+<h3 id="Failure">Failure</h3>
+<p>Failure occurs when <em>Function</em>:</p>
+<ol>
+  <li>is not an object, the name of a user-defined function, or an empty string;</li>
+  <li>is known to require more than four parameters; or</li>
+  <li>in v1.0.48.05 or older, has any <a href="../Functions.htm#ByRef">ByRef</a> or <a href="../Functions.htm#optional">optional</a> parameters.</li>
+</ol>
+<p>In v1.1.19.03 or older, failure also occurs if the script attempts to monitor a new message when there are already 500 messages being monitored.</p>
+<p>If <em>Function</em> is an object, an exception is thrown on failure. Otherwise, an empty string is returned.</p>
 
 <h3>The Function's Parameters</h3>
 <p>A <a href="../Functions.htm">function</a> assigned to monitor one or more messages can accept up to four parameters:</p>
@@ -66,6 +104,7 @@ MsgParentWindow := WinExist()  <em>; This stores the unique ID of the window to 
 <h3>What the Function Should <em>Return</em></h3>
 <p>If a monitor function uses <a href="Return.htm">Return</a> without any parameters, or it specifies a blank value such as &quot;&quot; (or it never uses Return at all), the incoming message goes on to be processed normally when the function finishes. The same thing happens if the function <a href="Exit.htm">Exits</a> or causes a runtime error such as <a href="Run.htm">running</a> a nonexistent file. By contrast, returning an integer causes it to be sent immediately as a reply; that is, the program does not process the message any further. For example, a function monitoring WM_LBUTTONDOWN (0x201) may return an integer to prevent the target window from being notified that a mouse click has occurred. In many cases (such as a message arriving via <a href="PostMessage.htm">PostMessage</a>), it does not matter which integer is returned; but if in doubt, 0 is usually safest.</p>
 <p>The range of valid return values depends on whether the exe running the script is 32-bit or 64-bit. Non-empty return values must be between -2<sup>31</sup> and 2<sup>32</sup>-1 for 32-bit scripts (<code><a href="../Variables.htm#PtrSize">A_PtrSize</a> = 4</code>) and between -2<sup>63</sup> and 2<sup>63</sup>-1 for 64-bit scripts (<code><a href="../Variables.htm#PtrSize">A_PtrSize</a> = 8</code>).</p>
+<p><span class="ver">[v1.1.20+]:</span> If there are multiple functions monitoring a given message number, they are called one by one until one returns a non-empty value.</p>
 
 <h3 id="Remarks">General Remarks</h3>
 <p>Unlike a normal function-call, the arrival of a monitored message calls the function as a new <a href="../misc/Threads.htm">thread</a>. Because of this, the function starts off fresh with the default values for settings such as <a href="SendMode.htm">SendMode</a> and <a href="DetectHiddenWindows.htm">DetectHiddenWindows</a>. These defaults can be changed in the <a href="../Scripts.htm#auto">auto-execute section</a>.</p>
@@ -79,7 +118,7 @@ MsgParentWindow := WinExist()  <em>; This stores the unique ID of the window to 
 <p>When the script is displaying a system dialog such as <a href="MsgBox.htm">MsgBox</a>, any message posted to a control is not monitored. For example, if the script is displaying a MsgBox and the user clicks a button in a GUI window, the WM_LBUTTONDOWN message is sent directly to the button without calling the monitor function.</p>
 <p>Although an external program may post messages directly to a script's thread via PostThreadMessage() or other API call, this is not recommended because the messages would be lost if the script is displaying a system window such as a <a href="MsgBox.htm">MsgBox</a>. Instead, it is usually best to post or send the messages to the script's main window or one of its GUI windows.</p>
 <h3>Related</h3>
-<p><a href="RegisterCallback.htm">RegisterCallback()</a>, <a href="OnExit.htm">OnExit</a>, <a href="../misc/Clipboard.htm#OnClipboardChange">OnClipboardChange</a>, <a href="PostMessage.htm">Post/SendMessage</a>, <a href="../Functions.htm">Functions</a>, <a href="../misc/SendMessageList.htm">List of Windows Messages</a>, <a href="../misc/Threads.htm">Threads</a>, <a href="Critical.htm">Critical</a>, <a href="DllCall.htm">DllCall()</a></p>
+<p><a href="RegisterCallback.htm">RegisterCallback()</a>, <a href="OnExit.htm">OnExit</a>, <a href="OnClipboardChange.htm">OnClipboardChange</a>, <a href="PostMessage.htm">Post/SendMessage</a>, <a href="../Functions.htm">Functions</a>, <a href="../misc/SendMessageList.htm">List of Windows Messages</a>, <a href="../misc/Threads.htm">Threads</a>, <a href="Critical.htm">Critical</a>, <a href="DllCall.htm">DllCall()</a></p>
 <h3>Examples</h3>
 <pre class="NoIndent"><em>; Example: The following is a working script that monitors mouse clicks in a GUI window.
 ; Related topic: <a href="Gui.htm#GuiContextMenu">GuiContextMenu</a></em>

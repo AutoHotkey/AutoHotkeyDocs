@@ -18,11 +18,13 @@
 <h2>Table of Contents</h2>
 <ul>
   <li><a href="#Intro">Introduction and Simple Examples</a></li>
-  <li><a href="#Symbols">Table of  Hotkey Prefix Symbols (Modifiers)</a></li>
+  <li><a href="#Symbols">Table of Hotkey Prefix Symbols (Modifiers)</a></li>
   <li><a href="#Context">Context-sensitive Hotkeys</a></li>
   <li><a href="#Features">Custom Combinations and Other Features</a></li>
   <li><a href="#Wheel">Mouse Wheel Hotkeys</a></li>
   <li><a href="#Remarks">Hotkey Tips and Remarks</a></li>
+  <li><a href="#AltTabDetail">Alt-Tab Hotkeys</a></li>
+  <li><a href="#Function">Function Hotkeys</a></li>
 </ul>
 
 <h2 id="Intro">Introduction and Simple Examples</h2>
@@ -174,6 +176,7 @@ Loop 2  <em>; &lt;-- Increase this value to scroll faster.</em>
     SendMessage, 0x114, 1, 0, %fcontrol%, A  <em>; 0x114 is WM_HSCROLL and the 1 after it is SB_LINERIGHT.</em>
 return</pre>
 <p>Finally, since mouse wheel hotkeys generate only down-events (never up-events), they cannot be used as <a href="#keyup">key-up hotkeys</a>.</p>
+
 <h2 id="Remarks">Hotkey Tips and Remarks</h2>
 <p>Each numpad key can be made to launch two different hotkey subroutines depending on the state of Numlock. Alternatively, a numpad key can be made to launch the same subroutine regardless of the Numlock state. For example:</p>
 <pre>NumpadEnd::
@@ -203,6 +206,7 @@ return</pre>
 <p>A hotkey label can be used as the target of a <a href="commands/Gosub.htm">Gosub</a> or <a href="commands/Goto.htm">Goto</a>. For example: <code>Gosub ^!s</code>.</p>
 <p>One common use for hotkeys is to start and stop a repeating action, such as a series of keystrokes or mouse clicks. For an example of this, see <a href="FAQ.htm#repeat">this FAQ topic</a>.</p>
 <p>Finally, each script is <a href="misc/Threads.htm">quasi multi-threaded</a>, which allows a new hotkey to be launched even when a previous hotkey subroutine is still running. For example, new hotkeys can be launched even while a <a href="commands/MsgBox.htm">MsgBox</a> is being displayed by the current hotkey.</p>
+
 <h2 id="AltTabDetail">Alt-Tab Hotkeys</h2>
 <p>Each Alt-Tab hotkey must be a combination of two keys, which is typically achieved via the ampersand symbol (&amp;). In the following example, you would hold down the right Alt key and press J or K to navigate the alt-tab menu:</p>
 <pre>RAlt &amp; j::AltTab
@@ -230,5 +234,25 @@ return</pre>
 IfWinExist ahk_class #32771
     Send {Escape}{Alt up}  <em>; Cancel the menu without activating the selected window.</em>
 return</pre>
+
+<h2 id="Function">Function Hotkeys <span class="ver">[v1.1.20+]</span></h2>
+<p>One or more hotkeys can be assigned a <a href="Functions.htm">function</a> by simply defining it immediately after the hotkey label as in this example:</p>
+<pre><em>; Ctrl+Shift+O to open containing folder in Explorer.
+; Ctrl+Shift+E to open folder with current file selected.
+; Supports SciTE and Notepad++.</em>
+^+o::
+^+e::
+    editor_open_folder() {
+        WinGetTitle, path, A
+        if RegExMatch(path, "\*?\K(.*)\\[^\\]+(?= [-*] )", path)
+            if (FileExist(path) &amp;&amp; A_ThisHotkey = "^+e")
+                Run explorer.exe /select`,"%path%"
+            else
+                Run explorer.exe "%path1%"
+    }</pre>
+<p>There must only be whitespace, comments or directives between the hotkey labels or label and the function. No label is created for hotkeys defined this way; however, the <a href="Scripts.htm#auto">auto-execute section</a> ends at the first hotkey even if it is assigned a function.</p>
+<p>The main benefit of using a function is that local variables can be used, which avoids conflicts when two or more hotkeys use the same variable names for different purposes. It also encourages self-documenting hotkeys, like in the code above where the function name describes the hotkey.</p>
+<p>The <a href="commands/Hotkey.htm">Hotkey</a> command can also be used to assign a function or function object to a hotkey.</p>
+
 </body>
 </html>
