@@ -1,3 +1,11 @@
+if (A_PtrSize = 8) {
+    try
+        RunWait "%A_AhkPath%\..\AutoHotkeyU32.exe" "%A_ScriptFullPath%"
+    catch
+        MsgBox 16,, This script must be run with AutoHotkey 32-bit, due to use of the ScriptControl COM component.
+    ExitApp
+}
+
 ; Change this path if the loop below doesn't find your hhc.exe,
 ; or leave it as-is if hhc.exe is somewhere in %PATH%.
 hhc := "hhc.exe"
