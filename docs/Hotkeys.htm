@@ -80,25 +80,32 @@ return</pre>
       <p>Alternatively, to make AltGr itself into a hotkey, use the following hotkey (without any hotkeys like the above present):</p>
       <pre>LControl &amp; RAlt::MsgBox You pressed AltGr itself.</pre></td>
   </tr>
-  <tr>
+  <tr id="wildcard">
     <td><strong>*</strong></td>
-    <td><p><a name="wildcard"></a>Wildcard: Fire the hotkey even if extra modifiers are being held down. This is often used in conjunction with <a href="misc/Remap.htm">remapping</a> keys or buttons. For example:</p>
+    <td><p>Wildcard: Fire the hotkey even if extra modifiers are being held down. This is often used in conjunction with <a href="misc/Remap.htm">remapping</a> keys or buttons. For example:</p>
       <pre>*#c::Run Calc.exe  <em>; Win+C, Shift+Win+C, Ctrl+Win+C, etc. will all trigger this hotkey.</em>
 *ScrollLock::Run Notepad  <em>; Pressing ScrollLock will trigger this hotkey even when modifier key(s) are down.</em></pre></td>
   </tr>
-  <tr>
+  <tr id="Tilde">
     <td><strong>~</strong></td>
-    <td><p><a name="Tilde"></a>When the hotkey fires, its key's native function will not be blocked (hidden from the system). In both of the below examples, the user's click of the mouse button will be sent to the active window:</p>
+    <td><p>When the hotkey fires, its key's native function will not be blocked (hidden from the system). In both of the below examples, the user's click of the mouse button will be sent to the active window:</p>
       <pre>~RButton::MsgBox You clicked the right mouse button.
 ~RButton &amp; C::MsgBox You pressed C while holding down the right mouse button.</pre>
-      <p>Notes: 1) Unlike the other prefix symbols, the tilde prefix is allowed to be present on some of a hotkey's <a href="commands/_IfWinActive.htm#variant">variants</a> but absent on others; 2) Special hotkeys that are substitutes for <a href="#alttab">alt-tab</a> always ignore the tilde prefix.</p>
-      <p><span class="ver">[v1.1.14+]:</span> If the tilde prefix is attached to a custom modifier key which is also used as its own hotkey, that hotkey will fire when the key is pressed instead of being delayed until the key is released.  For example, the <em>~RButton</em> hotkey above is fired as soon as the button is pressed.  Prior to v1.1.14 (or without the tilde prefix), it was fired when the button was released, but only if the <em>RButton &amp; C</em> combination was not activated.</p>
+      <p>Unlike the other prefix symbols, the tilde prefix is allowed to be present on some of a hotkey's <a href="commands/_IfWinActive.htm#variant">variants</a> but absent on others. However, if a tilde is applied to the <a href="#prefix">prefix key</a> of any custom combination which has not been turned off or suspended, it affects the behavior of that prefix key for <em>all</em> combinations.</p>
+      <p>Special hotkeys that are substitutes for <a href="#alttab">alt-tab</a> always ignore the tilde prefix.</p>
+      <p><span class="ver">[v1.1.14+]:</span> If the tilde prefix is applied to a custom modifier key (<a href="#prefix">prefix key</a>) which is also used as its own hotkey, that hotkey will fire when the key is pressed instead of being delayed until the key is released.  For example, the <em>~RButton</em> hotkey above is fired as soon as the button is pressed.  Prior to v1.1.14 (or without the tilde prefix), it was fired when the button was released, but only if the <em>RButton &amp; C</em> combination was not activated.</p>
+      <p>If the tilde prefix is applied only to the custom combination and not the non-combination hotkey, the key's native function will still be blocked. For example, in the script below, holding AppsKey will show the ToolTip and will not trigger a context menu:</p>
+      <pre>AppsKey::ToolTip Press &lt; or &gt; to cycle through windows.
+AppsKey Up::ToolTip
+~AppsKey &amp; &lt;::Send !+{Esc}
+~AppsKey &amp; &gt;::Send !{Esc}</pre>
     </td>
   </tr>
   <tr id="prefixdollar">
     <td><strong>$</strong></td>
     <td>
       <p>This is usually only necessary if the script uses the <a href="commands/Send.htm">Send</a> command to send the keys that comprise the hotkey itself, which might otherwise cause it to trigger itself. The $ prefix forces the <a href="commands/_InstallKeybdHook.htm">keyboard hook</a> to be used to implement this hotkey, which as a side-effect prevents the <a href="commands/Send.htm">Send</a> command from triggering it. The $ prefix is equivalent to having specified <code><a href="commands/_UseHook.htm">#UseHook</a></code> somewhere above the definition of this hotkey.</p>
+      <p>The $ prefix has no effect for mouse hotkeys, since they always use the mouse hook. It also has no effect for hotkeys which already require the keyboard hook, including any keyboard hotkeys with the <a href="#Tilde">tilde (~)</a> or <a href="#wildcard">wildcard (*)</a> modifiers, key-up hotkeys and custom combinations.</p>
       <p><span class="ver">[v1.1.06+]:</span> <a href="commands/_InputLevel.htm">#InputLevel</a> and <a href="commands/SendLevel.htm">SendLevel</a> provide additional control over which hotkeys and hotstrings are triggered by the Send command.</p>
     </td>
   </tr>
@@ -110,7 +117,7 @@ return</pre>
 </pre>
       <p>&quot;Up&quot; can also be used with normal hotkeys as in this example: <code>^!r Up::MsgBox You pressed and released Ctrl+Alt+R</code>. It also works with <a href="#combo">combination hotkeys</a> (e.g. <code>F1 &amp; e Up::</code>)</p>      
       <p>Limitations: 1) &quot;Up&quot; does not work with <a href="KeyList.htm">joystick buttons</a>; and 2) An &quot;Up&quot; hotkey without a normal/down counterpart hotkey will completely take over that key to prevent it from getting stuck down. One way to prevent this is to add a <a href="#Tilde">tilde prefix</a> (e.g. <code><strong>~</strong>LControl up::</code>)</p>
-	  <p>On a related note, a technique similar to the above is to make a hotkey into a prefix key. The advantage is that although the hotkey will fire upon release, it will do so only if you did not press any other key while it was held down. For example:</p>
+      <p>On a related note, a technique similar to the above is to make a hotkey into a prefix key. The advantage is that although the hotkey will fire upon release, it will do so only if you did not press any other key while it was held down. For example:</p>
       <pre>LControl &amp; F1::return  <em>; Make left-control a prefix by using it in front of &quot;&amp;&quot; at least once.</em>
 LControl::MsgBox You released LControl without having used it to modify any other key.</pre></td>
   </tr>
@@ -141,9 +148,9 @@ WheelDown::Send {Volume_Down} <em>;</em>
 
 <h2 id="Features">Custom Combinations and Other Features</h2>
 <p><a name="combo"></a>You can define a custom combination of two keys (except joystick buttons) by using &quot; &amp; &quot; between them. In the below example, you would hold down Numpad0 then press the second key to trigger the hotkey:</p>
-<pre>Numpad0 <strong>&amp;</strong> Numpad1::MsgBox You pressed Numpad1 while holding down Numpad0.
+<pre id="prefix">Numpad0 <strong>&amp;</strong> Numpad1::MsgBox You pressed Numpad1 while holding down Numpad0.
 Numpad0 <strong>&amp;</strong> Numpad2::Run Notepad</pre>
-<p><a name="prefix"></a>In the above example, Numpad0 becomes a <em>prefix key</em>; but this also causes Numpad0 to lose its original/native function when it is pressed by itself. To avoid this, a script may configure Numpad0 to perform a new action such as one of the following:</p>
+<p>In the above example, Numpad0 becomes a <em>prefix key</em>; but this also causes Numpad0 to lose its original/native function when it is pressed by itself. To avoid this, a script may configure Numpad0 to perform a new action such as one of the following:</p>
 <pre>Numpad0::WinMaximize A   <em>; Maximize the active/foreground window.</em>
 Numpad0::Send {Numpad0}  <em>; Make the <i>release</i> of Numpad0 produce a Numpad0 keystroke. See comment below.</em></pre>
 <p>The presence of one of the above custom combination hotkeys causes the <em>release</em> of Numpad0 to perform the indicated action, but only if you did not press any other keys while Numpad0 was being held down.  In v1.1.14+, this behaviour can be avoided by applying the <a href="#Tilde">tilde prefix</a> to either hotkey.</p>
@@ -183,7 +190,7 @@ return</pre>
 Numpad1::
 MsgBox, This hotkey is launched regardless of whether Numlock is on.
 return</pre>
-<p>If the tilde (~) operator is used with a <a href="#prefix">prefix key</a> even once, that prefix will always be sent through to the active window. For example, in both of the below hotkeys, the active window will receive all right-clicks even though only one of the definitions contains a tilde:</p>
+<p>If the <a href="#Tilde">tilde (~) operator</a> is used with a <a href="#prefix">prefix key</a> even once, it changes the behavior of that prefix key for all combinations. For example, in both of the below hotkeys, the active window will receive all right-clicks even though only one of the definitions contains a tilde:</p>
 <pre>~RButton &amp; LButton::MsgBox You pressed the left mouse button while holding down the right.
 RButton &amp; WheelUp::MsgBox You turned the mouse wheel up while holding down the right button.</pre>
 <p>The <a href="commands/Suspend.htm">Suspend</a> command can temporarily disable all hotkeys except for ones you make exempt. For greater selectivity, use <a href="commands/_IfWinActive.htm">#IfWinActive/Exist</a>.</p>
