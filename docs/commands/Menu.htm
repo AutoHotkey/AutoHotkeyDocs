@@ -24,11 +24,19 @@
 
   <dt>Cmd, P3, P4, P5</dt>
   <dd><p>These 4 parameters are dependent on each other. See list below for the allowed combinations.</p></dd>
+  
+  <dt>MenuItemName</dt>
+  <dd>
+    <p>The name or position of a menu item. Some common rules apply to this parameter across all sub-commands which use it:</p>
+    <p>To underline one of the letters in a menu item's name, precede that letter with an ampersand (&amp;). When the menu is displayed, such an item can be selected by pressing the corresponding key on the keyboard. To display a literal ampersand, specify two consecutive ampersands as in this example: <code>Save &amp;&amp; Exit</code></p>
+    <p>When referring to an existing menu or menu item, the name is not case sensitive but any ampersands must be included. For example: <code>&amp;Open</code></p>
+    <p><span class="ver">[v1.1.23+]:</span> To identify an existing item by its position in the menu, write the item's position followed by an ampersand. For example, <code>1&amp;</code> indicates the first item.</p>
+  </dd>
 
 </dl>
 
 <h2>Add or Change Items in a Menu</h2>
-<p><strong>Add [, MenuItemName, Label-or-Submenu, Pn]</strong>: This is a multipurpose command that adds a menu item, updates one with a new submenu or label, or converts one from a normal item into a submenu (or vice versa). If <em>MenuItemName</em> does not yet exist, it will be added to the menu. Otherwise, <em>MenuItemName</em> is updated with the newly specified <em>Label-or-Submenu</em>.</p>
+<p><strong>Add [, MenuItemName, Label-or-Submenu, Options]</strong>: This is a multipurpose command that adds a menu item, updates one with a new submenu or label, or converts one from a normal item into a submenu (or vice versa). If <em>MenuItemName</em> does not yet exist, it will be added to the menu. Otherwise, <em>MenuItemName</em> is updated with the newly specified <em>Label-or-Submenu</em>.</p>
 <p>To add a menu separator line, omit all three parameters.</p>
 <p>The label subroutine is run as a new <a href="../misc/Threads.htm">thread</a> when the user selects the menu item (similar to <a href="Gosub.htm">Gosub</a> and <a href="../Hotkeys.htm">hotkey subroutines</a>). If <em>Label-or-Submenu</em> is omitted, <em>MenuItemName</em> will be used as both the label and the menu item's name.</p>
 <p id="Functor"><span class="ver">[v1.1.20+]:</span> If it is not the name of an existing label, <em>Label-or-Submenu</em> can be the name of a function, or a single variable reference containing a <a href="../objects/Functor.htm">function object</a>. For example, <code>%funcobj%</code> or <code>% funcobj</code>. Other expressions which return objects are currently unsupported. The function can optionally define parameters as shown below:</p>
@@ -36,10 +44,25 @@
 <p>To have <em>MenuItemName</em> become a submenu -- which is a menu item that opens a new menu when selected -- specify for <em>Label-or-Submenu</em> a colon followed by the <em>MenuName</em> of an existing custom menu. For example:</p>
 <pre>Menu, MySubmenu, add, Item1
 Menu, tray, add, This Menu Item Is A Submenu, :MySubmenu</pre>
-<p>The final parameter may contain the letter P followed by the menu's <a href="../misc/Threads.htm">thread priority</a>, e.g. <code>P1</code>. If this parameter is omitted when adding a menu item, the priority will be 0, which is the standard default. If omitted when updating a menu item, the item's priority will not be changed. To change an existing item's priority only, omit the <em>Label-or-Submenu</em> parameter. Use a decimal (not hexadecimal) number as the priority.</p>
+<p>If not omitted, <em>Options</em> must be a space- or tab-delimited list of one or more of the following options:</p>
+<table class="info">
+  <tr><td>P<em>n</em></td>
+  <td>Replace <em>n</em> with the menu item's <a href="../misc/Threads.htm">thread priority</a>, e.g. <code>P1</code>. If this option is omitted when adding a menu item, the priority will be 0, which is the standard default. If omitted when updating a menu item, the item's priority will not be changed. Use a decimal (not hexadecimal) number as the priority.</td></tr>
+  <tr><td>+Radio</td>
+  <td><span class="ver">[v1.1.23+]:</span> If the item is checked, a bullet point is used instead of a check mark.</td></tr>
+  <tr><td>+Right</td>
+  <td><span class="ver">[v1.1.23+]:</span> The item is right-justified within the menu bar. This only applies to <a href="Gui.htm#Menu">menu bars</a>, not popup menus or submenus.</td></tr>
+  <tr><td>+Break</td>
+  <td><span class="ver">[v1.1.23+]:</span> The item begins a new column in a popup menu.</td></tr>
+  <tr><td>+BarBreak</td>
+  <td><span class="ver">[v1.1.23+]:</span> As above, but with a dividing line between columns.</td></tr>
+</table>
+<p>The plus sign (+) is optional and can be replaced with minus (-) to remove the option, as in <code>-Radio</code>. Options are not case sensitive.</p>
+<p>To change an existing item's options without affecting its label or submenu, simply omit the <em>Label-or-Submenu</em> parameter.</p>
+<p id="Insert"><strong>Insert [, ItemToInsertBefore, NewItemName, Label-or-Submenu, Options]</strong> <span class="ver">[v1.1.23+]</span>: Inserts a new item before the specified item. Usage is identical to <em>Add</em> (above), except for the additional <em>ItemToInsertBefore</em> parameter, which is the name of an existing item or a position&amp; between 1 and <a href="MenuGetHandle.htm#Examples">the current number of items</a> plus 1. Items can also be appended by omitting <em>ItemToInsertBefore</em> (by writing two consecutive commas). Unlike <em>Add</em>, <em>Insert</em> creates a new item even if <em>NewItemName</em> matches the name of an existing item.
 <p id="Delete"><strong>Delete [, MenuItemName]</strong>: Deletes <em>MenuItemName</em> from the menu. Standard menu items such as Exit (see below) cannot be individually deleted. If the <em>default</em> menu item is deleted, the effect will be similar to having used the <em>NoDefault</em> option. If <em>MenuItemName</em> is omitted, the entire <em>MenuName</em> menu will be deleted as will any menu items in other menus that use <em>MenuName</em> as a submenu. Deleting a menu also causes the current <a href="#Win32_Menus">Win32 menu</a> of its parent and submenus to be destroyed, to be recreated later as needed.</p>
 <p id="DeleteAll"><strong>DeleteAll</strong>: Deletes all custom menu items from the menu, leaving the menu empty unless it contains the <em>standard</em> items (see below). Unlike a menu entirely deleted by the <em>Delete</em> command (see above), an empty menu still exists and thus any other menus that use it as a submenu will retain those submenus. However, the current <a href="#Win32_Menus">Win32 menus</a> of this menu and its parent and submenus are destroyed, to be recreated later as needed.</p>
-<p><strong>Rename, MenuItemName [, NewName]</strong>: Changes <em>MenuItemName</em> to <em>NewName</em> (if <em>NewName</em> is blank, <em>MenuItemName</em> will be converted into a separator line). <em>NewName</em> must not be the same as any existing custom menu item. The menu item's current target label or submenu is unchanged.</p>
+<p><strong>Rename, MenuItemName [, NewName]</strong>: Renames <em>MenuItemName</em> to <em>NewName</em> (if <em>NewName</em> is blank, <em>MenuItemName</em> will be converted into a separator line). The menu item's current target label or submenu is unchanged. <span class="ver">[v1.1.23+]:</span> A separator line can be converted to a normal item by specifying the position&amp; of the separator and a non-blank <em>NewName</em>, and then using the <em>Add</em> command to give the item a label or submenu.</p>
 <p><strong>Check, MenuItemName</strong>: Adds a visible checkmark in the menu next to <em>MenuItemName</em> (if there isn't one already).</p>
 <p><strong>Uncheck, MenuItemName</strong>: Removes the checkmark (if there is one) from <em>MenuItemName</em>.</p>
 <p><strong>ToggleCheck, MenuItemName</strong>: Adds a checkmark if there wasn't one; otherwise, removes it.</p>
@@ -55,6 +78,7 @@ Menu, tray, add, This Menu Item Is A Submenu, :MySubmenu</pre>
 <p>Currently it is necessary to specify "actual size" when setting the icon to preserve transparency on Windows Vista and later. For example:</p>
 <pre>Menu, MenuName, Icon, MenuItemName, Filename.png,, 0</pre>
 <p>Known limitation: Icons on Gui menu bars are positioned incorrectly on Windows XP and older.</p>
+<p><span class="ver">[v1.1.23+]:</span> A <a href="../misc/ImageHandles.htm">bitmap or icon handle</a> can be used instead of a filename. For example, <code>HBITMAP:%handle%</code>.</p>
 <p><strong>NoIcon, MenuItemName</strong>: Removes <em>MenuItemName</em>'s icon, if any.
 <h2>Change the Tray Icon or ToolTip <span class="ver">(<em>MenuName</em> must be TRAY)</span></h2>
 <p><strong><a name="Icon"></a>Icon [, FileName, IconNumber, 1]</strong>: Changes the script's icon to one of the ones from <em>FileName</em>. The following types of files are supported: ICO, CUR, ANI, EXE, DLL, CPL, SCR, and other types that contain icon resources. To use an icon group other than the first one in the file, specify its number for <em>IconNumber</em> (if omitted, it defaults to 1). For example, <strong>2</strong> would load the default icon from the second icon group. If <em>IconNumber</em> is negative, its absolute value is assumed to be the resource ID of an icon within an executable file. Specify an asterisk (*) for <em>FileName</em> to restore the script to its default icon.</p>
@@ -63,6 +87,7 @@ Menu, tray, add, This Menu Item Is A Submenu, :MySubmenu</pre>
 <p><a name="distort"></a>Slight distortion may occur when loading tray icons from file types other than .ICO. This is especially true for 16x16 icons. To prevent this, store the desired tray icon inside a .ICO file.</p>
 <p>There are some icons built into the operating system's DLLs and CPLs that might be useful. For example: <code>Menu, Tray, Icon, Shell32.dll, 174</code>.</p>
 <p>The built-in variables <strong>A_IconNumber</strong> and <strong>A_IconFile</strong> contain the number and name (with full path) of the current icon (both are blank if the icon is the default).</p>
+<p><span class="ver">[v1.1.23+]:</span> A <a href="../misc/ImageHandles.htm">bitmap or icon handle</a> can be used instead of a filename. For example, <code>HBITMAP:%handle%</code>.</p>
 <p><strong>Icon</strong> (with no parameters): Creates the tray icon if it isn't already present. This will override <a href="_NoTrayIcon.htm">#NoTrayIcon</a> if that directive is also present in the script.</p>
 <p><strong>NoIcon</strong>: Removes the tray icon if it exists. If this command is used at the very top of the script, the tray icon might be briefly visible when the script is launched. To prevent that, use <a href="_NoTrayIcon.htm">#NoTrayIcon</a> instead. The built-in variable <strong>A_IconHidden</strong> contains 1 if the tray icon is currently hidden or 0 otherwise.</p>
 <p><strong>Tip [, Text]</strong>: Changes the tray icon's tooltip -- which is displayed when the mouse hovers over it. To create a multi-line tooltip, use the linefeed character (`n) in between each line, e.g. Line1`nLine2. Only the first 127 characters of <em>Text</em> are displayed, and <em>Text</em> is truncated at the first tab character, if present. If <em>Text</em> is omitted, the tooltip is restored to its default text. The built-in variable <strong>A_IconTip</strong> contains the current text of the tooltip (blank if the text is at its default).</p>
@@ -83,12 +108,11 @@ Menu, tray, add, This Menu Item Is A Submenu, :MySubmenu</pre>
   <li>Menu, <em>MenuName</em>, <strong>NoStandard</strong> (if the standard items were present).</li>
 </ul>
 <p>Any modifications which are made to the menu directly by Win32 API calls only apply to the current "instance" of the menu, and are lost when the menu is destroyed.</p>
+<p>Each menu item is assigned an ID when it is first added to the menu. Scripts cannot rely on an item receiving a particular ID, but can retrieve the ID of an item by using GetMenuItemID as shown in the <a href="MenuGetHandle.htm#Examples">MenuGetHandle example</a>. This ID cannot be used with the Menu command, but can be used with various <a href="https://msdn.microsoft.com/en-us/library/ms646977">Win32 functions</a>.</p>
 
 <h2>Remarks</h2>
-<p>To underline one of the letters in <em>a</em> menu item's name, precede that letter with an ampersand (&amp;). When the menu is displayed, such an item can be selected by pressing the corresponding key on the keyboard. To display a literal ampersand, specify two consecutive ampersands as in this example: &quot;Save &amp;&amp; Exit&quot;</p>
 <p>The names of menus and menu items can be up to 260 characters long.</p>
-<p>When referring to an existing menu or menu item, the name is not case sensitive but any ampersands must be included. For example: &amp;Open</p>
-<p>Separator lines can be added to the menu by using <code>Menu, Tray, Add</code> (i.e. omit all other parameters). However, separator lines currently cannot be individually deleted. To work around this, use <code>Menu, Tray, DeleteAll</code> and then re-add your custom menu items.</p>
+<p>Separator lines can be added to the menu by using <code>Menu, <i>MenuName</i>, Add</code> (i.e. omit all other parameters). To delete separator lines individually, identify them by their position in the menu (requires v1.1.23+). For example, use <code>Menu, <i>MenuName</i>, Delete, 3&amp;</code> if there are two items preceding the separator. Alternatively, use <code>Menu, <i>MenuName</i>, DeleteAll</code> and then re-add your custom menu items.</p>
 <p>New menu items are always added at the bottom of the menu. For the tray menu: To put your menu items on top of the standard menu items (after adding your own menu items) run <code>Menu, Tray, NoStandard</code> followed by <code>Menu, Tray, Standard</code>.</p>
 <p>The standard menu items such as &quot;Pause Script&quot; and &quot;Suspend Hotkeys&quot; cannot be individually operated upon by any menu sub-command.</p>
 <p>If a menu ever becomes completely empty -- such as by using <code>Menu, MyMenu, DeleteAll</code> -- it cannot be shown. If the tray menu becomes empty, right-clicking and double-clicking the tray icon will have no effect (in such cases it is usually better to use <a href="_NoTrayIcon.htm">#NoTrayIcon</a>).</p>

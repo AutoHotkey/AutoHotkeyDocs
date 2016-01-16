@@ -1,0 +1,74 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<title>LoadPicture</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<link href="../static/theme.css" rel="stylesheet" type="text/css" />
+<script src="../static/content.js" type="text/javascript"></script>
+</head>
+<body>
+
+<h1>LoadPicture <span class="ver">[v1.1.23+]</span></h1>
+
+<p>Loads a picture from file and returns a bitmap or icon handle.</p>
+<pre class="Syntax">Handle := LoadPicture(Filename [, Options, ByRef ImageType])</pre>
+
+<h3>Parameters</h3>
+<dl>
+
+  <dt>Filename</dt>
+  <dd><p></p></dd>
+  
+  <dt>Options</dt>
+  <dd>
+    <p>A string of zero or more of the following options, with each separated from the last by a space or tab:</p>
+    <p><strong>W</strong><em>n</em> and <strong>H</strong><em>n</em>: The width and height to load the image at, where <em>n</em> is an integer. If one dimension is omitted or -1, it is calculated automatically based on the other dimension, preserving aspect ratio. If both are omitted, the image's original size is used. If either dimension is 0, the original size is used for that dimension. For example: <code>"w80 h50"</code>, <code>"w48 h-1"</code> or <code>"w48"</code> (preserve aspect ratio), <code>"h0 w100"</code> (use original height but override width).</p>
+    <p><strong>Icon</strong><em>n</em>: Indicates which icon to load from a file with multiple icons (generally an EXE or DLL file). If <em>n</em> is non-zero, the file must contain an icon. For example, <code>"Icon2"</code> loads the file's second icon.</p>
+    <p><strong>GDI+</strong>: Use GDI+ to load the image, if available. For example, <code>"GDI+ w100"</code>.</p>
+  </dd>
+  
+  <dt>ImageType</dt>
+  <dd><p>The unquoted name of a variable in which to store an integer representing the type of handle which is returned: 0 (IMAGE_BITMAP), 1 (IMAGE_ICON) or 2 (IMAGE_CURSOR). If omitted or not a variable, the return value is always a bitmap handle (icons/cursors are converted if necessary).</p></dd>
+
+</dl>
+
+<h3 id="Remarks">Remarks</h3>
+<p>LoadPicture also supports <a href="../misc/ImageHandles.htm">the handle syntax</a>, such as for creating a resized image based on an icon or bitmap which has already been loaded into memory, or converting an icon to a bitmap by omitting <em>ImageType</em>.</p>
+
+<h3>Related</h3>
+<p><a href="../misc/ImageHandles.htm">Image Handles</a></p>
+
+<h3 id="Examples">Example</h3>
+<pre class="NoIndent"><em>; Pre-load and reuse some images.</em>
+
+Pics := []
+<em>; Find some pictures to display.</em>
+Loop, Files, %A_WinDir%\Web\Wallpaper\*.jpg, R
+{
+    <em>; Load each picture and add it to the array.</em>
+    Pics.Push(LoadPicture(A_LoopFileFullPath))
+}
+if !Pics.Length()
+{
+    <em>; If this happens, edit the path on the Loop line above.</em>
+    MsgBox, No pictures found!  Try a different directory.
+    ExitApp
+}
+<em>; Add the picture control, preserving the aspect ratio of the first picture.</em>
+Gui, Add, Pic, w600 h-1 vPic +Border, % "HBITMAP:*" Pics.1
+Gui, Show
+Loop 
+{
+    <em>; Switch pictures!</em>
+    GuiControl, , Pic, % "HBITMAP:*" Pics[Mod(A_Index, Pics.Length())+1]
+    Sleep 3000
+}
+return
+GuiClose:
+GuiEscape:
+ExitApp</pre>
+
+</body>
+</html>
