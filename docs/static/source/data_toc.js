@@ -176,7 +176,7 @@ toc = [
     {label:"StrPut/StrGet",path:"commands/StrPutGet.htm"},
     {label:"StrReplace",path:"commands/StringReplace.htm"},
     {label:"StrSplit",path:"commands/StringSplit.htm"},
-    {label:"SubStr",path:"Functions.htm#SubStr"},
+    {label:"SubStr",path:"commands/SubStr.htm"},
     {label:"VarSetCapacity",path:"commands/VarSetCapacity.htm"},
     {label:"WinActive",path:"commands/WinActive.htm"},
     {label:"WinExist",path:"commands/WinExist.htm"}
@@ -337,7 +337,7 @@ toc = [
     {label:"StrPut()/StrGet()",path:"commands/StrPutGet.htm"},
     {label:"StrReplace()",path:"commands/StringReplace.htm"},
     {label:"StrSplit()",path:"commands/StringSplit.htm"},
-    {label:"SubStr()",path:"Functions.htm#SubStr"},
+    {label:"SubStr()",path:"commands/SubStr.htm"},
     {label:"Trim()",path:"commands/Trim.htm"}
   ]},
   {label:"Window Management",children:
