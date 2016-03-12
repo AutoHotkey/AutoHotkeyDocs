@@ -1,5 +1,4 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
-"http://www.w3.org/TR/html4/loose.dtd">
+<!DOCTYPE HTML>
 <html>
 <head>
 <title>OnMessage</title>
@@ -26,8 +25,8 @@
   <p>How the function is registered and the return value of OnMessage depend on whether this parameter is a string or a function object.  See <a href="#Name_v_Object">Function Name vs Object</a> for details.</p>
   </dd>
 
-  <dt>MaxThreads <span class="ver">[v1.0.47+]</span></dt>
-  <dd><p><a name="MaxThreads"></a>This integer is normally omitted, in which case the monitor function is limited to one <a href="../misc/Threads.htm">thread</a> at a time. This is usually best because otherwise, the script would process messages out of chronological order whenever the monitor function interrupts itself. Therefore, as an alternative to <em>MaxThreads</em>, consider using <em>Critical</em> as described <a href="#Critical">below</a>.</p>
+  <dt id="MaxThreads">MaxThreads <span class="ver">[v1.0.47+]</span></dt>
+  <dd><p>This integer is normally omitted, in which case the monitor function is limited to one <a href="../misc/Threads.htm">thread</a> at a time. This is usually best because otherwise, the script would process messages out of chronological order whenever the monitor function interrupts itself. Therefore, as an alternative to <em>MaxThreads</em>, consider using <em>Critical</em> as described <a href="#Critical">below</a>.</p>
   <p><span class="ver">[v1.1.20+]:</span> By default, when multiple functions are registered for a single <em>MsgNumber</em>, they are called in the order that they were registered. To register a function to be called before any previously registered functions, specify a negative value for <em>MaxThreads</em>. For example, <code>OnMessage(Msg, Fn, -2)</code> registers <code>Fn</code> to be called before any other functions previously registered for <em>Msg</em>, and allows <em>Fn</em> a maximum of 2 threads. However, if the function is already registered, the order will not change unless it is unregistered and then re-registered.</p></dd>
 
 </dl>
@@ -94,7 +93,7 @@ Parameter #4: The HWND (unique ID) of the window or control to which the message
 <ul>
   <li><a href="../Variables.htm#Gui">A_Gui</a>: Blank unless the message was sent to a GUI window or control, in which case A_Gui is the <a href="Gui.htm#MultiWin">Gui Window number</a> (this window is also set as the function's <a href="Gui.htm#DefaultWin">default GUI window</a>).</li>
   <li><a href="../Variables.htm#GuiControl">A_GuiControl</a>: Blank unless the message was sent to a GUI control, in which case it contains the control's variable name or other value as described at <a href="../Variables.htm#GuiControl">A_GuiControl</a>. Some controls never receive certain types of messages. For example, when the user clicks a <a href="GuiControls.htm#Text">text control</a>, the operating system sends WM_LBUTTONDOWN to the parent window rather than the control; consequently, A_GuiControl is blank.</li>
-  <li><a href="../Variables.htm#GuiX">A_GuiX</a> and <a href="../Variables.htm#GuiX">A_GuiY</a>: Both contain -2147483648 if the incoming message was sent via <a href="PostMessage.htm">SendMessage</a>. If it was sent via <a href="PostMessage.htm">PostMessage</a>, they contain the mouse cursor's coordinates (relative to the screen) at the time the message was posted.</li>
+  <li><a href="../Variables.htm#GuiX">A_GuiX</a> and <a href="../Variables.htm#GuiY">A_GuiY</a>: Both contain -2147483648 if the incoming message was sent via <a href="PostMessage.htm">SendMessage</a>. If it was sent via <a href="PostMessage.htm">PostMessage</a>, they contain the mouse cursor's coordinates (relative to the screen) at the time the message was posted.</li>
   <li><a href="../Variables.htm#EventInfo">A_EventInfo</a>: Contains 0 if the message was sent via SendMessage. If sent via PostMessage, it contains the <a href="../Variables.htm#TickCount">tick-count time</a> the message was posted.</li>
 </ul>
 <p>A monitor function's <a href="../misc/WinTitle.htm#LastFoundWindow">last found window</a> starts off as the parent window to which the message was sent (even if it was sent to a control). If the window is hidden but not a GUI window (such as the script's main window), turn on <a href="DetectHiddenWindows.htm">DetectHiddenWindows</a> before using it. For example:</p>
@@ -110,7 +109,7 @@ MsgParentWindow := WinExist()  <em>; This stores the unique ID of the window to 
 <p>Unlike a normal function-call, the arrival of a monitored message calls the function as a new <a href="../misc/Threads.htm">thread</a>. Because of this, the function starts off fresh with the default values for settings such as <a href="SendMode.htm">SendMode</a> and <a href="DetectHiddenWindows.htm">DetectHiddenWindows</a>. These defaults can be changed in the <a href="../Scripts.htm#auto">auto-execute section</a>.</p>
 <p>Messages sent to a control (rather than being posted) are not monitored because the system routes them directly to the control behind the scenes. This is seldom an issue for system-generated messages because most of them are posted.</p>
 <p>Any script that calls OnMessage anywhere is automatically <a href="_Persistent.htm">persistent</a>. It is also single-instance unless <a href="_SingleInstance.htm">#SingleInstance</a> has been used to override that.</p>
-<p><a name="Critical"></a>If a message arrives while its function is still running due to a previous arrival of the same message, the function will not be called again (except if <a href="#MaxThreads">MaxThreads</a> is greater than 1); instead, the message will be treated as unmonitored. If this is undesirable, a message greater than or equal to 0x312 can be buffered until its function completes by specifying <a href="Critical.htm">Critical</a> as the first line of the function. Alternatively, <a href="Thread.htm">Thread Interrupt</a> can achieve the same thing as long as it lasts long enough for the function to finish. By contrast, a message less than 0x312 cannot be buffered by Critical or Thread Interrupt (however, in v1.0.46+, Critical may help because it checks messages <a href="Critical.htm#Interval">less often</a>, which gives the function more time to finish). The only way to guarantee that no such messages are missed is to ensure the function finishes in under 6 milliseconds (though this limit can be raised via <a href="Critical.htm#Interval"><em>Critical 30</em></a>). One way to do this is to have it queue up a future thread by <a href="PostMessage.htm">posting</a> to its own script a monitored message number higher than 0x312. That message's function should use <a href="Critical.htm">Critical</a> as its first line to ensure that its messages are buffered.</p>
+<p id="Critical">If a message arrives while its function is still running due to a previous arrival of the same message, the function will not be called again (except if <a href="#MaxThreads">MaxThreads</a> is greater than 1); instead, the message will be treated as unmonitored. If this is undesirable, a message greater than or equal to 0x312 can be buffered until its function completes by specifying <a href="Critical.htm">Critical</a> as the first line of the function. Alternatively, <a href="Thread.htm">Thread Interrupt</a> can achieve the same thing as long as it lasts long enough for the function to finish. By contrast, a message less than 0x312 cannot be buffered by Critical or Thread Interrupt (however, in v1.0.46+, Critical may help because it checks messages <a href="Critical.htm#Interval">less often</a>, which gives the function more time to finish). The only way to guarantee that no such messages are missed is to ensure the function finishes in under 6 milliseconds (though this limit can be raised via <a href="Critical.htm#Interval"><em>Critical 30</em></a>). One way to do this is to have it queue up a future thread by <a href="PostMessage.htm">posting</a> to its own script a monitored message number higher than 0x312. That message's function should use <a href="Critical.htm">Critical</a> as its first line to ensure that its messages are buffered.</p>
 <p>If a monitored message that is numerically less than 0x312 arrives while the script is absolutely uninterruptible -- such as while a <a href="Menu.htm">menu</a> is displayed, a <a href="SetKeyDelay.htm">KeyDelay</a>/<a href="SetMouseDelay.htm">MouseDelay</a> is in progress, or the clipboard is being <a href="_ClipboardTimeout.htm">opened</a> -- the message's function will not be called and the message will be treated as unmonitored.  By contrast, a monitored message of 0x312 or higher will be buffered during  these uninterruptible periods; that is, its function will be called when the script becomes interruptible.</p>
 <p>If a monitored message numerically less than 0x312 arrives while the script is uninterruptible merely due to the settings of <a href="Thread.htm">Thread Interrupt</a> or <a href="Critical.htm">Critical</a>, the current thread will be interrupted so that the function can be called. By contrast, a monitored message of 0x312 or higher will be buffered until the thread finishes or becomes interruptible.</p>
 <p>The <a href="../misc/Threads.htm">priority</a> of OnMessage threads is always 0. Consequently, no messages are monitored or buffered when the current thread's priority is higher than 0.</p>
@@ -141,7 +140,7 @@ WM_LBUTTONDOWN(wParam, lParam)
 GuiClose:
 ExitApp</pre>
 
-<pre class="NoIndent"><a name="shutdown"></a><em>; Example: The following script detects system shutdown/logoff and allows you to abort it (this is
+<pre class="NoIndent" id="shutdown"><em>; Example: The following script detects system shutdown/logoff and allows you to abort it (this is
 ; reported NOT to work on Windows Vista and later).
 ; Related topic: <a href="OnExit.htm">OnExit</a></em>
 
@@ -184,7 +183,7 @@ if WinExist(&quot;Name of Receiving Script.ahk ahk_class AutoHotkey&quot;)
     PostMessage, 0x5555, 11, 22  <em>; The message is sent  to the &quot;<a href="../misc/WinTitle.htm#LastFoundWindow">last found window</a>&quot; due to WinExist() above.</em>
 DetectHiddenWindows Off  <em>; Must not be turned off until after PostMessage.</em></pre>
 
-<pre class="NoIndent"><a name="SendString"></a><em>; Example: Send a string of any length from one script to another.  This is a working example.
+<pre class="NoIndent" id="SendString"><em>; Example: Send a string of any length from one script to another.  This is a working example.
 ; To use it, save and run both of the following scripts then press Win+Space to show an
 ; InputBox that will prompt you to type in a string.</em>
 

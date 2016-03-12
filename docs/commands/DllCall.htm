@@ -1,5 +1,4 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
-"http://www.w3.org/TR/html4/loose.dtd">
+<!DOCTYPE HTML>
 <html>
 <head>
 <title>DllCall</title>
@@ -23,7 +22,7 @@
 
   <dt>[DllFile\]Function</dt>
   <dd><p>The DLL or EXE file name followed by a backslash and the name of the function. For example: <code>&quot;MyDLL\MyFunction&quot;</code> (the file extension &quot;.dll&quot; is the default when omitted). If an absolute path isn't specified, <em>DllFile</em> is assumed to be in the system's PATH or <a href="../Variables.htm#WorkingDir">A_WorkingDir</a>.</p>
-      <p><em><a name="std"></a>DllFile</em> may be omitted when calling a function that resides in User32.dll, Kernel32.dll, ComCtl32.dll, or Gdi32.dll. For example, <code>&quot;User32\IsWindowVisible&quot;</code> produces the same result as <code>&quot;IsWindowVisible&quot;</code>.</p>
+      <p id="std"><em>DllFile</em> may be omitted when calling a function that resides in User32.dll, Kernel32.dll, ComCtl32.dll, or Gdi32.dll. For example, <code>&quot;User32\IsWindowVisible&quot;</code> produces the same result as <code>&quot;IsWindowVisible&quot;</code>.</p>
       <p>If no function can be found by the given name, an A (ANSI) or W (Unicode) suffix is automatically appended based on which version of AutoHotkey is running the script. For example, <code>&quot;MessageBox&quot;</code> is the same as <code>&quot;MessageBoxA&quot;</code> in ANSI versions and <code>&quot;MessageBoxW&quot;</code> in Unicode versions.</p>
       <p>Performance can be dramatically improved when making <em>repeated</em> calls to a DLL by <a href="#load">loading it beforehand</a>.</p>
     <p>In v1.0.46.08+, this parameter may also consist solely of an integer, which is interpreted as the address of the function to call. Sources of such addresses include <a href="#COM">COM</a> and <a href="RegisterCallback.htm">RegisterCallback()</a>.</p></dd>
@@ -32,7 +31,7 @@
   <dd><p>Each of these pairs represents a single parameter to be passed to the function. The number of pairs is unlimited. For <em>Type</em>, see the <a href="#types">types table</a> below. For <em>Arg</em>, specify the value to be passed to the function.</p></dd>
 
   <dt>Cdecl ReturnType</dt>
-  <dd><p><a name="cdecl"></a>The word <em>Cdecl</em> is normally omitted because most functions use the standard calling convention rather than the &quot;C&quot; calling convention (functions such as wsprintf that accept a varying number of arguments are one exception to this). If you omit Cdecl but the call yields <a href="#An">ErrorLevel A<strong>n</strong></a> -- where <strong>n</strong> is the total size of the arguments you passed -- <em>Cdecl</em> might be required. Note that most object-oriented C++ functions use the <i>thiscall</i> convention, which is not supported.</p>
+  <dd><p id ="cdecl">The word <em>Cdecl</em> is normally omitted because most functions use the standard calling convention rather than the &quot;C&quot; calling convention (functions such as wsprintf that accept a varying number of arguments are one exception to this). If you omit Cdecl but the call yields <a href="#An">ErrorLevel A<strong>n</strong></a> -- where <strong>n</strong> is the total size of the arguments you passed -- <em>Cdecl</em> might be required. Note that most object-oriented C++ functions use the <i>thiscall</i> convention, which is not supported.</p>
       <p>If present, the word <em>Cdecl</em> should be listed before the return type (if any). Separate each word from the next with a space or tab. For example: <code>&quot;Cdecl Str&quot;</code>.</p>
       <p><span class="ver">[AHK_L 53+]:</span> Since a separate "C" calling convention does not exist in 64-bit code, <i>Cdecl</i> may be specified but has no effect on 64-bit builds of AutoHotkey.</p>
       <p><em>ReturnType</em>: If the function returns a 32-bit signed integer (Int), BOOL, or nothing at all, <em>ReturnType</em> may be omitted. Otherwise, specify one of the argument types from the <a href="#types">types table</a> below. The <a href="#asterisk">asterisk suffix</a> is also supported.</p></dd>
@@ -41,25 +40,25 @@
 
 <h3 id="types">Types of Arguments and Return Values</h3>
 <table class="info">
-<tr>
+<tr id="str">
 <td>Str</td>
-<td><p><a name="str"></a>A string such as &quot;Blue&quot; or MyVar. If the called function modifies the string and the argument is a naked variable, its contents will be updated. For example, the following call would convert the contents of <em>MyVar</em> to uppercase: <code>DllCall(&quot;CharUpper&quot;, &quot;Str&quot;, <i>MyVar</i>)</code>.</p>
+<td><p>A string such as &quot;Blue&quot; or MyVar. If the called function modifies the string and the argument is a naked variable, its contents will be updated. For example, the following call would convert the contents of <em>MyVar</em> to uppercase: <code>DllCall(&quot;CharUpper&quot;, &quot;Str&quot;, <i>MyVar</i>)</code>.</p>
   <p>However, if the function is designed to store a string larger than a variable's current capacity, ensure that the variable is large enough before calling the function. This can be achieved by calling <code><a href="VarSetCapacity.htm">VarSetCapacity(MyVar, 123)</a></code>, where 123 is the length that <em>MyVar</em> must be able to hold.</p>
   <p>A <em>Str</em> argument must not be an <a href="../Variables.htm#Expressions">expression</a> that evaluates to a number (such as i+1). If it is, the function is not called and ErrorLevel is set to -2.</p>
   <p>The <a href="#asterisk">asterisk variable</a> &quot;Str*&quot; is supported but rarely used. It can be used with functions that expect something like &quot;TCHAR **&quot; or &quot;LPTSTR *&quot;.</p>
   <p>Note: When passing a string to a function, be aware what <a href="../Compat.htm#DllCall"><i>type</i> of string</a> the function expects.</p></td>
 </tr>
 <tr>
-  <td><a name="astr"></a><a name="wstr"></a>AStr<br>WStr</td>
+  <td><span id="astr"></span><span id="wstr"></span>AStr<br>WStr</td>
   <td><span class="ver">[AHK_L 42+]:</span> An <b>A</b>NSI or Unicode (<b>W</b>ide character) string. See <a href="../Compat.htm#DllCall">Script Compatibility</a> for equivalent Win32 types and other details.</td>
 </tr>
 <tr>
   <td>Int64</td>
   <td>A 64-bit integer, whose range is -9223372036854775808 (-0x8000000000000000) to 9223372036854775807 (0x7FFFFFFFFFFFFFFF).</td>
 </tr>
-<tr>
+<tr id="Int">
   <td>Int</td>
-  <td id="Int"><p>A 32-bit integer (the most common integer type), whose range is -2147483648 (-0x80000000) to 2147483647 (0x7FFFFFFF). An Int is sometimes called a &quot;Long&quot;.</p>
+  <td><p>A 32-bit integer (the most common integer type), whose range is -2147483648 (-0x80000000) to 2147483647 (0x7FFFFFFF). An Int is sometimes called a &quot;Long&quot;.</p>
     <p>An Int should also be used for each BOOL argument expected by a function (a BOOL value should be either 1 or 0).</p>
     <p>An <a href="#unsigned">unsigned</a> Int (UInt) is also used quite frequently, such as for DWORD.</p></td>
 </tr>
@@ -79,9 +78,9 @@
   <td>Double</td>
   <td>A 64-bit floating point number, which provides 15 digits of precision.</td>
 </tr>
-<tr>
+<tr id="ptr">
   <td>Ptr</td>
-  <td id="ptr"><p><span class="ver">[AHK_L 42+]:</span> A <a href="../Variables.htm#PtrSize">pointer-sized</a> integer, equivalent to Int or Int64 depending on whether the exe running the script is 32-bit or 64-bit. <i>Ptr</i> should be used for pointers to arrays or structures (such as RECT* or LPPOINT) and almost all handles (such as HWND, HBRUSH or HBITMAP). If the parameter is a pointer to a single numeric value such as LPDWORD or int*, generally the * or P suffix should be used instead of &quot;Ptr&quot;.</p>
+  <td><p><span class="ver">[AHK_L 42+]:</span> A <a href="../Variables.htm#PtrSize">pointer-sized</a> integer, equivalent to Int or Int64 depending on whether the exe running the script is 32-bit or 64-bit. <i>Ptr</i> should be used for pointers to arrays or structures (such as RECT* or LPPOINT) and almost all handles (such as HWND, HBRUSH or HBITMAP). If the parameter is a pointer to a single numeric value such as LPDWORD or int*, generally the * or P suffix should be used instead of &quot;Ptr&quot;.</p>
   <p><i>Ptr</i> can also be used with the * or P suffix; it should be used with functions that output a pointer via LPVOID* or similar.</p>
   <p><i>UPtr</i> is also valid, but is only unsigned in 32-bit builds as AutoHotkey does not support unsigned 64-bit integers.</p>
   <p>If compatibility with older versions of AutoHotkey is required, use a variable type as shown below:</p>
@@ -89,18 +88,18 @@
 DllCall("DeleteFile", Ptr, &amp;filename) <em>; Omit the quote marks around Ptr.</em></pre>
   <p>Note: To pass a <strong>NULL</strong> handle or pointer, pass the integer 0.</p></td>
 </tr>
-<tr>
+<tr id="asterisk">
   <td>* or P<br>
     (suffix)</td>
-  <td id="asterisk"><p>Append an asterisk (with optional preceding space) to any of the above types to cause the address of the argument to be passed rather than the value itself (the called function must be designed to accept it). Since the value of such an argument might be modified by the function, whenever a naked variable is passed as the argument, that variable's contents will be updated. For example, the following call would pass the contents of MyVar to MyFunction by address, but would also update MyVar to reflect any changes made to it by MyFunction: <code>DllCall(&quot;MyDll\MyFunction&quot;, &quot;Int*&quot;, MyVar)</code>.</p>
+  <td><p>Append an asterisk (with optional preceding space) to any of the above types to cause the address of the argument to be passed rather than the value itself (the called function must be designed to accept it). Since the value of such an argument might be modified by the function, whenever a naked variable is passed as the argument, that variable's contents will be updated. For example, the following call would pass the contents of MyVar to MyFunction by address, but would also update MyVar to reflect any changes made to it by MyFunction: <code>DllCall(&quot;MyDll\MyFunction&quot;, &quot;Int*&quot;, MyVar)</code>.</p>
     <p>In general, an asterisk is used whenever a function has an argument type or return type that starts with &quot;LP&quot;. The most common example is LPDWORD, which is a pointer to a DWORD. Since a DWORD is an unsigned 32-bit integer, use &quot;UInt*&quot; or &quot;UintP&quot; to represent LPDWORD. An asterisk should not be used for string types such as LPTSTR, pointers to structures such as LPRECT, or arrays; for these, <a href="#str">&quot;Str&quot;</a> or &quot;Ptr&quot; should be used, depending on whether you pass a variable or its address.</p>
     <p>Note: &quot;Char*&quot; is not the same as <a href="#str">&quot;Str&quot;</a> because &quot;Char*&quot; passes the address of an 8-bit number, whereas <a href="#str">&quot;Str&quot;</a> passes the address of a series of characters which may be either 8-bit (ANSI) or 16-bit (Unicode), depending on the version of AutoHotkey. Similarly, &quot;UInt*&quot; passes the address of a 32-bit number, so should not be used if the function expects an array of values or a structure larger than 32 bits.</p>
     <p>Since variables in AutoHotkey have no fixed type, the address passed to the function points to temporary memory rather than the variable itself. It is not necessary to call <a href="VarSetCapacity.htm">VarSetCapacity</a> on the variable as DllCall will update it correctly after the function returns.</p>
     </td>
 </tr>
-<tr>
+<tr id="unsigned">
   <td>U (prefix)</td>
-  <td><p><a name="unsigned"></a>Prepend the letter U to any of the integer types above to interpret it as an unsigned integer (UInt64, UInt, UShort, and UChar). Strictly speaking, this is necessary only for return values and <a href="#asterisk">asterisk variables</a> because it does not matter whether an argument passed by value is unsigned or signed (except for Int64).</p>
+  <td><p>Prepend the letter U to any of the integer types above to interpret it as an unsigned integer (UInt64, UInt, UShort, and UChar). Strictly speaking, this is necessary only for return values and <a href="#asterisk">asterisk variables</a> because it does not matter whether an argument passed by value is unsigned or signed (except for Int64).</p>
     <p>If a negative integer is specified for an unsigned argument, the integer wraps around into the unsigned domain. For example, when -1 is sent as a UInt, it would become 0xFFFFFFFF.</p>
     <p><em>Unsigned</em> 64-bit integers produced by a function are not supported. Therefore, to work with numbers greater or equal to 0x8000000000000000, omit the U prefix and interpret any negative values received from the function as large integers. For example, a function that yields -1 as an Int64 is really yielding 0xFFFFFFFFFFFFFFFF if it is designed to yield a UInt64.</p></td>
 </tr>
@@ -116,11 +115,11 @@ DllCall("DeleteFile", Ptr, &amp;filename) <em>; Omit the quote marks around Ptr.
 <p><strong>-3</strong>: The specified <em>DllFile</em> could not be accessed or loaded. If no explicit path was specified for <em>DllFile</em>, the file must exist in the system's PATH or <a href="../Variables.htm#WorkingDir">A_WorkingDir</a>. This error might also occur if the user lacks permission to access the file, or if AutoHotkey is 32-bit and the DLL is 64-bit or vice versa.</p>
 <p><strong>-4</strong>: The specified function could not be found inside the DLL.</p>
 <p><strong>N</strong> (any positive number): The function was called but it aborted with fatal exception number <strong>N</strong> (for example, 0xC0000005 means &quot;access violation&quot;). In such cases, the function returns a blank value (empty string), but any <a href="#asterisk">asterisk variables</a> are still updated. An example of a fatal exception is dereferencing an invalid pointer such as NULL. Since a <a href="#cdecl">Cdecl</a> function never produces the <em>&quot;An&quot;</em> error in the next paragraph, it may generate an exception when too few arguments are passed to it.</p>
-<p><strong><a name="An"></a>An</strong> (the letter A followed by an integer <strong>n</strong>): The function was called but was passed too many or too few arguments. &quot;<strong>n</strong>&quot; is the number of bytes by which the argument list was incorrect. If <strong>n</strong> is positive, too many arguments (or arguments that were too large) were passed, or the call requires <a href="#cdecl">CDecl</a>. If <strong>n</strong> is negative, too few arguments were passed. This situation should be corrected to ensure reliable operation of the function. The presence of this error may also indicate that an exception occurred, in which case the function returns a blank value. Note that due to the x64 calling convention, 64-bit builds never set ErrorLevel to <b>An</b>.</p>
+<p id="An"><strong>An</strong> (the letter A followed by an integer <strong>n</strong>): The function was called but was passed too many or too few arguments. &quot;<strong>n</strong>&quot; is the number of bytes by which the argument list was incorrect. If <strong>n</strong> is positive, too many arguments (or arguments that were too large) were passed, or the call requires <a href="#cdecl">CDecl</a>. If <strong>n</strong> is negative, too few arguments were passed. This situation should be corrected to ensure reliable operation of the function. The presence of this error may also indicate that an exception occurred, in which case the function returns a blank value. Note that due to the x64 calling convention, 64-bit builds never set ErrorLevel to <b>An</b>.</p>
 
 <h3 id="except">Exceptions and A_LastError</h3>
 <p>In spite of the built-in exception handling, it is still possible to crash a script with DllCall. This can happen when a function does not directly generate an exception but yields something inappropriate, such as a bad pointer or a string that is not terminated. This might not be the function's fault if the script passed it an unsuitable value such as a bad pointer or a <a href="#str">&quot;str&quot;</a> with insufficient capacity. A script can also crash when it specifies an inappropriate argument type or return type, such as claiming that an ordinary integer yielded by a function is an <a href="#asterisk">asterisk variable</a> or <a href="#str">str</a>.</p>
-<p><a name="LastError"></a>The built-in variable <strong>A_LastError</strong> contains the result of the operating system's GetLastError() function, which is called immediately after the function is called (this has no measurable impact on performance). A_LastError is a number between 0 and 4294967295 (always formatted as decimal, not hexadecimal). Like <a href="../misc/ErrorLevel.htm">ErrorLevel</a>, A_LastError is a per-thread setting; that is, interruptions by other <a href="../misc/Threads.htm">threads</a> cannot change it. However, A_LastError is also set by <a href="Run.htm#LastError">Run/RunWait</a>.</p>
+<p id="LastError">The built-in variable <strong>A_LastError</strong> contains the result of the operating system's GetLastError() function, which is called immediately after the function is called (this has no measurable impact on performance). A_LastError is a number between 0 and 4294967295 (always formatted as decimal, not hexadecimal). Like <a href="../misc/ErrorLevel.htm">ErrorLevel</a>, A_LastError is a per-thread setting; that is, interruptions by other <a href="../misc/Threads.htm">threads</a> cannot change it. However, A_LastError is also set by <a href="Run.htm#LastError">Run/RunWait</a>.</p>
 
 <h3 id="load">Performance</h3>
 <p>When making repeated calls to a DLL, performance can be dramatically improved by loading it explicitly (<em>this is not necessary for a <a href="#std">standard DLL</a> such as User32 because it is always resident</em>). This practice avoids the need for DllCall to internally call LoadLibrary and FreeLibrary each time. For example:</p>
@@ -183,7 +182,7 @@ VarSetCapacity(ZeroPaddedNumber, 20)  <em>; Ensure the variable is large enough 
 DllCall(&quot;wsprintf&quot;, &quot;Str&quot;, ZeroPaddedNumber, &quot;Str&quot;, &quot;%010d&quot;, &quot;Int&quot;, 432, &quot;Cdecl&quot;)  <em>; Requires the Cdecl calling convention.</em>
 MsgBox %ZeroPaddedNumber%</pre>
 
-<pre class="NoIndent"><a name="QPC"></a><em>; Example: Demonstrates QueryPerformanceCounter(), which gives more precision than <a href="../Variables.htm#TickCount">A_TickCount's</a> 10ms.</em>
+<pre class="NoIndent" id="QPC"><em>; Example: Demonstrates QueryPerformanceCounter(), which gives more precision than <a href="../Variables.htm#TickCount">A_TickCount's</a> 10ms.</em>
 
 DllCall(&quot;QueryPerformanceCounter&quot;, &quot;Int64*&quot;, CounterBefore)
 Sleep 1000
@@ -205,7 +204,7 @@ return
 
 F1 up::<strong>DllCall</strong>(&quot;SystemParametersInfo&quot;, UInt, 0x71, UInt, 0, Ptr, OrigMouseSpeed, UInt, 0)  <em>; Restore the original speed.</em></pre>
 
-<pre class="NoIndent"><a name="GetChildHWND"></a><em>; Example: When passed a window's Unique ID and the text or ClassNN of one of its controls,
+<pre class="NoIndent" id="GetChildHWND"><em>; Example: When passed a window's Unique ID and the text or ClassNN of one of its controls,
 ; the following function returns the HWND (unique ID) of that control.
 ; v1.0.43.06+: This function has been superseded by the following command, which is more accurate.</em>
 
@@ -230,7 +229,7 @@ ControlGet, ChildHWND, Hwnd,, %FocusedControl%, ahk_id %ActiveWindow%
 ToolTip % <strong>DllCall</strong>(&quot;GetScrollPos&quot;, &quot;Ptr&quot;, ChildHWND, &quot;Int&quot;, 1)  <em>;  Last parameter is 1 for SB_VERT, 0 for SB_HORZ.</em>
 return</pre>
 
-<pre class="NoIndent"><a name="file"></a><em>; Example: This is a working script that writes some text to a file then reads it back into memory (requires v1.0.34+).
+<pre class="NoIndent" id="file"><em>; Example: This is a working script that writes some text to a file then reads it back into memory (requires v1.0.34+).
 ; This method can be used to help performance in cases where multiple files are being read or written simultaneously.
 ; in AHK_L 42+, <a href="FileOpen.htm#writeread">the same can be achieved</a> using <a href="FileOpen.htm">FileOpen</a>.</em>
 
@@ -266,7 +265,7 @@ BytesToRead := VarSetCapacity(TestString, StrLen(TestString))
 <strong>DllCall</strong>(&quot;CloseHandle&quot;, Ptr, hFile)  <em>; Close the file.</em>
 MsgBox The following string was read from the file: %TestString%</pre>
 
-<pre class="NoIndent"><a name="HideCursor"></a><em>; Example: Hides the mouse cursor when you press Win+C. To later show the cursor, press Win+C again.
+<pre class="NoIndent" id="HideCursor"><em>; Example: Hides the mouse cursor when you press Win+C. To later show the cursor, press Win+C again.
 ; This script is from <a href="http://www.autohotkey.com/forum/topic6107.html">www.autohotkey.com/forum/topic6107.html</a></em>
 
 OnExit, ShowCursor  <em>; Ensure the cursor is made visible when the script exits.</em>
