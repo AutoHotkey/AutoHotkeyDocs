@@ -26,16 +26,19 @@
   </dd>
 
   <dt>Period|On|Off|Delete</dt>
-  <dd><p><strong>On</strong>: Re-enables a previously disabled timer at its former <em>period</em>. If the timer doesn't exist, it is created (with a default period of 250). If the timer exists but was previously set to <a href="#once">run-only-once mode</a>, it will again run only once.</p>
+  <dd><p><strong>On</strong>: Re-enables a previously disabled timer at its former <em>period</em>. If the timer doesn't exist, it is created (with a default period of 250). The timer is also <a href="#reset">reset</a>. If the timer exists but was previously set to <a href="#once">run-only-once mode</a>, it will again run only once.</p>
       <p><strong>Off</strong>: Disables an existing timer.</p>
       <p><strong>Delete</strong> <span class="ver">[v1.1.20+]</span>: Disables and deletes an existing timer. If the timer is associated with a <a href="../objects/Functor.htm">function object</a>, the object is released. Turning off a timer does not release the object.</p>
-      <p><strong>Period</strong>: Creates or updates a timer using this parameter as the <a href="#Precision">approximate</a> number of milliseconds  that must pass since the last time the <em>Label</em> subroutine was started. When this amount of time has passed, <em>Label</em> will be run again (unless it is still running from the last time). The timer will be automatically enabled. To prevent this, call the command a second time immediately afterward, specifying OFF for this parameter.</p>
-      <p><em>Period</em> must be an integer, unless a variable or expression is used, in which case any fractional part is ignored.</p>
-      <p>If this parameter is blank  and:<br>
+      <p><strong>Period</strong>: Creates or updates a timer using the absolute value of this parameter as the <a href="#Precision">approximate</a> number of milliseconds that must pass before the timer is executed. The timer will be automatically enabled and <a href="#reset">reset</a>. It can be set to repeat automatically or run only once:</p>
+      <ul>
+        <li>If <em>Period</em> is positive, the timer will auomatically repeat until it is explicitly disabled by the script.</li>
+        <li id="once"><span class="ver">[v1.0.46.16+]:</span> If <em>Period</em> is negative, the timer will run only once. For example, specifying -100 would run the timer 100 ms from now then disable the timer as though <code>SetTimer, Label, Off</code> had been used.</li>
+      </ul>
+      <p><em>Period</em> must be an integer, unless a variable or expression is used, in which case any fractional part is ignored. Its absolute value must be no larger than 4294967295 ms (49.7 days).</p>
+      <p><strong>Default</strong>: If this parameter is blank and:<br>
       1) the timer does not exist: it will be created with a period of 250.<br>
       2) the timer already exists: it will be enabled and <a href="#reset">reset</a> at its former <em>period</em> unless a <em>Priority</em> is specified.</p>
-      <p><strong><a name="once" id="once"></a>Run only once</strong> <span class="ver">[v1.0.46.16+]:</span> Specify a negative <em>Period</em> to indicate that the timer should run only once. For example, specifying -100 would run the timer 100 ms from now then disable the timer as though <code>SetTimer, Label, Off</code> had been used.<br>
-      </p>
+
     </dd>
 
   <dt>Priority</dt>
@@ -48,9 +51,9 @@
 <p>Timers are useful because they run asynchronously, meaning that they will run at the specified frequency (interval) even when the script is  waiting for a window, displaying a dialog, or busy with another task. Examples of their many uses include taking some action when the user becomes idle (as reflected by <a href="../Variables.htm#TimeIdle">A_TimeIdle</a>) or closing unwanted windows the moment they appear.</p>
 <p>Although timers may give the illusion that the script is performing more than one task simultaneously, this is not the case. Instead, timed subroutines are treated just like other threads: they can interrupt or be interrupted by another thread, such as a <a href="../Hotkeys.htm">hotkey subroutine</a>. See <a href="../misc/Threads.htm">Threads</a> for details.</p>
 <p>Whenever a timer is created, re-enabled, or updated with a new <em>period</em>, its subroutine will not run right away; its time <em>period</em> must expire first. If you wish the timer's first execution to be immediate, use <a href="Gosub.htm">Gosub</a> to execute the timer's subroutine (however, this will not start a new thread like the timer itself does; so settings such as <a href="SendMode.htm">SendMode</a> will not start off at their defaults).</p>
-<p><a name="reset"></a>If SetTimer is  used on an existing timer and parameter #2 is a number or the word ON (or it is omitted), the timer's internal &quot;time it was last run&quot; will be reset to the current time; in other words, the entirety of its period must elapse before its subroutine will run again.</p>
-<p><strong><a name="Precision"></a>Timer precision</strong>: Due to the granularity of the OS's time-keeping system, <em>Period</em> is typically rounded up to the nearest multiple of 10 or 15.6 milliseconds (depending on the type of hardware and drivers installed). For example, a <em>Period</em> between 1 and 10 (inclusive) is usually equivalent to 10 or 15.6 on Windows 2000/XP. A shorter delay may be achieved via Loop+Sleep as demonstrated at <a href="Sleep.htm#ShorterSleep">DllCall+<span class="NoIndent">timeBeginPeriod</span>+Sleep</a>.</p>
-<p>A timer might not be able to run as often as specified under the following conditions:</p>
+<p id="reset"><strong>Reset</strong>: If SetTimer is  used on an existing timer and parameter #2 is a number or the word ON (or it is omitted), the timer is reset; in other words, the entirety of its period must elapse before its subroutine will run again.</p>
+<p id="Precision"><strong>Timer precision</strong>: Due to the granularity of the OS's time-keeping system, <em>Period</em> is typically rounded up to the nearest multiple of 10 or 15.6 milliseconds (depending on the type of hardware and drivers installed). For example, a <em>Period</em> between 1 and 10 (inclusive) is usually equivalent to 10 or 15.6 on Windows 2000/XP. A shorter delay may be achieved via Loop+Sleep as demonstrated at <a href="Sleep.htm#ShorterSleep">DllCall+<span class="NoIndent">timeBeginPeriod</span>+Sleep</a>.</p>
+<p id="Reliability"><strong>Reliability</strong>: A timer might not be able to run as often as specified under the following conditions:</p>
 <ol>
   <li>Other applications are putting a heavy load on the CPU.</li>
   <li>The timer subroutine itself takes longer than its own period to run, or there are too many other competing timers (altering <a href="SetBatchLines.htm">SetBatchLines</a> may help).</li>
@@ -59,13 +62,12 @@
 </ol>
 <p>Although timers will operate when the script is <a href="Suspend.htm">suspended</a>, they will not run if the <a href="../misc/Threads.htm">current thread</a> has &quot;<a href="Thread.htm">Thread NoTimers</a>&quot; in effect or whenever any thread is <a href="Pause.htm">paused</a>. In addition, they do not operate when the user is navigating through one of the script's menus (such as the tray icon menu or a menu bar).</p>
 <p>Because timers operate by temporarily interrupting the script's current activity, their subroutines should be kept short (so that they finish  quickly) whenever a long interruption would be undesirable.</p>
-<p>Timers that stay in effect for the duration of a script should usually be created in the <a href="../Scripts.htm#auto">auto-execute section</a>. By contrast, a temporary timer might often be disabled by its own subroutine (see examples at the bottom of this page).</p>
+<p><strong><a name="otherremarks"></a>Other remarks</strong>: Timers that stay in effect for the duration of a script should usually be created in the <a href="../Scripts.htm#auto">auto-execute section</a>. By contrast, a temporary timer might often be disabled by its own subroutine (see examples at the bottom of this page).</p>
 <p>Whenever a timed subroutine is run, it starts off fresh with the default values for settings such as <a href="SendMode.htm">SendMode</a>. These defaults can be changed in the <a href="../Scripts.htm#auto">auto-execute section</a>.</p>
 <p>If <a href="../Hotkeys.htm">hotkey</a> response time is crucial (such as in games) and the script contains any timers whose subroutines take longer than about 5 ms to execute, use the following command to avoid any chance of a 15 ms delay. Such a delay would otherwise happen if a hotkey is pressed at the exact moment a timer thread is in its period of uninterruptibility:</p>
 <pre><a href="Thread.htm">Thread</a>, interrupt, 0  <em>; Make all threads always-interruptible.</em></pre>
 <p>If a timer is disabled while its subroutine is currently running, that subroutine will continue until it completes.</p>
 <p>The <a href="KeyHistory.htm">KeyHistory</a> feature shows how many timers exist and how many are currently enabled.</p>
-<p>A timer's period can be no larger than 4294967295 milliseconds (49.7 days).</p>
 <p>To keep a script running -- such as one that contains only timers -- use <a href="_Persistent.htm">#Persistent</a>.</p>
 <h3>Related</h3>
 <p><a href="Gosub.htm">Gosub</a>, <a href="Return.htm">Return</a>, <a href="../misc/Threads.htm">Threads</a>, <a href="Thread.htm">Thread (command)</a>, <a href="Critical.htm">Critical</a>, <a href="../Functions.htm#IsLabel">IsLabel()</a>, <a href="Menu.htm">Menu</a>, <a href="_Persistent.htm">#Persistent</a></p>
