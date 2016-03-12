@@ -1,4 +1,4 @@
-﻿if (!IsInsideCHM() && !IsSearchBot())
+if (!IsInsideCHM() && !IsSearchBot())
 {
   BuildStructure();
   AddContent();
