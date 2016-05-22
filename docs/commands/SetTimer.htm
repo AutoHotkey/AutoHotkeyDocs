@@ -18,10 +18,11 @@
 <h3>Parameters</h3>
 <dl>
 
-  <dt>Label</dt>
+  <dt id="Label">Label</dt>
   <dd><p>The name of the <a href="../misc/Labels.htm">label</a> or <a href="../Hotkeys.htm">hotkey label</a> to which to jump, which causes the commands beneath <em>Label</em> to be executed until a <a href="Return.htm">Return</a> or <a href="Exit.htm">Exit</a> is encountered. As with the parameters of almost all other commands, <em>Label</em> can be a <a href="../Variables.htm">variable</a> reference such as %MyLabel%, in which case the name stored in the variable is used as the target.</p>
-  <p><span class="ver">[v1.1.01+]:</span> If <em>Label</em> is omitted, <a href="../Variables.htm#ThisLabel">A_ThisLabel</a> will be used. For example, <code>SetTimer,, Off</code> can be used inside a timer subroutine to turn off the timer. <strong>Known limitation:</strong> SetTimer will use the value of A_ThisLabel even if the running timer called a function or object (not a label), or there is no timer running.</p>
+  <p id="OmitLabel"><span class="ver">[v1.1.01+]:</span> If <em>Label</em> is omitted, <a href="../Variables.htm#ThisLabel">A_ThisLabel</a> will be used. For example, <code>SetTimer,, Off</code> can be used inside a timer subroutine to turn off the timer, while <code>SetTimer,, 1000</code> would either update the current timer's <em>Period</em> or set a new timer using the label which is currently running. <span class="ver">[v1.1.24+]:</span> If A_ThisLabel is empty but the current thread was launched by a timer, that timer is used. This is useful for timers which launch functions or function objects.</p>
   <p id="Functor"><span class="ver">[v1.1.20+]:</span> If not a valid label name, this parameter can be the name of a function, or a single variable reference containing a <a href="../objects/Functor.htm">function object</a>. For example, <code>SetTimer %funcobj%, 1000</code> or <code>SetTimer % funcobj, 1000</code>. Other expressions which return objects are currently unsupported. See <a href="#ExampleClass">the class example</a> for more details.</p>
+  <p><strong>Note:</strong> <span class="ver">[v1.1.24+]:</span> Passing an empty variable or an expression which results in an empty value is considered an error. This parameter must be either given a non-empty value or completely omitted.</p>
   </dd>
 
   <dt>Period|On|Off|Delete</dt>
@@ -31,7 +32,8 @@
       <p><strong>Period</strong>: Creates or updates a timer using the absolute value of this parameter as the <a href="#Precision">approximate</a> number of milliseconds that must pass before the timer is executed. The timer will be automatically enabled and <a href="#reset">reset</a>. It can be set to repeat automatically or run only once:</p>
       <ul>
         <li>If <em>Period</em> is positive, the timer will auomatically repeat until it is explicitly disabled by the script.</li>
-        <li id="once"><span class="ver">[v1.0.46.16+]:</span> If <em>Period</em> is negative, the timer will run only once. For example, specifying -100 would run the timer 100 ms from now then disable the timer as though <code>SetTimer, Label, Off</code> had been used.</li>
+        <li id="once"><p><span class="ver">[v1.0.46.16+]:</span> If <em>Period</em> is negative, the timer will run only once. For example, specifying -100 would run the timer 100 ms from now then disable the timer as though <code>SetTimer, Label, Off</code> had been used.</p>
+        <p><span class="ver">[v1.1.24+]:</span> If <em>Label</em> is an object created by the script (not an actual function or label), the timer is automatically deleted after the timer function returns, unless the timer was re-enabled. This allows the object to be freed if the script is no longer referencing it, but it also means the timer's <em>Period</em> and <em>Priority</em> are not retained.</p></li>
       </ul>
       <p><em>Period</em> must be an integer, unless a variable or expression is used, in which case any fractional part is ignored. Its absolute value must be no larger than 4294967295 ms (49.7 days).</p>
       <p><strong>Default</strong>: If this parameter is blank and:<br>
@@ -164,10 +166,11 @@ class SecondCounter {
         ToolTip % ++this.count
     }
 }</pre>
-<p>Notes about the above example:</p>
+<p>Tips relating to the above example:</p>
 <ul>
   <li>We can also use <code>this.timer := this.Tick.<a href="../objects/Func.htm#Bind">Bind</a>(this)</code>.  When <code>this.timer</code> is called, it will effectively invoke <code>this.Tick.<a href="../objects/Func.htm#Call">Call</a>(this)</code> (except that <code>this.Tick</code> is not re-evaluated).  By contrast, <a href="ObjBindMethod.htm">ObjBindMethod</a> produces an object which invokes <code>this.Tick()</code>.</li>
   <li>If we rename <em>Tick</em> to <em>Call</em>, we can just use <code>this</code> directly instead of <code>this.timer</code>.  This also removes the need for the temporary variable.  However, ObjBindMethod is useful when the the object has multiple methods which should be called by different event sources, such as hotkeys, menu items, GUI controls, etc.</li>
+  <li>If the timer is being modified or deleted from within a function/method called by the timer, it may be easier to <a href="#OmitLabel">omit the <em>Label</em> parameter</a>. In some cases this avoids the need to retain the original object which was passed to SetTimer, which eliminates one temporary variable (like <code>timer</code> in the example above).</li>
 </ul>
 
 </body>
