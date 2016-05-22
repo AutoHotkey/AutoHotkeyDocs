@@ -19,7 +19,7 @@
   <li><a href="#ListBox">ListBox</a>, <a href="ListView.htm">ListView</a>, <a href="TreeView.htm">TreeView</a></li>
   <li><a href="#Link">Link</a>, <a href="#Hotkey">Hotkey</a>, <a href="#DateTime">DateTime</a></li>
   <li><a href="#MonthCal">MonthCal</a>, <a href="#Slider">Slider</a>, <a href="#Progress">Progress</a></li>
-  <li><a href="#GroupBox">GroupBox</a>, <a href="#Tab">Tab2</a>, <a href="#StatusBar">StatusBar</a></li>
+  <li><a href="#GroupBox">GroupBox</a>, <a href="#Tab">Tab3</a>, <a href="#StatusBar">StatusBar</a></li>
   <li><a href="#ActiveX">ActiveX</a> (e.g. Internet Explorer Control)</li>
   <li><a href="#Custom">Custom</a></li>
 </ul>
@@ -298,10 +298,17 @@ SS: Second 00</p>
 <pre>Gui, Add, GroupBox, w400 h300, Geographic Criteria</pre>
 <p>By default, a GroupBox's title may have only one line of text. This can be overridden by specifying <code>Wrap</code> in Options.</p>
 <p>To specify the number of rows inside the control (or its height and width), see <a href="Gui.htm#PosSize">position and sizing of controls</a>.</p>
-<span id="Tab2"></span><h2 id="Tab">Tab2</h2>
+
+<span id="Tab2"></span><h2 id="Tab">Tab3</h2>
 <p>Description: A large control containing multiple pages, each of which contains other controls. From this point forward, these pages are referred to as &quot;tabs&quot;.</p>
-<p><strong>Tab2 vs. Tab</strong>: v1.0.47.05 adds the &quot;Tab2&quot; control that fixes rare redrawing problems in the original &quot;Tab&quot; control (e.g. activating a GUI window by clicking certain parts of its controls, such as scrollbars, might redraw improperly). The original Tab control is retained for backward compatibility because Tab2 puts its tab control after its contained controls in the tab-key navigation order. New scripts should use Tab2 whenever possible. Example:</p>
-<pre>Gui, Add, Tab2,, General|View|Appearance|Settings</pre>
+<p>There are three types of Tab control:</p>
+<ul>
+  <li><strong>Tab3</strong> <span class="ver">[v1.1.23.00+]</span>: Fixes some issues which affect Tab2 and Tab. Controls are placed within an invisible "tab dialog" which moves and resizes with the tab control. The tab control is themed by default.</li>
+  <li><strong>Tab2</strong> <span class="ver">[v1.0.47.05+]</span>: Fixes rare redrawing problems in the original "Tab" control but introduces <a href="#Tab2_Issues">some other problems</a>.</li>
+  <li><strong>Tab</strong>: Retained for backward compatibility because of <a href="#Tab_vs">differences in behavior</a> between Tab2/Tab3 and Tab.</li>
+</ul>
+<p>Example:</p>
+<pre>Gui, Add, Tab3,, General|View|Appearance|Settings</pre>
 <p id="ChooseTab">The last parameter above is a pipe-delimited list of tab names. To have one of the tabs pre-selected when the window first appears, include two pipe characters after it (e.g. <code>Red|Green||Blue</code>). Alternatively, include in <em>Options</em> the word <strong>Choose</strong> followed immediately by the number to pre-select. For example, <code>Choose5</code> would pre-select the fifth tab (as with other options, it can also be a variable such as <code>Choose%Var%</code>). To change the selected tab, add tabs, or remove tabs after the control has been created, use <a href="GuiControl.htm">GuiControl</a>.</p>
 <p id="TabCmd">After creating a Tab control, subsequently added controls automatically belong to its first tab. This can be changed at any time by following these examples:</p>
 <pre>Gui, Tab  <em>; Future controls are not part of any tab control.</em>
@@ -311,11 +318,37 @@ Gui, Tab, Name  <em>; Future controls are owned by the tab whose name starts wit
 Gui, Tab, Name,, Exact  <em>; Same as above but requires exact match (case sensitive too).</em></pre>
 <p>It is also possible to use any of the examples above to assign controls to a tab or tab-control that does not yet exist (except in the case of the <em>Name</em> method). But in that case, the relative positioning options described below are not supported.</p>
 <p>Positioning: When each tab of a Tab control receives its first sub-control, that sub-control will have a special default position under the following conditions: 1) The X and Y coordinates are both omitted, in which case the first sub-control is positioned at the upper-left corner of the tab control's interior (with a standard <a href="Gui.htm#Margin">margin</a>), and sub-controls beyond the first are positioned beneath the previous control; 2) The <a href="Gui.htm#PosPlus">X+n and/or Y+n</a> positioning options are specified, in which case the sub-control is positioned relative to the upper-left corner of the tab control's interior. For example, specifying <code>x+10 y+10</code> would position the control 10 pixels right and 10 pixels down from the upper left corner.</p>
-<p>Sub-controls do not necessarily need to exist within their Tab control's boundaries: they will still be hidden and shown whenever their tab is selected or de-selected. This behavior is especially appropriate for the &quot;buttons&quot; style described below.</p>
 <p>When the <a href="Gui.htm#Submit">Gui Submit</a> command is used, the control's <a href="Gui.htm#var">associated output variable</a> (if any) receives the name of the currently selected tab. However, if the control has the <a href="Gui.htm#AltSubmit">AltSubmit</a> property, the output variable will receive the tab's position number instead (the first tab is 1, the second is 2, etc.).</p>
 <p>A <a href="Gui.htm#label">g-label</a> such as <code><strong>g</strong>MySubroutine</code> may be listed in the control's options. This would cause the <em>MySubroutine</em> label to be launched automatically whenever the user changes to a new tab. If the tab control has both a <a href="Gui.htm#label">g-label</a> and an <a href="Gui.htm#var">output variable</a>, whenever the user switches to a new tab, the output variable will be set to the previously selected tab name (or number in the case of <a href="Gui.htm#AltSubmit">AltSubmit</a>).</p>
 <p>Keyboard navigation: The user may press Control-PageDown/PageUp to navigate from page to page in a tab control; if the keyboard focus is on a control that does not belong to a Tab control, the window's first Tab control will be navigated. Control-Tab and Control-Shift-Tab may also be used except that they will not work if the currently focused control is a multi-line Edit control.</p>
 <p>Each window may have no more than 255 tab controls. Each tab control may have no more than 256 tabs (pages). In addition, a tab control may not contain other tab controls.</p>
+
+<h3 id="Tab_vs">Tab3 vs. Tab2 vs. Tab</h3>
+<p id="Tab_Parent"><strong>Parent window:</strong> The parent window of a control affects the positioning and visibility of the control and tab-key navigation order. If a sub-control is added to an existing Tab3 control, its parent window is the "tab dialog", which fills the tab control's display area. Most other controls, including sub-controls of Tab or Tab2 controls, have no parent other than the GUI window itself.</p>
+<p id="Tab_Positioning"><strong>Positioning:</strong> For Tab and Tab2, sub-controls do not necessarily need to exist within their tab control's boundaries: they will still be hidden and shown whenever their tab is selected or de-selected. This behavior is especially appropriate for the &quot;buttons&quot; style described below.</p>
+<p>For Tab3, sub-controls assigned to a tab <em>before</em> the tab control is created behave as though added to a Tab or Tab2 control. All other sub-controls are visible only within the display area of the tab control.</p>
+<p>If a Tab3 control is moved, its sub-controls are moved with it. Tab and Tab2 controls do not have this behavior.</p>
+<p>In the rare case that <a href="WinMove.htm">WinMove</a> (or an equivalent DllCall) is used to move a control, the coordinates must be relative to the parent window of the control, which might not be the GUI (see <a href="#Tab_Parent">above</a>). By contrast, <a href="GuiControl.htm#Move">GuiControl Move</a> takes GUI coordinates and <a href="ControlMove.htm">ControlMove</a> takes window coordinates, regardless of the control's parent window.</p>
+<p id="Tab_TabOrder"><strong>Tab-key navigation order:</strong> The tab-key navigation order usually depends on the order in which the controls are created. When tab controls are used, the order also depends on the type of tab control:</p>
+<ul>
+  <li>Tab and Tab2 allow their sub-controls to be mixed with other controls within the tab-key order.</li>
+  <li>Tab2 puts its tab buttons after its sub-controls in the tab-key order.</li>
+  <li>Tab3 groups its sub-controls within the tab-key order and puts them after its tab buttons.</li>
+</ul>
+<p id="Tab_Notifs"><strong>Notification messages (Tab3):</strong> Common and <a href="#Custom">Custom</a> controls typically send notification messages to their <a href="#Tab_Parent">parent window</a>. Any WM_COMMAND, WM_NOTIFY, WM_VSCROLL, WM_HSCROLL or WM_CTLCOLOR' messages received by a Tab3 control's <a href="#Tab_Parent">tab dialog</a> are forwarded to the GUI window and can be detected by using <a href="OnMessage.htm">OnMessage</a>. If the tab control is themed and the sub-control lacks the <a href="Gui.htm#BackgroundTrans">+BackgroundTrans</a> option, WM_CTLCOLORSTATIC is fully handled by the tab dialog and not forwarded. Other notification messages (such as custom messages) are not supported.</p>
+<p id="Tab2_Issues"><strong>Known issues with Tab2:</strong></p>
+<ul>
+  <li><a href="Gui.htm#BackgroundTrans">BackgroundTrans</a> has no effect inside a Tab2 control.</li>
+  <li><a href="#ActiveX">WebBrowser</a> controls do not redraw correctly.</li>
+  <li>AnimateWindow and possibly other Win32 API calls can cause the tab's controls to disappear.</li>
+</ul>
+<p id="Tab_Issues"><strong>Known issues with Tab:</strong></p>
+<ul>
+  <li>Activating a GUI window by clicking certain parts of its controls, such as scrollbars, might redraw improperly.</li>
+  <li><a href="Gui.htm#BackgroundTrans">BackgroundTrans</a> has no effect if the Tab control contains a ListView.</li>
+  <li><a href="#ActiveX">WebBrowser</a> controls are invisible.</li>
+</ul>
+
 <h3>Tab Options</h3>
 <p><strong>Choose</strong>: See <a href="#ChooseTab">above</a>.</p>
 <p><strong>-Background</strong> (minus followed by the word background): Overrides the <a href="Gui.htm#Color">window's custom background color</a> and uses the system's default Tab control color. Specify <code>+Theme -Background</code> to make the Tab control conform to the current desktop theme. However, most control types will look strange inside such a Tab control because their backgrounds will not match that of the tab control. This can be fixed for some control types (such as <a href="#Text">Text</a>) by adding BackgroundTrans to their options.</p>
