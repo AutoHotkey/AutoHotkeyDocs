@@ -1,13 +1,10 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
-"http://www.w3.org/TR/html4/loose.dtd">
+<!DOCTYPE HTML>
 <html>
 <head>
 <title>ComObject()</title>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <link href="../static/theme.css" rel="stylesheet" type="text/css" />
-<script src="../static/jquery.js" type="text/javascript"></script>
-<script src="../static/tree.jquery.js" type="text/javascript"></script>
 <script src="../static/content.js" type="text/javascript"></script>
 </head>
 <body>
@@ -45,6 +42,16 @@
   <li>Wrapping a COM object or SafeArray enables the script to interact with it more naturally, using <a href="../Objects.htm#Usage_Objects">object syntax</a>. However, the majority of scripts do not need to do this manually since a wrapper object is created automatically by <a href="ComObjCreate.htm">ComObjCreate</a>, <a href="ComObjArray.htm">ComObjArray</a> and any COM methods which returns an object.</li>
 </ol>
 
+<h3 id="ByRef">ByRef</h3>
+<p>If a wrapper object's <a href="ComObjType.htm"><em>VarType</em></a> includes the VT_BYREF (0x4000) flag, empty brackets <code>[]</code> can be used to read or write the referenced value.</p>
+<p>When creating a reference, <em>Value</em> must be the memory address of a variable or buffer with sufficient capacity to store a value of the given type. For example, the following can be used to create a variable which a VBScript function can write into:</p>
+<pre>VarSetCapacity(var, 24, 0)
+vref := ComObject(0x400C, &amp;var)  <em>; 0x400C is a combination of VT_BYREF and VT_VARIANT.</em>
+
+vref[] := "in value"
+sc.Run("Example", vref)  <em>; sc should be initialized as in the <a href="#ByRefEx">example below</a>.</em>
+MsgBox % vref[]</pre>
+
 <h3 id="Remarks">General Remarks</h3>
 <p>When this function is used to wrap an <a href="http://msdn.microsoft.com/en-us/library/dd318520.aspx">IDispatch</a> or IUnknown interface pointer, the wrapper object assumes responsibility for automatically releasing the pointer when appropriate. If <em>VarType</em> was omitted, the object is <a href="ComObjQuery.htm">queried</a> for its IDispatch interface; if one is returned, <em>DispPtr</em> is immediately released. Therefore, if the script intends to use the pointer after calling this function, it must call <code><a href="ObjAddRef.htm">ObjAddRef</a>(DispPtr)</code> first.</p>
 <p>The <em>VarType</em> of a wrapper object can be retrieved using <a href="ComObjType.htm">ComObjType</a>.</p>
@@ -55,8 +62,8 @@
 <p><a href="ComObjCreate.htm">ComObjCreate</a>, <a href="ComObjGet.htm">ComObjGet</a>, <a href="ComObjConnect.htm">ComObjConnect</a>, <a href="ComObjError.htm">ComObjError</a>, <a href="ComObjFlags.htm">ComObjFlags</a>, <a href="ObjAddRef.htm">ObjAddRef/ObjRelease</a>, <a href="ComObjQuery.htm">ComObjQuery</a>, <a href="http://msdn.microsoft.com/en-us/library/ms221467.aspx">GetActiveObject (MSDN)</a></p>
 
 <h3>Examples</h3>
-<pre class="NoIndent" id="ByRefEx"><em>; Example: Pass a VARIANT ByRef to a COM function.</em>
-
+<pre class="NoIndent" id="ByRefEx">
+<em>; Preamble - ScriptControl requires a 32-bit version of AutoHotkey.</em>
 code := "
 (
 Sub Example(Var)
@@ -66,6 +73,8 @@ End Sub
 )"
 sc := <a href="ComObjCreate.htm">ComObjCreate</a>("ScriptControl"), sc.Language := "VBScript", sc.AddCode(code)
 
+
+<em>; Example: Pass a VARIANT ByRef to a COM function.</em>
 var := ComVar()
 var[] := "in value"
 sc.Run("Example", var.ref)
