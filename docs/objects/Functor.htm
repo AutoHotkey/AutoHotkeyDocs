@@ -1,0 +1,78 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<title>Function Objects</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<link href="../static/theme.css" rel="stylesheet" type="text/css" />
+<script src="../static/content.js" type="text/javascript"></script>
+</head>
+<body>
+
+<h1>Function Objects</h1>
+
+<p>"Function object" usually means any of the following:</p>
+<ul>
+  <li>A reference to a <a href="Func.htm">Func object</a>, which represents an actual <a href="../Functions.htm">function</a>; either built-in or defined by the script.</li>
+  <li>A user-defined object which can be called like a function.  This is sometimes also referred to as a "functor".</li>
+  <li>Any other object which can be called like a function, such as a <a href="#BoundFunc">BoundFunc object</a> or a JavaScript function object returned by a COM method.</li>
+</ul>
+<p>Function objects can be used with the following:</p>
+<ul>
+  <li><a href="../commands/Gui.htm#label">Gui control events</a> (g-labels)</li>
+  <li><a href="../commands/Hotkey.htm#Functor">Hotkey</a></li>
+  <li><a href="../commands/Menu.htm#Functor">Menu</a></li>
+  <li><a href="../commands/OnClipboardChange.htm">OnClipboardChange()</a></li>
+  <li><a href="../commands/OnExit.htm">OnExit()</a></li>
+  <li><a href="../commands/OnMessage.htm">OnMessage()</a></li>
+  <li><a href="../commands/SetTimer.htm#Functor">SetTimer</a></li>
+</ul>
+
+<h2 id="User-Defined">User-Defined</h2>
+<!-- TODO: Explain how a user-defined object could be useful -->
+<p>User-defined function objects should follow this general pattern:</p>
+<pre>class YourClassName {
+    Call(a, b) {  <em>; Declare parameters as needed, or an <a href="../Functions.htm#Variadic">array*</a>.</em>
+        <em>;...</em>
+    }
+    __Call(method, args*) {
+        if (method = "")  <em>; For <a href="../Functions.htm#DynCall">%fn%()</a> or fn.()</em>
+            return this.Call(args*)
+        if (IsObject(method))  <em>; If this function object is being used as a method.</em>
+            return this.Call(method, args*)
+    }
+    <em>;...</em>
+}
+</pre>
+<p>Exactly which parts are needed depends on the usage:</p>
+<ul>
+  <li><code>method</code> is an empty string if the script used <code><a href="../Functions.htm#DynCall">%this%()</a></code> or <code>this.()</code>.</li>
+  <li>If the object is being used as a method, <code>IsObject(method)</code> is true and <code>method</code> contains a reference to the target object. For example, if <code>x.y</code> refers to <code>this</code> function object, <code>x.y()</code> &rarr; <code>this[x]()</code> &rarr; <code>this.__Call(x)</code> &rarr; <code>this.Call(x)</code>.</li>
+  <li><span class="ver">[v1.1.20+]:</span> If the object is being used by one of the built-in functions which accept a callback function, such as OnMessage or SetTimer, only the Call method is needed.</li>
+</ul>
+<p>The work can also be done directly in __Call. However, having __Call redirect to Call is recommended to ease the transition to AutoHotkey v2, which will change the behaviour of <code>%this%()</code> and method calls to call the Call method directly.</p>
+
+<h2 id="BoundFunc">BoundFunc Object <span class="ver">[v1.1.20+]</span></h2>
+<p>Acts like a function, but just passes predefined parameters to another function.</p>
+<p>There are two ways that BoundFunc objects can be created:</p>
+<ul>
+  <li>By calling the <a href="Func.htm#Bind">Func.Bind()</a> method, which binds parameter values to a function.</li>
+  <li>By calling the <a href="../commands/ObjBindMethod.htm">ObjBindMethod()</a> function, which binds parameter values and a method name to a target object.</li>
+</ul>
+<p>BoundFunc objects can be called as shown in the example below. No other methods are supported. When the BoundFunc is called, it calls the function or method to which it is bound, passing any bound parameters followed by any which were passed by the caller. For example:</p>
+<pre>fn := Func("RealFn").Bind(1)
+
+%fn%(2)    <em>; Shows "1, 2"</em>
+fn.Call(3) <em>; Shows "1, 3"</em>
+
+RealFn(a, b) {
+    MsgBox %a%, %b%
+}</pre>
+<p><a href="../commands/ObjBindMethod.htm">ObjBindMethod()</a> can be used to bind to a method when it isn't possible to retrieve a reference to the method itself.  For example:</p>
+<pre>file := FileOpen(A_ScriptFullPath, "r")
+getLine := ObjBindMethod(file, "ReadLine")
+MsgBox % %getLine%()  <em>; Shows the first line of this file.</em></pre>
+<p>For a more complex example, see <a href="../commands/SetTimer.htm#ExampleClass">SetTimer</a>.</p>
+
+</body>
+</html>

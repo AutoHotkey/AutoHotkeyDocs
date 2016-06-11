@@ -1,5 +1,4 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
-"http://www.w3.org/TR/html4/loose.dtd">
+<!DOCTYPE HTML>
 <html>
 <head>
 <title>Download</title>
@@ -7,8 +6,6 @@
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <link href="../static/theme.css" rel="stylesheet" type="text/css" />
-<script src="../static/jquery.js" type="text/javascript"></script>
-<script src="../static/tree.jquery.js" type="text/javascript"></script>
 <script src="../static/content.js" type="text/javascript"></script>
 </head>
 <body>
@@ -47,15 +44,46 @@ Download, ftp://user:pass@example.com/My Directory, C:\Dir Listing.html  <em>; G
 <p><a href="FileRead.htm">FileRead</a>, <a href="FileCopy.htm">FileCopy</a></p>
 
 <h3>Examples</h3>
-<pre class="NoIndent">Download, http://ahkscript.org/download/2.0/version.txt, C:\AutoHotkey Latest Version.txt
+<pre class="NoIndent">Download, http://autohotkey.com/download/2.0/version.txt, C:\AutoHotkey Latest Version.txt
 Download, http://someorg.org/archive.zip, C:\SomeOrg's Archive.zip</pre>
 <pre id="WHR" class="NoIndent"><em>; Example: Download text to a variable:</em>
 whr := ComObjCreate("WinHttp.WinHttpRequest.5.1")
-whr.Open("GET", "http://ahkscript.org/download/2.0/version.txt")
+whr.Open("GET", "http://autohotkey.com/download/2.0/version.txt")
 whr.Send()
+<em>; Using 'true' above and the call below allows the script to remain responsive.</em>
+whr.WaitForResponse()
 version := whr.ResponseText
 MsgBox % version
 </pre>
+<pre id="XHR" class="NoIndent"><em>; Example: Make an asynchronous HTTP request.</em>
+
+req := ComObjCreate("Msxml2.XMLHTTP")
+<em>; Open a request with async enabled.</em>
+req.open("GET", "https://autohotkey.com/download/1.1/version.txt", true)
+<em>; Set our callback function (v1.1.17+).</em>
+req.onreadystatechange := Func("Ready")
+<em>; Send the request.  Ready() will be called when it's complete.</em>
+req.send()
+<em>/*
+; If you're going to wait, there's no need for onreadystatechange.
+; Setting async=true and waiting like this allows the script to remain
+; responsive while the download is taking place, whereas async=false
+; will make the script unresponsive.
+while req.readyState != 4
+    sleep 100
+*/</em>
+#Persistent
+
+Ready() {
+    global req
+    if (req.readyState != 4)  ; Not done yet.
+        return
+    if (req.status == 200 || req.status == 304) ; OK.
+        MsgBox % "Latest AutoHotkey version: " req.responseText
+    else
+        MsgBox 16,, % "Status " req.status
+    ExitApp
+}</pre>
 
 </body>
 </html>

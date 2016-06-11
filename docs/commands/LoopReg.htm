@@ -1,13 +1,10 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
-"http://www.w3.org/TR/html4/loose.dtd">
+<!DOCTYPE HTML>
 <html>
 <head>
 <title>Loop (registry)</title>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <link href="../static/theme.css" rel="stylesheet" type="text/css" />
-<script src="../static/jquery.js" type="text/javascript"></script>
-<script src="../static/tree.jquery.js" type="text/javascript"></script>
 <script src="../static/content.js" type="text/javascript"></script>
 </head>
 <body>
@@ -16,12 +13,12 @@
 
 <p>Retrieves the contents of the specified registry subkey, one item at a time.</p>
 
-<pre class="Syntax">Loop, Reg, RootKey\Key [, Mode]</pre>
+<pre class="Syntax">Loop, Reg, RootKey[\Key, Mode]</pre>
 <h3>Parameters</h3>
 <dl>
 
   <dt>Reg</dt>
-  <dd><p>This parameter must be the word REG, and cannot be an expression or variable reference.</p></dd>
+  <dd><p>The literal word <code>Reg</code> (case-insensitive). This cannot be a variable or expression. If this keyword is present, <em>Key</em> must be separated from <em>RootKey</em> by a slash instead of a comma, and both can be contained within a single variable. For example, <code>Loop, Reg, HKLM\Software</code> or <code>Loop, Reg, %FullPathOfKey%</code>.</p></dd>
 
   <dt>RootKey</dt>
   <dd><p>Must be either HKEY_LOCAL_MACHINE (or HKLM), HKEY_USERS (or HKU), HKEY_CURRENT_USER (or HKCU), HKEY_CLASSES_ROOT (or HKCR), or HKEY_CURRENT_CONFIG (or HKCC).</p>
@@ -29,18 +26,20 @@
 
   <dt>Key</dt>
   <dd><p>The name of the key (e.g. Software\SomeApplication). If blank or omitted, the contents of <em>RootKey</em> will be retrieved.</p></dd>
-
+  
   <dt>Mode</dt>
-  <dd><p>One or more of the following characters (case-insensitive), optionally separated by spaces or tabs:</p>
-      <p><strong>V</strong>: Retrieve values which match the pattern. This is the default if &quot;D&quot; is not specified.<br>
-      <strong>K</strong>: Retrieve subkeys which match the pattern.<br>
-      <strong>R</strong>: Recurse into subkeys so that all values and subkeys contained therein are retrieved.</p></dd>
+  <dd><p>Zero or more of the following letters:</p>
+    <p><code>K</code>: Include keys.<br>
+    <code>V</code>: Include values. Values are also included if both K and V are omitted.<br>
+    <code>R</code>: Recurse into subkeys. If R is omitted, keys and values within subkeys of <em>Key</em> are not included.</p>
+  </dd>
+
 
 </dl>
 
 <h3>Remarks</h3>
 <p>A registry-loop is useful when you want to operate on a collection registry values or subkeys, one at a time. The values and subkeys are retrieved in reverse order (bottom to top) so that <a href="RegDelete.htm">RegDelete</a> can be used inside the loop without disrupting the loop.</p>
-<p>The following variables exist within any registry-loop. If an inner registry-loop is enclosed by an outer registry-loop, the innermost loop's registry item will take precedence:</p>
+<p id="vars">The following variables exist within any registry-loop. If an inner registry-loop is enclosed by an outer registry-loop, the innermost loop's registry item will take precedence:</p>
 <table class="info">
   <tr>
     <td>A_LoopRegName</td>
@@ -66,8 +65,8 @@
 <p>When used inside a registry-loop, the following commands can be used in a simplified way to indicate that the currently retrieved item should be operated upon:</p>
 <table class="info">
   <tr>
-    <td width="21%"><a href="RegRead.htm">RegRead</a>, OutputVar</td>
-    <td width="79%">Reads the current item. If the current item is a key, ErrorLevel will be set to 1 and <em>OutputVar</em> will be made empty.</td>
+    <td style="width:21%"><a href="RegRead.htm">RegRead</a>, OutputVar</td>
+    <td>Reads the current item. If the current item is a key, ErrorLevel will be set to 1 and <em>OutputVar</em> will be made empty.</td>
   </tr>
   <tr>
     <td><a href="RegWrite.htm">RegWrite</a> [, Value]</td>

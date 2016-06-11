@@ -1,13 +1,10 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
-"http://www.w3.org/TR/html4/loose.dtd">
+<!DOCTYPE HTML>
 <html>
 <head>
 <title>Hotkey</title>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <link href="../static/theme.css" rel="stylesheet" type="text/css" />
-<script src="../static/jquery.js" type="text/javascript"></script>
-<script src="../static/tree.jquery.js" type="text/javascript"></script>
 <script src="../static/content.js" type="text/javascript"></script>
 </head>
 <body>
@@ -26,32 +23,35 @@ Hotkey, If [, Expression]</pre>
   <dd><p>Name of the hotkey's activation key, including any <a href="../Hotkeys.htm#Symbols">modifier symbols</a>. For example, specify <code>#c</code> for the Win+C hotkey.</p>
     <p>If <em>KeyName</em> already exists as a hotkey, that hotkey will be updated with the values of the command's other parameters.</p>
     <p><em>KeyName</em> can also be the name of an existing hotkey label (i.e. a double-colon label), which will cause that hotkey to be updated with the values of the command's other parameters.</p>
-    <p>When specifying an <em>existing</em> hotkey, <em>KeyName</em> is not case sensitive. However, the names of keys must be spelled the same as in the existing hotkey (e.g. Esc is not the same as Escape for this purpose). Also, the order of <a href="../Hotkeys.htm#Symbols">modifier symbols</a> such as ^!+# does not matter.</p>
-    <p>When a hotkey is first created -- either by the Hotkey command or a <a href="../Hotkeys.htm">double-colon label</a> in the script -- its key name and the ordering of its modifier symbols becomes the permanent name of that hotkey as reflected by <a href="../Variables.htm#ThisHotkey">A_ThisHotkey</a>. This name does not change even if the Hotkey command later accesses the hotkey with a different symbol ordering.</p>
+    <p>When specifying an <em>existing</em> hotkey, <em>KeyName</em> is not case sensitive. However, the names of keys must be spelled the same as in the existing hotkey (e.g. Esc is not the same as Escape for this purpose). Also, the order of <a href="../Hotkeys.htm#Symbols">modifier symbols</a> such as ^!+# does not matter. <a href="../Functions.htm#GetKeyName">GetKeyName</a> can be used to retrieve the standard spelling of a key name.</p>
+    <p>When a hotkey is first created -- either by the Hotkey command or a <a href="../Hotkeys.htm">double-colon label</a> in the script -- its key name and the ordering of its modifier symbols becomes the permanent name of that hotkey as reflected by <a href="../Variables.htm#ThisHotkey">A_ThisHotkey</a>. This name is shared by all <a href="_IfWinActive.htm#variant">variants</a> of the hotkey, and does not change even if the Hotkey command later accesses the hotkey with a different symbol ordering.</p>
     <p>If the hotkey variant already exists, its behavior is updated according to whether <em>KeyName</em> includes or excludes the <a href="../Hotkeys.htm#Tilde">tilde (~) prefix</a>.</p>
+    <p>The <a href="../Hotkeys.htm#prefixdollar">use hook ($) prefix</a> can be added to existing hotkeys. This prefix affects all variants of the hotkey and cannot be removed.</p>
     </dd>
 
   <dt>Label</dt>
   <dd><p>The name of the <a href="../misc/Labels.htm">label</a> whose contents will be executed (as a new <a href="../misc/Threads.htm">thread</a>) when the hotkey is pressed. Both normal labels and <a href="../Hotkeys.htm">hotkey</a>/<a href="../Hotstrings.htm">hotstring</a> labels can be used. The trailing colon(s) should not be included. If <em>Label</em> is dynamic (e.g. %VarContainingLabelName%), <a href="../Functions.htm#IsLabel">IsLabel(VarContainingLabelName)</a> may be called beforehand to verify that the label exists.</p>
+  <p id="Functor"><span class="ver">[v1.1.20+]:</span> If not a valid label name, this parameter can be the name of a function, or a single variable reference containing a <a href="../objects/Functor.htm">function object</a>. For example, <code>Hotkey %funcobj%, On</code> or <code>Hotkey % funcobj, On</code>. Other expressions which return objects are currently unsupported. When the hotkey executes, the function is called without parameters. Hotkeys can also be <a href="../Hotkeys.htm#Function">defined as functions</a> without the Hotkey command.</p>
       <p>This parameter can be left blank if <em>KeyName</em> already exists as a hotkey, in which case its label will not be changed. This is useful to change only the hotkey's <em>Options</em>.</p>
-      <p><strong>If the label is specified but the hotkey is disabled from a previous use of this command, the hotkey will remain disabled. To prevent this, include the word ON in <em>Options</em>.</strong></p>
+      <p><strong>If the label or function is specified but the hotkey is disabled from a previous use of this command, the hotkey will remain disabled. To prevent this, include the word ON in <em>Options</em>.</strong></p>
       <p>This parameter can also be one of the following special values:</p>
       <p><strong>On</strong>: The hotkey becomes enabled. No action is taken if the hotkey is already On.</p>
       <p><strong>Off</strong>: The hotkey becomes disabled. No action is taken if the hotkey is already Off.</p>
       <p><strong>Toggle</strong>: The hotkey is set to the opposite state (enabled or disabled).</p>
       <p><strong>AltTab</strong> (and others): These are special Alt-Tab hotkey actions that are described <a href="../Hotkeys.htm#alttab">here</a>.</p>
-      <p>Note: These values have special meaning <u>only if no corresponding label exists</u>. For example, if a label <code>On:</code> exists and this parameter is the word ON, it is treated as a label name. To enable or disable hotkeys in such cases, use the <i>Options</i> parameter. <i>Label</i> may be omitted; for example, <code>Hotkey Esc,, Off</code>.</p>
+      <p><strong><u>Caution:</u></strong> Defining a label named On, Off, Toggle or AltTab (or any variation recognized by this command) may cause inconsistent behavior. It is strongly recommended that these values not be used as label names.</p>
       </dd>
 
   <dt>Options</dt>
   <dd><p>A string of zero or more of the following letters with optional spaces in between. For example: <code>UseErrorLevel B0</code>.</p>
-      <p><strong><a name="UseErrorLevel"></a>UseErrorLevel</strong>: If the command encounters a problem, this option skips the warning dialog, sets <a href="../misc/ErrorLevel.htm">ErrorLevel</a> to one of the codes from the table <a href="#ErrorLevel">below</a>, then allows the <a href="../misc/Threads.htm">current thread</a> to continue.</p>
+      <p id="UseErrorLevel"><strong>UseErrorLevel</strong>: If the command encounters a problem, this option skips the warning dialog, sets <a href="../misc/ErrorLevel.htm">ErrorLevel</a> to one of the codes from the table <a href="#ErrorLevel">below</a>, then allows the <a href="../misc/Threads.htm">current thread</a> to continue.</p>
       <p><strong>On</strong>: Enables the hotkey if it is currently disabled.</p>
       <p><strong>Off</strong>: Disables the hotkey if it is currently enabled. This is typically used to create a hotkey in an initially-disabled state.</p>
       <p><strong>B</strong> or <strong>B0</strong>: Specify the letter B to buffer the hotkey as described in <a href="_MaxThreadsBuffer.htm">#MaxThreadsBuffer</a>. Specify B0 (B with the number 0) to disable this type of buffering.</p>
       <p><strong>Pn</strong>: Specify the letter P followed by the hotkey's <a href="../misc/Threads.htm">thread priority</a>. If the P option is omitted when creating a hotkey, 0 will be used.</p>
       <p><strong>Tn</strong>: Specify the letter T followed by a the number of threads to allow for this hotkey as described in <a href="_MaxThreadsPerHotkey.htm">#MaxThreadsPerHotkey</a>. For example: <code>T5</code>.</p>
-      <p>If either or both of the <strong>B</strong> and <strong>T</strong> option letters are omitted and the hotkey already exists, those options will not be changed. But if the hotkey does not yet exist -- that is, it is about to be created by this command -- the options will default to those most recently in effect. For example, the instance of <a href="_MaxThreadsBuffer.htm">#MaxThreadsBuffer</a> that occurs closest to the bottom of the script will be used. If <a href="_MaxThreadsBuffer.htm">#MaxThreadsBuffer</a> does not appear in the script, its default setting (OFF in this case) will be used.</p>
+      <p><strong>In</strong> (InputLevel): Specify the letter I (or i) followed by the hotkey's <a href="_InputLevel.htm">input level</a>. For example: <code>I1</code>.</p>
+      <p>If any of the option letters are omitted and the hotkey already exists, those options will not be changed. But if the hotkey does not yet exist -- that is, it is about to be created by this command -- the options will default to those most recently in effect. For example, the instance of <a href="_MaxThreadsBuffer.htm">#MaxThreadsBuffer</a> that occurs closest to the bottom of the script will be used. If <a href="_MaxThreadsBuffer.htm">#MaxThreadsBuffer</a> does not appear in the script, its default setting (OFF in this case) will be used. This behavior also applies to <a href="_IfWinActive.htm">#IfWin</a>: the bottommost occurrence applies to newly created hotkeys unless &quot;<a href="#IfWin">Hotkey IfWin</a>&quot; has executed since the script started.</p>
       </dd>
 
   <dt>IfWinActive<br>
@@ -65,7 +65,8 @@ Hotkey, If [, Expression]</pre>
 
   <dt id="If">If, Expression</dt>
   <dd>
-      <p>Counterpart of <a href="_If.htm">#If <i>Expression</i></a>. <i>Expression</i> must match exactly the text of an <b>existing</b> <code>#If <i>Expression</i></code>, excluding "<code>#If</code>" or "<code>#If,</code>". When used with the Hotkey command, the comma following "If" is required. Although this command is unable to create new expressions, it can create new hotkeys using an existing expression. See <a href="_If.htm#ex4">#If example 4</a>.</p>
+    <p>Counterpart of <a href="_If.htm">#If <i>Expression</i></a>. <em>Expression</em> must be an expression which has been used with the #If directive elsewhere in the script. Although this command is unable to create new expressions, it can create new hotkeys using an existing expression. See <a href="_If.htm#ex4">#If example 4</a>.</p>
+    <p><strong>Note:</strong> The Hotkey command uses the string that you pass to it, not the original source code. Commas and deref chars (percent signs) are interpreted <em>before</em> the command is called, so may need to be escaped if they are part of the original expression.  <a href="_EscapeChar.htm">Escape sequences</a> are resolved when the script loads, so only the resulting characters are considered; for example, <code>Hotkey, If, x = "`t"</code> and <code>Hotkey, If, % "x = """ A_Tab """"</code> both correspond to <code>#If x = "`t"</code>.</p>
   </dd>
 
 </dl>

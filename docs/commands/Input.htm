@@ -1,13 +1,10 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
-"http://www.w3.org/TR/html4/loose.dtd">
+<!DOCTYPE HTML>
 <html>
 <head>
 <title>Input</title>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <link href="../static/theme.css" rel="stylesheet" type="text/css" />
-<script src="../static/jquery.js" type="text/javascript"></script>
-<script src="../static/tree.jquery.js" type="text/javascript"></script>
 <script src="../static/content.js" type="text/javascript"></script>
 </head>
 <body>
@@ -39,15 +36,17 @@ if (OutputVar = CtrlC)
     MsgBox, You pressed Control-C.
 ExitApp</pre>
       <p>Note: The characters Ctrl-A through Ctrl-Z correspond to <a href="../Functions.htm#Chr">Chr(1)</a> through <a href="../Functions.htm#Chr">Chr(26)</a>. Also, the <strong>M</strong> option might cause some keyboard shortcuts such as Ctrl-LeftArrow to misbehave while an Input is in progress.</p>
-      <p><strong>T</strong>: Timeout (e.g. <code>T3</code>). The number of seconds to wait before terminating the Input and setting <a href="../misc/ErrorLevel.htm">ErrorLevel</a> to the word Timeout. If the Input times out, <em>OutputVar</em> will be set to whatever text the user had time to enter. This value can be a floating point number such as 2.5.</p>      
-      <p><strong><a name="vis"></a>V</strong>: Visible. Normally, the user's input is blocked (hidden from the system). Use this option to have the user's keystrokes sent to the active window.</p>
-      <p><strong><a name="asterisk"></a>*</strong>: Wildcard (find anywhere). Normally, what the user types must exactly match one of the <em>MatchList</em> phrases  for a match to occur. Use this option to find a match more often by searching the entire length of the input text.</p></dd>
+      <p><strong>T</strong>: Timeout (e.g. <code>T3</code>). The number of seconds to wait before terminating the Input and setting <a href="../misc/ErrorLevel.htm">ErrorLevel</a> to the word Timeout. If the Input times out, <em>OutputVar</em> will be set to whatever text the user had time to enter. This value can be a floating point number such as 2.5.</p>
+      <p id="vis"><strong>V</strong>: Visible. Normally, the user's input is blocked (hidden from the system). Use this option to have the user's keystrokes sent to the active window.</p>
+      <p id="asterisk"><strong>*</strong>: Wildcard (find anywhere). Normally, what the user types must exactly match one of the <em>MatchList</em> phrases  for a match to occur. Use this option to find a match more often by searching the entire length of the input text.</p>
+      <p id="E"><strong>E</strong> <span class="ver">[v1.1.20+]</span>: Handle single-character end keys by character code instead of by keycode. This provides more consistent results if the active window's keyboard layout is different to the script's keyboard layout. It also prevents key combinations which don't actually produce the given end characters from ending input; for example, if <code>@</code> is an end key, on the US layout Shift+2 will trigger it but Ctrl+Shift+2 will not (if the E option is used). If the <strong>C</strong> option is also used, the end character is case-sensitive.</p>
+      </dd>
 
   <dt>EndKeys</dt>
   <dd><p>A list of zero or more keys, any one of which terminates the Input when pressed (the <em>EndKey</em> itself is not written to <em>OutputVar</em>). When an Input is terminated this way, <a href="../misc/ErrorLevel.htm">ErrorLevel</a> is set to the word EndKey followed by a colon and the name of the <em>EndKey</em>. Examples: <code>EndKey:.</code>, <code>EndKey:Escape</code>.</p>
       <p>The <em>EndKey</em> list uses a format similar to the <a href="Send.htm">Send</a> command. For example, specifying <code>{Enter}.{Esc}</code> would cause either ENTER, period (.), or ESCAPE to terminate the Input. To use the braces themselves as end keys, specify <code>{{}</code> and/or <code>{}}</code>.</p>
       <p>To use Control, Alt, or Shift as end-keys, specify the left and/or right version of the key, not the neutral version. For example, specify <code>{LControl}{RControl}</code> rather than <code>{Control}</code>.</p>
-      <p>Although modified keys such as Control-C (^c) are not supported, certain keys that require the shift key to be held down -- namely punctuation marks such as ?!:@&amp;{} -- are supported.</p>
+      <p>Although modified keys such as Control-C (^c) are not supported, certain characters that require the shift key to be held down -- namely punctuation marks such as ?!:@&amp;{} -- are supported. Other characters are supported with the <code>E</code> option described above.</p>
       <p>An explicit virtual key code such as <code>{vkFF}</code> may also be specified. This is useful in the rare case where a key has no name and produces no visible character when pressed. Its virtual key code can be determined by following the steps at the bottom fo the <a href="../KeyList.htm#SpecialKeys">key list page</a>.</p>
     </dd>
 
@@ -63,8 +62,8 @@ ExitApp</pre>
 <p>This command is able to throw an exception if called with no parameters and there is no Input in progress. For more information, see <a href="Catch.htm#RuntimeErrors">Runtime Errors</a>.</p>
 <table class="info">
   <tr>
-    <td width="15%"><p>1 or 0</p></td>
-    <td width="85%"><p>Whenever the command is used without parameters, <a href="../misc/ErrorLevel.htm">ErrorLevel</a> is set to 0 if it successfully terminates a prior input, or 1 if there is no Input in progress.</p></td>
+    <td style="width:15%"><p>1 or 0</p></td>
+    <td><p>Whenever the command is used without parameters, <a href="../misc/ErrorLevel.htm">ErrorLevel</a> is set to 0 if it successfully terminates a prior input, or 1 if there is no Input in progress.</p></td>
   </tr>
   <tr>
     <td>NewInput</td>
@@ -83,8 +82,13 @@ ExitApp</pre>
     <td>The Input matches one of the items in <em>MatchList</em>.</td>
   </tr>
   <tr>
-    <td>EndKey:name</td>
-    <td>One of the <em>EndKeys</em> was pressed to terminate the Input. In this case, <a href="../misc/ErrorLevel.htm">ErrorLevel</a> contains the word EndKey followed by a colon and the name of the terminating key without braces, e.g. &quot;EndKey:Enter&quot;, &quot;EndKey:Escape&quot;, etc.</td>
+    <td>EndKey:<em>name</em></td>
+    <td>
+      <p>One of the <em>EndKeys</em> was pressed to terminate the Input. In this case, <a href="../misc/ErrorLevel.htm">ErrorLevel</a> contains the word EndKey followed by a colon and the name of the terminating key without braces, e.g. &quot;EndKey:Enter&quot;, &quot;EndKey:Escape&quot;, etc.</p>
+      <p>Note that <em>name</em> is the "normalized" name of the key regardless of how it was written in <em>EndKeys</em>. For example, {Esc} and {vk1B} both produce "ErrorLevel:Escape". <a href="../Functions.htm#GetKeyName">GetKeyName()</a> can be used to retrieve the normalized name.</p>
+      <p>If the <a href="#E">E option</a> was used, <em>name</em> is the actual character which was typed (if applicable). Otherwise, the key name is determined according to the script's active keyboard layout.</p>
+      <p>Prior to <span class="ver">[v1.1.20]</span>, if the VK code of the end key was in the range 0x41 (A) through 0x5A (Z), ErrorLevel usually contained the corresponding ASCII character even if that wasn't correct for the current keyboard layout. In v1.1.20 and later, the correct character is used. If a character in the range A through Z is used, it is upper-case for backward-compatibility; otherwise it is usually lower-case.</p>
+    </td>
   </tr>
 </table>
 <h3>Remarks</h3>
@@ -136,7 +140,7 @@ else if (UserInput = "fl")
 else if (UserInput = "ca")
     Send, {backspace 3}California
 else if (UserInput = "ahk")
-    Run, http://ahkscript.org
+    Run, https://autohotkey.com
 return</pre>
 
 </body>

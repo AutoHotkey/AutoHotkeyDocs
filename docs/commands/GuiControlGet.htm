@@ -1,13 +1,10 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
-"http://www.w3.org/TR/html4/loose.dtd">
+<!DOCTYPE HTML>
 <html>
 <head>
 <title>GuiControlGet</title>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <link href="../static/theme.css" rel="stylesheet" type="text/css" />
-<script src="../static/jquery.js" type="text/javascript"></script>
-<script src="../static/tree.jquery.js" type="text/javascript"></script>
 <script src="../static/content.js" type="text/javascript"></script>
 </head>
 <body>
@@ -24,13 +21,15 @@
   <dd><p>The name of the variable in which to store the result. If the command cannot complete (see ErrorLevel below), this variable is made blank.</p></dd>
 
   <dt>Sub-command</dt>
-  <dd><p>See list below.</p></dd>
+  <dd><p>See <a href="#subcommands">list below</a>.</p></dd>
 
   <dt>ControlID</dt>
   <dd><p>If blank or omitted, it behaves as though the name of the output variable was specified. For example, <code>GuiControlGet, MyEdit</code> is the same as <code>GuiControlGet, MyEdit,, MyEdit</code>.</p>
       <p>If the target control has an associated variable, specify the variable's name as the <em>ControlID</em> (this method takes precedence over the ones described next). For this reason, it is usually best to assign a variable to any control that will later be accessed via GuiControl or GuiControlGet, even if that control is not input-capable (such as GroupBox or Text).</p>
     <p>Otherwise, <em>ControlID</em> can be either ClassNN (the classname and instance number of the control) or the control's text, both of which can be determined via Window Spy. When using text, the matching behavior is determined by <a href="SetTitleMatchMode.htm">SetTitleMatchMode</a>. Note: a picture control's file name (as it was specified at the time the control was created) may be used as its <em>ControlID</em>.</p>
-    <p><em>ControlID</em> can be the <a href="Gui.htm#HwndOutputVar">HWND</a> of a control. As with any other ControlID, <em>Sub-command</em> must also include the name or number of the GUI if it is not the <a href="#Remarks">default window</a>. For example, <code>GuiControlGet Value, 2:, %Hwnd%</code>.</p></dd>
+    <p><em>ControlID</em> can be the <a href="Gui.htm#HwndOutputVar">HWND</a> of a control.</p>
+    <p>If the control is not on the default GUI, <strong>the name of the GUI must also be specified</strong> -- except on <span class="ver">[v1.1.20+]</span> when <em>ControlID</em> is a HWND, since each HWND is unique. See <a href="#Remarks">Remarks</a> for details.</p>
+  </dd>
 
   <dt>Param4</dt>
   <dd><p>This parameter is omitted except where noted in the list of sub-commands below.</p></dd>
@@ -40,7 +39,7 @@
 <h3>ErrorLevel</h3>
 <p>This command is able to throw an exception on failure. For more information, see <a href="Catch.htm#RuntimeErrors">Runtime Errors</a>.</p>
 <p><a href="../misc/ErrorLevel.htm">ErrorLevel</a> is set to 1 if the specified window/control does not exist or some other problem prevented the command from working. Otherwise, it is set to 0.</p>
-<h3>Sub-commands</h3>
+<h3 id="subcommands">Sub-commands</h3>
 <p><strong>(Blank)</strong>: Leave <em>Sub-command</em> blank to retrieve the control's contents. All control types are self-explanatory except the following:</p>
 <p><a href="GuiControls.htm#Picture">Picture</a>: Retrieves the picture's file name as it was originally specified when the control was created. This name does not change even if a new picture file name is specified.</p>
 <p><a href="GuiControls.htm#Edit">Edit</a>: Retrieves the contents but any line breaks in the text will be represented as plain linefeeds (`n) rather than the traditional CR+LF (`r`n) used by non-GUI commands such as <a href="ControlGetText.htm">ControlGetText</a> and <a href="ControlSetText.htm">ControlSetText</a>.</p>
@@ -56,20 +55,20 @@
 <p><strong>GuiControlGet, OutputVar, Pos</strong>: Retrieves the position and size of the control. The position is relative to the GUI window's client area, which is the area not including title bar, menu bar, and borders. The information is stored in four variables whose names all start with <em>OutputVar</em>. For example:</p>
 <pre>GuiControlGet, MyEdit, Pos
 MsgBox The X coordinate is %MyEditX%. The Y coordinate is %MyEditY%. The width is %MyEditW%. The height is %MyEditH%.</pre>
-<p>Within a <a href="../Functions.htm">function</a>, to create a set of variables that is global instead of local, <a href="../Functions.htm#Global">declare</a> <em>OutputVar</em> as a global variable prior to using this command (the converse is true for <a href="../Functions.htm#AssumeGlobal">assume-global</a> functions).</p>
+<p>Within a <a href="../Functions.htm">function</a>, to create a set of variables that is global instead of local, <a href="../Functions.htm#Global">declare</a> <em>OutputVar</em> as a global variable prior to using this command (the converse is true for <a href="../Functions.htm#AssumeGlobal">assume-global</a> functions). However, it is often also necessary to declare each variable in the set, due to a <a href="../Functions.htm#ArrayConfusion">common source of confusion</a>.</p>
 <p>&nbsp;</p>
 <p><strong>GuiControlGet, OutputVar, Focus</strong>: Retrieves the control identifier (ClassNN) for the control that currently has keyboard focus. Since the specified GUI window must be <a href="WinActivate.htm">active</a> for one of its controls to have focus, <em>OutputVar</em> will be made blank if it is not active. Example usage: <code>GuiControlGet, focused_control, focus</code>.</p>
 <p><strong>GuiControlGet, OutputVar, FocusV</strong>: Same as <em>Focus</em> (above) except that it retrieves the name of the focused control's <a href="Gui.htm#Events">associated variable</a>. If that control lacks an associated variable, the first 63 characters of the control's text/caption is retrieved instead (this is most often used to avoid giving each button a variable name).</p>
 <p><strong>GuiControlGet, OutputVar, Enabled</strong>: Retrieves 1 if the control is enabled or 0 if it is disabled.</p>
 <p><strong>GuiControlGet, OutputVar, Visible</strong>: Retrieves 1 if the control is visible or 0 if it is hidden.</p>
-<p><strong><a name="Hwnd"></a>GuiControlGet, OutputVar, Hwnd</strong>: Retrieves the window handle (HWND) of the control. A control's HWND is often used with <a href="PostMessage.htm">PostMessage</a>, <a href="PostMessage.htm">SendMessage</a>, and <a href="DllCall.htm">DllCall</a>. Note: <a href="Gui.htm#HwndOutputVar">HwndOutputVar</a> is usually a more concise way to get the HWND.</p>
+<p id="Hwnd"><strong>GuiControlGet, OutputVar, Hwnd</strong>: Retrieves the window handle (HWND) of the control. A control's HWND is often used with <a href="PostMessage.htm">PostMessage</a>, <a href="PostMessage.htm">SendMessage</a>, and <a href="DllCall.htm">DllCall</a>. Note: <a href="Gui.htm#HwndOutputVar">HwndOutputVar</a> is usually a more concise way to get the HWND.</p>
 <p id="Name"><strong>GuiControlGet, OutputVar, Name</strong>: Retrieves the name of the control's <a href="Gui.htm#Events">associated variable</a> if it has one, otherwise <em>OutputVar</em> is made blank.</p>
 <h3 id="Remarks">Remarks</h3>
 <p>To operate upon a window other than the default (see below), include its name or number followed by a colon in front of the sub-command as in these examples:</p>
 <pre>GuiControlGet, MyEdit, MyGui:
 GuiControlGet, MyEdit, MyGui:Pos
 GuiControlGet, Outputvar, MyGui:Focus</pre>
-<p>This is required even if <em>ControlID</em> is a control's associated variable or HWND.</p>
+<p>This is required even if <em>ControlID</em> is a control's associated variable, since any one variable can be used on multiple GUI windows. In <span class="ver">[v1.1.20+]</span>, the GUI name can be omitted if <em>ControlID</em> is a control's HWND.</p>
 <p>A GUI <a href="../misc/Threads.htm">thread</a> is defined as any thread launched as a result of a GUI action. GUI actions include selecting an item from a GUI window's menu bar, or triggering one of its <a href="Gui.htm#label">g-labels</a> (such as by pressing a button).</p>
 <p>The <a href="Gui.htm#DefaultWin">default window name</a> for a GUI thread is that of the window that launched the thread. Non-GUI threads use 1 as their default.</p>
 

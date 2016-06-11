@@ -1,13 +1,10 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
-"http://www.w3.org/TR/html4/loose.dtd">
+<!DOCTYPE HTML>
 <html>
 <head>
 <title>FileOpen</title>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <link href="../static/theme.css" rel="stylesheet" type="text/css" />
-<script src="../static/jquery.js" type="text/javascript"></script>
-<script src="../static/tree.jquery.js" type="text/javascript"></script>
 <script src="../static/content.js" type="text/javascript"></script>
 <style type="text/css">.fopt{width:4em;text-align:center}.fnum{width:4em;text-align:right}</style>
 </head>
@@ -22,13 +19,20 @@
 <dl>
 
   <dt>Filename</dt>
-  <dd><p>The path of the file to open, which is assumed to be in <a href="../Variables.htm#WorkingDir">A_WorkingDir</a> if an absolute path isn't specified.</p></dd>
+  <dd>
+    <p>The path of the file to open, which is assumed to be in <a href="../Variables.htm#WorkingDir">A_WorkingDir</a> if an absolute path isn't specified.</p>
+    <p><span class="ver">[v1.1.17+]:</span> Specify an asterisk (or two) as shown below to open the standard input/output/error stream:</p>
+    <pre>
+FileOpen("*", "r")   <em>; for stdin</em>
+FileOpen("*", "w")   <em>; for stdout</em>
+FileOpen("**", "w")  <em>; for stderr</em></pre>
+  </dd>
 
   <dt>Flags</dt>
   <dd><p>Either a string of characters indicating the desired access mode followed by other options (with optional spaces or tabs in between); or a combination (sum) of numeric flags. Supported values are described in the table below.</p></dd>
 
   <dt>Encoding</dt>
-  <dd><p>The code page to use for text I/O if the file does not contain a UTF-8 or UTF-16 <a href="http://en.wikipedia.org/wiki/Byte_order_mark">byte order mark</a>.<br>If omitted, the current value of <a href="../Variables.htm#FileEncoding">A_FileEncoding</a> is used.</p></dd>
+  <dd><p>The code page to use for text I/O if the file does not contain a UTF-8 or UTF-16 <a href="http://en.wikipedia.org/wiki/Byte_order_mark">byte order mark</a>, or if the <code>h</code> (handle) flag is used. If omitted, the current value of <a href="../Variables.htm#FileEncoding">A_FileEncoding</a> is used.</p></dd>
 
 </dl>
 <h3>Flags</h3>
@@ -38,7 +42,7 @@
   <tr><td class="fopt">w</td><td class="fnum">1</td><td><i>Write:</i> Creates a new file, <b style="color:red">overwriting any existing file</b>.</td></tr>
   <tr><td class="fopt">a</td><td class="fnum">2</td><td><i>Append:</i> Creates a new file if the file didn't exist, otherwise moves the file pointer to the end of the file.</td></tr>
   <tr><td class="fopt">rw</td><td class="fnum">3</td><td><i>Read/Write:</i> Creates a new file if the file didn't exist.</td></tr>
-  <tr><td class="fopt">h</td><td>&nbsp;</td><td>Indicates that <i>Filename</i> is a file handle to wrap in an object. Sharing mode flags are ignored. The file handle is <b>not</b> closed automatically when the file object is destroyed and calling <a href="../objects/File.htm#Close">Close</a> has no effect. Note that <a href="../objects/File.htm#Seek">Seek</a>, <a href="../objects/File.htm#Tell">Tell</a> and <a href="../objects/File.htm#Length">Length</a> should not be used if <i>Filename</i> is a handle to a nonseeking device such as a pipe or a communications device.</td></tr>
+  <tr><td class="fopt">h</td><td>&nbsp;</td><td>Indicates that <i>Filename</i> is a file handle to wrap in an object. Sharing mode flags are ignored and the file or stream represented by the handle is not checked for a byte order mark. The file handle is <b>not</b> closed automatically when the file object is destroyed and calling <a href="../objects/File.htm#Close">Close</a> has no effect. Note that <a href="../objects/File.htm#Seek">Seek</a>, <a href="../objects/File.htm#Tell">Tell</a> and <a href="../objects/File.htm#Length">Length</a> should not be used if <i>Filename</i> is a handle to a nonseeking device such as a pipe or a communications device.</td></tr>
   <tr><th>&nbsp;</th><th>&nbsp;</th><th style="text-align:left">Sharing mode flags</th></tr>
   <tr><td class="fopt" style="white-space:nowrap">-rwd</td><td>&nbsp;</td><td>Locks the file for read, write and/or delete access. Any combination of <code>r</code>, <code>w</code> and <code>d</code> may be used. Specifying <code>-</code> is the same as specifying <code>-rwd</code>. If omitted entirely, the default is to share all access.</td></tr>
   <tr><td>&nbsp;</td><td class="fnum">0</td><td>If <i>Flags</i> is numeric, the absence of sharing mode flags causes the file to be locked.</td></tr>
@@ -64,7 +68,7 @@
 <p><a href="FileEncoding.htm">FileEncoding</a>, <a href="../objects/File.htm">File Object</a>, <a href="FileRead.htm">FileRead</a></p>
 
 <h3>Examples</h3>
-<pre class="NoIndent"><a name="writeread"></a><em>; Example: This is a working script that writes some text to a file then reads it back into memory.
+<pre class="NoIndent" id="writeread"><em>; Example: This is a working script that writes some text to a file then reads it back into memory.
 ; It provides the same functionality as <a href="DllCall.htm#file">this DllCall-example</a>.</em>
 
 FileSelect, FileName, S16,, Create a new file:
@@ -98,9 +102,12 @@ MsgBox % file.ReadLine()
 
 <em>; Open a console window for this demonstration:</em>
 DllCall("AllocConsole")
-<em>; Open the application's stdin/stdout handles in newline-translated mode.</em>
-stdin  := FileOpen(DllCall("GetStdHandle", "int", -10, "ptr"), "h `n")
-stdout := FileOpen(DllCall("GetStdHandle", "int", -11, "ptr"), "h `n")
+<em>; Open the application's stdin/stdout streams in newline-translated mode.</em>
+stdin  := FileOpen("*", "r `n")  <em>; Requires v1.1.17+</em>
+stdout := FileOpen("*", "w `n")
+<em>; For older versions:
+;   stdin  := FileOpen(DllCall("GetStdHandle", "int", -10, "ptr"), "h `n")
+;   stdout := FileOpen(DllCall("GetStdHandle", "int", -11, "ptr"), "h `n")</em>
 stdout.Write("Enter your query.`n\> ")
 stdout.Read(0) <em>; Flush the write buffer.</em>
 query := RTrim(stdin.ReadLine(), "`n")

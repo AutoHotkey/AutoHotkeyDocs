@@ -1,30 +1,33 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
-"http://www.w3.org/TR/html4/loose.dtd">
+<!DOCTYPE HTML>
 <html>
 <head>
 <title>IniWrite</title>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <link href="../static/theme.css" rel="stylesheet" type="text/css" />
-<script src="../static/jquery.js" type="text/javascript"></script>
-<script src="../static/tree.jquery.js" type="text/javascript"></script>
 <script src="../static/content.js" type="text/javascript"></script>
 </head>
 <body>
 
 <h1>IniWrite</h1>
 
-<p>Writes a value to a standard format .ini file.</p>
+<p>Writes a value or section to a standard format .ini file.</p>
 
-<pre class="Syntax">IniWrite, Value, Filename, Section [, Key]</pre>
+<pre class="Syntax">IniWrite, Value, Filename, Section, Key
+IniWrite, Pairs, Filename, Section</pre>
 <h3>Parameters</h3>
 <dl>
 
   <dt>Value</dt>
   <dd>
-      <p>The string or number that will be written to the right of <em>Key</em>'s equal sign (=). If the text  is long, it can be broken up into several shorter lines by means of a <a href="../Scripts.htm#continuation">continuation section</a>, which might improve readability and maintainability.</p>
-      <p>If <i>Key</i> is omitted, this parameter should contain the complete content of a section to write to the .ini file, excluding the [SectionName] header.</p>
-    </dd>
+    <p>The string or number that will be written to the right of <em>Key</em>'s equal sign (=).</p>
+    <p>If the text  is long, it can be broken up into several shorter lines by means of a <a href="../Scripts.htm#continuation">continuation section</a>, which might improve readability and maintainability.</p>
+  </dd>
+  
+  <dt>Pairs</dt>
+  <dd>
+    <p>The complete content of a section to write to the .ini file, excluding the [SectionName] header. <em>Key</em> must be omitted. <em>Pairs</em> must not contain any blank lines. If the section already exists, everything up to the last key=value pair is overwritten. <em>Pairs</em> can contain lines without an equal sign (=), but this may produce inconsistent results. Comments can be written to the file but are stripped out when they are read back by <a href="IniRead.htm">IniRead</a>.</p>
+  </dd>
 
   <dt>Filename</dt>
   <dd><p>The name of the .ini file, which is assumed to be in <a href="../Variables.htm#WorkingDir">%A_WorkingDir%</a> if an absolute path isn't specified.</p></dd>
@@ -40,10 +43,11 @@
 <p>This command is able to throw an exception on failure. For more information, see <a href="Catch.htm#RuntimeErrors">Runtime Errors</a>.</p>
 <p><a href="../misc/ErrorLevel.htm">ErrorLevel</a> is set to 1 if there was a problem or 0 otherwise.</p>
 <h3>Remarks</h3>
-<p>Values longer than 65,535 characters are likely to yield inconsistent results.</p>
+<p>Values longer than 65,535 characters can be written to the file, but may produce inconsistent results as they usually cannot be read correctly by <a href="IniRead.htm">IniRead</a> or other applications.</p>
 <p>A standard ini file looks like:</p>
 <pre>[SectionName]
 Key=Value</pre>
+<p>New files are created in either the system's default ANSI code page or UTF-16, depending on <a href="../Variables.htm#IsUnicode">the version of AutoHotkey</a>. UTF-16 files may appear to begin with a blank line, as the first line contains the UTF-16 byte order mark. See below for a workaround.</p>
 <p><b>Unicode:</b> IniRead and IniWrite rely on the external functions <a href="http://msdn.microsoft.com/en-us/library/ms724353.aspx">GetPrivateProfileString</a> and <a href="http://msdn.microsoft.com/en-us/library/ms725501.aspx">WritePrivateProfileString</a> to read and write values. These functions support Unicode only in UTF-16 files; all other files are assumed to use the system's default ANSI code page. In <a href="../Variables.htm#IsUnicode">Unicode scripts</a>, IniWrite uses UTF-16 for each new file. If this is undesired, ensure the file exists before calling IniWrite. For example:</p>
 <pre>FileAppend,, NonUnicode.ini, CP0 <em>; The last parameter is optional in most cases.</em></pre>
 <h3>Related</h3>
