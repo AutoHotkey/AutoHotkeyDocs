@@ -21,8 +21,7 @@
   <dd><p>The number of the message to monitor or query, which should be between 0 and 4294967295 (0xFFFFFFFF). If you do not wish to monitor a <a href="../misc/SendMessageList.htm">system message</a> (that is, one below 0x400), it is best to choose a number greater than 4096 (0x1000) to the extent you have a choice. This reduces the chance of interfering with messages used internally by current and future versions of AutoHotkey.</p></dd>
 
   <dt>Function</dt>
-  <dd><p>A <a href="../Functions.htm">function</a>'s name or, in <span class="ver">[v1.1.20+]</span>, a <a href="../objects/Functor.htm">function object</a>. To pass a literal function name, it must be enclosed in quotes.</p>
-  <p>How the function is registered and the return value of OnMessage depend on whether this parameter is a string or a function object.  See <a href="#Name_v_Object">Function Name vs Object</a> for details.</p>
+  <dd><p>A <a href="../Functions.htm">function</a>'s name or a <a href="../objects/Functor.htm">function object</a>. To pass a literal function name, it must be enclosed in quotes.</p>
   </dd>
 
   <dt>MaxThreads</dt>
@@ -31,26 +30,8 @@
 
 </dl>
 
-<h3 id="Name_v_Object">Function Name vs Object</h3>
-<p>OnMessage's return value and behavior depends on whether the <em>Function</em> parameter is a function name or an object.</p>
+<h3 id="Usage">Usage</h3>
 
-<h4>Function Name</h4>
-<p>For backward compatibility, at most one function can be registered by name to monitor each unique <em>MsgNumber</em> -- this is referred to as the "legacy" monitor.</p>
-<p>When the legacy monitor is first registered, whether it is called before or after previously registered monitors depends on the <em>MaxThreads</em> parameter. Updating the monitor to call a different function does not affect the order unless the monitor is unregistered first.</p>
-<p>This registers or updates the current legacy monitor for <em>MsgNumber</em> (omit the quote marks if passing a variable):</p>
-<pre class="Syntax">Name := OnMessage(MsgNumber, "FunctionName")</pre>
-<p>The return value is one of the following:</p>
-<ul>
-  <li>An empty string on <a href="#Failure">failure</a>.</li>
-  <li>The name of the previous function, if there was one.</li>
-  <li>Otherwise, the name of the new function.</li>
-</ul>
-<p>This unregisters the current legacy monitor for <em>MsgNumber</em> (if any) and returns its name (blank if none):</p>
-<pre class="Syntax">Name := OnMessage(MsgNumber, "")</pre>
-<p>This returns the name of the current legacy monitor for <em>MsgNumber</em> (blank if none):</p>
-<pre class="Syntax">Name := OnMessage(MsgNumber)</pre>
-
-<h4>Function Object</h4>
 <p>Any number of <a href="../objects/Functor.htm">function objects</a> (including <a href="../objects/Func.htm">normal functions</a>) can monitor a given <em>MsgNumber</em>.</p>
 <p>Either of these two lines registers a function object to be called <strong>after</strong> any previously registered functions:</p>
 <pre class="Syntax">
@@ -63,14 +44,11 @@ OnMessage(MsgNumber, FuncObj, 1)  <em>; Option 2 (MaxThreads = 1)</em>
 <pre class="Syntax">OnMessage(MsgNumber, FuncObj, 0)</pre>
 
 <h3 id="Failure">Failure</h3>
-<p>Failure occurs when <em>Function</em>:</p>
+<p>An exception is thrown if <em>Function</em>:</p>
 <ol>
-  <li>is not an object, the name of a user-defined function, or an empty string;</li>
-  <li>is known to require more than four parameters; or</li>
-  <li>in v1.0.48.05 or older, has any <a href="../Functions.htm#ByRef">ByRef</a> or <a href="../Functions.htm#optional">optional</a> parameters.</li>
+  <li>is not an object or the name of a user-defined function; or</li>
+  <li>is known to require more than four parameters.</li>
 </ol>
-<p>In v1.1.19.03 or older, failure also occurs if the script attempts to monitor a new message when there are already 500 messages being monitored.</p>
-<p>If <em>Function</em> is an object, an exception is thrown on failure. Otherwise, an empty string is returned.</p>
 
 <h3>The Function's Parameters</h3>
 <p>A <a href="../Functions.htm">function</a> assigned to monitor one or more messages can accept up to four parameters:</p>
@@ -153,9 +131,9 @@ WM_QUERYENDSESSION(wParam, lParam)
 {
     ENDSESSION_LOGOFF = 0x80000000
     if (lParam &amp; ENDSESSION_LOGOFF)  <em>; User is logging off.</em>
-        EventType = Logoff
+        EventType := "Logoff"
     else  <em>; System is either shutting down or restarting.</em>
-        EventType = Shutdown
+        EventType := "Shutdown"
     MsgBox, 4,, %EventType% in progress.  Allow it?
     <em>; Tell the OS to allow the shutdown/logoff to continue only if the user clicked Yes.</em>
     return A_MsgBoxResult = "Yes"
@@ -226,7 +204,7 @@ Send_WM_COPYDATA(ByRef StringToSend, ByRef TargetScriptTitle)  <em>; ByRef saves
     Prev_TitleMatchMode := A_TitleMatchMode
     DetectHiddenWindows On
     SetTitleMatchMode 2
-    SendMessage, 0x4a, 0, &amp;CopyDataStruct,, %TargetScriptTitle%  <em>; 0x4a is WM_COPYDATA. Must use Send not Post.</em>
+    SendMessage, 0x4a, 0, % &amp;CopyDataStruct,, %TargetScriptTitle%  <em>; 0x4a is WM_COPYDATA. Must use Send not Post.</em>
     DetectHiddenWindows %Prev_DetectHiddenWindows%  <em>; Restore original setting for the caller.</em>
     SetTitleMatchMode %Prev_TitleMatchMode%         <em>; Same.</em>
     return ErrorLevel  <em>; Return SendMessage's reply back to our caller.</em>
