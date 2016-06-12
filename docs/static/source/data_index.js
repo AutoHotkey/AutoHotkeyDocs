@@ -457,6 +457,7 @@ index = [
   ["InStr()","commands/InStr.htm"],
   ["integer (check if it is one)","commands/is.htm"],
   ["Interrupt","commands/Thread.htm"],
+  ["is (value is type)","commands/is.htm"],
   ["IsByRef()","Functions.htm#IsByRef"],
   ["IsFunc()","Functions.htm#IsFunc"],
   ["IsLabel()","Functions.htm#IsLabel"],
