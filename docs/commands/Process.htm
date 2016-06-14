@@ -11,36 +11,46 @@
 
 <h1>Process</h1>
 
-<p>Performs one of the following operations on a process: checks if it exists; changes its priority; closes it; waits for it to close.</p>
+<p>Functions for performing the following operations on a process: check if it exists; change its priority; close it; wait for it to exist; wait for it to close.</p>
 
-<pre class="Syntax">Process, Cmd [, PID-or-Name, Param3]</pre>
+<pre class="Syntax" id="Exist">ProcessExist, OutputVar [, PID-or-Name]
+OutputVar := ProcessExist([PID-or-Name])</pre>
+<p><strong>Exist</strong>: Sets <em>OutputVar</em> to the Process ID (PID) if a matching process exists, or 0 otherwise.  If the <em>PID-or-Name</em> parameter is blank, the script's own PID is retrieved.</p>
+
+<pre class="Syntax" id="Close">ProcessClose, OutputVar, PID-or-Name
+ProcessClose(PID-or-Name)</pre>
+<p><strong>Close</strong>: If a matching process is successfully terminated, <em>OutputVar</em> is set to its former Process ID (PID). Otherwise (there was no matching process or there was a problem terminating it), it is set to 0. Since the process will be abruptly terminated -- possibly interrupting its work at a critical point or resulting in the loss of unsaved data in its windows (if it has any) -- this method should be used only if a process cannot be closed by using <a href="WinClose.htm">WinClose</a> on one of its windows.</p>
+
+<pre class="Syntax" id="Priority">ProcessSetPriority, Priority [, PID-or-Name]
+ProcessSetPriority(Priority [, PID-or-Name])</pre>
+<p><strong>Priority</strong>: Changes the priority (as seen in Windows Task Manager) of the first matching process to <em>Priority</em>. If the <em>PID-or-Name</em> parameter is blank, the script's own priority will be changed.</p>
+<p><em>Priority</em> should be one of the following letters or words: L (or Low), B (or BelowNormal), N (or Normal), A (or AboveNormal), H (or High), R (or Realtime). Note: Any process not designed to run at Realtime priority might reduce system stability if set to that level.</p>
+<p>If called as a function, the return value is the Process ID (PID) of the process whose priority was set, or 0 if there is no matching process or there was a problem changing its priority.</p>
+
+<pre class="Syntax" id="Wait">ProcessWait, OutputVar, PID-or-Name [, Timeout]
+ProcessWait(PID-or-Name [, Timeout])</pre>
+<p><strong>Wait</strong>: Waits up to <em>Timeout</em> seconds (can contain a decimal point) for a matching process to exist. If <em>Timeout</em> is omitted, the command will wait indefinitely. If a matching process is discovered, <em>OutputVar</em> is set to its Process ID (PID). If the command times out, <em>OutputVar</em> is set to 0.</p>
+
+<pre class="Syntax" id="WaitClose">ProcessWaitClose, OutputVar, PID-or-Name [, Timeout]
+ProcessWaitClose(PID-or-Name [, Timeout])</pre>
+<p><strong>WaitClose</strong>: Waits up to <em>Timeout</em> seconds (can contain a decimal point) for ALL matching processes to close. If <em>Timeout</em> is omitted, the command will wait indefinitely. If all matching processes are closed, <em>OutputVar</em> is set to 0. If the command times out, <em>OutputVar</em> is set to the Process ID (PID) of the first matching process that still exists.</p>
+
 <h3>Parameters</h3>
 <dl>
 
-  <dt>Cmd</dt>
-  <dd><p>One of the following words:</p>
-    <p><strong>Exist</strong>: Sets <a href="../misc/ErrorLevel.htm">ErrorLevel</a> to the Process ID (PID) if a matching process exists, or 0 otherwise.  If the <em>PID-or-Name</em> parameter is blank, the script's own PID is retrieved. An alternate, single-line method to retrieve the script's PID is <code>PID := DllCall(&quot;GetCurrentProcessId&quot;)</code>.</p>
-    <p><strong>Close</strong>: If a matching process is successfully terminated, <a href="../misc/ErrorLevel.htm">ErrorLevel</a> is set to its former Process ID (PID). Otherwise (there was no matching process or there was a problem terminating it), it is set to 0. Since the process will be abruptly terminated -- possibly interrupting its work at a critical point or resulting in the loss of unsaved data in its windows (if it has any) -- this method should be used only if a process cannot be closed by using <a href="WinClose.htm">WinClose</a> on one of its windows.</p>
-    <p><strong>List</strong>: Although <em>List</em> is not yet supported, the <a href="#ListEx">examples section</a> demonstrates how to retrieve a list of processes via DllCall.</p>
-    <p id="Priority"><strong>Priority</strong>: Changes the priority (as seen in Windows Task Manager) of the first matching process to <em>Param3</em> and sets <a href="../misc/ErrorLevel.htm">ErrorLevel</a> to its Process ID (PID). If the <em>PID-or-Name</em> parameter is blank, the script's own priority will be changed. If there is no matching process or there was a problem changing its priority, ErrorLevel is set to 0.</p>
-    <p><em>Param3</em> should be one of the following letters or words: L (or Low), B (or BelowNormal), N (or Normal), A (or AboveNormal), H (or High), R (or Realtime). Note: Any process not designed to run at Realtime priority might reduce system stability if set to that level.</p>
-    <p><strong>Wait</strong>: Waits up to <em>Param3</em> seconds (can contain a decimal point) for a matching process to exist. If <em>Param3</em> is omitted, the command will wait indefinitely. If a matching process is discovered, <a href="../misc/ErrorLevel.htm">ErrorLevel</a> is set to its Process ID (PID). If the command times out, ErrorLevel is set to 0.</p>
-    <p><strong>WaitClose</strong>: Waits up to <em>Param3</em> seconds (can contain a decimal point) for ALL matching processes to close. If <em>Param3</em> is omitted, the command will wait indefinitely. If all matching processes are closed, <a href="../misc/ErrorLevel.htm">ErrorLevel</a> is set to 0. If the command times out, ErrorLevel is set to the Process ID (PID) of the first matching process that still exists.</p></dd>
-
+  <dt>OutputVar</dt>
+  <dd><p>The name of the variable in which to store the result, which is a Process ID (PID) or zero (0). When calling the command as a function, <em>OutputVar</em> represents its return value.</p></dd>
+  
   <dt>PID-or-Name</dt>
-  <dd><p>This parameter can be either a number (the PID) or a process name as described below. It can also be left blank to change the priority of the script itself.</p>
-      <p>PID: The Process ID, which is a number that uniquely identifies one specific process (this number is valid only during the lifetime of that process). The PID of a newly launched process can be determined via the <a href="Run.htm">Run</a> command. Similarly, the PID of a window can be determined with <a href="WinGet.htm">WinGet</a>. The Process command itself can also be used to discover a PID.</p>
+  <dd><p>This parameter can be either a number (the PID) or a process name as described below. It can also be left blank where indicated above.</p>
+  <p>PID: The Process ID, which is a number that uniquely identifies one specific process (this number is valid only during the lifetime of that process). The PID of a newly launched process can be determined via the <a href="Run.htm">Run</a> command. Similarly, the PID of a window can be determined with <a href="WinGet.htm">WinGet</a>. ProcessExist can also be used to discover a PID.</p>
       <p>Name: The name of a process is usually the same as its executable (without path), e.g. notepad.exe or winword.exe. Since a name might match multiple running processes, only the first process will be operated upon. The name is not case sensitive.</p></dd>
-
-  <dt>Param3</dt>
-  <dd><p>See <em>Cmd</em> above for details.</p></dd>
 
 </dl>
 
-<h3>ErrorLevel</h3>
-<p>See <em>Cmd</em> above for details.</p>
 <h3>Remarks</h3>
-<p>For <em>Wait</em> and <em>WaitClose</em>: Processes are checked every 100 milliseconds; the moment the condition is satisfied, the command stops waiting. In other words, rather than waiting for the timeout  to expire, it immediately sets <a href="../misc/ErrorLevel.htm">ErrorLevel</a> as described above, then continues  execution of the script. Also, while the command is in a waiting state, new <a href="../misc/Threads.htm">threads</a> can be launched via <a href="../Hotkeys.htm">hotkey</a>, <a href="Menu.htm">custom menu item</a>, or <a href="SetTimer.htm">timer</a>.</p>
+<p>For <em>Wait</em> and <em>WaitClose</em>: Processes are checked every 100 milliseconds; the moment the condition is satisfied, the command stops waiting. In other words, rather than waiting for the timeout  to expire, it immediately returns and continues execution of the script. Also, while the command is in a waiting state, new <a href="../misc/Threads.htm">threads</a> can be launched via <a href="../Hotkeys.htm">hotkey</a>, <a href="Menu.htm">custom menu item</a>, or <a href="SetTimer.htm">timer</a>.</p>
+<p><strong>Process list</strong>: Although there is no <em>ProcessList</em> function, the <a href="#ListEx">examples section</a> demonstrates how to retrieve a list of processes via DllCall.</p>
 
 <h3>Related</h3>
 <p><a href="Run.htm">Run</a>, <a href="WinGet.htm">WinGet</a>, <a href="WinClose.htm">WinClose</a>, <a href="WinKill.htm">WinKill</a>, <a href="WinWait.htm">WinWait</a>, <a href="WinWaitClose.htm">WinWaitClose</a>, <a href="WinExist.htm">WinExist</a></p>
@@ -48,13 +58,12 @@
 <pre class="NoIndent"><em>; Example #1:</em>
 
 Run Notepad.exe, , , NewPID
-Process, priority, %NewPID%, High
+ProcessSetPriority, High, %NewPID%
 MsgBox The newly launched notepad's PID is %NewPID%.</pre>
 <p>&nbsp;</p>
 <pre class="NoIndent"><em>; Example #2:</em>
 
-Process, wait, Notepad.exe, 5.5
-NewPID = %ErrorLevel%  <em>; Save the value immediately since ErrorLevel is often changed.</em>
+ProcessWait, NewPID, Notepad.exe, 5.5
 if NewPID = 0
 {
     MsgBox The specified process did not appear within 5.5 seconds.
@@ -62,17 +71,17 @@ if NewPID = 0
 }
 <em>; Otherwise:</em>
 MsgBox A matching process has appeared (Process ID is %NewPID%).
-Process, priority, %NewPID%, Low
-Process, priority, , High  <em>; Have the script set itself to high priority.</em>
+ProcessSetPriority, %NewPID%, Low
+ProcessSetPriority, , High  <em>; Have the script set itself to high priority.</em>
 WinClose Untitled - Notepad
-Process, WaitClose, %NewPID%, 5
+ProcessWaitClose, ErrorLevel, %NewPID%, 5
 if ErrorLevel <em>; The PID still exists.</em>
     MsgBox The process did not close within 5 seconds.</pre>
 <p>&nbsp;</p>
 <pre class="NoIndent"><em>; Example #3: A hotkey to change the priority of the active window's process:</em>
 
 #z:: <em>; Win+Z hotkey</em>
-WinGet, active_pid, PID, A
+WinGetPID, active_pid, A
 WinGetTitle, active_title, A
 Gui, 5:Add, Text,, Press ESCAPE to cancel, or double-click a new`npriority level for the following window:`n%active_title%
 Gui, 5:Add, ListBox, vMyListBox gMyListBox r5, Normal|High|Low|BelowNormal|AboveNormal
@@ -92,8 +101,7 @@ if A_GuiEvent &lt;&gt; DoubleClick
 5ButtonOK:
 GuiControlGet, MyListBox
 Gui, Destroy
-Process, Priority, %active_pid%, %MyListBox%
-if ErrorLevel
+if ProcessSetPriority(active_pid, MyListBox)
     MsgBox Success: Its priority was changed to &quot;%MyListBox%&quot;.
 else
     MsgBox Error: Its priority could not be changed to &quot;%MyListBox%&quot;.
@@ -104,9 +112,9 @@ return</pre>
 d := "  |  "  <em>; string separator</em>
 s := 4096  <em>; size of buffers and arrays (4 KB)</em>
 
-Process, Exist  <em>; sets ErrorLevel to the PID of this running script</em>
+ScriptPID := ProcessExist()  <em>; The PID of this running script.</em>
 <em>; Get the handle of this script with PROCESS_QUERY_INFORMATION (0x0400)</em>
-h := DllCall("OpenProcess", "UInt", 0x0400, "Int", false, "UInt", ErrorLevel, "Ptr")
+h := DllCall("OpenProcess", "UInt", 0x0400, "Int", false, "UInt", ScriptPID, "Ptr")
 <em>; Open an adjustable access token with this process (TOKEN_ADJUST_PRIVILEGES = 32)</em>
 DllCall("Advapi32.dll\OpenProcessToken", "Ptr", h, "UInt", 32, "PtrP", t)
 VarSetCapacity(ti, 16, 0)  <em>; structure of privileges</em>
