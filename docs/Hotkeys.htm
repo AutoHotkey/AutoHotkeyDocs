@@ -19,7 +19,8 @@
   <li><a href="#Intro">Introduction and Simple Examples</a></li>
   <li><a href="#Symbols">Table of Hotkey Prefix Symbols (Modifiers)</a></li>
   <li><a href="#Context">Context-sensitive Hotkeys</a></li>
-  <li><a href="#Features">Custom Combinations and Other Features</a></li>
+  <li><a href="#combo">Custom Combinations</a></li>
+  <li><a href="#Features">Other Features</a></li>
   <li><a href="#Wheel">Mouse Wheel Hotkeys</a></li>
   <li><a href="#Remarks">Hotkey Tips and Remarks</a></li>
   <li><a href="#AltTabDetail">Alt-Tab Hotkeys</a></li>
@@ -145,14 +146,30 @@ WheelUp::Send {Volume_Up}     <em>; Wheel over taskbar: increase/decrease volume
 WheelDown::Send {Volume_Down} <em>;</em>
 </pre>
 
-<h2 id="Features">Custom Combinations and Other Features</h2>
-<p id="combo">You can define a custom combination of two keys (except joystick buttons) by using &quot; &amp; &quot; between them. In the below example, you would hold down Numpad0 then press the second key to trigger the hotkey:</p>
+<h2 id="combo">Custom Combinations</h2>
+<p>You can define a custom combination of two keys (except joystick buttons) by using &quot; &amp; &quot; between them. In the below example, you would hold down Numpad0 then press the second key to trigger the hotkey:</p>
 <pre id="prefix">Numpad0 <strong>&amp;</strong> Numpad1::MsgBox You pressed Numpad1 while holding down Numpad0.
 Numpad0 <strong>&amp;</strong> Numpad2::Run Notepad</pre>
-<p>In the above example, Numpad0 becomes a <em>prefix key</em>; but this also causes Numpad0 to lose its original/native function when it is pressed by itself. To avoid this, a script may configure Numpad0 to perform a new action such as one of the following:</p>
+<p><strong>The prefix key loses its native function:</strong> In the above example, Numpad0 becomes a <em>prefix key</em>; but this also causes Numpad0 to lose its original/native function when it is pressed by itself. To avoid this, a script may configure Numpad0 to perform a new action such as one of the following:</p>
 <pre>Numpad0::WinMaximize A   <em>; Maximize the active/foreground window.</em>
 Numpad0::Send {Numpad0}  <em>; Make the <i>release</i> of Numpad0 produce a Numpad0 keystroke. See comment below.</em></pre>
-<p>The presence of one of the above custom combination hotkeys causes the <em>release</em> of Numpad0 to perform the indicated action, but only if you did not press any other keys while Numpad0 was being held down.  In v1.1.14+, this behaviour can be avoided by applying the <a href="#Tilde">tilde prefix</a> to either hotkey.</p>
+<p><strong>Fire on release:</strong> The presence of one of the above custom combination hotkeys causes the <em>release</em> of Numpad0 to perform the indicated action, but only if you did not press any other keys while Numpad0 was being held down.  In v1.1.14+, this behaviour can be avoided by applying the <a href="#Tilde">tilde prefix</a> to either hotkey.</p>
+<p id="combo_mods"><strong>Modifiers:</strong> Unlike a normal hotkey, custom combinations act as though they have the <a href="#wildcard">wildcard (*)</a> modifier by default. For example, <code>1 &amp; 2::</code> will activate even if Ctrl or Alt is held down when 1 and 2 are pressed, whereas <code>^1::</code> would be activated only by Ctrl+1 and not Ctrl+Alt+1.</p>
+<p>For standard modifier keys, normal hotkeys typically work as well or better than "custom" combinations. For example, <code>&lt;+s::</code> is recommended over <code>LShift &amp; s::</code>.</p>
+<p>Combinations of three or more keys are not supported. Combinations which your keyboard hardware supports can usually be detected by using <a href="commands/_If.htm">#If</a> and <a href="commands/GetKeyState.htm">GetKeyState</a>, but the results may be inconsistent. For example:</p>
+<pre><em>; Press AppsKey and Alt in any order, then slash (/).</em>
+#if GetKeyState("AppsKey", "P")
+Alt &amp; /::MsgBox Hotkey activated.
+
+<em>; If the keys are swapped, Alt must be pressed first (use one at a time):</em>
+#if GetKeyState("Alt", "P")
+AppsKey &amp; /::MsgBox Hotkey activated.
+
+<em>; [ &amp; ] &amp; \::</em>
+#if GetKeyState("[") &amp;&amp; GetKeyState("]")
+\::MsgBox</pre>
+
+<h2 id="Features">Other Features</h2>
 <p><strong>Numlock, Capslock, and Scrolllock:</strong> These keys may be forced to be &quot;AlwaysOn&quot; or &quot;AlwaysOff&quot;. For example: <code><a href="commands/SetNumScrollCapsLockState.htm">SetNumlockState</a> AlwaysOn</code>.</p>
 <p><strong>Overriding Explorer's hotkeys:</strong> Windows' built-in hotkeys such as Win-E (#e) and Win-R (#r) can be individually overridden simply by assigning them to an action in the script. See the <a href="misc/Override.htm">override page</a> for details.</p>
 <p id="alttab"><strong>Substitutes for Alt-Tab:</strong> Hotkeys can provide an alternate means of alt-tabbing. For example, the following two hotkeys allow you to alt-tab with your right hand:</p>
