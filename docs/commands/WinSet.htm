@@ -11,14 +11,160 @@
 
 <h1>WinSet</h1>
 
-<p>Makes a variety of changes to the specified window, such as &quot;always on top&quot; and transparency.</p>
+<p>Functions for making a variety of changes to a window, such as "always on top" and transparency.</p>
 
-<pre class="Syntax">WinSet, Attribute, Value [, WinTitle, WinText,  ExcludeTitle, ExcludeText]</pre>
-<h3>Parameters</h3>
+<h3 id="AlwaysOnTop">WinSetAlwaysOnTop</h3>
+<p>Makes a window stay on top of all other windows (except other always-on-top windows).</p>
+<pre class="Syntax">WinSetAlwaysOnTop [, Value, WinTitle, WinText, ExcludeTitle, ExcludeText]</pre>
 <dl>
+  <dt>Value</dt>
+  <dd><p>One of the following case-insensitive text values or numbers:</p><p>
+    <code>ON</code> or <code>1</code> (<a href="../Variables.htm#True">true</a>) turns on the setting.<br>
+    <code>OFF</code> or <code>0</code> (<a href="../Variables.htm#False">false</a>) turns off the setting.<br>
+    <code>TOGGLE</code> or <code>-1</code> sets it to the opposite of its current state.
+  </p>
+  <p>If omitted, it defaults to <code>TOGGLE</code>.</p></dd>
+</dl>
+<p><a href="WinGet.htm#Style">WinGetExStyle</a> can be used to determine whether a window is always-on-top.</p>
+<p><strong>Related:</strong> <a href="#Parameters">Window Parameters</a>, <a href="#return">Return Value</a></p>
 
-  <dt>Attribute, Value</dt>
-  <dd><p>See list below.</p></dd>
+<h3 id="Bottom">WinMoveBottom</h3>
+<p>Sends a window to the bottom of stack; that is, beneath all other windows. The effect is similar to pressing Alt-Escape.</p>
+<pre class="Syntax">WinMoveBottom [, WinTitle, WinText, ExcludeTitle, ExcludeText]</pre>
+<p><strong>Related:</strong> <a href="#Parameters">Window Parameters</a>, <a href="#return">Return Value</a></p>
+
+<h3 id="Top">WinMoveTop</h3>
+<p>Brings a window to the top of the stack without explicitly <a href="WinActivate.htm">activating</a> it.</p>
+<pre class="Syntax">WinMoveTop [, WinTitle, WinText, ExcludeTitle, ExcludeText]</pre>
+<p>The system default settings will probably cause it to activate in most cases. In addition, this command may have no effect due to the operating system's protection against applications that try to steal focus from the user (it may depend on factors such as what type of window is currently active and what the user is currently doing). One possible work-around is to make the window briefly <a href="#AlwaysOnTop">AlwaysOnTop</a>, then turn off AlwaysOnTop.</p>
+<p><strong>Related:</strong> <a href="#Parameters">Window Parameters</a>, <a href="#return">Return Value</a></p>
+
+<h3 id="Enabled">WinSetEnabled</h3>
+<p>Enables or disables a window.</p>
+<pre class="Syntax">WinSetEnabled, Value [, WinTitle, WinText, ExcludeTitle, ExcludeText]</pre>
+<dl>
+  <dt>Value</dt>
+  <dd><p>One of the following case-insensitive text values or numbers:</p><p>
+    <code>ON</code> or <code>1</code> (<a href="../Variables.htm#True">true</a>) turns on the setting.<br>
+    <code>OFF</code> or <code>0</code> (<a href="../Variables.htm#False">false</a>) turns off the setting.<br>
+    <code>TOGGLE</code> or <code>-1</code> sets it to the opposite of its current state.
+  </p>
+  <p>If omitted, it defaults to <code>TOGGLE</code>.</p></dd>
+</dl>
+<p>When a window is disabled, the user cannot move it or interact with its controls. In addition, disabled windows are omitted from the alt-tab list.</p>
+<p><a href="WinGet.htm#Style">WinGetStyle</a> can be used to determine whether a window is disabled.</p>
+<p><strong>Related:</strong> <a href="#Parameters">Window Parameters</a>, <a href="#return">Return Value</a></p>
+
+<h3 id="Redraw">WinRedraw</h3>
+<p>Attempts to update the appearance/contents of a window by informing the OS that the window's rectangle needs to be redrawn.</p>
+<pre class="Syntax">WinRedraw [, WinTitle, WinText, ExcludeTitle, ExcludeText]</pre>
+<p>If this method does not work for a particular window, try <a href="WinMove.htm">WinMove</a>. If that does not work, try the following:</p>
+<pre><a href="WinHide.htm">WinHide</a>, WinTitle
+<a href="WinShow.htm">WinShow</a>, WinTitle</pre>
+<p><strong>Related:</strong> <a href="#Parameters">Window Parameters</a>, <a href="#return">Return Value</a></p>
+
+<h3 id="Style">WinSetStyle / WinSetExStyle</h3>
+<p>Changes the style or <u>ex</u>tended style of a window.</p>
+<pre class="Syntax">WinSetStyle, Value [, WinTitle, WinText, ExcludeTitle, ExcludeText]
+WinSetExStyle, Value [, WinTitle, WinText, ExcludeTitle, ExcludeText]</pre>
+<dl>
+  <dt>Value</dt>
+  <dd>
+  <p>Pass a positive integer to completely overwrite the window's style; that is, to set it to <em>Value</em>.</p>
+  <p>To easily add, remove or toggle styles, pass a numeric string prefixed with a plus sign (+), minus sign (-) or caret (^), respectively. The new style value is calculated as shown below (where CurrentStyle could be retrieved with <a href="WinGet.htm#Style">WinGetStyle/WinGetExStyle</a>):</p>
+  <table class="info">
+    <tr>
+      <th>Operation</th>
+      <th>Prefix</th>
+      <th>Example String</th>
+      <th>Formula</th>
+    </tr>
+    <tr>
+      <td>Add</td>
+      <td>+</td>
+      <td>+0x80</td>
+      <td><code>NewStyle := CurrentStyle | Value</code></td>
+    </tr>
+    <tr>
+      <td>Remove</td>
+      <td>-</td>
+      <td>-0x80</td>
+      <td><code>NewStyle := CurrentStyle &amp; ~Value</code></td>
+    </tr>
+    <tr>
+      <td>Toggle</td>
+      <td>^</td>
+      <td>^0x80</td>
+      <td><code>NewStyle := CurrentStyle ^ Value</code></td>
+    </tr>
+  </table>
+  <p>If <em>Value</em> is a negative integer, it is treated the same as the corresponding numeric string.</p>
+  <p>To use the + or ^ prefix literally in an expression, the prefix or value must be enclosed in quote marks. For example: <code>WinSetStyle("+0x80")</code> or <code>WinSetStyle("^" StylesToToggle)</code>. This is because the <a href="../Variables.htm#Expressions">expression</a> <code><a href="../Variables.htm#unary">+123</a></code> produces 123 (without a prefix) and <code>^123</code> is a syntax error.</p>
+  </dd>
+</dl>
+<p>After applying certain style changes to a visible window, it might be necessary to redraw the window using <a href="#Redraw">WinRedraw</a>. Finally, the <a href="../misc/Styles.htm">styles table</a> lists some of the common style numbers. Examples:</p>
+<pre>WinSetStyle, -0xC00000, A  <em>; Remove the active window's title bar (WS_CAPTION).</em>
+WinSetExStyle, ^0x80, WinTitle  <em>; Toggle the WS_EX_TOOLWINDOW attribute, which removes/adds the window from the alt-tab list.</em></pre>
+<p><strong>Related:</strong> <a href="#Parameters">Window Parameters</a>, <a href="#return">Return Value</a>, <a href="WinGet.htm#Style">WinGetStyle/WinGetExStyle</a></p>
+
+<h3 id="Region">WinSetRegion</h3>
+<p>Changes the shape of a window to be the specified rectangle, ellipse, or polygon.</p>
+<pre class="Syntax">WinSetRegion [, Options, WinTitle, WinText, ExcludeTitle, ExcludeText]</pre>
+<p>If the <em>Options</em> parameter is blank, the window is restored to its original/default display area. Otherwise, one or more of the following options can be specified, each separated from the others with space(s):</p>
+<p><strong>Wn</strong>: Width of rectangle or ellipse. For example: <code>w200</code>.<br>
+<strong>Hn</strong>: Height of rectangle or ellipse. For example: <code>h300</code>.<br>
+<strong>X-Y</strong>: Each of these is a pair of X/Y coordinates. For example, <code>200-0</code> would use 200 for the X coordinate and 0 for the Y.<br>
+<strong>E</strong>: Makes the region an ellipse rather than a rectangle. This option is valid only when <strong>W</strong> and <strong>H</strong> are present.<br>
+<strong>R[w-h]</strong>: Makes the region a rectangle with rounded corners. For example, <code>R30-30</code> would use a 30x30 ellipse for each corner. If <strong>w-h</strong> is omitted, 30-30 is used. <strong>R</strong> is valid only when <strong>W</strong> and <strong>H</strong> are present.</p>
+<p><strong>Rectangle or ellipse</strong>: If the <strong>W</strong> and <strong>H</strong> options are present, the new display area will be a rectangle whose upper left corner is specified by the first (and only) pair of <strong>X-Y</strong> coordinates. However, if the <strong>E</strong> option is also present, the new display area will be an ellipse rather than a rectangle. For example: <code>WinSetRegion, 50-0 W200 H250 E, WinTitle</code>.</p>
+<p><strong>Polygon</strong>: When the <strong>W</strong> and <strong>H</strong> options are absent, the new display area will be a polygon determined by multiple pairs of <strong>X-Y</strong> coordinates (each pair of coordinates is a point inside the window relative to its upper left corner). For example, if three pairs of coordinates are specified, the new display area will be a triangle in most cases. The order of the coordinate pairs with respect to each other is sometimes important. In addition, the word <strong>Wind</strong> maybe be present in <em>Options</em> to use the winding method instead of the alternating method to determine the polygon's region.</p>
+<p><a href="#return">ErrorLevel</a> and the function's <a href="#return">return value</a> are set based on whether the function succeeds or fails. Failure occurs when: 1) the target window does not exist; 2) one or more <em>Options</em> are invalid; 3) more than 2000 pairs of coordinates were specified; or 4) the specified region is invalid or could not be applied to the target window.</p>
+<p>See the bottom of this page for examples of how to use this command.</p>
+<p><strong>Related:</strong> <a href="#Parameters">Window Parameters</a>, <a href="#return">Return Value</a></p>
+
+<h3 id="Transparent">WinSetTransparent</h3>
+<p>Makes a window semi-transparent.</p>
+<pre class="Syntax">WinSetTransparent [, N, WinTitle, WinText, ExcludeTitle, ExcludeText]</pre>
+<dl>
+  <dt>N</dt>
+  <dd><p>To enable transparency, specify a number between 0 and 255 indicating the degree of transparency: 0 makes the window invisible while 255 makes it opaque.</p>
+  <p>To turn off transparency completely, specify the word <code>OFF</code> (case-insensitive).</p>
+  </dd>
+</dl>
+<p>Turning off transparency is different than specifying 255 because it may improve performance and reduce usage of system resources (but probably only on Windows XP, or when desktop composition is disabled).</p>
+<p id="TransLimit"><strong>Known Limitations for Transparent and <a href="#TransColor">TransColor</a></strong>:</p>
+<ul>
+  <li>They have no effect on a window that lacks a caption (title bar) and lacks the <a href="#AlwaysOnTop">always-on-top</a> property. For <a href="Gui.htm">GUI windows</a>, this can be solved by removing the caption only after making the window transparent. Alternatively, the following properties allow transparency to take effect: <code><a href="Gui.htm#Options">Gui -Caption +ToolWindow</a></code>.</li>
+  <li>Setting &quot;Transparent&quot; to 255 prior to turning it off might avoid window redrawing problems such as a black background. If the window still fails to be redrawn correctly, see <a href="#Redraw">Redraw</a> for a possible workaround.</li>
+  <li>To change a window's existing <a href="#TransColor">TransColor</a>, it may be necessary to turn off transparency before making the change.</li>
+</ul>
+<p><strong>Tip</strong>: To make the task bar transparent, use <code>WinSetTransparent, 150, ahk_class Shell_TrayWnd</code>. Similarly, to make the Start Menu transparent, follow this example:</p>
+<pre>DetectHiddenWindows, on
+WinSetTransparent, 150, ahk_class BaseBar  <em>; To make the Start Menu's submenus transparent, also include the script below.</em></pre>
+<p>To make all or selected menus on the entire system transparent, keep a script such as the following always running. Note that although such a script cannot make its own menus transparent, it can make those of other scripts transparent:</p>
+<pre>SetTimer, WatchForMenu, 5
+return  <em>; End of auto-execute section.</em>
+
+WatchForMenu:
+DetectHiddenWindows, on  <em>; Might allow detection of menu sooner.</em>
+If WinExist("ahk_class #32768")
+    WinSetTransparent, 150  <em>; Uses the window found by the above line.</em>
+return</pre>
+<p><strong>Related:</strong> <a href="#Parameters">Window Parameters</a>, <a href="#return">Return Value</a>, <a href="WinGet.htm#Transparent">WinGetTransparent</a></p>
+
+<h3 id="TransColor">WinSetTransColor</h3>
+<pre class="Syntax">WinSetTransColor, Color [N] [, Options, WinTitle, WinText, ExcludeTitle, ExcludeText]</pre>
+<p>Makes all pixels of the chosen color invisible inside the target window, which allows the contents of the window behind it to show through. If the user clicks on an invisible pixel, the click will &quot;fall through&quot; to the window behind it. Specify for <em>Color</em> a color name or RGB value (see the <a href="../misc/Colors.htm">color chart</a> for guidance, or use <a href="PixelGetColor.htm">PixelGetColor</a> in its RGB mode). To additionally make the visible part of the window partially transparent, append a space (not a comma) followed by the transparency level (0-255). For example: <code>WinSetTransColor, EEAA99 150, WinTitle</code>.</p>
+<p>TransColor is often used to create on-screen displays and other visual effects. There is an example of an on-screen display <a href="Gui.htm#OSD">at the bottom of the Gui page</a>.</p>
+<p>The word OFF may be specified to completely turn off transparency for a window. Both of the following are identical in function:</p>
+<pre>WinSetTransparent, Off, WinTitle
+WinSetTransColor, Off, WinTitle</pre>
+<p>Known Limitations: See the list <a href="#TransLimit">above</a>.</p>
+<p><strong>Related:</strong> <a href="#Parameters">Window Parameters</a>, <a href="#return">Return Value</a>, <a href="WinGet.htm#TransColor">WinGetTransColor</a></p>
+
+<h3 id="Parameters">Window Parameters</h3>
+<p>All of the functions on this page utilize the following parameters to identify the target window:</p>
+<dl>
 
   <dt>WinTitle</dt>
   <dd><p>A window title or other criteria identifying the target window. See <a href="../misc/WinTitle.htm">WinTitle</a>.</p></dd>
@@ -34,109 +180,59 @@
 
 </dl>
 
-<h3>Attribute, Value</h3>
-<p id="AlwaysOnTop"><strong>AlwaysOnTop, [On|Off|Toggle]</strong>: Makes a window stay on top of all other windows. Use ON to turn on the setting, OFF to turn it off, or TOGGLE to set it to the opposite of its current state. If omitted, it defaults to TOGGLE. The word Topmost can be used in place of AlwaysOnTop.</p>
-<p><strong>Bottom</strong>: Sends a window to the bottom of stack; that is, beneath all other windows. The effect is similar to pressing Alt-Escape. For example: <code>WinSet, Bottom,, WinTitle</code>.</p>
-<p><strong>Top</strong>: Brings a window to the top of the stack without explicitly <a href="WinActivate.htm">activating</a> it. However, the system default settings will probably cause it to activate in most cases. In addition, this command may have no effect due to the operating system's protection against applications that try to steal focus from the user (it may depend on factors such as what type of window is currently active and what the user is currently doing). One possible work-around is to make the window briefly <a href="#AlwaysOnTop">AlwaysOnTop</a>, then turn off AlwaysOnTop.</p>
-<p><strong>Disable</strong> or <strong>Enable</strong>: Disables or enables a window (respectively). When a window is disabled, the user cannot move it or interact with its controls. In addition, disabled windows are omitted from the alt-tab list.</p>
-<p id="Redraw"><strong>Redraw</strong>: Attempts to update the appearance/contents of a window by informing the OS that the window's rectangle needs to be redrawn. If this method does not work for a particular window, try <a href="WinMove.htm">WinMove</a>. If that does not work, try the following:</p>
-<pre><a href="WinHide.htm">WinHide</a>, WinTitle
-<a href="WinShow.htm">WinShow</a>, WinTitle</pre>
-<p><strong>Style, N</strong> <u>or</u> <strong>ExStyle, N</strong>: Changes the style or extended style of a window, respectively. If the first character of <strong>N</strong> is a plus or minus sign, the style(s) in <strong>N</strong> are added or removed, respectively. If the first character is a caret (^), the style(s) in N are each toggled to the opposite state. If the first character is a digit, the window's style is overwritten completely; that is, it becomes <strong>N</strong>.</p>
-<p><a href="../misc/ErrorLevel.htm">ErrorLevel</a> is set to 1 upon failure and 0 upon success. Failure occurs if the target window is not found or the style is not allowed to be applied.</p>
-<p>After applying certain style changes to a visible window, it might be necessary to redraw the window using <code>WinSet Redraw</code> (see below). Finally, the <a href="../misc/Styles.htm">styles table</a> lists some of the common style numbers. Examples:</p>
-<pre>WinSet, Style, -0xC00000, A  <em>; Remove the active window's title bar (WS_CAPTION).</em>
-WinSet, ExStyle, ^0x80, WinTitle  <em>; Toggle the WS_EX_TOOLWINDOW attribute, which removes/adds the window from the alt-tab list.</em></pre>
-<h3 id="region">WinSet, Region [, Options, WinTitle, ...]</h3>
-<p>Changes the shape of a window to be the specified rectangle, ellipse, or polygon. If the <em>Options</em> parameter is blank, the window is restored to its original/default display area. Otherwise, one or more of the following options can be specified, each separated from the others with space(s):</p>
-<p><strong>Wn</strong>: Width of rectangle or ellipse. For example: <code>w200</code>.<br>
-<strong>Hn</strong>: Height of rectangle or ellipse. For example: <code>h300</code>.<br>
-<strong>X-Y</strong>: Each of these is a pair of X/Y coordinates. For example, <code>200-0</code> would use 200 for the X coordinate and 0 for the Y.<br>
-<strong>E</strong>: Makes the region an ellipse rather than a rectangle. This option is valid only when <strong>W</strong> and <strong>H</strong> are present.<br>
-<strong>R[w-h]</strong>: Makes the region a rectangle with rounded corners. For example, <code>R30-30</code> would use a 30x30 ellipse for each corner. If <strong>w-h</strong> is omitted, 30-30 is used. <strong>R</strong> is valid only when <strong>W</strong> and <strong>H</strong> are present.</p>
-<p><strong>Rectangle or ellipse</strong>: If the <strong>W</strong> and <strong>H</strong> options are present, the new display area will be a rectangle whose upper left corner is specified by the first (and only) pair of <strong>X-Y</strong> coordinates. However, if the <strong>E</strong> option is also present, the new display area will be an ellipse rather than a rectangle. For example: <code>WinSet, Region, 50-0 W200 H250 E, WinTitle</code>.</p>
-<p><strong>Polygon</strong>: When the <strong>W</strong> and <strong>H</strong> options are absent, the new display area will be a polygon determined by multiple pairs of <strong>X-Y</strong> coordinates (each pair of coordinates is a point inside the window relative to its upper left corner). For example, if three pairs of coordinates are specified, the new display area will be a triangle in most cases. The order of the coordinate pairs with respect to each other is sometimes important. In addition, the word <strong>Wind</strong> maybe be present in <em>Options</em> to use the winding method instead of the alternating method to determine the polygon's region.</p>
-<p><a href="../misc/ErrorLevel.htm">ErrorLevel</a> is set to 1 upon failure and 0 upon success. Failure occurs when: 1) the target window does not exist; 2) one or more <em>Options</em> are invalid; 3) more than 2000 pairs of coordinates were specified; or 4) the specified region is invalid or could not be applied to the target window.</p>
-<p>See the bottom of this page for examples of how to use this command.</p>
-<h3 id="trans">WinSet, Transparent, N, WinTitle</h3>
-<p>Makes a window semi-transparent. Specify for <em>N</em> a number between 0 and 255 to indicate the degree of transparency: 0 makes the window invisible while 255 makes it opaque. Transparency may be turned off completely for a window by specifying the word OFF. This is different than specifying 255 because it may improve performance and reduce usage of system resources.</p>
-<p id="TransLimit"><strong>Known Limitations for Transparent and <a href="#TransColor">TransColor</a></strong>:</p>
-<ul>
-  <li>They have no effect on a window that lacks a caption (title bar) and lacks the <a href="#AlwaysOnTop">always-on-top</a> property. For <a href="Gui.htm">GUI windows</a>, this can be solved by removing the caption only after making the window transparent. Alternatively, the following properties allow transparency to take effect: <code><a href="Gui.htm#Options">Gui -Caption +ToolWindow</a></code>.</li>
-  <li>Setting &quot;Transparent&quot; to 255 prior to turning it off might avoid window redrawing problems such as a black background. If the window still fails to be redrawn correctly, see <a href="#Redraw">Redraw</a> for a possible workaround.</li>
-  <li>To change a window's existing <a href="#TransColor">TransColor</a>, it may be necessary to turn off transparency before making the change.</li>
-</ul>
-<p><strong>Tip</strong>: To make the task bar transparent, use <code>WinSet, Transparent, 150, ahk_class Shell_TrayWnd</code>. Similarly, to make the Start Menu transparent, follow this example:</p>
-<pre>DetectHiddenWindows, on
-WinSet, Transparent, 150, ahk_class BaseBar  <em>; To make the Start Menu's submenus transparent, also include the script below.</em></pre>
-<p>To make all or selected menus on the entire system transparent, keep a script such as the following always running. Note that although such a script cannot make its own menus transparent, it can make those of other scripts transparent:</p>
-<pre>#Persistent
-SetTimer, WatchForMenu, 5
-return  <em>; End of auto-execute section.</em>
+<h3 id="return">Return Value</h3>
+<p>All of the functions on this page return 1 (<a href="../Variables.htm#True">true</a>) on success and 0 (<a href="../Variables.htm#False">false</a>) on failure. The return value is only accessible when using the function syntax.</p>
+<p>Conversely, <a href="../misc/ErrorLevel.htm">ErrorLevel</a> is set to 0 (false) on success and 1 (true) on failure. ErrorLevel is always set.</p>
+<p>Failure occurs if the target window is not found or the change could not be applied.</p>
 
-WatchForMenu:
-DetectHiddenWindows, on  <em>; Might allow detection of menu sooner.</em>
-IfWinExist, ahk_class #32768
-    WinSet, Transparent, 150  <em>; Uses the window found by the above line.</em>
-return</pre>
-<h3 id="TransColor">WinSet, TransColor, Color [N], WinTitle</h3>
-<p>Makes all pixels of the chosen color invisible inside the target window, which allows the contents of the window behind it to show through. If the user clicks on an invisible pixel, the click will &quot;fall through&quot; to the window behind it. Specify for <em>Color</em> a color name or RGB value (see the <a href="../misc/Colors.htm">color chart</a> for guidance, or use <a href="PixelGetColor.htm">PixelGetColor</a> in its RGB mode). To additionally make the visible part of the window partially transparent, append a space (not a comma) followed by the transparency level (0-255). For example: <code>WinSet, TransColor, EEAA99 150, WinTitle</code>.</p>
-<p>TransColor is often used to create on-screen displays and other visual effects. There is an example of an on-screen display <a href="Gui.htm#OSD">at the bottom of the Gui page</a>.</p>
-<p>The word OFF may be specified to completely turn off transparency for a window. Both of the following are identical in function:</p>
-<pre>WinSet, Transparent, Off, WinTitle
-WinSet, TransColor, Off, WinTitle</pre>
-<p>Known Limitations: See the list <a href="#TransLimit">above</a>.</p>
 <h3>Remarks</h3>
-<p><a href="../misc/ErrorLevel.htm">ErrorLevel</a> is not changed by this command except where indicated above.</p>
-<p>Although transparency is supported on Windows 2000/XP or later, retrieving the current transparency settings of a window is possible only on Windows XP or later (via <a href="WinGet.htm">WinGet</a>).</p>
 <p>Window titles and text are case sensitive. Hidden windows are not detected unless <a href="DetectHiddenWindows.htm">DetectHiddenWindows</a> has been turned on.</p>
 
 <h3>Related</h3>
 <p><a href="WinGet.htm">WinGet</a>, <a href="WinHide.htm">WinHide</a>, <a href="WinSetTitle.htm">WinSetTitle</a>, <a href="WinMove.htm">WinMove</a>, <a href="WinActivate.htm">WinActivate</a>, <a href="Control.htm">Control</a></p>
+
 <h3>Examples</h3>
-<pre class="NoIndent">WinSet, Transparent, 200, Untitled - Notepad <em>; Make the window a little bit transparent.</em>
-WinSet, TransColor, White, Untitled - Notepad <em>; Make all white pixels invisible.</em>
-WinSet, AlwaysOnTop, toggle, Calculator <em>; Toggle the always-on-top status of Calculator.</em>
+<pre class="NoIndent">WinSetTransparent, 200, Untitled - Notepad <em>; Make the window a little bit transparent.</em>
+WinSetTransColor, White, Untitled - Notepad <em>; Make all white pixels invisible.</em>
+WinSetAlwaysOnTop, toggle, Calculator <em>; Toggle the always-on-top status of Calculator.</em>
 
 <em>; Longer Example:
 ; Here are some hotkeys that demonstrate the effects of &quot;Transparent&quot; and
 ; &quot;TransColor&quot;.  NOTE: If you press one of the hotkeys while the mouse cursor
 ; is hovering over a pixel that is invisible as a result of TransColor, the window
-; visible beneath that pixel will be acted upon instead!  Also, Win+G will
-; have an effect only on Windows XP because retrieval of transparency settings
-; is not supported by Windows 2000:</em>
+; visible beneath that pixel will be acted upon instead!</em>
 
 #t::  <em>; Press Win+T to make the color under the mouse cursor invisible.</em>
 MouseGetPos, MouseX, MouseY, MouseWin
 PixelGetColor, MouseRGB, %MouseX%, %MouseY%, RGB
 <em>; In seems necessary to turn off any existing transparency first:</em>
-WinSet, TransColor, Off, ahk_id %MouseWin%
-WinSet, TransColor, %MouseRGB% 220, ahk_id %MouseWin%
+WinSetTransColor, Off, ahk_id %MouseWin%
+WinSetTransColor, %MouseRGB% 220, ahk_id %MouseWin%
 return
 
 #o::  <em>; Press Win+O to turn off transparency for the window under the mouse.</em>
 MouseGetPos,,, MouseWin
-WinSet, TransColor, Off, ahk_id %MouseWin%
+WinSetTransColor, Off, ahk_id %MouseWin%
 return
 
 #g::  <em>; Press Win+G to show the current settings of the window under the mouse.</em>
 MouseGetPos,,, MouseWin
-WinGet, Transparent, Transparent, ahk_id %MouseWin%
-WinGet, TransColor, TransColor, ahk_id %MouseWin%
+WinGetTransparent, Transparent, ahk_id %MouseWin%
+WinGetTransColor, TransColor, ahk_id %MouseWin%
 ToolTip Translucency:`t%Transparent%`nTransColor:`t%TransColor%
 return
 
 <em>; Examples of &quot;WinSet Region&quot;:</em>
-WinSet, Region, 50-0 W200 H250, WinTitle  <em>; Make all parts of the window outside this rectangle invisible.</em>
-WinSet, Region, 50-0 W200 H250 R40-40, WinTitle  <em>; Same as above but with corners rounded to 40x40.</em>
-WinSet, Region, 50-0 W200 H250 E, WinTitle  <em>; An ellipse instead of a rectangle.</em>
-WinSet, Region, 50-0 250-0 150-250, WinTitle  <em>; A triangle with apex pointing down.</em>
-WinSet, Region,, WinTitle <em>; Restore the window to its original/default display area.</em>
+WinSetRegion, 50-0 W200 H250, WinTitle  <em>; Make all parts of the window outside this rectangle invisible.</em>
+WinSetRegion, 50-0 W200 H250 R40-40, WinTitle  <em>; Same as above but with corners rounded to 40x40.</em>
+WinSetRegion, 50-0 W200 H250 E, WinTitle  <em>; An ellipse instead of a rectangle.</em>
+WinSetRegion, 50-0 250-0 150-250, WinTitle  <em>; A triangle with apex pointing down.</em>
+WinSetRegion,, WinTitle <em>; Restore the window to its original/default display area.</em>
 
 <em>; Here is a region with a more complex area. It creates a see-through rectangular hole inside a window.
 ; There are two rectangles specified below: an outer and an inner.  Each rectangle consists of 5 pairs
 ; of X/Y coordinates because the first pair is repeated at the end to &quot;close off&quot; each rectangle.</em>
-WinSet, Region, 0-0 300-0 300-300 0-300 0-0   100-100 200-100 200-200 100-200 100-100, WinTitle</pre>
+WinSetRegion, 0-0 300-0 300-300 0-300 0-0   100-100 200-100 200-200 100-200 100-100, WinTitle</pre>
 
 </body>
 </html>
