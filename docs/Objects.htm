@@ -192,7 +192,7 @@ table.base.__Set(table, x, y, content)     <em>; B</em></pre>
 
 <em>; Call each function, passing "foo" as a parameter:</em>
 Loop 2
-    array[A_Index].("foo")
+    array[A_Index].Call("foo")
 
 <em>; Call each function, implicitly passing the array itself as a parameter:</em>
 Loop 2
@@ -306,7 +306,7 @@ Method()
 }
 </pre>
 
-<p id="Custom_Classes_base">Inside a method, the pseudo-keyword <code>base</code> can be used to access the super-class versions of methods or properties which are overridden in a derived class. For example, <code>base.Method()</code> in the class defined above would call the version of <em>Method</em> which is defined by <em>BaseClassName</em>. <a href="#Meta_Functions">Meta-functions</a> are not called; otherwise, <code>base.Method()</code> behaves like <code>BaseClassName.Method.(this)</code>. That is,</p>
+<p id="Custom_Classes_base">Inside a method, the pseudo-keyword <code>base</code> can be used to access the super-class versions of methods or properties which are overridden in a derived class. For example, <code>base.Method()</code> in the class defined above would call the version of <em>Method</em> which is defined by <em>BaseClassName</em>. <a href="#Meta_Functions">Meta-functions</a> are not called; otherwise, <code>base.Method()</code> behaves like <code>BaseClassName.Method.Call(this)</code>. That is,</p>
 <ul>
   <li><code>base.Method()</code> always invokes the base of the class where the current method was defined, even if <code>this</code> is derived from a <em>sub-class</em> of that class or some other class entirely.</li>
   <li><code>base.Method()</code> implicitly passes <code>this</code> as the first (hidden) parameter.</li>
@@ -403,9 +403,11 @@ class <i>ClassName</i> {
 <ul><li>Using <code>return</code> without a value is equivalent to <code>return ""</code>. This may be changed in a future version so that <code>return</code> can be used to "escape" from a meta-function without overriding the default behaviour.</li></ul>
 
 <h4 id="Dynamic_Properties">Dynamic Properties</h4>
-<p><i>__Get</i> and <i>__Set</i> can be used to implement properties whose values are calculated or restricted in some way. For example, they could be used to implement a "Color" object with R, G, B and RGB properties, where only the RGB value is actually stored:</p>
+<p><a href="#Custom_Classes_property">Property syntax</a> can be used to define properties which compute a value each time they are evaluated, but each property must be known in advance and defined individually in the script. By contrast, <em>__Get</em> and <em>__Set</em> can be used to implement properties which aren't known by the script.</p>
+<p>For example, a "proxy" object could be created which sends requests for properties over the network (or through some other channel). A remote server would send back a response containing the value of the property, and the proxy would return the value to its caller. Even if the name of each property was known in advance, it would not be logical to define each property individually in the proxy class since every property does the same thing (send a network request). Meta-functions receive the property name as a parameter, so are a good solution for this problem.</p>
+<p>Another use of <em>__Get</em> and <em>__Set</em> is to implement a set of related properties which share code. In the example below they are used to implement a "Color" object with R, G, B and RGB properties, where only the RGB value is actually stored:</p>
 <pre>red  := new Color(0xff0000), red.R -= 5
-cyan := new Color(0x00ffff)
+cyan := new Color(0), cyan.G := 255, cyan.B := 255
 
 MsgBox % "red: " red.R "," red.G "," red.B " = " red.RGB
 MsgBox % "cyan: " cyan.R "," cyan.G "," cyan.B " = " cyan.RGB
@@ -416,75 +418,60 @@ class Color
     {
         this.RGB := aRGB
     }
+    
+    static Shift := {R:16, G:8, B:0}
 
     __Get(aName)
     {
-        if (aName = "R")
-            return (this.RGB &gt;&gt; 16) &amp; 255
-        if (aName = "G")
-            return (this.RGB &gt;&gt; 8) &amp; 255
-        if (aName = "B")
-            return this.RGB &amp; 255
+        <em>; <span class="red">NOTE:</span> Using this.Shift here would cause an infinite loop!</em>
+        shift := Color.Shift[aName]  <em>; Get the number of bits to shift.</em>
+        if (shift != "")  <em>; Is it a known property?</em>
+            return (this.RGB &gt;&gt; shift) &amp; 0xff
+        <em>; <span class="red">NOTE:</span> Using 'return' here would break this.RGB.</em>
     }
 
     __Set(aName, aValue)
     {
-        if aName in R,G,B
+        if ((shift := Color.Shift[aName]) != "")
         {
-            aValue &amp;= 255
-
-            if      (aName = "R")
-                this.RGB := (aValue &lt;&lt; 16) | (this.RGB &amp; ~0xff0000)
-            else if (aName = "G")
-                this.RGB := (aValue &lt;&lt; 8)  | (this.RGB &amp; ~0x00ff00)
-            else  <em>; (aName = "B")</em>
-                this.RGB :=  aValue        | (this.RGB &amp; ~0x0000ff)
+            aValue &amp;= 255  <em>; Truncate it to the proper range.
+            
+            ; Calculate and store the new RGB value.</em>
+            this.RGB := (aValue &lt;&lt; shift) | (this.RGB &amp; ~(0xff &lt;&lt; shift))
 
             <em>; 'Return' must be used to indicate a new key-value pair should not be created.
             ; This also defines what will be stored in the 'x' in 'x := clr[name] := val':</em>
             return aValue
         }
+        <em>; <span class="red">NOTE:</span> Using 'return' here would break this._RGB and this.RGB.</em>
+    }
+    
+    <em>; Meta-functions can be mixed with properties:</em>
+    RGB {
+        get {
+            <em>; Return it in hex format:</em>
+            return format("0x{:06x}", this._RGB)
+        }
+        set {
+            return this._RGB := value
+        }
     }
 }</pre>
+<p>However, in this case <a href="#Custom_Classes_property">Property syntax</a> could have been used instead, where code is shared by simply having each property call a central method. It is better to avoid using meta-functions where possible due to the high risk of misuse (see the notes in red above).</p>
 
 <h4 id="Objects_as_Functions">Objects as Functions</h4>
-<p>When a call such as <code>obj.func(param)</code> is made, <i>obj.func</i> may contain a function name or an object.  If <i>obj.func</i> contains an object, that object is invoked with <i>obj</i> in place of the method name, as in <code>(obj.func)[obj]()</code>.  In most cases <code>obj.func[obj]</code> does not exist and <i>obj.func</i>'s __Call <a href="#Meta_Functions">meta-function</a> is invoked instead.  This may be used to change the behaviour of function calls in an abstract way, as shown in the example below:</p>
-<pre><em>; Create a prototype for an array of functions.</em>
-FuncArrayType := {__Call: "FuncType_Call"}
-<em>; Create an array of functions.</em>
-funcArray := {1: "One", 2: "Two", base: FuncArrayType}
-<em>; Create an object which uses the array as a method.</em>
-obj := {func: funcArray}
-<em>; Call the method.</em>
-obj.func("foo", "bar")
-
-FuncType_Call(func, obj, params*)
-{
-    <em>; Call a list of functions.</em>
-    Loop % ObjLength(func)
-        func[A_Index](params*)
-}
-
-One(param1, param2) {
-    ListVars
-    Pause
-}
-Two(param1, param2) {
-    ListVars
-    Pause
-}</pre>
-<p>This technique can be used to create an object which acts as a meta-function, such as to define dynamic properties similar to those in the previous section. (However, note that this example has been superseded by <a href="#Custom_Classes_property">property support</a>.) For example:</p>
+<p>For an outline of how to create objects which can act as functions, see <a href="objects/Functor.htm#User-Defined">Function Objects</a>.</p>
+<p>A function object can also act as a meta-function, such as to define dynamic properties similar to those in the previous section. Although it is recommended to use <a href="#Custom_Classes_property">property syntax</a> instead, the example below shows the potential of meta-functions for implementing new concepts or behaviour, or changing the structure of the script.</p>
 <pre>blue := new Color(0x0000ff)
 MsgBox % blue.R "," blue.G "," blue.B
 
-class Properties
+class Properties extends <a href="objects/Functor.htm#class_FunctionObject">FunctionObject</a>
 {
-    __Call(aTarget, aName, aParams*)
+    Call(aTarget, aName, aParams*)
     {
-        <em>; If this Properties object contains a definition for this half-property, call it.
-        ; Take care not to use this.HasKey(aName), since that would recurse into __Call.</em>
-        if IsObject(aTarget) &amp;&amp; ObjHasKey(this, aName)
-            return this[aName].(aTarget, aParams*)
+        <em>; If this Properties object contains a definition for this half-property, call it.</em>
+        if ObjHasKey(this, aName)
+            return this[aName].Call(aTarget, aParams*)
     }
 }
 
