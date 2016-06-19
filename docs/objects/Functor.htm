@@ -30,39 +30,18 @@
 
 <h2 id="User-Defined">User-Defined</h2>
 <!-- TODO: Explain how a user-defined object could be useful -->
-<p>User-defined function objects should follow this general pattern:</p>
+<p>User-defined function objects must define a <em>Call</em> method containing the implementation of the "function".</p>
 <pre>class YourClassName {
     Call(a, b) {  <em>; Declare parameters as needed, or an <a href="../Functions.htm#Variadic">array*</a>.</em>
         <em>;...</em>
-    }
-    __Call(method, args*) {
-        if (method = "")  <em>; For <a href="../Functions.htm#DynCall">%fn%()</a> or fn.()</em>
-            return this.Call(args*)
-        if (IsObject(method))  <em>; If this function object is being used as a method.</em>
-            return this.Call(method, args*)
+        return c
     }
     <em>;...</em>
 }
 </pre>
-<p>Exactly which parts are needed depends on the usage:</p>
-<ul>
-  <li><code>method</code> is an empty string if the script used <code><a href="../Functions.htm#DynCall">%this%()</a></code> or <code>this.()</code>.</li>
-  <li>If the object is being used as a method, <code>IsObject(method)</code> is true and <code>method</code> contains a reference to the target object. For example, if <code>x.y</code> refers to <code>this</code> function object, <code>x.y()</code> &rarr; <code>this[x]()</code> &rarr; <code>this.__Call(x)</code> &rarr; <code>this.Call(x)</code>.</li>
-  <li>If the object is being used by one of the built-in functions which accept a callback function, such as OnMessage or SetTimer, only the Call method is needed.</li>
-</ul>
-<p>The work can also be done directly in __Call. However, having __Call redirect to Call is recommended to ease the transition to AutoHotkey v2, which will change the behaviour of <code>%this%()</code> and method calls to call the Call method directly.</p>
 <h3 id="User-Defined-Examples">Examples</h3>
-<p>If you are defining multiple function object types, boilerplate code should be delegated to a base class (but if you'll ever combine your code with someone else's, be wary of conflicts). For example:</p>
-<pre id="class_FunctionObject">class FunctionObject {
-    __Call(method, args*) {
-        if (method = "")
-            return this.Call(args*)
-        if (IsObject(method))
-            return this.Call(method, args*)
-    }
-}</pre>
 <p>The following example defines a function array which can be called; when called, it calls each element of the array in turn.</p>
-<pre>class FuncArrayType extends <a href="#class_FunctionObject">FunctionObject</a> {
+<pre>class FuncArrayType {
     Call(obj, params*) {
         <em>; Call a list of functions.</em>
         Loop % this.Length()
