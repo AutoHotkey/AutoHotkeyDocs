@@ -143,11 +143,15 @@ obj.item[x] := y</pre>
 <p>Parameters can be omitted when getting or setting properties. For example, <code>x[,2]</code>. Scripts can utilize this by defining default values for parameters in <a href="#Custom_Classes_property">properties</a> and <a href="#Meta_Functions">meta-functions</a>. The method name can also be completely omitted, as in <code>x[](a)</code>. Scripts can utilize this by defining a default value for the __Call <a href="#Meta_Functions">meta-function</a>'s first parameter, since it is not otherise supplied with a value. If the property or method name is omitted when invoking a COM object, its "default member" is invoked.</p>
 
 <h4>Keys</h4>
-<p>Some limitations apply to which values can be used as keys in objects created with <code>[]</code>, <code>{}</code> or the <code>new</code> operator:</p>
+<p>Objects created with <code>[]</code>, <code>{}</code> or the <code>new</code> operator allow the use of strings, integers and objects as keys, with the following caveats:</p>
+<p>The key's value is preserved, but its <em>type identity</em> is not. That is, integers may be stored as strings or vice versa, so long as the value remains the same (including the formatting of numeric strings). Specifically:</p>
 <ul>
-  <li>Integer keys are stored using the native signed integer type. AutoHotkey 32-bit supports integer keys in the range -2147483648 to 2147483647. AutoHotkey supports 64-bit integers, but only AutoHotkey 64-bit supports the full range as keys in an object.</li>
-  <li>If a string key can be converted to an integer and back to a string without loss of data (other than type identity), it is stored as an integer. In other words, <code>x[16]</code> and <code>x["16"]</code> are equivalent, but <code>x["0016"]</code> and <code>x["0x10"]</code> are different. However, since numeric literals are converted to pure numbers at load-time, <code>x[0x10]</code> is equivalent to <code>x["16"]</code>.</li>
+  <li>Integer keys are stored using the native signed integer type where possible. Integers which are less than -2147483648 or greater than 2147483647 are stored as strings on AutoHotkey 32-bit but as integers on AutoHotkey 64-bit. (By contrast, 64-bit integers can be stored as values on either version.)</li>
+  <li>If a string key can be converted to an integer (of the native signed integer type) and back to a string without loss of data, it is stored as an integer. In other words, <code>x[16]</code> and <code>x["16"]</code> are equivalent, but not <code>x["0016"]</code> or <code>x["0x10"]</code>. However, since numeric literals are converted to pure numbers at load-time, <code>x[0x10]</code> is equivalent to <code>x["16"]</code>.</li>
   <li>Floating-point numbers are not supported as keys - instead they are converted to strings.  For consistency and clarity, scripts should avoid using floating-point literals as keys.</li>
+</ul>
+<p>Some strings generally should not be used as keys:</p>
+<ul>
   <li>By default, the string key "base" is used to retrieve or set the object's <a href="#Custom_Objects">base object</a>, so cannot be used for storing ordinary values with a normal assignment. However, if a value is stored by some other means (such as <code><a href="objects/Object.htm#RawSet">ObjRawSet</a>(Object, "base", "")</code> or <code><a href="objects/Object.htm#SetCapacity">Object.SetCapacity</a>("base", 0)</code>), the key "base" then acts like any other string.</li>
   <li>Although <a href="objects/Object.htm">built-in method</a> names such as "Length" can be used as keys, storing a value will prevent the corresponding method from being called (unless that value is a reference to the appropriate function, such as <em>ObjLength</em>).</li>
 </ul>
