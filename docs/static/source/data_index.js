@@ -628,6 +628,7 @@ index = [
   ["REG_MULTI_SZ","commands/RegRead.htm"],
   ["REG_SZ","commands/RegRead.htm"],
   ["RegDelete","commands/RegDelete.htm"],
+  ["RegDeleteKey","commands/RegDelete.htm"],
   ["RegEx: Quick Reference","misc/RegEx-QuickRef.htm"],
   ["RegEx: Callouts","misc/RegExCallout.htm"],
   ["RegEx: SetTitleMatchMode RegEx","commands/SetTitleMatchMode.htm#RegEx"],
