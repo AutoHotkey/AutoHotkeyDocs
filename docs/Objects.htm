@@ -339,7 +339,7 @@ Method()
 <pre>m1 := new GMem(0, 20)
 m2 := {base: GMem}.__New(0, 30)
 
-class GMem
+<span id="GMem">class GMem</span>
 {
     __New(aFlags, aSize)
     {
@@ -384,8 +384,9 @@ class <i>ClassName</i> {
   <li>If no key was found, recursively invoke this base object's own base (apply each of these steps to it, starting at the top of this list). If we're not finished yet, search this base object for a matching key again in case one was added by a meta-function.
     <p>Due to backward-compatibility, this step is performed for <em>set</em> operations even if a key was found (unless it defines a property which implements <em>set</em>).</p></li>
   <li>If multiple parameters were given for <i>get</i> or <i>set</i> and a key was found, check its value. If that value is an object, handle the remaining parameters by invoking it, and do nothing further.</li>
-  <li>If a key was found,<br>
+  <li>If a key was found, stop searching and do the following:<br>
     <i>Get</i>: Return the value.<br>
+    <i>Set</i>: Carry out the default behaviour described below.<br>
     <i>Call</i>: Attempt to call the value, passing the target object as the first parameter (<code>this</code>). The value should be a function name or a <a href="objects/Functor.htm">function object</a>.</li>
 </ul>
 <p>If a meta-function stores a matching key in the object but does not <code>return</code>, the behaviour is the same as if the key initially existed in the object. For an example using __Set, see <a href="#Subclassing_aoa">Sub-classing Arrays of Arrays</a>.</p>
@@ -590,6 +591,8 @@ Default__Warn(nonobj, p1="", p2="", p3="", p4="")
 <h2 id="Implementation">Implementation</h2>
 <span id="Refs"></span><h3 id="Reference_Counting">Reference-Counting</h3>
 <p>AutoHotkey uses a basic reference-counting mechanism to automatically free the resources used by an object when it is no longer referenced by the script.  Script authors should not invoke this mechanism explicitly, except when dealing directly with unmanaged <a href="#Implementation_Pointers">pointers to objects</a>.</p>
+<p>Temporary references returned by functions, methods or operators within an expression are released after evaluation of that expression has completed or been aborted. This allows temporary objects to be used for resource management. For example:</p>
+<pre>MsgBox % <a href="commands/DllCall.htm">DllCall</a>("GlobalSize", "ptr", (new <a href="#GMem">GMem</a>(0, 20)).ptr, "ptr")  <em>; 20</em></pre>
 <p>To run code when the last reference to an object is being released, implement the <a href="#Custom_NewDelete">__Delete</a> meta-function.</p>
 <p><b>Known Limitations:</b></p>
 <ul>
