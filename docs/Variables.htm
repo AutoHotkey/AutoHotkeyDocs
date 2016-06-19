@@ -43,7 +43,7 @@ MsgBox(&quot;The value in the variable named Var is %Var%.&quot;)
 <p><strong>Comparing variables</strong>: Please read the expressions section below for important notes about the different kinds of comparisons.</p>
 <h2 id="Expressions">Expressions</h2>
 <p>Expressions are used to perform one or more operations upon a series of variables, literal strings, and/or literal numbers.</p>
-<p>Variable names in an expression are not enclosed in percent signs (except for <a href="misc/Arrays.htm#pseudo">pseudo-arrays</a> and other <a href="#ref">double references</a>). Consequently, literal strings must be enclosed in double quotes to distinguish them from variables. For example:</p>
+<p>Variable names in an expression are not enclosed in percent signs (except for variables inside quoted strings, and <a href="misc/Arrays.htm#pseudo">pseudo-arrays</a> and other <a href="#ref">double references</a>). Consequently, literal strings must be enclosed in double quotes to distinguish them from variables. For example:</p>
 <pre>if (CurrentSetting &gt; 100 or FoundColor &lt;&gt; &quot;Blue&quot;)
     MsgBox The setting is too high or the wrong color is present.</pre>
 <p>In the example above, &quot;Blue&quot; appears in quotes because it is a literal string. Single-quote marks (&apos;) and double-quote marks (&quot;) function identically, except that a string enclosed in single-quote marks can contain literal double-quote marks and vice versa. Therefore, to include an <em>actual</em> quote mark inside a literal string, <a href="misc/EscapeChar.htm">escape</a> the quote mark or enclose the string in the opposite type of quote mark. For example:</p>
@@ -80,9 +80,19 @@ MsgBox(1.00)  <em>; Shows 1.0</em></pre>
 <h3>Expression Operators (in descending precedence order)</h3>
 <table class="info">
   <tr id="ref">
-    <td style="text-align:center; white-space:nowrap"><strong>%Var%</strong></td>
-    <td><p>If a variable is enclosed in percent signs within an expression (e.g. %Var%), whatever that variable <u>contains</u> is assumed to be the name or partial name of another variable (if there is no such variable, %Var% resolves to a blank string). This is most commonly used to reference <a href="misc/Arrays.htm#pseudo">pseudo-array</a> elements such as the following example:</p>
-      <pre>Var := MyArray%A_Index% + 100</pre>
+    <td style="text-align:center; white-space:nowrap"><strong>%Expr%</strong></td>
+    <td>
+      <p>Embeds an expression (<em>Expr</em>) within a quoted string, or dynamically retrieves a variable by name. Percent signs cannot be used directly within <em>Expr</em> due to ambiguity, but can be nested within quoted strings and parentheses. Otherwise, <em>Expr</em> can be any expression.</p>
+      <p><strong>Within a quoted string:</strong> Evaluates <em>Expr</em> and inserts the result at that position within the string. For example, the following are equivalent:</p>
+      <pre>MsgBox("Hello, %A_UserName%!")
+MsgBox, Hello`, %A_Username%!
+MsgBox("Hello, " A_UserName "!")</pre>
+      <p><strong>Elsewhere:</strong> Dynamically retrieves a variable by name. The <u>result</u> of the sub-expression must be the name or partial name of the variable to be retrieved. If there are any adjoining <em>%Expr%</em> sequences and partial <a href="#Variable_names">variable names</a> (without any spaces or other characters between them), they are combined to form a single name.</p>
+      <p>If the variable does not already exist, a blank variable is created. An <a href="commands/Throw.htm#Exception">exception</a> is thrown if the name is <a href="#Variable_names">invalid</a>.</p>
+      <p>This is most commonly used to reference <a href="misc/Arrays.htm#pseudo">pseudo-array</a> elements such as in the following example:</p>
+      <pre>Loop 4
+    MsgBox("IP address " A_Index " is " <a href="#IPAddress">A_IPAddress</a>%<a href="commands/Loop.htm">A_Index</a>%)</pre>
+      <p>Although this is historically known as a "double-deref", this term is inaccurate when <em>Expr</em> does not contain a variable (first deref), and also when the resulting variable is the target of an assignment, not being dereferenced (second deref).</p>
     </td>
   </tr>
   <tr>
@@ -146,11 +156,14 @@ MsgBox(1.00)  <em>; Shows 1.0</em></pre>
   </tr>
   <tr id="concat">
     <td style="text-align:center"><strong>.</strong></td>
-    <td><p><strong>Concatenate</strong>. The period (dot) operator is used to combine two items into a single string (there must be at least one space on each side of the period). You may also omit the period to achieve the same result (except where ambiguous such as <code>x <strong>-</strong>y</code>, or when the item on the right side has a leading ++ or --). When the dot is omitted, there must be at least one space between the items to be merged.<br>
-      Example (expression method): <code>Var := &quot;The color is &quot; <strong>.</strong> FoundColor</code><br>
-      Example (traditional method): <code>Var = The color is %FoundColor%</code></p>
-        <p>Sub-expressions can also be concatenated. For example: <code>Var := &quot;The net price is &quot; <strong>.</strong>  Price * (1 - Discount/100)</code>.</p>
-        <p>A line that begins with a period (or any other operator) is automatically <a href="Scripts.htm#continuation">appended to</a> the line above it.</p></td>
+    <td>
+      <p><strong>Concatenate</strong>. The period (dot) operator is used to combine two items into a single string (there must be at least one space on each side of the period). You may also omit the period to achieve the same result (except where ambiguous such as <code>x <strong>-</strong>y</code>, or when the item on the right side has a leading ++ or --). When the dot is omitted, there must be at least one space between the items to be merged.</p>
+      <pre>Var := "The color is " <strong>.</strong> FoundColor  <em>; Explicit concat</em>
+Var := "The color is " FoundColor    <em>; Auto-concat</em>
+Var := "The color is %FoundColor%"   <em>; Variable substitution within a string</em></pre>
+      <p>Sub-expressions can also be concatenated. For example: <code>Var := "The net price is " <strong>.</strong>  Price * (1 - Discount/100)</code>.</p>
+      <p>A line that begins with a period (or any other operator) is automatically <a href="Scripts.htm#continuation">appended to</a> the line above it.</p>
+    </td>
   </tr>
   <tr id="regex">
     <td style="text-align:center"><strong>~=</strong></td>
@@ -200,7 +213,7 @@ MsgBox(1.00)  <em>; Shows 1.0</em></pre>
   </tr>
   <tr id="ternary">
     <td style="text-align:center"><strong>?:</strong></td>
-    <td><strong>Ternary operator</strong>. This operator is a shorthand replacement for the <a href="commands/IfExpression.htm">if-else statement</a>. It evaluates the condition on its left side to determine which of its two branches should become its final result. For example, <code>var := x&gt;y ? 2 : 3</code> stores 2 in <em>Var</em> if x is greater than y; otherwise it stores 3. To enhance performance, only the winning branch is evaluated (see <a href="Functions.htm#ShortCircuit">short-circuit evaluation</a>).</td>
+    <td><p><strong>Ternary operator</strong>. This operator is a shorthand replacement for the <a href="commands/IfExpression.htm">if-else statement</a>. It evaluates the condition on its left side to determine which of its two branches should become its final result. For example, <code>var := x&gt;y ? 2 : 3</code> stores 2 in <em>Var</em> if x is greater than y; otherwise it stores 3. To enhance performance, only the winning branch is evaluated (see <a href="Functions.htm#ShortCircuit">short-circuit evaluation</a>).</p></td>
   </tr>
   <tr id="AssignOp">
     <td style="text-align:center"><strong>:=<br>
