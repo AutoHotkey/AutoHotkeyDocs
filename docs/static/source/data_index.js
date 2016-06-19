@@ -415,6 +415,7 @@ index = [
   ["FTP uploading example","commands/FileAppend.htm#FTP"],
   ["functions (defining and calling)","Functions.htm"],
   ["functions (libraries)","Functions.htm#lib"],
+  ["function objects","objects/Functor.htm"],
   ["Func object","objects/Func.htm"],
   ["Func()","Objects.htm#Function_References"],
   ["g-label (responding to GUI events)","commands/Gui.htm#label"],

@@ -51,6 +51,43 @@
   <li><span class="ver">[v1.1.20+]:</span> If the object is being used by one of the built-in functions which accept a callback function, such as OnMessage or SetTimer, only the Call method is needed.</li>
 </ul>
 <p>The work can also be done directly in __Call. However, having __Call redirect to Call is recommended to ease the transition to AutoHotkey v2, which will change the behaviour of <code>%this%()</code> and method calls to call the Call method directly.</p>
+<h3 id="User-Defined-Examples">Examples</h3>
+<p>If you are defining multiple function object types, boilerplate code should be delegated to a base class (but if you'll ever combine your code with someone else's, be wary of conflicts). For example:</p>
+<pre id="class_FunctionObject">class FunctionObject {
+    __Call(method, args*) {
+        if (method = "")
+            return this.Call(args*)
+        if (IsObject(method))
+            return this.Call(method, args*)
+    }
+}</pre>
+<p>The following example defines a function array which can be called; when called, it calls each element of the array in turn.</p>
+<pre>class FuncArrayType extends <a href="#class_FunctionObject">FunctionObject</a> {
+    Call(obj, params*) {
+        <em>; Call a list of functions.</em>
+        Loop % this.Length()
+            this[A_Index].Call(params*)
+    }
+}
+
+<em>; Create an array of functions.</em>
+funcArray := new FuncArrayType
+<em>; Add some functions to the array (can be done at any point).</em>
+funcArray.Push(Func("One"))
+funcArray.Push(Func("Two"))
+<em>; Create an object which uses the array as a method.</em>
+obj := {method: funcArray}
+<em>; Call the method.</em>
+obj.method("foo", "bar")
+
+One(param1, param2) {
+    ListVars
+    MsgBox
+}
+Two(param1, param2) {
+    ListVars
+    MsgBox
+}</pre>
 
 <h2 id="BoundFunc">BoundFunc Object <span class="ver">[v1.1.20+]</span></h2>
 <p>Acts like a function, but just passes predefined parameters to another function.</p>
