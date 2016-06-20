@@ -75,7 +75,7 @@ MsgBox(1.00)  <em>; Shows 1.0</em></pre>
 
 <h2 id="Operators">Operators in Expressions</h2>
 <p>Operators of equal precedence such as multiply (*) and divide (/) are evaluated in left-to-right order unless otherwise specified below. By contrast, an operator of lower precedence such as add (+) is evaluated <em>after</em> a higher one such as multiply (*). For example, 3 + 2 * 2 is evaluated as 3 + (2 * 2). Parentheses may be used to override precedence as in this example: (3 + 2) * 2</p>
-<p>Any blank value (empty string) or non-numeric value involved in a math operation is <strong>not</strong> assumed to be zero. Instead, it is treated as an error, which causes that part of the expression to evaluate to an empty string. For example, if the variable X is blank, the expression X+1 yields a blank value rather than 1.</p>
+<p>Except where noted below, any blank value (empty string) or non-numeric value involved in a math operation is <strong>not</strong> assumed to be zero. Instead, it is treated as an error, which causes that part of the expression to evaluate to an empty string. For example, if the variable X is blank, the expression X+1 yields a blank value rather than 1.</p>
 
 <h3>Expression Operators (in descending precedence order)</h3>
 <table class="info">
@@ -106,7 +106,10 @@ MsgBox("Hello, " A_UserName "!")</pre>
   <tr id="IncDec">
     <td style="text-align:center"><strong>++<br>
     --</strong></td>
-    <td><strong>Pre- and post-increment/decrement</strong>. Adds or subtracts 1 from a variable. The operator may appear either before or after the variable's name. If it appears <em>before</em> the name, the operation is performed immediately and its result is used by the next operation. For example, <code>Var := ++X</code> increments X immediately and then assigns its value to <em>Var</em>. Conversely, if the operator appears <em>after</em> the variable's name, the operation is performed <em>after</em> the variable is used by the next operation. For example, <code>Var := X++</code> increments X only after assigning the current value of X to <em>Var</em>. Due to backward compatibility, the operators ++ and -- treat blank variables as zero, but only when they are alone on a line; for example, <code>y:=1, ++x</code> and <code>MsgBox % ++x</code> both produce a blank result when x is blank.</td>
+    <td>
+      <p><strong>Pre- and post-increment/decrement</strong>. Adds or subtracts 1 from a variable. The operator may appear either before or after the variable's name. If it appears <em>before</em> the name, the operation is performed immediately and its result is used by the next operation. For example, <code>Var := ++X</code> increments X immediately and then assigns its value to <em>Var</em>. Conversely, if the operator appears <em>after</em> the variable's name, the operation is performed <em>after</em> the variable is used by the next operation. For example, <code>Var := X++</code> increments X only after assigning the current value of X to <em>Var</em>. Due to backward compatibility, the operators ++ and -- treat blank variables as zero, but only when they are alone on a line; for example, <code>y:=1, ++x</code> and <code>MsgBox % ++x</code> both produce a blank result when x is blank.</p>
+      <p>If the target variable is empty, the operators <strong>++</strong> and <strong>--</strong> treat it as zero. This allows a line such as <code>Var++</code> to be used in a hotkey without <em>Var</em> having been initialized in the <a href="Scripts.htm#auto">auto-execute section</a>.</p>
+    </td>
   </tr>
   <tr id="pow">
     <td style="text-align:center"><strong>**</strong></td>
@@ -234,6 +237,7 @@ Var := "The color is %FoundColor%"   <em>; Variable substitution within a string
       <p>Unlike most other operators, assignments are evaluated from right to left. Consequently, a line such as <code>Var1 := Var2 := 0</code> first assigns 0 to <em>Var2</em> then assigns <em>Var2</em> to <em>Var1</em>.</p>      
     <p>If an assignment is used as the input for some other operator, its value is the variable itself. For example,  the expression <code>(Var+=2) &gt; 50</code> is true if the newly-increased value in <em>Var</em> is greater than 50. This also allows an assignment to be passed <a href="Functions.htm#ByRef">ByRef</a>, or its <a href="#amp">address</a> taken; for example: <code>&amp;(x:=&quot;abc&quot;)</code>.</p>
     <p>The precedence of the assignment operators is automatically raised when it would avoid a syntax error or provide more intuitive behavior. For example: <code>not x:=y</code> is evaluated as <code>not (x:=y)</code>. Similarly, <code>++Var := X</code> is evaluated as <code>++(Var := X)</code>; and <code>Z&gt;0 ? X:=2 : Y:=2</code> is evaluated as <code>Z&gt;0 ? (X:=2) : (Y:=2)</code>.</p>
+    <p>If the target variable is empty, the operators <strong>+=</strong> and <strong>-=</strong> treat it as zero. This allows a line such as <code>Var += 1</code> to be used in a hotkey without <em>Var</em> having been initialized in the <a href="Scripts.htm#auto">auto-execute section</a>.</p>
     </td>
   </tr>
   <tr id="comma">
@@ -265,11 +269,11 @@ Var := "The color is %FoundColor%"   <em>; Variable substitution within a string
 <p id="CommaPerf"><strong>Performance</strong>: The comma operator is usually faster than writing separate expressions, especially when assigning one variable to another (e.g. <code>x:=y, a:=b</code>). Performance continues to improve as more and more expressions are combined into a single expression; for example, it may be 35% faster to combine five or ten simple expressions into a single expression.</p>
 
 <h2 id="BuiltIn">Built-in Variables</h2>
-<p>The following variables are built into the program and can be referenced by any script. With the exception of <a href="misc/Clipboard.htm">Clipboard</a>, <a href="misc/ErrorLevel.htm">ErrorLevel</a>, and <a href="#CommandLine">command line parameters</a>, these variables are read-only; that is, their contents cannot be directly altered by the script.</p>
+<p>The following variables are built into the program and can be referenced by any script. Except where noted, these variables are read-only; that is, their contents cannot be directly altered by the script.</p>
 <h3>Table of Contents</h3>
 <ul>
   <li>Special Characters: <a href="#Space">A_Space</a>, <a href="#Tab">A_Tab</a></li>
-  <li>Script Properties: <a href="#CommandLine">command line parameters</a>, <a href="#WorkingDir">A_WorkingDir</a>, <a href="#ScriptDir">A_ScriptDir</a>, <a href="#ScriptName">A_ScriptName</a>, <a href="#prop">(...more...)</a></li>
+  <li>Script Properties: <a href="#Args">command line parameters</a>, <a href="#WorkingDir">A_WorkingDir</a>, <a href="#ScriptDir">A_ScriptDir</a>, <a href="#ScriptName">A_ScriptName</a>, <a href="#prop">(...more...)</a></li>
   <li>Date and Time: <a href="#YYYY">A_YYYY</a>, <a href="#MM">A_MM</a>, <a href="#DD">A_DD</a>, <a href="#Hour">A_Hour</a>, <a href="#Min">A_Min</a>, <a href="#Sec">A_Sec</a>, <a href="#date">(...more...)</a></li>
   <li>Script Settings: <a href="#IsSuspended">A_IsSuspended</a>, <a href="#TitleMatchMode">A_TitleMatchMode</a>, <a href="#settings">(...more...)</a></li>
   <li>User Idle Time: <a href="#TimeIdle">A_TimeIdle</a>, <a href="#TimeIdlePhysical">A_TimeIdlePhysical</a></li>
@@ -292,9 +296,9 @@ Var := "The color is %FoundColor%"   <em>; Variable substitution within a string
 </table>
 <h3 id="prop">Script Properties</h3>
 <table class="info">
-  <tr id="CommandLine">
+  <tr id="Args">
     <td>A_Args</td>
-    <td>Contains an <a href="Objects.htm#Usage_Simple_Arrays">array</a> of command line parameters. For details, see <a href="Scripts.htm#cmd">Passing Command Line Parameters to a Script</a>.</td>
+    <td><strong>Read/write:</strong> Contains an <a href="Objects.htm#Usage_Simple_Arrays">array</a> of command line parameters. For details, see <a href="Scripts.htm#cmd">Passing Command Line Parameters to a Script</a>.</td>
   </tr>
   <tr id="WorkingDir">
     <td>A_WorkingDir</td>
@@ -804,15 +808,15 @@ return
   </tr>
   <tr>
     <td>Clipboard</td>
-    <td>The contents of the OS's clipboard, which can be read or written to. See the <a href="misc/Clipboard.htm">Clipboard</a> section.</td>
+    <td><strong>Read/write:</strong> The contents of the OS's clipboard, which can be read or written to. See the <a href="misc/Clipboard.htm">Clipboard</a> section.</td>
   </tr>
   <tr>
     <td>ClipboardAll</td>
-    <td>The entire contents of the clipboard (such as formatting and text). See <a href="misc/Clipboard.htm#ClipboardAll">ClipboardAll</a>.</td>
+    <td><strong>Read-only:</strong> The entire contents of the clipboard (such as formatting and text). See <a href="misc/Clipboard.htm#ClipboardAll">ClipboardAll</a>.</td>
   </tr>
   <tr>
     <td>ErrorLevel</td>
-    <td>See <a href="misc/ErrorLevel.htm">ErrorLevel</a>.</td>
+    <td><strong>Read/write:</strong> See <a href="misc/ErrorLevel.htm">ErrorLevel</a>.</td>
   </tr>
   <tr id="LastError">
     <td>A_LastError</td>
