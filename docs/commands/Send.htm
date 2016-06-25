@@ -32,16 +32,64 @@ SendEvent Keys</pre>
 
 </dl>
 
-<p id="SendRaw"><strong>Raw mode</strong>: The <em>SendRaw</em> command interprets all characters literally rather than translating {Enter} to an ENTER keystroke, ^c to Control-C, etc. However, the normal rules for escape sequences, variable references and expressions still apply since these are processed before the command executes. To use raw mode with SendInput, SendPlay, or SendEvent, write <a href="#Raw">{Raw}</a> as the first item in the string; for example: <code>SendInput {Raw}abc</code>.</p>
-<p><strong>Normal mode</strong>: When not in raw mode, the following characters are treated as modifiers (these modifiers affect only the very next key):</p>
-<p><span class="red">!</span>: Sends an ALT keystroke. For example, <code>Send This is text!a</code> would send the keys &quot;This is text&quot; and then press ALT+a. <strong>Note</strong>: !A produces a different effect in some programs than !a. This is because !A presses ALT+SHIFT+A and !a presses ALT+a. If in doubt, use lowercase.</p>
-<p><span class="red">+</span>: Sends a SHIFT keystroke. For example, <code>Send +abC</code> would send the text &quot;AbC&quot;, and <code>Send !+a</code> would press ALT+SHIFT+a.</p>
-<p><span class="red">^</span>: Sends a CONTROL keystroke. For example, <code>Send ^!a</code> would press CTRL+ALT+a, and <code>Send ^{Home}</code> would send CONTROL+HOME. <strong>Note</strong>: ^A produces a different effect in some programs than ^a. This is because ^A presses CONTROL+SHIFT+A and ^a presses CONTROL+a. If in doubt, use lowercase.</p>
-<p><span class="red">#</span>: Sends a WIN keystroke, therefore <code>Send #e</code> would hold down the Windows key and then press the letter &quot;e&quot;.</p>
+<p id="SendRaw"><strong>Raw mode</strong> - <em>SendRaw</em> or <a href="#Raw">{Raw}</a>: The characters <code>^+!#{}</code> are interpreted literally rather than translating <code>{Enter}</code> to an ENTER keystroke, <code>^c</code> to Control-C, etc. To use raw mode with SendInput, SendPlay, or SendEvent, write <a href="#Raw">{Raw}</a> as the first item in the string; for example: <code>SendInput {Raw}abc</code>.</p>
+<p><em>Raw mode</em> does not affect the interpretation of <a href="_EscapeChar.htm">escape sequences</a>, <a href="../Variables.htm#retrieving">variable references</a> and <a href="../Variables.htm#Expressions">expressions</a>. For example, <code>SendRaw, ``100`%</code> sends the string <code>`100%</code>. When using <a href="ControlSend.htm">ControlSend</a>, it is also necessary to escape literal commas (<code>`,</code>).</p>
+<p id="specialchars"><strong>Normal mode</strong>: When not in raw mode, the following symbols have special meaning: <code>!+^#{}</code></p>
+<p>The modifiers <code>!+^#</code> affect only the very next key. To send the corresponding modifier key on its own, enclose the key name in braces. To just press (hold down) or release the key, follow the key name with the word "down" or "up" as shown below.</p>
+<style>
+#modifierkeys td:not(:last-child) { white-space: nowrap; text-align: center }
+</style>
+<table id="modifierkeys" class="info">
+  <tr>
+    <th>Symbol</th>
+    <th>Key</th>
+    <th>Press</th>
+    <th>Release</th>
+    <th>Examples</th>
+  </tr>
+  <tr>
+    <td>!</td>
+    <td>{Alt}</td>
+    <td>{Alt down}</td>
+    <td>{Alt up}</td>
+    <td><code>Send !a</code> presses ALT+a</td>
+  </tr>
+  <tr>
+    <td>+</td>
+    <td>{Shift}</td>
+    <td>{Shift down}</td>
+    <td>{Shift up}</td>
+    <td><code>Send +abC</code> sends the text "AbC"<br>
+    <code>Send !+a</code> presses ALT+SHIFT+a</td>
+  </tr>
+  <tr>
+    <td>^</td>
+    <td>{Ctrl}</td>
+    <td>{Ctrl down}</td>
+    <td>{Ctrl up}</td>
+    <td><code>Send ^{Home}</code> presses CONTROL+HOME</td>
+  </tr>
+  <tr>
+    <td>#</td>
+    <td>{LWin}<br>{RWin}</td>
+    <td>{LWin down}<br>{RWin down}</td>
+    <td>{LWin up}<br>{RWin up}</td>
+    <td><code>Send #e</code> holds down the Windows key and then presses the letter "e"</td>
+  </tr>
+  <tr>
+    <th>Symbol</th>
+    <th colspan="4">Meaning</th>
+  </tr>
+  <tr>
+    <td>{ }</td>
+    <td colspan="4" style="white-space: normal; text-align: left">Braces are used to enclose <a href="#keynames">key names and other options</a>, and to send special characters literally. For example, <code>{Tab}</code> is the Tab key and <code>{!}</code> is a literal exclamation mark.</td>
+  </tr>
+</table>
+<p><strong>Note</strong>: As capital letters are produced by sending the SHIFT key, <code>A</code> produces a different effect in some programs than <code>a</code>. For example, <code>!A</code> presses ALT+SHIFT+A and <code>!a</code> presses ALT+a. If in doubt, use lowercase.</p>
 <p><br>
 <strong id="SendInput">SendInput</strong> and <strong id="SendPlay">SendPlay</strong> <span class="ver">[v1.0.43+]:</span> SendInput and SendPlay use the same syntax as Send but are generally faster and more reliable. In addition, they buffer any physical keyboard or mouse activity during the send, which prevents the user's keystrokes from being interspersed with those being sent. <a href="SendMode.htm">SendMode</a> can be used to make Send synonymous with SendInput or SendPlay. For more details about each mode, see <a href="#SendInputDetail">SendInput</a> and <a href="#SendPlayDetail">SendPlay</a> below.</p>
 <p id="SendEvent"><strong>SendEvent</strong> <span class="ver">[v1.0.43+]:</span> SendEvent sends keystrokes using the same method as the pre-1.0.43 <em>Send</em> command. The rate at which keystrokes are sent is determined by <a href="SetKeyDelay.htm">SetKeyDelay</a>. By default, <em>Send</em> is synonymous <em>SendEvent</em>; but it can be made a synonym for <a href="#SendInputDetail">SendInput</a> or <a href="#SendPlayDetail">SendPlay</a> via <a href="SendMode.htm">SendMode</a>.</p>
-<p><strong>Key Names</strong>: The following table lists the special keys that can be sent (each key name must be enclosed in braces):</p>
+<p id="keynames"><strong>Key Names</strong>: The following table lists the special keys that can be sent (each key name must be enclosed in braces):</p>
 <table class="info">
   <tr>
     <th>Key Name</th>
@@ -458,7 +506,7 @@ SendEvent Keys</pre>
   <tr id="Raw">
     <td><strong>{Raw}</strong><br>
     <span class="ver">[v1.0.43+]</span></td>
-    <td>Sends the keystrokes exactly as they appear rather than translating {Enter} to an ENTER keystroke, <code>^c</code> to Control-C, etc. Although the string {Raw} need not occur at the beginning of the string, once specified, it stays in effect for the remainder of the string.</td>
+    <td>Enables <a href="#SendRaw"><em>Raw mode</em></a>, which causes the following characters to be interpreted literally: <code>^+!#{}</code>. Although the string <code>{Raw}</code> need not occur at the beginning of the string, once specified, it stays in effect for the remainder of the string.</td>
   </tr>
 </table>
 
