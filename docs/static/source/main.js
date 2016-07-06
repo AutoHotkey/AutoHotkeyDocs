@@ -321,8 +321,8 @@ function AddChmAndOnlineFeatures()
 
   var divStyle = {fontSize: "11px", float: "right"};
   var aStyle = {cursor: "pointer", color: $("a:not([href=])").css("color")};
-  var selectLink = $('<a id="selectCode">').text(translate.cdSelectBtn).css(aStyle);
-  var downloadLink = $('<a id="downloadCode">').text(translate.cdDownloadBtn).css(aStyle);
+  var selectLink = $('<a id="selectCode"></a>').text(translate.cdSelectBtn).css(aStyle);
+  var downloadLink = $('<a id="downloadCode"></a>').text(translate.cdDownloadBtn).css(aStyle);
 
   $('pre').each(function(index) {
     if ($(this).is(".Syntax")) {
