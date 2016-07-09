@@ -249,7 +249,7 @@ toc = [
     {label:"SetNumScrollCapsLockState",path:"commands/SetNumScrollCapsLockState.htm"},
     {label:"SetStoreCapslockMode",path:"commands/SetStoreCapslockMode.htm"}
   ]},
-  {label:"Maths",children:
+  {label:"Maths",path:"commands/Math.htm",children:
   [
     {label:"Abs",path:"commands/Math.htm#Abs"},
     {label:"Ceil",path:"commands/Math.htm#Ceil"},
