@@ -1,4 +1,4 @@
-; Minimize Window to Tray Menu
+﻿; Minimize Window to Tray Menu
 ; http://www.autohotkey.com
 ; This script assigns a hotkey of your choice to hide any window so that
 ; it becomes an entry at the bottom of the script's tray menu.  Hidden
@@ -7,6 +7,9 @@
 ; all the windows that it hid will be unhidden automatically.
 
 ; CHANGES:
+; July 17, 2016
+; - Revised code for AHK v2 compatibility
+;
 ; July 22, 2005 (changes provided by egilmour):
 ; - Added new hotkey to unhide the last hidden window (Win+U)
 ;
@@ -26,17 +29,17 @@
 
 ; This is the maximum number of windows to allow to be hidden (having a
 ; limit helps performance):
-mwt_MaxWindows = 50
+mwt_MaxWindows := 50
 
 ; This is the hotkey used to hide the active window:
-mwt_Hotkey = #h  ; Win+H
+mwt_Hotkey := "#h"  ; Win+H
 
 ; This is the hotkey used to unhide the last hidden window:
-mwt_UnHotkey = #u  ; Win+U
+mwt_UnHotkey := "#u"  ; Win+U
 
 ; If you prefer to have the tray menu empty of all the standard items,
-; such as Help and Pause, use N.  Otherwise, use Y:
-mwt_StandardMenu = N
+; such as Help and Pause, use False.  Otherwise, use True:
+mwt_StandardMenu := false
 
 ; These next few performance settings help to keep the action within the
 ; #HotkeyModifierTimeout period, and thus avoid the need to release and
@@ -57,9 +60,9 @@ Hotkey, %mwt_UnHotkey%, mwt_UnMinimize
 
 ; If the user terminates the script by any means, unhide all the
 ; windows first:
-OnExit, mwt_RestoreAllThenExit
+OnExit("mwt_RestoreAllThenExit")
 
-if mwt_StandardMenu = Y
+if mwt_StandardMenu = true
 	Menu, Tray, Add
 else
 {
@@ -69,16 +72,13 @@ else
 Menu, Tray, Add, &Unhide All Hidden Windows, mwt_RestoreAll
 Menu, Tray, Add  ; Another separator line to make the above more special.
 
-if a_AhkVersion =   ; Since it's blank, version is older than 1.0.22.
-	mwt_MaxLength = 100
-else
-	mwt_MaxLength = 260  ; Reduce this to restrict the width of the menu.
+mwt_MaxLength := 260  ; Reduce this to restrict the width of the menu.
 
 return  ; End of auto-execute section.
 
 
 mwt_Minimize:
-if mwt_WindowCount >= %mwt_MaxWindows%
+if mwt_WindowCount >= mwt_MaxWindows
 {
 	MsgBox No more than %mwt_MaxWindows% may be hidden simultaneously.
 	return
@@ -92,10 +92,10 @@ if ErrorLevel <> 0  ; It timed out, so do nothing.
 	return
 
 ; Otherwise, the "last found window" has been set and can now be used:
-WinGet, mwt_ActiveID, ID
+WinGetID, mwt_ActiveID
 WinGetTitle, mwt_ActiveTitle
 WinGetClass, mwt_ActiveClass
-if mwt_ActiveClass in Shell_TrayWnd,Progman
+if mwt_ActiveClass ~= "Shell_TrayWnd|Progman"
 {
 	MsgBox The desktop and taskbar cannot be hidden.
 	return
@@ -113,38 +113,37 @@ WinHide
 ; 1) A more meaningful name is used as the menu name.
 ; 2) Allows the menu item to be created (otherwise, blank items wouldn't
 ;    be handled correctly by the various routines below).
-if mwt_ActiveTitle =
-	mwt_ActiveTitle = ahk_class %mwt_ActiveClass%
+if mwt_ActiveTitle = ""
+	mwt_ActiveTitle := "ahk_class %mwt_ActiveClass%"
 ; Ensure the title is short enough to fit. mwt_ActiveTitle also serves to
 ; uniquely identify this particular menu item.
-StringLeft, mwt_ActiveTitle, mwt_ActiveTitle, %mwt_MaxLength%
+mwt_ActiveTitle := SubStr(mwt_ActiveTitle, 1, mwt_MaxLength)
 
 ; In addition to the tray menu requiring that each menu item name be
 ; unique, it must also be unique so that we can reliably look it up in
 ; the array when the window is later unhidden.  So make it unique if it
 ; isn't already:
-Loop, %mwt_MaxWindows%
+Loop, mwt_MaxWindows
 {
-	if mwt_WindowTitle%a_index% = %mwt_ActiveTitle%
+	if mwt_WindowTitle%a_index% = mwt_ActiveTitle
 	{
 		; Match found, so it's not unique.
-		; First remove the 0x from the hex number to conserve menu space:
-		StringTrimLeft, mwt_ActiveIDShort, mwt_ActiveID, 2
-		StringLen, mwt_ActiveIDShortLength, mwt_ActiveIDShort
-		StringLen, mwt_ActiveTitleLength, mwt_ActiveTitle
-		mwt_ActiveTitleLength += %mwt_ActiveIDShortLength%
+		mwt_ActiveIDShort := Format("{:X}" ,mwt_ActiveID)
+		mwt_ActiveIDShortLength := StrLen(mwt_ActiveIDShort)
+		mwt_ActiveTitleLength := StrLen(mwt_ActiveTitle)
+		mwt_ActiveTitleLength += mwt_ActiveIDShortLength
 		mwt_ActiveTitleLength += 1 ; +1 the 1 space between title & ID.
-		if mwt_ActiveTitleLength > %mwt_MaxLength%
+		if mwt_ActiveTitleLength > mwt_MaxLength
 		{
 			; Since menu item names are limted in length, trim the title
 			; down to allow just enough room for the Window's Short ID at
 			; the end of its name:
-			TrimCount = %mwt_ActiveTitleLength%
-			TrimCount -= %mwt_MaxLength%
-			StringTrimRight, mwt_ActiveTitle, mwt_ActiveTitle, %TrimCount%
+			TrimCount := mwt_ActiveTitleLength
+			TrimCount -= mwt_MaxLength
+			mwt_ActiveTitle := SubStr(mwt_ActiveTitle, 1, -TrimCount)
 		}
 		; Build unique title:
-		mwt_ActiveTitle = %mwt_ActiveTitle% %mwt_ActiveIDShort%
+		mwt_ActiveTitle .= " " mwt_ActiveIDShort
 		break
 	}
 }
@@ -152,28 +151,28 @@ Loop, %mwt_MaxWindows%
 ; First, ensure that this ID doesn't already exist in the list, which can
 ; happen if a particular window was externally unhidden (or its app unhid
 ; it) and now it's about to be re-hidden:
-mwt_AlreadyExists = n
-Loop, %mwt_MaxWindows%
+mwt_AlreadyExists := false
+Loop, mwt_MaxWindows
 {
-	if mwt_WindowID%a_index% = %mwt_ActiveID%
+	if mwt_WindowID%a_index% = mwt_ActiveID
 	{
-		mwt_AlreadyExists = y
+		mwt_AlreadyExists := true
 		break
 	}
 }
 
 ; Add the item to the array and to the menu:
-if mwt_AlreadyExists = n
+if mwt_AlreadyExists = false
 {
 	Menu, Tray, add, %mwt_ActiveTitle%, RestoreFromTrayMenu
 	mwt_WindowCount += 1
-	Loop, %mwt_MaxWindows%  ; Search for a free slot.
+	Loop, mwt_MaxWindows  ; Search for a free slot.
 	{
 		; It should always find a free slot if things are designed right.
-		if mwt_WindowID%a_index% =  ; An empty slot was found.
+		if mwt_WindowID%a_index% = ""  ; An empty slot was found.
 		{
-			mwt_WindowID%a_index% = %mwt_ActiveID%
-			mwt_WindowTitle%a_index% = %mwt_ActiveTitle%
+			mwt_WindowID%a_index% := mwt_ActiveID
+			mwt_WindowTitle%a_index% := mwt_ActiveTitle
 			break
 		}
 	}
@@ -184,15 +183,15 @@ return
 RestoreFromTrayMenu:
 Menu, Tray, delete, %A_ThisMenuItem%
 ; Find window based on its unique title stored as the menu item name:
-Loop, %mwt_MaxWindows%
+Loop, mwt_MaxWindows
 {
-	if mwt_WindowTitle%a_index% = %A_ThisMenuItem%  ; Match found.
+	if mwt_WindowTitle%a_index% = A_ThisMenuItem  ; Match found.
 	{
-		StringTrimRight, IDToRestore, mwt_WindowID%a_index%, 0
+		IDToRestore := mwt_WindowID%a_index%
 		WinShow, ahk_id %IDToRestore%
 		WinActivate ahk_id %IDToRestore%  ; Sometimes needed.
-		mwt_WindowID%a_index% =  ; Make it blank to free up a slot.
-		mwt_WindowTitle%a_index% =
+		mwt_WindowID%a_index% := ""  ; Make it blank to free up a slot.
+		mwt_WindowTitle%a_index% := ""
 		mwt_WindowCount -= 1
 		break
 	}
@@ -206,41 +205,43 @@ mwt_UnMinimize:
 if mwt_WindowCount > 0 
 {
 	;; Get the id of the last window minimized and unhide it
-	StringTrimRight, IDToRestore, mwt_WindowID%mwt_WindowCount%, 0
+	IDToRestore := mwt_WindowID%mwt_WindowCount%
 	WinShow, ahk_id %IDToRestore%
 	WinActivate ahk_id %IDToRestore%
 	
 	;; Get the menu name of the last window minimized and remove it
-	StringTrimRight, MenuToRemove, mwt_WindowTitle%mwt_WindowCount%, 0
+	MenuToRemove := mwt_WindowTitle%mwt_WindowCount%
 	Menu, Tray, delete, %MenuToRemove%
 	
 	;; clean up our 'arrays' and decrement the window count
-	mwt_WindowID%mwt_WindowCount% =
-	mwt_WindowTitle%mwt_WindowCount% = 
+	mwt_WindowID%mwt_WindowCount% := ""
+	mwt_WindowTitle%mwt_WindowCount% := ""
 	mwt_WindowCount -= 1
 }
 return
 
 
-mwt_RestoreAllThenExit:
-Gosub, mwt_RestoreAll
-ExitApp  ; Do a true exit.
+mwt_RestoreAllThenExit()
+{
+	Gosub, mwt_RestoreAll
+	ExitApp  ; Do a true exit.
+}
 
 
 mwt_RestoreAll:
-Loop, %mwt_MaxWindows%
+Loop, mwt_MaxWindows
 {
-	if mwt_WindowID%a_index% <>
+	if mwt_WindowID%a_index% <> ""
 	{
-		StringTrimRight, IDToRestore, mwt_WindowID%a_index%, 0
+		IDToRestore := mwt_WindowID%a_index%
 		WinShow, ahk_id %IDToRestore%
 		WinActivate ahk_id %IDToRestore%  ; Sometimes needed.
 		; Do it this way vs. DeleteAll so that the sep. line and first
 		; item are retained:
-		StringTrimRight, MenuToRemove, mwt_WindowTitle%a_index%, 0
+		MenuToRemove := mwt_WindowTitle%a_index%
 		Menu, Tray, delete, %MenuToRemove%
-		mwt_WindowID%a_index% =  ; Make it blank to free up a slot.
-		mwt_WindowTitle%a_index% =
+		mwt_WindowID%a_index% := ""  ; Make it blank to free up a slot.
+		mwt_WindowTitle%a_index% := ""
 		mwt_WindowCount -= 1
 	}
 	if mwt_WindowCount = 0

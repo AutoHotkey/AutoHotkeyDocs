@@ -315,7 +315,7 @@ ExitApp</pre>
 <p>If GuiClose is a function, the GUI is closed by default. The function can prevent this by returning a non-zero integer, as in the example below:</p>
 <pre>GuiClose(GuiHwnd) {  <em>; Declaring this parameter is optional.</em>
     MsgBox 4,, Are you sure you want to close the GUI?
-    ifMsgBox No
+    if A_MsgBoxResult = "No"
         return true  <em>; true = 1</em>
 }</pre>
 
@@ -357,23 +357,22 @@ Known limitation: If the first control in the window is disabled (possibly depen
 <p>To extract the individual files, use a <a href="LoopParse.htm">parsing loop</a> as shown below:
 </p>
 <pre><em>; EXAMPLE #1:</em>
-Loop, parse, A_GuiEvent, `n
+Loop, parse, %A_GuiEvent%, `n
 {
     MsgBox, 4,, File number %A_Index% is:`n%A_LoopField%.`n`nContinue?
     if A_MsgBoxResult = "No", break
 }
 
 <em>; EXAMPLE #2: To extract only the first file, follow this example:</em>
-Loop, parse, A_GuiEvent, `n
+Loop, parse, %A_GuiEvent%, `n
 {
-    FirstFile = %A_LoopField%
+    FirstFile := A_LoopField
     Break
 }
 
 <em>; EXAMPLE #3: To process the files in alphabetical order, follow this example:</em>
-FileList = %A_GuiEvent%
-Sort, FileList
-Loop, parse, FileList, `n
+FileList := Sort(A_GuiEvent)
+Loop, parse, %FileList%, `n
     MsgBox File number %A_Index% is:`n%A_LoopField%.</pre>
 <p>To temporarily disable drag-and-drop for a window, remove the WS_EX_ACCEPTFILES style via <code>Gui -E0x10</code>. To re-enable it later, use <code>Gui +E0x10</code>.</p>
 <p>If GuiDropFiles is a function, the parameters are as shown in the example below. <em>CtrlHwnd</em> is blank if files were dropped on the GUI itself. <em>FileArray</em> is an <a href="../Objects.htm#Usage_Simple_Arrays">array (object)</a> of filenames, where <code>FileArray[1]</code> is the first file and <code>FileArray.MaxIndex()</code> returns the number of files. A <a href="For.htm">for-loop</a> can be used to iterate through the files:</p>
@@ -477,7 +476,7 @@ ExitApp</pre>
 Gui, Add, Text,, Pick a file to launch from the list below.`nTo cancel, press ESCAPE or close this window.
 Gui, Add, ListBox, vMyListBox gMyListBox w640 r10
 Gui, Add, Button, Default, OK
-Loop, C:\*.*  <em>; Change this folder and wildcard pattern to suit your preferences.</em>
+Loop, Files, C:\*.*  <em>; Change this folder and wildcard pattern to suit your preferences.</em>
 {
     GuiControl,, MyListBox, %A_LoopFilePath%
 }
@@ -485,7 +484,7 @@ Gui, Show
 return
 
 MyListBox:
-if A_GuiEvent &lt;&gt; DoubleClick
+if A_GuiEvent &lt;&gt; "DoubleClick"
     return
 <em>; Otherwise, the user double-clicked a list item, so treat that the same as pressing OK.
 ; So fall through to the next label.</em>
@@ -496,11 +495,10 @@ if A_MsgBoxResult = "No"
     return
 <em>; Otherwise, try to launch it:</em>
 Run, %MyListBox%,, UseErrorLevel
-if ErrorLevel = ERROR
+if ErrorLevel = "ERROR"
     MsgBox Could not launch the specified file.  Perhaps it is not associated with anything.
 return
 
-GuiClose:
 GuiEscape:
 ExitApp</pre>
 <p>&nbsp;</p>
@@ -545,7 +543,7 @@ ExitApp</pre>
 <p>&nbsp;</p>
 <pre class="NoIndent" id="OSD"><em>; Example: On-screen display (OSD) via transparent window:</em>
 
-CustomColor = EEAA99  <em>; Can be any RGB color (it will be made transparent below).</em>
+CustomColor := 0xEEAA99  <em>; Can be any RGB color (it will be made transparent below).</em>
 Gui +LastFound +AlwaysOnTop -Caption +ToolWindow  <em>; +ToolWindow avoids a taskbar button and an alt-tab menu item.</em>
 Gui, Color, %CustomColor%
 Gui, Font, s32  <em>; Set a large font size (32-point).</em>
@@ -573,7 +571,7 @@ Gui, Show
 return
 
 ButtonStartTheBarMoving:
-Loop, %A_WinDir%\*.*
+Loop, Files, %A_WinDir%\*.*
 {
     if A_Index &gt; 100
         break
@@ -582,10 +580,7 @@ Loop, %A_WinDir%\*.*
     Sleep 50
 }
 GuiControl,, MyText, Bar finished.
-return
-
-GuiClose:
-ExitApp</pre>
+return</pre>
 <p>&nbsp;</p>
 <pre class="NoIndent"><em>; Example: Simple image viewer:</em>
 
@@ -599,25 +594,22 @@ return
 
 ButtonLoadNewImage:
 FileSelect, file,,, Select an image:, Images (*.gif; *.jpg; *.bmp; *.png; *.tif; *.ico; *.cur; *.ani; *.exe; *.dll)
-if file =
+if file = ""
     return
 Gui, Submit, NoHide <em>; Save the values of the radio buttons.</em>
 if Radio = 1  <em>; Display image at its actual size.</em>
 {
-    Width = 0
-    Height = 0
+    Width := 0
+    Height := 0
 }
 else <em>; Second radio is selected: Resize the image to fit the screen.</em>
 {
     Width := A_ScreenWidth - 28  <em>; Minus 28 to allow room for borders and margins inside.</em>
-    Height = -1  <em>; &quot;Keep aspect ratio&quot; seems best.</em>
+    Height := -1  <em>; &quot;Keep aspect ratio&quot; seems best.</em>
 }
 GuiControl,, Pic, *w%width% *h%height% %file%  <em>; Load the image.</em>
 Gui, Show, xCenter y0 AutoSize, %file%  <em>; Resize the window to match the picture size.</em>
-return
-
-GuiClose:
-ExitApp</pre>
+return</pre>
 <p>&nbsp;</p>
 <pre class="NoIndent"><em>; Example: Simple text editor with menu bar.</em>
 
@@ -641,7 +633,7 @@ Gui, Menu, MyMenuBar
 Gui, +Resize  <em>; Make the window resizable.</em>
 Gui, Add, Edit, vMainEdit WantTab W600 R20
 Gui, Show,, Untitled
-CurrentFileName =  <em>; Indicate that there is no current file.</em>
+CurrentFileName := "" <em>; Indicate that there is no current file.</em>
 return
 
 FileNew:
@@ -651,7 +643,7 @@ return
 FileOpen:
 Gui +OwnDialogs  <em>; Force the user to dismiss the FileSelect dialog before returning to the main window.</em>
 FileSelect, SelectedFileName, 3,, Open File, Text Documents (*.txt)
-if SelectedFileName =  <em>; No file selected.</em>
+if SelectedFileName = "" <em>; No file selected.</em>
     return
 Gosub FileRead
 return
@@ -664,12 +656,12 @@ if ErrorLevel
     return
 }
 GuiControl,, MainEdit, %MainEdit%  <em>; Put the text into the control.</em>
-CurrentFileName = %SelectedFileName%
+CurrentFileName := SelectedFileName
 Gui, Show,, %CurrentFileName%   <em>; Show file name in title bar.</em>
 return
 
 FileSave:
-if CurrentFileName =   <em>; No filename selected yet, so do Save-As instead.</em>
+if CurrentFileName = ""  <em>; No filename selected yet, so do Save-As instead.</em>
     Goto FileSaveAs
 Gosub SaveCurrentFile
 return
@@ -677,14 +669,14 @@ return
 FileSaveAs:
 Gui +OwnDialogs  <em>; Force the user to dismiss the FileSelect dialog before returning to the main window.</em>
 FileSelect, SelectedFileName, S16,, Save File, Text Documents (*.txt)
-if SelectedFileName =  <em>; No file selected.</em>
+if SelectedFileName = "" <em>; No file selected.</em>
     return
-CurrentFileName = %SelectedFileName%
+CurrentFileName := SelectedFileName
 Gosub SaveCurrentFile
 return
 
 SaveCurrentFile:  <em>; Caller has ensured that CurrentFileName is not blank.</em>
-IfExist %CurrentFileName%
+if FileExist(CurrentFileName)
 {
     FileDelete %CurrentFileName%
     if ErrorLevel
@@ -715,9 +707,9 @@ Gui Destroy  <em>; Destroy the about box.</em>
 return
 
 GuiDropFiles:  <em>; Support drag &amp; drop.</em>
-Loop, Parse, A_GuiEvent, `n
+Loop, parse, %A_GuiEvent%, `n
 {
-    SelectedFileName = %A_LoopField%  <em>; Get the first file only (in case there's more than one).</em>
+    SelectedFileName := A_LoopField  <em>; Get the first file only (in case there's more than one).</em>
     break
 }
 Gosub FileRead
@@ -733,7 +725,6 @@ GuiControl, Move, MainEdit, W%NewWidth% H%NewHeight%
 return
 
 FileExit:     <em>; User chose &quot;Exit&quot; from the File menu.</em>
-GuiClose:  <em>; User closed the window.</em>
 ExitApp</pre>
 </body>
 </html>

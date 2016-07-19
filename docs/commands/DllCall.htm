@@ -135,7 +135,7 @@ DllCall("DeleteFile", Ptr, &amp;filename) <em>; Omit the quote marks around Ptr.
 <h3 id="load">Performance</h3>
 <p>When making repeated calls to a DLL, performance can be dramatically improved by loading it explicitly (<em>this is not necessary for a <a href="#std">standard DLL</a> such as User32 because it is always resident</em>). This practice avoids the need for DllCall to internally call LoadLibrary and FreeLibrary each time. For example:</p>
 <pre>hModule := DllCall(&quot;<strong>LoadLibrary</strong>&quot;, &quot;Str&quot;, &quot;MyFunctions.dll&quot;, &quot;Ptr&quot;)  <em>; Avoids the need for DllCall() in the loop to load the library.</em>
-Loop, C:\My Documents\*.*, , 1
+Loop, Files, C:\My Documents\*.*, R
     result := DllCall(&quot;MyFunctions\BackupFile&quot;, &quot;Str&quot;, A_LoopFilePath)
 DllCall(&quot;<strong>FreeLibrary</strong>&quot;, &quot;Ptr&quot;, hModule)  <em>; To conserve memory, the DLL may be unloaded after using it.</em></pre>
 <p>Even faster performance can be achieved by looking up the function's address beforehand. For example:</p>
@@ -158,7 +158,7 @@ Loop 500
 <p>When a <a href="../Variables.htm#amp">variable's address</a> (e.g. <code>&amp;MyVar</code>) is passed to a function and that function alters the length of the variable's contents, subsequent uses of the variable may behave incorrectly. To fix this, do one of the following: 1) Pass MyVar as a <a href="#str">&quot;Str&quot;</a> argument rather than as a Ptr/address; 2) Call <code><a href="VarSetCapacity.htm#neg1">VarSetCapacity(MyVar, -1)</a></code> to update the variable's internally-stored length after calling DllCall.</p>
 <p>Any binary zero stored in a variable by a function hides all data to the right of the zero; that is, such data cannot be accessed or changed by most commands and functions. However, such data can be manipulated by the <a href="../Variables.htm#amp">address operator</a> and <a href="NumPut.htm">NumPut</a>/<a href="NumGet.htm">NumGet</a>, as well as DllCall itself.</p>
 <p>A function that returns the address of one of the strings that was passed into it might return an identical string in a different memory address than expected. For example calling <code>CharLower(CharUpper(MyVar))</code> in a programming language would convert <em>MyVar</em>'s contents to lowercase. But when the same is done with DllCall(), <em>MyVar</em> would be uppercase after the following call because CharLower would have operated on a different/temporary string whose contents were identical to <em>MyVar</em>:</p>
-<pre>MyVar = ABC
+<pre>MyVar := "ABC"
 result := DllCall(&quot;CharLower&quot;, <strong><u>str</u></strong>, DllCall(&quot;CharUpper&quot;, Str, MyVar, <strong><u>Str</u></strong>), Str)</pre>
 <p>To work around this, change the two underlined &quot;Str&quot; values above to Ptr. This interprets CharUpper's return value as a pure address that will get passed as an integer to CharLower.</p>
 <p>Certain limitations may be encountered when dealing with strings. For details, see <a href="../Compat.htm#DllCall">Script Compatibility</a>.</p>
@@ -203,8 +203,8 @@ MsgBox % &quot;Elapsed QPC time is &quot; . CounterAfter - CounterBefore</pre>
 ; Hold down the F1 key to slow down the cursor. Release it to return to original speed.</em>
 
 F1::
-SPI_GETMOUSESPEED = 0x70
-SPI_SETMOUSESPEED = 0x71
+SPI_GETMOUSESPEED := 0x70
+SPI_SETMOUSESPEED := 0x71
 <em>; Retrieve the current speed so that it can be restored later:</em>
 <strong>DllCall</strong>(&quot;SystemParametersInfo&quot;, UInt, SPI_GETMOUSESPEED, UInt, 0, UIntP, OrigMouseSpeed, UInt, 0)
 <em>; Now set the mouse to the slower speed specified in the next-to-last parameter (the range is 1-20, 10 is default):</em>
@@ -217,7 +217,6 @@ F1 up::<strong>DllCall</strong>(&quot;SystemParametersInfo&quot;, UInt, 0x71, UI
 <pre class="NoIndent"><em>; Example: Monitors the active window and display the position of its vertical scroll bar in its
 ; focused control (with real-time updates).</em>
 
-#Persistent
 SetTimer, WatchScrollBar, 100
 return
 
@@ -238,25 +237,25 @@ return</pre>
 ; Alternatively, <a href="FileOpen.htm">FileOpen</a> can be used to the <a href="FileOpen.htm#writeread">same effect</a>.</em>
 
 FileSelect, FileName, S16,, Create a new file:
-if FileName =
+if FileName = ""
     return
-GENERIC_WRITE = 0x40000000  <em>; Open the file for writing rather than reading.</em>
-CREATE_ALWAYS = 2  <em>; Create new file (overwriting any existing file).</em>
+GENERIC_WRITE := 0x40000000  <em>; Open the file for writing rather than reading.</em>
+CREATE_ALWAYS := 2  <em>; Create new file (overwriting any existing file).</em>
 hFile := <strong>DllCall</strong>(&quot;CreateFile&quot;, Str, FileName, UInt, GENERIC_WRITE, UInt, 0, Ptr, 0, UInt, CREATE_ALWAYS, UInt, 0, Ptr, 0, Ptr)
 if not hFile
 {
     MsgBox Can't open &quot;%FileName%&quot; for writing.
     return
 }
-TestString = This is a test string.`r`n  <em>; When writing a file this way, use `r`n rather than `n to start a new line.</em>
+TestString := "This is a test string.`r`n"  <em>; When writing a file this way, use `r`n rather than `n to start a new line.</em>
 <strong>DllCall</strong>(&quot;WriteFile&quot;, Ptr, hFile, Str, TestString, UInt, StrLen(TestString), UIntP, BytesActuallyWritten, Ptr, 0)
 <strong>DllCall</strong>(&quot;CloseHandle&quot;, Ptr, hFile)  <em>; Close the file.</em>
 
 <em>; Now that the file was written, read its contents back into memory.</em>
-GENERIC_READ = 0x80000000  <em>; Open the file for reading rather than writing.</em>
-OPEN_EXISTING = 3  <em>; This mode indicates that the file to be opened must already exist.</em>
-FILE_SHARE_READ = 0x1 <em>; This and the next are whether other processes can open the file while we have it open.</em>
-FILE_SHARE_WRITE = 0x2
+GENERIC_READ := 0x80000000  <em>; Open the file for reading rather than writing.</em>
+OPEN_EXISTING := 3  <em>; This mode indicates that the file to be opened must already exist.</em>
+FILE_SHARE_READ := 0x1 <em>; This and the next are whether other processes can open the file while we have it open.</em>
+FILE_SHARE_WRITE := 0x2
 hFile := <strong>DllCall</strong>(&quot;CreateFile&quot;, Str, FileName, UInt, GENERIC_READ, UInt, FILE_SHARE_READ|FILE_SHARE_WRITE, Ptr, 0, UInt, OPEN_EXISTING, UInt, 0, Ptr, 0)
 if not hFile
 {
@@ -284,35 +283,35 @@ ShowCursor()
 
 SystemCursor(OnOff:=1)   <em>; INIT = &quot;I&quot;,&quot;Init&quot;; OFF = 0,&quot;Off&quot;; TOGGLE = -1,&quot;T&quot;,&quot;Toggle&quot;; ON = others</em>
 {
-    static AndMask, XorMask, $, h_cursor
+    static AndMask, XorMask, type, h_cursor
         ,c0,c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c11,c12,c13 <em>; system cursors</em>
         , b1,b2,b3,b4,b5,b6,b7,b8,b9,b10,b11,b12,b13   <em>; blank cursors</em>
         , h1,h2,h3,h4,h5,h6,h7,h8,h9,h10,h11,h12,h13   <em>; handles of default cursors</em>
-    if (OnOff = &quot;Init&quot; or OnOff = &quot;I&quot; or $ = &quot;&quot;)       <em>; init when requested or at first call</em>
+    if (OnOff = &quot;Init&quot; or OnOff = &quot;I&quot; or type = &quot;&quot;)    <em>; init when requested or at first call</em>
     {
-        $ = h                                          <em>; active default cursors</em>
+        type := "h"                                    <em>; active default cursors</em>
         VarSetCapacity( h_cursor,4444, 1 )
         VarSetCapacity( AndMask, 32*4, 0xFF )
         VarSetCapacity( XorMask, 32*4, 0 )
-        system_cursors = 32512,32513,32514,32515,32516,32642,32643,32644,32645,32646,32648,32649,32650
-        StringSplit c, system_cursors, `,
-        Loop %c0%
+        system_cursors := "32512,32513,32514,32515,32516,32642,32643,32644,32645,32646,32648,32649,32650"
+        c := StrSplit(system_cursors, ",")
+        Loop c.Length
         {
-            h_cursor   := DllCall( &quot;LoadCursor&quot;, &quot;Ptr&quot;,0, &quot;Ptr&quot;,c%A_Index% )
+            h_cursor   := DllCall( &quot;LoadCursor&quot;, &quot;Ptr&quot;,0, &quot;Ptr&quot;,c[A_Index] )
             h%A_Index% := DllCall( &quot;CopyImage&quot;, &quot;Ptr&quot;,h_cursor, &quot;UInt&quot;,2, &quot;Int&quot;,0, &quot;Int&quot;,0, &quot;UInt&quot;,0 )
             b%A_Index% := DllCall( &quot;CreateCursor&quot;, &quot;Ptr&quot;,0, &quot;Int&quot;,0, &quot;Int&quot;,0
                 , &quot;Int&quot;,32, &quot;Int&quot;,32, &quot;Ptr&quot;,&amp;AndMask, &quot;Ptr&quot;,&amp;XorMask )
         }
     }
-    if (OnOff = 0 or OnOff = &quot;Off&quot; or $ = &quot;h&quot; and (OnOff &lt; 0 or OnOff = &quot;Toggle&quot; or OnOff = &quot;T&quot;))
-        $ = b  <em>; use blank cursors</em>
+    if (OnOff = 0 or OnOff = &quot;Off&quot; or type = &quot;h&quot; and (OnOff &lt; 0 or OnOff = &quot;Toggle&quot; or OnOff = &quot;T&quot;))
+        type := "b"  <em>; use blank cursors</em>
     else
-        $ = h  <em>; use the saved cursors</em>
+        type := "h"  <em>; use the saved cursors</em>
 
-    Loop %c0%
+    Loop c.Length
     {
-        h_cursor := DllCall( &quot;CopyImage&quot;, &quot;Ptr&quot;,%$%%A_Index%, &quot;UInt&quot;,2, &quot;Int&quot;,0, &quot;Int&quot;,0, &quot;UInt&quot;,0 )
-        DllCall( &quot;SetSystemCursor&quot;, &quot;Ptr&quot;,h_cursor, &quot;UInt&quot;,c%A_Index% )
+        h_cursor := DllCall( &quot;CopyImage&quot;, &quot;Ptr&quot;,%type%%A_Index%, &quot;UInt&quot;,2, &quot;Int&quot;,0, &quot;Int&quot;,0, &quot;UInt&quot;,0 )
+        DllCall( &quot;SetSystemCursor&quot;, &quot;Ptr&quot;,h_cursor, &quot;UInt&quot;,c[A_Index] )
     }
 }</pre>
 
@@ -349,23 +348,23 @@ SetSystemTime(YYYYMMDDHHMISS)
 ; (local time, not UTC). Returns non-zero upon success and zero otherwise.</em>
 {
     <em>; Convert the parameter from local time to UTC for use with SetSystemTime().</em>
-    UTC_Delta -= A_NowUTC, Seconds  <em>; Seconds is more accurate due to rounding issue.</em>
+    UTC_Delta := DateDiff(A_Now, A_NowUTC, "Seconds")  <em>; Seconds is more accurate due to rounding issue.</em>
     UTC_Delta := Round(-UTC_Delta/60)  <em>; Round to nearest minute to ensure accuracy.</em>
-    YYYYMMDDHHMISS += UTC_Delta, Minutes  <em>; Apply offset to convert to UTC.</em>
+    YYYYMMDDHHMISS := DateAdd(YYYYMMDDHHMISS, UTC_Delta, "Minutes")  <em>; Apply offset to convert to UTC.</em>
 
     VarSetCapacity(SystemTime, 16, 0)  <em>; This struct consists of 8 UShorts (i.e. 8*2=16).</em>
 
-    StringLeft, Int, YYYYMMDDHHMISS, 4    <em>; YYYY (year)</em>
+    Int := SubStr(YYYYMMDDHHMISS, 1, 4)  <em>; YYYY (year)</em>
     <a href="NumPut.htm">NumPut</a>(Int, SystemTime, 0, &quot;UShort&quot;)
-    StringMid, Int, YYYYMMDDHHMISS, 5, 2  <em>; MM (month of year, 1-12)</em>
+    Int := SubStr(YYYYMMDDHHMISS, 5, 2)  <em>; MM (month of year, 1-12)</em>
     NumPut(Int, SystemTime, 2, &quot;UShort&quot;)
-    StringMid, Int, YYYYMMDDHHMISS, 7, 2  <em>; DD (day of month)</em>
+    Int := SubStr(YYYYMMDDHHMISS, 7, 2)  <em>; DD (day of month)</em>
     NumPut(Int, SystemTime, 6, &quot;UShort&quot;)
-    StringMid, Int, YYYYMMDDHHMISS, 9, 2  <em>; HH (hour in 24-hour time)</em>
+    Int := SubStr(YYYYMMDDHHMISS, 9, 2)  <em>; HH (hour in 24-hour time)</em>
     NumPut(Int, SystemTime, 8, &quot;UShort&quot;)
-    StringMid, Int, YYYYMMDDHHMISS, 11, 2 <em>; MI (minute)</em>
+    Int := SubStr(YYYYMMDDHHMISS, 11, 2) <em>; MI (minute)</em>
     NumPut(Int, SystemTime, 10, &quot;UShort&quot;)
-    StringMid, Int, YYYYMMDDHHMISS, 13, 2 <em>; SS (second)</em>
+    Int := SubStr(YYYYMMDDHHMISS, 13, 2) <em>; SS (second)</em>
     NumPut(Int, SystemTime, 12, &quot;UShort&quot;)
 
     return <strong>DllCall</strong>(&quot;SetSystemTime&quot;, Ptr, &amp;SystemTime)
