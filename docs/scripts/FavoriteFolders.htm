@@ -23,13 +23,7 @@
 </p>
 <p><a href="FavoriteFolders.ahk">Download This Script</a> &nbsp;| &nbsp;<a href="index.htm">Other Sample Scripts</a> &nbsp;| &nbsp;<a href="../AutoHotkey.htm">Home</a></p>
 
-<pre class="NoIndent"><em>; Note: In Windows Explorer, if &quot;View &gt; Toolbars &gt; Address Bar&quot; is
-; not enabled, the menu will not be shown if the hotkey chosen below
-; has a tilde.  If it does have a tilde, the menu will be shown
-; but the favorite will be opened in a new Explorer window rather
-; than switching the active Explorer window to that folder.</em>
-
-<em>; CONFIG: CHOOSE YOUR HOTKEY
+<pre class="NoIndent"><em>; CONFIG: CHOOSE YOUR HOTKEY
 ; If your mouse has more than 3 buttons, you could try using
 ; XButton1 (the 4th) or XButton2 (the 5th) instead of MButton.
 ; You could also use a modified mouse button (such as ^MButton) or
@@ -42,7 +36,7 @@
 ; favorite while an unsupported window type is active, a new
 ; Explorer window will be opened to display the contents of that
 ; folder.</em>
-f_Hotkey = ~MButton
+f_Hotkey := "~MButton"
 
 <em>; CONFIG: CHOOSE YOUR FAVORITES
 ; Update the special commented section below to list your favorite
@@ -51,7 +45,7 @@ f_Hotkey = ~MButton
 ; Use a blank line to create a separator line.</em>
 
 <em>/*
-ITEMS IN FAVORITES MENU &lt;-- Do not change this string.
+ITEMS IN FAVORITES MENU <-- Do not change this string.
 Desktop      ; %A_Desktop%
 Favorites    ; %A_Desktop%\..\Favorites
 My Documents ; %A_MyDocuments%
@@ -67,54 +61,52 @@ Program Files; %A_ProgramFiles%
 #SingleInstance  <em>; Needed since the hotkey is dynamically created.</em>
 
 Hotkey, %f_Hotkey%, f_DisplayMenu
-StringLeft, f_HotkeyFirstChar, f_Hotkey, 1
-if f_HotkeyFirstChar = ~  <em>; Show menu only for certain window types.</em>
-    f_AlwaysShowMenu = n
+f_HotkeyFirstChar := SubStr(f_Hotkey, 1, 1)
+if f_HotkeyFirstChar = "~"  <em>; Show menu only for certain window types.</em>
+    f_AlwaysShowMenu := false
 else
-    f_AlwaysShowMenu = y
+    f_AlwaysShowMenu := true
 
 <em>; Used to reliably determine whether script is compiled:</em>
-SplitPath, A_ScriptName,,, f_FileExt
-if f_FileExt = Exe  <em>; Read the menu items from an external file.</em>
-    f_FavoritesFile = %A_ScriptDir%\Favorites.ini
+SplitPath, %A_ScriptName%,,, f_FileExt
+if f_FileExt = "Exe"  <em>; Read the menu items from an external file.</em>
+    f_FavoritesFile := "%A_ScriptDir%\Favorites.ini"
 else  <em>; Read the menu items directly from this script file.</em>
-    f_FavoritesFile = %A_ScriptFullPath%
+    f_FavoritesFile := A_ScriptFullPath
 
 <em>;----Read the configuration file.</em>
-f_AtStartingPos = n
-f_MenuItemCount = 0
+f_AtStartingPos := false
+f_MenuItemCount := 0
 Loop, Read, %f_FavoritesFile%
 {
-    if f_FileExt &lt;&gt; Exe
+    if f_FileExt <> "Exe"
     {
         <em>; Since the menu items are being read directly from this</em>
         <em>; script, skip over all lines until the starting line is</em>
         <em>; arrived at.</em>
-        if f_AtStartingPos = n
+        if !f_AtStartingPos
         {
-            IfInString, A_LoopReadLine, ITEMS IN FAVORITES MENU
-                f_AtStartingPos = y
+            if InStr(A_LoopReadLine, "ITEMS IN FAVORITES MENU")
+                f_AtStartingPos := true
             continue  <em>; Start a new loop iteration.</em>
         }
         <em>; Otherwise, the closing comment symbol marks the end of the list.</em>
-        if A_LoopReadLine = */
+        if A_LoopReadLine = "*/"
             break  <em>; terminate the loop</em>
     }
     <em>; Menu separator lines must also be counted to be compatible</em>
     <em>; with A_ThisMenuItemPos:</em>
     f_MenuItemCount++
-    if A_LoopReadLine =  <em>; Blank indicates a separator line.</em>
+    if !A_LoopReadLine  <em>; Blank indicates a separator line.</em>
         Menu, Favorites, Add
     else
     {
-        StringSplit, f_line, A_LoopReadLine, `;
-        f_line1 = %f_line1%  <em>; Trim leading and trailing spaces.</em>
-        f_line2 = %f_line2%  <em>; Trim leading and trailing spaces.</em>
-        <em>; Resolve any references to variables within either field, and</em>
-        <em>; create a new array element containing the path of this favorite:</em>
-        Transform, f_path%f_MenuItemCount%, deref, %f_line2%
-        Transform, f_line1, deref, %f_line1%
-        Menu, Favorites, Add, %f_line1%, f_OpenFavorite
+        f_line := StrSplit(A_LoopReadLine, ";", " `t")
+        <em>; Resolve any references to variables within either field, and
+        ; create a new array element containing the path of this favorite:</em>
+        f_path%f_MenuItemCount% := Deref(f_line[2])
+        f_line[1] := Deref(f_line[1])
+        Menu, Favorites, Add, % f_line[1], f_OpenFavorite
     }
 }
 return  <em>;----End of auto-execute section.</em>
@@ -123,56 +115,50 @@ return  <em>;----End of auto-execute section.</em>
 <em>;----Open the selected favorite</em>
 f_OpenFavorite:
 <em>; Fetch the array element that corresponds to the selected menu item:</em>
-StringTrimLeft, f_path, f_path%A_ThisMenuItemPos%, 0
-if f_path =
+f_path := f_path%A_ThisMenuItemPos%
+if f_path = ""
     return
-if f_class = #32770    <em>; It's a dialog.</em>
+if f_class = "#32770"    <em>; It's a dialog.</em>
 {
-    if f_Edit1Pos &lt;&gt;   <em>; And it has an Edit1 control.</em>
-    {
-        <em>; Activate the window so that if the user is middle-clicking</em>
-        <em>; outside the dialog, subsequent clicks will also work:</em>
-        WinActivate ahk_id %f_window_id%
-        <em>; Retrieve any filename that might already be in the field so</em>
-        <em>; that it can be restored after the switch to the new folder:</em>
-        ControlGetText, f_text, Edit1, ahk_id %f_window_id%
-        ControlSetText, Edit1, %f_path%, ahk_id %f_window_id%
-        ControlSend, Edit1, {Enter}, ahk_id %f_window_id%
-        Sleep, 100  <em>; It needs extra time on some dialogs or in some cases.</em>
-        ControlSetText, Edit1, %f_text%, ahk_id %f_window_id%
-        return
-    }
+    <em>; Activate the window so that if the user is middle-clicking
+    ; outside the dialog, subsequent clicks will also work:</em>
+    WinActivate ahk_id %f_window_id%
+    <em>; Retrieve any filename that might already be in the field so
+    ; that it can be restored after the switch to the new folder:</em>
+    ControlGetText, f_text, Edit1, ahk_id %f_window_id%
+    ControlSetText, Edit1, %f_path%, ahk_id %f_window_id%
+    ControlFocus, Edit1, ahk_id %f_window_id%
+    ControlSend, Edit1, {Enter}, ahk_id %f_window_id%
+    Sleep, 100  <em>; It needs extra time on some dialogs or in some cases.</em>
+    ControlSetText, Edit1, %f_text%, ahk_id %f_window_id%
+    return
     <em>; else fall through to the bottom of the subroutine to take standard action.</em>
 }
-else if f_class in ExploreWClass,CabinetWClass  <em>; In Explorer, switch folders.</em>
+else if f_class  ~= "ExploreWClass|CabinetWClass"  <em>; In Explorer, switch folders.</em>
 {
-    if f_Edit1Pos &lt;&gt;   <em>; And it has an Edit1 control.</em>
-    {
-        ControlSetText, Edit1, %f_path%, ahk_id %f_window_id%
-        <em>; Tekl reported the following: &quot;If I want to change to Folder L:\folder</em>
-        <em>; then the addressbar shows http://www.L:\folder.com. To solve this,</em>
-        <em>; I added a {right} before {Enter}&quot;:</em>
-        ControlSend, Edit1, {Right}{Enter}, ahk_id %f_window_id%
-        return
-    }
+    ControlClick, ToolbarWindow323, ahk_id %f_window_id%,,,, NA x1 y1
+    ControlSetText, Edit1, %f_path%, ahk_id %f_window_id%
+    <em>; Tekl reported the following: "If I want to change to Folder L:\folder
+    ; then the addressbar shows http://www.L:\folder.com. To solve this,
+    ; I added a {right} before {Enter}":</em>
+    ControlSend, Edit1, {Right}{Enter}, ahk_id %f_window_id%
+    return
     <em>; else fall through to the bottom of the subroutine to take standard action.</em>
 }
-else if f_class = ConsoleWindowClass <em>; In a console window, CD to that directory</em>
+else if f_class = "ConsoleWindowClass" <em>; In a console window, CD to that directory</em>
 {
     WinActivate, ahk_id %f_window_id% <em>; Because sometimes the mclick deactivates it.</em>
     SetKeyDelay, 0  <em>; This will be in effect only for the duration of this thread.</em>
-    IfInString, f_path, :  <em>; It contains a drive letter</em>
+    if InStr(f_path, ":")  <em>; It contains a drive letter</em>
     {
-        StringLeft, f_path_drive, f_path, 1
+        f_path_drive := SubStr(f_path, 1, 1)
         Send %f_path_drive%:{enter}
     }
     Send, cd %f_path%{Enter}
     return
 }
 <em>; Since the above didn't return, one of the following is true:
-; 1) It's an unsupported window type but f_AlwaysShowMenu is y (yes).
-; 2) It's a supported type but it lacks an Edit1 control to facilitate the custom
-;    action, so instead do the default action below.</em>
+; 1) It's an unsupported window type but f_AlwaysShowMenu is y (yes).</em>
 Run, Explorer %f_path%  <em>; Might work on more systems without double quotes.</em>
 return
 
@@ -180,18 +166,11 @@ return
 <em>;----Display the menu</em>
 f_DisplayMenu:
 <em>; These first few variables are set here and used by f_OpenFavorite:</em>
-WinGet, f_window_id, ID, A
+WinGetID, f_window_id, A
 WinGetClass, f_class, ahk_id %f_window_id%
-if f_class in #32770,ExploreWClass,CabinetWClass  <em>; Dialog or Explorer.</em>
-    ControlGetPos, f_Edit1Pos,,,, Edit1, ahk_id %f_window_id%
-if f_AlwaysShowMenu = n  <em>; The menu should be shown only selectively.</em>
+if f_AlwaysShowMenu = false  <em>; The menu should be shown only selectively.</em>
 {
-    if f_class in #32770,ExploreWClass,CabinetWClass  <em>; Dialog or Explorer.</em>
-    {
-        if f_Edit1Pos =  <em>; The control doesn't exist, so don't display the menu</em>
-            return
-    }
-    else if f_class &lt;&gt; ConsoleWindowClass
+    if !(f_class ~= "#32770|ExploreWClass|CabinetWClass|ConsoleWindowClass")
         return <em>; Since it's some other window type, don't display menu.</em>
 }
 <em>; Otherwise, the menu should be presented for this type of window:</em>

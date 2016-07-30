@@ -1,4 +1,4 @@
-; On-Screen Keyboard (requires XP/2k/NT) -- by Jon
+Ôªø; On-Screen Keyboard (requires XP/2k/NT) -- by Jon
 ; http://www.autohotkey.com
 ; This script creates a mock keyboard at the bottom of your screen that shows
 ; the keys you are pressing in real time. I made it to help me to learn to
@@ -11,18 +11,18 @@
 
 ; Changing this font size will make the entire on-screen keyboard get
 ; larger or smaller:
-k_FontSize = 10
-k_FontName = Verdana  ; This can be blank to use the system's default font.
-k_FontStyle = Bold    ; Example of an alternative: Italic Underline
+k_FontSize := 10
+k_FontName := "Verdana"  ; This can be blank to use the system's default font.
+k_FontStyle := "Bold"    ; Example of an alternative: Italic Underline
 
 ; Names for the tray menu items:
-k_MenuItemHide = Hide on-screen &keyboard
-k_MenuItemShow = Show on-screen &keyboard
+k_MenuItemHide := "Hide on-screen &keyboard"
+k_MenuItemShow := "Show on-screen &keyboard"
 
 ; To have the keyboard appear on a monitor other than the primary, specify
 ; a number such as 2 for the following variable.  Leave it blank to use
 ; the primary:
-k_Monitor = 
+k_Monitor := ""
 
 ;---- End of configuration section.  Don't change anything below this point
 ; unless you want to alter the basic nature of the script.
@@ -35,24 +35,19 @@ Menu, Tray, Default, %k_MenuItemHide%
 Menu, Tray, NoStandard
 
 ;---- Calculate object dimensions based on chosen font size:
-k_KeyWidth = %k_FontSize%
-k_KeyWidth *= 3
-k_KeyHeight = %k_FontSize%
-k_KeyHeight *= 3
-k_KeyMargin = %k_FontSize%
-k_KeyMargin /= 6
-k_SpacebarWidth = %k_FontSize%
-k_SpacebarWidth *= 25
-k_KeyWidthHalf = %k_KeyWidth%
-k_KeyWidthHalf /= 2
+k_KeyWidth := k_FontSize * 3
+k_KeyHeight := k_FontSize * 3
+k_KeyMargin := k_FontSize / 6
+k_SpacebarWidth := k_FontSize * 25
+k_KeyWidthHalf := k_KeyWidth / 2
 
-k_KeySize = w%k_KeyWidth% h%k_KeyHeight%
-k_Position = x+%k_KeyMargin% %k_KeySize%
+k_KeySize := "w%k_KeyWidth% h%k_KeyHeight%"
+k_Position := "x+%k_KeyMargin% %k_KeySize%"
 
 ;---- Create a GUI window for the on-screen keyboard:
 Gui, Font, s%k_FontSize% %k_FontStyle%, %k_FontName%
 Gui, -Caption +E0x200 +ToolWindow
-TransColor = F1ECED
+TransColor := "F1ECED"
 Gui, Color, %TransColor%  ; This color will be made transparent later below.
 
 ;---- Add a button for each key. Position the first button with absolute
@@ -121,42 +116,40 @@ Gui, Add, Button, h%k_KeyHeight% x+%k_KeyMargin% w%k_SpacebarWidth%, Space
 
 ;---- Show the window:
 Gui, Show
-k_IsVisible = y
+k_IsVisible := true
 
-WinGet, k_ID, ID, A   ; Get its window ID.
+WinGetID, k_ID, A   ; Get its window ID.
 WinGetPos,,, k_WindowWidth, k_WindowHeight, A
 
 ;---- Position the keyboard at the bottom of the screen (taking into account
 ; the position of the taskbar):
-SysGet, k_WorkArea, MonitorWorkArea, %k_Monitor%
+MonitorGetWorkArea, %k_Monitor%, k_WorkAreaLeft,, k_WorkAreaRight, k_WorkAreaBottom
 
 ; Calculate window's X-position:
-k_WindowX = %k_WorkAreaRight%
-k_WindowX -= %k_WorkAreaLeft%  ; Now k_WindowX contains the width of this monitor.
-k_WindowX -= %k_WindowWidth%
+k_WindowX := k_WorkAreaRight
+k_WindowX -= k_WorkAreaLeft  ; Now k_WindowX contains the width of this monitor.
+k_WindowX -= k_WindowWidth
 k_WindowX /= 2  ; Calculate position to center it horizontally.
 ; The following is done in case the window will be on a non-primary monitor
 ; or if the taskbar is anchored on the left side of the screen:
-k_WindowX += %k_WorkAreaLeft%
+k_WindowX += k_WorkAreaLeft
 
 ; Calculate window's Y-position:
-k_WindowY = %k_WorkAreaBottom%
-k_WindowY -= %k_WindowHeight%
+k_WindowY := k_WorkAreaBottom - k_WindowHeight
 
 WinMove, A,, %k_WindowX%, %k_WindowY%
-WinSet, AlwaysOnTop, On, ahk_id %k_ID%
-WinSet, TransColor, %TransColor% 220, ahk_id %k_ID%
+WinSetAlwaysOnTop, On, ahk_id %k_ID%
+WinSetTransColor, %TransColor% 220, ahk_id %k_ID%
 
 
 ;---- Set all keys as hotkeys. See www.asciitable.com
-k_n = 1
-k_ASCII = 45
+k_n := 1
+k_ASCII := 45
 
 Loop
 {
-	Transform, k_char, Chr, %k_ASCII%
-	StringUpper, k_char, k_char
-	if k_char not in <,>,^,~,Å,`,
+	k_char := StrUpper(Chr(k_ASCII))
+	if !InStr("<>^~?,", k_char)
 		Hotkey, ~*%k_char%, k_KeyPress
 		; In the above, the asterisk prefix allows the key to be detected regardless
 		; of whether the user is holding down modifier keys such as Control and Shift.
@@ -187,7 +180,7 @@ return
 ~*RAlt::
 ~*LWin::
 ~*RWin::
-StringTrimLeft, k_ThisHotkey, A_ThisHotkey, 3
+k_ThisHotkey := SubStr(A_ThisHotkey, 3)
 ControlClick, %k_ThisHotkey%, ahk_id %k_ID%, , LEFT, 1, D
 KeyWait, %k_ThisHotkey%
 ControlClick, %k_ThisHotkey%, ahk_id %k_ID%, , LEFT, 1, U
@@ -200,8 +193,8 @@ return
 ~*Enter::
 ~*Tab::
 k_KeyPress:
-StringReplace, k_ThisHotkey, A_ThisHotkey, ~
-StringReplace, k_ThisHotkey, k_ThisHotkey, *
+StrReplace, k_ThisHotkey, %A_ThisHotkey%, ~
+StrReplace, k_ThisHotkey, %k_ThisHotkey%, *
 SetTitleMatchMode, 3  ; Prevents the T and B keys from being confused with Tab and Backspace.
 ControlClick, %k_ThisHotkey%, ahk_id %k_ID%, , LEFT, 1, D
 KeyWait, %k_ThisHotkey%
@@ -210,17 +203,17 @@ Return
 
 
 k_ShowHide:
-if k_IsVisible = y
+if k_IsVisible = true
 {
 	Gui, Cancel
 	Menu, Tray, Rename, %k_MenuItemHide%, %k_MenuItemShow%
-	k_IsVisible = n
+	k_IsVisible := false
 }
 else
 {
 	Gui, Show
 	Menu, Tray, Rename, %k_MenuItemShow%, %k_MenuItemHide%
-	k_IsVisible = y
+	k_IsVisible := true
 }
 return
 

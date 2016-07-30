@@ -23,26 +23,26 @@
 <em>; Make customisation only in this area or hotkey area only!!</em>
 
 <em>; The percentage by which to raise or lower the volume each time:</em>
-vol_Step = 4
+vol_Step := 4
 
 <em>; How long to display the volume level bar graphs:</em>
-vol_DisplayTime = 2000
+vol_DisplayTime := 2000
 
 <em>; Master Volume Bar color (see the help file to use more
 ; precise shades):</em>
-vol_CBM = Red
+vol_CBM := "Red"
 
 <em>; Wave Volume Bar color</em>
-vol_CBW = Blue
+vol_CBW := "Blue"
 
 <em>; Background color</em>
-vol_CW = Silver
+vol_CW := "Silver"
 
-<em>; Bar's screen position.  Use -1 to center the bar in that dimension:</em>
-vol_PosX = -1
-vol_PosY = -1
-vol_Width = 150  <em>; width of bar</em>
-vol_Thick = 12   <em>; thickness of bar</em>
+<em>; Bar's screen position.  Use "center" to center the bar in that dimension:</em>
+vol_PosX := "center"
+vol_PosY := "center"
+vol_Width := 150  <em>; width of bar</em>
+vol_Thick := 12   <em>; thickness of bar</em>
 
 <em>; If your keyboard has multimedia buttons for Volume, you can
 ; try changing the below hotkeys to use them by specifying
@@ -58,31 +58,15 @@ HotKey, +#Down, vol_WaveDown
 
 <em>; DON'T CHANGE ANYTHING HERE (unless you know what you're doing).</em>
 
-vol_BarOptionsMaster = 1:B ZH%vol_Thick% ZX0 ZY0 W%vol_Width% CB%vol_CBM% CW%vol_CW%
-vol_BarOptionsWave   = 2:B ZH%vol_Thick% ZX0 ZY0 W%vol_Width% CB%vol_CBW% CW%vol_CW%
-
-<em>; If the X position has been specified, add it to the options.
-; Otherwise, omit it to center the bar horizontally:</em>
-if vol_PosX &gt;= 0
-{
-    vol_BarOptionsMaster = %vol_BarOptionsMaster% X%vol_PosX%
-    vol_BarOptionsWave   = %vol_BarOptionsWave% X%vol_PosX%
-}
-
-<em>; If the Y position has been specified, add it to the options.
-; Otherwise, omit it to have it calculated later:</em>
-if vol_PosY &gt;= 0
-{
-    vol_BarOptionsMaster = %vol_BarOptionsMaster% Y%vol_PosY%
-    vol_PosY_wave = %vol_PosY%
-    vol_PosY_wave += %vol_Thick%
-    vol_BarOptionsWave = %vol_BarOptionsWave% Y%vol_PosY_wave%
-}
-
 #SingleInstance
-SetBatchLines, 10ms
-Return
 
+<em>; Progress window</em>
+
+Gui, +ToolWindow -Caption -Border +Disabled
+Gui, Margin, 0, 0
+Gui, Add, Progress, vMaster w%vol_Width% h%vol_Thick% c%vol_CBM% background%vol_CW%
+Gui, Add, Progress, vWave w%vol_Width% h%vol_Thick% c%vol_CBW% background%vol_CW%
+Return
 
 <em>;___________________________________________</em>
 
@@ -107,36 +91,17 @@ Gosub, vol_ShowBars
 return
 
 vol_ShowBars:
-<em>; To prevent the &quot;flashing&quot; effect, only create the bar window if it
-; doesn't already exist:</em>
-IfWinNotExist, vol_Wave
-    Progress, %vol_BarOptionsWave%, , , vol_Wave
-IfWinNotExist, vol_Master
-{
-    <em>; Calculate position here in case screen resolution changes while</em>
-    <em>; the script is running:</em>
-    if vol_PosY &lt; 0
-    {
-        <em>; Create the Wave bar just above the Master bar:</em>
-        WinGetPos, , vol_Wave_Posy, , , vol_Wave
-        vol_Wave_Posy -= %vol_Thick%
-        Progress, %vol_BarOptionsMaster% Y%vol_Wave_Posy%, , , vol_Master
-    }
-    else
-        Progress, %vol_BarOptionsMaster%, , , vol_Master
-}
 <em>; Get both volumes in case the user or an external program changed them:</em>
 SoundGet, vol_Master, Master
 SoundGet, vol_Wave, Wave
-Progress, 1:%vol_Master%
-Progress, 2:%vol_Wave%
-SetTimer, vol_BarOff, %vol_DisplayTime%
+GuiControl,, Master, %vol_Master%
+GuiControl,, Wave, %vol_Wave%
+Gui, Show, x%vol_PosX% y%vol_PosY%
+SetTimer, vol_BarOff, -%vol_DisplayTime%
 return
 
 vol_BarOff:
-SetTimer, vol_BarOff, off
-Progress, 1:Off
-Progress, 2:Off
+Gui, Hide
 return
 </pre>
 </body>

@@ -30,8 +30,8 @@
       <p>Delimiter characters are not considered to be part of the substrings themselves. In addition, if there is nothing between a pair of delimiters within the input string, the corresponding substring will be empty.</p>
       <p>For example: `, (an escaped comma) would divide the string based on every occurrence of a comma. Similarly, %A_Tab%%A_Space% would start a new substring every time a space or tab is encountered in the input string.</p>
       <p>To use a string as a delimiter rather than a character, first use <a href="StrReplace.htm">StrReplace</a> to replace all occurrences of the string with a single character that is never used literally in the text, e.g. one of these special characters: &cent;&curren;&yen;&brvbar;&sect;&copy;&ordf;&laquo;&reg;&micro;&para;. Consider this example, which uses the string &lt;br&gt; as a delimiter:</p>
-      <pre>StrReplace, NewHTML, HTMLString, &lt;br&gt;, &cent;, All
-Loop, parse, NewHTML, &cent; <em>; Parse the string based on the cent symbol.</em>
+      <pre>StrReplace, NewHTML, %HTMLString%, &lt;br&gt;, &cent;
+Loop, parse, %NewHTML%, &cent; <em>; Parse the string based on the cent symbol.</em>
 {
 ...
 }</pre></dd>
@@ -54,15 +54,15 @@ Loop, parse, NewHTML, &cent; <em>; Parse the string based on the cent symbol.</e
 <p><a href="StrSplit.htm">StrSplit</a>, <a href="LoopReadFile.htm">file-reading loop</a>, <a href="Loop.htm">Loop</a>, <a href="Break.htm">Break</a>, <a href="Continue.htm">Continue</a>, <a href="Block.htm">Blocks</a>, <a href="Sort.htm">Sort</a>, <a href="FileSetAttrib.htm">FileSetAttrib</a>, <a href="FileSetTime.htm">FileSetTime</a></p>
 <h3>Examples</h3>
 <pre class="NoIndent"><em>; Example #1:</em>
-Colors = red,green,blue
-Loop, parse, Colors, `,
+Colors := "red,green,blue"
+Loop, parse, %Colors%, `,
 {
     MsgBox, Color number %A_Index% is %A_LoopField%.
 }</pre>
 <p>&nbsp;</p>
 <pre class="NoIndent"><em>; Example #2: Read the lines inside a variable, one by one (similar to a <a href="LoopReadFile.htm">file-reading</a> loop).
 ; A file can be loaded into a variable via <a href="FileRead.htm">FileRead</a>:</em>
-Loop, parse, FileContents, `n, `r  <em>; Specifying `n prior to `r allows both Windows and Unix files to be parsed.</em>
+Loop, parse, %FileContents%, `n, `r  <em>; Specifying `n prior to `r allows both Windows and Unix files to be parsed.</em>
 {
     MsgBox, 4, , Line number %A_Index% is %A_LoopField%.`n`nContinue?
     if A_MsgBoxResult = "No", break
@@ -71,7 +71,7 @@ Loop, parse, FileContents, `n, `r  <em>; Specifying `n prior to `r allows both W
 <pre class="NoIndent"><em>; Example #3: This is the same as the example above except that it's for the clipboard.
 ; It's useful whenever the clipboard contains files, such as those copied from an open
 ; Explorer window (the program automatically converts such files to their file names):</em>
-Loop, parse, clipboard, `n, `r
+Loop, parse, %clipboard%, `n, `r
 {
     MsgBox, 4, , File number %A_Index% is %A_LoopField%.`n`nContinue?
     if A_MsgBoxResult = "No", break
@@ -80,8 +80,8 @@ Loop, parse, clipboard, `n, `r
 <pre class="NoIndent"><em>; Example #4: Parse a comma separated value (CSV) file:</em>
 Loop, read, C:\Database Export.csv
 {
-    LineNumber = %A_Index%
-    Loop, parse, A_LoopReadLine, CSV
+    LineNumber := A_Index
+    Loop, parse, %A_LoopReadLine%, CSV
     {
         MsgBox, 4, , Field %LineNumber%-%A_Index% is:`n%A_LoopField%`n`nContinue?
         if A_MsgBoxResult = "No"
@@ -92,11 +92,11 @@ Loop, read, C:\Database Export.csv
 <pre class="NoIndent"><em>; Example #5: Determining which delimiter was encountered.</em>
 
 <em>; Initialize string to search.</em>
-Colors = red,green|blue;yellow|cyan,magenta
+Colors := "red,green|blue;yellow|cyan,magenta"
 <em>; Initialize counter to keep track of our position in the string.</em>
 Position := 0
 
-Loop, Parse, Colors, `,|;
+Loop, Parse, %Colors%, `,|;
 {
     <em>; Calculate the position of the delimiter at the end of this field.</em>
     Position += StrLen(A_LoopField) + 1

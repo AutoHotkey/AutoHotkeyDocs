@@ -1,4 +1,4 @@
-; Easy Window Dragging -- KDE style (requires XP/2k/NT) -- by Jonny
+﻿; Easy Window Dragging -- KDE style (requires XP/2k/NT) -- by Jonny
 ; http://www.autohotkey.com
 ; This script makes it much easier to move or resize a window: 1) Hold down
 ; the ALT key and LEFT-click anywhere inside a window to drag it to a new
@@ -12,6 +12,7 @@
 ; and aurelian for a job well done.
 
 ; Change history:
+; July 16, 2016: Revised code for AHK v2 compatibility
 ; November 07, 2006: Optimized resizing code in !RButton, courtesy of bluedawn.
 ; February 05, 2006: Fixed double-alt (the ~Alt hotkey) to work with latest versions of AHK.
 
@@ -28,14 +29,6 @@
 ;
 ; You can optionally release Alt after the first
 ; click rather than holding it down the whole time.
-
-If (A_AhkVersion < "1.0.39.00")
-{
-    MsgBox,20,,This script may not work properly with your version of AutoHotkey. Continue?
-    IfMsgBox,No
-    ExitApp
-}
-
 
 ; This is the setting that runs smoothest on my
 ; system. Depending on your video card and cpu
@@ -58,7 +51,7 @@ If DoubleAlt
 ; Get the initial mouse position and window id, and
 ; abort if the window is maximized.
 MouseGetPos,KDE_X1,KDE_Y1,KDE_id
-WinGet,KDE_Win,MinMax,ahk_id %KDE_id%
+WinGetMinMax,KDE_Win,ahk_id %KDE_id%
 If KDE_Win
     return
 ; Get the initial window position.
@@ -66,7 +59,7 @@ WinGetPos,KDE_WinX1,KDE_WinY1,,,ahk_id %KDE_id%
 Loop
 {
     GetKeyState,KDE_Button,LButton,P ; Break if button has been released.
-    If KDE_Button = U
+    If !KDE_Button
         break
     MouseGetPos,KDE_X2,KDE_Y2 ; Get the current mouse position.
     KDE_X2 -= KDE_X1 ; Obtain an offset from the initial mouse position.
@@ -82,7 +75,7 @@ If DoubleAlt
 {
     MouseGetPos,,,KDE_id
     ; Toggle between maximized and restored state.
-    WinGet,KDE_Win,MinMax,ahk_id %KDE_id%
+    WinGetMinMax,KDE_Win,ahk_id %KDE_id%
     If KDE_Win
         WinRestore,ahk_id %KDE_id%
     Else
@@ -93,7 +86,7 @@ If DoubleAlt
 ; Get the initial mouse position and window id, and
 ; abort if the window is maximized.
 MouseGetPos,KDE_X1,KDE_Y1,KDE_id
-WinGet,KDE_Win,MinMax,ahk_id %KDE_id%
+WinGetMinMax,KDE_Win,ahk_id %KDE_id%
 If KDE_Win
     return
 ; Get the initial window position and size.
@@ -111,7 +104,7 @@ Else
 Loop
 {
     GetKeyState,KDE_Button,RButton,P ; Break if button has been released.
-    If KDE_Button = U
+    If !KDE_Button
         break
     MouseGetPos,KDE_X2,KDE_Y2 ; Get the current mouse position.
     ; Get the current window position and size.
@@ -119,10 +112,10 @@ Loop
     KDE_X2 -= KDE_X1 ; Obtain an offset from the initial mouse position.
     KDE_Y2 -= KDE_Y1
     ; Then, act according to the defined region.
-    WinMove,ahk_id %KDE_id%,, KDE_WinX1 + (KDE_WinLeft+1)/2*KDE_X2  ; X of resized window
-                            , KDE_WinY1 +   (KDE_WinUp+1)/2*KDE_Y2  ; Y of resized window
-                            , KDE_WinW  -     KDE_WinLeft  *KDE_X2  ; W of resized window
-                            , KDE_WinH  -       KDE_WinUp  *KDE_Y2  ; H of resized window
+    WinMove,ahk_id %KDE_id%,, % KDE_WinX1 + (KDE_WinLeft+1)/2*KDE_X2  ; X of resized window
+                            , % KDE_WinY1 +   (KDE_WinUp+1)/2*KDE_Y2  ; Y of resized window
+                            , % KDE_WinW  -     KDE_WinLeft  *KDE_X2  ; W of resized window
+                            , % KDE_WinH  -       KDE_WinUp  *KDE_Y2  ; H of resized window
     KDE_X1 := (KDE_X2 + KDE_X1) ; Reset the initial position for the next iteration.
     KDE_Y1 := (KDE_Y2 + KDE_Y1)
 }

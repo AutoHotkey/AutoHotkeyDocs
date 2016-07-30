@@ -60,7 +60,7 @@ if <a href="../commands/GetKeyState.htm">GetKeyState</a>(&quot;Joy3&quot;)  <em>
     return
 <em>; Otherwise, the button has been released.</em>
 Send {LButton up}  <em>; Release the left mouse button.</em>
-SetTimer, WaitForButtonUp3, off
+SetTimer,, off
 return
 </pre>
 <br>
@@ -74,7 +74,7 @@ WaitForJoy2:
 if not GetKeyState(&quot;Joy2&quot;)  <em>; The button has been released.</em>
 {
     Send {Space up}  <em>; Release the spacebar.</em>
-    SetTimer, WaitForJoy2, off  <em>; Stop monitoring the button.</em>
+    SetTimer,, off  <em>; Stop monitoring the button.</em>
     return
 }
 <em>; Since above didn't &quot;return&quot;, the button is still being held down.</em>
@@ -84,27 +84,26 @@ return</pre>
 <p><strong>Using a Joystick as a Mouse</strong>: The <a href="../scripts/JoystickMouse.htm">Joystick-To-Mouse script</a> converts a joystick into a mouse by remapping its buttons and axis control.</p>
 <h2 id="axis">Making a Joystick Axis or POV Hat Send Keystrokes or Mouse Clicks</h2>
 <p>To have a script respond to movement of a joystick's axis or POV hat, use <a href="../commands/SetTimer.htm">SetTimer</a> and <a href="../commands/GetKeyState.htm">GetKeyState</a>. The following example makes the joystick's X and Y axes behave like the arrow key cluster on a keyboard (left, right, up, and down):</p>
-<pre>#Persistent  <em>; Keep this script running until the user explicitly exits it.</em>
-<a href="../commands/SetTimer.htm">SetTimer</a>, WatchAxis, 5
+<pre><a href="../commands/SetTimer.htm">SetTimer</a>, WatchAxis, 5
 return
 
 WatchAxis:
 <a href="../commands/GetKeyState.htm">GetKeyState</a>, JoyX, JoyX  <em>; Get position of X axis.</em>
 GetKeyState, JoyY, JoyY  <em>; Get position of Y axis.</em>
-KeyToHoldDownPrev = %KeyToHoldDown%  <em>; Prev now holds the key that was down before (if any).</em>
+KeyToHoldDownPrev := KeyToHoldDown  <em>; Prev now holds the key that was down before (if any).</em>
 
 if JoyX &gt; 70
-    KeyToHoldDown = Right
+    KeyToHoldDown := "Right"
 else if JoyX &lt; 30
-    KeyToHoldDown = Left
+    KeyToHoldDown := "Left"
 else if JoyY &gt; 70
-    KeyToHoldDown = Down
+    KeyToHoldDown := "Down"
 else if JoyY &lt; 30
-    KeyToHoldDown = Up
+    KeyToHoldDown := "Up"
 else
-    KeyToHoldDown =
+    KeyToHoldDown := ""
 
-if KeyToHoldDown = %KeyToHoldDownPrev%  <em>; The correct key is already down (or no key is needed).</em>
+if KeyToHoldDown = KeyToHoldDownPrev  <em>; The correct key is already down (or no key is needed).</em>
     return  <em>; Do nothing.</em>
 
 <em>; Otherwise, release the previous key and press down the new key:</em>
@@ -116,30 +115,29 @@ if KeyToHoldDown   <em>; There is a key to press down.</em>
 return</pre>
 <p>&nbsp;</p>
 <p>The following example makes the joystick's POV hat behave like the arrow key cluster on a keyboard; that is, the POV hat will send arrow keystrokes (left, right, up, and down):</p>
-<pre>#Persistent  <em>; Keep this script running until the user explicitly exits it.</em>
-SetTimer, WatchPOV, 5
+<pre>SetTimer, WatchPOV, 5
 return
 
 WatchPOV:
 GetKeyState, POV, JoyPOV  <em>; Get position of the POV control.</em>
-KeyToHoldDownPrev = %KeyToHoldDown%  <em>; Prev now holds the key that was down before (if any).</em>
+KeyToHoldDownPrev := KeyToHoldDown  <em>; Prev now holds the key that was down before (if any).</em>
 
 <em>; Some joysticks might have a smooth/continous POV rather than one in fixed increments.
 ; To support them all, use a range:</em>
 if POV &lt; 0   <em>; No angle to report</em>
-    KeyToHoldDown =
-else if POV &gt; 31500                 <em>; 315 to 360 degrees: Forward</em>
-    KeyToHoldDown = Up
-else if POV between 0 and 4500      <em>; 0 to 45 degrees: Forward</em>
-    KeyToHoldDown = Up
-else if POV between 4501 and 13500  <em>; 45 to 135 degrees: Right</em>
-    KeyToHoldDown = Right
-else if POV between 13501 and 22500 <em>; 135 to 225 degrees: Down</em>
-    KeyToHoldDown = Down
-else                                <em>; 225 to 315 degrees: Left</em>
-    KeyToHoldDown = Left
+    KeyToHoldDown := ""
+else if POV &gt; 31500                <em>; 315 to 360 degrees: Forward</em>
+    KeyToHoldDown := "Up"
+else if POV >= 0 and POV <= 4500      <em>; 0 to 45 degrees: Forward</em>
+    KeyToHoldDown := "Up"
+else if POV >= 4501 and POV <= 13500  <em>; 45 to 135 degrees: Right</em>
+    KeyToHoldDown := "Right"
+else if POV >= 13501 and POV <= 22500 <em>; 135 to 225 degrees: Down</em>
+    KeyToHoldDown := "Down"
+else                                  <em>; 225 to 315 degrees: Left</em>
+    KeyToHoldDown := "Left"
 
-if KeyToHoldDown = %KeyToHoldDownPrev%  <em>; The correct key is already down (or no key is needed).</em>
+if KeyToHoldDown = KeyToHoldDownPrev  <em>; The correct key is already down (or no key is needed).</em>
     return  <em>; Do nothing.</em>
 
 <em>; Otherwise, release the previous key and press down the new key:</em>

@@ -1,4 +1,4 @@
-; Seek -- by Phi
+﻿; Seek -- by Phi
 ; http://www.autohotkey.com
 ; Navigating the Start Menu can be a hassle, especially
 ; if you have installed many programs over time. 'Seek'
@@ -13,7 +13,7 @@
 ;
 ;  Program : Seek
 ;  Coder   : Phi
-;  Updated : Mon Jan 31 10:08:37 2005
+;  Updated : Mon Jul 18 17:57:37 2016
 ;
 ;  What do you seek, my friend?
 ;
@@ -106,7 +106,7 @@
 ;    for you to enter a key word/phrase. After you have
 ;    entered a query string, a list of matching records
 ;    will be displayed. Next, you need to highlight an
-;    entry and press <Enter> or click on the 'Open'
+;    entry and press ENTER or click on the 'Open'
 ;    button to run the selected program or open the
 ;    selected directory.
 ;
@@ -114,9 +114,8 @@
 ;
 ; TECHNICAL NOTES:
 ;
-; - 'Seek' requires Chris Mallett's AutoHotkey v1.0.25
-;   or higher version (http://www.autohotkey.com).
-;   Thanks to Chris for his great work on AutoHotkey. :)
+; - 'Seek' requires AutoHotkey v2 (http://www.autohotkey.com).
+;   Thanks to Lexikos for his great work on AutoHotkey. :)
 ;
 ; - The following environment variables must be valid:
 ;   a. TMP
@@ -132,7 +131,7 @@
 ; IMPLEMENTED SUGGESTIONS:
 ;
 ; - Highlight 1st matching record by default so that
-;   user can just hit <Enter> to run it.
+;   user can just hit ENTER to run it.
 ;   (Suggested by Yih Yeong)
 ;
 ; - Enable double-click on the listing of the search
@@ -196,7 +195,7 @@
 ; - Added 'Scan Start-Menu' button.
 ; - Added real-time incremental search which will auto
 ;   filter for matching records while you type away,
-;   without waiting for you to press <Enter>.
+;   without waiting for you to press ENTER.
 ; - Added internal switch (TrackKeyPhrase) to track search-string.
 ; - Added internal switch (ToolTipFilename) to show filename
 ;   using tooltip.
@@ -241,7 +240,7 @@
 ;   in testing another method before these new variables
 ;   are available.)
 ; - Added the pre-selection of the last-run program
-;   record so that a quick double-<ENTER> will run it.
+;   record so that a quick double-ENTER will run it.
 ;
 ;*****************************************************************
 
@@ -255,23 +254,23 @@
 ; If the program cannot be found or is not specified
 ; (i.e. variable is unassigned or assigned a null value),
 ; the default Explorer will be used.
-dirExplorer = E:\utl\xplorer2_lite\xplorer2.exe
+dirExplorer := "E:\utl\xplorer2_lite\xplorer2.exe"
 
 ; User's customised list of additional directories to be
 ; included in the scanning. The full path must not be
 ; enclosed by quotes or double-quotes. If this file is
 ; missing, only the default directories will be scanned.
-SeekMyDir = %A_ScriptDir%\Seek.dir
+SeekMyDir := "%A_ScriptDir%\Seek.dir"
 
 ; Specify the filename and directory location to save
 ; the cached directory/program listing. There is no
 ; need to change this unless you want to.
-dirListing = %A_Temp%\_Seek.list
+dirListing := "%A_Temp%\_Seek.list"
 
 ; Specify the filename and directory location to save
 ; the cached key word/phrase of last search. There is
 ; no need to change this unless you want to.
-keyPhrase = %A_Temp%\_Seek.key
+keyPhrase := "%A_Temp%\_Seek.key"
 
 ; Track search string (ON/OFF)
 ; If ON, the last-used query string will be re-used as
@@ -279,23 +278,21 @@ keyPhrase = %A_Temp%\_Seek.key
 ; If OFF, the last-used query string will not be tracked
 ; and there will not be a default query string value the
 ; next time you run Seek.
-TrackKeyPhrase = ON
+TrackKeyPhrase := "ON"
 
 ; Specify what should be included in scan.
-; 0: Directories are excluded (only files).
-; 1: All files and directories are included.
-; 2: Only directories are included (no files).
-ScanMode = 1
+; F: Files are included.
+; D: Directories are included.
+ScanMode := "FD"
 
 ;...........................................................
 
 ; INIT
 ;#NoTrayIcon
-StringCaseSense, Off
-version = Seek v2.0.3
+version := "Seek v2.0.3"
 
 ; DISPLAY HELP INSTRUCTIONS
-If 1 in --help,-help,/h,-h,/?,-?
+if A_Args[1] ~= "^(--help|-help|/h|-h|/\?|-\?)$"
 {
 	MsgBox,, %version%, Navigating the Start Menu can be a hassle, especially if you have installed many programs over time. 'Seek' lets you specify a case-insensitive key word/phrase that it will use to filter only the matching programs and directories from the Start Menu, so that you can easily open your target program from a handful of matched entries. This eliminates the drudgery of searching and traversing the Start Menu.`n`nI have a lot of fun coding this, and hope you will enjoy using it too. Feel free to drop me an email with your comments and feedback at: phi1618 (*a.t*) gmail :D0T: com.`n`nOptions:`n  -cache`tUse the cached directory-listing if available (this is the default mode when no option is specified)`n  -scan`tForce a directory scan to retrieve the latest directory listing`n  -scex`tScan & exit (this is useful for scheduling the potentially time-consuming directory-scanning as a background job)`n  -help`tShow this help
 	Goto QuitNoSave
@@ -303,24 +300,27 @@ If 1 in --help,-help,/h,-h,/?,-?
 
 ; CHECK THAT THE MANDATORY ENVIRONMENT VARIABLES EXIST AND ARE VALID
 ; *TMP*
-IfNotExist, %A_Temp% ; PATH DOES NOT EXIST
+if !FileExist(A_Temp) ; PATH DOES NOT EXIST
 {
 	MsgBox This mandatory environment variable is either not defined or invalid:`n`n    TMP = %A_Temp%`n`nPlease fix it before running Seek.
 	Goto QuitNoSave
 }
 
 ; IF NOT SCAN-AND-EXIT
-IfNotEqual 1, -scex
+if A_Args[1] != "-scex"
 {
 	; RETRIEVE THE LAST USED KEY-PHRASE FROM CACHE FILE
 	; TO BE USED AS THE DEFAULT QUERY STRING
-	If TrackKeyPhrase = ON
+	If TrackKeyPhrase = "ON"
 	{
-		FileReadLine, PrevKeyPhrase, %keyPhrase%, 1
-		FileReadLine, PrevOpenTarget, %keyPhrase%, 2
+		Loop, Read, %keyPhrase%
+		{
+			if A_Index = 1, PrevKeyPhrase := A_LoopReadLine
+			if A_Index = 2, PrevOpenTarget := A_LoopReadLine, break
+		}
 	}
-	NewKeyPhrase = %PrevKeyPhrase%
-	NewOpenTarget = %PrevOpenTarget%
+	NewKeyPhrase := PrevKeyPhrase
+	NewOpenTarget := PrevOpenTarget
 
 	; ADD THE TEXT BOX FOR USER TO ENTER THE QUERY STRING
 	Gui, 1:Add, Edit, vFilename W600, %NewKeyPhrase%
@@ -347,23 +347,24 @@ IfNotEqual 1, -scex
 }
 
 ; ENABLE RE-SCANNING OF LATEST DIRECTORY LISTING
-If 1 in -scan,-scex
-	rescan = Y
+if A_Args[1] ~= "^(-scan|-scex)$"
+	rescan := true
 ; CHECK WHETHER THE DIRECTORY LISTING CACHE FILE ALREADY EXISTS. IF NOT, DO A RE-SCAN.
-Else IfNotExist, %dirListing%
-	rescan = Y
+else if !FileExist(dirListing)
+	rescan := true
 
-If rescan = Y ; DO A RE-SCAN
+if rescan = true ; DO A RE-SCAN
 {
 	; SHOW STATUS UNLESS USER SPECIFIES SCAN-AND-EXIT OPTION
-	IfNotEqual 1, -scex
+	if  A_Args[1] != "-scex"
 		GuiControl,, StatusBar, Scanning directory listing...
 
 	; SCAN START-MENU AND STORE DIRECTORY/PROGRAM LISTINGS IN CACHE FILE
 	Gosub ScanStartMenu
 
 	; QUIT IF USER SPECIFIES SCAN-AND-EXIT OPTION
-	IfEqual 1, -scex, Goto, QuitNoSave
+	if A_Args[1] = "-scex"
+		Goto, QuitNoSave
 }
 
 GuiControl,, StatusBar, Retrieving last query result...
@@ -414,7 +415,7 @@ GuiControl, 1:Disable, ButtonSCANSTARTMENU
 Gosub ScanStartMenu
 
 ; INFORM USER THAT SCANNING HAS COMPLETED
-If Filename =
+If Filename = ""
 {
 	; IF QUERY STRING IS EMPTY...
 	GuiControl, 1:Enable, ButtonEXIT
@@ -427,7 +428,7 @@ Else
 {
 	; IF QUERY STRING EXISTS...
 	; FILTER FOR SEARCH STRING WITH THE NEW LISTING
-	NewKeyPhrase =
+	NewKeyPhrase := ""
 	Gosub FindMatches
 }
 Return
@@ -444,17 +445,17 @@ ScanStartMenu:
 ; THE PATH MUST NOT BE ENCLOSED BY QUOTES OR DOUBLE-QUOTES.
 ;
 ; FOR ENGLISH VERSION OF WINDOWS
-scanPath = %A_StartMenu%|%A_StartMenuCommon%
+scanPath := A_StartMenu "|" A_StartMenuCommon
 
 ; INCLUDE ADDITIONAL USER-DEFINED PATHS FOR SCANNING
-IfExist, %SeekMyDir%
+if FileExist(SeekMyDir)
 {
 	Loop, read, %SeekMyDir%
 	{
-		IfNotExist, %A_LoopReadLine%
+		if !FileExist(A_LoopReadLine)
 			MsgBox, 8192, %version%, Processing your customised directory list...`n`n"%A_LoopReadLine%" does not exist and will be excluded from the scanning.`nPlease update [ %SeekMyDir% ].
-		Else
-			scanPath = %scanPath%|%A_LoopReadLine%
+		else
+			scanPath .= "|" A_LoopReadLine
 	} 
 }
 
@@ -464,12 +465,12 @@ FileDelete, %dirListing%
 ; SCAN DIRECTORY LISTING (DELIMITER = |) BY RECURSING
 ; EACH DIRECTORY TO RETRIEVE THE CONTENTS. HIDDEN FILES
 ; ARE EXCLUDED.
-Loop, parse, scanPath, |
+Loop, parse, %scanPath%, |
 {
-	Loop, %A_LoopField%\*, %ScanMode%, 1
+	Loop, Files, %A_LoopField%\*, %ScanMode%R
 	{
 		FileGetAttrib, fileAttrib, %A_LoopFileFullPath%
-		IfNotInString, fileAttrib, H ; EXCLUDE HIDDEN FILE
+		if !InStr(fileAttrib, "H") ; EXCLUDE HIDDEN FILE
 			FileAppend, %A_LoopFileFullPath%`n, %dirListing%
 	}
 }
@@ -484,26 +485,26 @@ Return
 FindMatches:
 
 Gui, 1:Submit, NoHide
-CurFilename = %Filename%
+CurFilename := Filename
 GuiControl,, StatusBar, 
 
 ; CHECK FOR EMPTY QUERY STRING
-If CurFilename =
+If CurFilename = ""
 {
 	MsgBox, 8192, %version%, Please enter the key word/phrase to search for.
 	Goto EnterQuery
 }
 
 ; tIncrementalSearch IS BEING INTERRUPTED. LET IT FINISHES.
-If NewKeyPhrase <> %CurFilename%
+If NewKeyPhrase <> CurFilename
 {
 	; INFORM USER THAT PATIENCE IS A VIRTUE
 	GuiControl,, StatusBar, Seeking...
-	ResumeFindMatches = TRUE
+	ResumeFindMatches := TRUE
 	Return
 }
 
-If List = |
+If List = "|"
 {
 	; NOT EVEN A SINGLE MATCHING RECORD IS FOUND.
 	; LET USER MODIFY THE QUERY STRING AND TRY AGAIN.
@@ -521,7 +522,7 @@ Else
 	GuiControl, 1:Enable, ButtonOPENDIR
 	GuiControl, 1:Enable, ButtonSCANSTARTMENU
 	GuiControl, Focus, OpenTarget
-	If OpenTarget =
+	If OpenTarget = ""
 		GuiControl, 1:Choose, OpenTarget, |1
 }
 
@@ -538,17 +539,17 @@ Return
 SilentFindMatches:
 
 Gui, 1:Submit, NoHide
-sfmFilename = %Filename%
+sfmFilename := Filename
 
 ; FILTER MATCHING RECORDS BASED ON USER QUERY STRING
-List = |
-If sfmFilename <>
+List := "|"
+If sfmFilename <> ""
 {
 	Loop, read, %dirListing%
 	{
 		Gui, 1:Submit, NoHide
-		tFilename = %Filename%
-		If sfmFilename <> %tFilename%
+		tFilename := Filename
+		If sfmFilename <> tFilename
 		{
 			; USER HAS CHANGED THE SEARCH STRING. THERE IS NO POINT
 			; TO CONTINUE SEARCHING USING THE OLD STRING, SO ABORT.
@@ -557,24 +558,24 @@ If sfmFilename <>
 		Else
 		{
 			; APPEND MATCHING RECORDS INTO THE LIST
-			SplitPath, A_LoopReadLine, name, dir, ext, name_no_ext, drive
-			MatchFound = Y
-			Loop, parse, sfmFilename, %A_Space%
+			SplitPath, %A_LoopReadLine%, name, dir, ext, name_no_ext, drive
+			MatchFound := true
+			Loop, parse, %sfmFilename%, %A_Space%
 			{
-				IfNotInString, name, %A_LoopField%
+				if !InStr(name, A_LoopField)
 				{
-					MatchFound = N
+					MatchFound := false
 					Break
 				}
 			}
-			IfEqual, MatchFound, Y
+			if MatchFound = true
 			{
 				; ADD RECORD TO LIST
-				List = %List%%A_LoopReadLine%|
+				List .= A_LoopReadLine "|"
 
 				; PRE-SELECT IF THIS MATCHES THE LAST-RUN PROGRAM
 				If (A_LoopReadLine = PrevOpenTarget && sfmFilename = PrevKeyPhrase)
-					List = %List%|
+					List .= "|"
 			}
 		}
 	}
@@ -583,7 +584,7 @@ If sfmFilename <>
 ; REFRESH LIST WITH SEARCH RESULTS
 GuiControl, 1:, OpenTarget, %List%
 
-If List = |
+If List = "|"
 {
 	; NO MATCHING RECORD IS FOUND
 	; DISABLE LISTBOX
@@ -622,14 +623,14 @@ TargetSelection:
 Gui, 1:Submit, NoHide
 
 ; DOUBLE-CLICK DETECTION TO LAUNCH PROGRAM
-If A_GuiControlEvent = DoubleClick
+If A_GuiControlEvent = "DoubleClick"
 {
 	Gosub ButtonOPEN
 }
 Else
 {
 	; STUB - FOR FUTURE USE
-	If A_GuiControlEvent = Normal
+	If A_GuiControlEvent = "Normal"
 	{
 		; DO NOTHING FOR NOW
 	}
@@ -642,7 +643,7 @@ Return
 
 ;=== BEGIN ButtonOPEN EVENT ================================
 
-; USER CLICKED ON 'OPEN' BUTTON OR PRESSED <ENTER>
+; USER CLICKED ON 'OPEN' BUTTON OR PRESSED ENTER
 ButtonOPEN:
 Gui, 1:Submit, NoHide
 
@@ -650,7 +651,7 @@ Gui, 1:Submit, NoHide
 ; TEXT FIELD, RUN THE QUERY TO FIND MATCHES. ELSE, IT
 ; MUST BE FROM THE LISTBOX.
 GuiControlGet, focusControl, 1:Focus
-If focusControl = Edit1
+If focusControl = "Edit1"
 {
 	GuiControl, Focus, OpenTarget
 	GuiControl, 1:Disable, OpenTarget
@@ -660,14 +661,14 @@ If focusControl = Edit1
 }
 
 ; NO RECORD FROM THE LISTBOX IS SELECTED
-If OpenTarget =
+If OpenTarget = ""
 {
-	MsgBox, 8192, %version%, Please make a selection before hitting <Enter>.`nPress <Esc> to exit.
+	MsgBox, 8192, %version%, Please make a selection before hitting ENTER.`nPress ESC to exit.
 	Goto EnterQuery
 }
 
 ; SELECTED RECORD DOES NOT EXIST (FILE OR DIRECTORY NOT FOUND)
-IfNotExist, %OpenTarget%
+if !FileExist(OpenTarget)
 {
 	MsgBox, 8192, %version%, %OpenTarget% does not exist. This means that the directory cache is outdated. You may click on the 'Scan Start-Menu' button below to update the directory cache with your latest directory listing now.
 	Goto EnterQuery
@@ -675,11 +676,11 @@ IfNotExist, %OpenTarget%
 
 ; CHECK WHETHER THE SELECTED RECORD IS A FILE OR DIRECTORY
 FileGetAttrib, fileAttrib, %OpenTarget%
-IfInString, fileAttrib, D ; IS DIRECTORY
+if InStr(fileAttrib, "D") ; IS DIRECTORY
 {
 	Gosub sOpenDir
 }
-Else If fileAttrib <> ; IS FILE
+Else If fileAttrib <> "" ; IS FILE
 {
 	Run, %OpenTarget%
 }
@@ -700,7 +701,7 @@ ButtonOPENDIR:
 Gui, 1:Submit, NoHide
 
 ; CHECK THAT USER HAS SELECTED A RECORD ALREADY
-If OpenTarget =
+If OpenTarget = ""
 {
 	MsgBox, 8192, %version%, Please make a selection first.
 	Goto EnterQuery
@@ -723,21 +724,21 @@ sOpenDir:
 ; FileGetAttrib TO ALLOW THE SCENARIO WHEREBY OpenTarget IS
 ; INVALID BUT THE DIRECTORY PATH OF OpenTarget IS VALID.
 DriveGet, status, status, %OpenTarget%
-If status <> Ready ; NOT A DIRECTORY
+If status <> "Ready" ; NOT A DIRECTORY
 {
-	SplitPath, OpenTarget, name, dir, ext, name_no_ext, drive
-	OpenTarget = %dir%
+	SplitPath, %OpenTarget%, name, dir, ext, name_no_ext, drive
+	OpenTarget := dir
 }
 
 ; CHECK WHETHER DIRECTORY EXISTS
-IfNotExist, %OpenTarget%
+if !FileExist(OpenTarget)
 {
 	MsgBox, 8192, %version%, %OpenTarget% does not exist. This means that the directory cache is outdated. You may click on the 'Scan Start-Menu' button below to update the directory cache with your latest directory listing now.
 	Goto EnterQuery
 }
 
 ; OPEN THE DIRECTORY
-IfExist, %dirExplorer%
+if FileExist(dirExplorer)
 {
 	Run, "%dirExplorer%" "%OpenTarget%", , Max ; OPEN WITH CUSTOMISED FILE EXPLORER
 }
@@ -753,19 +754,19 @@ Return
 ;=== BEGIN tIncrementalSearch EVENT ========================
 ; AUTOMATICALLY CONDUCT REAL-TIME INCREMENTAL SEARCH
 ; TO FIND MATCHING RECORDS WITHOUT WAITING FOR USER
-; TO PRESS <ENTER>
+; TO PRESS ENTER
 tIncrementalSearch:
 
 Loop
 ; REPEAT SEARCHING UNTIL USER HAS STOPPED CHANGING THE QUERY STRING
 {
 	Gui, 1:Submit, NoHide
-	CurFilename = %Filename%
-	If NewKeyPhrase <> %CurFilename%
+	CurFilename := Filename
+	If NewKeyPhrase <> CurFilename
 	{
-		OpenTarget =
+		OpenTarget := ""
 		Gosub SilentFindMatches
-		NewKeyPhrase = %CurFilename%
+		NewKeyPhrase := CurFilename
 		Sleep, 100 ; DON'T HOG THE CPU!
 	}
 	Else
@@ -775,11 +776,11 @@ Loop
 	}
 }
 
-; USER HAS HIT <ENTER> TO LOOK FOR MATCHING RECORDS.
+; USER HAS HIT ENTER TO LOOK FOR MATCHING RECORDS.
 ; RUN FindMatches NOW.
 If ResumeFindMatches = TRUE
 {
-	ResumeFindMatches = FALSE
+	ResumeFindMatches := FALSE
 	Gosub FindMatches
 }
 
@@ -801,7 +802,7 @@ GuiEscape:
 Gui, 1:Submit, NoHide
 
 ; SAVE THE KEY WORD/PHRASE FOR NEXT RUN IF IT HAS CHANGED
-If TrackKeyPhrase = ON
+If TrackKeyPhrase = "ON"
 {
 	If (PrevKeyPhrase <> Filename || PrevOpenTarget <> OpenTarget)
 	{

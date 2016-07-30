@@ -1,4 +1,4 @@
-; WinLIRC Client
+﻿; WinLIRC Client
 ; http://www.autohotkey.com
 ; This script receives notifications from WinLIRC whenever you press
 ; a button on your remote control. It can be used to automate Winamp,
@@ -17,8 +17,9 @@
 ; 5) Configure your buttons to send keystrokes and mouse clicks to
 ;    windows such as Winamp, Media Player, etc. See the examples below.
 
-; This script requires AutoHotkey 1.0.38.04 or later.
 ; HISTORY OF CHANGES
+; July 19, 2016:
+; - Revised code for AHK v2 compatibility
 ; March 2, 2007:
 ; - Improved reliability via "Critical" in ReceiveData().
 ; October 5, 2005:
@@ -33,14 +34,14 @@
 ; signal. The following setting solves this by ignoring repeated signals
 ; until the specified time has passed. 200 is often a good setting.  Set it
 ; to 0 to disable this feature.
-DelayBetweenButtonRepeats = 200
+DelayBetweenButtonRepeats := 200
 
 ; Specify the path to WinLIRC, such as C:\WinLIRC\winlirc.exe
-WinLIRC_Path = %A_ProgramFiles%\WinLIRC\winlirc.exe
+WinLIRC_Path := "%A_ProgramFiles%\WinLIRC\winlirc.exe"
 
 ; Specify WinLIRC's address and port. The most common are 127.0.0.1 (localhost) and 8765.
-WinLIRC_Address = 127.0.0.1
-WinLIRC_Port = 8765
+WinLIRC_Address := "127.0.0.1"
+WinLIRC_Port := "8765"
 
 ; Do not change the following two lines. Skip them and continue below.
 Gosub WinLIRC_Init
@@ -67,7 +68,7 @@ return
 
 ChUp:
 WinGetClass, ActiveClass, A
-if ActiveClass in Winamp v1.x,Winamp PE  ; Winamp is active.
+if ActiveClass ~= "^(Winamp v1\.x|Winamp PE)$"  ; Winamp is active.
 	Send {right}  ; Send a right-arrow keystroke.
 else  ; Some other type of window is active.
 	Send {WheelUp}  ; Rotate the mouse wheel up by one notch.
@@ -75,14 +76,14 @@ return
 
 ChDown:
 WinGetClass, ActiveClass, A
-if ActiveClass in Winamp v1.x,Winamp PE  ; Winamp is active.
+if ActiveClass ~= "^(Winamp v1\.x|Winamp PE)$"  ; Winamp is active.
 	Send {left}  ; Send a left-arrow keystroke.
 else  ; Some other type of window is active.
 	Send {WheelDown}  ; Rotate the mouse wheel down by one notch.
 return
 
 Menu:
-IfWinExist, Untitled - Notepad
+if WinExist("Untitled - Notepad")
 {
 	WinActivate
 }
@@ -106,13 +107,13 @@ return
 ; functionality of the script.
 
 WinLIRC_Init:
-OnExit, ExitSub  ; For connection cleanup purposes.
+OnExit("ExitSub")  ; For connection cleanup purposes.
 
 ; Launch WinLIRC if it isn't already running:
-Process, Exist, winlirc.exe
+ProcessExist, ErrorLevel, winlirc.exe
 if not ErrorLevel  ; No PID for WinLIRC was found.
 {
-	IfNotExist, %WinLIRC_Path%
+	if !FileExist(WinLIRC_Path)
 	{
 		MsgBox The file "%WinLIRC_Path%" does not exist. Please edit this script to specify its location.
 		ExitApp
@@ -127,20 +128,20 @@ if socket = -1  ; Connection failed (it already displayed the reason).
 	ExitApp
 
 ; Find this script's main window:
-Process, Exist  ; This sets ErrorLevel to this script's PID (it's done this way to support compiled scripts).
+ProcessExist, ErrorLevel  ; This sets ErrorLevel to this script's PID (it's done this way to support compiled scripts).
 DetectHiddenWindows On
 ScriptMainWindowId := WinExist("ahk_class AutoHotkey ahk_pid " . ErrorLevel)
 DetectHiddenWindows Off
 
 ; When the OS notifies the script that there is incoming data waiting to be received,
 ; the following causes a function to be launched to read the data:
-NotificationMsg = 0x5555  ; An arbitrary message number, but should be greater than 0x1000.
+NotificationMsg := 0x5555  ; An arbitrary message number, but should be greater than 0x1000.
 OnMessage(NotificationMsg, "ReceiveData")
 
 ; Set up the connection to notify this script via message whenever new data has arrived.
 ; This avoids the need to poll the connection and thus cuts down on resource usage.
-FD_READ = 1     ; Received when data is available to be read.
-FD_CLOSE = 32   ; Received when connection has been closed.
+FD_READ := 1     ; Received when data is available to be read.
+FD_CLOSE := 32   ; Received when connection has been closed.
 if DllCall("Ws2_32\WSAAsyncSelect", "UInt", socket, "UInt", ScriptMainWindowId, "UInt", NotificationMsg, "Int", FD_READ|FD_CLOSE)
 {
 	MsgBox % "WSAAsyncSelect() indicated Winsock error " . DllCall("Ws2_32\WSAGetLastError")
@@ -169,9 +170,9 @@ ConnectToAddress(IPAddress, Port)
 		return -1
 	}
 
-	AF_INET = 2
-	SOCK_STREAM = 1
-	IPPROTO_TCP = 6
+	AF_INET := 2
+	SOCK_STREAM := 1
+	IPPROTO_TCP := 6
 	socket := DllCall("Ws2_32\socket", "Int", AF_INET, "Int", SOCK_STREAM, "Int", IPPROTO_TCP)
 	if socket = -1
 	{
@@ -180,11 +181,11 @@ ConnectToAddress(IPAddress, Port)
 	}
 
 	; Prepare for connection:
-	SizeOfSocketAddress = 16
+	SizeOfSocketAddress := 16
 	VarSetCapacity(SocketAddress, SizeOfSocketAddress)
 	InsertInteger(2, SocketAddress, 0, AF_INET)   ; sin_family
 	InsertInteger(DllCall("Ws2_32\htons", "UShort", Port), SocketAddress, 2, 2)   ; sin_port
-	InsertInteger(DllCall("Ws2_32\inet_addr", "Str", IPAddress), SocketAddress, 4, 4)   ; sin_addr.s_addr
+	InsertInteger(DllCall("Ws2_32\inet_addr", "AStr", IPAddress), SocketAddress, 4, 4)   ; sin_addr.s_addr
 
 	; Attempt connection:
 	if DllCall("Ws2_32\connect", "UInt", socket, "UInt", &SocketAddress, "Int", SizeOfSocketAddress)
@@ -204,7 +205,7 @@ ReceiveData(wParam, lParam)
 {
 	Critical  ; Prevents another of the same message from being discarded due to thread-already-running.
 	socket := wParam
-	ReceivedDataSize = 4096  ; Large in case a lot of data gets buffered due to delay in processing previous data.
+	ReceivedDataSize := 4096  ; Large in case a lot of data gets buffered due to delay in processing previous data.
 
 	VarSetCapacity(ReceivedData, ReceivedDataSize, 0)  ; 0 for last param terminates string for use with recv().
 	ReceivedDataLength := DllCall("Ws2_32\recv", "UInt", socket, "Str", ReceivedData, "Int", ReceivedDataSize, "Int", 0)
@@ -224,12 +225,12 @@ ReceiveData(wParam, lParam)
 	; at a time (even for explicitly-sent IR signals), which the following method handles properly.
 	; Data received from WinLIRC looks like the following example (see the WinLIRC docs for details):
 	; 0000000000eab154 00 NameOfButton NameOfRemote
-	Loop, parse, ReceivedData, `n, `r
+	Loop, parse, %ReceivedData%, `n, `r
 	{
-		if A_LoopField in ,BEGIN,SIGHUP,END  ; Ignore blank lines and WinLIRC's start-up messages.
+		if A_LoopField ~= "^(|BEGIN|SIGHUP|END)$"  ; Ignore blank lines and WinLIRC's start-up messages.
 			continue
-		ButtonName =  ; Init to blank in case there are less than 3 fields found below.
-		Loop, parse, A_LoopField, %A_Space%  ; Extract the button name, which is the third field.
+		ButtonName := ""  ; Init to blank in case there are less than 3 fields found below.
+		Loop, parse, %A_LoopField%, %A_Space%  ; Extract the button name, which is the third field.
 			if A_Index = 3
 				ButtonName := A_LoopField
 		global DelayBetweenButtonRepeats  ; Declare globals to make them available to this function.
@@ -243,9 +244,9 @@ ReceiveData(wParam, lParam)
 				if (ButtonName == PrevButtonName)
 					RepeatCount += 1
 				else
-					RepeatCount = 1
-				SplashTextOn, 150, 20, Button from WinLIRC, %ButtonName% (%RepeatCount%)
-				SetTimer, SplashOff, 3000  ; This allows more signals to be processed while displaying the window.
+					RepeatCount := 1
+				ToolTip, Button from WinLIRC, %ButtonName% (%RepeatCount%)
+				SetTimer, SplashOff, -3000  ; This allows more signals to be processed while displaying the window.
 			}
 			PrevButtonName := ButtonName
 			PrevButtonTime := A_TickCount
@@ -257,24 +258,25 @@ ReceiveData(wParam, lParam)
 
 
 SplashOff:
-SplashTextOff
-SetTimer, SplashOff, Off
+ToolTip
 return
 
 
 
-InsertInteger(pInteger, ByRef pDest, pOffset = 0, pSize = 4)
+InsertInteger(pInteger, ByRef pDest, pOffset := 0, pSize := 4)
 ; The caller must ensure that pDest has sufficient capacity.  To preserve any existing contents in pDest,
 ; only pSize number of bytes starting at pOffset are altered in it.
 {
-	Loop %pSize%  ; Copy each byte in the integer into the structure as raw binary data.
+	Loop pSize  ; Copy each byte in the integer into the structure as raw binary data.
 		DllCall("RtlFillMemory", "UInt", &pDest + pOffset + A_Index-1, "UInt", 1, "UChar", pInteger >> 8*(A_Index-1) & 0xFF)
 }
 
 
 
-ExitSub:  ; This subroutine is called automatically when the script exits for any reason.
-; MSDN: "Any sockets open when WSACleanup is called are reset and automatically
-; deallocated as if closesocket was called."
-DllCall("Ws2_32\WSACleanup")
-ExitApp
+ExitSub()  ; This function is called automatically when the script exits for any reason.
+{
+	; MSDN: "Any sockets open when WSACleanup is called are reset and automatically
+	; deallocated as if closesocket was called."
+	DllCall("Ws2_32\WSACleanup")
+	ExitApp
+}

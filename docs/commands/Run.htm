@@ -54,7 +54,7 @@ the program finishes before continuing.</p>
 <p>If <em>Target</em> contains any commas, they must be <a href="../misc/EscapeChar.htm">escaped</a> as shown three times in the following example:</p>
 <pre>Run rundll32.exe shell32.dll<span class="style3">`,</span>Control_RunDLL desk.cpl<span class="style3">`,`,</span> 3  <em>; Opens Control Panel &gt; Display Properties &gt; Settings</em></pre>
 <p>When running a program via <a href="../Variables.htm#ComSpec">Comspec</a> (cmd.exe) -- perhaps because you need to redirect the program's input or output -- if the path or name of the executable contains spaces, the entire string should be enclosed in an outer pair of quotes. In the following example, the outer quotes are shown in red and all the inner quotes are shown in black:</p>
-<pre>Run %comspec% /c <span class="style3">&quot;</span>&quot;C:\My Utility.exe&quot; &quot;param 1&quot; &quot;second param&quot; &gt;&quot;C:\My File.txt&quot;<span class="style3">&quot;</span></pre>
+<pre>Run %A_ComSpec% /c <span class="style3">&quot;</span>&quot;C:\My Utility.exe&quot; &quot;param 1&quot; &quot;second param&quot; &gt;&quot;C:\My File.txt&quot;<span class="style3">&quot;</span></pre>
 <p>If <em>Target</em> cannot be launched, an error window is displayed and the current thread is exited, unless the string <strong>UseErrorLevel</strong> is included in the third parameter or the error is caught by a <a href="Try.htm">Try</a>/<a href="Catch.htm">Catch</a> statement.</p>
 <p>Performance may be slightly improved if <em>Target</em> is an exact path, e.g. <code>Run, C:\Windows\Notepad.exe &quot;C:\My Documents\Test.txt&quot;</code> rather than <code>Run, C:\My Documents\Test.txt</code>.</p>
 <p>Special <a href="../misc/CLSID-List.htm">CLSID folders</a> may be opened via Run. For example:</p>
@@ -100,10 +100,10 @@ Run ::{645ff040-5081-101b-9f08-00aa002f954e}  <em>; Opens the Recycle Bin.</em><
 
 Run, mailto:someone@domain.com?subject=This is the subject line&amp;body=This is the message body's text.
 Run, ReadMe.doc, , Max UseErrorLevel  <em>; Launch maximized and don't display dialog if it fails.</em>
-if ErrorLevel = ERROR
+if ErrorLevel = "ERROR"
     MsgBox The document could not be launched.
 
-RunWait, %comspec% /c dir c:\ &gt;&gt;c:\DirTest.txt, , min
+RunWait, %A_ComSpec% /c dir c:\ &gt;&gt;c:\DirTest.txt, , min
 Run, c:\DirTest.txt
 Run, properties c:\DirTest.txt
 
@@ -114,7 +114,7 @@ Run ::{20d04fe0-3aea-1069-a2d8-08002b30309d}  <em>; Opens the &quot;My Computer&
 Run ::{645ff040-5081-101b-9f08-00aa002f954e}  <em>; Opens the Recycle Bin.</em>
 
 <em>; To run multiple commands consecutively, use &quot;&amp;&amp;&quot; between each:</em>
-Run, %comspec% /c dir /b &gt; C:\list.txt &amp;&amp; type C:\list.txt &amp;&amp; pause
+Run, %A_ComSpec% /c dir /b &gt; C:\list.txt &amp;&amp; type C:\list.txt &amp;&amp; pause
 </pre>
 
 <pre class="NoIndent" id="StdOut">
@@ -133,7 +133,7 @@ RunWaitOne(command) {
     <em>; WshShell object: <a href="http://msdn.microsoft.com/en-us/library/aew9yb99">http://msdn.microsoft.com/en-us/library/aew9yb99</a></em>
     shell := ComObjCreate("WScript.Shell")
     <em>; Execute a single command via cmd.exe</em>
-    exec := shell.Exec(ComSpec " /C " command)
+    exec := shell.Exec(A_ComSpec " /C " command)
     <em>; Read and return the command's output</em>
     return exec.StdOut.ReadAll()
 }
@@ -141,7 +141,7 @@ RunWaitOne(command) {
 RunWaitMany(commands) {
     shell := ComObjCreate("WScript.Shell")
     <em>; Open cmd.exe with echoing of commands disabled</em>
-    exec := shell.Exec(ComSpec " /Q /K echo off")
+    exec := shell.Exec(A_ComSpec " /Q /K echo off")
     <em>; Send the commands to execute, separated by newline</em>
     exec.StdIn.WriteLine(commands "`nexit")  <em>; Always exit at the end!</em>
     <em>; Read and return the output of all commands</em>
@@ -162,8 +162,8 @@ ExecScript(Script, Wait:=true)
 }
 
 <em>; Example:</em>
-InputBox expr,, Enter an expression to evaluate as a new script.,,,,,,,, Asc("*")
-result := ExecScript("FileAppend % (" expr "), *")
+InputBox expr,, Enter an expression to evaluate as a new script.,, Ord("*")
+result := ExecScript("FileAppend `% (" expr "), *")
 MsgBox % "Result: " result
 </pre>
 

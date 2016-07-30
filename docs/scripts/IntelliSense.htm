@@ -19,25 +19,23 @@
 </p>
 <p><a href="IntelliSense.ahk">Download This Script</a> &nbsp;| &nbsp;<a href="index.htm">Other Sample Scripts</a> &nbsp;| &nbsp;<a href="../AutoHotkey.htm">Home</a></p>
 
-<pre class="NoIndent"><em>; Requires v1.0.41+</em>
-
-<em>; CONFIGURATION SECTION: Customize the script with the following variables.</em>
+<pre class="NoIndent"><em>; CONFIGURATION SECTION: Customize the script with the following variables.</em>
 
 <em>; The hotkey below is pressed to display the current command's page in the
 ; help file:</em>
-I_HelpHotkey = ^F1
+I_HelpHotkey := "^F1"
 
 <em>; The string below must exist somewhere in the active window's title for
 ; IntelliSense to be in effect while you're typing.  Make it blank to have
 ; IntelliSense operate in all windows.  Make it Pad to have it operate in
 ; editors such as Metapad, Notepad, and Textpad.  Make it .ahk to have it
 ; operate only when a .ahk file is open in Notepad, Metapad, etc.</em>
-I_Editor = pad
+I_Editor := "pad"
 
 <em>; If you wish to have a different icon for this script to distinguish it from
 ; other scripts in the tray, provide the filename below (leave blank to have
 ; no icon). For example: E:\stuff\Pics\icons\GeoIcons\Information.ico</em>
-I_Icon = 
+I_Icon := ""
 
 <em>; END OF CONFIGURATION SECTION (do not make changes below this point unless
 ; you want to change the basic functionality of the script).</em>
@@ -45,24 +43,24 @@ I_Icon =
 SetKeyDelay, 0
 #SingleInstance
 
-if I_HelpHotkey &lt;&gt;
+if I_HelpHotkey <> ""
     Hotkey, %I_HelpHotkey%, I_HelpHotkey
 
 <em>; Change tray icon (if one was specified in the configuration section above):</em>
-if I_Icon &lt;&gt;
-    IfExist, %I_Icon%
+if I_Icon <> ""
+    if FileExist(I_Icon)
         Menu, Tray, Icon, %I_Icon%
 
 <em>; Determine AutoHotkey's location:</em>
-RegRead, ahk_dir, HKEY_LOCAL_MACHINE, SOFTWARE\AutoHotkey, InstallDir
+RegRead, ahk_dir, HKEY_LOCAL_MACHINE\SOFTWARE\AutoHotkey, InstallDir
 if ErrorLevel  <em>; Not found, so look for it in some other common locations.</em>
 {
     if A_AhkPath
-        SplitPath, A_AhkPath,, ahk_dir
-    else IfExist ..\..\AutoHotkey.chm
-        ahk_dir = ..\..
-    else IfExist %A_ProgramFiles%\AutoHotkey\AutoHotkey.chm
-        ahk_dir = %A_ProgramFiles%\AutoHotkey
+        SplitPath, %A_AhkPath%,, ahk_dir
+    else if FileExist("..\..\AutoHotkey.chm")
+        ahk_dir := "..\.."
+    else if FileExist("%A_ProgramFiles%\AutoHotkey\AutoHotkey.chm")
+        ahk_dir := "%A_ProgramFiles%\AutoHotkey"
     else
     {
         MsgBox Could not find the AutoHotkey folder.
@@ -70,35 +68,35 @@ if ErrorLevel  <em>; Not found, so look for it in some other common locations.</
     }
 }
 
-ahk_help_file = %ahk_dir%\AutoHotkey.chm
+ahk_help_file := "%ahk_dir%\AutoHotkey.chm"
 
-<em>; Read command syntaxes:</em>
+<em>; Read command syntaxes; can be found in AHK Basic, but it's outdated:</em>
 Loop, Read, %ahk_dir%\Extras\Editors\Syntax\Commands.txt
 {
-    I_FullCmd = %A_LoopReadLine%
+    I_FullCmd := A_LoopReadLine
 
     <em>; Directives have a first space instead of a first comma.</em>
     <em>; So use whichever comes first as the end of the command name:</em>
-    StringGetPos, I_cPos, I_FullCmd, `,
-    StringGetPos, I_sPos, I_FullCmd, %A_Space%
-    if (I_cPos = -1 or (I_cPos &gt; I_sPos and I_sPos &lt;&gt; -1))
+    I_cPos := InStr(I_FullCmd, ",")
+    I_sPos := InStr(I_FullCmd, " ")
+    if (!I_cPos or (I_cPos > I_sPos and I_sPos))
         I_EndPos := I_sPos
     else
         I_EndPos := I_cPos
 
-    if I_EndPos &lt;&gt; -1
-        StringLeft, I_CurrCmd, I_FullCmd, %I_EndPos%
+    if I_EndPos
+        I_CurrCmd := SubStr(I_FullCmd, 1, I_EndPos)
     else  <em>; This is a directive/command with no parameters.</em>
-        I_CurrCmd = %A_LoopReadLine%
+        I_CurrCmd := A_LoopReadLine
     
-    StringReplace, I_CurrCmd, I_CurrCmd, [,, All
-    StringReplace, I_CurrCmd, I_CurrCmd, %A_Space%,, All
-    StringReplace, I_FullCmd, I_FullCmd, ``n, `n, All
-    StringReplace, I_FullCmd, I_FullCmd, ``t, `t, All
+    StrReplace, I_CurrCmd, %I_CurrCmd%, [
+    StrReplace, I_CurrCmd, %I_CurrCmd%, %A_Space%
+    StrReplace, I_FullCmd, %I_FullCmd%, ``n, `n
+    StrReplace, I_FullCmd, %I_FullCmd%, ``t, `t
     
     <em>; Make arrays of command names and full cmd syntaxes:</em>
-    I_Cmd%A_Index% = %I_CurrCmd%
-    I_FullCmd%A_Index% = %I_FullCmd%
+    I_Cmd%A_Index% := I_CurrCmd
+    I_FullCmd%A_Index% := I_FullCmd
 }
 
 <em>; Use the Input command to watch for commands that the user types:</em>
@@ -106,7 +104,7 @@ Loop
 {
     <em>; Editor window check:</em>
     WinGetTitle, ActiveTitle, A
-    IfNotInString, ActiveTitle, %I_Editor%
+    if !InStr(ActiveTitle, I_Editor)
     {
         ToolTip
         Sleep, 500
@@ -115,73 +113,73 @@ Loop
     
     <em>; Get all keys till endkey:</em>
     Input, I_Word, V, {enter}{escape}{space}`,
-    I_EndKey = %ErrorLevel%
+    I_EndKey := ErrorLevel
     
     <em>; Tooltip is hidden in these cases:</em>
-    if I_EndKey in EndKey:Enter,EndKey:Escape
+    if I_EndKey = "EndKey:Enter" or I_EndKey = "EndKey:Escape"
     {
         ToolTip
         Continue
     }
 
     <em>; Editor window check again!</em>
-    WinGetActiveTitle, ActiveTitle
-    IfNotInString, ActiveTitle, %I_Editor%
+    WinGetTitle, ActiveTitle, A
+    if !InStr(ActiveTitle, I_Editor)
     {
         ToolTip
         Continue
     }
 
     <em>; Compensate for any indentation that is present:</em>
-    StringReplace, I_Word, I_Word, %A_Space%,, All
-    StringReplace, I_Word, I_Word, %A_Tab%,, All
-    if I_Word =
+    StrReplace, I_Word, %I_Word%, %A_Space%
+    StrReplace, I_Word, %I_Word%, %A_Tab%
+    if I_Word = ""
         Continue
     
     <em>; Check for commented line:</em>
-    StringLeft, I_Check, I_Word, 1
-    if (I_Check = &quot;;&quot; or I_Word = &quot;If&quot;)  <em>; &quot;If&quot; seems a little too annoying to show tooltip for.</em>
+    I_Check := SubStr(I_Word, 1, 1)
+    if (I_Check = ";" or I_Word = "If")  <em>; "If" seems a little too annoying to show tooltip for.</em>
         Continue
 
     <em>; Match word with command:</em>
-    I_Index =
+    I_Index := ""
     Loop
     {
-        <em>; It helps performance to resolve dynamic variables only once.</em>
-        <em>; In addition, the value put into I_ThisCmd is also used by the</em>
-        <em>; I_HelpHotkey subroutine:</em>
+        <em>; It helps performance to resolve dynamic variables only once.
+        ; In addition, the value put into I_ThisCmd is also used by the
+        ; I_HelpHotkey subroutine:</em>
         I_ThisCmd := I_Cmd%A_Index%
-        if I_ThisCmd =
+        if I_ThisCmd = ""
             break
         if (I_Word = I_ThisCmd)
         {
             I_Index := A_Index
-            I_HelpOn = %I_ThisCmd%
+            I_HelpOn := I_ThisCmd
             break
         }
     }
     
     <em>; If no match then resume watching user input:</em>
-    if I_Index =
+    if I_Index = ""
         Continue
     
     <em>; Show matched command to guide the user:</em>
     I_ThisFullCmd := I_FullCmd%I_Index%
-    ToolTip, %I_ThisFullCmd%, A_CaretX, A_CaretY + 20
+    ToolTip, %I_ThisFullCmd%, %A_CaretX%, %A_CaretY% + 20
 }
 
 
 
 I_HelpHotkey:
 WinGetTitle, ActiveTitle, A
-IfNotInString, ActiveTitle, %I_Editor%, Return
+if !InStr(ActiveTitle, I_Editor), Return
 
 ToolTip  <em>; Turn off syntax helper since there is no need for it now.</em>
 
 SetTitleMatchMode, 1  <em>; In case it's 3. This setting is in effect only for this thread.</em>
-IfWinNotExist, AutoHotkey Help
+if !WinExist("AutoHotkey Help")
 {
-    IfNotExist, %ahk_help_file%
+    if !FileExist(ahk_help_file)
     {
         MsgBox, Could not find the help file: %ahk_help_file%.
         return
@@ -190,13 +188,13 @@ IfWinNotExist, AutoHotkey Help
     WinWait, AutoHotkey Help
 }
 
-if I_ThisCmd =  <em>; Instead, use what was most recently typed.</em>
+if I_ThisCmd = ""  <em>; Instead, use what was most recently typed.</em>
     I_ThisCmd := I_Word
 
-<em>; The above has set the &quot;last found&quot; window which we use below:</em>
+<em>; The above has set the "last found" window which we use below:</em>
 WinActivate
 WinWaitActive
-StringReplace, I_ThisCmd, I_ThisCmd, #, {#}  <em>; Replace leading #, if any.</em>
+StrReplace, I_ThisCmd, %I_ThisCmd%, #, {#}  <em>; Replace leading #, if any.</em>
 Send, !n{home}+{end}%I_HelpOn%{enter}
 return
 </pre>

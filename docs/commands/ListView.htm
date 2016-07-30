@@ -38,7 +38,7 @@
 Gui, Add, ListView, r20 w700 gMyListView, Name|Size (KB)
 
 <em>; Gather a list of file names from a folder and put them into the ListView:</em>
-Loop, %A_MyDocuments%\*.*
+Loop, Files, %A_MyDocuments%\*.*
     <a href="#LV_Add">LV_Add</a>(&quot;&quot;, A_LoopFileName, A_LoopFileSizeKB)
 
 <a href="#LV_ModifyCol">LV_ModifyCol</a>()  <em>; Auto-size each column to fit its contents.</em>
@@ -49,15 +49,12 @@ Gui, Show
 return
 
 MyListView:
-if A_GuiEvent = DoubleClick
+if A_GuiEvent = "DoubleClick"
 {
     <a href="#LV_GetText">LV_GetText</a>(RowText, A_EventInfo)  <em>; Get the text from the row's first field.</em>
     ToolTip You double-clicked row number %A_EventInfo%. Text: &quot;%RowText%&quot;
 }
-return
-
-GuiClose:  <em>; Indicate that the script should exit automatically when the window is closed.</em>
-ExitApp</pre>
+return</pre>
 <h2 id="Options">Options and Styles for &quot;<em>Gui, Add, ListView, <u>Options</u></em>&quot;</h2>
 <p id="AltSubmit"><strong>AltSubmit:</strong> Notifies the script for more types of ListView events than normal. In other words, the g-label is launched more often. See <a href="#notify">ListView Notifications</a> for details.</p>
 <p><strong>Background:</strong> Specify the word Background followed immediately by a color name (see <a href="../misc/Colors.htm">color chart</a>) or RGB value (the 0x prefix is optional). Examples: <code>BackgroundSilver</code>, <code>BackgroundFFDD99</code>. If this option is not present, the ListView initially defaults to the background color set by the last parameter of <a href="Gui.htm#Color">Gui Color</a> (or if none, the system's default background color). Specifying <code>BackgroundDefault</code> applies the system's default background color (usually white). For example, a ListView can be restored to the default color via <code>GuiControl, +BackgroundDefault, MyListView</code>.</p>
@@ -153,12 +150,12 @@ ExitApp</pre>
 <pre>Gui +LastFound
 Loop % LV_GetCount(&quot;Column&quot;)
 {
-    SendMessage, 4125, A_Index - 1, 0, SysListView321  <em>; 4125 is LVM_GETCOLUMNWIDTH.</em>
+    SendMessage, 4125, % A_Index - 1, 0, SysListView321  <em>; 4125 is LVM_GETCOLUMNWIDTH.</em>
     MsgBox Column %A_Index%'s width is %ErrorLevel%.
 }</pre>
 <h3 id="LV_GetNext">LV_GetNext([StartingRowNumber, &quot;Checked | Focused&quot;])</h3>
 <p>Returns the row number of the next selected, checked, or focused row. If none is found, zero is returned. If <em>StartingRowNumber</em> is omitted or less than 1, the search begins at the top of the list. Otherwise, the search begins at the row after <em>StartingRowNumber</em>. If the second parameter is omitted, the function searches for the next selected/highlighted row. Otherwise, specify &quot;C&quot; or &quot;Checked&quot; to find the next checked row; or &quot;F&quot; or &quot;Focused&quot; to find the focused row (there is never more than one focused row in the entire list, and sometimes there is none at all). The following example reports all selected rows in the ListView:</p>
-<pre>RowNumber = 0  <em>; This causes the first loop iteration to start the search at the top of the list.</em>
+<pre>RowNumber := 0  <em>; This causes the first loop iteration to start the search at the top of the list.</em>
 Loop
 {
     RowNumber := LV_GetNext(RowNumber)  <em>; Resume the search at the row after that found by the previous iteration.</em>
@@ -169,7 +166,7 @@ Loop
 }</pre>
 <p>An alternate method to find out if a particular row number is checked is the following:</p>
 <pre>Gui +LastFound
-SendMessage, 4140, <i>RowNumber</i> - 1, 0xF000, SysListView321  <em>; 4140 is LVM_GETITEMSTATE.  0xF000 is LVIS_STATEIMAGEMASK.</em>
+SendMessage, 4140, % <i>RowNumber</i> - 1, 0xF000, SysListView321  <em>; 4140 is LVM_GETITEMSTATE.  0xF000 is LVIS_STATEIMAGEMASK.</em>
 IsChecked := (ErrorLevel &gt;&gt; 12) - 1  <em>; This sets IsChecked to true if <i>RowNumber</i> is checked or false otherwise.</em></pre>
 <h3 id="LV_GetText">LV_GetText(OutputVar, RowNumber [, ColumnNumber])</h3>
 <p>Retrieves the text at the specified <em>RowNumber</em> and <em>ColumnNumber</em> and stores it in <em>OutputVar</em>.  If <em>ColumnNumber</em> is omitted, it defaults to 1 (the text in the first column). If <em>RowNumber</em> is 0, the column header text is retrieved. If the text is longer than 8191, only the first 8191 characters are retrieved. The function returns 1 upon success and 0 upon failure. Upon failure, <em>OutputVar</em> is also made blank.</p>
@@ -187,7 +184,7 @@ IsChecked := (ErrorLevel &gt;&gt; 12) - 1  <em>; This sets IsChecked to true if 
 <p><strong>Normal</strong>: The user has left-clicked a row. The variable A_EventInfo contains the focused row number.</p>
 <p><strong>RightClick</strong>: The user has right-clicked a row. The variable A_EventInfo contains the focused row number. In most cases, it is best not to display a menu in response to this. Instead, use the <a href="Gui.htm#GuiContextMenu">GuiContextMenu label</a> because it also recognizes the Apps key. For example:</p>
 <pre>GuiContextMenu:  <em>; Launched in response to a right-click or press of the Apps key.</em>
-if A_GuiControl &lt;&gt; MyListView  <em>; This check is optional. It displays the menu only for clicks inside the ListView.</em>
+if A_GuiControl &lt;&gt; "MyListView"  <em>; This check is optional. It displays the menu only for clicks inside the ListView.</em>
     return
 <em>; Show the menu at the provided coordinates, A_GuiX and A_GuiY.  These should be used
 ; because they provide correct coordinates even if the user pressed the Apps key:</em>
@@ -214,10 +211,7 @@ Loop 10  <em>; Add rows to the ListView (for demonstration purposes, one for eac
     LV_Add(&quot;Icon&quot; . A_Index, A_Index, &quot;n/a&quot;)
 LV_ModifyCol(&quot;Hdr&quot;)  <em>; Auto-adjust the column widths.</em>
 Gui Show
-return
-
-GuiClose:  <em>; Exit the script when the user closes the ListView's GUI window.</em>
-ExitApp</pre>
+return</pre>
 <h3 id="IL_Create">IL_Create([InitialCount, GrowCount, LargeIcons?])</h3>
 <p>Creates a new ImageList, initially empty, and returns the unique ID of the ImageList (or 0 upon failure). <em>InitialCount</em> is the number of icons you expect to put into the list immediately (if omitted, it defaults to 2). <em>GrowCount</em> is the number of icons by which the list will grow each time it exceeds the current list capacity (if omitted, it defaults to 5). <em>LargeIcons</em> should be a numeric value: If non-zero, the ImageList will contain large icons. If zero, it will contain small icons (this is the default when omitted). Icons added to the list are scaled automatically to conform to the system's dimensions for small and large icons.</p>
 <h3 id="LV_SetImageList">LV_SetImageList(ImageListID [, 0|1|2])</h3>
@@ -240,7 +234,7 @@ ExitApp</pre>
 ...
 ButtonOK:
 GuiControlGet, FocusedControl, FocusV
-if FocusedControl &lt;&gt; MyListView
+if FocusedControl &lt;&gt; "MyListView"
     return
 MsgBox % &quot;Enter was pressed. The focused row number is &quot; . LV_GetNext(0, &quot;Focused&quot;)
 return</pre>
@@ -308,9 +302,9 @@ if not Folder  <em>; The user canceled the dialog.</em>
 
 <em>; Check if the last character of the folder name is a backslash, which happens for root
 ; directories such as C:\. If it is, remove it to prevent a double-backslash later on.</em>
-StringRight, LastChar, Folder, 1
-if LastChar = \
-    StringTrimRight, Folder, Folder, 1  <em>; Remove the trailing backslash.</em>
+LastChar := SubStr(Folder, -1, 1)
+if LastChar = "\"
+    Folder := SubStr(Folder, 1, -1)  <em>; Remove the trailing backslash.</em>
 
 <em>; Calculate buffer size required for SHFILEINFO structure.</em>
 sfi_size := A_PtrSize + 688
@@ -318,29 +312,29 @@ VarSetCapacity(sfi, sfi_size)
 
 <em>; Gather a list of file names from the selected folder and append them to the ListView:</em>
 GuiControl, -Redraw, MyListView  <em>; Improve performance by disabling redrawing during load.</em>
-Loop %Folder%\*.*
+Loop, Files, %Folder%\*.*
 {
     FileName := A_LoopFilePath  <em>; Must save it to a writable variable for use below.</em>
 
     <em>; Build a unique extension ID to avoid characters that are illegal in variable names,</em>
     <em>; such as dashes.  This unique ID method also performs better because finding an item</em>
     <em>; in the array does not require search-loop.</em>
-    SplitPath, FileName,,, FileExt  <em>; Get the file's extension.</em>
-    if FileExt in EXE,ICO,ANI,CUR
+    SplitPath, %FileName%,,, FileExt  <em>; Get the file's extension.</em>
+    if FileExt ~= "^(EXE|ICO|ANI|CUR)$"
     {
         ExtID := FileExt  <em>; Special ID as a placeholder.</em>
-        IconNumber = 0  <em>; Flag it as not found so that these types can each have a unique icon.</em>
+        IconNumber := 0  <em>; Flag it as not found so that these types can each have a unique icon.</em>
     }
     else  <em>; Some other extension/file-type, so calculate its unique ID.</em>
     {
-        ExtID = 0  <em>; Initialize to handle extensions that are shorter than others.</em>
+        ExtID := 0  <em>; Initialize to handle extensions that are shorter than others.</em>
         Loop 7     <em>; Limit the extension to 7 characters so that it fits in a 64-bit value.</em>
         {
-            StringMid, ExtChar, FileExt, A_Index, 1
+            ExtChar := SubStr(FileExt, A_Index, 1)
             if not ExtChar  <em>; No more characters.</em>
                 break
             <em>; Derive a Unique ID by assigning a different bit position to each character:</em>
-            ExtID := ExtID | (Asc(ExtChar) &lt;&lt; (8 * (A_Index - 1)))
+            ExtID := ExtID | (Ord(ExtChar) &lt;&lt; (8 * (A_Index - 1)))
         }
         <em>; Check if this file extension already has an icon in the ImageLists. If it does,</em>
         <em>; several calls can be avoided and loading performance is greatly improved,</em>
@@ -352,7 +346,7 @@ Loop %Folder%\*.*
         <em>; Get the high-quality small-icon associated with this file extension:</em>
         if not DllCall(&quot;Shell32\SHGetFileInfoW&quot;, &quot;str&quot;, FileName
             , &quot;uint&quot;, 0, &quot;ptr&quot;, &amp;sfi, &quot;uint&quot;, sfi_size, &quot;uint&quot;, 0x101)  <em>; 0x101 is SHGFI_ICON+SHGFI_SMALLICON</em>
-            IconNumber = 9999999  <em>; Set it out of bounds to display a blank icon.</em>
+            IconNumber := 9999999  <em>; Set it out of bounds to display a blank icon.</em>
         else <em>; Icon successfully loaded.</em>
         {
             <em>; Extract the hIcon member from the structure:</em>
@@ -390,7 +384,7 @@ IconView := not IconView             <em>; Invert in preparation for next time.<
 return
 
 MyListView:
-if A_GuiEvent = DoubleClick  <em>; There are many other possible values the script can check.</em>
+if A_GuiEvent = "DoubleClick"  <em>; There are many other possible values the script can check.</em>
 {
     <a href="#LV_GetText">LV_GetText</a>(FileName, A_EventInfo, 1) <em>; Get the text of the first field.</em>
     LV_GetText(FileDir, A_EventInfo, 2)  <em>; Get the text of the second field.</em>
@@ -401,7 +395,7 @@ if A_GuiEvent = DoubleClick  <em>; There are many other possible values the scri
 return
 
 <a href="Gui.htm#GuiContextMenu">GuiContextMenu</a>:  <em>; Launched in response to a right-click or press of the Apps key.</em>
-if A_GuiControl &lt;&gt; MyListView  <em>; Display the menu only for clicks inside the ListView.</em>
+if A_GuiControl &lt;&gt; "MyListView"  <em>; Display the menu only for clicks inside the ListView.</em>
     return
 <em>; Show the menu at the provided coordinates, A_GuiX and A_GuiY.  These should be used
 ; because they provide correct coordinates even if the user pressed the Apps key:</em>
@@ -416,7 +410,7 @@ if not FocusedRowNumber  <em>; No row is focused.</em>
     return
 LV_GetText(FileName, FocusedRowNumber, 1) <em>; Get the text of the first field.</em>
 LV_GetText(FileDir, FocusedRowNumber, 2)  <em>; Get the text of the second field.</em>
-IfInString A_ThisMenuItem, Open  <em>; User selected &quot;Open&quot; from the context menu.</em>
+if InStr(A_ThisMenuItem, "Open")  <em>; User selected &quot;Open&quot; from the context menu.</em>
     Run %FileDir%\%FileName%,, UseErrorLevel
 else  <em>; User selected &quot;Properties&quot; from the context menu.</em>
     Run Properties &quot;%FileDir%\%FileName%&quot;,, UseErrorLevel
@@ -425,7 +419,7 @@ if ErrorLevel
 return
 
 ContextClearRows:  <em>; The user selected &quot;Clear&quot; in the context menu.</em>
-RowNumber = 0  <em>; This causes the first iteration to start the search at the top.</em>
+RowNumber := 0  <em>; This causes the first iteration to start the search at the top.</em>
 Loop
 {
     <em>; Since deleting a row reduces the RowNumber of all other rows beneath it,</em>
@@ -443,10 +437,7 @@ if A_EventInfo = 1  <em>; The window has been minimized.  No action needed.</em>
     return
 <em>; Otherwise, the window has been resized or maximized. Resize the ListView to match.</em>
 GuiControl, Move, MyListView, % &quot;W&quot; . (A_GuiWidth - 20) . &quot; H&quot; . (A_GuiHeight - 40)
-return
-
-GuiClose:  <em>; When the window is closed, exit the script automatically:</em>
-ExitApp</pre>
+return</pre>
 
 </body>
 </html>

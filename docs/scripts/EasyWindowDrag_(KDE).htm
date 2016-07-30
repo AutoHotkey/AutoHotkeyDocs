@@ -25,6 +25,7 @@
 ; and aurelian for a job well done.</em>
 
 <em>; Change history:
+; July 16, 2016: Revised code for AHK v2 compatibility
 ; November 07, 2006: Optimized resizing code in !RButton, courtesy of bluedawn.
 ; February 05, 2006: Fixed double-alt (the ~Alt hotkey) to work with latest versions of AHK.</em>
 
@@ -41,14 +42,6 @@
 ;
 ; You can optionally release Alt after the first
 ; click rather than holding it down the whole time.</em>
-
-If (A_AhkVersion &lt; &quot;1.0.39.00&quot;)
-{
-    MsgBox,20,,This script may not work properly with your version of AutoHotkey. Continue?
-    IfMsgBox,No
-    ExitApp
-}
-
 
 <em>; This is the setting that runs smoothest on my
 ; system. Depending on your video card and cpu
@@ -71,7 +64,7 @@ If DoubleAlt
 <em>; Get the initial mouse position and window id, and
 ; abort if the window is maximized.</em>
 MouseGetPos,KDE_X1,KDE_Y1,KDE_id
-WinGet,KDE_Win,MinMax,ahk_id %KDE_id%
+WinGetMinMax,KDE_Win,ahk_id %KDE_id%
 If KDE_Win
     return
 <em>; Get the initial window position.</em>
@@ -79,7 +72,7 @@ WinGetPos,KDE_WinX1,KDE_WinY1,,,ahk_id %KDE_id%
 Loop
 {
     GetKeyState,KDE_Button,LButton,P <em>; Break if button has been released.</em>
-    If KDE_Button = U
+    If !KDE_Button
         break
     MouseGetPos,KDE_X2,KDE_Y2 <em>; Get the current mouse position.</em>
     KDE_X2 -= KDE_X1 <em>; Obtain an offset from the initial mouse position.</em>
@@ -95,7 +88,7 @@ If DoubleAlt
 {
     MouseGetPos,,,KDE_id
     <em>; Toggle between maximized and restored state.</em>
-    WinGet,KDE_Win,MinMax,ahk_id %KDE_id%
+    WinGetMinMax,KDE_Win,ahk_id %KDE_id%
     If KDE_Win
         WinRestore,ahk_id %KDE_id%
     Else
@@ -106,25 +99,25 @@ If DoubleAlt
 <em>; Get the initial mouse position and window id, and
 ; abort if the window is maximized.</em>
 MouseGetPos,KDE_X1,KDE_Y1,KDE_id
-WinGet,KDE_Win,MinMax,ahk_id %KDE_id%
+WinGetMinMax,KDE_Win,ahk_id %KDE_id%
 If KDE_Win
     return
 <em>; Get the initial window position and size.</em>
 WinGetPos,KDE_WinX1,KDE_WinY1,KDE_WinW,KDE_WinH,ahk_id %KDE_id%
 <em>; Define the window region the mouse is currently in.
 ; The four regions are Up and Left, Up and Right, Down and Left, Down and Right.</em>
-If (KDE_X1 &lt; KDE_WinX1 + KDE_WinW / 2)
+If (KDE_X1 < KDE_WinX1 + KDE_WinW / 2)
    KDE_WinLeft := 1
 Else
    KDE_WinLeft := -1
-If (KDE_Y1 &lt; KDE_WinY1 + KDE_WinH / 2)
+If (KDE_Y1 < KDE_WinY1 + KDE_WinH / 2)
    KDE_WinUp := 1
 Else
    KDE_WinUp := -1
 Loop
 {
     GetKeyState,KDE_Button,RButton,P <em>; Break if button has been released.</em>
-    If KDE_Button = U
+    If !KDE_Button
         break
     MouseGetPos,KDE_X2,KDE_Y2 <em>; Get the current mouse position.</em>
     <em>; Get the current window position and size.</em>
@@ -132,16 +125,16 @@ Loop
     KDE_X2 -= KDE_X1 <em>; Obtain an offset from the initial mouse position.</em>
     KDE_Y2 -= KDE_Y1
     <em>; Then, act according to the defined region.</em>
-    WinMove,ahk_id %KDE_id%,, KDE_WinX1 + (KDE_WinLeft+1)/2*KDE_X2  <em>; X of resized window</em>
-                            , KDE_WinY1 +   (KDE_WinUp+1)/2*KDE_Y2  <em>; Y of resized window</em>
-                            , KDE_WinW  -     KDE_WinLeft  *KDE_X2  <em>; W of resized window</em>
-                            , KDE_WinH  -       KDE_WinUp  *KDE_Y2  <em>; H of resized window</em>
+    WinMove,ahk_id %KDE_id%,, % KDE_WinX1 + (KDE_WinLeft+1)/2*KDE_X2  <em>; X of resized window</em>
+                            , % KDE_WinY1 +   (KDE_WinUp+1)/2*KDE_Y2  <em>; Y of resized window</em>
+                            , % KDE_WinW  -     KDE_WinLeft  *KDE_X2  <em>; W of resized window</em>
+                            , % KDE_WinH  -       KDE_WinUp  *KDE_Y2  <em>; H of resized window</em>
     KDE_X1 := (KDE_X2 + KDE_X1) <em>; Reset the initial position for the next iteration.</em>
     KDE_Y1 := (KDE_Y2 + KDE_Y1)
 }
 return
 
-<em>; &quot;Alt + MButton&quot; may be simpler, but I
+<em>; "Alt + MButton" may be simpler, but I
 ; like an extra measure of security for
 ; an operation like this.</em>
 !MButton::
@@ -154,9 +147,9 @@ If DoubleAlt
 }
 return
 
-<em>; This detects &quot;double-clicks&quot; of the alt key.</em>
+<em>; This detects "double-clicks" of the alt key.</em>
 ~Alt::
-DoubleAlt := A_PriorHotKey = &quot;~Alt&quot; AND A_TimeSincePriorHotkey &lt; 400
+DoubleAlt := A_PriorHotKey = "~Alt" AND A_TimeSincePriorHotkey < 400
 Sleep 0
 KeyWait Alt  <em>; This prevents the keyboard's auto-repeat feature from interfering.</em>
 return

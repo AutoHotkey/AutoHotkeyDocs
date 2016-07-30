@@ -73,11 +73,11 @@ MsgBox, This one too.
 <p>Although the indentation used in the examples above is optional, it might improve clarity by indicating which lines belong to ones above them. Also, it is not necessary to include extra spaces for lines starting with the words &quot;AND&quot; and &quot;OR&quot;; the program does this automatically. Finally, blank lines or <a href="#Comments">comments</a> may be added between or at the end of any of the lines in the above examples.</p>
 <p><strong>Method #2</strong>: This method should be used to merge a large number of lines or when the lines are not suitable for Method #1. Although this method is especially useful for <a href="Hotstrings.htm">auto-replace hotstrings</a>, it can also be used with any command or <a href="Variables.htm#Expressions">expression</a>. For example:</p>
 <pre><em>; EXAMPLE #1:</em>
-Var =
+Var := "
 (
 Line 1 of the text.
 Line 2 of the text. By default, a linefeed (`n) is present between lines.
-)
+)"
 
 <em>; EXAMPLE #2:</em>
 FileAppend<strong>,</strong>  <em>; The comma is required in this case.</em>
@@ -110,14 +110,14 @@ A line of text.
 ), C:\File.txt   <em>; Comment.</em></pre>
 <p>As a consequence of the above, semicolons never need to be <a href="misc/EscapeChar.htm">escaped</a> within a continuation section.</p>
 <p>A continuation section cannot produce a line whose total length is greater than 16,383 characters (if it tries, the program will alert you the moment the script is launched). One way to work around this is to do a series of concatenations into a variable.  For example:</p>
-<pre>Var =
+<pre>Var := "
 (
 ...
-)
-Var = %Var%`n  <em>; Add more text to the variable via another continuation section.</em>
+)"
+Var .= "`n  <em>; Add more text to the variable via another continuation section.</em>
 (
 ...
-)
+)"
 FileAppend, %Var%, C:\My File.txt</pre>
 <p>Since a closing parenthesis indicates the end of a continuation section, to have a line start with literal closing parenthesis, precede it with an accent/backtick: <code>`)</code>.</p>
 <p>A continuation section can be immediately followed by a line containing the open-parenthesis of another continuation section. This allows the options mentioned above to be varied during the course of building a single line.</p>
@@ -206,7 +206,7 @@ Usage:
 </ul>
 <p>The filename <code><i>AutoHotkey</i>.ahk</code> depends on the name of the executable used to run the script. For example, if you rename AutoHotkey.exe to MyScript.exe, it will attempt to find <code>MyScript.ahk</code>. If you run AutoHotkeyU32.exe without parameters, it will look for AutoHotkeyU32.ahk.</p>
 <p>Specify an asterisk (*) for the filename to read the script text from standard input (stdin). For an example, see <a href="commands/Run.htm#ExecScript">ExecScript()</a>.</p>
-<p><strong>Script Parameters:</strong> The string(s) you want to pass into the script, with each separated from the next by a space. Any parameter that contains spaces should be enclosed in quotation marks. A literal quotation mark may be passed in by preceding it with a backslash (\&quot;). Consequently, any trailing slash in a quoted parameter (such as &quot;C:\My Documents<span class="red">\&quot;</span>) is treated as a literal quotation mark (that is, the script would receive the string C:\My Documents<span class="red">&quot;</span>). To remove such quotes, use <code><a href="commands/StrReplace.htm">StrReplace, 1, 1, <span class="red">&quot;</span>,, All</a></code></p>
+<p><strong>Script Parameters:</strong> The string(s) you want to pass into the script, with each separated from the next by a space. Any parameter that contains spaces should be enclosed in quotation marks. A literal quotation mark may be passed in by preceding it with a backslash (\&quot;). Consequently, any trailing slash in a quoted parameter (such as &quot;C:\My Documents<span class="red">\&quot;</span>) is treated as a literal quotation mark (that is, the script would receive the string C:\My Documents<span class="red">&quot;</span>). To remove such quotes, use <code>A_Args[1] := <a href="commands/StrReplace.htm">StrReplace</a>(A_Args[1], '"')</code></p>
 <p>Incoming parameters, if present, are stored as an array in the built-in variable <strong>A_Args</strong>, and can be accessed using <a href="Objects.htm#Usage_Simple_Arrays">array syntax</a>. <code>A_Args[1]</code> contains the first parameter. The following example exits the script when too few parameters are passed to it:</p>
 <pre>if A_Args.Length() &lt; 3
 {
@@ -240,18 +240,18 @@ Usage:
 <p><a href="commands/RegWrite.htm">RegWrite</a> may be used to set the default for scripts launched from Explorer (e.g. by double-clicking a file):</p>
 <pre><em>; Uncomment the appropriate line below or leave them all commented to
 ;   reset to the default of the current build.  Modify as necessary:
-; codepage = 0        ; System default ANSI codepage
-; codepage = 65001    ; UTF-8
-; codepage = 1200     ; UTF-16
-; codepage = 1252     ; ANSI Latin 1; Western European (Windows)</em>
+; codepage := 0        ; System default ANSI codepage
+; codepage := 65001    ; UTF-8
+; codepage := 1200     ; UTF-16
+; codepage := 1252     ; ANSI Latin 1; Western European (Windows)</em>
 if (codepage != "")
     codepage := " /CP" . codepage
-cmd="%A_AhkPath%"%codepage% "`%1" `%*
-key=AutoHotkeyScript\Shell\Open\Command
+cmd := '"%A_AhkPath%" %codepage% "`%1" `%*'
+key := "AutoHotkeyScript\Shell\Open\Command"
 if A_IsAdmin    <em>; Set for all users.</em>
-    RegWrite, REG_SZ, HKCR, %key%,, %cmd%
+    RegWrite, REG_SZ, HKCR\%key%,, %cmd%
 else            <em>; Set for current user only.</em>
-    RegWrite, REG_SZ, HKCU, Software\Classes\%key%,, %cmd%</pre>
+    RegWrite, REG_SZ, HKCU\Software\Classes\%key%,, %cmd%</pre>
 <p>This assumes AutoHotkey has already been installed. Results may be less than ideal if it has not.</p>
 
 <h2 id="debug">Debugging a Script</h2>
@@ -276,13 +276,13 @@ else            <em>; Set for current user only.</em>
 <pre>AutoHotkey /Debug "myscript.ahk"
 AutoHotkey /Debug=localhost:9000 "myscript.ahk"</pre>
 <p id="debug_attach">To attach the debugger to a script which is already running, send it a message as shown below:</p>
-<pre>ScriptPath = <em>; SET THIS TO THE FULL PATH OF THE SCRIPT</em>
+<pre>ScriptPath := "" <em>; SET THIS TO THE FULL PATH OF THE SCRIPT</em>
 DetectHiddenWindows On
-ifWinExist %ScriptPath% ahk_class AutoHotkey
+if WinExist("%ScriptPath% ahk_class AutoHotkey")
     <em>; Optional parameters:
     ;   wParam  = the IPv4 address of the debugger client, as a 32-bit integer.
     ;   lParam  = the port which the debugger client is listening on.</em>
-    PostMessage DllCall("RegisterWindowMessage", "str", "AHK_ATTACH_DEBUGGER")
+    PostMessage, % DllCall("RegisterWindowMessage", "str", "AHK_ATTACH_DEBUGGER")
 </pre>
 <p>Once the debugger client is connected, it may detach without terminating the script by sending the "detach" DBGp command.</p>
 

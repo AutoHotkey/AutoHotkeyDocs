@@ -23,27 +23,26 @@ $Numpad0::
 <em>; Above: Use the $ to force the hook to be used, which prevents an
 ; infinite loop since this subroutine itself sends Numpad0, which
 ; would otherwise result in a recursive call to itself.</em>
-SetBatchLines, 100 <em>; Make it run a little faster in this case.</em>
-DelayBetweenKeys = 30 <em>; Adjust this value if it doesn't work.</em>
-if A_PriorHotkey = %A_ThisHotkey%
+DelayBetweenKeys := 30 <em>; Adjust this value if it doesn't work.</em>
+if A_PriorHotkey = A_ThisHotkey
 {
-    if A_TimeSincePriorHotkey &lt; %DelayBetweenKeys%
+    if A_TimeSincePriorHotkey < DelayBetweenKeys
     {
-        if Numpad0Count =
-            Numpad0Count = 2 <em>; i.e. This one plus the prior one.</em>
+        if Numpad0Count = ""
+            Numpad0Count := 2 <em>; i.e. This one plus the prior one.</em>
         else if Numpad0Count = 0
-            Numpad0Count = 2
+            Numpad0Count := 2
         else
         {
             <em>; Since we're here, Numpad0Count must be 2 as set by</em>
             <em>; prior calls, which means this is the third time the</em>
             <em>; the key has been pressed. Thus, the hotkey sequence</em>
             <em>; should fire:</em>
-            Numpad0Count = 0
+            Numpad0Count := 0
             Send, = <em>; ******* This is the action for the 000 key</em>
         }
         <em>; In all the above cases, we return without further action:</em>
-        CalledReentrantly = y
+        CalledReentrantly := true
         return
     }
 }
@@ -54,17 +53,17 @@ if A_PriorHotkey = %A_ThisHotkey%
 ; which another Numpad0 hotkey event may re-entrantly call this
 ; subroutine -- we'll send the key on through if no reentrant
 ; calls occurred:</em>
-Numpad0Count = 0
-CalledReentrantly = n
+Numpad0Count := 0
+CalledReentrantly := false
 <em>; During this sleep, this subroutine may be reentrantly called
-; (i.e. a simultaneous &quot;thread&quot; which runs in parallel to the
+; (i.e. a simultaneous "thread" which runs in parallel to the
 ; call we're in now):</em>
 Sleep, %DelayBetweenKeys%
-if CalledReentrantly = y <em>; Another &quot;thread&quot; changed the value.</em>
+if CalledReentrantly = true <em>; Another "thread" changed the value.</em>
 {
     <em>; Since it was called reentrantly, this key event was the first in</em>
     <em>; the sequence so should be suppressed (hidden from the system):</em>
-    CalledReentrantly = n
+    CalledReentrantly := false
     return
 }
 <em>; Otherwise it's not part of the sequence so we send it through normally.

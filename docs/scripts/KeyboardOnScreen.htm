@@ -24,18 +24,18 @@
 
 <em>; Changing this font size will make the entire on-screen keyboard get
 ; larger or smaller:</em>
-k_FontSize = 10
-k_FontName = Verdana  <em>; This can be blank to use the system's default font.</em>
-k_FontStyle = Bold    <em>; Example of an alternative: Italic Underline</em>
+k_FontSize := 10
+k_FontName := "Verdana"  <em>; This can be blank to use the system's default font.</em>
+k_FontStyle := "Bold"    <em>; Example of an alternative: Italic Underline</em>
 
 <em>; Names for the tray menu items:</em>
-k_MenuItemHide = Hide on-screen &amp;keyboard
-k_MenuItemShow = Show on-screen &amp;keyboard
+k_MenuItemHide := "Hide on-screen &keyboard"
+k_MenuItemShow := "Show on-screen &keyboard"
 
 <em>; To have the keyboard appear on a monitor other than the primary, specify
 ; a number such as 2 for the following variable.  Leave it blank to use
 ; the primary:</em>
-k_Monitor = 
+k_Monitor := ""
 
 <em>;---- End of configuration section.  Don't change anything below this point
 ; unless you want to alter the basic nature of the script.</em>
@@ -43,29 +43,24 @@ k_Monitor =
 
 <em>;---- Alter the tray icon menu:</em>
 Menu, Tray, Add, %k_MenuItemHide%, k_ShowHide
-Menu, Tray, Add, &amp;Exit, k_MenuExit
+Menu, Tray, Add, &Exit, k_MenuExit
 Menu, Tray, Default, %k_MenuItemHide%
 Menu, Tray, NoStandard
 
 <em>;---- Calculate object dimensions based on chosen font size:</em>
-k_KeyWidth = %k_FontSize%
-k_KeyWidth *= 3
-k_KeyHeight = %k_FontSize%
-k_KeyHeight *= 3
-k_KeyMargin = %k_FontSize%
-k_KeyMargin /= 6
-k_SpacebarWidth = %k_FontSize%
-k_SpacebarWidth *= 25
-k_KeyWidthHalf = %k_KeyWidth%
-k_KeyWidthHalf /= 2
+k_KeyWidth := k_FontSize * 3
+k_KeyHeight := k_FontSize * 3
+k_KeyMargin := k_FontSize / 6
+k_SpacebarWidth := k_FontSize * 25
+k_KeyWidthHalf := k_KeyWidth / 2
 
-k_KeySize = w%k_KeyWidth% h%k_KeyHeight%
-k_Position = x+%k_KeyMargin% %k_KeySize%
+k_KeySize := "w%k_KeyWidth% h%k_KeyHeight%"
+k_Position := "x+%k_KeyMargin% %k_KeySize%"
 
 <em>;---- Create a GUI window for the on-screen keyboard:</em>
 Gui, Font, s%k_FontSize% %k_FontStyle%, %k_FontName%
 Gui, -Caption +E0x200 +ToolWindow
-TransColor = F1ECED
+TransColor := "F1ECED"
 Gui, Color, %TransColor%  <em>; This color will be made transparent later below.</em>
 
 <em>;---- Add a button for each key. Position the first button with absolute
@@ -134,27 +129,26 @@ Gui, Add, Button, h%k_KeyHeight% x+%k_KeyMargin% w%k_SpacebarWidth%, Space
 
 <em>;---- Show the window:</em>
 Gui, Show
-k_IsVisible = y
+k_IsVisible := true
 
-WinGet, k_ID, ID, A   <em>; Get its window ID.</em>
+WinGetID, k_ID, A   ; Get its window ID.
 WinGetPos,,, k_WindowWidth, k_WindowHeight, A
 
 <em>;---- Position the keyboard at the bottom of the screen (taking into account
 ; the position of the taskbar):</em>
-SysGet, k_WorkArea, MonitorWorkArea, %k_Monitor%
+MonitorGetWorkArea, %k_Monitor%, k_WorkAreaLeft,, k_WorkAreaRight, k_WorkAreaBottom
 
 <em>; Calculate window's X-position:</em>
-k_WindowX = %k_WorkAreaRight%
-k_WindowX -= %k_WorkAreaLeft%  <em>; Now k_WindowX contains the width of this monitor.</em>
-k_WindowX -= %k_WindowWidth%
+k_WindowX := k_WorkAreaRight
+k_WindowX -= k_WorkAreaLeft  <em>; Now k_WindowX contains the width of this monitor.</em>
+k_WindowX -= k_WindowWidth
 k_WindowX /= 2  <em>; Calculate position to center it horizontally.
 ; The following is done in case the window will be on a non-primary monitor
 ; or if the taskbar is anchored on the left side of the screen:</em>
-k_WindowX += %k_WorkAreaLeft%
+k_WindowX += k_WorkAreaLeft
 
 <em>; Calculate window's Y-position:</em>
-k_WindowY = %k_WorkAreaBottom%
-k_WindowY -= %k_WindowHeight%
+k_WindowY := k_WorkAreaBottom - k_WindowHeight
 
 WinMove, A,, %k_WindowX%, %k_WindowY%
 WinSetAlwaysOnTop, On, ahk_id %k_ID%
@@ -162,17 +156,16 @@ WinSetTransColor, %TransColor% 220, ahk_id %k_ID%
 
 
 <em>;---- Set all keys as hotkeys. See www.asciitable.com</em>
-k_n = 1
-k_ASCII = 45
+k_n := 1
+k_ASCII := 45
 
 Loop
 {
-    Transform, k_char, Chr, %k_ASCII%
-    StringUpper, k_char, k_char
-    if k_char not in &lt;,&gt;,^,~,&#129;,`,
+    k_char := StrUpper(Chr(k_ASCII))
+    if !InStr("<>^~?,", k_char)
         Hotkey, ~*%k_char%, k_KeyPress
-        <em>; In the above, the asterisk prefix allows the key to be detected regardless</em>
-        <em>; of whether the user is holding down modifier keys such as Control and Shift.</em>
+        <em>; In the above, the asterisk prefix allows the key to be detected regardless
+        ; of whether the user is holding down modifier keys such as Control and Shift.</em>
     if k_ASCII = 93
         break
     k_ASCII++
@@ -190,8 +183,8 @@ ControlClick, Bk, ahk_id %k_ID%, , LEFT, 1, U
 return
 
 
-<em>; LShift and RShift are used rather than &quot;Shift&quot; because when used as a hotkey,
-; &quot;Shift&quot; would default to firing upon release of the key (in older AHK versions):</em>
+<em>; LShift and RShift are used rather than "Shift" because when used as a hotkey,
+; "Shift" would default to firing upon release of the key (in older AHK versions):</em>
 ~*LShift::
 ~*RShift::
 ~*LCtrl::  <em>; Must use Ctrl not Control to match button names.</em>
@@ -200,7 +193,7 @@ return
 ~*RAlt::
 ~*LWin::
 ~*RWin::
-StringTrimLeft, k_ThisHotkey, A_ThisHotkey, 3
+k_ThisHotkey := SubStr(A_ThisHotkey, 3)
 ControlClick, %k_ThisHotkey%, ahk_id %k_ID%, , LEFT, 1, D
 KeyWait, %k_ThisHotkey%
 ControlClick, %k_ThisHotkey%, ahk_id %k_ID%, , LEFT, 1, U
@@ -213,8 +206,8 @@ return
 ~*Enter::
 ~*Tab::
 k_KeyPress:
-StringReplace, k_ThisHotkey, A_ThisHotkey, ~
-StringReplace, k_ThisHotkey, k_ThisHotkey, *
+StrReplace, k_ThisHotkey, %A_ThisHotkey%, ~
+StrReplace, k_ThisHotkey, %k_ThisHotkey%, *
 SetTitleMatchMode, 3  <em>; Prevents the T and B keys from being confused with Tab and Backspace.</em>
 ControlClick, %k_ThisHotkey%, ahk_id %k_ID%, , LEFT, 1, D
 KeyWait, %k_ThisHotkey%
@@ -223,17 +216,17 @@ Return
 
 
 k_ShowHide:
-if k_IsVisible = y
+if k_IsVisible = true
 {
     Gui, Cancel
     Menu, Tray, Rename, %k_MenuItemHide%, %k_MenuItemShow%
-    k_IsVisible = n
+    k_IsVisible := false
 }
 else
 {
     Gui, Show
     Menu, Tray, Rename, %k_MenuItemShow%, %k_MenuItemHide%
-    k_IsVisible = y
+    k_IsVisible := true
 }
 return
 

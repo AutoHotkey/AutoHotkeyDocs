@@ -237,7 +237,7 @@ SS: Second 00</p>
 <p>It is usually best to omit width (W) and height (H) for a MonthCal because it automatically sizes itself to fit exactly one month. To display more than one month vertically, specify <code>R2</code> or higher in <em>Options</em>. To display more than one month horizontally, specify <code>W-2</code> (W negative two) or higher. These options may both be present to expand in both directions.</p>
 <p>The today-string at the bottom of the control can be clicked to select today's date. In addition, the year and month name are clickable and allow easy selection of a new year or month.</p>
 <p>Unlike <a href="#DateTime">DateTime</a>'s drop-down calendar, keyboard navigation is generally not supported in a MonthCal.</p>
-<p>When the <a href="Gui.htm#Submit">Gui Submit</a> command is used, the control's <a href="Gui.htm#var">associated output variable</a> (if any) receives the selected date in YYYYMMDD format (without any time portion). However, when the <a href="#MonthCalMulti">multi-select</a> option is in effect, the minimum and maximum dates are retrieved with a dash between them (e.g. <code>20050101-20050108</code>). If only a single date was selected in a multi-select calendar, the minimum and maximum are both present but identical. <a href="StrSplit.htm">StrSplit</a> can be used to separate the dates. For example, the following would put the minimum in Date1 and the maximum in Date2: <code>StringSplit, Date, MyMonthCal, -</code>.</p>
+<p>When the <a href="Gui.htm#Submit">Gui Submit</a> command is used, the control's <a href="Gui.htm#var">associated output variable</a> (if any) receives the selected date in YYYYMMDD format (without any time portion). However, when the <a href="#MonthCalMulti">multi-select</a> option is in effect, the minimum and maximum dates are retrieved with a dash between them (e.g. <code>20050101-20050108</code>). If only a single date was selected in a multi-select calendar, the minimum and maximum are both present but identical. <a href="StrSplit.htm">StrSplit</a> can be used to separate the dates. For example, the following would put the minimum in Date1 and the maximum in Date2: <code>StrSplit, Date, %MyMonthCal%, -</code>.</p>
 <p>If the MonthCal has a <a href="Gui.htm#label">g-label</a>, each launch of it updates the control's <a href="Gui.htm#var">associated output variable</a> (if any) with the currently selected date or range. By default, the label is launched only when: 1) the user changes the selection; or 2) every two minutes in case a new day has arrived (this behavior is a quirk of the OS). However, if the word AltSubmit is in the control's <em>Options</em>, the <a href="Gui.htm#label">g-label</a> is launched more often and the built-in variable A_GuiEvent will contain the word Normal for a change of the date, the number 1 for a click of a date, and the number 2 when the MonthCal releases &quot;mouse capture&quot;. For example, if the user double-clicks a new date, the label would be launched five times: Once with Normal, twice with 1, and twice with 2. This can be used to detect double clicks by <a href="../Variables.htm#TickCount">measuring the time</a> between instances of the number 1.</p>
 <p>When specifying dates in the YYYYMMDD format, the MM and/or DD portions may be omitted, in which case they are assumed to be 1. For example, <code>200205</code> is seen as 20020501, and <code>2005</code> is seen as 20050101.</p>
 <h3>MonthCal Options</h3>
@@ -416,10 +416,7 @@ class WB_events
     {
         GuiControl,, URL, %NewURL%  <em>; Update the URL edit control.</em>
     }
-}
-
-GuiClose:
-ExitApp</pre>
+}</pre>
 <p><a href="ComObjType.htm">ComObjType</a> can be used to determine the type of object stored in the control's variable.</p>
 
 <h2 id="Custom">Custom</h2>
@@ -439,9 +436,6 @@ IPCtrlSetAddress(hIPControl, A_IPAddress1)
 Gui, Show
 return
 
-GuiClose:
-ExitApp
-
 ButtonOK:
 Gui, Hide
 ToolTip
@@ -449,14 +443,14 @@ MsgBox % &quot;You chose &quot; IPCtrlGetAddress(hIPControl)
 ExitApp
 
 IPControlEvent:
-if A_GuiEvent = Normal
+if A_GuiEvent = "Normal"
 {
     <em>; WM_COMMAND was received.</em>
 
     if (A_EventInfo = 0x0300)  <em>; EN_CHANGE</em>
         ToolTip Control changed!
 }
-else if A_GuiEvent = N
+else if A_GuiEvent = "N"
 {
     <em>; WM_NOTIFY was received.
 
@@ -483,9 +477,9 @@ IPCtrlSetAddress(hControl, ipaddress)
 
     <em>; Pack the IP address into a 32-bit word for use with SendMessage.</em>
     ipaddrword := 0
-    Loop, Parse, ipaddress, .
+    Loop, Parse, %ipaddress%, .
         ipaddrword := (ipaddrword * 256) + A_LoopField
-    SendMessage IPM_SETADDRESS, 0, ipaddrword,, ahk_id %hControl%
+    SendMessage %IPM_SETADDRESS%, 0, %ipaddrword%,, ahk_id %hControl%
 }
 
 IPCtrlGetAddress(hControl)
@@ -494,7 +488,7 @@ IPCtrlGetAddress(hControl)
     static IPM_GETADDRESS := WM_USER + 102
 
     VarSetCapacity(addrword, 4)
-    SendMessage IPM_GETADDRESS, 0, &amp;addrword,, ahk_id %hControl%
+    SendMessage %IPM_GETADDRESS%, 0, %&amp;addrword%,, ahk_id %hControl%
     return NumGet(addrword, 3, &quot;UChar&quot;) &quot;.&quot; NumGet(addrword, 2, &quot;UChar&quot;) &quot;.&quot; NumGet(addrword, 1, &quot;UChar&quot;) &quot;.&quot; NumGet(addrword, 0, &quot;UChar&quot;)
 }</pre>
 

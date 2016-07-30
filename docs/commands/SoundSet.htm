@@ -70,36 +70,35 @@ if ErrorLevel
     MsgBox, The BASS setting is not supported for MASTER.</pre>
 <h4 id="Ex">Soundcard Analysis</h4>
 <p>Use the following script to discover your soundcard's capabilities (component types and control types). It displays the results in a simple ListView. Alternatively, a script for Windows Vista and later which provides more detail (such as display names of devices) can be downloaded from the following forum topic: <a href="http://www.autohotkey.com/board/topic/90877-/">http://www.autohotkey.com/board/topic/90877-/</a></p>
-<pre class="NoIndent">SetBatchLines -1
-SplashTextOn,,, Gathering Soundcard Info...
-
-<em>; Most of the pure numbers below probably don't exist in any mixer, but they're queried for completeness.
+<pre class="NoIndent"><em>; Most of the pure numbers below probably don't exist in any mixer, but they're queried for completeness.
 ; The numbers correspond to the following items (in order): CUSTOM, BOOLEANMETER, SIGNEDMETER, PEAKMETER,
 ; UNSIGNEDMETER, BOOLEAN, BUTTON, DECIBELS, SIGNED, UNSIGNED, PERCENT, SLIDER, FADER, SINGLESELECT, MUX,
 ; MULTIPLESELECT, MIXER, MICROTIME, MILLITIME</em>
-ControlTypes = VOLUME,ONOFF,MUTE,MONO,LOUDNESS,STEREOENH,BASSBOOST,PAN,QSOUNDPAN,BASS,TREBLE,EQUALIZER,0x00000000, 0x10010000,0x10020000,0x10020001,0x10030000,0x20010000,0x21010000,0x30040000,0x30020000,0x30030000,0x30050000,0x40020000,0x50030000,0x70010000,0x70010001,0x71010000,0x71010001,0x60030000,0x61030000
+ControlTypes := "VOLUME,ONOFF,MUTE,MONO,LOUDNESS,STEREOENH,BASSBOOST,PAN,QSOUNDPAN,BASS,TREBLE,EQUALIZER,0x00000000, 0x10010000,0x10020000,0x10020001,0x10030000,0x20010000,0x21010000,0x30040000,0x30020000,0x30030000,0x30050000,0x40020000,0x50030000,0x70010000,0x70010001,0x71010000,0x71010001,0x60030000,0x61030000"
 
-ComponentTypes = MASTER,HEADPHONES,DIGITAL,LINE,MICROPHONE,SYNTH,CD,TELEPHONE,PCSPEAKER,WAVE,AUX,ANALOG,N/A
+ComponentTypes := "MASTER,HEADPHONES,DIGITAL,LINE,MICROPHONE,SYNTH,CD,TELEPHONE,PCSPEAKER,WAVE,AUX,ANALOG,N/A"
 
 <em>; Create a ListView and prepare for the main loop:</em>
-Gui, Add, Listview, w400 h400 vMyListView, Component Type|Control Type|Setting|Mixer
+Gui, Add, Text, w400 h400 vSplashText, Gathering Soundcard Info...
+Gui, Add, Listview, wp hp xp yp vMyListView, Component Type|Control Type|Setting|Mixer
+Gui, Show
+GuiControl, Hide, MyListView
 LV_ModifyCol(4, &quot;Integer&quot;)
-SetFormat, Float, 0.2  <em>; Limit number of decimal places in percentages to two.</em>
 
 Loop  <em>; For each mixer number that exists in the system, query its capabilities.</em>
 {
     CurrMixer := A_Index
     SoundGet, Setting,,, %CurrMixer%
-    if ErrorLevel = Can't Open Specified Mixer  <em>; Any error other than this indicates that the mixer exists.</em>
+    if ErrorLevel = "Can't Open Specified Mixer"  <em>; Any error other than this indicates that the mixer exists.</em>
         break
 
     <em>; For each component type that exists in this mixer, query its instances and control types:</em>
-    Loop, parse, ComponentTypes, `,
+    Loop, parse, %ComponentTypes%, `,
     {
         CurrComponent := A_LoopField
         <em>; First check if this component type even exists in the mixer:</em>
         SoundGet, Setting, %CurrComponent%,, %CurrMixer%
-        if ErrorLevel = Mixer Doesn't Support This Component Type
+        if ErrorLevel = "Mixer Doesn't Support This Component Type"
             continue  <em>; Start a new iteration to move on to the next component type.</em>
         Loop  <em>; For each instance of this component type, query its control types.</em>
         {
@@ -107,21 +106,23 @@ Loop  <em>; For each mixer number that exists in the system, query its capabilit
             <em>; First check if this instance of this instance even exists in the mixer:</em>
             SoundGet, Setting, %CurrComponent%:%CurrInstance%,, %CurrMixer%
             <em>; Checking for both of the following errors allows this script to run on older versions:</em>
-            if ErrorLevel in Mixer Doesn't Have That Many of That Component Type,Invalid Control Type or Component Type
+            if ErrorLevel ~= "Mixer Doesn't Have That Many of That Component Type|Invalid Control Type or Component Type"
                 break  <em>; No more instances of this component type.</em>
             <em>; Get the current setting of each control type that exists in this instance of this component:</em>
-            Loop, parse, ControlTypes, `,
+            Loop, parse, %ControlTypes%, `,
             {
                 CurrControl := A_LoopField
                 SoundGet, Setting, %CurrComponent%:%CurrInstance%, %CurrControl%, %CurrMixer%
                 <em>; Checking for both of the following errors allows this script to run on older versions:</em>
-                if ErrorLevel in Component Doesn't Support This Control Type,Invalid Control Type or Component Type
+                if ErrorLevel ~= "Component Doesn't Support This Control Type|Invalid Control Type or Component Type"
                     continue
                 if ErrorLevel  <em>; Some other error, which is unexpected so show it in the results.</em>
                     Setting := ErrorLevel
                 ComponentString := CurrComponent
                 if CurrInstance &gt; 1
-                    ComponentString = %ComponentString%:%CurrInstance%
+                    ComponentString .= ":" CurrInstance
+                if Setting is "float"
+                    Setting := Format("{:0.2f}", Setting)  <em>; Limit number of decimal places in percentages to two.</em>
                 LV_Add(&quot;&quot;, ComponentString, CurrControl, Setting, CurrMixer)
             }  <em>; For each control type.</em>
         }  <em>; For each component instance.</em>
@@ -131,12 +132,9 @@ Loop  <em>; For each mixer number that exists in the system, query its capabilit
 Loop % LV_GetCount(&quot;Col&quot;)  <em>; Auto-size each column to fit its contents.</em>
     LV_ModifyCol(A_Index, &quot;AutoHdr&quot;)
 
-SplashTextOff
-Gui, Show
-return
-
-GuiClose:
-ExitApp</pre>
+GuiControl, Hide, SplashText
+GuiControl, Show, MyListView
+return</pre>
 
 </body>
 </html>

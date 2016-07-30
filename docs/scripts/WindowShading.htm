@@ -22,11 +22,11 @@
 <pre class="NoIndent"><em>; Set the height of a rolled up window here.  The operating system
 ; probably won't allow the title bar to be hidden regardless of
 ; how low this number is:</em>
-ws_MinHeight = 25
+ws_MinHeight := 25
 
 <em>; This line will unroll any rolled up windows if the script exits
 ; for any reason:</em>
-OnExit, ExitSub
+OnExit("ExitSub")
 return  <em>; End of auto-execute section</em>
 
 #z::  <em>; Change this line to pick a different hotkey.
@@ -37,33 +37,35 @@ return  <em>; End of auto-execute section</em>
 ; the active window that was deactivated by the displayed menu to
 ; become active again:
 ;Sleep, 200</em>
-WinGet, ws_ID, ID, A
-Loop, Parse, ws_IDList, |
+WinGetID, ws_ID, A
+Loop, Parse, %ws_IDList%, |
 {
-    IfEqual, A_LoopField, %ws_ID%
+    if A_LoopField = ws_ID
     {
         <em>; Match found, so this window should be restored (unrolled):</em>
-        StringTrimRight, ws_Height, ws_Window%ws_ID%, 0
+        ws_Height := ws_Window%ws_ID%
         WinMove, ahk_id %ws_ID%,,,,, %ws_Height%
-        StringReplace, ws_IDList, ws_IDList, |%ws_ID%
+        StrReplace, ws_IDList, %ws_IDList%, |%ws_ID%
         return
     }
 }
 WinGetPos,,,, ws_Height, A
-ws_Window%ws_ID% = %ws_Height%
+ws_Window%ws_ID% := ws_Height
 WinMove, ahk_id %ws_ID%,,,,, %ws_MinHeight%
-ws_IDList = %ws_IDList%|%ws_ID%
+ws_IDList .= "|" ws_ID
 return
 
-ExitSub:
-Loop, Parse, ws_IDList, |
+ExitSub()
 {
-    if A_LoopField =  <em>; First field in list is normally blank.</em>
-        continue      <em>; So skip it.</em>
-    StringTrimRight, ws_Height, ws_Window%A_LoopField%, 0
-    WinMove, ahk_id %A_LoopField%,,,,, %ws_Height%
+    Loop, Parse, %ws_IDList%, |
+    {
+        if A_LoopField = ""  <em>; First field in list is normally blank.</em>
+            continue         <em>; So skip it.</em>
+        ws_Height := ws_Window%A_LoopField%
+        WinMove, ahk_id %A_LoopField%,,,,, %ws_Height%
+    }
+    ExitApp  <em>; Must do this for the OnExit subroutine to actually Exit the script.</em>
 }
-ExitApp  <em>; Must do this for the OnExit subroutine to actually Exit the script.</em>
 </pre>
 </body>
 </html>
