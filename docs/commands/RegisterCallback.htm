@@ -69,7 +69,7 @@ wParam := wParam &lt;&lt; 32 &gt;&gt; 32</pre>
 
 <p id="Indirect"><strong>Receiving parameters by address</strong> <span class="ver">[AHK_L 60+]</span>: If the function is declared as <a href="../Functions.htm#Variadic">variadic</a>, its final parameter is assigned the <i>address</i> of the first callback parameter which was not assigned to a script parameter. For example:</p>
 <pre>
-callback := RegisterCallback("TheFunc", "F", 1)  <em>; Parameter count must be specified.</em>
+callback := RegisterCallback("TheFunc", "F", 3)  <em>; Parameter list size must be specified.</em>
 TheFunc("TheFunc was called directly.")          <em>; Call TheFunc directly.</em>
 DllCall(callback, float, 10.5, int64, 42)        <em>; Call TheFunc via callback.</em>
 TheFunc(params*) {
@@ -78,7 +78,8 @@ TheFunc(params*) {
     else
         MsgBox % <a href="NumGet.htm">NumGet</a>(params+0, "float") ", " NumGet(params+A_PtrSize, "int64")
 }</pre>
-<p>Most callbacks use the <i>stdcall</i> calling convention, which requires a fixed number of parameters. In those cases, <i>ParamCount</i> must be specified when the callback is created. <i>ParamCount</i> may be omitted on 64-bit builds and for <i>Cdecl</i> callbacks on 32-bit builds - in such cases all optional parameters receive their default values and are ignored for the purpose of calculating the address to store in <i>params</i>.</p>
+<p>Most callbacks use the <em>stdcall</em> calling convention, which requires a fixed number of parameters. In those cases, <em>ParamCount</em> must be set to the size of the parameter list, where Int64 and Double count as two 32-bit parameters.</p>
+<p>With <em>Cdecl</em> or the 64-bit calling convention, <em>ParamCount</em> only affects how many script parameters are assigned values. If omitted, all optional parameters receive their default values and are excluded from the calculations for the address stored in <em>params</em>.</p>
 
 <h3>What the Function Should <em>Return</em></h3>
 <p>If the function uses <a href="Return.htm">Return</a> without any parameters, or it specifies a blank value such as &quot;&quot; (or it never uses Return at all), 0 is returned to the caller of the callback. Otherwise, the function should return an integer, which is then returned to the caller. AutoHotkey 32-bit truncates return values to 32-bit, while AutoHotkey 64-bit supports 64-bit return values. Returning structs larger than this (by value) is not supported.</p>
