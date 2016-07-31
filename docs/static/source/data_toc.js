@@ -225,20 +225,20 @@ toc = [
     {label:"SetNumScrollCapsLockState",path:"commands/SetNumScrollCapsLockState.htm"},
     {label:"SetStoreCapslockMode",path:"commands/SetStoreCapslockMode.htm"}
   ]},
-  {label:"Maths",children:
+  {label:"Maths",path:"commands/Math.htm",children:
   [
-    {label:"Abs",path:"Functions.htm#Abs"},
-    {label:"Ceil",path:"Functions.htm#Ceil"},
-    {label:"Exp",path:"Functions.htm#Exp"},
-    {label:"Floor",path:"Functions.htm#Floor"},
-    {label:"Log",path:"Functions.htm#Log"},
-    {label:"Ln",path:"Functions.htm#Ln"},
-    {label:"Mod",path:"Functions.htm#Mod"},
+    {label:"Abs",path:"commands/Math.htm#Abs"},
+    {label:"Ceil",path:"commands/Math.htm#Ceil"},
+    {label:"Exp",path:"commands/Math.htm#Exp"},
+    {label:"Floor",path:"commands/Math.htm#Floor"},
+    {label:"Log",path:"commands/Math.htm#Log"},
+    {label:"Ln",path:"commands/Math.htm#Ln"},
+    {label:"Mod",path:"commands/Math.htm#Mod"},
     {label:"Random",path:"commands/Random.htm"},
-    {label:"Round",path:"Functions.htm#Round"},
-    {label:"Sqrt",path:"Functions.htm#Sqrt"},
-    {label:"Sin/Cos/Tan",path:"Functions.htm#Sin"},
-    {label:"ASin/ACos/ATan",path:"Functions.htm#ASin"},
+    {label:"Round",path:"commands/Math.htm#Round"},
+    {label:"Sqrt",path:"commands/Math.htm#Sqrt"},
+    {label:"Sin/Cos/Tan",path:"commands/Math.htm#Sin"},
+    {label:"ASin/ACos/ATan",path:"commands/Math.htm#ASin"},
     {label:"DateAdd",path:"commands/DateAdd.htm"},
     {label:"DateDiff",path:"commands/DateDiff.htm"}
   ]},
