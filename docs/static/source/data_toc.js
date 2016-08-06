@@ -153,7 +153,7 @@ toc = [
   ]},
   {label:"Built-in Functions",path:"Functions.htm",children:
   [
-    {label:"Asc",path:"Functions.htm#Asc"},
+    {label:"Asc",path:"commands/Asc.htm"},
     {label:"Chr",path:"Functions.htm#Chr"},
     {label:"FileExist",path:"Functions.htm#FileExist"},
     {label:"Format",path:"commands/Format.htm"},

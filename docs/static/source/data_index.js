@@ -204,7 +204,7 @@ index = [
   ["AlwaysOnTop (WinSet)","commands/WinSet.htm"],
   ["append to file","commands/FileAppend.htm"],
   ["Arrays","misc/Arrays.htm"],
-  ["Asc()","Functions.htm#Asc"],
+  ["Asc()","commands/Asc.htm"],
   ["ASCII conversion","commands/Transform.htm"],
   ["ASin()","commands/Math.htm#ASin"],
   ["assigning values to variables","Variables.htm#AssignOp"],
