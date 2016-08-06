@@ -639,7 +639,7 @@ index = [
   ["OnMessage()","commands/OnMessage.htm"],
   ["open file","commands/FileOpen.htm"],
   ["operators in expressions","Variables.htm#Operators"],
-  ["Ord()","Functions.htm#Ord"],
+  ["Ord()","commands/Ord.htm"],
   ["OutputDebug","commands/OutputDebug.htm"],
   ["OwnDialogs (GUI)","commands/Gui.htm#OwnDialogs"],
   ["Owner of a GUI window","commands/Gui.htm#Owner"],

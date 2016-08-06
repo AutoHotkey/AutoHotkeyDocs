@@ -168,7 +168,7 @@ toc = [
     {label:"OnClipboardChange",path:"commands/OnClipboardChange.htm"},
     {label:"OnExit",path:"commands/OnExit.htm"},
     {label:"OnMessage",path:"commands/OnMessage.htm"},
-    {label:"Ord",path:"Functions.htm#Ord"},
+    {label:"Ord",path:"commands/Ord.htm"},
     {label:"RegExMatch",path:"commands/RegExMatch.htm"},
     {label:"RegExReplace",path:"commands/RegExReplace.htm"},
     {label:"RegisterCallback",path:"commands/RegisterCallback.htm"},
