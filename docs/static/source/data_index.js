@@ -374,7 +374,7 @@ index = [
   ["FileCreateShortcut","commands/FileCreateShortcut.htm"],
   ["FileDelete","commands/FileDelete.htm"],
   ["FileEncoding","commands/FileEncoding.htm"],
-  ["FileExist()","Functions.htm#FileExist"],
+  ["FileExist()","commands/FileExist.htm"],
   ["FileGetAttrib","commands/FileGetAttrib.htm"],
   ["FileGetShortcut","commands/FileGetShortcut.htm"],
   ["FileGetSize","commands/FileGetSize.htm"],
