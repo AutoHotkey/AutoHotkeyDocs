@@ -154,7 +154,7 @@ toc = [
   {label:"Built-in Functions",path:"Functions.htm",children:
   [
     {label:"Asc",path:"Functions.htm#Asc"},
-    {label:"Chr",path:"Functions.htm#Chr"},
+    {label:"Chr",path:"commands/Chr.htm"},
     {label:"FileExist",path:"Functions.htm#FileExist"},
     {label:"Format",path:"commands/Format.htm"},
     {label:"GetKeyName/VK/SC",path:"Functions.htm#GetKeyName"},
