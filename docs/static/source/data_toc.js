@@ -158,7 +158,7 @@ toc = [
     {label:"FileExist",path:"commands/FileExist.htm"},
     {label:"Format",path:"commands/Format.htm"},
     {label:"GetKeyName/VK/SC",path:"Functions.htm#GetKeyName"},
-    {label:"GetKeyState",path:"Functions.htm#GetKeyState"},
+    {label:"GetKeyState",path:"commands/GetKeyState.htm"},
     {label:"InStr",path:"commands/InStr.htm"},
     {label:"IsByRef",path:"Functions.htm#IsByRef"},
     {label:"IsFunc",path:"Functions.htm#IsFunc"},
