@@ -425,7 +425,7 @@ index = [
   ["GetKeyName()","Functions.htm#GetKeyName"],
   ["GetKeySC()","Functions.htm#GetKeyName"],
   ["GetKeyState","commands/GetKeyState.htm"],
-  ["GetKeyState()","Functions.htm#GetKeyState"],
+  ["GetKeyState()","commands/GetKeyState.htm"],
   ["GetKeyVK()","Functions.htm#GetKeyName"],
   ["global variables in functions","Functions.htm#Global"],
   ["Gosub","commands/Gosub.htm"],
