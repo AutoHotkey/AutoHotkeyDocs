@@ -417,7 +417,7 @@ index = [
   ["functions (libraries)","Functions.htm#lib"],
   ["function objects","objects/Functor.htm"],
   ["Func object","objects/Func.htm"],
-  ["Func()","Objects.htm#Function_References"],
+  ["Func()","commands/Func.htm"],
   ["g-label (responding to GUI events)","commands/Gui.htm#label"],
   ["game automation","commands/PixelSearch.htm"],
   ["GetAddress method (Object)","objects/Object.htm#GetAddress"],
