@@ -241,7 +241,7 @@ index = [
   ["Checkbox controls (GUI)","commands/GuiControls.htm#Checkbox"],
   ["choose file","commands/FileSelectFile.htm"],
   ["choose folder","commands/FileSelectFolder.htm"],
-  ["Chr()","Functions.htm#Chr"],
+  ["Chr()","commands/Chr.htm"],
   ["class (Objects)","Objects.htm#Custom_Classes"],
   ["class name of a window","commands/WinGetClass.htm"],
   ["Click a mouse button","commands/Click.htm"],
