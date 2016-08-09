@@ -517,7 +517,7 @@ index = [
   ["IsByRef()","commands/IsByRef.htm"],
   ["IsFunc()","commands/IsFunc.htm"],
   ["IsLabel()","commands/IsLabel.htm"],
-  ["IsObject()","Objects.htm"],
+  ["IsObject()","commands/IsObject.htm"],
   ["Join (continuation sections)","Scripts.htm#Join"],
   ["Joystick","KeyList.htm#Joystick"],
   ["JScript, embedded/inline","commands/DllCall.htm#COM"],
