@@ -164,6 +164,7 @@ toc = [
     {label:"IsByRef",path:"commands/IsByRef.htm"},
     {label:"IsFunc",path:"commands/IsFunc.htm"},
     {label:"IsLabel",path:"commands/IsLabel.htm"},
+    {label:"IsObject",path:"commands/IsObject.htm"},
     {label:"NumGet",path:"commands/NumGet.htm"},
     {label:"NumPut",path:"commands/NumPut.htm"},
     {label:"OnClipboardChange",path:"commands/OnClipboardChange.htm"},
