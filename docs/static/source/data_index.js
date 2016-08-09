@@ -515,7 +515,7 @@ index = [
   ["integer (SetFormat)","commands/SetFormat.htm"],
   ["Interrupt","commands/Thread.htm"],
   ["IsByRef()","commands/IsByRef.htm"],
-  ["IsFunc()","Functions.htm#IsFunc"],
+  ["IsFunc()","commands/IsFunc.htm"],
   ["IsLabel()","Functions.htm#IsLabel"],
   ["IsObject()","Objects.htm"],
   ["Join (continuation sections)","Scripts.htm#Join"],

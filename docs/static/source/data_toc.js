@@ -162,7 +162,7 @@ toc = [
     {label:"GetKeyState",path:"commands/GetKeyState.htm"},
     {label:"InStr",path:"commands/InStr.htm"},
     {label:"IsByRef",path:"commands/IsByRef.htm"},
-    {label:"IsFunc",path:"Functions.htm#IsFunc"},
+    {label:"IsFunc",path:"commands/IsFunc.htm"},
     {label:"IsLabel",path:"Functions.htm#IsLabel"},
     {label:"NumGet",path:"commands/NumGet.htm"},
     {label:"NumPut",path:"commands/NumPut.htm"},
