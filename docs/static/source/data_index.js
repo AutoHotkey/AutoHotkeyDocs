@@ -516,7 +516,7 @@ index = [
   ["Interrupt","commands/Thread.htm"],
   ["IsByRef()","commands/IsByRef.htm"],
   ["IsFunc()","commands/IsFunc.htm"],
-  ["IsLabel()","Functions.htm#IsLabel"],
+  ["IsLabel()","commands/IsLabel.htm"],
   ["IsObject()","Objects.htm"],
   ["Join (continuation sections)","Scripts.htm#Join"],
   ["Joystick","KeyList.htm#Joystick"],
