@@ -161,7 +161,7 @@ toc = [
     {label:"GetKeyName/VK/SC",path:"Functions.htm#GetKeyName"},
     {label:"GetKeyState",path:"commands/GetKeyState.htm"},
     {label:"InStr",path:"commands/InStr.htm"},
-    {label:"IsByRef",path:"Functions.htm#IsByRef"},
+    {label:"IsByRef",path:"commands/IsByRef.htm"},
     {label:"IsFunc",path:"Functions.htm#IsFunc"},
     {label:"IsLabel",path:"Functions.htm#IsLabel"},
     {label:"NumGet",path:"commands/NumGet.htm"},

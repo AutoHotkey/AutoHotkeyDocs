@@ -514,7 +514,7 @@ index = [
   ["integer (check if it is one)","commands/IfIs.htm"],
   ["integer (SetFormat)","commands/SetFormat.htm"],
   ["Interrupt","commands/Thread.htm"],
-  ["IsByRef()","Functions.htm#IsByRef"],
+  ["IsByRef()","commands/IsByRef.htm"],
   ["IsFunc()","Functions.htm#IsFunc"],
   ["IsLabel()","Functions.htm#IsLabel"],
   ["IsObject()","Objects.htm"],
