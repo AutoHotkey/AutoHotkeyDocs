@@ -119,7 +119,7 @@ function AddContent()
     //
 
     var en = 'http://ahkscript.org/docs/';
-    var de = 'http://ragnar-f.github.io/docs/';
+    var de = 'http://ahkde.github.io/docs/';
     var cn = 'http://ahkcn.sourceforge.net/docs/';
 
     $('#lng-btn-en').on('click', function() { document.location = en + relPath; } );
