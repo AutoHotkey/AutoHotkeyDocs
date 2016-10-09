@@ -244,9 +244,6 @@ toc = [
   ]},
   {label:"Misc. Commands",children:
   [
-    {label:"#NoTrayIcon",path:"commands/_NoTrayIcon.htm"},
-    {label:"#SingleInstance",path:"commands/_SingleInstance.htm"},
-    {label:"#Warn",path:"commands/_Warn.htm"},
     {label:"AutoTrim",path:"commands/AutoTrim.htm"},
     {label:"Edit",path:"commands/Edit.htm"},
     {label:"Func",path:"commands/Func.htm"},
