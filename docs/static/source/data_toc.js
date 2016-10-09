@@ -28,11 +28,7 @@ toc = [
       {label:"Function Objects",path:"objects/Functor.htm"}
     ]}
   ]},
-  {label:"Moving to AutoHotkey 1.1 (AutoHotkey_L)",children:
-  [
-    {label:"AutoHotkey_L New Features",path:"AHKL_Features.htm"},
-    {label:"Script Compatibility",path:"Compat.htm"}
-  ]},
+  {label:"Script Compatibility",path:"Compat.htm"},
   {label:"Environment Management",children:
   [
     {label:"ClipWait",path:"commands/ClipWait.htm"},
