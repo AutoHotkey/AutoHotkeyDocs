@@ -154,38 +154,6 @@ toc = [
     {label:"Until",path:"commands/Until.htm"},
     {label:"While-loop",path:"commands/While.htm"}
   ]},
-  {label:"Built-in Functions",path:"Functions.htm",children:
-  [
-    {label:"Asc",path:"commands/Asc.htm"},
-    {label:"Chr",path:"commands/Chr.htm"},
-    {label:"FileExist",path:"commands/FileExist.htm"},
-    {label:"Format",path:"commands/Format.htm"},
-    {label:"Func",path:"commands/Func.htm"},
-    {label:"GetKeyName/VK/SC",path:"commands/GetKey.htm"},
-    {label:"GetKeyState",path:"commands/GetKeyState.htm"},
-    {label:"InStr",path:"commands/InStr.htm"},
-    {label:"IsByRef",path:"commands/IsByRef.htm"},
-    {label:"IsFunc",path:"commands/IsFunc.htm"},
-    {label:"IsLabel",path:"commands/IsLabel.htm"},
-    {label:"IsObject",path:"commands/IsObject.htm"},
-    {label:"NumGet",path:"commands/NumGet.htm"},
-    {label:"NumPut",path:"commands/NumPut.htm"},
-    {label:"OnClipboardChange",path:"commands/OnClipboardChange.htm"},
-    {label:"OnExit",path:"commands/OnExit.htm"},
-    {label:"OnMessage",path:"commands/OnMessage.htm"},
-    {label:"Ord",path:"commands/Ord.htm"},
-    {label:"RegExMatch",path:"commands/RegExMatch.htm"},
-    {label:"RegExReplace",path:"commands/RegExReplace.htm"},
-    {label:"RegisterCallback",path:"commands/RegisterCallback.htm"},
-    {label:"StrLen",path:"commands/StringLen.htm"},
-    {label:"StrPut/StrGet",path:"commands/StrPutGet.htm"},
-    {label:"StrReplace",path:"commands/StringReplace.htm"},
-    {label:"StrSplit",path:"commands/StringSplit.htm"},
-    {label:"SubStr",path:"commands/SubStr.htm"},
-    {label:"VarSetCapacity",path:"commands/VarSetCapacity.htm"},
-    {label:"WinActive",path:"commands/WinActive.htm"},
-    {label:"WinExist",path:"commands/WinExist.htm"}
-  ]},
   {label:"GUI, MsgBox, InputBox & Other Dialogs",children:
   [
     {label:"FileSelectFile",path:"commands/FileSelectFile.htm"},
