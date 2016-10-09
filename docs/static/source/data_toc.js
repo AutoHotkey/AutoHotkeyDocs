@@ -1,7 +1,7 @@
 toc = [
   {label:"AutoHotkey",path:"AutoHotkey.htm"},
   {label:"Tutorial (quick start)",path:"Tutorial.htm"},
-  {label:"FAQ (Frequently Asked Questions)",path:"FAQ.htm"},
+  {label:"Frequently Asked Questions",path:"FAQ.htm"},
   {label:"Command and Function Index",path:"commands/index.htm"},
   {label:"Script Showcase",path:"scripts/index.htm"},
   {label:"Recent Changes",path:"AHKL_ChangeLog.htm"},
@@ -29,7 +29,7 @@ toc = [
     ]}
   ]},
   {label:"Script Compatibility",path:"Compat.htm"},
-  {label:"Environment Management",children:
+  {label:"Environment",children:
   [
     {label:"ClipWait",path:"commands/ClipWait.htm"},
     {label:"EnvGet",path:"commands/EnvGet.htm"},
@@ -38,7 +38,7 @@ toc = [
     {label:"OnClipboardChange",path:"commands/OnClipboardChange.htm"},
     {label:"SysGet",path:"commands/SysGet.htm"}
   ]},
-  {label:"Native Code Interop",children:
+  {label:"External Libraries",children:
   [
     {label:"DllCall",path:"commands/DllCall.htm"},
     {label:"NumGet",path:"commands/NumGet.htm"},
@@ -61,7 +61,7 @@ toc = [
       {label:"ObjAddRef / ObjRelease",path:"commands/ObjAddRef.htm"}
     ]}
   ]},
-  {label:"File, Directory, and Disk Management",children:
+  {label:"File, Directory and Disk",children:
   [
     {label:"Drive",path:"commands/Drive.htm"},
     {label:"DriveGet",path:"commands/DriveGet.htm"},
@@ -115,7 +115,7 @@ toc = [
     {label:"For-loop",path:"commands/For.htm"},
     {label:"Gosub",path:"commands/Gosub.htm"},
     {label:"Goto",path:"commands/Goto.htm"},
-    {label:"If commands",path:"commands/IfExpression.htm",children:
+    {label:"If",path:"commands/IfExpression.htm",children:
     [
       {label:"If (traditional)",path:"commands/IfEqual.htm"},
       {label:"If (expression)",path:"commands/IfExpression.htm"},
@@ -128,7 +128,7 @@ toc = [
       {label:"IfWinActive/IfWinNotActive",path:"commands/WinActive.htm"},
       {label:"IfWinExist/IfWinNotExist",path:"commands/WinExist.htm"}
     ]},
-    {label:"Loop commands",path:"commands/Loop.htm",children:
+    {label:"Loop",path:"commands/Loop.htm",children:
     [
       {label:"Loop",path:"commands/Loop.htm"},
       {label:"Loop (files & folders)",path:"commands/LoopFile.htm"},
@@ -150,7 +150,7 @@ toc = [
     {label:"Until",path:"commands/Until.htm"},
     {label:"While-loop",path:"commands/While.htm"}
   ]},
-  {label:"GUI, MsgBox, InputBox & Other Dialogs",children:
+  {label:"Graphical User Interfaces",children:
   [
     {label:"FileSelectFile",path:"commands/FileSelectFile.htm"},
     {label:"FileSelectFolder",path:"commands/FileSelectFolder.htm"},
@@ -236,13 +236,13 @@ toc = [
     {label:"ASin/ACos/ATan",path:"commands/Math.htm#ASin"},
     {label:"Transform",path:"commands/Transform.htm"}
   ]},
-  {label:"Screen Management",children:
+  {label:"Screen",children:
   [
     {label:"ImageSearch",path:"commands/ImageSearch.htm"},
     {label:"PixelGetColor",path:"commands/PixelGetColor.htm"},
     {label:"PixelSearch",path:"commands/PixelSearch.htm"}
   ]},
-  {label:"Misc. Commands",children:
+  {label:"Misc.",children:
   [
     {label:"AutoTrim",path:"commands/AutoTrim.htm"},
     {label:"Edit",path:"commands/Edit.htm"},
@@ -258,14 +258,14 @@ toc = [
     {label:"URLDownloadToFile",path:"commands/URLDownloadToFile.htm"},
     {label:"VarSetCapacity",path:"commands/VarSetCapacity.htm"}
   ]},
-  {label:"Process Management",children:
+  {label:"Process",children:
   [
     {label:"Process",path:"commands/Process.htm"},
     {label:"Run/RunWait",path:"commands/Run.htm"},
     {label:"RunAs",path:"commands/RunAs.htm"},
     {label:"Shutdown",path:"commands/Shutdown.htm"}
   ]},
-  {label:"Registry Management",children:
+  {label:"Registry",children:
   [
     {label:"Loop (registry)",path:"commands/LoopReg.htm"},
     {label:"RegDelete",path:"commands/RegDelete.htm"},
@@ -273,7 +273,7 @@ toc = [
     {label:"RegWrite",path:"commands/RegWrite.htm"},
     {label:"SetRegView",path:"commands/SetRegView.htm"}
   ]},
-  {label:"Sound Commands",children:
+  {label:"Sound",children:
   [
     {label:"SoundBeep",path:"commands/SoundBeep.htm"},
     {label:"SoundGet",path:"commands/SoundGet.htm"},
@@ -282,7 +282,7 @@ toc = [
     {label:"SoundSet",path:"commands/SoundSet.htm"},
     {label:"SoundSetWaveVolume",path:"commands/SoundSetWaveVolume.htm"}
   ]},
-  {label:"String Management",children:
+  {label:"String",children:
   [
     {label:"Asc",path:"commands/Asc.htm"},
     {label:"Chr",path:"commands/Chr.htm"},
@@ -314,7 +314,7 @@ toc = [
     {label:"SubStr()",path:"commands/SubStr.htm"},
     {label:"Trim()",path:"commands/Trim.htm"}
   ]},
-  {label:"Window Management",children:
+  {label:"Window",children:
   [
     {label:"Controls",children:
     [
