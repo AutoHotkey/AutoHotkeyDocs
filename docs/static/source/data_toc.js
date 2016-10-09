@@ -38,7 +38,9 @@ toc = [
     {label:"ClipWait",path:"commands/ClipWait.htm"},
     {label:"EnvGet",path:"commands/EnvGet.htm"},
     {label:"EnvSet",path:"commands/EnvSet.htm"},
-    {label:"EnvUpdate",path:"commands/EnvUpdate.htm"}
+    {label:"EnvUpdate",path:"commands/EnvUpdate.htm"},
+    {label:"OnClipboardChange",path:"commands/OnClipboardChange.htm"},
+    {label:"SysGet",path:"commands/SysGet.htm"}
   ]},
   {label:"Native Code Interop",children:
   [
@@ -47,6 +49,7 @@ toc = [
     {label:"NumPut",path:"commands/NumPut.htm"},
     {label:"RegisterCallback",path:"commands/RegisterCallback.htm"},
     {label:"StrPut()/StrGet()",path:"commands/StrPutGet.htm"},
+    {label:"VarSetCapacity",path:"commands/VarSetCapacity.htm"},
     {label:"COM",children:
     [
       {label:"ComObjActive",path:"commands/ComObjActive.htm"},
@@ -233,6 +236,7 @@ toc = [
     {label:"ControlClick",path:"commands/ControlClick.htm"},
     {label:"ControlSend, ControlSendRaw",path:"commands/ControlSend.htm"},
     {label:"CoordMode",path:"commands/CoordMode.htm"},
+    {label:"GetKeyName/VK/SC",path:"commands/GetKey.htm"},
     {label:"GetKeyState",path:"commands/GetKeyState.htm"},
     {label:"Key List (Keyboard, Mouse, Joystick)",path:"KeyList.htm"},
     {label:"KeyHistory",path:"commands/KeyHistory.htm"},
@@ -281,10 +285,14 @@ toc = [
     {label:"#Warn",path:"commands/_Warn.htm"},
     {label:"AutoTrim",path:"commands/AutoTrim.htm"},
     {label:"Edit",path:"commands/Edit.htm"},
+    {label:"Func",path:"commands/Func.htm"},
+    {label:"IsByRef",path:"commands/IsByRef.htm"},
+    {label:"IsFunc",path:"commands/IsFunc.htm"},
+    {label:"IsLabel",path:"commands/IsLabel.htm"},
+    {label:"IsObject",path:"commands/IsObject.htm"},
     {label:"ListLines",path:"commands/ListLines.htm"},
     {label:"ListVars",path:"commands/ListVars.htm"},
     {label:"OutputDebug",path:"commands/OutputDebug.htm"},
-    {label:"SysGet",path:"commands/SysGet.htm"},
     {label:"Transform",path:"commands/Transform.htm"},
     {label:"URLDownloadToFile",path:"commands/URLDownloadToFile.htm"},
     {label:"VarSetCapacity",path:"commands/VarSetCapacity.htm"}
@@ -315,12 +323,15 @@ toc = [
   ]},
   {label:"String Management",children:
   [
+    {label:"Asc",path:"commands/Asc.htm"},
+    {label:"Chr",path:"commands/Chr.htm"},
     {label:"Format()",path:"commands/Format.htm"},
-	{label:"FormatTime",path:"commands/FormatTime.htm"},
+    {label:"FormatTime",path:"commands/FormatTime.htm"},
     {label:"IfInString/IfNotInString",path:"commands/IfInString.htm"},
     {label:"If var [not] in/contains MatchList",path:"commands/IfIn.htm"},
     {label:"InStr()",path:"commands/InStr.htm"},
     {label:"Loop (parse a string)",path:"commands/LoopParse.htm"},
+    {label:"Ord",path:"commands/Ord.htm"},
     {label:"RegExMatch()",path:"commands/RegExMatch.htm"},
     {label:"RegExReplace()",path:"commands/RegExReplace.htm"},
     {label:"SetEnv (var = value)",path:"commands/SetEnv.htm"},
@@ -379,7 +390,9 @@ toc = [
     {label:"StatusBarWait",path:"commands/StatusBarWait.htm"},
     {label:"WinActivate",path:"commands/WinActivate.htm"},
     {label:"WinActivateBottom",path:"commands/WinActivateBottom.htm"},
+    {label:"WinActive",path:"commands/WinActive.htm"},
     {label:"WinClose",path:"commands/WinClose.htm"},
+    {label:"WinExist",path:"commands/WinExist.htm"},
     {label:"WinGet",path:"commands/WinGet.htm"},
     {label:"WinGetActiveStats",path:"commands/WinGetActiveStats.htm"},
     {label:"WinGetActiveTitle",path:"commands/WinGetActiveTitle.htm"},
