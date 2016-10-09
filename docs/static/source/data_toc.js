@@ -1,10 +1,5 @@
 toc = [
   {label:"AutoHotkey",path:"AutoHotkey.htm"},
-  {label:"Tutorial (quick start)",path:"Tutorial.htm"},
-  {label:"Frequently Asked Questions",path:"FAQ.htm"},
-  {label:"Command and Function Index",path:"commands/index.htm"},
-  {label:"Script Showcase",path:"scripts/index.htm"},
-  {label:"Recent Changes",path:"AHKL_ChangeLog.htm"},
   {label:"Basic Usage and Syntax",children:
   [
     {label:"Hotkeys",path:"Hotkeys.htm"},
@@ -28,7 +23,12 @@ toc = [
       {label:"Function Objects",path:"objects/Functor.htm"}
     ]}
   ]},
+  {label:"Frequently Asked Questions",path:"FAQ.htm"},
+  {label:"Tutorial (quick start)",path:"Tutorial.htm"},
+  {label:"Recent Changes",path:"AHKL_ChangeLog.htm"},
+  {label:"Script Showcase",path:"scripts/index.htm"},
   {label:"Script Compatibility",path:"Compat.htm"},
+  {label:"Command and Function Index",path:"commands/index.htm"},
   {label:"Environment",children:
   [
     {label:"ClipWait",path:"commands/ClipWait.htm"},
@@ -171,6 +171,23 @@ toc = [
     {label:"ToolTip",path:"commands/ToolTip.htm"},
     {label:"TrayTip",path:"commands/TrayTip.htm"}
   ]},
+  {label:"Maths",path:"commands/Math.htm",children:
+  [
+    {label:"Abs",path:"commands/Math.htm#Abs"},
+    {label:"Ceil",path:"commands/Math.htm#Ceil"},
+    {label:"Exp",path:"commands/Math.htm#Exp"},
+    {label:"Floor",path:"commands/Math.htm#Floor"},
+    {label:"Log",path:"commands/Math.htm#Log"},
+    {label:"Ln",path:"commands/Math.htm#Ln"},
+    {label:"Mod",path:"commands/Math.htm#Mod"},
+    {label:"Random",path:"commands/Random.htm"},
+    {label:"Round",path:"commands/Math.htm#Round"},
+    {label:"SetFormat",path:"commands/SetFormat.htm"},
+    {label:"Sqrt",path:"commands/Math.htm#Sqrt"},
+    {label:"Sin/Cos/Tan",path:"commands/Math.htm#Sin"},
+    {label:"ASin/ACos/ATan",path:"commands/Math.htm#ASin"},
+    {label:"Transform",path:"commands/Transform.htm"}
+  ]},
   {label:"Mouse and Keyboard",children:
   [
     {label:"Hotkeys and Hotstrings",path:"Hotkeys.htm",children:
@@ -219,29 +236,6 @@ toc = [
     {label:"SetNumScrollCapsLockState",path:"commands/SetNumScrollCapsLockState.htm"},
     {label:"SetStoreCapslockMode",path:"commands/SetStoreCapslockMode.htm"}
   ]},
-  {label:"Maths",path:"commands/Math.htm",children:
-  [
-    {label:"Abs",path:"commands/Math.htm#Abs"},
-    {label:"Ceil",path:"commands/Math.htm#Ceil"},
-    {label:"Exp",path:"commands/Math.htm#Exp"},
-    {label:"Floor",path:"commands/Math.htm#Floor"},
-    {label:"Log",path:"commands/Math.htm#Log"},
-    {label:"Ln",path:"commands/Math.htm#Ln"},
-    {label:"Mod",path:"commands/Math.htm#Mod"},
-    {label:"Random",path:"commands/Random.htm"},
-    {label:"Round",path:"commands/Math.htm#Round"},
-    {label:"SetFormat",path:"commands/SetFormat.htm"},
-    {label:"Sqrt",path:"commands/Math.htm#Sqrt"},
-    {label:"Sin/Cos/Tan",path:"commands/Math.htm#Sin"},
-    {label:"ASin/ACos/ATan",path:"commands/Math.htm#ASin"},
-    {label:"Transform",path:"commands/Transform.htm"}
-  ]},
-  {label:"Screen",children:
-  [
-    {label:"ImageSearch",path:"commands/ImageSearch.htm"},
-    {label:"PixelGetColor",path:"commands/PixelGetColor.htm"},
-    {label:"PixelSearch",path:"commands/PixelSearch.htm"}
-  ]},
   {label:"Misc.",children:
   [
     {label:"AutoTrim",path:"commands/AutoTrim.htm"},
@@ -272,6 +266,12 @@ toc = [
     {label:"RegRead",path:"commands/RegRead.htm"},
     {label:"RegWrite",path:"commands/RegWrite.htm"},
     {label:"SetRegView",path:"commands/SetRegView.htm"}
+  ]},
+  {label:"Screen",children:
+  [
+    {label:"ImageSearch",path:"commands/ImageSearch.htm"},
+    {label:"PixelGetColor",path:"commands/PixelGetColor.htm"},
+    {label:"PixelSearch",path:"commands/PixelSearch.htm"}
   ]},
   {label:"Sound",children:
   [
