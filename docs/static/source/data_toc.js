@@ -1,5 +1,5 @@
 toc = [
-  {label:"AutoHotkey",path:"AutoHotkey.htm"},
+  {label:"Quick Reference",path:"AutoHotkey.htm"},
   {label:"Basic Usage and Syntax",children:
   [
     {label:"Hotkeys",path:"Hotkeys.htm"},
