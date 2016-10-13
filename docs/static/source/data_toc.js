@@ -44,7 +44,7 @@ toc = [
     {label:"NumGet",path:"commands/NumGet.htm"},
     {label:"NumPut",path:"commands/NumPut.htm"},
     {label:"RegisterCallback",path:"commands/RegisterCallback.htm"},
-    {label:"StrPut()/StrGet()",path:"commands/StrPutGet.htm"},
+    {label:"StrPut/StrGet",path:"commands/StrPutGet.htm"},
     {label:"VarSetCapacity",path:"commands/VarSetCapacity.htm"},
     {label:"COM",children:
     [
@@ -81,7 +81,7 @@ toc = [
     {label:"FileInstall",path:"commands/FileInstall.htm"},
     {label:"FileMove",path:"commands/FileMove.htm"},
     {label:"FileMoveDir",path:"commands/FileMoveDir.htm"},
-    {label:"FileOpen()",path:"commands/FileOpen.htm"},
+    {label:"FileOpen",path:"commands/FileOpen.htm"},
     {label:"FileReadLine",path:"commands/FileReadLine.htm"},
     {label:"FileRead",path:"commands/FileRead.htm"},
     {label:"FileRecycle",path:"commands/FileRecycle.htm"},
@@ -286,15 +286,15 @@ toc = [
   [
     {label:"Asc",path:"commands/Asc.htm"},
     {label:"Chr",path:"commands/Chr.htm"},
-    {label:"Format()",path:"commands/Format.htm"},
+    {label:"Format",path:"commands/Format.htm"},
     {label:"FormatTime",path:"commands/FormatTime.htm"},
     {label:"IfInString/IfNotInString",path:"commands/IfInString.htm"},
     {label:"If var [not] in/contains MatchList",path:"commands/IfIn.htm"},
-    {label:"InStr()",path:"commands/InStr.htm"},
+    {label:"InStr",path:"commands/InStr.htm"},
     {label:"Loop (parse a string)",path:"commands/LoopParse.htm"},
     {label:"Ord",path:"commands/Ord.htm"},
-    {label:"RegExMatch()",path:"commands/RegExMatch.htm"},
-    {label:"RegExReplace()",path:"commands/RegExReplace.htm"},
+    {label:"RegExMatch",path:"commands/RegExMatch.htm"},
+    {label:"RegExReplace",path:"commands/RegExReplace.htm"},
     {label:"SetEnv (var = value)",path:"commands/SetEnv.htm"},
     {label:"SetFormat",path:"commands/SetFormat.htm"},
     {label:"Sort",path:"commands/Sort.htm"},
@@ -307,12 +307,12 @@ toc = [
     {label:"StringReplace",path:"commands/StringReplace.htm"},
     {label:"StringSplit",path:"commands/StringSplit.htm"},
     {label:"StringTrimLeft/StringTrimRight",path:"commands/StringTrimLeft.htm"},
-    {label:"StrLen()",path:"commands/StringLen.htm"},
-    {label:"StrPut()/StrGet()",path:"commands/StrPutGet.htm"},
-    {label:"StrReplace()",path:"commands/StringReplace.htm"},
-    {label:"StrSplit()",path:"commands/StringSplit.htm"},
-    {label:"SubStr()",path:"commands/SubStr.htm"},
-    {label:"Trim()",path:"commands/Trim.htm"}
+    {label:"StrLen",path:"commands/StringLen.htm"},
+    {label:"StrPut/StrGet",path:"commands/StrPutGet.htm"},
+    {label:"StrReplace",path:"commands/StringReplace.htm"},
+    {label:"StrSplit",path:"commands/StringSplit.htm"},
+    {label:"SubStr",path:"commands/SubStr.htm"},
+    {label:"Trim",path:"commands/Trim.htm"}
   ]},
   {label:"Window",children:
   [
