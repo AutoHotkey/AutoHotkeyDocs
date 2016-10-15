@@ -294,7 +294,7 @@ if WinExist("%ScriptPath% ahk_class AutoHotkey")
 <pre>AutoHotkey110800_Install.exe /S</pre>
 <p>A directory other than the default may be specified via the /D parameter (in the absence of /S, this changes the default directory displayed by the installer). For example:</p>
 <pre>AutoHotkey110800_Install.exe /S /D=C:\Program Files\AutoHotkey</pre>
-<p>If AutoHotkey was previously installed, the installer automatically detects which version of AutoHotkey.exe to set as the default. Otherwise, the default is Unicode 32-bit or Unicode 64-bit depending on whether the OS is 64-bit. To override which version of AutoHotkey.exe is set as the default, pass one of the following switches:</p>
+<p><strong>Version</strong>: If AutoHotkey was previously installed, the installer automatically detects which version of AutoHotkey.exe to set as the default. Otherwise, the default is Unicode 32-bit or Unicode 64-bit depending on whether the OS is 64-bit. To override which version of AutoHotkey.exe is set as the default, pass one of the following switches:</p>
 <ul>
   <li><code>/A32</code> or <code>/ANSI</code>: ANSI 32-bit.</li>
   <li><code>/U64</code> or <code>/x64</code>: Unicode 64-bit (only valid on 64-bit systems).</li>
@@ -302,14 +302,40 @@ if WinExist("%ScriptPath% ahk_class AutoHotkey")
 </ul>
 <p>For example, the following installs silently and sets ANSI 32-bit as the default:</p>
 <pre>AutoHotkey110800_Install.exe /S /A32</pre>
-<p>To silently uninstall AutoHotkey, pass the <code>/Uninstall</code> parameter to Installer.ahk. For example:</p>
+<p><strong>Uninstall</strong>: To silently uninstall AutoHotkey, pass the <code>/Uninstall</code> parameter to Installer.ahk. For example:</p>
 <pre>"C:\Program Files\AutoHotkey\AutoHotkey.exe" "C:\Program Files\AutoHotkey\Installer.ahk" /Uninstall</pre>
 <p>For AutoHotkey versions older than 1.1.08.00, use <code>uninst.exe /S</code>. For example:</p>
 <pre>&quot;C:\Program Files\AutoHotkey\uninst.exe&quot; /S</pre>
 <p><strong>Note:</strong> Installer.ahk must be run as admin to work correctly.</p>
-<p>Later versions of the installer include a link in the bottom-right corner to extract setup files without installing. If this function is present, the <code>/E</code> switch can be used to invoke it from the command line. For example:</p>
+<p><strong>Extract</strong>: Later versions of the installer include a link in the bottom-right corner to extract setup files without installing. If this function is present, the <code>/E</code> switch can be used to invoke it from the command line. For example:</p>
 <pre>AutoHotkey110903_Install.exe /D=F:\AutoHotkey /E</pre>
-<p>In silent install/uninstall mode, running scripts are closed automatically, where necessary. Pass the <code>/R</code> switch (requires v1.1.19.02+) to automatically reload these scripts using whichever EXE they were running on, <strong>without</strong> command line args.</p>
+<p><strong>Restart scripts</strong> <span class="ver">[v1.1.19.02+]</span>: In silent install/uninstall mode, running scripts are closed automatically, where necessary. Pass the <code>/R</code> switch to automatically reload these scripts using whichever EXE they were running on, <strong>without</strong> command line args. Setup will attempt to launch the scripts via Explorer, so they do not run as administrator if UAC is enabled.</p>
+
+<p id="Installer_IsHostApp"><strong>Taskbar buttons</strong> <span class="ver">[v1.1.08+]</span>: On Windows 7 and later, taskbar buttons for multiple scripts are automatically grouped together or combined into one button by default. The <em>Separate taskbar buttons</em> option disables this by registering each AutoHotkey executable as a <a href="https://msdn.microsoft.com/en-us/library/ee872121#APPLICATIONS">host app (IsHostApp)</a>.</p>
+<p><span class="ver">[v1.1.24.02+]:</span> For command-line installations, specify <code>/IsHostApp</code> or <code>/IsHostApp=1</code> to enable the option and <code>/IsHostApp=0</code> to disable it.</p>
+
+<h3 id="Installer_uiAccess">Run with UI Access <span class="ver">[v1.1.24.02+]</span></h3>
+<p>The installer GUI has an option "Add 'Run with UI Access' to context menus". This context menu option provides a workaround for common <a href="FAQ.htm#uac">UAC-related issues</a> by allowing the script to automate administrative programs - without the script running as admin. To achieve this, the installer does the following:</p>
+<ul>
+  <li>Copies AutoHotkeyA32.exe, AutoHotkeyU32.exe and (if present) AutoHotkeyU64.exe to AutoHotkey*_UIA.exe.</li>
+  <li>Sets the <a href="https://msdn.microsoft.com/en-us/library/ee671610">uiAccess attribute</a> in each UIA file's embedded manifest.</li>
+  <li>Creates a self-signed digital certificate named "AutoHotkey" and signs each UIA file.</li>
+  <li>Registers the context menu option to run the appropriate exe file.</li>
+</ul>
+<p>If any these UIA files are present before installation, the installer will automatically update them even if the UI Access option is not enabled.</p>
+<p>For command-line installations, specify <code>/uiAccess</code> or <code>/uiAccess=1</code> to enable the option and <code>/uiAccess=0</code> to disable it. By default, the installer will enable the option if UAC is enabled and the UI Access context menu option was present before installation.</p>
+<p>Scripts which need to run other scripts with UI access can simply <a href="commands/Run.htm">Run</a> the appropriate UIA.exe file with the normal <a href="#cmd">command line parameters</a>.</p>
+<p><strong>Known limitations</strong>:</p>
+<ul>
+  <li>UIA is only effective if the file is in a trusted location; i.e. a Program Files sub-directory.</li>
+  <li>UIA.exe files created on one computer cannot run on other computers without first installing the digital certificate which was used to sign them.</li>
+  <li>UIA.exe files cannot be started via CreateProcess due to security restrictions. ShellExecute can be used instead. <a href="commands/Run.htm">Run</a> tries both.</li>
+  <li>UIA.exe files cannot be modified, as it would invalidate the file's digital signature.</li>
+  <li>Because UIA programs run at a different "integrity level" than other programs, they can only access objects registered by other UIA programs. For example, <code><a href="commands/ComObjActive.htm">ComObjActive</a>("Word.Application")</code> will fail because Word is not marked for UI Access.</li>
+  <li>The script's own windows can't be automated by non-UIA programs/scripts for security reasons.</li>
+  <li>Running a non-UIA script which uses a mouse hook (even as simple as <code>#InstallMouseHook</code>) may prevent all mouse hotkeys from working when the mouse is pointing at a window owned by a UIA script, even hotkeys implemented by the UIA script itself. A workaround is to ensure UIA scripts are loaded last.</li>
+</ul>
+<p>For more details, see <a href="https://autohotkey.com/board/topic/70449-enable-interaction-with-administrative-programs/">Enable interaction with administrative programs</a> on the archive forum.</p>
 
 <h2>Script Showcase</h2>
 <p>See <a href="scripts/">this page</a> for some useful scripts.</p>
