@@ -302,7 +302,7 @@ index = [
   ["current directory","commands/SetWorkingDir.htm"],
   ["current thread","misc/Threads.htm"],
   ["cursor shape","Variables.htm#Cursor"],
-  ["custom combination hotkeys","Hotkeys.htm#Features"],
+  ["custom combination hotkeys","Hotkeys.htm#combo"],
   ["Custom controls (GUI)","commands/GuiControls.htm#Custom"],
   ["dates and times (compare)","commands/EnvSub.htm"],
   ["dates and times (math)","commands/EnvAdd.htm"],
