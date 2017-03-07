@@ -19,7 +19,8 @@
 <p>Runs an external program. Unlike Run, RunWait will wait until
 the program finishes before continuing.</p>
 
-<pre class="Syntax">Run, Target [, WorkingDir, Max|Min|Hide|UseErrorLevel, OutputVarPID]</pre>
+<pre class="Syntax">Run, Target [, WorkingDir, Max|Min|Hide|UseErrorLevel, OutputVarPID]
+RunWait, Target [, WorkingDir, Max|Min|Hide|UseErrorLevel, OutputVarPID]</pre>
 <h3>Parameters</h3>
 <dl>
 
@@ -64,7 +65,7 @@ Run ::{645ff040-5081-101b-9f08-00aa002f954e}  <em>; Opens the Recycle Bin.</em><
 <table class="info">
   <tr>
     <td style="width:8%">*<i>verb</i></td>
-    <td>Any system-defined or custom verb. For example: <code>Run *Compile %A_ScriptFullPath%</code><br>On Windows Vista and later, the <code>*RunAs</code> verb may be used in place of the <i>Run As Administrator</i> right-click menu item.</td>
+    <td>Any system-defined or custom verb. For example: <code>Run *Compile %A_ScriptFullPath%</code><br>On Windows Vista and later, the <a href="#RunAs">*RunAs</a> verb may be used in place of the <i>Run as administrator</i> right-click menu item.</td>
   </tr>
   <tr>
     <td>properties</td>
@@ -93,8 +94,38 @@ Run ::{645ff040-5081-101b-9f08-00aa002f954e}  <em>; Opens the Recycle Bin.</em><
   </tr>
 </table>
 <p>While RunWait is in a waiting state, new <a href="../misc/Threads.htm">threads</a> can be launched via <a href="../Hotkeys.htm">hotkey</a>, <a href="Menu.htm">custom menu item</a>, or <a href="SetTimer.htm">timer</a>.</p>
+
+<h3 id="RunAs">Run as Administrator <span class="ver">[AHK_L 57+]:</span></h3>
+<p>For an executable file, the <em>*RunAs</em> verb is equivalent to selecting <em>Run as administrator</em> from the right-click menu of the file. For example, the following code attempts to restart the current script as admin:</p>
+<pre>full_command_line := DllCall("GetCommandLine", "str")
+
+if not (A_IsAdmin or RegExMatch(full_command_line, " /restart(?!\S)"))
+{
+    try
+    {
+        if A_IsCompiled
+            Run *RunAs "%A_ScriptFullPath%" /restart
+        else
+            Run *RunAs "%A_AhkPath%" /restart "%A_ScriptFullPath%"
+    }
+    ExitApp
+}
+
+MsgBox A_IsAdmin: %A_IsAdmin%`nCommand line: %full_command_line%</pre>
+<p>If the user cancels the UAC dialog or Run fails for some other reason, the script will simply exit.</p>
+<p>Using <a href="../Scripts.htm#SlashR">/restart</a> ensures that a <a href="_SingleInstance.htm">single instance</a> prompt is not shown if the new instance of the script starts before ExitApp is called.</p>
+<p>If UAC is disabled, <em>*RunAs</em> will launch the process without elevating it. Checking for <code>/restart</code> in the command line ensures that the script does not enter a runaway loop in that case. Note that <code>/restart</code> is a built-in switch, so is not included in the <a href="../Scripts.htm#cmd_args">array of command-line parameters</a>.</p>
+<p>The example can be modified to fit the script's needs:</p>
+<ul>
+  <li>If the script absolutely requires admin rights, check A_IsAdmin a second time in case <em>*RunAs</em> failed to elevate the script (i.e. because UAC is disabled).</li>
+  <li>To keep the script running even if the user cancels the UAC prompt, move ExitApp into the try block.</li>
+  <li>To keep the script running even if it failed to restart (i.e. because the script file has been changed or deleted), remove ExitApp and use RunWait instead of Run. On success, <code>/restart</code> causes the new instance to terminate the old one. On failure, the new instance exits and RunWait returns.</li>
+</ul>
+<p><span class="ver">[v1.0.92.01+]:</span> If UAC is enabled, the AutoHotkey installer registers the <em>RunAs</em> verb for <em>.ahk</em> files, which allows <code>Run *RunAs script.ahk</code> to launch a script as admin with the default executable.</p>
+
 <h3>Related</h3>
 <p><a href="RunAs.htm">RunAs</a>, <a href="Process.htm">Process</a>, <a href="Exit.htm">Exit</a>, <a href="../misc/CLSID-List.htm">CLSID List</a>, <a href="DllCall.htm">DllCall</a></p>
+
 <h3>Examples</h3>
 <pre class="NoIndent">Run, Notepad.exe, C:\My Documents, max
 

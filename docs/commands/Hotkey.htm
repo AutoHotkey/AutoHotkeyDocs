@@ -15,7 +15,8 @@
 
 <pre class="Syntax">Hotkey, KeyName [, Label, Options]
 Hotkey, IfWinActive/Exist [, WinTitle, WinText]
-Hotkey, If [, Expression]</pre>
+Hotkey, If [, Expression]
+Hotkey, If, % FunctionObject</pre>
 <h3>Parameters</h3>
 <dl>
 
@@ -55,8 +56,12 @@ Hotkey, If [, Expression]</pre>
       </dd>
 
   <dt>IfWinActive<br>
-    IfWinExist</dt>
-  <dd><p>(IfWin<strong>Not</strong>Active and IfWin<strong>Not</strong>Exist are also supported). These sub-commands make all subsequently-created hotkeys context sensitive. See <a href="#IfWin">below</a> for details.</p></dd>
+    IfWinExist<br>
+    IfWinNotActive<br>
+    IfWinNotExist<br>
+    If, Expression<br>
+    If, % FunctionObject</dt>
+  <dd><p>These sub-commands make all subsequently-created hotkeys context sensitive. See <a href="#IfWin">below</a> for details.</p></dd>
 
   <dt>WinTitle<br>
     WinText</dt>
@@ -65,8 +70,15 @@ Hotkey, If [, Expression]</pre>
 
   <dt id="If">If, Expression</dt>
   <dd>
-    <p>Counterpart of <a href="_If.htm">#If <i>Expression</i></a>. <em>Expression</em> must be an expression which has been used with the #If directive elsewhere in the script. Although this command is unable to create new expressions, it can create new hotkeys using an existing expression. See <a href="_If.htm#ex4">#If example 4</a>.</p>
+    <p>Associates subsequently-created hotkeys with a given #If expression. <em>Expression</em> must be an expression which has been used with the <a href="_If.htm">#If directive</a> elsewhere in the script. Although this command is unable to create new expressions, it can create new hotkeys using an existing expression. See <a href="_If.htm#ex4">#If example 4</a>.</p>
     <p><strong>Note:</strong> The Hotkey command uses the string that you pass to it, not the original source code. Commas and deref chars (percent signs) are interpreted <em>before</em> the command is called, so may need to be escaped if they are part of the original expression.  <a href="../misc/EscapeChar.htm">Escape sequences</a> are resolved when the script loads, so only the resulting characters are considered; for example, <code>Hotkey, If, x = "`t"</code> and <code>Hotkey, If, % "x = """ A_Tab """"</code> both correspond to <code>#If x = "`t"</code>.</p>
+  </dd>
+  
+  <dt id="IfFn">If, % FunctionObject</dt>
+  <dd>
+    <p><span class="ver">[v1.1.25+]:</span> Associates subsequently-created hotkeys with a given <a href="../objects/Functor.htm">function object</a>. Such hotkeys will only execute if calling the given function object yields a non-zero number. This is like <code>Hotkey, If, Expression</code>, except that each hotkey can have many <a href="#variant">variants</a> (one per object). <em>FunctionObject</em> must be a single variable (not an expression) containing an object with a <em>call</em> method. The function or <em>call</em> method can accept one parameter, the <a href="../Variables.htm#ThisHotkey">name</a> of the hotkey.</p>
+    <p>Once passed to the Hotkey command, the object will never be deleted (but memory will be reclaimed by the OS when the process exits).</p>
+    <p>The <a href="#ExampleIfFn">"three-key combination" example</a> below uses this sub-command.</p>
   </dd>
 
 </dl>
@@ -74,6 +86,7 @@ Hotkey, If [, Expression]</pre>
 <h3 id="ErrorLevel">ErrorLevel</h3>
 <p>This command is able to throw an exception on failure. For more information, see <a href="Catch.htm#RuntimeErrors">Runtime Errors</a>.</p>
 <p><a href="../misc/ErrorLevel.htm">ErrorLevel</a> is changed only when the word UseErrorLevel is present in the <em>Options</em> parameter.</p>
+<p><span class="ver">[v1.1.25+]:</span> If the first parameter is "If", an exception is thrown if the second parameter is invalid or a memory allocation fails. ErrorLevel is not set in those cases, but is still set to 0 on success.</p>
 <table class="info">
   <tr>
     <th>Error</th>
@@ -127,14 +140,16 @@ if ErrorLevel = 5 or ErrorLevel = 6
 <p>The <a href="_InstallKeybdHook.htm">keyboard</a> and/or <a href="_InstallMouseHook.htm">mouse</a> hooks will be installed or removed if justified by the changes made by this command.</p>
 <p>Although the Hotkey command cannot directly enable or disable hotkeys in scripts other than its own, in most cases it can <a href="../misc/Override.htm">override</a> them by creating or enabling the same hotkeys. Whether this works depends on a combination of factors: 1) Whether the hotkey to be overridden is a <a href="ListHotkeys.htm">hook hotkey</a> in the other script (non-hook hotkeys can always be overridden); 2) The fact that the most recently started script's hotkeys generally take precedence over those in other scripts (therefore, if the script intending to override was started most recently, its override should always succeed);  3) Whether the enabling or creating of this hotkey will newly activate the <a href="_InstallKeybdHook.htm">keyboard</a> or <a href="_InstallMouseHook.htm">mouse</a> hook (if so, the override will always succeed).</p>
 <p>Once a script has at least one hotkey, it becomes <a href="../Scripts.htm#persistent">persistent</a>, meaning that <a href="ExitApp.htm">ExitApp</a> rather than Exit should be used to terminate it.</p>
-<h3 id="IfWin">Remarks About <em>Hotkey, IfWinXX [, WinTitle, WinText]</em></h3>
-<p>The &quot;Hotkey IfWin&quot; commands allow context-sensitive <a href="../Hotkeys.htm">hotkeys</a> to be created and modified while the script is running (by contrast, the <a href="_IfWinActive.htm">#IfWinActive/Exist</a> directives are positional and take effect before the script begins executing). For example:</p>
+
+<h3 id="IfWin">Remarks About <em>Hotkey, If</em></h3>
+<p>The &quot;Hotkey If&quot; commands allow context-sensitive <a href="../Hotkeys.htm">hotkeys</a> to be created and modified while the script is running (by contrast, the <a href="_If.htm">#If</a> and <a href="_IfWinActive.htm">#IfWinActive/Exist</a> directives are positional and take effect before the script begins executing). For example:</p>
 <pre>Hotkey, IfWinActive, ahk_class Notepad
 Hotkey, ^!e, MyLabel  <em>; Creates a hotkey that works only in Notepad.</em></pre>
 <p>Using <code>Hotkey If</code> puts context sensitivity into effect for all subsequently created or modified <a href="../Hotkeys.htm">hotkeys</a> in the current <a href="../misc/Threads.htm">thread</a>. In addition, each If sub-command is mutually exclusive; that is, only the most recent one will be in effect.</p>
-<p>To turn off context sensitivity (that is, to make subsequently-created hotkeys work in all windows), specify any IfWin sub-command but omit the <em>WinTitle/Text</em> parameters. For example: <code>Hotkey, IfWinActive</code>.</p>
+<p>To turn off context sensitivity (that is, to make subsequently-created hotkeys work in all windows), specify any If sub-command but omit the parameters. For example: <code>Hotkey, If</code> or <code>Hotkey, IfWinActive</code>.</p>
 <p>Before <code>Hotkey If</code> is used in a hotkey or hotstring <a href="../misc/Threads.htm">thread</a>, the Hotkey command defaults to the same context as the hotkey or hotstring that launched the thread. In other words, <code>Hotkey, %A_ThisHotkey%, Off</code> turns off the current hotkey even if it is context-sensitive. All other threads default to creating or modifying global hotkeys, unless that default is overridden by using <code>Hotkey If</code> in the <a href="../Scripts.htm#auto">auto-execute section</a>.</p>
-<p>When a mouse or keyboard hotkey is disabled via IfWin, it performs its native function; that is, it passes through to the active window as though there is no such hotkey. There is one exception: Joystick hotkeys: although IfWin works, it never prevents other programs from seeing the press of a button.</p>
+<p>When a mouse or keyboard hotkey is disabled via an If sub-command or directive, it performs its native function; that is, it passes through to the active window as though there is no such hotkey. However, joystick hotkeys always pass through, whether they are disabled or not.</p>
+
 <h3 id="variant">Variant (Duplicate) Hotkeys</h3>
 <p>A particular hotkey can be created more than once if each definition has different IfWin criteria. These are known as <em>hotkey variants</em>. For example:</p>
 <pre>Hotkey, IfWinActive, ahk_class Notepad
@@ -164,6 +179,36 @@ Hotkey, ^!a, , T5  <em>; Changes the hotkey to allow 5 threads.</em>
 
 Hotkey, IfWinActive, ahk_class Notepad
 Hotkey, ^!c, MyLabelForNotepad  <em>; Creates Ctrl-Alt-C as a hotkey that works only in Notepad.</em></pre>
+
+<pre class="NoIndent" id="ExampleIfFn"><em>; This GUI allows you to register primitive three-key combination hotkeys:</em>
+Gui Add, Text, xm, Prefix key:
+Gui Add, Edit, yp x100 w100 vPrefix, Space
+Gui Add, Text, xm, Suffix hotkey:
+Gui Add, Edit, yp x100 w100  vSuffix, f &amp; j
+Gui Add, Button, Default, Register
+Gui Show
+return
+
+ButtonRegister() {
+    global
+    Gui Submit, NoHide
+    local fn
+    fn := Func("HotkeyShouldFire").Bind(Prefix)
+    Hotkey If, % fn
+    Hotkey % Suffix, FireHotkey
+}
+
+HotkeyShouldFire(prefix, thisHotkey) {
+    return GetKeyState(prefix)
+}
+
+FireHotkey() {
+    MsgBox %A_ThisHotkey%
+}
+
+GuiClose:
+GuiEscape:
+ExitApp</pre>
 
 </body>
 </html>
