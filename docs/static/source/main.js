@@ -19,8 +19,10 @@ function GetScriptDir()
   var scriptPath = '';
   var scriptEls = document.getElementsByTagName('script');
   for (i = 0; i < scriptEls.length; i++)
-    if (scriptEls[i].src)
+    if (scriptEls[i].src) {
       scriptPath = scriptEls[i].src;
+      break;
+    }
   return scriptPath.substr(0, scriptPath.lastIndexOf('/'));
 }
 

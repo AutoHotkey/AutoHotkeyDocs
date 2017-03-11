@@ -14,7 +14,8 @@ For var, file in FileList
 	FileRead %var%, %A_ScriptDir%\%file%
 
 SetWorkingDir %A_ScriptDir%\..
-Overwrite("content.js", JQueryJS "`n" TreeJQueryJS "`n" TocJS "`n" IndexJS "`n" TranslateJS "`n" MainJS)
+; A server-side script does content.js for autohotkey.com:
+; Overwrite("content.js", JQueryJS "`n" TreeJQueryJS "`n" TocJS "`n" IndexJS "`n" TranslateJS "`n" MainJS)
 Overwrite("content.chm.js", JQueryJS "`n" TranslateJS "`n" MainJS)
 SetWorkingDir %A_ScriptDir%\..\..\..
 Overwrite("Table of Contents.hhc", TOC_CreateHHC(TocJS))
