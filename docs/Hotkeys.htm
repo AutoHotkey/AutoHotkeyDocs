@@ -84,7 +84,8 @@ return</pre>
     <td><strong>*</strong></td>
     <td><p>Wildcard: Fire the hotkey even if extra modifiers are being held down. This is often used in conjunction with <a href="misc/Remap.htm">remapping</a> keys or buttons. For example:</p>
       <pre>*#c::Run Calc.exe  <em>; Win+C, Shift+Win+C, Ctrl+Win+C, etc. will all trigger this hotkey.</em>
-*ScrollLock::Run Notepad  <em>; Pressing ScrollLock will trigger this hotkey even when modifier key(s) are down.</em></pre></td>
+*ScrollLock::Run Notepad  <em>; Pressing ScrollLock will trigger this hotkey even when modifier key(s) are down.</em></pre>
+      <p>Wildcard hotkeys always use the keyboard hook, as do any hotkeys eclipsed by a wildcard hotkey. For example, the presence of <code>*a::</code> would cause <code>^a::</code> to always use the hook.</p></td>
   </tr>
   <tr id="Tilde">
     <td><strong>~</strong></td>
@@ -99,13 +100,14 @@ return</pre>
 AppsKey Up::ToolTip
 ~AppsKey &amp; &lt;::Send !+{Esc}
 ~AppsKey &amp; &gt;::Send !{Esc}</pre>
+      <p>If at least one variant of a keyboard hotkey has the tilde modifier, that hotkey always uses the keyboard hook.</p>
     </td>
   </tr>
   <tr id="prefixdollar">
     <td><strong>$</strong></td>
     <td>
       <p>This is usually only necessary if the script uses the <a href="commands/Send.htm">Send</a> command to send the keys that comprise the hotkey itself, which might otherwise cause it to trigger itself. The $ prefix forces the <a href="commands/_InstallKeybdHook.htm">keyboard hook</a> to be used to implement this hotkey, which as a side-effect prevents the <a href="commands/Send.htm">Send</a> command from triggering it. The $ prefix is equivalent to having specified <code><a href="commands/_UseHook.htm">#UseHook</a></code> somewhere above the definition of this hotkey.</p>
-      <p>The $ prefix has no effect for mouse hotkeys, since they always use the mouse hook. It also has no effect for hotkeys which already require the keyboard hook, including any keyboard hotkeys with the <a href="#Tilde">tilde (~)</a> or <a href="#wildcard">wildcard (*)</a> modifiers, key-up hotkeys and custom combinations.</p>
+      <p>The $ prefix has no effect for mouse hotkeys, since they always use the mouse hook. It also has no effect for hotkeys which already require the keyboard hook, including any keyboard hotkeys with the <a href="#Tilde">tilde (~)</a> or <a href="#wildcard">wildcard (*)</a> modifiers, key-up hotkeys and custom combinations. To determine whether a particular hotkey uses the keyboard hook, use <a href="commands/ListHotkeys.htm">ListHotkeys</a>.</p>
       <p><span class="ver">[v1.1.06+]:</span> <a href="commands/_InputLevel.htm">#InputLevel</a> and <a href="commands/SendLevel.htm">SendLevel</a> provide additional control over which hotkeys and hotstrings are triggered by the Send command.</p>
     </td>
   </tr>
@@ -117,6 +119,7 @@ AppsKey Up::ToolTip
 </pre>
       <p>&quot;Up&quot; can also be used with normal hotkeys as in this example: <code>^!r Up::MsgBox You pressed and released Ctrl+Alt+R</code>. It also works with <a href="#combo">combination hotkeys</a> (e.g. <code>F1 &amp; e Up::</code>)</p>      
       <p>Limitations: 1) &quot;Up&quot; does not work with <a href="KeyList.htm">joystick buttons</a>; and 2) An &quot;Up&quot; hotkey without a normal/down counterpart hotkey will completely take over that key to prevent it from getting stuck down. One way to prevent this is to add a <a href="#Tilde">tilde prefix</a> (e.g. <code><strong>~</strong>LControl up::</code>)</p>
+      <p>"Up" hotkeys and their key-down counterparts (if any) always use the keyboard hook.</p>
       <p>On a related note, a technique similar to the above is to make a hotkey into a prefix key. The advantage is that although the hotkey will fire upon release, it will do so only if you did not press any other key while it was held down. For example:</p>
       <pre>LControl &amp; F1::return  <em>; Make left-control a prefix by using it in front of &quot;&amp;&quot; at least once.</em>
 LControl::MsgBox You released LControl without having used it to modify any other key.</pre></td>
@@ -168,6 +171,7 @@ AppsKey &amp; /::MsgBox Hotkey activated.
 <em>; [ &amp; ] &amp; \::</em>
 #if GetKeyState("[") &amp;&amp; GetKeyState("]")
 \::MsgBox</pre>
+<p><strong>Keyboard hook:</strong> Custom combinations involving keyboard keys always use the keyboard hook, as do any hotkeys which use the prefix key as a suffix. For example, <code>a &amp; b::</code> causes <code>^a::</code> to always use the hook.</p>
 
 <h2 id="Features">Other Features</h2>
 <p><strong>Numlock, Capslock, and Scrolllock:</strong> These keys may be forced to be &quot;AlwaysOn&quot; or &quot;AlwaysOff&quot;. For example: <code><a href="commands/SetNumScrollCapsLockState.htm">SetNumlockState</a> AlwaysOn</code>.</p>
