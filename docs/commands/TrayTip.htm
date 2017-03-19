@@ -11,25 +11,30 @@
 
 <h1>TrayTip</h1>
 
-<p>Creates a balloon message window near the tray icon.</p>
+<p>Creates a balloon message window near the tray icon. On Windows 10, a toast notification may be shown instead.</p>
 
 <pre class="Syntax">TrayTip [, Title, Text, Seconds, Options]</pre>
 <h3>Parameters</h3>
 <dl>
 
   <dt>Title</dt>
-  <dd><p>If all parameters are omitted, any TrayTip window currently displayed will be removed.</p>
-    <p>Otherwise, this parameter is the title of the window, which can be up to 73 characters long (characters beyond this length are not shown).</p>
-    <p>If <em>Title</em> is blank, the title line will be entirely omitted from the balloon window, making it vertically shorter.</p></dd>
+  <dd>
+    <p>The title of the window. Only the first 73 characters will be displayed.</p>
+    <p>If <em>Title</em> is blank, the title line will be entirely omitted from the window, making it vertically shorter.</p>
+    <p class="warning"><strong>Note:</strong> The window will not be shown if the <em>Text</em> parameter is omitted, even if a <em>Title</em> is specified.</p>
+  </dd>
 
   <dt>Text</dt>
-  <dd><p>If this parameter is omitted or blank, any TrayTip window currently displayed will be removed.</p>
-      <p>Otherwise, specify the message to display, which appears beneath <em>Title</em>. Only the first 265 characters of <em>Text</em> will be displayed. Carriage return (`r) or linefeed (`n) may be used to create multiple lines of text. For example: <code>Line1`nLine2</code>.</p>
-      <p>If <em>Text</em> is long, it can be broken up into several shorter lines by means of a <a href="../Scripts.htm#continuation">continuation section</a>, which might improve readability and maintainability.</p>
-    </dd>
+  <dd>
+    <p>The message to display. Only the first 265 characters will be displayed.</p>
+    <p>If this parameter is omitted or blank, any TrayTip balloon window currently displayed will be removed. However, to hide a Windows 10 toast notification it may be necessary to <a href="#Windows10">temporarily remove the tray icon</a>.</p>
+    <p>Carriage return (`r) or linefeed (`n) may be used to create multiple lines of text. For example: <code>Line1`nLine2</code>.</p>
+    <p>If <em>Text</em> is long, it can be broken up into several shorter lines by means of a <a href="../Scripts.htm#continuation">continuation section</a>, which might improve readability and maintainability.</p>
+  </dd>
 
   <dt>Seconds</dt>
-  <dd><p>The approximate number of seconds to display the window, after which it will be automatically removed by the OS. Specifying a number less than 10 or greater than 30 will usually cause the minimum (10) or maximum (30) display time to be used instead. If blank or omitted, the minimum time will usually be used. This parameter can be an <a href="../Variables.htm#Expressions">expression</a>.</p>
+  <dd><p><strong>Note:</strong> This parameter has no effect on Windows Vista and later.</p>
+    <p>The approximate number of seconds to display the window, after which it will be automatically removed by the OS. Specifying a number less than 10 or greater than 30 will usually cause the minimum (10) or maximum (30) display time to be used instead. If blank or omitted, the minimum time will usually be used. This parameter can be an <a href="../Variables.htm#Expressions">expression</a>.</p>
     <p>The actual timeout may vary from the one specified. Microsoft explains, &quot;if the user does not appear to be using the computer, the system does not count this time towards the timeout.&quot; (Technical details <a href="http://msdn.microsoft.com/library/default.asp?url=/library/en-us/shellcc/platform/shell/reference/structures/notifyicondata.asp">here</a>). Therefore, to have precise control over how long the TrayTip is displayed, use the <a href="Sleep.htm">Sleep</a> command followed by TrayTip with no parameters, or use <a href="SetTimer.htm">SetTimer</a> as illustrated in the Examples section below.</p>
     </dd>
 
@@ -43,33 +48,53 @@
       <tr><td>Windows XP and later: Do not play the notification sound.</td><td>16</td><td>0x10</td></tr>
       <tr><td>Windows Vista and later: Use the large version of the icon.</td><td>32</td><td>0x20</td></tr>
     </table>
-    <p>If omitted, it defaults to 0, which is no icon. The icon is also not shown if <em>Title</em> is omitted.</p>
+    <p>If omitted, it defaults to 0, which is no icon. The icon is also not shown by the balloon window if it lacks a <em>Title</em> (this does not apply to Windows 10 toast notifications).</p>
     <p>This parameter can be an <a href="../Variables.htm#Expressions">expression</a>.</p>
     </dd>
 
 </dl>
 <h3>Remarks</h3>
-<p>The TrayTip balloon window cannot be shown if the script lacks a tray icon (via <a href="_NoTrayIcon.htm">#NoTrayIcon</a> or <code><a href="Menu.htm">Menu</a>, tray, NoIcon</code>). Similarly, if the following REG_DWORD value exists and has been set to 0, TrayTip will not function:</p>
+<p id="Windows10"><strong>Windows 10</strong> replaces all balloon windows with toast notifications by default (this can be overridden via group policy). Calling TrayTip multiple times will usually cause multiple notifications to be placed in a "queue" instead of each notification replacing the last. To hide a notification, temporarily removing the tray icon may be effective. For example:</p>
+<pre>TrayTip #1, This is TrayTip #1
+Sleep 3000   <em>; Let it display for 3 seconds.</em>
+HideTrayTip()
+TrayTip #2, This is the second notification.
+Sleep 3000
+
+<em>; Copy this function into your script to use it.</em>
+HideTrayTip() {
+    TrayTip  <em>; Attempt to hide it the normal way.</em>
+    if SubStr(A_OSVersion,1,3) = "10." {
+        Menu Tray, NoIcon
+        Sleep 200  <em>; It may be necessary to adjust this sleep.</em>
+        Menu Tray, Icon
+    }
+}
+</pre>
+<p>TrayTip has no effect if the script lacks a tray icon (via <a href="_NoTrayIcon.htm">#NoTrayIcon</a> or <code><a href="Menu.htm">Menu</a>, Tray, NoIcon</code>). TrayTip also has no effect if the following REG_DWORD value exists and has been set to 0:</p>
 <pre>HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced &gt;&gt; EnableBalloonTips</pre>
 <p>On a related note, there is a tooltip displayed whenever the user hovers the mouse over the script's tray icon. The contents of this tooltip can be changed via: <code><a href="Menu.htm">Menu</a>, Tray, Tip, My New Text</code>.</p>
+
 <h3>Related</h3>
 <p><a href="ToolTip.htm">ToolTip</a>, <a href="SetTimer.htm">SetTimer</a>, <a href="Menu.htm">Menu</a>, <a href="SplashTextOn.htm">SplashTextOn</a>, <a href="MsgBox.htm">MsgBox</a>, <a href="InputBox.htm">InputBox</a>, <a href="FileSelectFile.htm">FileSelectFile</a>, <a href="FileSelectFolder.htm">FileSelectFolder</a></p>
-<h3>Examples</h3>
-<pre class="NoIndent">TrayTip, My Title, Multiline`nText, 20, 17
 
+<h3>Examples</h3>
+<pre class="NoIndent">TrayTip, My Title, Multiline`nText, 20, 17</pre>
+<pre class="NoIndent">
 <em>; To have more precise control over the display time without
 ; having to use Sleep (which stops the current thread):</em>
 #Persistent
 TrayTip, Timed TrayTip, This will be displayed for 5 seconds.
-SetTimer, RemoveTrayTip, 5000
-return
+SetTimer, HideTrayTip, -5000
 
-RemoveTrayTip:
-SetTimer, RemoveTrayTip, Off
-TrayTip
-return
-
-<em>; To have a TrayTip permanently displayed, use a timer to refresh it periodically:</em>
+HideTrayTip() {  <em>; NOTE: For Windows 10, replace this function with the one defined <a href="#Hide">above</a>.</em>
+    TrayTip
+}
+</pre>
+<pre class="NoIndent">
+<em>; To have a TrayTip permanently displayed, use a timer to refresh it periodically.
+; NOTE: This probably won't work well on Windows 10 for <a href="#Windows10">reasons described above</a>.</em>
+#Persistent
 SetTimer, RefreshTrayTip, 1000
 Gosub, RefreshTrayTip  <em>; Call it once to get it started right away.</em>
 return
