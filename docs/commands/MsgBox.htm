@@ -7,6 +7,9 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <link href="../static/theme.css" rel="stylesheet" type="text/css" />
 <script src="../static/content.js" type="text/javascript"></script>
+<style>
+tr.new_option_group td { border-top-width: 3px; }
+</style>
 </head>
 <body>
 
@@ -14,8 +17,8 @@
 
 <p>Displays the specified text in a small window containing one or more buttons (such as Yes and No).</p>
 
-<pre class="Syntax">MsgBox, Text
-MsgBox [, Options, Title, Text, Timeout]</pre>
+<pre class="Syntax">MsgBox [, Text, Title, Options, OutputVar]
+Result := MsgBox([Text, Title, Options, ByRef OutputVar])</pre>
 <h3>Parameters</h3>
 <dl>
 
@@ -24,151 +27,165 @@ MsgBox [, Options, Title, Text, Timeout]</pre>
     <p><a href="../misc/EscapeChar.htm">Escape sequences</a> can be used to denote special characters. For example, `n indicates a linefeed character, which ends the current line and begins a new one. Thus, using text1`n`ntext2 would create a blank line between text1 and text2.</p>
     <p>If <em>Text</em> is long, it can be broken up into several shorter lines by means of a <a href="../Scripts.htm#continuation">continuation section</a>, which might improve readability and maintainability.</p></dd>
 
-  <dt>Options</dt>
-  <dd><p>Indicates the type of message box and the possible button combinations. If blank or omitted, it defaults to 0. See the table below for allowed values.</p>
-    <p>When command syntax is used, this parameter must be either a literal number or a forced expression such as <em>% Options</em>. Any other non-blank value will not be recognized as this parameter, but instead as part of <em>Text</em> in the single-parameter mode.</p></dd>
-
   <dt>Title</dt>
   <dd><p>The title of the message box window. If omitted or blank, it defaults to the name of the script (without path).</p></dd>
 
-  <dt id="Timeout">Timeout</dt>
-  <dd><p>(optional) Timeout in seconds (can contain a decimal point). If this value exceeds 2147483 (24.8 days), it will be set to 2147483. After the timeout has elapsed the message box will be automatically closed and <a href="#Result">A_MsgBoxResult</a> will contain the value &quot;Timeout&quot;.</p>
-      <p>Known limitation: If the MsgBox contains only an OK button, <a href="#Result">A_MsgBoxResult</a> will indicate that the OK button was pressed if the MsgBox times out while its own <a href="../misc/Threads.htm">thread</a> is interrupted by another.</p></dd>
+  <dt>Options</dt>
+  <dd><p>Indicates the type of message box and the possible button combinations. If blank or omitted, it defaults to 0. See the table below for allowed values.</p></dd>
+  
+  <dt>OutputVar</dt>
+  <dd><p>The name of the variable in which to store the name of the button clicked by the user. If specified, the variable receives the same value as the function's <a href="#Result">return value</a>. Unlike the return value, this parameter does not require the use of expression syntax.</p></dd>
 
 </dl>
 
-<p>The <em>Options</em> parameter can be a combination (sum) of one or more of the following values.</p>
-<table class="info" style="width:55%">
+<p>The <em>Options</em> parameter accepts either an integer value, which is passed directly to the operating system's MessageBox function, or a string of zero or more case-insensitive options separated by at least one space or tab. One or more numeric options may also be included in the string.</p>
+<table class="info">
   <tr>
     <th style="width:287px">Function</th>
     <th>Decimal Value</th>
     <th>Hex Value</th>
+    <th>String Value</th>
   </tr>
   <tr>
     <td>OK (that is, only an OK button is displayed)</td>
     <td>0</td>
     <td>0x0</td>
+    <td><code>OK</code> or <code>O</code></td>
   </tr>
   <tr>
     <td>OK/Cancel</td>
     <td>1</td>
     <td>0x1</td>
+    <td><code>OKCancel</code>, <code>O/C</code> or <code>OC</code></td>
   </tr>
   <tr>
     <td>Abort/Retry/Ignore</td>
     <td>2</td>
     <td>0x2</td>
+    <td><code>AbortRetryIgnore</code>, <code>A/R/I</code> or <code>ARI</code></td>
   </tr>
   <tr>
     <td>Yes/No/Cancel</td>
     <td>3</td>
     <td>0x3</td>
+    <td><code>YesNoCancel</code>, <code>Y/N/C</code> or <code>YNC</code></td>
   </tr>
   <tr>
     <td>Yes/No</td>
     <td>4</td>
     <td>0x4</td>
+    <td><code>YesNo</code>, <code>Y/N</code> or <code>YN</code></td>
   </tr>
   <tr>
     <td>Retry/Cancel</td>
     <td>5</td>
     <td>0x5</td>
+    <td><code>RetryCancel</code>, <code>R/C</code> or <code>RC</code></td>
   </tr>
   <tr>
     <td>Cancel/Try Again/Continue</td>
     <td>6</td>
     <td>0x6</td>
+    <td><code>CancelTryAgainContinue</code>, <code>C/T/C</code> or <code>CTC</code></td>
   </tr>
   <tr>
     <td>Adds a Help button (see remarks below)</td>
     <td>16384</td>
     <td>0x4000</td>
+    <td></td>
   </tr>
-  <tr>
-    <td>&nbsp;</td>
-    <td>&nbsp;</td>
-    <td>&nbsp;</td>
-  </tr>
+  <tr><th colspan="4">Icons</th></tr>
   <tr>
     <td>Icon Hand (stop/error)</td>
     <td>16</td>
     <td>0x10</td>
+    <td><code>Iconx</code></td>
   </tr>
   <tr>
     <td>Icon Question</td>
     <td>32</td>
     <td>0x20</td>
+    <td><code>Icon?</code></td>
   </tr>
   <tr>
     <td>Icon Exclamation</td>
     <td>48</td>
     <td>0x30</td>
+    <td><code>Icon!</code></td>
   </tr>
   <tr>
     <td>Icon Asterisk (info)</td>
     <td>64</td>
     <td>0x40</td>
+    <td><code>Iconi</code></td>
   </tr>
-  <tr>
-    <td>&nbsp;</td>
-    <td>&nbsp;</td>
-    <td>&nbsp;</td>
-  </tr>
+  <tr><th colspan="4">Default Button</th></tr>
   <tr>
     <td>Makes the 2nd button the default</td>
     <td>256</td>
     <td>0x100</td>
+    <td><code>Default2</code></td>
   </tr>
   <tr>
     <td>Makes the 3rd button the default</td>
     <td>512</td>
     <td>0x200</td>
+    <td><code>Default3</code></td>
   </tr>
   <tr>
     <td>Makes the 4th button the default<br>(requires the Help button to be present)</td>
     <td>768</td>
     <td>0x300</td>
+    <td><code>Default4</code></td>
   </tr>
-  <tr>
-    <td>&nbsp;</td>
-    <td>&nbsp;</td>
-    <td>&nbsp;</td>
-  </tr>
+  <tr><th colspan="4">Mode</th></tr>
   <tr>
     <td>System Modal (always on top)</td>
     <td>4096</td>
     <td>0x1000</td>
+    <td></td>
   </tr>
   <tr>
     <td>Task Modal</td>
     <td>8192</td>
     <td>0x2000</td>
+    <td></td>
   </tr>
   <tr>
     <td>Always-on-top (style WS_EX_TOPMOST)<br>
       (like System Modal but omits title bar icon)</td>
     <td>262144</td>
     <td>0x40000</td>
+    <td></td>
   </tr>
-  <tr>
-    <td>&nbsp;</td>
-    <td>&nbsp;</td>
-    <td>&nbsp;</td>
-  </tr>
+  <tr><th colspan="4"></th></tr>
   <tr>
     <td>Make the text right-justified</td>
     <td>524288</td>
     <td>0x80000</td>
+    <td></td>
   </tr>
   <tr>
     <td>Right-to-left reading order for Hebrew/Arabic</td>
     <td>1048576</td>
     <td>0x100000</td>
+    <td></td>
+  </tr>
+  <tr><th colspan="4">Additional string-only options</th></tr>
+  <tr id="OwnerOption">
+    <td colspan="3"><p><strong>Owner:</strong> To specify an <a href="#Owner">owner window</a> for the MsgBox, use the word <code>Owner</code> followed immediately by a HWND (window ID).</p></td>
+    <td><code>Owner<i>%HWND%</i></code></td>
+  </tr>
+  <tr id="Timeout">
+    <td colspan="3"><p><strong>Timeout:</strong> To have the MsgBox close automatically if the user has not closed it within a specified time, use the letter <code>T</code> followed by the timeout in seconds, which can contain a decimal point. If this value exceeds 2147483 (24.8 days), it will be set to 2147483.</p>
+    <p>If the MsgBox times out, the <a href="#Result">return value</a> is the word <code>Timeout</code>.</p>
+    <p>Known limitation: If the MsgBox contains only an OK button, the <a href="#Result">return value</a> will indicate that the OK button was pressed if the MsgBox times out while its own <a href="../misc/Threads.htm">thread</a> is interrupted by another.</p></td>
+    <td></td>
   </tr>
 </table>
 
-<h3 id="Result">Result</h3>
-<p>The built-in variable <em>A_MsgBoxResult</em> returns one of the following strings to represent which button the user pressed in the most recent MsgBox command:</p>
+<h3 id="Result">Return Value</h3>
+<p>When called from an expression, MsgBox() returns one of the following strings to represent which button the user pressed:</p>
 <p>OK<br>
 Cancel<br>
 Yes<br>
@@ -178,21 +195,25 @@ Retry<br>
 Ignore<br>
 TryAgain<br>
 Continue<br>
-Timeout (that is, the word "timeout" is present if the MsgBox timed out)</p>
+Timeout (that is, the word "timeout" is returned if the MsgBox timed out)</p>
+<p>If an <em>OutputVar</em> is specified, it also receives this value.</p>
 
 <h3>Remarks</h3>
-<p>The table above is used by adding up the values you wish to be present in the MsgBox. For example, to specify a Yes/No box with the default button being No instead of Yes, the <em>Options</em> value would be 256+4 (260). In hex, it would be 0x100+0x4 (0x104).</p>
-<p>MsgBox has smart comma handling, so it is usually not necessary to <a href="../misc/EscapeChar.htm">escape</a> commas in the <em>Text</em> parameter.</p>
-<p>To determine which button the user pressed in the most recent MsgBox, use the <a href="#Result">A_MsgBoxResult</a> variable. For example:</p>
-<pre>MsgBox, 4,, Would you like to continue? (press Yes or No)
-if A_MsgBoxResult = "Yes"
+<p>When using the command syntax, remember to <a href="../misc/EscapeChar.htm">escape</a> any commas in the text or title which are intended to be literal.</p>
+<p>To determine which button the user pressed in the most recent MsgBox, use the <em>OutputVar</em> parameter or the function's <a href="#Result">return value</a>. For example:</p>
+<pre>MsgBox, Would you like to continue? (press Yes or No),, YesNo, Result
+if Result = "Yes"
     MsgBox You pressed Yes.
 else
-    MsgBox You pressed No.</pre>
+    MsgBox You pressed No.
+
+if MsgBox("Retry or cancel?",, "R/C") = "Retry"
+    MsgBox("You pressed Retry.")</pre>
 <p>The names of the buttons can be customized by following <a href="../scripts/MsgBoxButtonNames.htm">this example</a>.</p>
 <p><strong>Tip</strong>: Pressing Control-C while a MsgBox window is active will copy its text to the clipboard. This applies to all MsgBoxes, not just those produced by AutoHotkey.</p>
-<p><strong>Using MsgBox with GUI windows</strong>: A GUI window may display a <em>modal</em> MsgBox by means of <a href="Gui.htm#OwnDialogs">Gui +OwnDialogs</a>. A <em>modal</em> MsgBox prevents the user from interacting with the GUI window until the MsgBox is dismissed. In such a case, it is not necessary to specify the System Modal or Task Modal options from the table above.</p>
+<p id="Owner"><strong>Using MsgBox with GUI windows</strong>: A GUI window may display a <em>modal</em> MsgBox by means of <a href="Gui.htm#OwnDialogs">Gui +OwnDialogs</a>. A <em>modal</em> MsgBox prevents the user from interacting with the GUI window until the MsgBox is dismissed. In such a case, it is not necessary to specify the System Modal or Task Modal options from the table above.</p>
 <p>When <a href="Gui.htm#OwnDialogs">Gui +OwnDialogs</a> is <em>not</em> in effect, the Task Modal option (8192) can be used to disable all the script's windows until the user dismisses the MsgBox.</p>
+<p>If the <code>Owner<i>%HWND%</i></code> option is specified, it takes precedence over any other setting. <i>HWND</i> can be the HWND of any window, even one not owned by the script.</p>
 <p><strong>The Help button</strong>: When the Help button option (83) is present in <em>Options</em>, pressing the Help button will have no effect unless both of the following are true:</p>
 <ol>
   <li>The MsgBox is owned by a GUI window by means of <a href="Gui.htm#OwnDialogs">Gui +OwnDialogs</a>.</li>
@@ -202,41 +223,60 @@ else
 <h3>Related</h3>
 <p><a href="InputBox.htm">InputBox</a>, <a href="FileSelect.htm">FileSelect</a>, <a href="DirSelect.htm">DirSelect</a>, <a href="ToolTip.htm">ToolTip</a>, <a href="Gui.htm">GUI</a></p>
 <h3>Example</h3>
-<h4>Function Syntax</h4><pre class="NoIndent">MsgBox("This is the 1-parameter method. If only one parameter is passed, the first parameter becomes the message.")
+<h4>Function Syntax</h4><pre class="NoIndent">MsgBox()  <em>; "Press OK to continue."</em>
 
-MsgBox(64, "3-parameter method", "The first parameter determins the type of message box.`n" 
-	. "The second parameter becomes the window title.`n"
-	. "The third parameter is displayed as the message.")
+MsgBox("Commas (,) do not need to be escaped in quoted strings.")
 
-MsgBox(4, "", "Do you want to continue? (Press YES or NO)")
-if A_MsgBoxResult = "No"
+MsgBox("This MsgBox has a custom title.", "A Custom Title")
+
+MsgBox("  <em>; Use a <a href="../Scripts.htm#continuation">continuation section</a> to span multiple lines:</em>
+  (
+    The first parameter is displayed as the message.
+    The second parameter becomes the window title.
+    The third parameter determines the type of message box.
+  )", "Window Title", "iconi")
+
+if MsgBox("Do you want to continue? (Press YES or NO)",, "YesNo") = "No"
     return
 	
-MsgBox(4, "4-parameter method", "this MsgBox will time out in 5 seconds.  Continue?", 5)
-if A_MsgBoxResult = "Timeout"
+result := MsgBox("This MsgBox will time out in 5 seconds.  Continue?",, "Y/N T5")
+if result = "Timeout"
     MsgBox("You didn't press YES or NO within the 5-second period.")
-else if A_MsgBoxResult = "No"
-    return</pre><pre class="NoIndent"><em>; Include a variable and perform a math calculation in the message.</em>
-var := 10
-Msgbox("The initial value is: " var)
-MsgBox("The result is: " var * 2)</pre>
-<h4>Command Syntax</h4><pre class="NoIndent">MsgBox This is the 1-parameter method. Commas (,) do not need to be escaped.
+else if result = "No"
+    return
 
-MsgBox, 64
-	, 3-parameter method
-	, This is the 3-parameter method. Commas (,) do not need to be escaped.
-	
-MsgBox, 4, , Do you want to continue? (Press YES or NO)
-if A_MsgBoxResult = "No"
+<em>; Include a variable or sub-expression in the message.</em>
+var := 10
+MsgBox("The initial value is: " var)
+MsgBox("The result is: " var * 2)  <em>; <a href="../Variables.htm#concat">Concatenation</a>.</em>
+MsgBox("The result is: %var*2%")  <em>; Include an expression in a string with %%.</em></pre>
+<h4>Command Syntax</h4><pre class="NoIndent">MsgBox  <em>; "Press OK to continue."</em>
+
+MsgBox Commas (`,) in the text must be escaped when using this syntax.
+
+MsgBox This MsgBox has a custom title., A Custom Title
+
+MsgBox,  <em>; Use a <a href="../Scripts.htm#continuation">continuation section</a> to span multiple lines:</em>
+  (
+    The first parameter is displayed as the message.
+    The second parameter becomes the window title.
+    The third parameter determines the type of message box.
+  ), Window Title, iconi
+
+MsgBox, Do you want to continue? (Press YES or NO),, YesNo, result
+if result = "No"
     return
 	
-MsgBox, 4,,  4-parameter method: this MsgBox will time out in 5 seconds.  Continue?, 5
-if A_MsgBoxResult = "Timeout"
-    MsgBox You didn't press YES or NO within the 5-second period.
-else if A_MsgBoxResult = "No"
-    return</pre><pre class="NoIndent"><em>;Include a variable in the message.</em>
+MsgBox, This MsgBox will time out in 5 seconds.  Continue?,, Y/N T5, result
+if result = "Timeout"
+    MsgBox, You didn't press YES or NO within the 5-second period.
+else if result = "No"
+    return
+
+<em>;Include a variable in the message.</em>
 var := 10
-MsgBox The initial value is: %var	<em>;The preciding % enables to yield the contents of the variable.</em>
-MsgBox % "The result is: " var * 2	<em>;By preceding any parameter with "% ", it becomes an expression.</em></pre>
+MsgBox The initial value is: %var%  <em>; Enclose variable names in percent signs.</em>
+MsgBox % "The result is: " var * 2  <em>; The "% " prefix makes this whole parameter an expression.</em>
+MsgBox The result is: %var*2%  <em>; Expressions are also allowed within %%.</em></pre>
 </body>
 </html>
