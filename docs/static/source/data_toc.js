@@ -34,7 +34,6 @@ toc = [
     {label:"ClipWait",path:"commands/ClipWait.htm"},
     {label:"EnvGet",path:"commands/EnvGet.htm"},
     {label:"EnvSet",path:"commands/EnvSet.htm"},
-    {label:"EnvUpdate",path:"commands/EnvUpdate.htm"},
     {label:"OnClipboardChange",path:"commands/OnClipboardChange.htm"},
     {label:"SysGet",path:"commands/SysGet.htm"}
   ]},

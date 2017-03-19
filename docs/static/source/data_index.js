@@ -324,7 +324,6 @@ index = [
   ["environment variables","Variables.htm#env"],
   ["environment variables (change them)","commands/EnvSet.htm"],
   ["EnvSet","commands/EnvSet.htm"],
-  ["EnvUpdate","commands/EnvUpdate.htm"],
   ["ErrorLevel","misc/ErrorLevel.htm"],
   ["ErrorStdOut","commands/_ErrorStdOut.htm"],
   ["escape sequence","misc/EscapeChar.htm"],
