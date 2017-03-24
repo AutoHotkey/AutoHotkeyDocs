@@ -72,7 +72,7 @@ Loop, Read, %ahk_dir%\Extras\Editors\Syntax\Commands.txt
 		I_EndPos := I_cPos
 
 	if I_EndPos
-		I_CurrCmd := SubStr(I_FullCmd, 1, I_EndPos)
+		I_CurrCmd := SubStr(I_FullCmd, 1, I_EndPos - 1)
 	else  ; This is a directive/command with no parameters.
 		I_CurrCmd := A_LoopReadLine
 	
