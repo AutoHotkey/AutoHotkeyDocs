@@ -534,6 +534,7 @@ index = [
   ["libraries of functions","Functions.htm#lib"],
   ["license","license.htm"],
   ["line continuation","Scripts.htm#continuation"],
+  ["Link controls (GUI)","commands/GuiControls.htm#Link"],
   ["ListBox controls (GUI)","commands/GuiControls.htm#ListBox"],
   ["ListHotkeys","commands/ListHotkeys.htm"],
   ["ListLines","commands/ListLines.htm"],
