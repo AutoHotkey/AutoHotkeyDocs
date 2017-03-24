@@ -294,7 +294,7 @@ version := "Seek v2.0.3"
 ; DISPLAY HELP INSTRUCTIONS
 if A_Args[1] ~= "^(--help|-help|/h|-h|/\?|-\?)$"
 {
-	MsgBox,, %version%, Navigating the Start Menu can be a hassle, especially if you have installed many programs over time. 'Seek' lets you specify a case-insensitive key word/phrase that it will use to filter only the matching programs and directories from the Start Menu, so that you can easily open your target program from a handful of matched entries. This eliminates the drudgery of searching and traversing the Start Menu.`n`nI have a lot of fun coding this, and hope you will enjoy using it too. Feel free to drop me an email with your comments and feedback at: phi1618 (*a.t*) gmail :D0T: com.`n`nOptions:`n  -cache`tUse the cached directory-listing if available (this is the default mode when no option is specified)`n  -scan`tForce a directory scan to retrieve the latest directory listing`n  -scex`tScan & exit (this is useful for scheduling the potentially time-consuming directory-scanning as a background job)`n  -help`tShow this help
+	MsgBox("Navigating the Start Menu can be a hassle, especially if you have installed many programs over time. 'Seek' lets you specify a case-insensitive key word/phrase that it will use to filter only the matching programs and directories from the Start Menu, so that you can easily open your target program from a handful of matched entries. This eliminates the drudgery of searching and traversing the Start Menu.`n`nI have a lot of fun coding this, and hope you will enjoy using it too. Feel free to drop me an email with your comments and feedback at: phi1618 (*a.t*) gmail :D0T: com.`n`nOptions:`n  -cache`tUse the cached directory-listing if available (this is the default mode when no option is specified)`n  -scan`tForce a directory scan to retrieve the latest directory listing`n  -scex`tScan & exit (this is useful for scheduling the potentially time-consuming directory-scanning as a background job)`n  -help`tShow this help", version)
 	Goto QuitNoSave
 }
 
@@ -453,7 +453,7 @@ if FileExist(SeekMyDir)
 	Loop, read, %SeekMyDir%
 	{
 		if !FileExist(A_LoopReadLine)
-			MsgBox, 8192, %version%, Processing your customised directory list...`n`n"%A_LoopReadLine%" does not exist and will be excluded from the scanning.`nPlease update [ %SeekMyDir% ].
+			MsgBox("Processing your customised directory list...`n`n'%A_LoopReadLine%' does not exist and will be excluded from the scanning.`nPlease update [ %SeekMyDir% ].", version, 8192)
 		else
 			scanPath .= "|" A_LoopReadLine
 	} 
@@ -491,7 +491,7 @@ GuiControl,, StatusBar,
 ; CHECK FOR EMPTY QUERY STRING
 If CurFilename = ""
 {
-	MsgBox, 8192, %version%, Please enter the key word/phrase to search for.
+	MsgBox("Please enter the key word/phrase to search for.", version, 8192)
 	Goto EnterQuery
 }
 
@@ -508,7 +508,7 @@ If List = "|"
 {
 	; NOT EVEN A SINGLE MATCHING RECORD IS FOUND.
 	; LET USER MODIFY THE QUERY STRING AND TRY AGAIN.
-	MsgBox, 8192, %version%, The query string "%CurFilename%" does not match any record. Try again.
+	MsgBox("The query string '%CurFilename%' does not match any record. Try again.", version, 8192)
 	GuiControl, 1:Disable, ButtonOPENDIR
 	GuiControl, 1:Enable, ButtonSCANSTARTMENU
 	Goto EnterQuery
@@ -663,14 +663,14 @@ If focusControl = "Edit1"
 ; NO RECORD FROM THE LISTBOX IS SELECTED
 If OpenTarget = ""
 {
-	MsgBox, 8192, %version%, Please make a selection before hitting ENTER.`nPress ESC to exit.
+	MsgBox("Please make a selection before hitting ENTER.`nPress ESC to exit.", version, 8192)
 	Goto EnterQuery
 }
 
 ; SELECTED RECORD DOES NOT EXIST (FILE OR DIRECTORY NOT FOUND)
 if !FileExist(OpenTarget)
 {
-	MsgBox, 8192, %version%, %OpenTarget% does not exist. This means that the directory cache is outdated. You may click on the 'Scan Start-Menu' button below to update the directory cache with your latest directory listing now.
+	MsgBox("%OpenTarget% does not exist. This means that the directory cache is outdated. You may click on the 'Scan Start-Menu' button below to update the directory cache with your latest directory listing now.", version, 8192)
 	Goto EnterQuery
 }
 
@@ -703,7 +703,7 @@ Gui, 1:Submit, NoHide
 ; CHECK THAT USER HAS SELECTED A RECORD ALREADY
 If OpenTarget = ""
 {
-	MsgBox, 8192, %version%, Please make a selection first.
+	MsgBox("Please make a selection first.", version, 8192)
 	Goto EnterQuery
 }
 
@@ -733,7 +733,7 @@ If status <> "Ready" ; NOT A DIRECTORY
 ; CHECK WHETHER DIRECTORY EXISTS
 if !FileExist(OpenTarget)
 {
-	MsgBox, 8192, %version%, %OpenTarget% does not exist. This means that the directory cache is outdated. You may click on the 'Scan Start-Menu' button below to update the directory cache with your latest directory listing now.
+	MsgBox("%OpenTarget% does not exist. This means that the directory cache is outdated. You may click on the 'Scan Start-Menu' button below to update the directory cache with your latest directory listing now.", version, 8192)
 	Goto EnterQuery
 }
 
