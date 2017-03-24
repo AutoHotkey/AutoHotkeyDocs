@@ -115,7 +115,6 @@ index = [
   ["A_MouseDelay","Variables.htm#MouseDelay"],
   ["A_MouseDelayPlay","Variables.htm#MouseDelay"],
   ["A_MSec","Variables.htm#MSec"],
-  ["A_MsgBoxResult","Variables.htm#MsgBoxResult"],
   ["A_MyDocuments","Variables.htm#MyDocuments"],
   ["A_Now","Variables.htm#Now"],
   ["A_NowUTC","Variables.htm#NowUTC"],
