@@ -69,8 +69,8 @@ Parameter #4: The HWND (unique ID) of the window or control to which the message
 <h3>Additional Information Available to the Function</h3>
 <p>In addition to the parameters received above, the function may also consult the values in the following built-in variables:</p>
 <ul>
-  <li><a href="../Variables.htm#Gui">A_Gui</a>: Blank unless the message was sent to a GUI window or control, in which case A_Gui is the <a href="Gui.htm#MultiWin">Gui Window number</a> (this window is also set as the function's <a href="Gui.htm#DefaultWin">default GUI window</a>).</li>
-  <li><a href="../Variables.htm#GuiControl">A_GuiControl</a>: Blank unless the message was sent to a GUI control, in which case it contains the control's variable name or other value as described at <a href="../Variables.htm#GuiControl">A_GuiControl</a>. Some controls never receive certain types of messages. For example, when the user clicks a <a href="GuiControls.htm#Text">text control</a>, the operating system sends WM_LBUTTONDOWN to the parent window rather than the control; consequently, A_GuiControl is blank.</li>
+  <li><a href="../Variables.htm#Gui">A_Gui</a>: Blank unless the message was sent to a GUI window or control, in which case A_Gui is the <a href="GuiCreate.htm#MultiWin">Gui Window number</a> (this window is also set as the function's <a href="GuiCreate.htm#DefaultWin">default GUI window</a>).</li>
+  <li><a href="../Variables.htm#GuiControl">A_GuiControl</a>: Blank unless the message was sent to a GUI control, in which case it contains the control's variable name or other value as described at <a href="../Variables.htm#GuiControl">A_GuiControl</a>. Some controls never receive certain types of messages. For example, when the user clicks a <a href="GuiControls.htm#Label">label control</a>, the operating system sends WM_LBUTTONDOWN to the parent window rather than the control; consequently, A_GuiControl is blank.</li>
   <li><a href="../Variables.htm#GuiX">A_GuiX</a> and <a href="../Variables.htm#GuiY">A_GuiY</a>: Both contain -2147483648 if the incoming message was sent via <a href="PostMessage.htm">SendMessage</a>. If it was sent via <a href="PostMessage.htm">PostMessage</a>, they contain the mouse cursor's coordinates (relative to the screen) at the time the message was posted.</li>
   <li><a href="../Variables.htm#EventInfo">A_EventInfo</a>: Contains 0 if the message was sent via SendMessage. If sent via PostMessage, it contains the <a href="../Variables.htm#TickCount">tick-count time</a> the message was posted.</li>
 </ul>
@@ -98,25 +98,28 @@ MsgParentWindow := WinExist()  <em>; This stores the unique ID of the window to 
 <p><a href="RegisterCallback.htm">RegisterCallback()</a>, <a href="OnExit.htm">OnExit</a>, <a href="OnClipboardChange.htm">OnClipboardChange</a>, <a href="PostMessage.htm">Post/SendMessage</a>, <a href="../Functions.htm">Functions</a>, <a href="../misc/SendMessageList.htm">List of Windows Messages</a>, <a href="../misc/Threads.htm">Threads</a>, <a href="Critical.htm">Critical</a>, <a href="DllCall.htm">DllCall()</a></p>
 <h3>Examples</h3>
 <pre class="NoIndent"><em>; Example: The following is a working script that monitors mouse clicks in a GUI window.
-; Related topic: <a href="Gui.htm#GuiContextMenu">GuiContextMenu</a></em>
+; Related topic: <a href="GuiCreate.htm#OnContextMenu">OnContextMenu</a></em>
 
-Gui, Add, Text,, Click anywhere in this window.
-Gui, Add, Edit, w200 vMyEdit
-Gui, Show
+Gui := GuiCreate("Example Window")
+Gui.Add("Label", "Click anywhere in this window.")
+Gui.Add("Edit", "w200 vMyEdit")
+Gui.Show()
+Gui.OnClose := "ExitApp"
 OnMessage(0x201, &quot;WM_LBUTTONDOWN&quot;)
-return
 
-WM_LBUTTONDOWN(wParam, lParam)
+WM_LBUTTONDOWN(wParam, lParam, msg, hwnd)
 {
     X := lParam &amp; 0xFFFF
     Y := lParam &gt;&gt; 16
-    if A_GuiControl
-        Control := &quot;`n(in control &quot; . A_GuiControl . &quot;)&quot;
-    ToolTip You left-clicked in Gui window #%A_Gui% at client coordinates %X%x%Y%.%Control%
-}
-
-GuiClose:
-ExitApp</pre>
+    Gui := GuiFromHwnd(hwnd)
+    GuiControl := GuiCtrlFromHwnd(hwnd)
+    if GuiControl
+    {
+        Gui := GuiControl.Gui
+        Control := &quot;`n(in control &quot; . GuiControl.ClassNN . &quot;)&quot;
+    }
+    ToolTip You left-clicked in Gui window '%Gui.Title%' at client coordinates %X%x%Y%.%Control%
+}</pre>
 
 <pre class="NoIndent" id="shutdown"><em>; Example: The following script detects system shutdown/logoff and allows you to abort it (this is
 ; reported NOT to work on Windows Vista and later).

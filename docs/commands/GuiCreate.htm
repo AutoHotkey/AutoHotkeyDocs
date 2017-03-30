@@ -1,0 +1,493 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<title>GuiCreate</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<link href="../static/theme.css" rel="stylesheet" type="text/css">
+<script src="../static/content.js" type="text/javascript"></script>
+</head>
+<body>
+
+<h1>GuiCreate</h1>
+<p>Creates a new <a href="../objects/Gui.htm">Gui object</a>, which is essential for creating and managing a GUI.</p>
+<pre class="Syntax">GuiObj := GuiCreate([Title, Options, FuncPrefixOrObj])</pre>
+
+<h3>Parameters</h3>
+<dl>
+<dt>Title</dt><dd><p>If <em>Title</em> is omitted, the script's file name is used.</p></dd>
+<dt id="Options">Options</dt><dd><p>For performance reasons, it is better to set all options in a single line.</p>
+  <p>Specify a plus sign to add the option and a minus sign to remove it. For example: <code>Gui.Opt("+Resize -MaximizeBox")</code>.</p>
+  <p>The effect of this parameter is cumulative; that is, it alters only those settings that are explicitly specified, leaving all the others unchanged.</p>
+  <p><strong>AlwaysOnTop</strong>: Makes the window stay on top of all other windows, which is the same effect as <a href="WinSet.htm#AlwaysOnTop">WinSetAlwaysOnTop</a>.</p>
+  <p><strong>Border</strong>: Provides a thin-line border around the window. This is not common.</p>
+  <p><strong>Caption</strong> (present by default): Provides a title bar and a thick window border/edge. When removing the caption from a window that will use <a href="WinSet.htm#TransColor">WinSetTransColor</a>, remove it only after setting the TransColor.</p>
+  <p id="Delimiter"><strong>Delimiter</strong>: Specifies that the window should use a field separator other than pipe (|) whenever controls' contents are added via <a href="../objects/Gui.htm#Add">Gui.Add</a> or modified via <a href="../objects/GuiControl.htm">GuiControl object</a>. Specify a single character immediately after the word Delimiter. For example, <code>Gui.Opt("+Delimiter`n")</code> would use a linefeed character, which might be especially appropriate with <a href="../Scripts.htm#continuation">continuation sections</a>. Similarly, <code>Gui.Opt("+Delimiter|")</code> would revert to the default delimiter. To use space or tab, specify <code>Gui.Opt("+DelimiterSpace")</code> or <code>Gui.Opt("+DelimiterTab")</code>. Once the delimiter is changed, it affects all existing and subsequent <a href="../misc/Threads.htm">threads</a> that operate on this particular window.</p>
+  <p><strong>Disabled</strong>: Disables the window, which prevents the user from interacting with its controls. This is often used on a window that owns other windows (see <a href="#Owner">Owner</a>).</p>
+  <p id="DPIScale"><strong>DPIScale</strong>: Use <code>Gui.Opt("-DPIScale")</code> to disable DPI scaling, which is enabled by default. If DPI scaling is enabled on a system with a non-standard DPI setting, the <a href="../objects/Gui.htm">Gui object</a> and <a href="../objects/GuiControl.htm">GuiControl object</a> automatically scale coordinates and sizes to give controls roughly the same apparent size (but higher resolution). For example, with a DPI of 144 (150%), <code>Gui.Show("w100")</code> would make the GUI 150 pixels wide, but <a href="../Variables.htm#GuiWidth">A_GuiWidth</a> would still return 100. <a href="../Variables.htm#ScreenDPI">A_ScreenDPI</a> contains the system's current DPI.</p>
+  <p>DPI scaling only applies to the <a href="../objects/Gui.htm">Gui object</a> and <a href="../objects/GuiControl.htm">GuiControl object</a>, so coordinates coming directly from other sources such as ControlGetPos or WinGetPos will not work. There are a number of ways to deal with this:</p>
+  <ul>
+    <li>Avoid using hard-coded coordinates wherever possible.  For example, use the <a href="../objects/Gui.htm#xp">xp</a>, <a href="../objects/Gui.htm#xs">xs</a>, <a href="../objects/Gui.htm#xm">xm</a> and <a href="../objects/Gui.htm#PosPlusMargin">x+m</a> options for positioning controls and specify height in <a href="../objects/Gui.htm#R">rows of text</a> instead of pixels.</li>
+    <li>Enable (<code>Gui.Opt("+DPIScale")</code>) and disable (<code>Gui.Opt("-DPIScale")</code>) scaling on the fly, as needed. Changing the setting does not affect positions or sizes which have already been set.</li>
+    <li>Manually scale the coordinates. For example, <code>x*(A_ScreenDPI/96)</code> converts x from logical/GUI coordinates to physical/non-GUI coordinates.</li>
+  </ul>
+  <p id="MaximizeBox"><strong>MaximizeBox</strong>: Enables the maximize button in the title bar. This is also included as part of <em>Resize</em> below.</p>
+  <p id="MinimizeBox"><strong>MinimizeBox</strong> (present by default): Enables the minimize button in the title bar.</p>
+  <p id="MinSize"><strong>MinSize</strong> and <strong>MaxSize</strong>: Determines the minimum and/or maximum size of the window, such as when the user drags its edges to resize it. Specify the word <em>MinSize</em> and/or <em>MaxSize</em> with no suffix to use the window's current size as the limit (if the window has no current size, it will use the size from the first use of <a href="../objects/Gui.htm#Show">Gui.Show</a>). Alternatively, append the width, followed by an X, followed by the height; for example: <code>Gui.Opt("+Resize +MinSize640x480")</code>. The dimensions are in pixels, and they specify the size of the window's client area (which excludes borders, title bar, and <a href="../objects/Gui.htm#Menu">menu bar</a>). Specify each number as decimal, not hexadecimal.</p>
+  <p>Either the width or the height may be omitted to leave it unchanged (e.g. <code>+MinSize640x</code> or <code>+MinSizex480</code>). Furthermore, Min/MaxSize can be specified more than once to use the window's current size for one dimension and an explicit size for the other. For example, <code>+MinSize +MinSize640x</code> would use the window's current size for the height and 640 for the width.</p>
+  <p>If <em>MinSize</em> and <em>MaxSize</em> are never used, the operating system's defaults are used (similarly, <code>Gui.Opt("-MinSize -MaxSize")</code> can be used to return to the defaults). Note: the window must have <a href="#Resize">+Resize</a> to allow resizing by the user.</p>
+  <p id="OwnDialogs"><strong>OwnDialogs</strong>: By default, subsequently displayed <a href="MsgBox.htm">MsgBox</a>, <a href="InputBox.htm">InputBox</a>, <a href="FileSelect.htm">FileSelect</a>, and <a href="DirSelect.htm">DirSelect</a> dialogs are owned by the window. Such dialogs are modal, meaning that the user cannot interact with the GUI window until dismissing the dialog. Specify <code>Gui.Opt("-OwnDialogs")</code> in each <a href="../misc/Threads.htm">thread</a> (such as a ButtonOK subroutine) to disable their modal state. By contrast, <a href="ToolTip.htm">ToolTip</a> windows are never modal; they will merely stay always on top of their owner. In either case, any owned dialog or window is automatically destroyed when its GUI window is <a href="../objects/Gui.htm#Destroy">destroyed</a>.</p>
+  <p id="Owner"><strong>Owner</strong>: Use <em>+Owner</em> to make the window owned by another. An owned window has no taskbar button by default, and when visible it is always on top of its owner. It is also automatically destroyed when its owner is destroyed. <em>+Owner</em> can be used before or after the owned window is created. There are two ways to use <em>+Owner</em>, as shown below:</p>
+  <pre>Gui.Opt("+OwnerMyOtherGui")  <em>; Make the GUI owned by <i>MyOtherGui</i>.</em>
+Gui.Opt("+Owner")  <em>; Make the GUI owned by <a href="Menu.htm#MainWindow">script's main window</a> to prevent display of a taskbar button.</em></pre>
+  <p><code>+Owner</code> can be immediately followed by the <a href="../objects/Gui.htm#Name">name</a> or number of an existing GUI or the <a href="../objects/Gui.htm#Hwnd">HWND</a> of any top-level window.</p>
+  <p>To prevent the user from interacting with the owner while one of its owned window is visible, disable the owner via <code>Gui.Opt("+Disabled")</code>. Later (when the time comes to cancel or destroy the owned window), re-enable the owner via <code>Gui.Opt("-Disabled")</code>. Do this prior to cancel/destroy so that the owner will be reactivated automatically.</p>
+  <p id="Parent"><strong>Parent</strong>: Use <code>+Parent</code> immediately followed by the <a href="../objects/Gui.htm#Name">name</a> or number of an existing GUI or the <a href="../objects/Gui.htm#Hwnd">HWND</a> of any window or control to use it as the parent of this window. To convert the GUI back into a top-level window, use <code>-Parent</code>. This option works even after the window is created.</p>
+  <p id="Resize"><strong>Resize</strong>: Makes the window resizable and enables its maximize button in the title bar. To avoid enabling the maximize button, specify <code>+Resize -MaximizeBox</code>.</p>
+  <p><strong>SysMenu</strong> (present by default): Specify <code>-SysMenu</code> (minus SysMenu) to omit the system menu and icon in the window's upper left corner. This will also omit the minimize, maximize, and close buttons in the title bar.</p>
+  <p id="Theme"><strong>Theme</strong>: By specifying <code>-Theme</code>, all subsequently created controls in the window will have Classic Theme appearance on Windows XP and beyond. To later create additional controls that obey the current theme, turn it back on via <code>+Theme</code>. Note: This option has no effect on operating systems older than Windows XP, nor does it have any effect on XP itself if the Classic Theme is in effect. Finally, this setting may be changed for an individual control by specifying <code>+Theme</code> or <code>-Theme</code> in its options when it is created.</p>
+  <p><strong>ToolWindow</strong>: Provides a narrower title bar but the window will have no taskbar button.</p>
+  <p><strong>(Unnamed Style)</strong>: Specify a plus or minus sign followed immediately by a decimal or hexadecimal <a href="../misc/Styles.htm">style number</a>.</p>
+  <p><strong>(Unnamed ExStyle)</strong>: Specify a plus or minus sign followed immediately by the letter E and a decimal or hexadecimal extended style number. For example, <code>+E0x40000</code> would add the WS_EX_APPWINDOW style, which provides a taskbar button for a window that would otherwise lack one. Although the other extended styles are not documented here (since they are rarely used), they can be discovered by searching for WS_EX_APPWINDOW at <a href="http://www.microsoft.com">www.microsoft.com</a>.</p></dd>
+<dt id="MultiWin">FuncPrefixOrObj</dt><dd><p>This parameter specifies the function prefix or object to bind events to. If a function prefix is specified, GUI events such as OnClose or OnDropFiles are automatically bound. If an object is specified, it is used as an event sink; meaning event names are used as method names to invoke on the object.</p></dd>
+</dl>
+  
+<h3>Return Value</h3>
+<p>Returns a&nbsp;<a href="../objects/Gui.htm">Gui object</a>. This object provides methods and properties for creating and managing windows, and creating controls.</p>
+
+<h3 id="Labels">Window Events</h3>
+<p>The following event functions will be automatically associated with a GUI window if they exist in the script and if a function prefix was specified via <i>FuncPrefixOrObj</i> parameter:</p>
+<ul>
+  <li><a href="#OnClose"><em>Prefix</em>OnClose</a></li>
+  <li><a href="#OnEscape"><em>Prefix</em>OnEscape</a></li>
+  <li><a href="#OnSize"><em>Prefix</em>OnSize</a></li>
+  <li><a href="#OnContextMenu"><em>Prefix</em>OnContextMenu</a></li>
+  <li><a href="#OnDropFiles"><em>Prefix</em>OnDropFiles</a></li>
+</ul>
+<p>Every function can optionally receive the <a href="../objects/Gui.htm">Gui object</a> as its first parameter. Some events have additional parameters.</p>
+
+<h4 id="OnClose">OnClose</h4>
+<p>Launched when the window is closed by any of the following: pressing its X button in the title bar, selecting "Close" from its system menu, or closing it with <a href="WinClose.htm">WinClose</a>.</p>
+<pre class="Syntax"><i>Prefix</i>OnClose([GuiObj])</pre>
+<p>If this function is absent, closing the window simply hides it, which is the same effect as <a href="../objects/Gui.htm#Cancel">Gui.Cancel</a>.</p>
+<p>The GUI will be closed by default. The function can prevent this by returning a non-zero integer, as in the example below:</p>
+<pre>GuiOnClose(GuiObject) {  <em>; Declaring this parameter is optional.</em>
+  Result := MsgBox("Are you sure you want to close the GUI?",, 4)
+  if Result = "No"
+    return true  <em>; true = 1</em>
+}</pre>
+
+<h4 id="OnEscape">OnEscape</h4>
+<p>Launched when the user presses Escape while the GUI window is active.</p>
+<pre class="Syntax"><i>Prefix</i>OnEscape([GuiObj])</pre>
+<p>If this function is absent, pressing Escape has no effect. Known limitation: If the first control in the window is disabled (possibly depending on control type), the OnEscape label will not be launched. There may be other circumstances that produce this effect.</p>
+
+<h4 id="OnSize">OnSize</h4>
+<p>Launched when the window is resized, minimized, maximized, or restored.</p>
+<pre class="Syntax"><i>Prefix</i>OnSize([GuiObj, EventInfo, Width, Height])</pre>
+<dl>
+  <dt>EventInfo</dt><dd><p>Contains one of the following digits:</p>
+  <p>0: The window has been restored, or resized normally such as by dragging its edges.<br>
+     1: The window has been minimized.<br>
+     2: The window has been maximized.</p></dd>
+  <dt>Width<br>Height</dt><dd>Contain the new width and height of the window's client area, which is the area excluding title bar, menu bar, and borders.</dd>
+</dl>
+<p>A script may use OnSize to reposition and resize controls in response to the user's resizing of the window. This process can be made easier by using <a href="https://autohotkey.com/boards/viewtopic.php?f=6&amp;t=1079">AutoXYWH() by tmplinshi and toralf</a>.</p>
+<p>When the window is resized (even by the script), OnSize might not be called immediately. As with other window events, if the current thread is <a href="Thread.htm#Interrupt">uninterruptible</a>, OnSize won't be called until the thread becomes interruptible. If the script has just resized the window, follow this example to ensure OnSize is called immediately:</p>
+<pre><a href="Critical.htm#Off">Critical Off</a>  <em>; Even if Critical On was never used.</em>
+<a href="Sleep.htm">Sleep -1</a></pre>
+<p>Gui.Show automatically does a <code>Sleep -1</code>, so it is generally not necessary to call Sleep in that case.</p>
+
+<h4 id="OnContextMenu">OnContextMenu</h4>
+<p>Launched whenever the user right-clicks anywhere in the window except the title bar and menu bar.  It is also launched in response to pressing the Apps key or Shift-F10.</p>
+<pre class="Syntax"><i>Prefix</i>OnContextMenu([GuiObj, GuiCtrlObj, EventInfo, IsRightClick, X, Y])</pre>
+
+<dl><dt>GuiCtrlObj</dt><dd>Contains the <a href="../objects/GuiControl.htm">GuiControl object</a> of the control that received the event (blank if none).</dd>
+  <dt>EventInfo</dt><dd>When a ListBox, ListView, or TreeView is the target of the context menu (as determined by <em>GuiCtrlObj</em>), <em>EventInfo</em> specifies which of the control's items is the target:<br>
+      <a href="GuiControls.htm#ListBox">ListBox</a> or <a href="ListView.htm">ListView</a>: <em>EventInfo</em> contains the number of the currently focused row (0 if none).<br>
+      <a href="TreeView.htm">TreeView</a>: For right-clicks, <em>EventInfo</em> contains the clicked item's ID number (or 0 if the user clicked somewhere other than an item). For the AppsKey and Shift-F10, <em>EventInfo</em> contains the selected item's ID number.</dd>
+  <dt>IsRightClick</dt><dd>Contains true, if the user right-clicked.</dd>
+  <dt>X<br>Y</dt><dd> Contain the X and Y coordinates of where the script should display the menu (e.g. <code><a href="Menu.htm">Menu</a>, MyContext, Show, %X%, %Y%</code>). Coordinates are relative to the upper-left corner of the window.</dd>
+</dl>
+<p>Unlike most other GUI labels, OnContextMenu can have more than one concurrent <a href="../misc/Threads.htm">thread</a>.</p>
+<p>Note: Since <a href="GuiControls.htm#Edit">Edit</a> and <a href="GuiControls.htm#MonthCal">MonthCal</a> controls have their own context menu, a right-click in one of them will not launch OnContextMenu.</p>
+
+<h4 id="OnDropFiles">OnDropFiles</h4>
+<p>Launched whenever files/folders are dropped onto the window as part of a drag-and-drop operation (but if the label is already running, drop events are ignored).</p>
+<pre class="Syntax"><i>Prefix</i>OnDropFiles([GuiObj, FileArray, GuiCtrlObj, X, Y])</pre>
+<dl>
+  <dt>FileArray</dt><dd>Contains an <a href="../Objects.htm#Usage_Simple_Arrays">array (object)</a> of filenames, where <code>FileArray[1]</code> is the first file and <code>FileArray.MaxIndex()</code> returns the number of files. A <a href="For.htm">for-loop</a> can be used to iterate through the files:
+  <pre>GuiOnDropFiles(GuiObj, FileArray, GuiCtrlObj, X, Y) {
+  for i, file in FileArray
+    MsgBox File %i% is:`n%file%
+}</pre></dd>
+  <dt>GuiCtrlObj</dt><dd>Contains the <a href="../objects/GuiControl.htm">GuiControl object</a> of the control upon which the files were dropped (blank if none).</dd>
+  <dt>X<br>Y</dt><dd>Contain the X and Y coordinates of where the files were dropped (relative to the window's upper left corner).</dd>
+</dl>
+<p>To temporarily disable drag-and-drop for a window, remove the WS_EX_ACCEPTFILES style via <code>Gui.Opt("-E0x10")</code>. To re-enable it later, use <code>Gui.Opt("+E0x10")</code>.</p>
+<p><strong>Detecting and responding to other events</strong></p>
+<p>Other types of GUI events can be detected and acted upon via <a href="OnMessage.htm">OnMessage</a>. For example, a script can display context-sensitive help via ToolTip whenever the user moves the mouse over particular controls in the window. This is demonstrated in the <a href="#ExToolTip">GUI ToolTip example</a>.</p>
+
+<!-- <h3 id="MultiWin">Creating Multiple GUI Windows</h3>
+<p>To operate upon a window other than the <a href="#DefaultWin">default</a>, include its name, number or <a href="#GuiHwndOutputVar">HWND</a> followed by a colon in front of the sub-command, as in these examples:</p>
+<pre>Gui, <strong>MyGui:</strong>Add, Text,, Text for about-box.
+Gui, <strong>MyGui:</strong>Show</pre>
+<p><code><a href="#Default">Gui MyGui:Default</a></code> can be used to avoid the need for the "MyGui:" prefix above. In addition, the prefix is not necessary inside a <a href="#DefaultWin">GUI thread</a> that operates upon the same window that launched the thread.</p>
+<p id="Name">GUI names must conform to the same rules as <a href="../Variables.htm#Variable_names">variable names</a>. Any number which is either not between 1 and 99 or is longer than two characters (such as 0x01) must be the HWND of an existing Gui, or the command will fail. The number of windows that can be created is limited only by available system resources.</p>
+<p>Any number of unnamed GUI windows can be created using <a href="#New">Gui, New</a>.</p> -->
+
+<!-- <h3 id="DefaultWin">GUI Events, Threads, and Subroutines</h3>
+<p>A GUI <a href="../misc/Threads.htm">thread</a> is defined as any thread launched as a result of a GUI action. GUI actions include selecting an item from a GUI window's <a href="#Menu">menu bar</a>, or triggering one of its <a href="#label">g-labels</a> (such as by pressing a button).</p>
+<p>The <strong>default <a href="#MultiWin">window name</a></strong> for a GUI thread is that of the window that launched the thread. Non-GUI threads use 1 as their default.</p>
+<p>Whenever a GUI <a href="../misc/Threads.htm">thread</a> is launched, that thread's <a href="../misc/WinTitle.htm#LastFoundWindow">last found window</a> starts off as the GUI window itself. This allows commands for windows and controls -- such as <a href="WinMove.htm">WinMove</a>, <a href="WinHide.htm">WinHide</a>, <a href="WinSet.htm">WinSet</a>, <a href="WinSetTitle.htm">WinSetTitle</a>, and <a href="ControlGetFocus.htm">ControlGetFocus</a> -- to omit WinTitle and WinText when operating upon the GUI window itself (even if it is hidden).</p>
+<p>Clicking on a control while its <a href="#label">g-label</a> is already running from a prior click will have no effect and the event is discarded. To prevent this, use <a href="Critical.htm">Critical</a> as the subroutine's first line (however, this will also buffer/defer other <a href="../misc/Threads.htm">threads</a> such as the press of a hotkey).</p>
+<p>The built-in variables A_Gui and A_GuiControl contain the window name and Control ID that launched the current thread. For details see <a href="../Variables.htm#Gui">A_Gui</a> and <a href="../Variables.htm#GuiControl">A_GuiControl</a>.</p>
+<p>To have multiple events perform the same subroutine, specify their labels consecutively above the subroutine. For example:</p>
+<pre>GuiEscape:
+GuiClose:
+ButtonCancel:
+ExitApp  <em>; All of the above labels will do this.</em></pre>
+<p>All GUI <a href="../misc/Threads.htm">threads</a> start off fresh with the default values for settings such as <a href="SendMode.htm">SendMode</a>. These defaults can be changed in the <a href="../Scripts.htm#auto">auto-execute section</a>.</p> -->
+
+<h3 id="Navigate">Keyboard Navigation</h3>
+<p>A GUI window may be navigated via the TAB key, which moves keyboard focus to the next input-capable control (controls from which the <a href="../objects/Gui.htm#Tabstop">Tabstop</a> style has been removed are skipped). The order of navigation is determined by the order in which the controls were originally added. When the window is shown for the first time, the first input-capable control that has the Tabstop style (which most control types have by default) will have keyboard focus.</p>
+<p id="ShortcutKey">Certain controls may contain an ampersand (&amp;) to create a keyboard shortcut, which might be displayed in the control's text as an underlined character (depending on system settings). A user activates the shortcut by holding down the ALT key then typing the corresponding character. For buttons, checkboxes,  and radio buttons, pressing the shortcut is the same as clicking the control. For GroupBoxes and Label controls, pressing the shortcut causes keyboard focus to jump to the first input-capable <a href="../objects/Gui.htm#Tabstop">tabstop</a> control that was created after it. However, if more than one control has the same shortcut key, pressing the shortcut will alternate keyboard focus among all controls with the same shortcut.</p>
+<p>To display a literal ampersand inside the control types mentioned above, specify two consecutive ampersands as in this example: <code>Save &amp;&amp; Exit</code>.</p>
+
+<h3 id="Appear">Window Appearance</h3>
+<p>For its icon, a GUI window uses the tray icon that was in effect at the time the window was created. Thus, to have a different icon, change the tray icon before creating the window. For example: <code><a href="Menu.htm">Menu</a>, Tray, Icon, MyIcon.ico</code>. It is also possible to have a different large icon for a window than its small icon (the large icon is displayed in the alt-tab task switcher). This can be done via DllCall and SendMessage; for example:</p>
+<pre>hIcon32 := <a href="DllCall.htm">DllCall</a>("LoadImage", uint, 0
+  , str, "My Icon.ico"  <em>; Icon filename (this file may contain multiple icons).</em>
+  , uint, 1  <em>; Type of image: IMAGE_ICON</em>
+  , int, 32, int, 32  <em>; Desired width and height of image (helps LoadImage decide which icon is best).</em>
+  , uint, 0x10)  <em>; Flags: LR_LOADFROMFILE</em>
+Gui := GuiCreate()
+<a href="PostMessage.htm">SendMessage</a>, 0x80, 1, hIcon32,, ahk_id %Gui.Hwnd%  <em>; 0x80 is WM_SETICON; and 1 means ICON_BIG (vs. 0 for ICON_SMALL).</em>
+Gui.Show()</pre>
+<p>Due to OS limitations, Checkboxes, Radio buttons, and GroupBoxes for which a non-default text color was specified will take on Classic Theme appearance on Windows XP and beyond.</p>
+<p>Related topic: <a href="../objects/Gui.htm#MarginX">window's margin</a>.</p>
+
+<h3 id="GenRemarks">General Remarks</h3>
+<p>Use the <a href="../objects/GuiControl.htm">GuiControl object</a> to operate upon individual controls in a GUI window.</p>
+<p>Each GUI window may have up to 11,000 controls. However, use caution when creating more than 5000 controls because system instability may occur for certain control types.</p>
+<p>If the script is not <a href="../Scripts.htm#persistent">persistent</a> for any other reason, it will exit after the last visible GUI is closed; either when the last thread completes or immediately if no threads are running.</p>
+
+<h3>Related</h3>
+<p><a href="../objects/Gui.htm">Gui object</a>, <a href="../objects/GuiControl.htm">GuiControl object</a>, <a href="GuiFromHwnd.htm">GuiFromHwnd</a>, <a href="GuiCtrlFromHwnd.htm">GuiCtrlFromHwnd</a>, <a href="Menu.htm">Menu</a>, <a href="GuiControls.htm">Control Types</a>, <a href="ListView.htm">ListView</a>, <a href="TreeView.htm">TreeView</a>, <a href="Control.htm">Control</a>, <a href="ControlGet.htm">ControlGet</a>, <a href="MsgBox.htm">MsgBox</a>, <a href="FileSelect.htm">FileSelect</a>, <a href="DirSelect.htm">DirSelect</a></p>
+<h3 id="Examples">Examples</h3>
+<pre class="NoIndent"><em>; Example: Display a text pop-up:</em>
+
+Gui := GuiCreate("Title of Window")
+Gui.Opt("+AlwaysOnTop +Disabled -SysMenu +Owner")  <em>; +Owner avoids a taskbar button.</em>
+Gui.Add("Label", "Some text to display.")
+Gui.Show("NoActivate")  <em>; NoActivate avoids deactivating the currently active window.</em></pre>
+
+<pre class="NoIndent"><em>; Example: A simple input-box that asks for first name and last name:</em>
+
+Gui := GuiCreate("Simple Input Example")
+Gui.Add("Label", "First name:")
+Gui.Add("Label", "Last name:")
+Gui.Add("Edit",, "vFirstName ym")  <em>; The ym option starts a new column of controls.</em>
+Gui.Add("Edit",, "vLastName")
+Gui.Add("Button", "OK", "default")  <em>; The function ButtonOK (if it exists) will be run when the button is pressed.</em>
+
+Gui.OnClose := "ButtonOK"  <em>; Tell the GUI to call ButtonOK when closing it.</em>
+
+Gui.Show()
+
+ButtonOK()
+{
+  global Gui  <em>; Important to get access to the Gui object.</em>
+  Saved := Gui.Submit()  <em>; Save the user input to each control's associated name.</em>
+  MsgBox You entered "%Saved.FirstName% %Saved.LastName%".
+}</pre>
+
+<pre class="NoIndent"><em>; Example: Tab control:</em>
+
+Gui := GuiCreate()
+Tab := Gui.Add("Tab2", ["First Tab", "Second Tab", "Third Tab"])
+Gui.Add("Checkbox", "Sample checkbox", "vMyCheckbox") 
+Tab.UseTab(2)
+Gui.Add("Radio", "Sample radio1", "vMyRadio")
+Gui.Add("Radio", "Sample radio2")
+Tab.UseTab(3)
+Gui.Add("Edit",, "vMyEdit r5")  <em>; r5 means 5 rows tall.</em>
+Tab.UseTab()  <em>; i.e. subsequently-added controls will not belong to the tab control.</em>
+Gui.Add("Button", "OK", "default xm")  <em>; xm puts it at the bottom left corner.</em>
+
+Gui.OnClose := "ButtonOK"
+Gui.OnEscape := "ButtonOK"
+
+Gui.Show()
+
+ButtonOK()
+{
+  global Gui
+  Saved := Gui.Submit()  <em>; Save each control's contents to its associated name.</em>
+  MsgBox You entered:`n%Saved.MyCheckbox%`n%Saved.MyRadio%`n%Saved.MyEdit%
+}</pre>
+
+<pre class="NoIndent"><em>; Example: ListBox containing files in a directory:</em>
+
+Gui := GuiCreate()
+Gui.Add("Label", "Pick a file to launch from the list below.")
+LB := Gui.Add("ListBox",, "gMyListBox w640 r10")
+Gui.Add("Button", "OK", "Default")
+Loop, Files, C:\*.*  <em>; Change this folder and wildcard pattern to suit your preferences.</em>
+    LB.Value := A_LoopFilePath
+Gui.Show()
+
+MyListBox(GuiCtrl, EventInfo)
+{
+  if EventInfo = "DoubleClick"
+    ButtonOK()
+}
+
+ButtonOK()
+{
+  global LB
+  if MsgBox("Would you like to launch the file or document below?`n`n%LB.Value%",, 4) = "No"
+    return
+  <em>; Otherwise, try to launch it:</em>
+  Run, %LB.Value%,, UseErrorLevel
+  if ErrorLevel = "ERROR"
+    MsgBox Could not launch the specified file.  Perhaps it is not associated with anything.
+}</pre>
+
+<pre class="NoIndent" id="ExToolTip"><em>; Example: Display context-senstive help (via ToolTip) whenever the user moves the mouse over a particular control:</em>
+
+Gui := GuiCreate()
+Gui.Add("Edit",, "v<strong>MyEdit</strong>")
+<strong>MyEdit</strong>_TT := "This is a tooltip for the control whose variable is MyEdit."
+Gui.Add("DropDownList", "Red|Green|Blue", "v<strong>MyDDL</strong>")
+<strong>MyDDL</strong>_TT := "Choose a color from the drop-down list."
+Gui.Add("Checkbox", "This control has no tooltip.", "vMyCheck")
+Gui.Show()
+OnMessage(0x200, "WM_MOUSEMOVE")
+
+WM_MOUSEMOVE(wParam, lParam, msg, hwnd)
+{
+  global  
+  static CurrControl, PrevControl
+  try CurrControl := GuiCtrlFromHwnd(hwnd).Name
+  if (CurrControl &lt;&gt; PrevControl)
+  {
+    SetTimer, DisplayToolTip, 1000
+    PrevControl := CurrControl
+  }
+  return
+
+  DisplayToolTip:
+  SetTimer, DisplayToolTip, Off
+  ToolTip % %CurrControl%_TT  <em>; The leading percent sign tell it to use an expression.</em>
+  SetTimer, RemoveToolTip, 3000
+  return
+
+  RemoveToolTip:
+  SetTimer, RemoveToolTip, Off
+  ToolTip
+  return
+}
+</pre>
+
+<pre class="NoIndent" id="OSD"><em>; Example: On-screen display (OSD) via transparent window:</em>
+
+CustomColor := 0xEEAA99  <em>; Can be any RGB color (it will be made transparent below).</em>
+Gui := GuiCreate()
+Gui.Opt("+LastFound +AlwaysOnTop -Caption +ToolWindow")  <em>; +ToolWindow avoids a taskbar button and an alt-tab menu item.</em>
+Gui.BgColor := CustomColor
+Gui.SetFont("s32")  <em>; Set a large font size (32-point).</em>
+Gui.Add("Label", "XXXXX YYYYY", "vMyText cLime")  <em>; XX &amp; YY serve to auto-size the window.
+; Make all pixels of this color transparent and make the text itself translucent (150):</em>
+WinSetTransColor, %CustomColor% 150
+SetTimer, UpdateOSD, 200
+Gosub, UpdateOSD  <em>; Make the first update immediate rather than waiting for the timer.</em>
+Gui.Show("x0 y400 NoActivate")  <em>; NoActivate avoids deactivating the currently active window.</em>
+return
+
+UpdateOSD:
+MouseGetPos, MouseX, MouseY
+Gui.Control["MyText"].Value := "X%MouseX%, Y%MouseY%"
+return</pre>
+
+<pre class="NoIndent"><em>; Example: A moving progress bar overlayed on a background image.</em>
+
+Gui := GuiCreate()
+Gui.BgColor := "White"
+Gui.Add("Picture", "%A_WinDir%\Web\Wallpaper\Windows\img0.jpg", "x0 y0 h350 w450")
+Gui.Add("Button", "Start the Bar Moving", "Default xp+20 yp+250")
+Gui.Add("Progress",, "vMyProgress w416")
+Gui.Add("Label",, "vMyText wp")  <em>; wp means "use width of previous".</em>
+Gui.Show()
+
+ButtonStartTheBarMoving()
+{
+  global Gui
+  Loop, Files, %A_WinDir%\*.*
+  {
+    if A_Index &gt; 100
+      break
+    Gui.Control["MyProgress"].Value := A_Index
+    Gui.Control["MyText"].Value := A_LoopFileName
+    Sleep 50
+  }
+  Gui.Control["MyText"].Value := "Bar finished."
+}</pre>
+
+<pre class="NoIndent"><em>; Example: Simple image viewer:</em>
+
+Gui := GuiCreate(, "+Resize")
+Gui.Add("Button", "&amp;Load New Image", "default")
+Gui.Add("Radio", "Load &amp;actual size", "ym+5 x+10 vRadio checked")
+Gui.Add("Radio", "Load to &amp;fit screen", "ym+5 x+10")
+Gui.Add("Pic",, "xm vPic")
+Gui.Show()
+
+ButtonLoadNewImage()
+{
+  global Gui
+  FileSelect, file,,, Select an image:, Images (*.gif; *.jpg; *.bmp; *.png; *.tif; *.ico; *.cur; *.ani; *.exe; *.dll)
+  if file = ""
+    return
+  if Gui.Control["Radio"].Value = 1  <em>; Display image at its actual size.</em>
+  {
+    Width := 0
+    Height := 0
+  }
+  else <em>; Second radio is selected: Resize the image to fit the screen.</em>
+  {
+    Width := A_ScreenWidth - 28  <em>; Minus 28 to allow room for borders and margins inside.</em>
+    Height := -1  <em>; "Keep aspect ratio" seems best.</em>
+  }
+  Gui.Control["Pic"].Value := "*w%width% *h%height% %file%"  <em>; Load the image.</em>
+  Gui.Show("xCenter y0 AutoSize", file)  <em>; Resize the window to match the picture size.</em>
+}</pre>
+
+<pre class="NoIndent"><em>; Example: Simple text editor with menu bar.</em>
+
+global Gui := GuiCreate("Untitled",, "Gui")  <em>; Make it accessible for all functions.</em>
+
+<em>; Create the sub-menus for the menu bar:</em>
+Menu, FileMenu, Add, &amp;New, MenuFileNew
+Menu, FileMenu, Add, &amp;Open, MenuFileOpen
+Menu, FileMenu, Add, &amp;Save, MenuFileSave
+Menu, FileMenu, Disable, 3&amp;  <em>; Grays out &amp;Save.</em>
+Menu, FileMenu, Add, Save &amp;As, MenuFileSaveAs
+Menu, FileMenu, Add  <em>; Separator line.</em>
+Menu, FileMenu, Add, E&amp;xit, MenuFileExit
+Menu, HelpMenu, Add, &amp;About, MenuHelpAbout
+
+<em>; Create the menu bar by attaching the sub-menus to it:</em>
+Menu, MyMenuBar, Add, &amp;File, :FileMenu
+Menu, MyMenuBar, Add, &amp;Help, :HelpMenu
+
+<em>; Attach the menu bar to the window:</em>
+Gui.Menu := "MyMenuBar"
+
+<em>; Create the main Edit control and display the window:</em>
+Gui.Opt("+Resize")  <em>; Make the window resizable.</em>
+Gui.Add("Edit",, "vMainEdit WantTab W600 R20")
+Gui.Show()
+
+MenuFileNew()
+{
+  Gui.Control["MainEdit"].Value := ""  <em>; Clear the Edit control.</em>
+}
+
+MenuFileOpen()
+{
+  Gui.Opt("+OwnDialogs")  <em>; Force the user to dismiss the FileSelect dialog before returning to the main window.</em>
+  FileSelect, SelectedFileName, 3,, Open File, Text Documents (*.txt)
+  if SelectedFileName = "" <em>; No file selected.</em>
+    return
+  readFile(SelectedFileName)
+}
+
+
+readFile(SelectedFileName)  <em>; Caller has set the variable SelectedFileName for us.</em>
+{
+  global CurrentFileName
+  FileRead, MainEdit, %SelectedFileName%  <em>; Read the file's contents into the variable.</em>
+  if ErrorLevel
+  {
+    MsgBox Could not open "%SelectedFileName%".
+    return
+  }
+  Gui.Control["MainEdit"].Value := MainEdit  <em>; Put the text into the control.</em>
+  CurrentFileName := SelectedFileName
+  Menu, FileMenu, Enable, 3&amp;  <em>; Enables &amp;Save</em>.
+  Gui.Title := CurrentFileName   <em>; Show file name in title bar.</em>
+}
+
+MenuFileSave()
+{
+  global CurrentFileName
+  saveCurrentFile(CurrentFileName)
+}
+
+MenuFileSaveAs()
+{
+  global CurrentFileName
+  Gui.Opt("+OwnDialogs")  <em>; Force the user to dismiss the FileSelect dialog before returning to the main window.</em>
+  FileSelect, SelectedFileName, S16,, Save File, Text Documents (*.txt)
+  if SelectedFileName = "" <em>; No file selected.</em>
+    return
+  CurrentFileName := SelectedFileName
+  saveCurrentFile(CurrentFileName)
+}
+
+saveCurrentFile(CurrentFileName)
+{
+  if FileExist(CurrentFileName)
+  {
+    FileDelete %CurrentFileName%
+    if ErrorLevel
+    {
+      MsgBox The attempt to overwrite "%CurrentFileName%" failed.
+      return
+    }
+  }
+  FileAppend, %Gui.Control["MainEdit"].Value%, %CurrentFileName%  ; Save the contents to the file.
+  <em>; Upon success, Show file name in title bar (in case we were called by MenuFileSaveAs):</em>
+  Gui.Title := CurrentFileName
+}
+
+MenuHelpAbout()
+{
+  About := GuiCreate(, "+owner%Gui.Hwnd%", "About")  <em>; Make the main window the owner of the "about box".</em>
+  Gui.Opt("+Disabled")  <em>; Disable main window.</em>
+  About.Add("Label", "Text for about box.")
+  About.Add("Button", "OK", "Default")
+
+  About.OnClose := "ButtonOK"
+  About.OnEscape := "ButtonOK"
+
+  About.Show()
+}
+
+AboutButtonOK(GuiCtrl)
+{
+  Gui.Opt("-Disabled")  <em>; Re-enable the main window (must be done prior to the next step).</em>
+  GuiCtrl.Gui.Destroy()  <em>; Destroy the about box.</em>
+}
+
+GuiOnDropFiles(GuiObj, FileArray)  <em>; Support drag &amp; drop.</em>
+{
+  readFile(FileArray[1])  <em>; Read the first file only (in case there's more than one).</em>
+}
+
+GuiOnSize(GuiObj, EventInfo, Width, Height)
+{
+  if ErrorLevel = 1  <em>; The window has been minimized.  No action needed.</em>
+    return
+  <em>; Otherwise, the window has been resized or maximized. Resize the Edit control to match.</em>
+  Gui.Control["MainEdit"].Move("W%Width-20% H%Height-20%")
+  return
+}
+
+MenuFileExit()  <em>; User chose "Exit" from the File menu.</em>
+{
+  ExitApp
+}</pre>
+</body>
+</html>

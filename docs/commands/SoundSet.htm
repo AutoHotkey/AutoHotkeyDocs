@@ -79,11 +79,12 @@ ControlTypes := "VOLUME,ONOFF,MUTE,MONO,LOUDNESS,STEREOENH,BASSBOOST,PAN,QSOUNDP
 ComponentTypes := "MASTER,HEADPHONES,DIGITAL,LINE,MICROPHONE,SYNTH,CD,TELEPHONE,PCSPEAKER,WAVE,AUX,ANALOG,N/A"
 
 <em>; Create a ListView and prepare for the main loop:</em>
-Gui, Add, Text, w400 h400 vSplashText, Gathering Soundcard Info...
-Gui, Add, Listview, wp hp xp yp vMyListView, Component Type|Control Type|Setting|Mixer
-Gui, Show
-GuiControl, Hide, MyListView
-LV_ModifyCol(4, &quot;Integer&quot;)
+Gui := GuiCreate()
+L   := Gui.Add("Label", "Gathering Soundcard Info...", "w400 h400 vSplashText")
+LV  := Gui.Add("Listview", "Component Type|Control Type|Setting|Mixer", "wp hp xp yp")
+Gui.Show()
+LV.Visible := false
+LV.ModifyCol(4, &quot;Integer&quot;)
 
 Loop  <em>; For each mixer number that exists in the system, query its capabilities.</em>
 {
@@ -123,17 +124,17 @@ Loop  <em>; For each mixer number that exists in the system, query its capabilit
                     ComponentString .= ":" CurrInstance
                 if Setting is "float"
                     Setting := Format("{:0.2f}", Setting)  <em>; Limit number of decimal places in percentages to two.</em>
-                LV_Add(&quot;&quot;, ComponentString, CurrControl, Setting, CurrMixer)
+                LV.Add(&quot;&quot;, ComponentString, CurrControl, Setting, CurrMixer)
             }  <em>; For each control type.</em>
         }  <em>; For each component instance.</em>
     }  <em>; For each component type.</em>
 }  <em>; For each mixer.</em>
 
-Loop % LV_GetCount(&quot;Col&quot;)  <em>; Auto-size each column to fit its contents.</em>
-    LV_ModifyCol(A_Index, &quot;AutoHdr&quot;)
+Loop % LV.GetCount(&quot;Col&quot;)  <em>; Auto-size each column to fit its contents.</em>
+    LV.ModifyCol(A_Index, &quot;AutoHdr&quot;)
 
-GuiControl, Hide, SplashText
-GuiControl, Show, MyListView
+L.Visible  := false
+LV.Visible := true
 return</pre>
 
 </body>

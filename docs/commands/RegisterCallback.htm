@@ -120,25 +120,23 @@ EnumWindowsProc(hwnd, lParam)
 <p>&nbsp;</p>
 <pre class="NoIndent"><em>; Example: The following is a working script that demonstrates how to subclass a GUI window by
 ; redirecting its WindowProc to a new WindowProc in the script. In this case, the background
-; color of a text control is changed to a custom color.</em>
+; color of a label control is changed to a custom color.</em>
 
 TextBackgroundColor := 0xFFBBBB  <em>; A custom color in BGR format.</em>
 TextBackgroundBrush := DllCall(&quot;CreateSolidBrush&quot;, UInt, TextBackgroundColor)
 
-Gui, Add, Text, HwndMyTextHwnd, Here is some text that is given`na custom background color.
-Gui +LastFound
-GuiHwnd := WinExist()
+Gui := GuiCreate()
+Label := Gui.Add("Label", "Here is some text that is given`na custom background color.")
 
 <em>; 64-bit scripts must call SetWindowLongPtr instead of SetWindowLong:</em>
 SetWindowLong := A_PtrSize=8 ? "SetWindowLongPtr" : "SetWindowLong"
 
 WindowProcNew := <strong>RegisterCallback</strong>(&quot;WindowProc&quot;, &quot;&quot;  <em>; Specify &quot;&quot; to avoid fast-mode for subclassing.</em>
-    , <strong>4</strong>, MyTextHwnd)  <em>; Must specify exact ParamCount when EventInfo parameter is present.</em>
-WindowProcOld := DllCall(SetWindowLong, Ptr, GuiHwnd, Int, -4  <em>; -4 is GWL_WNDPROC</em>
+    , <strong>4</strong>, Label.Hwnd)  <em>; Must specify exact ParamCount when EventInfo parameter is present.</em>
+WindowProcOld := DllCall(SetWindowLong, Ptr, Gui.Hwnd, Int, -4  <em>; -4 is GWL_WNDPROC</em>
     , Ptr, WindowProcNew, Ptr) <em>; Return value must be set to Ptr or UPtr vs. Int.</em>
 
-Gui Show
-return
+Gui.Show()
 
 WindowProc(hwnd, uMsg, wParam, lParam)
 {

@@ -83,29 +83,31 @@ if ErrorLevel <em>; The PID still exists.</em>
 #z:: <em>; Win+Z hotkey</em>
 WinGetPID, active_pid, A
 WinGetTitle, active_title, A
-Gui, 5:Add, Text,, Press ESCAPE to cancel, or double-click a new`npriority level for the following window:`n%active_title%
-Gui, 5:Add, ListBox, vMyListBox gMyListBox r5, Normal|High|Low|BelowNormal|AboveNormal
-Gui, 5:Add, Button, default, OK
-Gui, 5:Show,, Set Priority
+Gui := GuiCreate("Set Priority")
+Gui.Add("Label", "Press ESCAPE to cancel, or double-click a new`npriority level for the following window:`n%active_title%")
+LB := Gui.Add("ListBox", "Normal|High|Low|BelowNormal|AboveNormal", "gMyListBox r5")
+Gui.Add("Button", "OK", "default")
+
+Gui.OnEscape := Gui.OnClose := ObjBindMethod(Gui, "Destroy")
+
+Gui.Show()
 return
 
-5GuiEscape:
-5GuiClose:
-Gui, Destroy
-return
+MyListBox(GuiCtrl, GuiEvent)
+{
+  if (GuiEvent = "DoubleClick")
+    ButtonOK()
+}
 
-MyListBox:
-if A_GuiEvent &lt;&gt; "DoubleClick"
-    return
-<em>; else fall through to the next label:</em>
-5ButtonOK:
-GuiControlGet, MyListBox
-Gui, Destroy
-if ProcessSetPriority(MyListBox, active_pid)
-    MsgBox Success: Its priority was changed to &quot;%MyListBox%&quot;.
-else
-    MsgBox Error: Its priority could not be changed to &quot;%MyListBox%&quot;.
-return</pre>
+ButtonOK()
+{
+  global
+  if ProcessSetPriority(LB.Value, active_pid)
+    MsgBox Success: Its priority was changed to "%LB.Value%".
+  else
+    MsgBox Error: Its priority could not be changed to "%LB.Value%".
+  Gui.Destroy()
+}</pre>
 <p>&nbsp;</p>
 <pre class="NoIndent" id="ListEx"><em>; Example #4: Retrieves a list of running processes via DllCall then shows them in a MsgBox.</em>
 
@@ -154,10 +156,11 @@ MsgBox("%l%", "%c% Processes", 0)</pre>
 <p>&nbsp;</p>
 <pre class="NoIndent" id="ListCom"><em>; Example #5: Retrieves a list of running processes via COM.</em>
 
-Gui, Add, ListView, x2 y0 w400 h500, Process Name|Command Line
+Gui := GuiCreate("Process List")
+LV := Gui.Add("ListView", "Process Name|Command Line", "x2 y0 w400 h500")
 for process in ComObjGet("winmgmts:").ExecQuery("Select * from Win32_Process")
-    LV_Add("", process.Name, process.CommandLine)
-Gui, Show,, Process List
+    LV.Add("", process.Name, process.CommandLine)
+Gui.Show()
 
 <em>; Win32_Process: <a href="http://msdn.microsoft.com/en-us/library/aa394372.aspx">http://msdn.microsoft.com/en-us/library/aa394372.aspx</a></em>
 </pre>
