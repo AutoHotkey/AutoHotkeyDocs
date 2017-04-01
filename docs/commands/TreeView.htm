@@ -71,7 +71,7 @@ return</pre>
 <p><strong>(Unnamed numeric styles):</strong> Since styles other than the above are rarely used, they do not have names. See the <a href="../misc/Styles.htm#TreeView">TreeView styles table</a> for a list.</p>
 <h2 id="BuiltIn">Built-in Functions for TreeViews</h2>
 <p>All of the TreeView functions operate upon the current thread's <a href="Gui.htm#DefaultWin">default GUI window</a> (which can be changed via <code><a href="Gui.htm#Default">Gui, 2:Default</a></code>). If the default window does not exist or has no TreeView controls, the TreeView functions throw an <a href="Catch.htm#RuntimeErrors">exception</a>.</p>
-<p id="GuiTV">If the window has more than one TreeView control, by default the functions operate upon the one most recently added. To change this, specify <code>Gui, TreeView, TreeViewName</code>, where <em>TreeViewName</em> is the name of the TreeView's <a href="Gui.htm#var">associated variable</a>, its ClassNN as shown by Window Spy or its HWND. Once changed, all existing and future <a href="../misc/Threads.htm">threads</a> will use the indicated TreeView.  <a href="../Variables.htm#DefaultTreeView">A_DefaultTreeView</a> contains the current setting.</p>
+<p id="GuiTV">If the window has more than one TreeView control, by default the functions operate upon the one most recently added. To change this, specify <code>Gui, TreeView, TreeViewName</code>, where <em>TreeViewName</em> is the name of the TreeView's <a href="Gui.htm#var">associated variable</a>, its ClassNN as shown by Window Spy or its HWND. Once changed, all existing and future <a href="../misc/Threads.htm">threads</a> will use the indicated TreeView.</p>
 <h3 id="TV_SetImageList">TV_SetImageList(ImageListID [, 0|2])</h3>
 <p>Sets or replaces the TreeView's <a href="#ImageList">ImageList</a>. ImageListID is the number returned from a previous call to <a href="ListView.htm#IL_Create">IL_Create()</a>. The second parameter is normally omitted, in which case it defaults to 0. Otherwise, specify 2 for state icons (which are not yet directly supported, but could be used via <a href="PostMessage.htm">SendMessage</a>). If successful, TV_SetImageList() returns the ImageListID that was previously associated with the TreeView (or 0 if none). Any such detached ImageList should normally be destroyed via <a href="ListView.htm#IL_Destroy">IL_Destroy(ImageListID)</a>.</p>
 <h2 id="bifAddModifyDelete">Add, Modify, and Delete Items</h2>
@@ -131,16 +131,16 @@ Loop
   <li><code>if TV_Get(ItemID, &quot;Checked&quot;)</code></li>
 </ol>
 <h2 id="notify">G-Label Notifications (Primary)</h2>
-<p>A <a href="Gui.htm#label">g-label</a> such as <code><strong>g</strong>MySubroutine</code> may be listed in the control's options. This would cause the <em>MySubroutine</em> label to be launched automatically whenever the user performs an action in the control. This subroutine may consult the built-in variables <a href="../Variables.htm#Gui">A_Gui</a> and <a href="../Variables.htm#GuiControl">A_GuiControl</a> to find out which window and TreeView generated the event. More importantly, it may consult <strong>A_GuiEvent</strong>, which contains one of the following strings or letters (for compatibility with future versions, a script should not assume these are the only possible values):</p>
-<p><strong>DoubleClick</strong>: The user has double-clicked an item. The variable A_EventInfo contains the item ID.</p>
-<p><strong>D</strong>: The user has attempted to start dragging an item (there is currently no built-in support for this). The variable A_EventInfo contains the item ID.</p>
+<p>A <a href="Gui.htm#label">g-label</a> such as <code><strong>g</strong>MyFunction</code> may be listed in the control's options. This would cause the <a href="../objects/Gui.htm#label">event handling function</a> <code>MyFunction(GuiCtrl, GuiEvent, EventInfo)</code> to be launched automatically whenever the user performs an action in the control. <em>GuiCtrl</em> contains the <a href="../objects/GuiControl.htm">GuiControl object</a> to find out which TreeView generated the event. More importantly, <em>GuiEvent</em> contains a string or letter of one of the following events (for compatibility with future versions, a script should not assume these are the only possible values). <em>EventInfo</em> contains a value, depending on the current event:</p>
+<p><strong>DoubleClick</strong>: The user has double-clicked an item. <em>EventInfo</em> contains the item ID.</p>
+<p><strong>D</strong>: The user has attempted to start dragging an item (there is currently no built-in support for this). <em>EventInfo</em> contains the item ID.</p>
 <p><strong>d</strong> (lowercase D): Same as above except a right-click-drag rather than a left-drag.</p>
-<p><strong>e</strong> (lowercase E): The user has finished editing an item (the user may edit items only when the TreeView has <code><a href="#ReadOnly"><strong>-</strong>ReadOnly</a></code> in its options). The variable A_EventInfo contains the item ID.</p>
-<p><strong>S</strong>: A new item has been selected, either by the user or the script itself. The variable A_EventInfo contains the newly selected item ID.</p>
+<p><strong>e</strong> (lowercase E): The user has finished editing an item (the user may edit items only when the TreeView has <code><a href="#ReadOnly"><strong>-</strong>ReadOnly</a></code> in its options). <em>EventInfo</em> contains the item ID.</p>
+<p><strong>S</strong>: A new item has been selected, either by the user or the script itself. <em>EventInfo</em> contains the newly selected item ID.</p>
 <h2>G-Label Notifications (Secondary)</h2>
-<p>If the TreeView has the word AltSubmit in its <a href="#Options">options</a>, its g-label is launched more often and <strong>A_GuiEvent</strong> may contain the following additional values:</p>
-<p><strong>Normal</strong>: The user has left-clicked an item. The variable A_EventInfo contains the item ID.</p>
-<p><strong>RightClick</strong>: The user has right-clicked an item. The variable A_EventInfo contains the item ID. In most cases, it is best not to display a menu in response to this. Instead, use the <a href="Gui.htm#GuiContextMenu">GuiContextMenu label</a> because it also recognizes the Apps key. For example:</p>
+<p>If the TreeView has the word AltSubmit in its <a href="#Options">options</a>, its g-label is launched more often and <em>GuiEvent</em> may contain the following additional values:</p>
+<p><strong>Normal</strong>: The user has left-clicked an item. <em>EventInfo</em> contains the item ID.</p>
+<p><strong>RightClick</strong>: The user has right-clicked an item. <em>EventInfo</em> contains the item ID. In most cases, it is best not to display a menu in response to this. Instead, use the <a href="Gui.htm#GuiContextMenu">GuiContextMenu label</a> because it also recognizes the Apps key. For example:</p>
 <pre>GuiContextMenu:  <em>; Launched in response to a right-click or press of the Apps key.</em>
 if A_GuiControl &lt;&gt; MyTreeView  <em>; This check is optional. It displays the menu only for clicks inside the TreeView.</em>
     return
@@ -148,12 +148,12 @@ if A_GuiControl &lt;&gt; MyTreeView  <em>; This check is optional. It displays t
 ; because they provide correct coordinates even if the user pressed the Apps key:</em>
 Menu, MyContextMenu, Show, %A_GuiX%, %A_GuiY%
 return</pre>
-<p><strong>E</strong>: The user has begun editing an item (the user may edit items only when the TreeView has <a href="#ReadOnly">-ReadOnly</a> in its options). The variable A_EventInfo contains the item ID.</p>
+<p><strong>E</strong>: The user has begun editing an item (the user may edit items only when the TreeView has <a href="#ReadOnly">-ReadOnly</a> in its options). <em>EventInfo</em> contains the item ID.</p>
 <p><strong>F</strong>: The TreeView has received keyboard focus.</p>
 <p><strong>f</strong> (lowercase F): The TreeView has lost keyboard focus.</p>
-<p id="NotifyK"><strong>K</strong>: The user has pressed a key while the TreeView has focus. A_EventInfo contains the virtual key code of the key, which is a number between 1 and 255. If the key is alphabetic, on most keyboard layouts it can be translated to the corresponding character via <code><a href="Chr.htm">Chr(A_EventInfo)</a></code>. F2 keystrokes are received regardless of <a href="#WantF2">WantF2</a>. However, the Enter keystroke is not received; to receive it, use a default button as described <a href="#Enter">below</a>.</p>
-<p><strong>+</strong> (plus sign): An item has been expanded to reveal its children. The variable A_EventInfo contains the item ID.</p>
-<p><strong>-</strong> (minus sign): An item has been collapsed to hide its children. The variable A_EventInfo contains the item ID.</p>
+<p id="NotifyK"><strong>K</strong>: The user has pressed a key while the TreeView has focus. <em>EventInfo</em> contains the virtual key code of the key, which is a number between 1 and 255. If the key is alphabetic, on most keyboard layouts it can be translated to the corresponding character via <code><a href="Chr.htm">Chr(EventInfo)</a></code>. F2 keystrokes are received regardless of <a href="#WantF2">WantF2</a>. However, the Enter keystroke is not received; to receive it, use a default button as described <a href="#Enter">below</a>.</p>
+<p><strong>+</strong> (plus sign): An item has been expanded to reveal its children. <em>EventInfo</em> contains the item ID.</p>
+<p><strong>-</strong> (minus sign): An item has been collapsed to hide its children. <em>EventInfo</em> contains the item ID.</p>
 <h2 id="Remarks">Remarks</h2>
 <p>The <a href="Gui.htm#Submit">Gui Submit</a> command has no effect on a TreeView control. Therefore, the script may use the TreeView's <a href="Gui.htm#var">associated variable</a> (if any) to store other data without concern that it will ever be overwritten.</p>
 <p id="Enter">To detect when the user has pressed Enter while a TreeView has focus, use a <a href="GuiControls.htm#DefaultButton">default button</a> (which can be hidden if desired). For example:</p>
