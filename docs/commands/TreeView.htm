@@ -16,10 +16,11 @@
 <ul>
   <li><a href="#Intro">Introduction and Simple Example</a></li>
   <li><a href="#Options">Options and Styles</a></li>
-  <li><a href="#BuiltIn">Built-in Functions</a>:
+  <li><a href="#BuiltIn">Built-in Methods</a>:
     <ul>
       <li><a href="#bifAddModifyDelete">Add/modify/delete items</a></li>
       <li><a href="#bifGet">Getting data out of a TreeView</a></li>
+      <li><a href="#bifIcon">Setting Icons</a></li>
     </ul>
   </li>
   <li><a href="#notify">G-Label Notifications</a></li>
@@ -29,107 +30,189 @@
 <h2 id="Intro">Introduction and Simple Example</h2>
 <p>A Tree-View displays a hierarchy of items by indenting child items beneath their parents. The most common example is Explorer's tree of drives and folders.</p>
 <p>The syntax for creating a TreeView is:</p>
-<pre class="Syntax" id="GuiAdd">Gui, Add, TreeView, Options</pre>
+<pre class="Syntax" id="GuiAdd">TV := Gui.Add("TreeView",, "Options")</pre>
 <p>Here is a working script that creates and displays a simple hierarchy of items:</p>
-<pre>Gui, Add, TreeView
-<span class="red">P1</span> := <a href="#TV_Add">TV_Add</a>(&quot;First parent&quot;)
-P1C1 := TV_Add(&quot;Parent 1's first child&quot;, <span class="red">P1</span>)  <em>; Specify P1 to be this item's parent.</em>
-P2 := TV_Add(&quot;Second parent&quot;)
-P2C1 := TV_Add(&quot;Parent 2's first child&quot;, P2)
-P2C2 := TV_Add(&quot;Parent 2's second child&quot;, P2)
-P2C2C1 := TV_Add(&quot;Child 2's first child&quot;, P2C2)
+<pre>Gui := GuiCreate()
+TV := Gui.Add(&quot;TreeView&quot;)
+<span class="red">P1</span> := TV.<a href="#Add">Add</a>(&quot;First parent&quot;)
+P1C1 := TV.Add(&quot;Parent 1's first child&quot;, <span class="red">P1</span>)  <em>; Specify P1 to be this item's parent.</em>
+P2 := TV.Add(&quot;Second parent&quot;)
+P2C1 := TV.Add(&quot;Parent 2's first child&quot;, P2)
+P2C2 := TV.Add(&quot;Parent 2's second child&quot;, P2)
+P2C2C1 := TV.Add(&quot;Child 2's first child&quot;, P2C2)
 
-Gui, Show  <em>; Show the window and its TreeView.</em>
-return
-
-GuiClose:  <em>; Exit the script when the user closes the TreeView's GUI window.</em>
-ExitApp</pre>
-<h2 id="Options">Options and Styles for &quot;<em>Gui, Add, TreeView, <u>Options</u></em>&quot;</h2>
+Gui.Show()  <em>; Show the window and its TreeView.</em></pre>
+<h2 id="Options">Options and Styles for the <em>Options</em> parameter</h2>
 <p id="AltSubmit"><strong>AltSubmit:</strong> Notifies the script for more types of TreeView events than normal. In other words, the g-label is launched more often. See <a href="#notify">TreeView Notifications</a> for details.</p>
-<p><strong>Background:</strong> Specify the word Background followed immediately by a color name (see <a href="../misc/Colors.htm">color chart</a>) or RGB value (the 0x prefix is optional). Examples: <code>BackgroundSilver</code>, <code>BackgroundFFDD99</code>. If this option is not present, the TreeView initially defaults to the background color set by the last parameter of <a href="Gui.htm#Color">Gui Color</a> (or if none, the system's default background color). Specifying <code>BackgroundDefault</code> applies the system's default background color (usually white). For example, a TreeView can be restored to the default color via <code>GuiControl, +BackgroundDefault, MyTreeView</code>.</p>
+<p><strong>Background:</strong> Specify the word Background followed immediately by a color name (see <a href="../misc/Colors.htm">color chart</a>) or RGB value (the 0x prefix is optional). Examples: <code>BackgroundSilver</code>, <code>BackgroundFFDD99</code>. If this option is not present, the TreeView initially defaults to the background color set by the last parameter of <a href="../objects/Gui.htm#CtrlColor">Gui.CtrlColor</a> (or if none, the system's default background color). Specifying <code>BackgroundDefault</code> applies the system's default background color (usually white). For example, a TreeView can be restored to the default color via <code>TV.Opt("+BackgroundDefault")</code>.</p>
 <p><strong>Buttons</strong>: Specify <code>-Buttons</code> (minus Buttons) to avoid displaying a plus or minus button to the left of each item that has children.</p>
 <p><strong>C</strong>: Text color. Specify the letter C followed immediately by a color name (see <a href="../misc/Colors.htm">color chart</a>) or RGB value (the 0x prefix is optional). Examples: <code>cRed</code>, <code>cFF2211</code>, <code>c0xFF2211</code>, <code>cDefault</code>.</p>
-<p id="Checked"><strong>Checked:</strong> Provides a checkbox at the left side of each item. When <a href="#TV_Add">adding</a> an item, specify the word <em>Check</em> in its options to have the box to start off checked instead of unchecked. The user may either click the checkbox or press the spacebar to check or uncheck an item. To discover which items in a TreeView are currently checked, call <a href="#TV_GetNext">TV_GetNext()</a> or <a href="#TV_Get">TV_Get()</a>.</p>
+<p id="Checked"><strong>Checked:</strong> Provides a checkbox at the left side of each item. When <a href="#Add">adding</a> an item, specify the word <em>Check</em> in its options to have the box to start off checked instead of unchecked. The user may either click the checkbox or press the spacebar to check or uncheck an item. To discover which items in a TreeView are currently checked, call <a href="#GetNext">TV.GetNext</a> or <a href="#Get">TV.Get</a>.</p>
 <p><strong>HScroll</strong>: Specify <code>-HScroll</code> (minus HScroll) to disable horizontal scrolling in the control (in addition, the control will not display any horizontal scroll bar).</p>
-<p id="ImageList"><strong>ImageList</strong>: This is the means by which icons are added to a TreeView. Specify the word <em>ImageList</em> followed immediately by the ImageListID returned from a previous call to <a href="ListView.htm#IL_Create">IL_Create()</a>. This option has an effect only when creating a TreeView (however, <a href="#TV_SetImageList">TV_SetImageList()</a> does not have this limitation). Here is a working example:</p>
-<pre>ImageListID := <a href="ListView.htm#IL_Create">IL_Create</a>(10)  <em>; Create an ImageList with initial capacity for 10 icons.</em>
+<p id="ImageList"><strong>ImageList</strong>: This is the means by which icons are added to a TreeView. Specify the word <em>ImageList</em> followed immediately by the ImageListID returned from a previous call to <a href="ListView.htm#IL_Create">IL_Create</a>. This option has an effect only when creating a TreeView (however, <a href="#SetImageList">TV.SetImageList</a> does not have this limitation). Here is a working example:</p>
+<pre>Gui := GuiCreate()
+ImageListID := <a href="ListView.htm#IL_Create">IL_Create</a>(10)  <em>; Create an ImageList with initial capacity for 10 icons.</em>
 Loop 10  <em>; Load the ImageList with some standard system icons.</em>
-    <a href="ListView.htm#IL_Add">IL_Add</a>(ImageListID, &quot;shell32.dll&quot;, A_Index)
-Gui, Add, TreeView, <strong>ImageList%ImageListID%</strong>
-<a href="#TV_Add">TV_Add</a>(&quot;Name of Item&quot;, 0, &quot;Icon4&quot;)  <em>; Add an item to the TreeView and give it a folder icon.</em>
-Gui Show</pre>
+    <a href="ListView.htm#IL_Add">IL_Add</a>(ImageListID, "shell32.dll", A_Index)
+TV := Gui.Add("TreeView",, "<strong>ImageList%ImageListID%</strong>")
+TV.<a href="#Add">Add</a>("Name of Item", 0, "Icon4")  <em>; Add an item to the TreeView and give it a folder icon.</em>
+Gui.Show()</pre>
 <p><strong>Lines</strong>: Specify <code>-Lines</code> (minus Lines) to avoid displaying a network of lines connecting parent items to their children. However, removing these lines also prevents the plus/minus buttons from being shown for top-level items.</p>
 <p id="ReadOnly"><strong>ReadOnly:</strong> Specify <code>-ReadOnly</code> (minus ReadOnly) to allow editing of the text/name of each item. To edit an item, select it then press the <a href="#WantF2">F2 key</a>. Alternatively, you can click an item once to select it, wait at least half a second, then click the same item again to edit it. After being edited, an item can be alphabetically repositioned among its siblings via the following example:</p>
-<pre>Gui, Add, TreeView, -ReadOnly <a href="#notify">gMyTree</a>
+<pre>TV := Gui.Add("TreeView", "-ReadOnly <a href="#notify">gMyTree</a>")
 <em>; ...</em>
-MyTree:
-if (A_GuiEvent == &quot;e&quot;)  <em>; The user has finished editing an item (use == for case sensitive comparison).</em>
-    TV_Modify(TV_GetParent(A_EventInfo), &quot;Sort&quot;)  <em>; This works even if the item has no parent.</em>
-return</pre>
+MyTree(TV, GuiEvent, EventInfo)
+{
+  if (GuiEvent == &quot;e&quot;)  <em>; The user has finished editing an item (use == for case sensitive comparison).</em>
+    TV.Modify(TV.GetParent(EventInfo), &quot;Sort&quot;)  <em>; This works even if the item has no parent.</em>
+}</pre>
 <p><strong>R</strong>: Rows of height (upon creation). Specify the letter R followed immediately by the number of rows for which to make room inside the control. For example, <code>R10</code> would make the control 10 items tall.</p>
 <p id="WantF2"><strong>WantF2</strong>: Specify <code>-WantF2</code> (minus WantF2) to prevent an F2 keystroke from <a href="#ReadOnly">editing</a> the currently selected item. This setting is ignored unless <a href="#ReadOnly">-ReadOnly</a> is also in effect. Regardless of this setting, the g-label still receives F2 <a href="#NotifyK">notifications</a>.</p>
 <p><strong>(Unnamed numeric styles):</strong> Since styles other than the above are rarely used, they do not have names. See the <a href="../misc/Styles.htm#TreeView">TreeView styles table</a> for a list.</p>
-<h2 id="BuiltIn">Built-in Functions for TreeViews</h2>
-<p>All of the TreeView functions operate upon the current thread's <a href="Gui.htm#DefaultWin">default GUI window</a> (which can be changed via <code><a href="Gui.htm#Default">Gui, 2:Default</a></code>). If the default window does not exist or has no TreeView controls, the TreeView functions throw an <a href="Catch.htm#RuntimeErrors">exception</a>.</p>
-<p id="GuiTV">If the window has more than one TreeView control, by default the functions operate upon the one most recently added. To change this, specify <code>Gui, TreeView, TreeViewName</code>, where <em>TreeViewName</em> is the name of the TreeView's <a href="Gui.htm#var">associated variable</a>, its ClassNN as shown by Window Spy or its HWND. Once changed, all existing and future <a href="../misc/Threads.htm">threads</a> will use the indicated TreeView.</p>
-<h3 id="TV_SetImageList">TV_SetImageList(ImageListID [, 0|2])</h3>
-<p>Sets or replaces the TreeView's <a href="#ImageList">ImageList</a>. ImageListID is the number returned from a previous call to <a href="ListView.htm#IL_Create">IL_Create()</a>. The second parameter is normally omitted, in which case it defaults to 0. Otherwise, specify 2 for state icons (which are not yet directly supported, but could be used via <a href="PostMessage.htm">SendMessage</a>). If successful, TV_SetImageList() returns the ImageListID that was previously associated with the TreeView (or 0 if none). Any such detached ImageList should normally be destroyed via <a href="ListView.htm#IL_Destroy">IL_Destroy(ImageListID)</a>.</p>
-<h2 id="bifAddModifyDelete">Add, Modify, and Delete Items</h2>
-<h3 id="TV_Add">TV_Add(Name, [ParentItemID, Options])</h3>
-<p>Adds a new item to the TreeView and returns its unique Item ID number (or 0 upon failure). <em>Name</em> is the displayed text of the item, which can be text or numeric (including numeric <a href="../Variables.htm#Expressions">expression</a> results). <em>ParentItemID</em> is the ID number of the new item's parent (omit it or specify 0 to add the item at the top level). When adding a large number of items, performance can be improved by using <code>GuiControl, -Redraw, MyTreeView</code> before adding the items, and <code>GuiControl, +Redraw, MyTreeView</code> afterward.</p>
-<h4>Options for TV_Add() and TV_Modify()</h4>
-<p>The <em>Options</em> parameter is a string containing zero or more words from the list below (not case sensitive). Separate each word from the next with a space or tab. To remove an option, precede it with a minus sign. To add an option, a plus sign is permitted but not required.</p>
-<p id="Bold"><strong>Bold</strong>: Displays the item's name in a bold font. To later un-bold the item, use <code>TV_Modify(ItemID, &quot;-Bold&quot;)</code>.</p>
-<p id="Check"><strong>Check</strong>: Shows a checkmark to the left of the item (if the TreeView has <a href="#Checked">checkboxes</a>). To later uncheck it, use <code>TV_Modify(ItemID, &quot;-Check&quot;)</code>. The word <em>Check</em> may optionally be followed immediately by a 0 or 1 to indicate the starting state. In other words, both <code>&quot;Check&quot;</code> and <code>&quot;Check&quot; <strong>.</strong> VarContainingOne</code> are the same (the period used here is the <a href="../Variables.htm#concat">concatenation operator</a>).</p>
-<p id="Expand"><strong>Expand</strong>: Expands the item to reveal its children (if any). To later collapse the item, use <code>TV_Modify(ItemID, &quot;-Expand&quot;)</code>. If there are no children, <a href="#TV_Modify">TV_Modify()</a> returns 0 instead of the item's ID. By contrast, <a href="#TV_Add">TV_Add()</a> marks the item as expanded in case children are added to it later. Unlike &quot;Select&quot; (below), expanding an item does not automatically expand its parent. Finally, the word <em>Expand</em> may optionally be followed immediately by a 0 or 1 to indicate the starting state. In other words, both <code>&quot;Expand&quot;</code> and <code>&quot;Expand&quot; <strong>.</strong> VarContainingOne</code> are the same.</p>
-<p><strong>First | Sort | N</strong>: These options apply only to <a href="#TV_Add">TV_Add()</a>. They specify the new item's position relative to its siblings (a <em>sibling</em> is any other item on the same level). If none of these options is present, the new item is added as the last/bottom sibling. Otherwise, specify <em>First</em> to add the item as the first/top sibling, or specify <em>Sort</em> to insert it among its siblings in alphabetical order. If a plain integer (<strong>N</strong>) is specified, it is assumed to be ID number of the sibling after which to insert the new item (if integer N is the only option present, it does not have to be enclosed in quotes).</p>
-<p><strong>Icon</strong>: Specify the word <em>Icon</em> followed immediately by the number of this item's icon, which is displayed to the left of the item's name. If this option is absent, the first icon in the <a href="#ImageList">ImageList</a> is used. To display a blank icon, specify a number that is larger than the number of icons in the ImageList. If the control lacks an ImageList, no icon is displayed nor is any space reserved for one.</p>
-<p id="Select"><strong>Select</strong>: Selects the item. Since only one item at a time can be selected, any previously selected item is automatically de-selected. In addition, this option reveals the newly selected item by expanding its parent(s), if necessary. To find out the current selection, call <a href="#TV_GetSelection">TV_GetSelection()</a>.</p>
-<p><strong>Sort</strong>: For <a href="#TV_Modify">TV_Modify()</a>, this option alphabetically sorts the children of the specified item. To instead sort all top-level items, use <code>TV_Modify(0, &quot;Sort&quot;)</code>. If there are no children, 0 is returned instead of the ID of the modified item.</p>
-<p><strong>Vis</strong>: Ensures that the item is completely visible by scrolling the TreeView and/or expanding its parent, if necessary.</p>
-<p><strong>VisFirst</strong>: Same as above except that the TreeView is also scrolled so that the item appears at the top, if possible. This option is typically more effective when used with <a href="#TV_Modify">TV_Modify()</a> than with <a href="#TV_Add">TV_Add()</a>.</p>
-<h3 id="TV_Modify">TV_Modify(ItemID [, Options, NewName])</h3>
-<p>Modifies the attributes and/or name of an item. It returns the item's own ID upon success or 0 upon failure (or partial failure). When only the first parameter is present, the specified item is <a href="#Select">selected</a>. When <em>NewName</em> is omitted, the current name is left unchanged. For <em>Options</em>, see the list above.</p>
-<h3 id="TV_Delete">TV_Delete([ItemID])</h3>
-<p>If <em>ItemID</em> is omitted, <strong>all</strong> items in the TreeView are deleted. Otherwise, only the specified <em>ItemID</em> is deleted. It returns 1 upon success and 0 upon failure.</p>
-<h2 id="bifGet">Getting Data Out of a TreeView</h2>
-<h3 id="TV_GetSelection">TV_GetSelection()</h3>
-<p>Returns the selected item's ID number.</p>
-<h3 id="TV_GetCount">TV_GetCount()</h3>
-<p>Returns the total number of items in the control. This function is always instantaneous because the control keeps track of the count.</p>
-<h3 id="TV_GetParent">TV_GetParent(ItemID)</h3>
-<p>Returns the specified item's parent as an item ID. Items at the top level have no parent and thus return 0.</p>
-<h3 id="TV_GetChild">TV_GetChild(ParentItemID)</h3>
-<p>Returns the ID number of the specified item's first/top child (or 0 if none).</p>
-<h3 id="TV_GetPrev">TV_GetPrev(ItemID)</h3>
-<p>Returns the ID number of the sibling above the specified item (or 0 if none).</p>
-<h3 id="TV_GetNext">TV_GetNext([ItemID, &quot;Checked | Full&quot;])</h3>
-<p>This has the following modes:</p>
-<ol>
-  <li>When all parameters are omitted, it returns the ID number of the first/top item in the TreeView (or 0 if none).</li>
-  <li>When the only first parameter (ItemID) is present, it returns the ID number of the sibling below the specified item  (or 0 if none). If the first parameter is 0, it returns the ID number of the first/top item in the TreeView (or 0 if none).</li>
-  <li>When the second parameter is &quot;Full&quot; or &quot;F&quot;, the next item is retrieved regardless of its relationship to the specified item. This allows the script to easily traverse the entire tree, item by item. For example:
-    <pre>ItemID = 0  <em>; Causes the loop's first iteration to start the search at the top of the tree.</em>
+<h2 id="BuiltIn">Built-in Methods for TreeViews</h2>
+<p>Additionally to the <a href="../objects/GuiControl.htm">default methods/properties of a GUI control</a>, the following methods can be specified for a TreeView. If the associated <a href="../objects/GuiControl.htm">GuiControl object</a> does not exist or does not belongs to a TreeView, the TreeView methods throw an <a href="Catch.htm#RuntimeErrors">exception</a>.</p>
+<h3 id="bifAddModifyDelete">Add, Modify, and Delete Items</h3>
+<div class="methodShort" id="Add">
+  <h3>Add</h3>
+  <p>Adds a new item to the TreeView, and returns its unique Item ID number.</p>
+  <pre class="Syntax">UniqueID := TV.Add(Name, [ParentItemID, Options])</pre>
+  <dl>
+    <dt>Name</dt>
+    <dd>The displayed text of the item, which can be text or numeric (including numeric <a href="../Variables.htm#Expressions">expression</a> results).</dd>
+    <dt>ParentItemID</dt>
+    <dd>The ID number of the new item's parent (omit it or specify 0 to add the item at the top level).</dd>
+    <dt>Options</dt>
+    <dd>
+  <p>Contains zero or more words from the list below (not case sensitive). Separate each word from the next with a space or tab. To remove an option, precede it with a minus sign. To add an option, a plus sign is permitted but not required.</p>
+  <p id="Bold"><strong>Bold</strong>: Displays the item's name in a bold font. To later un-bold the item, use <code>TV.Modify(ItemID, &quot;-Bold&quot;)</code>.</p>
+  <p id="Check"><strong>Check</strong>: Shows a checkmark to the left of the item (if the TreeView has <a href="#Checked">checkboxes</a>). To later uncheck it, use <code>TV.Modify(ItemID, &quot;-Check&quot;)</code>. The word <em>Check</em> may optionally be followed immediately by a 0 or 1 to indicate the starting state. In other words, both <code>&quot;Check&quot;</code> and <code>&quot;Check&quot; <strong>.</strong> VarContainingOne</code> are the same (the period used here is the <a href="../Variables.htm#concat">concatenation operator</a>).</p>
+  <p id="Expand"><strong>Expand</strong>: Expands the item to reveal its children (if any). To later collapse the item, use <code>TV.Modify(ItemID, &quot;-Expand&quot;)</code>. If there are no children, <a href="#Modify">TV.Modify</a> returns 0 instead of the item's ID. By contrast, <a href="#Add">TV.Add</a> marks the item as expanded in case children are added to it later. Unlike &quot;Select&quot; (below), expanding an item does not automatically expand its parent. Finally, the word <em>Expand</em> may optionally be followed immediately by a 0 or 1 to indicate the starting state. In other words, both <code>&quot;Expand&quot;</code> and <code>&quot;Expand&quot; <strong>.</strong> VarContainingOne</code> are the same.</p>
+  <p><strong>First | Sort | N</strong>: These options apply only to <a href="#Add">TV.Add</a>. They specify the new item's position relative to its siblings (a <em>sibling</em> is any other item on the same level). If none of these options is present, the new item is added as the last/bottom sibling. Otherwise, specify <em>First</em> to add the item as the first/top sibling, or specify <em>Sort</em> to insert it among its siblings in alphabetical order. If a plain integer (<strong>N</strong>) is specified, it is assumed to be ID number of the sibling after which to insert the new item (if integer N is the only option present, it does not have to be enclosed in quotes).</p>
+  <p><strong>Icon</strong>: Specify the word <em>Icon</em> followed immediately by the number of this item's icon, which is displayed to the left of the item's name. If this option is absent, the first icon in the <a href="#ImageList">ImageList</a> is used. To display a blank icon, specify a number that is larger than the number of icons in the ImageList. If the control lacks an ImageList, no icon is displayed nor is any space reserved for one.</p>
+  <p id="Select"><strong>Select</strong>: Selects the item. Since only one item at a time can be selected, any previously selected item is automatically de-selected. In addition, this option reveals the newly selected item by expanding its parent(s), if necessary. To find out the current selection, call <a href="#GetSelection">TV.GetSelection</a>.</p>
+  <p><strong>Sort</strong>: For <a href="#Modify">TV.Modify</a>, this option alphabetically sorts the children of the specified item. To instead sort all top-level items, use <code>TV.Modify(0, &quot;Sort&quot;)</code>. If there are no children, 0 is returned instead of the ID of the modified item.</p>
+  <p><strong>Vis</strong>: Ensures that the item is completely visible by scrolling the TreeView and/or expanding its parent, if necessary.</p>
+  <p><strong>VisFirst</strong>: Same as above except that the TreeView is also scrolled so that the item appears at the top, if possible. This option is typically more effective when used with <a href="#Modify">TV.Modify</a> than with <a href="#Add">TV.Add</a>.</p>
+    </dd>
+  </dl>
+  <p>&nbsp;Note: When adding a large number of items, performance can be improved by using <code>TV.Opt(&quot;-Redraw&quot;)</code> before adding the items, and <code>TV.Opt(&quot;+Redraw&quot;)</code> afterward.</p>
+</div>
+<div class="methodShort" id="Modify">
+  <h3>Modify</h3>
+  <p>Modifies the attributes and/or name of an item, and returns the item's own ID.</p>
+  <pre class="Syntax">CurrentItemID := TV.Modify(ItemID [, Options, NewName])</pre>
+  <dl>
+    <dt>ItemID</dt>
+    <dd>The item to modify. When only this parameter is present, the specified item is <a href="#Select">selected</a>.</dd>
+    <dt>Options</dt>
+    <dd>See the list above.</dd>
+    <dt>NewName</dt>
+    <dd>The new name of the item. If omitted, the current name is left unchanged.</dd>
+  </dl>
+</div>
+<div class="methodShort" id="Delete">
+  <h3>Delete</h3>
+  <p>Deletes the specified item, and returns 1 upon success and 0 upon failure.</p>
+  <pre class="Syntax">TV.Delete([ItemID])</pre>
+  <dl>
+    <dt>ItemID</dt>
+    <dd>The item to delete. If omitted, <strong>all</strong> items in the TreeView are deleted.</dd>
+  </dl>
+</div>
+<h3 id="bifGet">Getting Data Out of a TreeView</h3>
+<div class="methodShort" id="GetSelection">
+  <h3>GetSelection</h3>
+  <p>Returns the selected item's ID number.</p>
+  <pre class="Syntax">SelectedItemID := TV.GetSelection()</pre>
+</div>
+<div class="methodShort" id="GetCount">
+  <h3>GetCount</h3>
+  <p>Returns the total number of items in the control.</p>
+  <pre class="Syntax">CountNumber := TV.GetCount()</pre>
+  <p>&nbsp;Note: The return value will be retrieved instantly, because the control keeps track of the count.</p>
+</div>
+<div class="methodShort" id="GetParent">
+  <h3>GetParent</h3>
+  <p>Returns the specified item's parent as an item ID.</p>
+  <pre class="Syntax">ParentItemID := TV.GetParent(ItemID)</pre>
+  <dl>
+    <dt>ItemID</dt>
+    <dd>&nbsp;The item to check. Items at the top level have no parent and thus return 0.</dd>
+  </dl>
+</div>
+<div class="methodShort" id="GetChild">
+  <h3>GetChild</h3>
+  <p>Returns the ID number of the specified item's first/top child (or 0 if none).</p>
+  <pre class="Syntax">TopChildID := TV.GetChild(ParentItemID)</pre>
+  <dl>
+    <dt>ParentItemID</dt>
+    <dd>The parent item to check.</dd>
+  </dl>
+</div>
+<div class="methodShort" id="GetPrev">
+  <h3>GetPrev</h3>
+  <p>Returns the ID number of the sibling above the specified item (or 0 if none).</p>
+  <pre class="Syntax">PrevItemID := TV.GetPrev(ItemID)</pre>
+  <dl>
+    <dt>ItemID</dt>
+    <dd>The item to check.</dd>
+  </dl>
+</div>
+<div class="methodShort" id="GetNext">
+  <h3>GetNext</h3>
+  <p>Returns the ID number of the next item below the specified item (or 0 if none).</p>
+  <pre class="Syntax">NextItemID := TV.GetNext([ItemID := 0, ItemType := &quot;&quot;])</pre>
+  <dl>
+    <dt>ItemID</dt>
+    <dd>The item to check. If this parameter is 0 or omitted, the ID number of the first/top item in the TreeView is returned.</dd>
+    <dt>ItemType</dt>
+    <dd>If omitted, the ID number of the sibling below the specified item will be retrieved. Otherwise specify &quot;Full&quot; or &quot;F&quot; to retrieve the next item regardless of its relationship to the specified item; or specify &quot;Check&quot;, &quot;Checked&quot;, or &quot;C&quot; to get only the next item with a checkmark.</dd>
+  </dl>
+  &nbsp;The following example traverse the entire tree, item by item:<pre>ItemID := 0  <em>; Causes the loop's first iteration to start the search at the top of the tree.</em>
 Loop
 {
-    ItemID := TV_GetNext(ItemID, &quot;Full&quot;)  <em>; Replace &quot;Full&quot; with &quot;Checked&quot; to find all checkmarked items.</em>
+    ItemID := TV.GetNext(ItemID, &quot;Full&quot;)  <em>; Replace &quot;Full&quot; with &quot;Checked&quot; to find all checkmarked items.</em>
     if not ItemID  <em>; No more items in tree.</em>
         break
-    TV_GetText(ItemText, ItemID)
-    MsgBox("The next Item is %ItemID%, whose text is &quot;%ItemText%&quot;.")
+    ItemText := TV.GetText(ItemID)
+    MsgBox('The next Item is %ItemID%, whose text is &quot;%ItemText%&quot;.')
 }</pre>
-  </li>
-  <li>When the second parameter is either &quot;Check&quot;, &quot;Checked&quot;, or &quot;C&quot;, the same behavior as above is used except that any item without a checkmark is skipped over. This allows all checkmarked items in the TreeView to be retrieved, one by one.</li>
-</ol>
-<h3 id="TV_GetText">TV_GetText(OutputVar, ItemID)</h3>
-<p>Retrieves the text/name of the specified <em>ItemID</em> and stores it in <em>OutputVar</em>. If the text is longer than 8191, only the first 8191 characters are retrieved. Upon success, the function returns the item's own ID. Upon failure, it returns 0 (and <em>OutputVar</em> is also made blank).</p>
-<h3 id="TV_Get">TV_Get(ItemID, &quot;Expand | Check | Bold&quot;)</h3>
-<p>If the specified item has the specified attribute, its own <em>ItemID</em> is returned. Otherwise, 0 is returned. For the second parameter, specify &quot;E&quot;, &quot;Expand&quot;, or &quot;Expanded&quot; to determine if the item is currently <a href="#Expand">expanded</a> (that is, its children are being displayed); specify &quot;C&quot;, &quot;Check&quot;, or &quot;Checked&quot; to determine if the item has a <a href="#Check">checkmark</a>; or specify &quot;B&quot; or &quot;Bold&quot; to determine if the item is currently <a href="#Bold">bold</a> in font.</p>
-<p><strong>Tip</strong>: Since an IF-statement sees any non-zero value as &quot;true&quot;, the following two lines are functionally identical:</p>
-<ol>
-  <li><code>if TV_Get(ItemID, &quot;Checked&quot;) = ItemID</code></li>
-  <li><code>if TV_Get(ItemID, &quot;Checked&quot;)</code></li>
-</ol>
+</div>
+<div class="methodShort" id="GetText">
+  <h3>GetText</h3>
+  <p>Retrieves the text/name of the specified item.</p>
+  <pre class="Syntax">RetrievedText := TV.GetText(ItemID)</pre>
+  <dl>
+    <dt>ItemID</dt>
+    <dd>The ID number of the item, whose text to be retrieved. <em>RetrievedText</em> has a maximum length of 8191.</dd>
+  </dl>
+</div>
+<div class="methodShort" id="Get">
+  <h3>Get</h3>
+  <p>Returns a non-zero value (item ID) if the specified item has the specified attribute.</p>
+  <pre class="Syntax">CurrentItemID := TV.Get(ItemID, Attribute)</pre>
+  <dl>
+    <dt>ItemID</dt>
+    <dd>The item to check.</dd>
+    <dt>Attribute</dt>
+    <dd>Specify &quot;E&quot;, &quot;Expand&quot;, or &quot;Expanded&quot; to determine if the item is currently <a href="#Expand">expanded</a> (that is, its children are being displayed); specify &quot;C&quot;, &quot;Check&quot;, or &quot;Checked&quot; to determine if the item has a <a href="#Check">checkmark</a>; or specify &quot;B&quot; or &quot;Bold&quot; to determine if the item is currently <a href="#Bold">bold</a> in font.</dd>
+  </dl>
+  <p><strong>Tip</strong>: Since an IF-statement sees any non-zero value as &quot;true&quot;, <code>if TV.Get(ItemID, &quot;Checked&quot;) = ItemID</code> and <code>if TV.Get(ItemID, &quot;Checked&quot;)</code> are functionally identical.</p>
+</div>
+<h3 id="bifIcon">Setting Icons</h3>
+<div class="methodShort" id="SetImageList">
+  <h3>SetImageList</h3>
+  <p>Sets or replaces the <a href="ListView.htm#IL">ImageList</a>, and returns the ImageListID that was previously associated with this control (or 0 if none).</p>
+  <pre class="Syntax">PrevImageListID := TV.SetImageList(ImageListID [, IconType])</pre>
+    <dl>
+      <dt>ImageListID</dt>
+      <dd>The number returned from a previous call to <a href="ListView.htm#IL_Create">IL_Create</a>.</dd>
+      <dt>IconType</dt>
+      <dd>If omitted, it defaults to 0. Otherwise, specify 2 for state icons (state icons are not yet directly supported, but they could be used via <a href="PostMessage.htm">SendMessage</a>).</dd>
+    </dl>
+    <p>
+      Any such detached ImageList should normally be destroyed via <a href="ListView.htm#IL_Destroy">IL_Destroy</a>.</p>
+</div>
 <h2 id="notify">G-Label Notifications (Primary)</h2>
 <p>A <a href="Gui.htm#label">g-label</a> such as <code><strong>g</strong>MyFunction</code> may be listed in the control's options. This would cause the <a href="../objects/Gui.htm#label">event handling function</a> <code>MyFunction(GuiCtrl, GuiEvent, EventInfo)</code> to be launched automatically whenever the user performs an action in the control. <em>GuiCtrl</em> contains the <a href="../objects/GuiControl.htm">GuiControl object</a> to find out which TreeView generated the event. More importantly, <em>GuiEvent</em> contains a string or letter of one of the following events (for compatibility with future versions, a script should not assume these are the only possible values). <em>EventInfo</em> contains a value, depending on the current event:</p>
 <p><strong>DoubleClick</strong>: The user has double-clicked an item. <em>EventInfo</em> contains the item ID.</p>
@@ -140,14 +223,17 @@ Loop
 <h2>G-Label Notifications (Secondary)</h2>
 <p>If the TreeView has the word AltSubmit in its <a href="#Options">options</a>, its g-label is launched more often and <em>GuiEvent</em> may contain the following additional values:</p>
 <p><strong>Normal</strong>: The user has left-clicked an item. <em>EventInfo</em> contains the item ID.</p>
-<p><strong>RightClick</strong>: The user has right-clicked an item. <em>EventInfo</em> contains the item ID. In most cases, it is best not to display a menu in response to this. Instead, use the <a href="Gui.htm#GuiContextMenu">GuiContextMenu label</a> because it also recognizes the Apps key. For example:</p>
-<pre>GuiContextMenu:  <em>; Launched in response to a right-click or press of the Apps key.</em>
-if A_GuiControl &lt;&gt; MyTreeView  <em>; This check is optional. It displays the menu only for clicks inside the TreeView.</em>
+<p><strong>RightClick</strong>: The user has right-clicked an item. <em>EventInfo</em> contains the item ID. In most cases, it is best not to display a menu in response to this. Instead, use <a href="GuiCreate.htm#OnContextMenu">OnContextMenu</a> because it also recognizes the Apps key. For example:</p>
+<pre>Gui.OnContextMenu := "openContext"  <em>; Bind event with the event handling function below.</em>
+
+openContext(Gui, GuiCtrl, EventInfo, IsRightClick, X, Y)  <em>; Launched in response to a right-click or press of the Apps key.</em>
+{
+  if GuiCtrl.Name &lt;&gt; &quot;MyTreeView"  <em>; This check is optional. It displays the menu only for clicks inside the TreeView.</em>
     return
-<em>; Show the menu at the provided coordinates, A_GuiX and A_GuiY.  These should be used
-; because they provide correct coordinates even if the user pressed the Apps key:</em>
-Menu, MyContextMenu, Show, %A_GuiX%, %A_GuiY%
-return</pre>
+  <em>; Show the menu at the provided coordinates, X and Y.  These should be used
+  ; because they provide correct coordinates even if the user pressed the Apps key:</em>
+  Menu, MyContextMenu, Show, %X%, %Y%
+}</pre>
 <p><strong>E</strong>: The user has begun editing an item (the user may edit items only when the TreeView has <a href="#ReadOnly">-ReadOnly</a> in its options). <em>EventInfo</em> contains the item ID.</p>
 <p><strong>F</strong>: The TreeView has received keyboard focus.</p>
 <p><strong>f</strong> (lowercase F): The TreeView has lost keyboard focus.</p>
@@ -155,25 +241,25 @@ return</pre>
 <p><strong>+</strong> (plus sign): An item has been expanded to reveal its children. <em>EventInfo</em> contains the item ID.</p>
 <p><strong>-</strong> (minus sign): An item has been collapsed to hide its children. <em>EventInfo</em> contains the item ID.</p>
 <h2 id="Remarks">Remarks</h2>
-<p>The <a href="Gui.htm#Submit">Gui Submit</a> command has no effect on a TreeView control. Therefore, the script may use the TreeView's <a href="Gui.htm#var">associated variable</a> (if any) to store other data without concern that it will ever be overwritten.</p>
+<p><a href="../objects/Gui.htm#Submit">Gui.Submit</a> has no effect on a TreeView control. Therefore, the script may use the TreeView's <a href="../objects/Gui.htm#var">associated name</a> (if any) to store other data without concern that it will ever be overwritten.</p>
 <p id="Enter">To detect when the user has pressed Enter while a TreeView has focus, use a <a href="GuiControls.htm#DefaultButton">default button</a> (which can be hidden if desired). For example:</p>
-<pre>Gui, Add, Button, Hidden Default, OK
+<pre>Gui.Add("Button", "OK", "Hidden Default")
 ...
-ButtonOK:
-GuiControlGet, FocusedControl, FocusV
-if FocusedControl &lt;&gt; MyTreeView
+ButtonOK() {
+  global
+  if Gui.FocusedCtrl.Name &lt;&gt; "MyTreeView"
     return
-MsgBox % &quot;Enter was pressed. The selected item ID is &quot; . TV_GetSelection()
-return</pre>
+  MsgBox % &quot;Enter was pressed. The selected item ID is &quot; . TV.GetSelection()
+}</pre>
 <p>In addition to navigating from item to item with the keyboard, the user may also perform incremental search by typing the first few characters of an item's name. This causes the selection to jump to the nearest matching item.</p>
 <p>Although any length of text can be stored in each item of a TreeView, only the first 260 characters are displayed.</p>
-<p>Although the theoretical maximum number of items in a TreeView is 65536, item-adding performance will noticeably decrease long before then. This can be alleviated somewhat by using the redraw tip described in <a href="#TV_Add">TV_Add()</a>.</p>
-<p id="ILremarks">Unlike <a href="ListView.htm">ListViews</a>, a TreeView's ImageList is not automatically destroyed when the TreeView is destroyed. Therefore, a script should call <a href="ListView.htm#IL_Destroy">IL_Destroy(ImageListID)</a> after destroying a TreeView's window if the ImageList will not be used for anything else. However, this is not necessary if the script will soon be exiting because all ImageLists are automatically destroyed at that time.</p>
-<p>A script may create more than one TreeView per window. To operate upon a TreeView other than the default one, see <a href="#BuiltIn">built-in functions</a>.</p>
-<p>To perform actions such as resizing, hiding, or changing the font of a TreeView, use <a href="GuiControl.htm">GuiControl</a>.</p>
+<p>Although the theoretical maximum number of items in a TreeView is 65536, item-adding performance will noticeably decrease long before then. This can be alleviated somewhat by using the redraw tip described in <a href="#Add">TV.Add</a>.</p>
+<p id="ILremarks">Unlike <a href="ListView.htm">ListViews</a>, a TreeView's ImageList is not automatically destroyed when the TreeView is destroyed. Therefore, a script should call <a href="ListView.htm#IL_Destroy">IL_Destroy</a> after destroying a TreeView's window if the ImageList will not be used for anything else. However, this is not necessary if the script will soon be exiting because all ImageLists are automatically destroyed at that time.</p>
+<p>A script may create more than one TreeView per window.</p>
+<p>To perform actions such as resizing, hiding, or changing the font of a TreeView, use <a href="../objects/GuiControl.htm">GuiControl object</a>.</p>
 <p>Tree View eXtension (TVX) extends TreeViews to support moving, inserting and deleting. It is demonstrated at <a href="http://www.autohotkey.com/forum/topic19021.html">www.autohotkey.com/forum/topic19021.html</a></p>
 <h2>Related</h2>
-<p><a href="ListView.htm">ListView</a>, <a href="GuiControls.htm">Other Control Types</a>, <a href="Gui.htm">Gui</a>, <a href="Gui.htm#GuiContextMenu">GuiContextMenu</a>, <a href="GuiControl.htm">GuiControl</a>, <a href="GuiControlGet.htm">GuiControlGet</a>, <a href="../misc/Styles.htm#TreeView">TreeView styles table</a></p>
+<p><a href="ListView.htm">ListView</a>, <a href="GuiControls.htm">Other Control Types</a>, <a href="GuiCreate.htm">GuiCreate</a>, <a href="GuiCreate.htm#OnContextMenu">OnContextMenu</a>, <a href="../objects/GuiControl.htm">Gui object</a>, <a href="../objects/GuiControl.htm">GuiControl object</a>, <a href="../misc/Styles.htm#TreeView">TreeView styles table</a></p>
 <h2 id="Examples">Example</h2>
 <pre class="NoIndent"><em>; The following is a working script that is more elaborate than the one near the top of this page.
 ; It creates and displays a TreeView containing all folders in the all-users Start Menu.  When the
@@ -182,93 +268,98 @@ return</pre>
 
 <em>; The following folder will be the root folder for the TreeView. Note that loading might take a long
 ; time if an entire drive such as C:\ is specified:</em>
-TreeRoot = %A_StartMenuCommon%
+TreeRoot := A_StartMenuCommon
 TreeViewWidth := 280
 ListViewWidth := A_ScreenWidth - TreeViewWidth - 30
 
+<em>; Create the GUI window.</em>
+Gui := GuiCreate(TreeRoot)  <em>; Display the source directory (TreeRoot) in the title bar.</em>
+
 <em>; Allow the user to maximize or drag-resize the window:</em>
-Gui +Resize
+Gui.Opt("+Resize")
 
 <em>; Create an ImageList and put some standard system icons into it:</em>
 ImageListID := <a href="ListView.htm#IL_Create">IL_Create</a>(5)
 Loop 5 
-    <a href="ListView.htm#IL_Add">IL_Add</a>(ImageListID, &quot;shell32.dll&quot;, A_Index)
+  <a href="ListView.htm#IL_Add">IL_Add</a>(ImageListID, &quot;shell32.dll&quot;, A_Index)
 <em>; Create a TreeView and a ListView side-by-side to behave like Windows Explorer:</em>
-<a href="#GuiAdd">Gui, Add, TreeView</a>, vMyTreeView r20 w%TreeViewWidth% gMyTreeView <a href="#ImageList">ImageList</a>%ImageListID%
-Gui, Add, ListView, vMyListView r20 w%ListViewWidth% x+10, Name|Modified
+TV := <a href="#GuiAdd">Gui.Add</a>("TreeView",, "r20 w%TreeViewWidth% gMyTreeView <a href="#ImageList">ImageList</a>%ImageListID%")
+LV := Gui.Add("ListView", "Name|Modified", "r20 w%ListViewWidth% x+10")
 
 <em>; Set the ListView's column widths (this is optional):</em>
-Col2Width = 70  <em>; Narrow to reveal only the YYYYMMDD part.</em>
+Col2Width := 70  <em>; Narrow to reveal only the YYYYMMDD part.</em>
 LV.ModifyCol(1, ListViewWidth - Col2Width - 30)  <em>; Allows room for vertical scrollbar.</em>
 LV.ModifyCol(2, Col2Width)
 
 <em>; Create a Status Bar to give info about the number of files and their total size:</em>
-<a href="GuiControls.htm#StatusBar">Gui, Add, StatusBar</a>
-<a href="GuiControls.htm#SB_SetParts">SB_SetParts</a>(60, 85)  <em>; Create three parts in the bar (the third part fills all the remaining width).</em>
+SB := Gui.Add("<a href="GuiControls.htm#StatusBar">StatusBar</a>")
+SB.<a href="GuiControls.htm#SB_SetParts">SetParts</a>(60, 85)  <em>; Create three parts in the bar (the third part fills all the remaining width).</em>
 
 <em>; Add folders and their subfolders to the tree. Display the status in case loading takes a long time:</em>
-SplashTextOn, 200, 25, TreeView and StatusBar Example, Loading the tree...
-AddSubFoldersToTree(TreeRoot)
-SplashTextOff
+AddSubFoldersToTree(TV, TreeRoot)
+
+<em>; Add event</em>
+Gui.OnSize := "adjustSize"
 
 <em>; Display the window and return. The OS will notify the script whenever the user performs an eligible action:</em>
-Gui, Show,, %TreeRoot%  <em>; Display the source directory (TreeRoot) in the title bar.</em>
+Gui.Show()
 return
 
-AddSubFoldersToTree(Folder, ParentItemID = 0)
+AddSubFoldersToTree(TV, Folder, ParentItemID := 0)
 {
-    <em>; This function adds to the TreeView all subfolders in the specified folder.</em>
-    <em>; It also calls itself recursively to gather nested folders to any depth.</em>
-    Loop %Folder%\*.*, 2  <em>; Retrieve all of Folder's sub-folders.</em>
-        AddSubFoldersToTree(A_LoopFilePath, <a href="#TV_Add">TV_Add</a>(A_LoopFileName, ParentItemID, &quot;Icon4&quot;))
+  <em>; This function adds to the TreeView all subfolders in the specified folder.</em>
+  <em>; It also calls itself recursively to gather nested folders to any depth.</em>
+  Loop, Files, %Folder%\*.*, D  <em>; Retrieve all of Folder's sub-folders.</em>
+    AddSubFoldersToTree(TV, A_LoopFilePath, TV.<a href="#Add">Add</a>(A_LoopFileName, ParentItemID, &quot;Icon4&quot;))
 }
 
-MyTreeView:  <em>; This subroutine handles user actions (such as clicking).</em>
-if A_GuiEvent &lt;&gt; S  <em>; i.e. an event other than &quot;select new tree item&quot;.</em>
+MyTreeView(TV, GuiEvent, EventInfo)  <em>; This function handles user actions (such as clicking).</em>
+{
+  global
+  if GuiEvent &lt;&gt; "S"  <em>; i.e. an event other than &quot;select new tree item&quot;.</em>
     return  <em>; Do nothing.
-; Otherwise, populate the ListView with the contents of the selected folder.
-; First determine the full path of the selected folder:</em>
-<a href="#TV_GetText">TV_GetText</a>(SelectedItemText, A_EventInfo)
-ParentID := A_EventInfo
-Loop  <em>; Build the full path to the selected folder.</em>
-{
-    ParentID := <a href="#TV_GetParent">TV_GetParent</a>(ParentID)
+  ; Otherwise, populate the ListView with the contents of the selected folder.
+  ; First determine the full path of the selected folder:</em>
+  SelectedItemText := TV.<a href="#GetText">GetText</a>(EventInfo)
+  ParentID := EventInfo
+  Loop  <em>; Build the full path to the selected folder.</em>
+  {
+    ParentID := TV.<a href="#GetParent">GetParent</a>(ParentID)
     if not ParentID  <em>; No more ancestors.</em>
-        break
-    TV_GetText(ParentText, ParentID)
-    SelectedItemText = %ParentText%\%SelectedItemText%
-}
-SelectedFullPath = %TreeRoot%\%SelectedItemText%
+      break
+    ParentText := TV.GetText(ParentID)
+    SelectedItemText := "%ParentText%\%SelectedItemText%"
+  }
+  SelectedFullPath := "%TreeRoot%\%SelectedItemText%"
 
-<em>; Put the files into the ListView:</em>
-LV.Delete()  <em>; Clear all rows.</em>
-GuiControl, -Redraw, MyListView  <em>; Improve performance by disabling redrawing during load.</em>
-FileCount = 0  <em>; Init prior to loop below.</em>
-TotalSize = 0
-Loop %SelectedFullPath%\*.*  <em>; For simplicity, this omits folders so that only files are shown in the ListView.</em>
-{
+  <em>; Put the files into the ListView:</em>
+  LV.Delete()  <em>; Clear all rows.</em>
+  LV.Opt("-Redraw")  <em>; Improve performance by disabling redrawing during load.</em>
+  FileCount := 0  <em>; Init prior to loop below.</em>
+  TotalSize := 0
+  Loop, Files, %SelectedFullPath%\*.*  <em>; For simplicity, omit folders so that only files are shown in the ListView.</em>
+  {
     LV.Add(&quot;&quot;, A_LoopFileName, A_LoopFileTimeModified)
     FileCount += 1
     TotalSize += A_LoopFileSize
+  }
+  LV.Opt("+Redraw")
+
+  <em>; Update the three parts of the status bar to show info about the currently selected folder:</em>
+  SB.<a href="GuiControls.htm#SB_SetText">SetText</a>(FileCount . &quot; files&quot;, 1)
+  SB.SetText(Round(TotalSize / 1024, 1) . &quot; KB&quot;, 2)
+  SB.SetText(SelectedFullPath, 3)
 }
-GuiControl, +Redraw, MyListView
 
-<em>; Update the three parts of the status bar to show info about the currently selected folder:</em>
-<a href="GuiControls.htm#SB_SetText">SB_SetText</a>(FileCount . &quot; files&quot;, 1)
-SB_SetText(Round(TotalSize / 1024, 1) . &quot; KB&quot;, 2)
-SB_SetText(SelectedFullPath, 3)
-return
-
-GuiSize:  <em>; Expand/shrink the ListView and TreeView in response to user's resizing of window.</em>
-if A_EventInfo = 1  <em>; The window has been minimized.  No action needed.</em>
+adjustSize(Gui, EventInfo, Width, Height)  <em>; ; Expand/Shrink ListView and TreeView in response to the user's resizing.</em>
+{
+  global
+  if EventInfo = 1  <em>; The window has been minimized.  No action needed.</em>
     return
-<em>; Otherwise, the window has been resized or maximized. Resize the controls to match.</em>
-GuiControl, Move, MyTreeView, % &quot;H&quot; . (A_GuiHeight - 30)  <em>; -30 for StatusBar and margins.</em>
-GuiControl, Move, MyListView, % &quot;H&quot; . (A_GuiHeight - 30) . &quot; W&quot; . (A_GuiWidth - TreeViewWidth - 30)
-return
-
-GuiClose:  <em>; Exit the script when the user closes the TreeView's GUI window.</em>
-ExitApp</pre>
+  <em>; Otherwise, the window has been resized or maximized. Resize the controls to match.</em>
+  TV.Move(&quot;H&quot; . (Height - 30))  <em>; -30 for StatusBar and margins.</em>
+  LV.Move(&quot;H&quot; . (Height - 30) . &quot; W&quot; . (Width - TreeViewWidth - 30))
+}</pre>
 
 </body>
 </html>
