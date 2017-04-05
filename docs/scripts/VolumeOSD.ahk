@@ -49,10 +49,10 @@ HotKey, +#Down, vol_WaveDown
 
 ; Progress window
 
-Gui, +ToolWindow -Caption -Border +Disabled
-Gui, Margin, 0, 0
-Gui, Add, Progress, vMaster w%vol_Width% h%vol_Thick% c%vol_CBM% background%vol_CW%
-Gui, Add, Progress, vWave w%vol_Width% h%vol_Thick% c%vol_CBW% background%vol_CW%
+Gui := GuiCreate(, "+ToolWindow -Caption -Border +Disabled")
+Gui.MarginX := 0, Gui.MarginY := 0
+Master := Gui.Add("Progress",, "w%vol_Width% h%vol_Thick% c%vol_CBM% background%vol_CW%")
+Wave := Gui.Add("Progress",, "w%vol_Width% h%vol_Thick% c%vol_CBW% background%vol_CW%")
 Return
 
 ;___________________________________________ 
@@ -79,14 +79,12 @@ return
 
 vol_ShowBars:
 ; Get both volumes in case the user or an external program changed them:
-SoundGet, vol_Master, Master
-SoundGet, vol_Wave, Wave
-GuiControl,, Master, %vol_Master%
-GuiControl,, Wave, %vol_Wave%
-Gui, Show, x%vol_PosX% y%vol_PosY%
+Master.Value := SoundGet("Master")
+Wave.Value := SoundGet("Wave")
+Gui.Show("x%vol_PosX% y%vol_PosY%")
 SetTimer, vol_BarOff, -%vol_DisplayTime%
 return
 
 vol_BarOff:
-Gui, Hide
+Gui.Hide()
 return
