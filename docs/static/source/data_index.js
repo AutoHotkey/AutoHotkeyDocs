@@ -868,7 +868,6 @@ index = [
   ["variadic functions","Functions.htm#Variadic"],
   ["variants (duplicate hotkeys and hotstrings)","commands/_IfWinActive.htm#variant"],
   ["VarSetCapacity()","commands/VarSetCapacity.htm"],
-  ["VBScript, embedded/inline","commands/DllCall.htm#COM"],
   ["version of a file","commands/FileGetVersion.htm"],
   ["virtual key","commands/Send.htm#vk"],
   ["volume (changing it)","commands/SoundSet.htm"],
