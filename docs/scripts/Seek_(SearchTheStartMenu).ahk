@@ -332,10 +332,10 @@ if A_Args[1] != "-scex"
 	FileName := Gui.Add("Edit", NewKeyPhrase, "gtIncrementalSearch W600")
 
 	; ADD MY FAV TAGLINE
-	Gui.Add("Label", "What do you seek, my friend?", "X625 Y10")
+	Gui.Add("Text", "What do you seek, my friend?", "X625 Y10")
 
 	; ADD THE STATUS BAR FOR PROVIDING FEEDBACK TO USER
-	StatusBar := Gui.Add("Label",, "X10 Y31 R1 W764")
+	StatusBar := Gui.Add("Text",, "X10 Y31 R1 W764")
 
 	; ADD THE SELECTION LISTBOX FOR DISPLAYING SEARCH RESULTS
 	OpenTarget := Gui.Add("ListBox", List, "gTargetSelection X10 Y53 R28 W764 HScroll Disabled")
