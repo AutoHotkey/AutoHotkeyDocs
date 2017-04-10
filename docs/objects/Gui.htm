@@ -38,7 +38,7 @@
   <li><a href="#Title">Title</a>: Retrieves or sets the GUI's title.</li>
   <li><a href="#Control">Control</a>: Retrieves the <a href="GuiControl.htm">GuiControl object</a> associated with the specified name, ClassNN or HWND.</li>
   <li><a href="#_NewEnum">_NewEnum</a>: Iterates through the GUI's controls.</li>
-  <li><a href="#OnEvent">On<em>Event</em></a>: Retrieves or sets a event handler of the GUI window.</li>
+  <li><a href="#OnEvent">On<em>EventName</em></a>: Retrieves or sets a event handler of the GUI window.</li>
   <!-- <li><a href="#Default">Default</a>: Changes the current thread's default GUI window name.</li> -->
 </ul>
 
@@ -95,8 +95,8 @@ Gui.Show()</pre>
       <dd><p>Contains one of the following strings:</p>
       <p><strong>Normal</strong>: The event was triggered by a single left-click or via keystrokes (arrow keys, TAB key, space bar, underlined shortcut key, etc.). This value is also used for menu bar items and the special events such as Close and Escape.</p>
       <p><strong>DoubleClick</strong>: The event was triggered by a double-click. Note: The first click of the click-pair will still cause a <em>Normal</em> event to be received first. In other words, the subroutine will be launched twice: once for the first click and again for the second.</p>
-      <p><strong>RightClick</strong>: Occurs only for the <a href="../commands/GuiCreate.htm#ContextMenu">ContextMenu event</a>, <a href="../commands/ListView.htm">ListViews</a>, and <a href="../commands/TreeView.htm">TreeViews</a>.</p>
-      <p><strong>Context-sensitive values:</strong> For details see <a href="../commands/GuiCreate.htm#ContextMenu">ContextMenu</a>, <a href="../commands/GuiCreate.htm#DropFiles">DropFiles</a>, <a href="../commands/GuiControls.htm#Slider">Slider</a>, <a href="../commands/GuiControls.htm#MonthCal">MonthCal</a>, <a href="../commands/ListView.htm">ListView</a>, and <a href="../commands/TreeView.htm">TreeView</a>.</p></dd>
+      <p><strong>RightClick</strong>: Occurs only for the <a href="../objects/Gui.htm#ContextMenu">ContextMenu event</a>, <a href="../commands/ListView.htm">ListViews</a>, and <a href="../commands/TreeView.htm">TreeViews</a>.</p>
+      <p><strong>Context-sensitive values:</strong> For details see <a href="../objects/Gui.htm#ContextMenu">ContextMenu</a>, <a href="../objects/Gui.htm#DropFiles">DropFiles</a>, <a href="../commands/GuiControls.htm#Slider">Slider</a>, <a href="../commands/GuiControls.htm#MonthCal">MonthCal</a>, <a href="../commands/ListView.htm">ListView</a>, and <a href="../commands/TreeView.htm">TreeView</a>.</p></dd>
       <dt>EventInfo</dt>
       <dd>Contains additional information about the current event.</dd>
       <dt>Extra</dt>
@@ -392,12 +392,87 @@ Gui.Cancel()</pre>
 </div>
 
 <div class="methodShort" id="OnEvent">
-<h2>On<em>Event</em></h2>
+<h2>On<em>EventName</em></h2>
 <p>Retrieves or sets a event handler of the GUI window.</p>
-<pre class="Syntax">RetrievedEventHandler := Gui.On<i>Event</i></pre>
-<pre class="Syntax">Gui.On<i>Event</i> := NewEventHandler</pre>
-<p>Replace <em>Event</em> with Close, Escape, Size, ContextMenu or DropFiles. See <a href="../commands/GuiCreate.htm#Labels">Window Events</a> for details.</p>
-<p><em>RetrievedEventHandler</em> and <em>NewEventHandler</em> is a function name or <a href="Func.htm">function object</a>.</p>
+<pre class="Syntax">RetrievedEventHandler := Gui.On<i>EventName</i></pre>
+<pre class="Syntax">Gui.On<i>EventName</i> := NewEventHandler</pre>
+<p>Replace <em>EventName</em> with <a href="#Close">Close</a>, <a href="#Escape">Escape</a>, <a href="#Size">Size</a>, <a href="#ContextMenu">ContextMenu</a> or <a href="#DropFiles">DropFiles</a>. <em>RetrievedEventHandler</em> is a <a href="Func.htm">function object</a>. <em>NewEventHandler</em> is a name or object of a function defined anywhere in the script. Note that the name of this defined function depends on the prefix specified via <a href="../commands/GuiCreate.htm">GuiCreate</a>'s <i>FuncPrefixOrObj</i> parameter (&quot;Gui&quot; by default) or <a href="../commands/GuiCreate.htm#Prefix">+Prefix</a> option. For example: <code>GuiMyFunction(...)</code>. When not using this property, every event can be automatically associated with a GUI window by specifying a event handling function anywhere in the script with the following format: <code>Gui<i>EventName</i>(...)</code>. Every event handling function can optionally receive the <a href="../objects/Gui.htm">Gui object</a> as its first parameter. Some events have additional parameters.</p>
+<p>Following events are available:</p>
+
+
+<h3 id="Close">Close</h3>
+<dl><dd>
+  <p>Launched when the window is closed by any of the following: pressing its X button in the title bar, selecting "Close" from its system menu, or closing it with <a href="../commands/WinClose.htm">WinClose</a>.</p>
+  <pre class="Syntax">GuiClose([GuiObj])</pre>
+  <p>If this function is absent, closing the window simply hides it, which is the same effect as <a href="../objects/Gui.htm#Cancel">Gui.Cancel</a>.</p>
+  <p>Since the GUI will be closed by default, the function can prevent this by returning a non-zero integer, as in the example below:</p>
+  <pre>GuiClose(GuiObject) {  <em>; Declaring this parameter is optional.</em>
+  Result := MsgBox("Are you sure you want to close the GUI?",, 4)
+  if Result = "No"
+    return true  <em>; true = 1</em>
+  }</pre>
+</dd></dl>
+
+<h3 id="Escape">Escape</h3>
+<dl><dd>
+  <p>Launched when the user presses the Escape key while the GUI window is active.</p>
+  <pre class="Syntax">GuiEscape([GuiObj])</pre>
+  <p>If this function is absent, pressing the Escape key has no effect. Known limitation: If the first control in the window is disabled (possibly depending on control type), the Escape event will not be launched. There may be other circumstances that produce this effect.</p>
+</dd></dl>
+
+<h3 id="Size">Size</h3>
+<dl><dd>
+  <p>Launched when the window is resized, minimized, maximized, or restored.</p>
+  <pre class="Syntax">GuiSize([GuiObj, EventInfo, Width, Height])</pre>
+  <dl>
+    <dt>EventInfo</dt><dd><p>Contains one of the following digits:</p>
+      <p>0: The window has been restored, or resized normally such as by dragging its edges.<br>
+        1: The window has been minimized.<br>
+        2: The window has been maximized.</p></dd>
+    <dt>Width<br>Height</dt><dd>Contain the new width and height of the window's client area, which is the area excluding title bar, menu bar, and borders.</dd>
+  </dl>
+  <p>A script may use the Size event to reposition and resize controls in response to the user's resizing of the window. This process can be made easier by using <a href="https://autohotkey.com/boards/viewtopic.php?f=6&amp;t=1079">AutoXYWH() by tmplinshi and toralf</a>.</p>
+  <p>When the window is resized (even by the script), the Size event might not be called immediately. As with other window events, if the current thread is <a href="../commands/Thread.htm#Interrupt">uninterruptible</a>, the Size event won't be called until the thread becomes interruptible. If the script has just resized the window, follow this example to ensure the Size event is called immediately:</p>
+  <pre><a href="../commands/Critical.htm#Off">Critical Off</a>  <em>; Even if Critical On was never used.</em>
+  <a href="../commands/Sleep.htm">Sleep -1</a></pre>
+  <p>Gui.Show automatically does a <code>Sleep -1</code>, so it is generally not necessary to call Sleep in that case.</p>
+</dd></dl>
+
+<h3 id="ContextMenu">ContextMenu</h3>
+<dl><dd>
+  <p>Launched whenever the user right-clicks anywhere in the window except the title bar and menu bar.  It is also launched in response to pressing the Apps key or Shift-F10.</p>
+  <pre class="Syntax">GuiContextMenu([GuiObj, GuiCtrlObj, EventInfo, IsRightClick, X, Y])</pre>
+  <dl><dt>GuiCtrlObj</dt><dd>Contains the <a href="../objects/GuiControl.htm">GuiControl object</a> of the control that received the event (blank if none).</dd>
+    <dt>EventInfo</dt><dd>When a ListBox, ListView, or TreeView is the target of the context menu (as determined by <em>GuiCtrlObj</em>), <em>EventInfo</em> specifies which of the control's items is the target:<br>
+      <a href="../commands/GuiControls.htm#ListBox">ListBox</a> or <a href="../commands/ListView.htm">ListView</a>: <em>EventInfo</em> contains the number of the currently focused row (0 if none).<br>
+      <a href="../commands/TreeView.htm">TreeView</a>: For right-clicks, <em>EventInfo</em> contains the clicked item's ID number (or 0 if the user clicked somewhere other than an item). For the AppsKey and Shift-F10, <em>EventInfo</em> contains the selected item's ID number.</dd>
+    <dt>IsRightClick</dt><dd>Contains true, if the user right-clicked.</dd>
+    <dt>X<br>Y</dt><dd>Contain the X and Y coordinates of where the script should display the menu (e.g. <code><a href="../commands/Menu.htm">Menu</a>, MyContext, Show, %X%, %Y%</code>). Coordinates are relative to the upper-left corner of the window.</dd>
+  </dl>
+  <p>Unlike most other GUI labels, the ContextMenu event can have more than one concurrent <a href="../misc/Threads.htm">thread</a>.</p>
+  <p>Note: Since <a href="../commands/GuiControls.htm#Edit">Edit</a> and <a href="../commands/GuiControls.htm#MonthCal">MonthCal</a> controls have their own context menu, a right-click in one of them will not launch the ContextMenu event.</p>
+</dd></dl>
+
+<h3 id="DropFiles">DropFiles</h3>
+<dl><dd>
+  <p>Launched whenever files/folders are dropped onto the window as part of a drag-and-drop operation (but if the label is already running, drop events are ignored).</p>
+  <pre class="Syntax">GuiDropFiles([GuiObj, FileArray, GuiCtrlObj, X, Y])</pre>
+  <dl>
+    <dt>FileArray</dt><dd>Contains an <a href="../Objects.htm#Usage_Simple_Arrays">array (object)</a> of filenames, where <code>FileArray[1]</code> is the first file and <code>FileArray.MaxIndex()</code> returns the number of files. A <a href="../commands/For.htm">for-loop</a> can be used to iterate through the files:
+  <pre>GuiDropFiles(GuiObj, FileArray, GuiCtrlObj, X, Y) {
+  for i, file in FileArray
+  MsgBox File %i% is:`n%file%
+}</pre></dd>
+    <dt>GuiCtrlObj</dt><dd>Contains the <a href="../objects/GuiControl.htm">GuiControl object</a> of the control upon which the files were dropped (blank if none).</dd>
+    <dt>X<br>Y</dt><dd>Contain the X and Y coordinates of where the files were dropped (relative to the window's upper left corner).</dd>
+  </dl>
+  <p>When using the this event as function, you can temporarily disable drag-and-drop for a window via <code>Gui.Opt("-DropFiles")</code>. When using a event sink object specified via <a href="../commands/GuiCreate.htm">GuiCreate</a>'s <em>FuncPrefixOrObj</em> parameter (meaning this event name is used as method name to invoke on the object), you have to enable the <a href="../objects/Gui.htm#DropFiles">DropFiles option</a> beforehand via <code>Gui.Opt("+DropFiles")</code>, otherwise it will not work.</p>
+</dd></dl>
+
+<h3>Detecting and responding to other events</h3>
+<dl><dd>
+  <p>Other types of GUI events can be detected and acted upon via <a href="../commands/OnMessage.htm">OnMessage</a>. For example, a script can display context-sensitive help via ToolTip whenever the user moves the mouse over particular controls in the window. This is demonstrated in the <a href="#ExToolTip">GUI ToolTip example</a>.</p>
+</dd></dl>
 </div>
 
 <!--
