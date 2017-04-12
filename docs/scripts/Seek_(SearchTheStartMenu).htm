@@ -26,7 +26,7 @@
 ;
 ;  Program : Seek
 ;  Coder   : Phi
-;  Updated : Mon Jul 18 17:57:37 2016
+;  Updated : Wed Apr 05 14:41:23 2017
 ;
 ;  What do you seek, my friend?
 ;
@@ -308,7 +308,7 @@ version := "Seek v2.0.3"
 if A_Args[1] ~= "^(--help|-help|/h|-h|/\?|-\?)$"
 {
     MsgBox("Navigating the Start Menu can be a hassle, especially if you have installed many programs over time. 'Seek' lets you specify a case-insensitive key word/phrase that it will use to filter only the matching programs and directories from the Start Menu, so that you can easily open your target program from a handful of matched entries. This eliminates the drudgery of searching and traversing the Start Menu.`n`nI have a lot of fun coding this, and hope you will enjoy using it too. Feel free to drop me an email with your comments and feedback at: phi1618 (*a.t*) gmail :D0T: com.`n`nOptions:`n  -cache`tUse the cached directory-listing if available (this is the default mode when no option is specified)`n  -scan`tForce a directory scan to retrieve the latest directory listing`n  -scex`tScan & exit (this is useful for scheduling the potentially time-consuming directory-scanning as a background job)`n  -help`tShow this help", version)
-    Goto QuitNoSave
+    ExitApp
 }
 
 <em>; CHECK THAT THE MANDATORY ENVIRONMENT VARIABLES EXIST AND ARE VALID
@@ -316,7 +316,7 @@ if A_Args[1] ~= "^(--help|-help|/h|-h|/\?|-\?)$"
 if !FileExist(A_Temp) <em>; PATH DOES NOT EXIST</em>
 {
     MsgBox This mandatory environment variable is either not defined or invalid:`n`n    TMP = %A_Temp%`n`nPlease fix it before running Seek.
-    Goto QuitNoSave
+    ExitApp
 }
 
 <em>; IF NOT SCAN-AND-EXIT</em>
@@ -329,34 +329,44 @@ if A_Args[1] != "-scex"
         Loop, Read, %keyPhrase%
         {
             if A_Index = 1, PrevKeyPhrase := A_LoopReadLine
-            if A_Index = 2, PrevOpenTarget := A_LoopReadLine, break
+            if A_Index = 2 {
+                PrevOpenTarget := A_LoopReadLine
+                break
+            }
         }
     }
     NewKeyPhrase := PrevKeyPhrase
     NewOpenTarget := PrevOpenTarget
 
+    <em>; CREATE GUI</em>
+    Gui := GuiCreate(version)
+
     <em>; ADD THE TEXT BOX FOR USER TO ENTER THE QUERY STRING</em>
-    Gui, 1:Add, Edit, vFilename W600, %NewKeyPhrase%
+    FileName := Gui.Add("Edit", NewKeyPhrase, "gtIncrementalSearch W600")
 
     <em>; ADD MY FAV TAGLINE</em>
-    Gui, 1:Add, Text, X625 Y10, What do you seek, my friend?
+    Gui.Add("Text", "What do you seek, my friend?", "X625 Y10")
 
     <em>; ADD THE STATUS BAR FOR PROVIDING FEEDBACK TO USER</em>
-    Gui, 1:Add, Text, vStatusBar X10 Y31 R1 W764
+    StatusBar := Gui.Add("Text",, "X10 Y31 R1 W764")
 
     <em>; ADD THE SELECTION LISTBOX FOR DISPLAYING SEARCH RESULTS</em>
-    Gui, 1:Add, ListBox, vOpenTarget gTargetSelection X10 Y53 R28 W764 HScroll Disabled, %List%
+    OpenTarget := Gui.Add("ListBox", List, "gTargetSelection X10 Y53 R28 W764 HScroll Disabled")
 
     <em>; ADD THESE BUTTONS, BUT DISABLE THEM FOR NOW</em>
-    Gui, 1:Add, Button, gButtonOPEN vButtonOPEN Default X10 Y446 Disabled, Open
-    Gui, 1:Add, Button, gButtonOPENDIR vButtonOPENDIR X59 Y446 Disabled, Open Directory
-    Gui, 1:Add, Button, gButtonSCANSTARTMENU vButtonSCANSTARTMENU X340 Y446 Disabled, Scan Start-Menu
+    ButtonOPEN := Gui.Add("Button", "Open", "gButtonOPEN Default X10 Y446 Disabled")
+    ButtonOPENDIR := Gui.Add("Button", "Open Directory", "gButtonOPENDIR X59 Y446 Disabled")
+    ButtonSCANSTARTMENU := Gui.Add("Button", "Scan Start-Menu", "gButtonSCANSTARTMENU X340 Y446 Disabled")
 
     <em>; ADD THE EXIT BUTTON</em>
-    Gui, 1:Add, Button, gButtonEXIT X743 Y446, Exit
+    Gui.Add("Button", "Exit", "gQuit X743 Y446")
+  
+    <em>; ADD EVENTS</em>
+    Gui.OnClose := "Quit"
+    Gui.OnEscape := "Quit"
 
     <em>; POP-UP THE QUERY WINDOW</em>
-    Gui, 1:Show, Center, %version%
+    Gui.Show("Center")
 }
 
 <em>; ENABLE RE-SCANNING OF LATEST DIRECTORY LISTING</em>
@@ -370,36 +380,33 @@ if rescan = true <em>; DO A RE-SCAN</em>
 {
     <em>; SHOW STATUS UNLESS USER SPECIFIES SCAN-AND-EXIT OPTION</em>
     if  A_Args[1] != "-scex"
-        GuiControl,, StatusBar, Scanning directory listing...
+        StatusBar.Value := "Scanning directory listing..."
 
     <em>; SCAN START-MENU AND STORE DIRECTORY/PROGRAM LISTINGS IN CACHE FILE</em>
-    Gosub ScanStartMenu
+    ScanStartMenu()
 
     <em>; QUIT IF USER SPECIFIES SCAN-AND-EXIT OPTION</em>
     if A_Args[1] = "-scex"
-        Goto, QuitNoSave
+        ExitApp
 }
 
-GuiControl,, StatusBar, Retrieving last query result...
+StatusBar.Value := "Retrieving last query result..."
 
 <em>; RETRIEVE THE MATCHING LIST FOR THE LAST USED KEY-PHRASE</em>
-Gosub SilentFindMatches
+SilentFindMatches()
 
 <em>; REMOVE THE STATUS TEXT</em>
-GuiControl,, StatusBar,
+StatusBar.Value := ""
 
 <em>; DIRECTORY LISTING IS NOW LOADED. ENABLE THE OTHER BUTTONS.
 ; THESE BUTTONS ARE DISABLED EARLIER BECAUSE THEY SHOULD NOT
 ; BE FUNCTIONAL UNTIL THIS PART OF THE SCRIPT.</em>
-GuiControl, 1:Enable, ButtonOPEN
-GuiControl, 1:Enable, ButtonOPENDIR
-GuiControl, 1:Enable, ButtonSCANSTARTMENU
-
-<em>; TURN ON INCREMENTAL SEARCH</em>
-SetTimer, tIncrementalSearch, 500
+ButtonOPEN.Enabled := true
+ButtonOPENDIR.Enabled := true
+ButtonSCANSTARTMENU.Enabled := true
 
 <em>; REFRESH THE GUI</em>
-Gosub EnterQuery
+EnterQuery()
 
 Return
 
@@ -412,39 +419,36 @@ Return
 
 <em>;=== BEGIN ButtonSCANSTARTMENU EVENT =======================</em>
 
-ButtonSCANSTARTMENU:
-
-Gui, 1:Submit, NoHide
-GuiControl,, StatusBar, Scanning directory listing...
-
-<em>; DISABLE LISTBOX WHILE SCANNING IS IN PROGRESS</em>
-GuiControl, 1:Disable, OpenTarget
-GuiControl, 1:Disable, ButtonEXIT
-GuiControl, 1:Disable, ButtonOPEN
-GuiControl, 1:Disable, ButtonOPENDIR
-GuiControl, 1:Disable, ButtonSCANSTARTMENU
-
-<em>; DO THE SCANNING</em>
-Gosub ScanStartMenu
-
-<em>; INFORM USER THAT SCANNING HAS COMPLETED</em>
-If Filename = ""
+ButtonSCANSTARTMENU()
 {
-    <em>; IF QUERY STRING IS EMPTY...</em>
-    GuiControl, 1:Enable, ButtonEXIT
-    GuiControl, 1:Enable, ButtonOPEN
-    GuiControl, 1:Enable, ButtonSCANSTARTMENU
-    GuiControl,, StatusBar, Scan completed.
-    Gosub EnterQuery
+    global
+    StatusBar.Value := "Scanning directory listing..."
+
+    <em>; DISABLE LISTBOX WHILE SCANNING IS IN PROGRESS</em>
+    OpenTarget.Enabled := false
+    ButtonOPEN.Enabled := false
+    ButtonOPENDIR.Enabled := false
+    ButtonSCANSTARTMENU.Enabled := false
+
+    <em>; DO THE SCANNING</em>
+    ScanStartMenu()
+
+    <em>; INFORM USER THAT SCANNING HAS COMPLETED</em>
+    If FileName.Value = ""
+    {
+        <em>; IF QUERY STRING IS EMPTY...</em>
+        ButtonOPEN.Enabled := true
+        ButtonSCANSTARTMENU.Enabled := true
+        StatusBar.Value := "Scan completed."
+        EnterQuery()
+    }
+    Else
+    {
+        <em>; IF QUERY STRING EXISTS...</em>
+        <em>; FILTER FOR SEARCH STRING WITH THE NEW LISTING</em>
+        FindMatches()
+    }
 }
-Else
-{
-    <em>; IF QUERY STRING EXISTS...</em>
-    <em>; FILTER FOR SEARCH STRING WITH THE NEW LISTING</em>
-    NewKeyPhrase := ""
-    Gosub FindMatches
-}
-Return
 
 <em>;... END ButtonSCANSTARTMENU EVENT .........................</em>
 
@@ -452,204 +456,193 @@ Return
 <em>;=== BEGIN ScanStartMenu SUBROUTINE ========================
 ; SCAN THE START-MENU AND STORE THE DIRECTORY/PROGRAM
 ; LISTINGS IN A CACHE FILE</em>
-ScanStartMenu:
-
-<em>; DEFINE THE DIRECTORY PATHS TO RETRIEVE.
-; THE PATH MUST NOT BE ENCLOSED BY QUOTES OR DOUBLE-QUOTES.
-;
-; FOR ENGLISH VERSION OF WINDOWS</em>
-scanPath := A_StartMenu "|" A_StartMenuCommon
-
-<em>; INCLUDE ADDITIONAL USER-DEFINED PATHS FOR SCANNING</em>
-if FileExist(SeekMyDir)
+ScanStartMenu()
 {
-    Loop, read, %SeekMyDir%
-    {
-        if !FileExist(A_LoopReadLine)
-            MsgBox("Processing your customised directory list...`n`n'%A_LoopReadLine%' does not exist and will be excluded from the scanning.`nPlease update [ %SeekMyDir% ].", version, 8192)
-        else
-            scanPath .= "|" A_LoopReadLine
-    } 
-}
+    global
+    <em>; DEFINE THE DIRECTORY PATHS TO RETRIEVE.
+    ; THE PATH MUST NOT BE ENCLOSED BY QUOTES OR DOUBLE-QUOTES.
+    ;
+    ; FOR ENGLISH VERSION OF WINDOWS</em>
+    scanPath := A_StartMenu "|" A_StartMenuCommon
 
-<em>; DELETE EXISTING FILE BEFORE CREATING A NEW VERSION</em>
-FileDelete, %dirListing%
-
-<em>; SCAN DIRECTORY LISTING (DELIMITER = |) BY RECURSING
-; EACH DIRECTORY TO RETRIEVE THE CONTENTS. HIDDEN FILES
-; ARE EXCLUDED.</em>
-Loop, parse, %scanPath%, |
-{
-    Loop, Files, %A_LoopField%\*, %ScanMode%R
+    <em>; INCLUDE ADDITIONAL USER-DEFINED PATHS FOR SCANNING</em>
+    if FileExist(SeekMyDir)
     {
-        FileGetAttrib, fileAttrib, %A_LoopFileFullPath%
-        if !InStr(fileAttrib, "H") <em>; EXCLUDE HIDDEN FILE</em>
-            FileAppend, %A_LoopFileFullPath%`n, %dirListing%
+        Loop, read, %SeekMyDir%
+        {
+            if !FileExist(A_LoopReadLine)
+                MsgBox("Processing your customised directory list...`n`n'%A_LoopReadLine%' does not exist and will be excluded from the scanning.`nPlease update [ %SeekMyDir% ].", version, 8192)
+            else
+                scanPath .= "|" A_LoopReadLine
+        } 
+    }
+
+    <em>; DELETE EXISTING FILE BEFORE CREATING A NEW VERSION</em>
+    FileDelete, %dirListing%
+
+    <em>; SCAN DIRECTORY LISTING (DELIMITER = |) BY RECURSING
+    ; EACH DIRECTORY TO RETRIEVE THE CONTENTS. HIDDEN FILES
+    ; ARE EXCLUDED.</em>
+    Loop, parse, %scanPath%, |
+    {
+        Loop, Files, %A_LoopField%\*, %ScanMode%R
+        {
+            FileGetAttrib, fileAttrib, %A_LoopFileFullPath%
+            if !InStr(fileAttrib, "H") <em>; EXCLUDE HIDDEN FILE</em>
+                FileAppend, %A_LoopFileFullPath%`n, %dirListing%
+        }
     }
 }
-
-Return
 
 <em>;... END ScanStartMenu SUBROUTINE ..........................</em>
 
 
 <em>;=== BEGIN FindMatches SUBROUTINE ==========================
 ; SEARCH AND DISPLAY ALL MATCHING RECORDS IN THE LISTBOX</em>
-FindMatches:
-
-Gui, 1:Submit, NoHide
-CurFilename := Filename
-GuiControl,, StatusBar, 
-
-<em>; CHECK FOR EMPTY QUERY STRING</em>
-If CurFilename = ""
+FindMatches()
 {
-    MsgBox("Please enter the key word/phrase to search for.", version, 8192)
-    Goto EnterQuery
-}
+    global
+    CurFilename := Filename.Value
+    StatusBar.Value := ""
 
-<em>; tIncrementalSearch IS BEING INTERRUPTED. LET IT FINISHES.</em>
-If NewKeyPhrase &lt;&gt; CurFilename
-{
-    <em>; INFORM USER THAT PATIENCE IS A VIRTUE</em>
-    GuiControl,, StatusBar, Seeking...
-    ResumeFindMatches := TRUE
-    Return
-}
+    <em>; CHECK FOR EMPTY QUERY STRING</em>
+    If CurFilename = ""
+    {
+        MsgBox("Please enter the key word/phrase to search for.", version, 8192)
+        EnterQuery()
+        Return
+    }
 
-If List = "|"
-{
-    <em>; NOT EVEN A SINGLE MATCHING RECORD IS FOUND.</em>
-    <em>; LET USER MODIFY THE QUERY STRING AND TRY AGAIN.</em>
-    MsgBox("The query string '%CurFilename%' does not match any record. Try again.", version, 8192)
-    GuiControl, 1:Disable, ButtonOPENDIR
-    GuiControl, 1:Enable, ButtonSCANSTARTMENU
-    Goto EnterQuery
-}
-Else
-{
-    <em>; SELECT THE FIRST RECORD IF NO OTHER RECORD HAS BEEN SELECTED</em>
-    Gui, 1:Submit, NoHide
-    GuiControl, 1:Enable, OpenTarget
-    GuiControl, 1:Enable, ButtonOPEN
-    GuiControl, 1:Enable, ButtonOPENDIR
-    GuiControl, 1:Enable, ButtonSCANSTARTMENU
-    GuiControl, Focus, OpenTarget
-    If OpenTarget = ""
-        GuiControl, 1:Choose, OpenTarget, |1
-}
+    If List = "|"
+    {
+        <em>; NOT EVEN A SINGLE MATCHING RECORD IS FOUND.</em>
+        <em>; LET USER MODIFY THE QUERY STRING AND TRY AGAIN.</em>
+        MsgBox("The query string '%CurFilename%' does not match any record. Try again.", version, 8192)
+        ButtonOPENDIR.Enabled := false
+        ButtonSCANSTARTMENU.Enabled := true
+        EnterQuery()
+        Return
+    }
+    Else
+    {
+        <em>; SELECT THE FIRST RECORD IF NO OTHER RECORD HAS BEEN SELECTED</em>
+        OpenTarget.Enabled := true
+        ButtonOPEN.Enabled := true
+        ButtonOPENDIR.Enabled := true
+        ButtonSCANSTARTMENU.Enabled := true
+        OpenTarget.Focus()
+        If OpenTarget.Value = ""
+            OpenTarget.Choose(1, 1)
+    }
 
-<em>; REFRESH GUI</em>
-Gui, 1:Show, Center, %version%
-
-Return
+    <em>; REFRESH GUI</em>
+    Gui.Show("Center")
+}
 
 <em>;... END FindMatches SUBROUTINE ............................</em>
 
 
 <em>;=== BEGIN SilentFindMatches SUBROUTINE ====================</em>
 
-SilentFindMatches:
-
-Gui, 1:Submit, NoHide
-sfmFilename := Filename
-
-<em>; FILTER MATCHING RECORDS BASED ON USER QUERY STRING</em>
-List := "|"
-If sfmFilename &lt;&gt; ""
+SilentFindMatches()
 {
-    Loop, read, %dirListing%
-    {
-        Gui, 1:Submit, NoHide
-        tFilename := Filename
-        If sfmFilename &lt;&gt; tFilename
-        {
-            <em>; USER HAS CHANGED THE SEARCH STRING. THERE IS NO POINT</em>
-            <em>; TO CONTINUE SEARCHING USING THE OLD STRING, SO ABORT.</em>
-            Return
-        }
-        Else
-        {
-            <em>; APPEND MATCHING RECORDS INTO THE LIST</em>
-            SplitPath, %A_LoopReadLine%, name, dir, ext, name_no_ext, drive
-            MatchFound := true
-            Loop, parse, %sfmFilename%, %A_Space%
-            {
-                if !InStr(name, A_LoopField)
-                {
-                    MatchFound := false
-                    Break
-                }
-            }
-            if MatchFound = true
-            {
-                <em>; ADD RECORD TO LIST</em>
-                List .= A_LoopReadLine "|"
+    global
+    sfmFilename := Filename.Value
 
-                <em>; PRE-SELECT IF THIS MATCHES THE LAST-RUN PROGRAM</em>
-                If (A_LoopReadLine = PrevOpenTarget && sfmFilename = PrevKeyPhrase)
-                    List .= "|"
+    <em>; FILTER MATCHING RECORDS BASED ON USER QUERY STRING</em>
+    List := "|"
+    If sfmFilename &lt;&gt; ""
+    {
+        Loop, read, %dirListing%
+        {
+            tFilename := Filename.Value
+            If sfmFilename &lt;&gt; tFilename
+            {
+                <em>; USER HAS CHANGED THE SEARCH STRING. THERE IS NO POINT</em>
+                <em>; TO CONTINUE SEARCHING USING THE OLD STRING, SO ABORT.</em>
+                Return
+            }
+            Else
+            {
+                <em>; APPEND MATCHING RECORDS INTO THE LIST</em>
+                SplitPath, %A_LoopReadLine%, name, dir, ext, name_no_ext, drive
+                MatchFound := true
+                Loop, parse, %sfmFilename%, %A_Space%
+                {
+                    if !InStr(name, A_LoopField)
+                    {
+                        MatchFound := false
+                        Break
+                    }
+                }
+                if MatchFound = true
+                {
+                    <em>; ADD RECORD TO LIST</em>
+                    List .= A_LoopReadLine "|"
+
+                    <em>; PRE-SELECT IF THIS MATCHES THE LAST-RUN PROGRAM</em>
+                    If (A_LoopReadLine = PrevOpenTarget && sfmFilename = PrevKeyPhrase)
+                        List .= "|"
+                }
             }
         }
     }
+
+    <em>; REFRESH LIST WITH SEARCH RESULTS</em>
+    OpenTarget.Value := List
+
+    If List = "|"
+    {
+        <em>; NO MATCHING RECORD IS FOUND</em>
+        <em>; DISABLE LISTBOX</em>
+        OpenTarget.Enabled := false
+        ButtonOPENDIR.Enabled := false
+    }
+    Else
+    {
+        <em>; MATCHING RECORDS ARE FOUND</em>
+        <em>; ENABLE LISTBOX</em>
+        OpenTarget.Enabled := true
+        ButtonOPENDIR.Enabled := true
+    }
+
+    <em>; REFRESH GUI</em>
+    Gui.Show("Center")
 }
-
-<em>; REFRESH LIST WITH SEARCH RESULTS</em>
-GuiControl, 1:, OpenTarget, %List%
-
-If List = "|"
-{
-    <em>; NO MATCHING RECORD IS FOUND</em>
-    <em>; DISABLE LISTBOX</em>
-    GuiControl, 1:Disable, OpenTarget
-    GuiControl, 1:Disable, ButtonOPENDIR
-}
-Else
-{
-    <em>; MATCHING RECORDS ARE FOUND</em>
-    <em>; ENABLE LISTBOX</em>
-    GuiControl, 1:Enable, OpenTarget
-    GuiControl, 1:Enable, ButtonOPENDIR
-}
-
-<em>; REFRESH GUI</em>
-Gui, 1:Show, Center, %version%
-
-Return
 
 <em>;... END SilentFindMatches SUBROUTINE ......................</em>
 
 
 <em>;=== BEGIN EnterQuery SUBROUTINE ===========================
 ; REFRESH GUI AND LET USER ENTERS SEARCH STRING</em>
-EnterQuery:
-GuiControl, Focus, Filename
-GuiControl, 1:Enable, ButtonOPEN
-Gui, 1:Show, Center, %version%
-Return
+EnterQuery()
+{
+    global
+    Filename.Focus()
+    ButtonOPEN.Enabled := true
+    Gui.Show("Center")
+}
 <em>;... END EnterQuery SUBROUTINE .............................</em>
 
 
 <em>;=== BEGIN TargetSelection EVENT ===========================</em>
 
-TargetSelection:
-Gui, 1:Submit, NoHide
-
-<em>; DOUBLE-CLICK DETECTION TO LAUNCH PROGRAM</em>
-If A_GuiControlEvent = "DoubleClick"
+TargetSelection(GuiCtrl, GuiEvent, EventInfo)
 {
-    Gosub ButtonOPEN
-}
-Else
-{
-    <em>; STUB - FOR FUTURE USE</em>
-    If A_GuiControlEvent = "Normal"
+    <em>; DOUBLE-CLICK DETECTION TO LAUNCH PROGRAM</em>
+    If GuiEvent = "DoubleClick"
     {
-        <em>; DO NOTHING FOR NOW</em>
+        ButtonOPEN()
+    }
+    Else
+    {
+        <em>; STUB - FOR FUTURE USE</em>
+        If GuiEvent = "Normal"
+        {
+            <em>; DO NOTHING FOR NOW</em>
+        }
     }
 }
-
-Return
 
 <em>;... END TargetSelection EVENT .............................</em>
 
@@ -657,52 +650,56 @@ Return
 <em>;=== BEGIN ButtonOPEN EVENT ================================</em>
 
 <em>; USER CLICKED ON 'OPEN' BUTTON OR PRESSED ENTER</em>
-ButtonOPEN:
-Gui, 1:Submit, NoHide
+ButtonOPEN()
+{
+    global
+    <em>; FIND OUT WHERE THE KEYBOARD FOCUS WAS. IF IT'S THE
+    ; TEXT FIELD, RUN THE QUERY TO FIND MATCHES. ELSE, IT
+    ; MUST BE FROM THE LISTBOX.</em>
+    focusControl := Gui.FocusedCtrl.ClassNN
+    If focusControl = "Edit1"
+    {
+        OpenTarget.Focus()
+        OpenTarget.Enabled := false
+        ButtonOPENDIR.Enabled := false
+        ButtonSCANSTARTMENU.Enabled := false
+        FindMatches()
+        Return
+    }
 
-<em>; FIND OUT WHERE THE KEYBOARD FOCUS WAS. IF IT'S THE
-; TEXT FIELD, RUN THE QUERY TO FIND MATCHES. ELSE, IT
-; MUST BE FROM THE LISTBOX.</em>
-GuiControlGet, focusControl, 1:Focus
-If focusControl = "Edit1"
-{
-    GuiControl, Focus, OpenTarget
-    GuiControl, 1:Disable, OpenTarget
-    GuiControl, 1:Disable, ButtonOPENDIR
-    GuiControl, 1:Disable, ButtonSCANSTARTMENU
-    Goto FindMatches
-}
+    <em>; NO RECORD FROM THE LISTBOX IS SELECTED</em>
+    If OpenTarget.Value = ""
+    {
+        MsgBox("Please make a selection before hitting ENTER.`nPress ESC to exit.", version, 8192)
+        EnterQuery()
+        Return
+    }
 
-<em>; NO RECORD FROM THE LISTBOX IS SELECTED</em>
-If OpenTarget = ""
-{
-    MsgBox("Please make a selection before hitting ENTER.`nPress ESC to exit.", version, 8192)
-    Goto EnterQuery
-}
+    <em>; SELECTED RECORD DOES NOT EXIST (FILE OR DIRECTORY NOT FOUND)</em>
+    if !FileExist(OpenTarget.Value)
+    {
+        MsgBox("%OpenTarget.Value% does not exist. This means that the directory cache is outdated. You may click on the 'Scan Start-Menu' button below to update the directory cache with your latest directory listing now.", version, 8192)
+        EnterQuery()
+        Return
+    }
 
-<em>; SELECTED RECORD DOES NOT EXIST (FILE OR DIRECTORY NOT FOUND)</em>
-if !FileExist(OpenTarget)
-{
-    MsgBox("%OpenTarget% does not exist. This means that the directory cache is outdated. You may click on the 'Scan Start-Menu' button below to update the directory cache with your latest directory listing now.", version, 8192)
-    Goto EnterQuery
-}
+    <em>; CHECK WHETHER THE SELECTED RECORD IS A FILE OR DIRECTORY</em>
+    FileGetAttrib, fileAttrib, %OpenTarget.Value%
+    if InStr(fileAttrib, "D") <em>; IS DIRECTORY</em>
+    {
+        sOpenDir(OpenTarget.Value)
+    }
+    Else If fileAttrib &lt;&gt; "" <em>; IS FILE</em>
+    {
+        Run, %OpenTarget.Value%
+    }
+    Else
+    {
+        MsgBox %OpenTarget.Value% is neither a DIRECTORY or a FILE. This shouldn't happen. Seek cannot proceed. Quitting...
+    }
 
-<em>; CHECK WHETHER THE SELECTED RECORD IS A FILE OR DIRECTORY</em>
-FileGetAttrib, fileAttrib, %OpenTarget%
-if InStr(fileAttrib, "D") <em>; IS DIRECTORY</em>
-{
-    Gosub sOpenDir
+    Quit()
 }
-Else If fileAttrib &lt;&gt; "" <em>; IS FILE</em>
-{
-    Run, %OpenTarget%
-}
-Else
-{
-    MsgBox %OpenTarget% is neither a DIRECTORY or a FILE. This shouldn't happen. Seek cannot proceed. Quitting...
-}
-
-Goto Quit
 
 <em>;... END ButtonOPEN EVENT ..................................</em>
 
@@ -710,56 +707,58 @@ Goto Quit
 <em>;=== BEGIN ButtonOPENDIR EVENT =============================</em>
 
 <em>; USER CLICKED ON 'OPEN DIRECTORY' BUTTON</em>
-ButtonOPENDIR:
-Gui, 1:Submit, NoHide
-
-<em>; CHECK THAT USER HAS SELECTED A RECORD ALREADY</em>
-If OpenTarget = ""
+ButtonOPENDIR()
 {
-    MsgBox("Please make a selection first.", version, 8192)
-    Goto EnterQuery
+    global
+    <em>; CHECK THAT USER HAS SELECTED A RECORD ALREADY</em>
+    If OpenTarget.Value = ""
+    {
+        MsgBox("Please make a selection first.", version, 8192)
+        EnterQuery()
+        Return
+    }
+
+    <em>; RUN SUBROUTINE TO OPEN A DIRECTORY</em>
+    sOpenDir(OpenTarget.Value)
+    Quit()
 }
-
-<em>; RUN SUBROUTINE TO OPEN A DIRECTORY</em>
-Gosub sOpenDir
-
-Goto Quit
 
 <em>;... END ButtonOPENDIR EVENT ...............................</em>
 
 
 <em>;=== BEGIN sOpenDir SUBROUTINE =============================</em>
 
-sOpenDir:
+sOpenDir(Path)
+{
+    <em>; IF USER SELECTED A FILE-RECORD INSTEAD OF A DIRECTORY-RECORD,
+    ; EXTRACT THE DIRECTORY PATH. (I'M USING DriveGet INSTEAD OF
+    ; FileGetAttrib TO ALLOW THE SCENARIO WHEREBY OpenTarget IS
+    ; INVALID BUT THE DIRECTORY PATH OF OpenTarget IS VALID.</em>
+    DriveGet, status, status, %Path%
+    If status &lt;&gt; "Ready" <em>; NOT A DIRECTORY</em>
+    {
+        SplitPath, %Path%, name, dir, ext, name_no_ext, drive
+        Path := dir
+    }
 
-<em>; IF USER SELECTED A FILE-RECORD INSTEAD OF A DIRECTORY-RECORD,
-; EXTRACT THE DIRECTORY PATH. (I'M USING DriveGet INSTEAD OF
-; FileGetAttrib TO ALLOW THE SCENARIO WHEREBY OpenTarget IS
-; INVALID BUT THE DIRECTORY PATH OF OpenTarget IS VALID.</em>
-DriveGet, status, status, %OpenTarget%
-If status &lt;&gt; "Ready" <em>; NOT A DIRECTORY</em>
-{
-    SplitPath, %OpenTarget%, name, dir, ext, name_no_ext, drive
-    OpenTarget := dir
-}
+    <em>; CHECK WHETHER DIRECTORY EXISTS</em>
+    if !FileExist(Path)
+    {
+        MsgBox("%Path% does not exist. This means that the directory cache is outdated. You may click on the 'Scan Start-Menu' button below to update the directory cache with your latest directory listing now.", version, 8192)
+        EnterQuery()
+        Return
+    }
 
-<em>; CHECK WHETHER DIRECTORY EXISTS</em>
-if !FileExist(OpenTarget)
-{
-    MsgBox("%OpenTarget% does not exist. This means that the directory cache is outdated. You may click on the 'Scan Start-Menu' button below to update the directory cache with your latest directory listing now.", version, 8192)
-    Goto EnterQuery
+    <em>; OPEN THE DIRECTORY</em>
+    if FileExist(dirExplorer)
+    {
+        Run, "%dirExplorer%" "%Path%", , Max <em>; OPEN WITH CUSTOMISED FILE EXPLORER</em>
+    }
+    Else
+    {
+        Run, %Path%, , Max <em>; OPEN WITH DEFAULT WINDOWS FILE EXPLORER</em>
+    }
 }
-
-<em>; OPEN THE DIRECTORY</em>
-if FileExist(dirExplorer)
-{
-    Run, "%dirExplorer%" "%OpenTarget%", , Max <em>; OPEN WITH CUSTOMISED FILE EXPLORER</em>
-}
-Else
-{
-    Run, %OpenTarget%, , Max <em>; OPEN WITH DEFAULT WINDOWS FILE EXPLORER</em>
-}
-Return
 
 <em>;... END sOpenDir SUBROUTINE ...............................</em>
 
@@ -768,65 +767,37 @@ Return
 ; AUTOMATICALLY CONDUCT REAL-TIME INCREMENTAL SEARCH
 ; TO FIND MATCHING RECORDS WITHOUT WAITING FOR USER
 ; TO PRESS ENTER</em>
-tIncrementalSearch:
-
-Loop
-<em>; REPEAT SEARCHING UNTIL USER HAS STOPPED CHANGING THE QUERY STRING</em>
+tIncrementalSearch()
 {
-    Gui, 1:Submit, NoHide
-    CurFilename := Filename
+    global
+    CurFilename := Filename.Value
     If NewKeyPhrase &lt;&gt; CurFilename
     {
-        OpenTarget := ""
-        Gosub SilentFindMatches
+        SilentFindMatches()
         NewKeyPhrase := CurFilename
-        Sleep, 100 <em>; DON'T HOG THE CPU!</em>
-    }
-    Else
-    {
-        <em>; QUERY STRING HAS STOPPED CHANGING</em>
-        Break
     }
 }
-
-<em>; USER HAS HIT ENTER TO LOOK FOR MATCHING RECORDS.
-; RUN FindMatches NOW.</em>
-If ResumeFindMatches = TRUE
-{
-    ResumeFindMatches := FALSE
-    Gosub FindMatches
-}
-
-<em>; CONTINUE MONITORING FOR CHANGES</em>
-SetTimer, tIncrementalSearch, 500
-
-Return
 
 <em>;... END tIncrementalSearch EVENT ..........................</em>
 
 
 <em>;=== BEGIN Quit SUBROUTINE =================================</em>
 
-Quit:
-ButtonEXIT:
-GuiClose:
-GuiEscape:
-
-Gui, 1:Submit, NoHide
-
-<em>; SAVE THE KEY WORD/PHRASE FOR NEXT RUN IF IT HAS CHANGED</em>
-If TrackKeyPhrase = "ON"
+Quit()
 {
-    If (PrevKeyPhrase &lt;&gt; Filename || PrevOpenTarget &lt;&gt; OpenTarget)
+    global
+    <em>; SAVE THE KEY WORD/PHRASE FOR NEXT RUN IF IT HAS CHANGED</em>
+    If TrackKeyPhrase = "ON"
     {
-        FileDelete, %keyPhrase%
-        FileAppend, %Filename%`n, %keyPhrase%
-        FileAppend, %OpenTarget%`n, %keyPhrase%
+        If (PrevKeyPhrase &lt;&gt; Filename.Value || PrevOpenTarget &lt;&gt; OpenTarget.Value)
+        {
+            FileDelete, %keyPhrase%
+            FileAppend, %Filename.Value%`n, %keyPhrase%
+            FileAppend, %OpenTarget.Value%`n, %keyPhrase%
+        }
     }
+    ExitApp <em>; JOB DONE. G'DAY!</em>
 }
-
-QuitNoSave:
-ExitApp <em>; JOB DONE. G'DAY!</em>
 
 <em>;... END Quit SUBROUTINE ...................................</em>
 

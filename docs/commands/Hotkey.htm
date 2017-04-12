@@ -181,21 +181,21 @@ Hotkey, IfWinActive, ahk_class Notepad
 Hotkey, ^!c, MyLabelForNotepad  <em>; Creates Ctrl-Alt-C as a hotkey that works only in Notepad.</em></pre>
 
 <pre class="NoIndent" id="ExampleIfFn"><em>; This GUI allows you to register primitive three-key combination hotkeys:</em>
-Gui Add, Text, xm, Prefix key:
-Gui Add, Edit, yp x100 w100 vPrefix, Space
-Gui Add, Text, xm, Suffix hotkey:
-Gui Add, Edit, yp x100 w100  vSuffix, f &amp; j
-Gui Add, Button, Default, Register
-Gui Show
-return
+Gui := GuiCreate()
+Gui.Add("Text", "Prefix key:", "xm")
+Gui.Add("Edit", "Space", "yp x100 w100 vPrefix")
+Gui.Add("Text", "Suffix hotkey:", "xm")
+Gui.Add("Edit", "f &amp; j", "yp x100 w100 vSuffix")
+Gui.Add("Button", "Register", "Default")
+Gui.Show()
 
 ButtonRegister() {
     global
-    Gui Submit, NoHide
+    Saved := Gui.Submit(false)
     local fn
-    fn := Func("HotkeyShouldFire").Bind(Prefix)
+    fn := Func("HotkeyShouldFire").Bind(Saved.Prefix)
     Hotkey If, % fn
-    Hotkey % Suffix, FireHotkey
+    Hotkey % Saved.Suffix, FireHotkey
 }
 
 HotkeyShouldFire(prefix, thisHotkey) {
@@ -206,9 +206,9 @@ FireHotkey() {
     MsgBox %A_ThisHotkey%
 }
 
-GuiClose:
-GuiEscape:
-ExitApp</pre>
+GuiEscape() {
+    WinClose()
+}</pre>
 
 </body>
 </html>
