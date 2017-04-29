@@ -41,7 +41,7 @@ Gui.Show()</pre>
   <p id="MinSize"><strong>MinSize</strong> and <strong>MaxSize</strong>: Determines the minimum and/or maximum size of the window, such as when the user drags its edges to resize it. Specify the word <em>MinSize</em> and/or <em>MaxSize</em> with no suffix to use the window's current size as the limit (if the window has no current size, it will use the size from the first use of <a href="../objects/Gui.htm#Show">Gui.Show</a>). Alternatively, append the width, followed by an X, followed by the height; for example: <code>Gui.Opt("+Resize +MinSize640x480")</code>. The dimensions are in pixels, and they specify the size of the window's client area (which excludes borders, title bar, and <a href="../objects/Gui.htm#Menu">menu bar</a>). Specify each number as decimal, not hexadecimal.</p>
   <p>Either the width or the height may be omitted to leave it unchanged (e.g. <code>+MinSize640x</code> or <code>+MinSizex480</code>). Furthermore, Min/MaxSize can be specified more than once to use the window's current size for one dimension and an explicit size for the other. For example, <code>+MinSize +MinSize640x</code> would use the window's current size for the height and 640 for the width.</p>
   <p>If <em>MinSize</em> and <em>MaxSize</em> are never used, the operating system's defaults are used (similarly, <code>Gui.Opt("-MinSize -MaxSize")</code> can be used to return to the defaults). Note: the window must have <a href="#Resize">+Resize</a> to allow resizing by the user.</p>
-  <p id="OwnDialogs"><strong>OwnDialogs</strong>: <code>Gui.Opt("+OwnDialogs")</code> should be specified in each <a href="../misc/Threads.htm">thread</a> (such as a ButtonOK event handing function) for which subsequently displayed <a href="MsgBox.htm">MsgBox</a>, <a href="InputBox.htm">InputBox</a>, <a href="FileSelect.htm">FileSelect</a>, and <a href="DirSelect.htm">DirSelect</a> dialogs should be owned by the window. Such dialogs are modal, meaning that the user cannot interact with the GUI window until dismissing the dialog. By contrast, <a href="ToolTip.htm">ToolTip</a> do not become modal even though they become owned; they will merely stay always on top of their owner. In either case, any owned dialog or window is automatically destroyed when its GUI window is <a href="../objects/Gui.htm#Destroy">destroyed</a>.</p>
+  <p id="OwnDialogs"><strong>OwnDialogs</strong>: <code>Gui.Opt("+OwnDialogs")</code> should be specified in each <a href="../misc/Threads.htm">thread</a> (such as a event handling function of a Button control) for which subsequently displayed <a href="MsgBox.htm">MsgBox</a>, <a href="InputBox.htm">InputBox</a>, <a href="FileSelect.htm">FileSelect</a>, and <a href="DirSelect.htm">DirSelect</a> dialogs should be owned by the window. Such dialogs are modal, meaning that the user cannot interact with the GUI window until dismissing the dialog. By contrast, <a href="ToolTip.htm">ToolTip</a> do not become modal even though they become owned; they will merely stay always on top of their owner. In either case, any owned dialog or window is automatically destroyed when its GUI window is <a href="../objects/Gui.htm#Destroy">destroyed</a>.</p>
   <p>There is typically no need to turn this setting back off because it does not affect other <a href="../misc/Threads.htm">threads</a>. However, if a thread needs to display both owned and unowned dialogs, it may turn off this setting via <code>Gui.Opt("-OwnDialogs")</code>.</p>
   <p id="Owner"><strong>Owner</strong>: Use <em>+Owner</em> to make the window owned by another. An owned window has no taskbar button by default, and when visible it is always on top of its owner. It is also automatically destroyed when its owner is destroyed. <em>+Owner</em> can be used before or after the owned window is created. There are two ways to use <em>+Owner</em>, as shown below:</p>
   <pre>Gui.Opt("+OwnerMyOtherGui")  <em>; Make the GUI owned by <i>MyOtherGui</i>.</em>
@@ -123,7 +123,7 @@ Gui.Add("Text", "First name:")
 Gui.Add("Text", "Last name:")
 Gui.Add("Edit",, "vFirstName ym")  <em>; The ym option starts a new column of controls.</em>
 Gui.Add("Edit",, "vLastName")
-Gui.Add("Button", "OK", "default")  <em>; The function ButtonOK (if it exists) will be run when the button is pressed.</em>
+Gui.Add("Button", "OK", "default gButtonOK")  <em>; The function ButtonOK will be run when the button is pressed.</em>
 Gui.Show()
 
 ButtonOK()
@@ -148,7 +148,7 @@ Gui.Add("Radio", "Sample radio2")
 Tab.UseTab(3)
 Gui.Add("Edit",, "vMyEdit r5")  <em>; r5 means 5 rows tall.</em>
 Tab.UseTab()  <em>; i.e. subsequently-added controls will not belong to the tab control.</em>
-Gui.Add("Button", "OK", "default xm")  <em>; xm puts it at the bottom left corner.</em>
+Gui.Add("Button", "OK", "default xm gButtonOK")  <em>; xm puts it at the bottom left corner.</em>
 Gui.Show()
 
 ButtonOK()
@@ -172,7 +172,7 @@ GuiClose(Gui)
 Gui := GuiCreate()
 Gui.Add("Text", "Pick a file to launch from the list below.")
 LB := Gui.Add("ListBox",, "gMyListBox w640 r10")
-Gui.Add("Button", "OK", "Default")
+Gui.Add("Button", "OK", "Default gButtonOK")
 Loop, Files, C:\*.*  <em>; Change this folder and wildcard pattern to suit your preferences.</em>
     LB.Add(A_LoopFilePath)
 Gui.Show()
@@ -255,7 +255,7 @@ return</pre>
 Gui := GuiCreate()
 Gui.BackColor := "White"
 Gui.Add("Picture", "%A_WinDir%\Web\Wallpaper\Windows\img0.jpg", "x0 y0 h350 w450")
-Gui.Add("Button", "Start the Bar Moving", "Default xp+20 yp+250")
+Gui.Add("Button", "Start the Bar Moving", "Default xp+20 yp+250 gButtonStartTheBarMoving")
 Gui.Add("Progress",, "vMyProgress w416")
 Gui.Add("Text",, "vMyText wp")  <em>; wp means "use width of previous".</em>
 Gui.Show()
@@ -277,7 +277,7 @@ ButtonStartTheBarMoving()
 <pre class="NoIndent"><em>; Example: Simple image viewer:</em>
 
 Gui := GuiCreate(, "+Resize")
-Gui.Add("Button", "&amp;Load New Image", "default")
+Gui.Add("Button", "&amp;Load New Image", "default gButtonLoadNewImage")
 Gui.Add("Radio", "Load &amp;actual size", "ym+5 x+10 vRadio checked")
 Gui.Add("Radio", "Load to &amp;fit screen", "ym+5 x+10")
 Gui.Add("Pic",, "xm vPic")
@@ -365,7 +365,7 @@ MenuHelpAbout:
 About := GuiCreate(, "+owner%Gui.Hwnd%", "About")  <em>; Make the main window the owner of the "about box".</em>
 Gui.Opt("+Disabled")  <em>; Disable main window.</em>
 About.Add("Text", "Text for about box.")
-About.Add("Button", "OK", "Default")
+About.Add("Button", "OK", "Default gButtonOK")
 About.Show()
 return
 
