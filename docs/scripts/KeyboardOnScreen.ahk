@@ -45,7 +45,7 @@ k_KeySize := "w%k_KeyWidth% h%k_KeyHeight%"
 k_Position := "x+%k_KeyMargin% %k_KeySize%"
 
 ;---- Create a GUI window for the on-screen keyboard:
-Gui := GuiCreate(, "-Caption +E0x200 +ToolWindow")
+Gui := GuiCreate("-Caption +E0x200 +ToolWindow")
 Gui.SetFont("s%k_FontSize% %k_FontStyle%", k_FontName)
 Gui.BackColor := "F1ECED"  ; This color will be made transparent later below.
 

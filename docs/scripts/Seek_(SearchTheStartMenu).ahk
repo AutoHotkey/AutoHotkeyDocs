@@ -326,7 +326,7 @@ if A_Args[1] != "-scex"
 	NewOpenTarget := PrevOpenTarget
 
 	; CREATE GUI
-	Gui := GuiCreate(version)
+	Gui := GuiCreate(, version)
 
 	; ADD THE TEXT BOX FOR USER TO ENTER THE QUERY STRING
 	FileName := Gui.Add("Edit", NewKeyPhrase, "gtIncrementalSearch W600")

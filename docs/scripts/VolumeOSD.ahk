@@ -49,7 +49,7 @@ HotKey, +#Down, vol_WaveDown
 
 ; Progress window
 
-Gui := GuiCreate(, "+ToolWindow -Caption -Border +Disabled")
+Gui := GuiCreate("+ToolWindow -Caption -Border +Disabled")
 Gui.MarginX := 0, Gui.MarginY := 0
 Master := Gui.Add("Progress",, "w%vol_Width% h%vol_Thick% c%vol_CBM% background%vol_CW%")
 Wave := Gui.Add("Progress",, "w%vol_Width% h%vol_Thick% c%vol_CBW% background%vol_CW%")
