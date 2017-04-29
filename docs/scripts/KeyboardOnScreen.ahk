@@ -47,7 +47,7 @@ k_Position := "x+%k_KeyMargin% %k_KeySize%"
 ;---- Create a GUI window for the on-screen keyboard:
 Gui := GuiCreate(, "-Caption +E0x200 +ToolWindow")
 Gui.SetFont("s%k_FontSize% %k_FontStyle%", k_FontName)
-Gui.BgColor := "F1ECED"  ; This color will be made transparent later below.
+Gui.BackColor := "F1ECED"  ; This color will be made transparent later below.
 
 ;---- Add a button for each key. Position the first button with absolute
 ; coordinates so that all other buttons can be positioned relative to it:
@@ -137,7 +137,7 @@ k_WindowY := k_WorkAreaBottom - k_WindowHeight
 
 WinMove, A,, %k_WindowX%, %k_WindowY%
 WinSetAlwaysOnTop, On, ahk_id %k_ID%
-WinSetTransColor, %Gui.BgColor% 220, ahk_id %k_ID%
+WinSetTransColor, %Gui.BackColor% 220, ahk_id %k_ID%
 
 
 ;---- Set all keys as hotkeys. See www.asciitable.com
