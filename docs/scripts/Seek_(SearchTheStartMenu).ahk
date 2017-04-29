@@ -329,24 +329,24 @@ if A_Args[1] != "-scex"
 	Gui := GuiCreate(, version)
 
 	; ADD THE TEXT BOX FOR USER TO ENTER THE QUERY STRING
-	FileName := Gui.Add("Edit", NewKeyPhrase, "gtIncrementalSearch W600")
+	FileName := Gui.Add("Edit", "gtIncrementalSearch W600", NewKeyPhrase)
 
 	; ADD MY FAV TAGLINE
-	Gui.Add("Text", "What do you seek, my friend?", "X625 Y10")
+	Gui.Add("Text", "X625 Y10", "What do you seek, my friend?")
 
 	; ADD THE STATUS BAR FOR PROVIDING FEEDBACK TO USER
-	StatusBar := Gui.Add("Text",, "X10 Y31 R1 W764")
+	StatusBar := Gui.Add("Text", "X10 Y31 R1 W764")
 
 	; ADD THE SELECTION LISTBOX FOR DISPLAYING SEARCH RESULTS
-	OpenTarget := Gui.Add("ListBox", List, "gTargetSelection X10 Y53 R28 W764 HScroll Disabled")
+	OpenTarget := Gui.Add("ListBox", "gTargetSelection X10 Y53 R28 W764 HScroll Disabled", List)
 
 	; ADD THESE BUTTONS, BUT DISABLE THEM FOR NOW
-	ButtonOPEN := Gui.Add("Button", "Open", "gButtonOPEN Default X10 Y446 Disabled")
-	ButtonOPENDIR := Gui.Add("Button", "Open Directory", "gButtonOPENDIR X59 Y446 Disabled")
-	ButtonSCANSTARTMENU := Gui.Add("Button", "Scan Start-Menu", "gButtonSCANSTARTMENU X340 Y446 Disabled")
+	ButtonOPEN := Gui.Add("Button", "gButtonOPEN Default X10 Y446 Disabled", "Open")
+	ButtonOPENDIR := Gui.Add("Button", "gButtonOPENDIR X59 Y446 Disabled", "Open Directory")
+	ButtonSCANSTARTMENU := Gui.Add("Button", "gButtonSCANSTARTMENU X340 Y446 Disabled", "Scan Start-Menu")
 
 	; ADD THE EXIT BUTTON
-	Gui.Add("Button", "Exit", "gGuiQuit X743 Y446")
+	Gui.Add("Button", "gGuiQuit X743 Y446", "Exit")
 	
 	; ADD EVENTS
 	Gui.OnClose := "Quit"
