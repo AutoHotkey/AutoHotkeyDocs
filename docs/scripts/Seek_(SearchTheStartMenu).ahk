@@ -346,7 +346,7 @@ if A_Args[1] != "-scex"
 	ButtonSCANSTARTMENU := Gui.Add("Button", "Scan Start-Menu", "gButtonSCANSTARTMENU X340 Y446 Disabled")
 
 	; ADD THE EXIT BUTTON
-	Gui.Add("Button", "Exit", "gQuit X743 Y446")
+	Gui.Add("Button", "Exit", "gGuiQuit X743 Y446")
 	
 	; ADD EVENTS
 	Gui.OnClose := "Quit"
@@ -686,7 +686,7 @@ ButtonOPEN()
 		MsgBox %OpenTarget.Text% is neither a DIRECTORY or a FILE. This shouldn't happen. Seek cannot proceed. Quitting...
 	}
 
-	Quit()
+	GuiQuit()
 }
 
 ;... END ButtonOPEN EVENT ..................................
@@ -708,7 +708,7 @@ ButtonOPENDIR()
 
 	; RUN SUBROUTINE TO OPEN A DIRECTORY
 	sOpenDir(OpenTarget.Text)
-	Quit()
+	GuiQuit()
 }
 
 ;... END ButtonOPENDIR EVENT ...............................
@@ -771,7 +771,7 @@ tIncrementalSearch()
 
 ;=== BEGIN Quit SUBROUTINE =================================
 
-Quit()
+GuiQuit()
 {
 	global
 	; SAVE THE KEY WORD/PHRASE FOR NEXT RUN IF IT HAS CHANGED
