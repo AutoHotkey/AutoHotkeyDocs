@@ -79,8 +79,8 @@ return
 
 vol_ShowBars:
 ; Get both volumes in case the user or an external program changed them:
-Master.Value := SoundGet("Master")
-Wave.Value := SoundGet("Wave")
+Master.Value := Round(SoundGet("Master"))
+Wave.Value := Round(SoundGet("Wave"))
 Gui.Show("x%vol_PosX% y%vol_PosY%")
 SetTimer, vol_BarOff, -%vol_DisplayTime%
 return

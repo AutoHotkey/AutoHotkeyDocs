@@ -518,7 +518,7 @@ FindMatches()
 		ButtonOPENDIR.Enabled := true
 		ButtonSCANSTARTMENU.Enabled := true
 		OpenTarget.Focus()
-		If OpenTarget.Value = ""
+		If OpenTarget.Text = ""
 			OpenTarget.Choose(1, 1)
 	}
 
@@ -656,7 +656,7 @@ ButtonOPEN()
 	}
 
 	; NO RECORD FROM THE LISTBOX IS SELECTED
-	If OpenTarget.Value = ""
+	If OpenTarget.Text = ""
 	{
 		MsgBox("Please make a selection before hitting ENTER.`nPress ESC to exit.", version, 8192)
 		EnterQuery()
@@ -664,26 +664,26 @@ ButtonOPEN()
 	}
 
 	; SELECTED RECORD DOES NOT EXIST (FILE OR DIRECTORY NOT FOUND)
-	if !FileExist(OpenTarget.Value)
+	if !FileExist(OpenTarget.Text)
 	{
-		MsgBox("%OpenTarget.Value% does not exist. This means that the directory cache is outdated. You may click on the 'Scan Start-Menu' button below to update the directory cache with your latest directory listing now.", version, 8192)
+		MsgBox("%OpenTarget.Text% does not exist. This means that the directory cache is outdated. You may click on the 'Scan Start-Menu' button below to update the directory cache with your latest directory listing now.", version, 8192)
 		EnterQuery()
 		Return
 	}
 
 	; CHECK WHETHER THE SELECTED RECORD IS A FILE OR DIRECTORY
-	FileGetAttrib, fileAttrib, %OpenTarget.Value%
+	FileGetAttrib, fileAttrib, %OpenTarget.Text%
 	if InStr(fileAttrib, "D") ; IS DIRECTORY
 	{
-		sOpenDir(OpenTarget.Value)
+		sOpenDir(OpenTarget.Text)
 	}
 	Else If fileAttrib <> "" ; IS FILE
 	{
-		Run, %OpenTarget.Value%
+		Run, %OpenTarget.Text%
 	}
 	Else
 	{
-		MsgBox %OpenTarget.Value% is neither a DIRECTORY or a FILE. This shouldn't happen. Seek cannot proceed. Quitting...
+		MsgBox %OpenTarget.Text% is neither a DIRECTORY or a FILE. This shouldn't happen. Seek cannot proceed. Quitting...
 	}
 
 	Quit()
@@ -699,7 +699,7 @@ ButtonOPENDIR()
 {
 	global
 	; CHECK THAT USER HAS SELECTED A RECORD ALREADY
-	If OpenTarget.Value = ""
+	If OpenTarget.Text = ""
 	{
 		MsgBox("Please make a selection first.", version, 8192)
 		EnterQuery()
@@ -707,7 +707,7 @@ ButtonOPENDIR()
 	}
 
 	; RUN SUBROUTINE TO OPEN A DIRECTORY
-	sOpenDir(OpenTarget.Value)
+	sOpenDir(OpenTarget.Text)
 	Quit()
 }
 
@@ -777,11 +777,11 @@ Quit()
 	; SAVE THE KEY WORD/PHRASE FOR NEXT RUN IF IT HAS CHANGED
 	If TrackKeyPhrase = "ON"
 	{
-		If (PrevKeyPhrase <> Filename.Value || PrevOpenTarget <> OpenTarget.Value)
+		If (PrevKeyPhrase <> Filename.Value || PrevOpenTarget <> OpenTarget.Text)
 		{
 			FileDelete, %keyPhrase%
 			FileAppend, %Filename.Value%`n, %keyPhrase%
-			FileAppend, %OpenTarget.Value%`n, %keyPhrase%
+			FileAppend, %OpenTarget.Text%`n, %keyPhrase%
 		}
 	}
 	ExitApp ; JOB DONE. G'DAY!
