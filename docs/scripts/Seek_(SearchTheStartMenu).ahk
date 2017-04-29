@@ -500,7 +500,7 @@ FindMatches()
 		Return
 	}
 
-	If List = "|"
+	If List = ""
 	{
 		; NOT EVEN A SINGLE MATCHING RECORD IS FOUND.
 		; LET USER MODIFY THE QUERY STRING AND TRY AGAIN.
@@ -537,7 +537,7 @@ SilentFindMatches()
 	sfmFilename := Filename.Value
 
 	; FILTER MATCHING RECORDS BASED ON USER QUERY STRING
-	List := "|"
+	List := ""
 	If sfmFilename <> ""
 	{
 		Loop, read, %dirListing%
@@ -576,9 +576,10 @@ SilentFindMatches()
 	}
 
 	; REFRESH LIST WITH SEARCH RESULTS
-	OpenTarget.Value := List
+	OpenTarget.Delete()
+	OpenTarget.Add(List)
 
-	If List = "|"
+	If List = ""
 	{
 		; NO MATCHING RECORD IS FOUND
 		; DISABLE LISTBOX
