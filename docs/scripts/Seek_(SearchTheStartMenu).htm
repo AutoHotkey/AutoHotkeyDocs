@@ -339,27 +339,27 @@ if A_Args[1] != "-scex"
     NewOpenTarget := PrevOpenTarget
 
     <em>; CREATE GUI</em>
-    Gui := GuiCreate(version)
+    Gui := GuiCreate(, version)
 
     <em>; ADD THE TEXT BOX FOR USER TO ENTER THE QUERY STRING</em>
-    FileName := Gui.Add("Edit", NewKeyPhrase, "gtIncrementalSearch W600")
+    FileName := Gui.Add("Edit", "gtIncrementalSearch W600", NewKeyPhrase)
 
     <em>; ADD MY FAV TAGLINE</em>
-    Gui.Add("Text", "What do you seek, my friend?", "X625 Y10")
+    Gui.Add("Text", "X625 Y10", "What do you seek, my friend?")
 
     <em>; ADD THE STATUS BAR FOR PROVIDING FEEDBACK TO USER</em>
-    StatusBar := Gui.Add("Text",, "X10 Y31 R1 W764")
+    StatusBar := Gui.Add("Text", "X10 Y31 R1 W764")
 
     <em>; ADD THE SELECTION LISTBOX FOR DISPLAYING SEARCH RESULTS</em>
-    OpenTarget := Gui.Add("ListBox", List, "gTargetSelection X10 Y53 R28 W764 HScroll Disabled")
+    OpenTarget := Gui.Add("ListBox", "gTargetSelection X10 Y53 R28 W764 HScroll Disabled", List)
 
     <em>; ADD THESE BUTTONS, BUT DISABLE THEM FOR NOW</em>
-    ButtonOPEN := Gui.Add("Button", "Open", "gButtonOPEN Default X10 Y446 Disabled")
-    ButtonOPENDIR := Gui.Add("Button", "Open Directory", "gButtonOPENDIR X59 Y446 Disabled")
-    ButtonSCANSTARTMENU := Gui.Add("Button", "Scan Start-Menu", "gButtonSCANSTARTMENU X340 Y446 Disabled")
+    ButtonOPEN := Gui.Add("Button", "gButtonOPEN Default X10 Y446 Disabled", "Open")
+    ButtonOPENDIR := Gui.Add("Button", "gButtonOPENDIR X59 Y446 Disabled", "Open Directory")
+    ButtonSCANSTARTMENU := Gui.Add("Button", "gButtonSCANSTARTMENU X340 Y446 Disabled", "Scan Start-Menu")
 
     <em>; ADD THE EXIT BUTTON</em>
-    Gui.Add("Button", "Exit", "gQuit X743 Y446")
+    Gui.Add("Button", "gGuiQuit X743 Y446", "Exit")
   
     <em>; ADD EVENTS</em>
     Gui.OnClose := "Quit"
@@ -513,7 +513,7 @@ FindMatches()
         Return
     }
 
-    If List = "|"
+    If List = ""
     {
         <em>; NOT EVEN A SINGLE MATCHING RECORD IS FOUND.</em>
         <em>; LET USER MODIFY THE QUERY STRING AND TRY AGAIN.</em>
@@ -531,7 +531,7 @@ FindMatches()
         ButtonOPENDIR.Enabled := true
         ButtonSCANSTARTMENU.Enabled := true
         OpenTarget.Focus()
-        If OpenTarget.Value = ""
+        If OpenTarget.Text = ""
             OpenTarget.Choose(1, 1)
     }
 
@@ -550,7 +550,7 @@ SilentFindMatches()
     sfmFilename := Filename.Value
 
     <em>; FILTER MATCHING RECORDS BASED ON USER QUERY STRING</em>
-    List := "|"
+    List := ""
     If sfmFilename &lt;&gt; ""
     {
         Loop, read, %dirListing%
@@ -589,9 +589,10 @@ SilentFindMatches()
     }
 
     <em>; REFRESH LIST WITH SEARCH RESULTS</em>
-    OpenTarget.Value := List
+    OpenTarget.Delete()
+    OpenTarget.Add(List)
 
-    If List = "|"
+    If List = ""
     {
         <em>; NO MATCHING RECORD IS FOUND</em>
         <em>; DISABLE LISTBOX</em>
@@ -668,7 +669,7 @@ ButtonOPEN()
     }
 
     <em>; NO RECORD FROM THE LISTBOX IS SELECTED</em>
-    If OpenTarget.Value = ""
+    If OpenTarget.Text = ""
     {
         MsgBox("Please make a selection before hitting ENTER.`nPress ESC to exit.", version, 8192)
         EnterQuery()
@@ -676,29 +677,29 @@ ButtonOPEN()
     }
 
     <em>; SELECTED RECORD DOES NOT EXIST (FILE OR DIRECTORY NOT FOUND)</em>
-    if !FileExist(OpenTarget.Value)
+    if !FileExist(OpenTarget.Text)
     {
-        MsgBox("%OpenTarget.Value% does not exist. This means that the directory cache is outdated. You may click on the 'Scan Start-Menu' button below to update the directory cache with your latest directory listing now.", version, 8192)
+        MsgBox("%OpenTarget.Text% does not exist. This means that the directory cache is outdated. You may click on the 'Scan Start-Menu' button below to update the directory cache with your latest directory listing now.", version, 8192)
         EnterQuery()
         Return
     }
 
     <em>; CHECK WHETHER THE SELECTED RECORD IS A FILE OR DIRECTORY</em>
-    FileGetAttrib, fileAttrib, %OpenTarget.Value%
+    FileGetAttrib, fileAttrib, %OpenTarget.Text%
     if InStr(fileAttrib, "D") <em>; IS DIRECTORY</em>
     {
-        sOpenDir(OpenTarget.Value)
+        sOpenDir(OpenTarget.Text)
     }
     Else If fileAttrib &lt;&gt; "" <em>; IS FILE</em>
     {
-        Run, %OpenTarget.Value%
+        Run, %OpenTarget.Text%
     }
     Else
     {
-        MsgBox %OpenTarget.Value% is neither a DIRECTORY or a FILE. This shouldn't happen. Seek cannot proceed. Quitting...
+        MsgBox %OpenTarget.Text% is neither a DIRECTORY or a FILE. This shouldn't happen. Seek cannot proceed. Quitting...
     }
 
-    Quit()
+    GuiQuit()
 }
 
 <em>;... END ButtonOPEN EVENT ..................................</em>
@@ -711,7 +712,7 @@ ButtonOPENDIR()
 {
     global
     <em>; CHECK THAT USER HAS SELECTED A RECORD ALREADY</em>
-    If OpenTarget.Value = ""
+    If OpenTarget.Text = ""
     {
         MsgBox("Please make a selection first.", version, 8192)
         EnterQuery()
@@ -719,8 +720,8 @@ ButtonOPENDIR()
     }
 
     <em>; RUN SUBROUTINE TO OPEN A DIRECTORY</em>
-    sOpenDir(OpenTarget.Value)
-    Quit()
+    sOpenDir(OpenTarget.Text)
+    GuiQuit()
 }
 
 <em>;... END ButtonOPENDIR EVENT ...............................</em>
@@ -783,17 +784,17 @@ tIncrementalSearch()
 
 <em>;=== BEGIN Quit SUBROUTINE =================================</em>
 
-Quit()
+GuiQuit()
 {
     global
     <em>; SAVE THE KEY WORD/PHRASE FOR NEXT RUN IF IT HAS CHANGED</em>
     If TrackKeyPhrase = "ON"
     {
-        If (PrevKeyPhrase &lt;&gt; Filename.Value || PrevOpenTarget &lt;&gt; OpenTarget.Value)
+        If (PrevKeyPhrase &lt;&gt; Filename.Value || PrevOpenTarget &lt;&gt; OpenTarget.Text)
         {
             FileDelete, %keyPhrase%
             FileAppend, %Filename.Value%`n, %keyPhrase%
-            FileAppend, %OpenTarget.Value%`n, %keyPhrase%
+            FileAppend, %OpenTarget.Text%`n, %keyPhrase%
         }
     }
     ExitApp <em>; JOB DONE. G'DAY!</em>

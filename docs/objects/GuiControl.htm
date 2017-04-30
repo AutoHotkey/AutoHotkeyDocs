@@ -13,7 +13,7 @@
 <p>Provides an interface for modifying GUI controls and retrieving information about them. <a href="Gui.htm#Add">Gui.Add</a>, <a href="Gui.htm#Control">Gui.Control</a>,&nbsp;<a href="../commands/GuiCtrlFromHwnd.htm">GuiCtrlFromHwnd</a> and <a href="Gui.htm#_NewEnum">Gui._NewEnum</a> returns an object of this type.</p>
 <h4 id="Quick_Reference">Quick Reference:</h4>
 <ul>
-  <li><a href="#Type">Type</a>: Retrieves the type of the control. (Not implemented yet)</li>
+  <li><a href="#Type">Type</a>: Retrieves the type of the control.</li>
   <li><a href="#Hwnd">Hwnd</a>: Retrieves the HWND of the control.</li>
   <li><a href="#Name">Name</a>: Retrieves or sets the explicit name of the control.</li>
   <li><a href="#ClassNN">ClassNN</a>: Retrieves the ClassNN of the control.</li>
@@ -22,19 +22,23 @@
   <li><a href="#Opt">Opt</a>: Sets various options and styles for the appearance and behavior of the control.</li>
   <li><a href="#Move">Move</a>: Moves and/or resizes the control. </li>
   <li><a href="#Focus">Focus</a>: Sets keyboard focus to the control.</li>
-  <li><a href="#Choose">Choose</a>: Sets the selection in the control to be the specified value.</li>
-  <li><a href="#UseTab">UseTab</a>: Causes the control to be belong to the specified tab.</li>
-  <li><a href="#Value">Value</a>: Retrieves or sets new contents into the control.</li>
-  <li><a href="#Text">Text</a>: Retrieves or sets the text/caption of the control unconditionally.</li>
+  <li><a href="#Choose">Choose</a>: Sets the selection in a ListBox, DropDownList, ComboBox, or Tab control to be the specified value.</li>
+  <li><a href="#UseTab">UseTab</a>: Causes subsequently added controls to be belong to the specified tab of a Tab control.</li>
+  <li><a href="#Add">Add</a>: Appends the specified entries at the current list of a ListBox, DropDownList, ComboBox, or Tab control.</li>
+  <li><a href="#Delete">Delete</a>: Deletes the specified entry or all entries of a ListBox, DropDownList, ComboBox, or Tab control.</li>
+  <li><a href="#Value">Value</a>: Retrieves or sets new contents into a value-capable control.</li>
+  <li><a href="#Text">Text</a>: Retrieves or sets the text/caption of the control.</li>
   <li><a href="#Enabled">Enabled</a>: Retrieves the current interaction state of the control, or enables or disables (grays out) it.</li>
   <li><a href="#Visible">Visible</a>: Retrieves the current visibility state of the control, or shows or hides it.</li>
+  <li><a href="#Focused">Focused</a>: Retrieves the current focus state of the control.</li>
   <li><a href="#Pos">Pos</a>: Retrieves the position and size of the control.</li>
 </ul>
 
 <div class="methodShort" id="Type">
 <h2>Type</h2>
-<p>Retrieves the type of the control. (Not implemented yet)</p>
+<p>Retrieves the type of the control.</p>
 <pre class="Syntax">Type := GuiCtrl.Type</pre>
+  <p>For a full list of control types, see <a href="../commands/GuiControls.htm">GUI control types</a>.</p>
 </div>
 
 <div class="methodShort" id="Hwnd">
@@ -114,12 +118,12 @@ MyEdit.Move("x%VarX+10% y%VarY+5% w%VarW*2% h%VarH*1.5%")</pre>
 
 <div class="methodShort" id="Choose">
 <h2>Choose</h2>
-<p>Sets the selection in a ListBox, DropDownList, ComboBox, or Tab control to be the Nth entry.</p>
-<pre class="Syntax">GuiCtrl.Choose(N [, AdditionalActions := 0])</pre>
+<p>Sets the selection in a ListBox, DropDownList, ComboBox, or Tab control to be the specified value.</p>
+<pre class="Syntax">GuiCtrl.Choose(Value [, AdditionalActions := 0])</pre>
 <dl>
-  <dt>N</dt><dd>This parameter should be 1 for the first entry, 2 for the second, etc. If <em>N</em> is not an integer, the entry whose leading part matches <em>N</em> will be selected. The search is not case sensitive. For example, if a the control contains the item "UNIX Text", specifying the word unix (lowercase) would be enough to select it. If <em>N</em> is zero, the current selection is removed.</dd>
-  <dt>AdditionalActions</dt><dd><p>If this parameter is 1, the method will trigger any <a href="Gui.htm#label">g-label</a> associated with the control, like  <a href="../commands/Control.htm">Control Choose</a>. However, the g-label is triggered only when the new selection is different than the old one, at least for <a href="../commands/GuiControls.htm#Tab">Tab controls</a>. For example: <code>MyListBox.Choose(3, 1)</code>.</p>
-  <p>If this parameter is 2,  a finishing event occurs (a double-click in the case of ListBox). Tab controls are not supported.</p></dd>
+  <dt>Value</dt><dd>This parameter should be 1 for the first entry, 2 for the second, etc. If <em>Value</em> is not an integer, the entry whose leading part matches <em>Value</em> will be selected. The search is not case sensitive. For example, if a the control contains the item "UNIX Text", specifying the word unix (lowercase) would be enough to select it. If <em>Value</em> is zero, the current selection is removed.</dd>
+  <dt>AdditionalActions</dt><dd><p>If this parameter is 1, the method will trigger any <a href="Gui.htm#label">g-label</a> associated with the control, like  <a href="../commands/Control.htm">Control Choose</a>. For example: <code>MyListBox.Choose(3, 1)</code>.</p>
+  <p>If this parameter is 2,  additionally to the above a finishing event occurs (a double-click in the case of ListBox or ComboBox with the <a href="../misc/Styles.htm#CBS_SIMPLE">+Simple option</a>). Tab controls are not supported.</p></dd>
 </dl>
 <p>To select or deselect <u>all</u> items in a <a href="../commands/GuiControls.htm#ListBoxMulti">multi-select ListBox</a>, follow this example:</p>
 <pre>Gui.Opt("+LastFound")  <em>; Avoids the need to specify WinTitle below.</em>
@@ -130,40 +134,63 @@ ListBox.Choose(0)  <em>; Deselect all items.</em></pre>
 
 <div class="methodShort" id="UseTab">
 <h2>UseTab</h2>
-<p>Causes subsequently added controls to be belong to the specified tab. Requires the GuiControl object of a <a href="../commands/GuiControls.htm#Tab">tab control</a>.</p>
+<p>Causes subsequently added controls to be belong to the specified tab of a Tab control.</p>
 <pre class="Syntax">GuiCtrl.UseTab([Value, ExactMatch := false])</pre>
 <dl>
-  <dt>Value</dt><dd>If this parameter is a pure integer, it is a tab index; otherwise it is text.</dd>
-  <dt>ExactMatch</dt><dd>If this parameter is true, <em>Value</em> has to be an exact match.</dd>
+  <dt>Value</dt><dd>This parameter should be 1 for the first tab, 2 for the second, etc. If <em>Value</em> is not an integer, the tab whose leading part matches <em>Value</em> will be used. The search is not case sensitive. For example, if a the control contains the tab "UNIX Text", specifying the word unix (lowercase) would be enough to use it. If <em>Value</em> is zero, a blank string or omitted, subsequently controls are added outside the Tab control.</dd>
+  <dt>ExactMatch</dt><dd>If this parameter is true, <em>Value</em> has to be an exact match, but not case sensitive.</dd>
 </dl>
-<p>Note: Omit all parameters to stop adding controls inside this Tab control.</p>
+</div>
+
+<div class="methodShort" id="Add">
+<h2>Add</h2>
+<p>Appends the specified entries at the current list of a ListBox, DropDownList, ComboBox, or Tab control.</p>
+<pre class="Syntax">GuiCtrl.Add(ArrayOrList)</pre>
+<dl>
+  <dt>ArrayOrList</dt><dd>A pipe-delimited list of entries (e.g. <code>"Red|Green|Blue"</code>) or an array of entries (e.g. <code>["Red", "Green", "Blue"]</code>) to be appended at the end of the control's list. To replace (overwrite) the list instead, use <a href="#Delete">GuiCtrl.Delete</a> beforehand. When using pipes, one of the entries can be pre-selected by including two pipes after it (e.g. <code>"Red|Green||Blue"</code>), otherwise use <a href="#Choose">GuiCtrl.Choose</a>. The separator between text fields may be changed to something other than pipe. For example, <code>Gui.Opt("+<a href="../commands/GuiCreate.htm#Delimiter">Delimiter</a>`n")</code> would change it to linefeed and <code>Gui.Opt("+DelimiterTab")</code> would change it to tab (`t).</dd>
+</dl>
+</div>
+
+<div class="methodShort" id="Delete">
+<h2>Delete</h2>
+<p>Deletes the specified entry or all entries of a ListBox, DropDownList, ComboBox, or Tab control.</p>
+<pre class="Syntax">GuiCtrl.Delete([Value])</pre>
+<dl>
+  <dt>Value</dt><dd>This parameter should be 1 for the first entry, 2 for the second, etc. If omitted, all entries are deleted.</dd>
+</dl>
+<p>For tab controls, you should note that a tab's sub-controls stay associated with their original tab number; that is, they are never associated with their tab's actual display-name. For this reason, renaming or removing a tab will not change the tab number to which the sub-controls belong. For example, if there are three tabs "Red|Green|Blue" and the second tab is removed by means of <code>MyTab.Delete(2)</code>, the sub-controls originally associated with Green will now be associated with Blue. Because of this behavior, only tabs at the end should generally be removed. Tabs that are removed in this way can be added back later, at which time they will reclaim their original set of controls.</p>
+
 </div>
 
 <div class="methodShort" id="Value">
 <h2>Value</h2>
-<p>Retrieves or sets new contents into the control, depending of its type.</p>
+<p>Retrieves or sets new contents into a value-capable control.</p>
 <pre class="Syntax">RetrievedValue := GuiCtrl.Value</pre>
 <pre class="Syntax">GuiCtrl.Value := NewValue</pre>
+  <p>Note: If the control is not value-capable, <em>RetrievedValue</em> will be blank and assigning <em>NewValue</em> will raise an error. Invalid values throw an exception.</p>
+  <p>Following control types are value-capable:</p>
 
 <h4><a href="../commands/GuiControls.htm#Picture">Picture</a></h4>
 <p><em>RetrievedValue</em> is the picture's file name as it was originally specified when the control was created. This name does not change even if a new picture file name is specified.</p>
 <p><em>NewValue</em> is the filename (or <a href="../misc/ImageHandles.htm">handle</a>) of the new image to load (see <a href="../commands/GuiControls.htm#Picture">Picture</a> for supported file types). Zero or more of the following options may be specified immediately in front of the filename: <code>*wN</code> (width N), <code>*hN</code> (height N), and <code>*IconN</code> (icon group number N in a DLL or EXE file).  In the following example, the default icon from the second icon group is loaded with a width of 100 and an automatic height via "keep aspect ratio": <code>MyPic.Value("*icon2 *w100 *h-1 C:\My Application.exe")</code>. Specify <code>*w0 *h0</code> to use the image's actual width and height. If <code>*w</code> and <code>*h</code> are omitted, the image will be scaled to fit the current size of the control. When loading from a multi-icon .ICO file, specifying a width and height also determines which icon to load. Note: Use only one space or tab between the final option and the filename itself; any other spaces and tabs are treated as part of the filename.</p>
 
-<h4><a href="../commands/GuiControls.htm#Text">Text</a> / <a href="../commands/GuiControls.htm#Button">Button</a> / <a href="../commands/GuiControls.htm#GroupBox">GroupBox</a></h4>
+<h4><a href="../commands/GuiControls.htm#Text">Text</a></h4>
 <p><em>RetrievedValue</em> is the text/caption of the control.</p>
 <p><em>NewValue</em> is the control's new text. Since the control will not expand automatically, use <code>GuiCtrl.<a href="#Move">Move</a>("w300")</code> if the control needs to be widened.</p>
 
 <h4><a href="../commands/GuiControls.htm#Edit">Edit</a></h4>
-<p><em>RetrievedValue</em> is the contents but any line breaks in the text will be represented as plain linefeeds (`n) rather than the traditional CR+LF (`r`n) used by non-GUI commands such as <a href="../commands/ControlGetText.htm">ControlGetText</a> and <a href="../commands/ControlSetText.htm">ControlSetText</a>.</p>
-<p><em>NewValue</em> is the new content. Any linefeeds (`n) in <em>NewValue</em> that lack a preceding carriage return (`r) are automatically translated to CR+LF (`r`n) to make them display properly. However, this is usually not a concern because when using <code>Gui.Submit()</code> or when retrieving this value this translation will be reversed automatically by replacing CR+LF with LF (`n).</p>
+<p><em>RetrievedValue</em> is the current content of the control. For multi-line controls, any line breaks in the text will be represented as plain linefeeds (`n) rather than the traditional CR+LF (`r`n) used by non-GUI commands such as <a href="../commands/ControlGetText.htm">ControlGetText</a> and <a href="../commands/ControlSetText.htm">ControlSetText</a>.</p>
+<p><em>NewValue</em> is the new content. For multi-line controls, Any linefeeds (`n) in <em>NewValue</em> that lack a preceding carriage return (`r) are automatically translated to CR+LF (`r`n) to make them display properly. However, this is usually not a concern because when using <code>Gui.Submit()</code> or when retrieving this value this translation will be reversed automatically by replacing CR+LF with LF (`n).</p>
+  <p>To bypass this End-of-Line translations, use <strong>GuiCtrl.Text</strong> described below.</p>
 
 <h4><a href="../commands/GuiControls.htm#Hotkey">Hotkey</a></h4>
 <p><em>RetrievedValue</em> is the modifiers and key name if there is a hotkey in the control; otherwise blank. Examples: <code>^!C</code>, <code>^Home</code>, <code>+^NumpadHome</code>.</p>
 <p><em>NewValue</em> can be a set of modifiers with a key name, or blank to clear the control. Examples: <code>^!c</code>, <code>^Numpad1</code>, <code>+Home</code>. The only modifiers supported are ^ (Control), ! (Alt), and + (Shift). See the <a href="../KeyList.htm">key list</a> for available key names.</p>
 
 <h4><a href="../commands/GuiControls.htm#Checkbox">Checkbox</a> / <a href="../commands/GuiControls.htm#Radio">Radio</a></h4>
-<p><em>RetrievedValue</em> is 1 if the control is checked, 0 if it is unchecked, or -1 if it has a gray checkmark. To retrieve the control's text/caption instead, use <strong>GuiCtrl.Text</strong>.</p>
-<p><em>NewValue</em> can be 0 to uncheck the button, 1 to check it, or -1 to give it a gray checkmark. Otherwise, <em>NewValue </em>is assumed to be the control's new caption/text. See <strong>GuiCtrl.Text</strong> below for how to override this behavior. For Radio buttons,  if one is being checked (turned on) and it is a member of a multi-radio group, the other radio buttons in its group will be automatically unchecked. <!--To check a new button within a radio group that only has one variable, specify for <em>ControlID</em> the name/text of the button if it is not the button with which the variable is directly associated.--></p>
+<p><em>RetrievedValue</em> is 1 if the control is checked, 0 if it is unchecked, or -1 if it has a gray checkmark.</p>
+<p><em>NewValue</em> can be 0 to uncheck the button, 1 to check it, or -1 to give it a gray checkmark. For Radio buttons,  if one is being checked (turned on) and it is a member of a multi-radio group, the other radio buttons in its group will be automatically unchecked.</p>
+  <p>To get or set control's text/caption instead, use <strong>GuiCtrl.Text</strong> described below.</p>
 
 <h4><a href="../commands/GuiControls.htm#DateTime">DateTime</a> / <a href="../commands/GuiControls.htm#MonthCal">MonthCal</a></h4>
 <p><em>RetrievedValue</em> is a date-time stamp in <a href="../commands/FileSetTime.htm#YYYYMMDD">YYYYMMDDHH24MISS</a> format.</p>
@@ -171,18 +198,12 @@ ListBox.Choose(0)  <em>; Deselect all items.</em></pre>
 
 <h4><a href="../commands/GuiControls.htm#UpDown">UpDown</a> / <a href="../commands/GuiControls.htm#Slider">Slider</a> / <a href="../commands/GuiControls.htm#Progress">Progress</a></h4>
 <p><em>RetrievedValue</em> is the control's current position.</p>
-<p><em>NewValue</em> is the new position of the control. If <em>NewValue</em>'s first character is a plus sign, the number will be assumed to be an offset from the current position. For example, <code>+10</code> would increase the position by 10 and <code>+-10</code> (plus minus ten) would decrease it by 10. If the new position would be outside the range of the control, the control is generally set to the nearest valid value.</p>
+<p><em>NewValue</em> is the new position of the control, for example <code>MySlider.Value := 10</code>. To adjust the value by a relative amount, use the operators <code>+=</code>, <code>-=</code>, <code>++</code> or <code>--</code> instead of <code>:=</code>. If the new position would be outside the range of the control, the control is generally set to the nearest valid value.</p>
 
 <h4><a href="../commands/GuiControls.htm#Tab">Tab</a> / <a href="../commands/GuiControls.htm#DropDownList">DropDownList</a> / <a href="../commands/GuiControls.htm#ComboBox">ComboBox</a> / <a href="../commands/GuiControls.htm#ListBox">ListBox</a></h4>
-<p><em>RetrievedValue</em> is the text of the currently selected item/tab (or its position if the control has the <a href="Gui.htm#AltSubmit">AltSubmit</a> property). For a ComboBox, if there is no selected item, the text in the control's edit field is retrieved instead. For a <a href="../commands/GuiControls.htm#ListBoxMulti">multi-select ListBox</a>, the output is an array.</p>
-<p><em>NewValue</em> contains a pipe-delimited list of entries to be appended at the end of the control's list. To replace (overwrite) the list instead, include a pipe as the first character (e.g. <code>"|Red|Green|Blue"</code>) or use an array (e.g. <code>["Red","Green","Blue"]</code>). To make the control empty, specify only a pipe character (<code>"|"</code>) or an blank array (<code>[]</code>). To have one of the entries pre-selected, include two pipes after it (e.g. <code>Red|Green||Blue</code>). The separator between text fields may be changed to something other than pipe. For example, <code>Gui.Opt("+<a href="../commands/GuiCreate.htm#Delimiter">Delimiter</a>`n")</code> would change it to linefeed and <code>Gui.Opt("+DelimiterTab")</code> would change it to tab (`t).</p>
-<p>For tab controls, you should not that a tab's sub-controls stay associated with their original tab number; that is, they are never associated with their tab's actual display-name. For this reason, renaming or removing a tab will not change the tab number to which the sub-controls belong. For example, if there are three tabs "Red|Green|Blue" and the second tab is removed by means of <code>MyTab.Value("|Red|Blue")</code>, the sub-controls originally associated with Green will now be associated with Blue. Because of this behavior, only tabs at the end should generally be removed. Tabs that are removed in this way can be added back later, at which time they will reclaim their original set of controls.</p>
-
-<h4><a href="../commands/ListView.htm">ListView</a> / <a href="../commands/TreeView.htm">TreeView</a></h4>
-<p>These are not supported. Instead, use the built-in <a href="../commands/ListView.htm#BuiltIn">ListView functions</a> and <a href="../commands/TreeView.htm#BuiltIn">TreeView functions</a>.</p>
-
-<h4><a href="../commands/GuiControls.htm#StatusBar">StatusBar</a></h4>
-<p><em>RetrievedValue</em> and <em>NewValue</em> is the text of the first part only (use <a href="../commands/GuiControls.htm#SB_SetText">SB.SetText</a> for greater flexibility).</p>
+<p><em>RetrievedValue</em> is the position of the currently selected item/tab or zero if none is selected. For a ComboBox, if there is no selected item, the text in the control's edit field is retrieved instead. For a <a href="../commands/GuiControls.htm#ListBoxMulti">multi-select ListBox</a>, the output is an array.</p>
+<p><em>NewValue</em> is the position of a single item/tab to select. To select multiple items, call <strong>GuiCtrl.Choose</strong> repeatedly.</p>
+<p>To get or set the text instead of the position, use <strong>GuiCtrl.Text</strong> described below.</p>
 
 <h4><a href="../commands/GuiControls.htm#ActiveX">ActiveX</a></h4>
 <p><em>RetrievedValue</em> is a new wrapper object for the control's ActiveX component.</p>
@@ -190,19 +211,33 @@ ListBox.Choose(0)  <em>; Deselect all items.</em></pre>
 
 <div class="methodShort" id="Text">
 <h2>Text</h2>
-<p>Retrieves or sets the text/caption of the control unconditionally, depending of its type.</p>
+<p>Retrieves or sets the text/caption of the control.</p>
 <pre class="Syntax">RetrievedText := GuiCtrl.Text</pre>
 <pre class="Syntax">GuiCtrl.Text := NewText</pre>
-<p>Behaves the same as <strong>GuiCtrl.Value</strong> above except for:</p>
+<p>Note: If the control has no visible caption text and no (single) text value, this property corresponds to the control's hidden caption text (like <a href="../commands/ControlGetText.htm">ControlGetText</a>/<a href="../commands/ControlSetText.htm">ControlSetText</a>).</p>
+<p>Following control types usually have a visible text/caption:</p>
+
+<h4><a href="../commands/GuiControls.htm#Text">Text</a> / <a href="../commands/GuiControls.htm#Button">Button</a> / <a href="../commands/GuiControls.htm#GroupBox">GroupBox</a> / <a href="../commands/GuiControls.htm#Link">Link</a></h4>
+<p><em>RetrievedText</em> is the text/caption of the control.</p>
+<p><em>NewText</em> is the control's new text. Since the control will not expand automatically, use <code>GuiCtrl.<a href="#Move">Move</a>("w300")</code> if the control needs to be widened.</p>
+
+<h4><a href="../commands/GuiControls.htm#Edit">Edit</a></h4>
+<p><em>RetrievedText</em> and <em>NewText</em> is the content of the control. Unlike <strong>GuiCtrl.Value</strong> described above, there is no End-of-Line translation.</p>
 
 <h4><a href="../commands/GuiControls.htm#Checkbox">Checkbox</a> / <a href="../commands/GuiControls.htm#Radio">Radio</a></h4>
-<p><em>RetrievedText</em> and <em>NewText</em> is text/caption of the control, even if is -1, 0, or 1.</p>
+<p><em>RetrievedText</em> and <em>NewText</em> is the text/caption of the control.</p>
+  <p>To get or set control's state instead, use <strong>GuiCtrl.Value</strong> described above.</p>
 
 <h4><a href="../commands/GuiControls.htm#DateTime">DateTime</a></h4>
-<p><em>RetrievedText</em> and <em>NewText</em> is  the <a href="../commands/GuiControls.htm#DateTimeFormat">date/time format</a> displayed by the control. If <em>NewText</em> is an empty string, any custom format is removed and the short-date format is put into effect.</p>
+<p><em>NewText</em> is  the <a href="../commands/GuiControls.htm#DateTimeFormat">date/time format</a> displayed by the control. If <em>NewText</em> is an empty string, any custom format is removed and the short-date format is put into effect.</p>
 
-<h4><a href="../commands/GuiControls.htm#ComboBox">ComboBox</a></h4>
-<p><em>RetrievedText</em> and <em>NewText</em> is the text displayed directly in the ComboBox's Edit control.</p>
+<h4><a href="../commands/GuiControls.htm#Tab">Tab</a> / <a href="../commands/GuiControls.htm#DropDownList">DropDownList</a> / <a href="../commands/GuiControls.htm#ComboBox">ComboBox</a> / <a href="../commands/GuiControls.htm#ListBox">ListBox</a></h4>
+<p><em>RetrievedText</em> is the text of the currently selected item/tab or an empty string if none is selected. For a ComboBox, if there is no selected item, the text in the control's edit field is retrieved instead. For a <a href="../commands/GuiControls.htm#ListBoxMulti">multi-select ListBox</a>, the output is an array.</p>
+<p><em>NewText</em> is the full text (case insensitive) of a single item/tab to select. To select multiple items, call <strong>GuiCtrl.Choose</strong> repeatedly.</p>
+<p>To get or set the position instead of the text, use <strong>GuiCtrl.Value</strong> described above.</p>
+
+<h4><a href="../commands/GuiControls.htm#StatusBar">StatusBar</a></h4>
+<p><em>RetrievedText</em> and <em>NewText</em> is the text of the first part only (use <a href="../commands/GuiControls.htm#SB_SetText">SB.SetText</a> for greater flexibility).</p>
 </div>
 
 <div class="methodShort" id="Enabled">
@@ -219,6 +254,13 @@ ListBox.Choose(0)  <em>; Deselect all items.</em></pre>
 <pre class="Syntax">RetrievedState := GuiCtrl.Visible</pre>
 <pre class="Syntax">GuiCtrl.Visible := NewState</pre>
 <p>For Tab controls, this will also show or hide all of the tab's sub-controls. If you additionally want to prevent a control's shortcut key (underlined letter) from working, disable the control via <code>GuiCtrl.Enabled := false</code>.</p>
+</div>
+
+<div class="methodShort" id="Focused">
+<h2>Focused</h2>
+<p>Retrieves the current focus state of the control.</p>
+<pre class="Syntax">RetrievedState := GuiCtrl.Focused</pre>
+<p>Note: To be effective, the window generally must not be minimized or hidden.</p>
 </div>
 
 <div class="methodShort" id="Pos">
