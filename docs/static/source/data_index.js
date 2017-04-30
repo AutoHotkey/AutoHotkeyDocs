@@ -765,6 +765,7 @@ index = [
   ["TreeView.GetSelection","commands/TreeView.htm#GetSelection"],
   ["TreeView.GetText","commands/TreeView.htm#GetText"],
   ["TreeView.Modify","commands/TreeView.htm#Modify"],
+  ["TreeView.SetImageList","commands/TreeView.htm#SetImageList"],
   ["Trim()","commands/Trim.htm"],
   ["True","Variables.htm#Boolean"],
   ["Try","commands/Try.htm"],
