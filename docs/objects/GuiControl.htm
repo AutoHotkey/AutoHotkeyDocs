@@ -18,7 +18,7 @@
   <li><a href="#Name">Name</a>: Retrieves or sets the explicit name of the control.</li>
   <li><a href="#ClassNN">ClassNN</a>: Retrieves the ClassNN of the control.</li>
   <li><a href="#Gui">Gui</a>: Retrieves the control's GUI parent.</li>
-  <li><a href="#Event">Event</a>: Retrieves or sets the control's event handler.</li>
+  <li><a href="GuiOnEvent.htm">OnEvent</a>: Registers a function or method to be called when the given <a href="GuiOnEvent.htm#Control_Events">event</a> is raised.</li>
   <li><a href="#Opt">Opt</a>: Sets various options and styles for the appearance and behavior of the control.</li>
   <li><a href="#Move">Move</a>: Moves and/or resizes the control. </li>
   <li><a href="#Focus">Focus</a>: Sets keyboard focus to the control.</li>
@@ -53,6 +53,7 @@
 <p>Retrieves or sets the <a href="Gui.htm#var">associated name</a> of the control.</p>
 <pre class="Syntax">RetrievedName := GuiCtrl.Name</pre>
 <pre class="Syntax">GuiCtrl.Name := NewName</pre>
+<p>The control's name can be used with <a href="Gui.htm#Control">Gui.Control</a> to retrieve the <a href="GuiControl.htm">GuiControl</a> object. For most input-capable controls, the name is also used by <a href="Gui.htm#Submit">Gui.Submit</a>.</p>
 </div>
 
 <div class="methodShort" id="ClassNN">
@@ -67,13 +68,6 @@
 <pre class="Syntax">GuiObj := GuiCtrl.Gui</pre>
 </div>
 
-<div class="methodShort" id="Event">
-<h2>Event</h2>
-<p>Retrieves or sets the control's event handler, which can be either a function/method name or an arbitrary callable object. See <a href="Gui.htm#label">g-label</a> for details.</p>
-<pre class="Syntax">RetrievedEventHandler := GuiCtrl.Event</pre>
-<pre class="Syntax">GuiCtrl.Event := NewEventHandler </pre>
-</div>
-
 <div class="methodShort" id="Opt">
 <h2>Opt</h2>
 <p>Adds or removes various options and styles of the control.</p>
@@ -82,14 +76,11 @@ GuiCtrl.Options(Options)</pre>
 <dl>
   <dt>Options</dt><dd>Either  <a href="../commands/GuiControls.htm">control-specific</a> or <a href="Gui.htm#OtherOptions">general</a> options and styles.</dd>
 </dl>
-<p>In the following example, the <a href="Gui.htm#AltSubmit">AltSubmit</a> option is enabled but control's <a href="Gui.htm#label">g-label</a> is removed:</p>
-<pre>MyListBox.Opt("+AltSubmit -g")</pre>
+<p>In the following example, the control is <a href="Gui.htm#Disabled">disabled</a> and its <a href="Gui.htm#Background">background</a> is restored to the system default:</p>
+<pre>MyEdit.Opt("+Disabled -Background")</pre>
 <p>In the next example, the OK button is made the new default button:</p>
 <pre>OKButton.Opt("+Default")</pre>
 <p>Although <a href="../misc/Styles.htm">styles</a> and extended styles are also recognized, some of them cannot be applied or removed after a control has been created. ErrorLevel is set to 0 if at least one of the specified changes was successfully applied. Otherwise, it is set to 1 to indicate that none of the changes could be applied. Even if a change is successfully applied, the control might choose to ignore it.</p>
-<!--<p id="Functor">To set a <a href="../objects/Functor.htm">function object</a> for handling <a href="Gui.htm#label">the control's events</a>, <em>Param3</em> must be a single variable reference, as in either of the following examples. Other expressions which return objects are currently unsupported.</p>
-<pre>GuiControl +g, <i>ControlID</i>, %FuncObj%
-GuiControl +g, <i>ControlID</i>, % FuncObj</pre>-->
 </div>
 
 <div class="methodShort" id="Move">
@@ -119,17 +110,16 @@ MyEdit.Move("x%VarX+10% y%VarY+5% w%VarW*2% h%VarH*1.5%")</pre>
 <div class="methodShort" id="Choose">
 <h2>Choose</h2>
 <p>Sets the selection in a ListBox, DropDownList, ComboBox, or Tab control to be the specified value.</p>
-<pre class="Syntax">GuiCtrl.Choose(Value [, AdditionalActions := 0])</pre>
+<pre class="Syntax">GuiCtrl.Choose(Value)</pre>
 <dl>
-  <dt>Value</dt><dd>This parameter should be 1 for the first entry, 2 for the second, etc. If <em>Value</em> is not an integer, the entry whose leading part matches <em>Value</em> will be selected. The search is not case sensitive. For example, if a the control contains the item "UNIX Text", specifying the word unix (lowercase) would be enough to select it. If <em>Value</em> is zero, the current selection is removed.</dd>
-  <dt>AdditionalActions</dt><dd><p>If this parameter is 1, the method will trigger any <a href="Gui.htm#label">g-label</a> associated with the control, like  <a href="../commands/Control.htm">Control Choose</a>. For example: <code>MyListBox.Choose(3, 1)</code>.</p>
-  <p>If this parameter is 2,  additionally to the above a finishing event occurs (a double-click in the case of ListBox or ComboBox with the <a href="../misc/Styles.htm#CBS_SIMPLE">+Simple option</a>). Tab controls are not supported.</p></dd>
+  <dt>Value</dt><dd>This parameter should be 1 for the first entry, 2 for the second, etc. If <em>Value</em> is not an integer, the entry whose leading part matches <em>Value</em> will be selected. The search is not case sensitive. For example, if the control contains the item "UNIX Text", specifying the word unix (lowercase) would be enough to select it. If <em>Value</em> is zero or empty, the current selection is removed.</dd>
 </dl>
 <p>To select or deselect <u>all</u> items in a <a href="../commands/GuiControls.htm#ListBoxMulti">multi-select ListBox</a>, follow this example:</p>
 <pre>Gui.Opt("+LastFound")  <em>; Avoids the need to specify WinTitle below.</em>
 <a href="../commands/PostMessage.htm">PostMessage</a>, 0x185, 1, -1, % ListBox.ClassNN  <em>; Select all items. 0x185 is LB_SETSEL.</em>
 <a href="../commands/PostMessage.htm">PostMessage</a>, 0x185, 0, -1, % ListBox.ClassNN  <em>; Deselect all items.</em>
 ListBox.Choose(0)  <em>; Deselect all items.</em></pre>
+<p>Unlike <a href="../commands/Control.htm#Choose">Control Choose</a>, this method does not raise a <a href="GuiOnEvent.htm#Change">Change</a> or <a href="GuiOnEvent.htm#DoubleClick">DoubleClick</a> event.</p>
 </div>
 
 <div class="methodShort" id="UseTab">
