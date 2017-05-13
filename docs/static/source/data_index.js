@@ -831,7 +831,7 @@ index = [
   ["WinRestore","commands/WinRestore.htm"],
   ["WinSetAlwaysOnTop","commands/WinSet.htm#AlwaysOnTop"],
   ["WinSetEnabled","commands/WinSet.htm#Enabled"],
-  ["WinSetExStyle","commands/WinSet.htm#ExStyle"],
+  ["WinSetExStyle","commands/WinSet.htm#Style"],
   ["WinSetRegion","commands/WinSet.htm#Region"],
   ["WinSetStyle","commands/WinSet.htm#Style"],
   ["WinSetTitle","commands/WinSetTitle.htm"],
