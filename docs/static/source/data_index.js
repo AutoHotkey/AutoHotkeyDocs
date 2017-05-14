@@ -291,7 +291,7 @@ index = [
   ["DirCopy","commands/DirCopy.htm"],
   ["DirCreate","commands/DirCreate.htm"],
   ["DirDelete","commands/DirDelete.htm"],
-  ["DirExist","Functions.htm#DirExist"],
+  ["DirExist","commands/FileExist.htm"],
   ["DirMove","commands/DirMove.htm"],
   ["DirSelect","commands/DirSelect.htm"],
   ["disk space","commands/DriveGet.htm#SpaceFree"],
