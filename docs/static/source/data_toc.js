@@ -63,8 +63,8 @@ toc = [
   ]},
   {label:"File, Directory and Disk",children:
   [
-    {label:"Drive",path:"commands/Drive.htm"},
-    {label:"DriveGet",path:"commands/DriveGet.htm"},
+    {label:"Drive..",path:"commands/Drive.htm"},
+    {label:"DriveGet..",path:"commands/DriveGet.htm"},
     {label:"DirCopy",path:"commands/DirCopy.htm"},
     {label:"DirCreate",path:"commands/DirCreate.htm"},
     {label:"DirDelete",path:"commands/DirDelete.htm"},

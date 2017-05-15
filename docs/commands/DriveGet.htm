@@ -11,32 +11,90 @@
 
 <h1>DriveGet</h1>
 
-<p>Retrieves various types of information about the computer's drive(s).</p>
+<p>Functions for retrieving various types of information about the computer's drive(s).</p>
 
-<pre class="Syntax">DriveGet, OutputVar, Cmd [, Value]</pre>
-<h3>Parameters</h3>
+<h3 id="List">DriveGetList</h3>
+<p>Returns a string of letters, one character for each drive letter in the system. For example: ACDEZ.</p>
+<pre class="Syntax">Drives := DriveGetList([Type])</pre>
 <dl>
-
-  <dt>OutputVar</dt>
-  <dd><p>The name of the variable in which to store the result of <em>Cmd</em>.</p></dd>
-
-  <dt>Cmd, Value</dt>
-  <dd>See list below.
-    </dd>
-
+  <dt>Type</dt>
+  <dd><p>If <em>Type</em> is omitted, all drive types are rtrieved. Otherwise, <em>Type</em> should be one of the following words to retrieve only a specific type of drive: CDROM, REMOVABLE, FIXED, NETWORK, RAMDISK, UNKNOWN.</p></dd>
 </dl>
 
-<h3>Cmd, Value</h3>
-<p>The <em>Cmd</em> and <em>Value</em> parameters are dependent upon each other and their usage is described below. If a problem is encountered <em>OutputVar</em> is made blank and <a href="../misc/ErrorLevel.htm">ErrorLevel</a> is set to 1.</p>
-<p><strong>List [, Type]</strong>: Sets <em>OutputVar</em> to be a string of letters, one character for each drive letter in the system. For example: ACDEZ. If <em>Type</em> is omitted, all drive types are retrieved. Otherwise, <em>Type</em> should be one of the following words to retrieve only a specific type of drive: CDROM, REMOVABLE, FIXED, NETWORK, RAMDISK, UNKNOWN.</p>
-<p><strong>Capacity (or Cap), Path</strong>: Retrieves the total capacity of <em>Path</em> (e.g. C:\) in megabytes. See below for additional details.</p>
-<p id="SpaceFree"><strong>SpaceFree, Path</strong>: Retrieves the free disk space of the drive which contains <em>Path</em>, in megabytes (rounded down to the nearest megabyte). Since NTFS supports mounted volumes and directory junctions, different amounts of free space might be available in different folders of the same "drive" in some cases.</p>
-<p><strong>Filesystem (or FS), Drive </strong>: Retrieves the type of <em>Drive</em>'s file system, where <em>Drive</em> is the drive letter followed by a colon and an optional backslash, or a UNC name such \\server1\share1. <em>OutputVar</em> will be set to one of the following words: FAT, FAT32, NTFS, CDFS (typically indicates a CD), UDF (typically indicates a DVD). <em>OutputVar</em> will be made blank and <a href="../misc/ErrorLevel.htm">ErrorLevel</a> set to 1 if the drive does not contain formatted media.</p>
-<p><strong>Label, Drive</strong>: Retrieves <em>Drive</em>'s volume label, where <em>Drive</em> is the drive letter followed by a colon and an optional backslash, or a UNC name such \\server1\share1. To change the label, follow this example: <code><a href="Drive.htm">Drive</a>, Label, C:, MyLabel</code>.</p>
-<p><strong>Serial, Drive</strong>: Retrieves <em>Drive</em>'s volume serial number expressed as decimal integer, where <em>Drive</em> is the drive letter followed by a colon and an optional backslash, or a UNC name such \\server1\share1.</p>
-<p><strong>Type, Path</strong>: Retrieves <em>Path</em>'s drive type, which is one of the following words: Unknown, Removable, Fixed, Network, CDROM, RAMDisk.</p>
-<p><strong>Status, Path</strong>: Retrieves <em>Path</em>'s status, which is one of the following words: Unknown (might indicate unformatted/RAW), Ready, NotReady (typical for removable drives that don't contain media), Invalid (<em>Path</em> does not exist or is a network drive that is presently inaccessible, etc.)</p>
-<p><strong>StatusCD [, Drive]</strong>: Retrieves the media status of a CD or DVD drive, where <em>Drive</em> is the drive letter followed by a colon (if <em>Drive</em> is omitted, the default CD/DVD drive will be used). <em>OutputVar</em> is made blank if the status cannot be determined. Otherwise, it is set to one of the following strings:</p>
+<h3 id="Capacity">DriveGetCapacity</h3>
+<p>Retrieves the total capacity of <em>Path</em> (e.g. C:\) in megabytes.</p>
+<pre class="Syntax">MB := DriveGetCapacity(Path)</pre>
+<dl>
+  <dt>Path</dt>
+  <dd><p>Any path contained by the drive.</p></dd>
+</dl>
+
+<h3 id="SpaceFree">DriveGetSpaceFree</h3>
+<p>Retrieves the free disk space of the drive which contains <em>Path</em>, in megabytes (rounded down to the nearest megabyte).</p>
+<pre class="Syntax">MB := DriveGetSpaceFree(Path)</pre>
+<dl>
+  <dt>Path</dt>
+  <dd><p>Any path contained by the drive.</p></dd>
+</dl>
+
+<h3 id="Filesystem">DriveGetFilesystem</h3>
+<p>Retrieves the type of <em>Drive</em>'s file system.</p>
+<pre class="Syntax">FS := DriveGetFilesystem(Drive)</pre>
+<dl>
+  <dt>Drive</dt>
+  <dd><p>The drive letter followed by a colon and an optional backslash, or a UNC name such <code>\\server1\share1</code>.</p></dd>
+</dl>
+<p>The return value is one of the following words: FAT, FAT32, NTFS, CDFS (typically indicates a CD), UDF (typically indicates a DVD). If the drive does not contain formatted media, the return value is blank and <a href="../misc/ErrorLevel.htm">ErrorLevel</a> is set to 1.</p>
+
+<h3 id="Label">DriveGetLabel</h3>
+<p>Retrieves <em>Drive</em>'s volume label.</p>
+<pre class="Syntax">Label := DriveGetLabel(Drive)</pre>
+<dl>
+  <dt>Drive</dt>
+  <dd><p>The drive letter followed by a colon and an optional backslash, or a UNC name such <code>\\server1\share1</code>.</p></dd>
+</dl>
+<p>To change the label, follow this example: <code><a href="Drive.htm#SetLabel">DriveSetLabel</a>("C:", "MyLabel")</code>.</p>
+
+<h3 id="Serial">DriveGetSerial</h3>
+<p>Retrieves <em>Drive</em>'s volume serial number expressed as a decimal integer.</p>
+<pre class="Syntax">Serial := DriveGetSerial(Drive)</pre>
+<dl>
+  <dt>Drive</dt>
+  <dd><p>The drive letter followed by a colon and an optional backslash, or a UNC name such <code>\\server1\share1</code>.</p></dd>
+</dl>
+
+<h3 id="Type">DriveGetType</h3>
+<p>Retrieves <em>Path</em>'s drive type, which is one of the following words: Unknown, Removable, Fixed, Network, CDROM, RAMDisk.</p>
+<pre class="Syntax">Type := DriveGetType(Path)</pre>
+<dl>
+  <dt>Path</dt>
+  <dd><p>Any path contained by the drive.</p></dd>
+</dl>
+
+<h3 id="Status">DriveGetStatus</h3>
+<p>Retrieves <em>Path</em>'s status.</p>
+<pre class="Syntax">Status := DriveGetStatus(Path)</pre>
+<dl>
+  <dt>Path</dt>
+  <dd><p>Any path contained by the drive.</p></dd>
+</dl>
+<p>The return value is one of the following strings:</p>
+<table class="info">
+  <tr><th>String</th><th>Notes</th></tr>
+  <tr><td>Unknown</td><td>Might indicate unformatted/RAW file system.</td></tr>
+  <tr><td>Ready</td><td>This is the msot common.</td></tr>
+  <tr><td>NotReady</td><td>Typical for removable drives that don't contain media.</td></tr>
+  <tr><td>Invalid</td><td><em>Path</em> does not exist or is a network drive that is presently inaccessible, etc.</td></tr>
+</table>
+
+<h3 id="StatusCD">DriveGetStatusCD</h3>
+<p>Retrieves the media status of a CD or DVD drive.</p>
+<pre class="Syntax">Status := DriveGetStatusCD([Drive])</pre>
+<dl>
+  <dt>Drive</dt>
+  <dd><p>The drive letter followed by a colon. If omitted, the default CD/DVD drive will be used.</p></dd>
+</dl>
+<p>The return value is blank if the status cannot be determined. Otherwise, it is one of the following strings:</p>
 <table class="info">
   <tr>
     <td style="width:15%">not ready</td>
@@ -63,30 +121,45 @@
     <td>The drive contains a CD but is not currently accessing it.</td>
   </tr>
 </table>
-<p>This command will probably not work on a network drive or non-CD/DVD drive; if it fails in such cases or for any other reason, <em>OutputVar</em> is made blank and <a href="../misc/ErrorLevel.htm">ErrorLevel</a> is set to 1.</p>
+<p>This command will probably not work on a network drive or non-CD/DVD drive; if it fails in such cases or for any other reason, the return value is blank and <a href="../misc/ErrorLevel.htm">ErrorLevel</a> is set to 1.</p>
 <p>If the tray was recently closed, there may be a delay before the command completes.</p>
-<p>To eject or retract the tray, see the <a href="Drive.htm">Drive</a> command.</p>
+<p>To eject or retract the tray, use <a href="Drive.htm#Eject">DriveEject</a>.</p>
+
 <h3>ErrorLevel</h3>
-<p>This command is able to throw an exception on failure. For more information, see <a href="Catch.htm#RuntimeErrors">Runtime Errors</a>.</p>
 <p><a href="../misc/ErrorLevel.htm">ErrorLevel</a> is set to 1 if there was a problem or 0 otherwise.</p>
+
 <h3>Remarks</h3>
-<p>Some of the commands will accept a network share name as <em>Path</em>, such as \\MyServer\MyShare\</p>
+<p>Some of the commands will accept a network share name as <em>Path</em> or <em>Drive</em>, such as <code>\\MyServer\MyShare\</code></p>
+<p>In general, <em>Path</em> (but not <em>Drive</em>) can be any path. Since NTFS supports mounted volumes and directory junctions, different paths with the same drive letter can produce different results (different amounts of free space, capacity, etc.).</p>
+
 <h3>Related</h3>
 <p><a href="Drive.htm">Drive</a></p>
+
 <h3>Example</h3>
 <pre class="NoIndent"><em>; This is a working example script.</em>
-DirSelect, folder, , 3, Pick a drive to analyze:
+folder := DirSelect( , 3, "Pick a drive to analyze:")
 if folder = ""
     return
-DriveGet, list, list
-DriveGet, cap, capacity, %folder%
-DriveGet, free, SpaceFree, %folder%
-DriveGet, fs, fs, %folder%
-DriveGet, label, label, %folder%
-DriveGet, serial, serial, %folder%
-DriveGet, type, type, %folder%
-DriveGet, status, status, %folder%
-MsgBox All Drives: %list%`nSelected Drive: %folder%`nDrive Type: %type%`nStatus: %status%`nCapacity: %cap% M`nFree Space: %free% M`nFilesystem: %fs%`nVolume Label: %label%`nSerial Number: %serial%</pre>
+list := DriveGetList()
+cap := DriveGetCapacity(folder)
+free := DriveGetSpaceFree(folder)
+fs := DriveGetFilesystem(folder)
+label := DriveGetLabel(folder)
+serial := DriveGetSerial(folder)
+type := DriveGetType(folder)
+status := DriveGetStatus(folder)
+MsgBox("
+(Q
+  All Drives: " list "
+  Selected Drive: " folder "
+  Drive Type: " type "
+  Status: " status "
+  Capacity: " cap " MB
+  Free Space: " free " MB
+  Filesystem: " fs "
+  Volume Label: " label "
+  Serial Number: " serial
+))</pre>
 
 </body>
 </html>

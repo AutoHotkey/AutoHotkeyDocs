@@ -11,40 +11,67 @@
 
 <h1>Drive</h1>
 
-<p>Ejects/retracts the tray in a CD or DVD drive, or sets a drive's volume label.</p>
+<p>Functions to eject/retract or lock/unlock the tray in a CD or DVD drive, or set a drive's volume label.</p>
 
-<pre class="Syntax">Drive, Sub-command [, Drive , Value]</pre>
-<p>The sub-command, drive, and value parameters are dependent upon each other and their usage is described below.</p>
-<p><strong>Label, Drive [, NewLabel]</strong>: Changes <em>Drive</em>'s volume label to be <em>NewLabel</em> (if <em>NewLabel</em> is omitted, the drive will have no label). <em>Drive</em> is the drive letter followed by a colon and an optional backslash (might also work on UNCs and mapped drives). For example: <code>Drive, Label, C:, Seagate200</code>.</p>
-<p>To retrieve the current label, follow this example: <code><a href="DriveGet.htm">DriveGet</a>, OutputVar, Label, C:</code>.</p>
-<br>
-<p><strong>Lock, Drive</strong>: Prevents a drive's eject feature from working. For example: <code>Drive, Lock, D:</code>. Most drives cannot be &quot;locked open&quot;. However, locking the drive while it is open will probably result in it becoming locked the moment it is closed. This command has no effect on drives that do not support locking (such as most read-only drives). If a drive is locked by a script and that script exits, the drive will stay locked until another script or program unlocks it, or the system is restarted. If the specified drive does not exist or does not support the locking feature, ErrorLevel is set to 1. Otherwise, it is set to 0.</p>
-<br>
-<p><strong>Unlock, Drive</strong>: Reverses the above. <em>Unlock</em> needs to be executed multiple times if the drive was locked multiple times (at least for some drives). For example, if <code>Drive, Lock, D:</code> was executed three times, three executions of <code>Drive, Unlock, D:</code> might be needed to unlock it. Because of this and the fact that there is no way to determine whether a drive is currently locked, it is often useful to keep track of its lock-state in a <a href="../Variables.htm">variable</a>.</p>
-<br>
-<p><strong>Eject [, Drive, 1]</strong>: Ejects or retracts the tray of a CD or DVD drive (to eject other types of media or devices, see the DllCall example at the bottom of this page).</p>
-<p>If <em>Drive</em> is omitted, the default CD/DVD drive will be used. To eject the tray, omit the last parameter. To retract/close the tray, specify 1 for the last parameter; for example: <code>Drive, Eject, D:, 1</code>.</p>
-<p><em>Drive Eject</em> waits for the ejection or retraction to complete before allowing the script to continue. If the tray is already in the correct state (open or closed), <a href="../misc/ErrorLevel.htm">ErrorLevel</a> is set to 0 (i.e. &quot;no error&quot;).</p>
-<p><em>Drive Eject</em> will probably not work on a network drive or non-CD/DVD drive. If it fails in such cases or for any other reason, <a href="../misc/ErrorLevel.htm">ErrorLevel</a> is set to 1.</p>
-<p>It may be possible to detect the previous tray state by measuring the time the command takes to complete. For example, the following hotkey toggles the tray to the opposite state (open or closed):</p>
+<h3 id="SetLabel">DriveSetLabel</h3>
+<p>Changes <em>Drive</em>'s volume label to be <em>NewLabel</em>.</p>
+<pre class="Syntax">DriveSetLabel(Drive [, NewLabel])</pre>
+<dl>
+  <dt>Drive</dt>
+  <dd><p>The drive letter followed by a colon and an optional backslash (might also work on UNC paths and mapped drives).</p></dd>
+  <dt>NewLabel</dt>
+  <dd><p>The new label to set. If omitted, the drive will have no label.</p></dd>
+</dl>
+<p>For example: <code>DriveSetLabel("C:", "Seagate200")</code>.</p>
+<p>To retrieve the current label, follow this example: <code>Label := <a href="DriveGet.htm#Label">DriveGetLabel</a>("C:")</code>.</p>
+
+<h3 id="Lock">DriveLock</h3>
+<p>Prevents a drive's eject feature from working.</p>
+<pre class="Syntax">DriveLock(Drive)</pre>
+<p>For example: <code>DriveLock("D:")</code>.</p>
+<p>Most drives cannot be "locked open". However, locking the drive while it is open will probably result in it becoming locked the moment it is closed.</p>
+<p>This function has no effect on drives that do not support locking (such as most read-only drives).</p>
+<p>To unlock a drive, call <a href="#Unlock">DriveUnlock</a>. If a drive is locked by a script and that script exits, the drive will stay locked until another script or program unlocks it, or the system is restarted.</p>
+<p>If the specified drive does not exist or does not support the locking feature, <a href="../misc/ErrorLevel.htm">ErrorLevel</a> is set to 1. Otherwise, it is set to 0.</p>
+
+<h3 id="Unlock">DriveUnlock</h3>
+<p>Reverses DriveLock.</p>
+<pre class="Syntax">DriveUnlock(Drive)</pre>
+<p>For example: <code>DriveUnlock("D:")</code></p>
+<p>This function needs to be called multiple times if the drive was locked multiple times (at least for some drives). For example, if <code>DriveLock("D:")</code> was called three times, <code>DriveUnlock("D:")</code> might need to be called three times to unlock it. Because of this and the fact that there is no way to determine whether a drive is currently locked, it is often useful to keep track of its lock-state in a <a href="../Variables.htm">variable</a>.</p>
+
+<h3 id="Eject">DriveEject</h3>
+<p>Ejects or retracts the tray of a CD or DVD drive.</p>
+<pre class="Syntax">DriveEject([Drive, Retract := false])</pre>
+<dl>
+  <dt>Drive</dt>
+  <dd><p>The drive letter followed by a colon and an optional backslash. If omitted, the default CD/DVD drive will be used.</p></dd>
+  <dt>Retract</dt>
+  <dd><p>Specify <em>true</em> to retract/close the tray. Specify <em>false</em> or omit this parameter to eject the tray.</p></dd>
+</dl>
+<p><em>DriveEject</em> waits for the ejection or retraction to complete before allowing the script to continue. If the tray is already in the correct state (open or closed), <a href="../misc/ErrorLevel.htm">ErrorLevel</a> is set to 0 (i.e. "no error").</p>
+<p><em>DriveEject</em> will probably not work on a network drive or non-CD/DVD drive. If it fails in such cases or for any other reason, <a href="../misc/ErrorLevel.htm">ErrorLevel</a> is set to 1. To eject other types of media or devices, see the DllCall example at the bottom of this page.</p>
+<p>It may be possible to detect the previous tray state by measuring the time the function takes to complete. For example, the following hotkey toggles the tray to the opposite state (open or closed):</p>
 <pre>#c::
-Drive, Eject
-<em>; If the command completed quickly, the tray was probably already ejected.
+DriveEject()
+<em>; If the function completed quickly, the tray was probably already ejected.
 ; In that case, retract it:</em>
 if A_TimeSinceThisHotkey &lt; 1000  <em>; Adjust this time if needed.</em>
-    Drive, Eject,, 1
+    DriveEject(, true)
 return</pre>
-<p>To determine the media status of a CD or DVD drive (playing, stopped, open, etc.), see <a href="DriveGet.htm">DriveGet</a>.</p>
+<p>To determine the media status of a CD or DVD drive (playing, stopped, open, etc.), see <a href="DriveGet.htm#StatusCD">DriveGetStatusCD</a>.</p>
+
 <h3>ErrorLevel</h3>
-<p>This command is able to throw an exception on failure. For more information, see <a href="Catch.htm#RuntimeErrors">Runtime Errors</a>.</p>
 <p><a href="../misc/ErrorLevel.htm">ErrorLevel</a> is set to 1 if there was a problem or 0 otherwise.</p>
+<p>These functions return 1 on success and 0 on failure.</p>
+
 <h3>Remarks</h3>
 <p>The following is an alternate ejection method that also works on types of media/devices other than CD/DVD:</p>
 <pre><em>; Update the first line below to match the desired drive letter (you can ignore all the other lines below).</em>
 Driveletter := "I:"  <em>; Set this to the drive letter you wish to eject.</em>
 
-hVolume := DllCall(&quot;CreateFile&quot;
-    , Str, &quot;\\.\&quot; . Driveletter
+hVolume := DllCall("CreateFile"
+    , Str, "\\.\" . Driveletter
     , UInt, 0x80000000 | 0x40000000  <em>; GENERIC_READ | GENERIC_WRITE</em>
     , UInt, 0x1 | 0x2  <em>; FILE_SHARE_READ | FILE_SHARE_WRITE</em>
     , UInt, 0
@@ -52,19 +79,17 @@ hVolume := DllCall(&quot;CreateFile&quot;
     , UInt, 0, UInt, 0)
 if hVolume &lt;&gt; -1
 {
-    DllCall(&quot;DeviceIoControl&quot;
+    DllCall("DeviceIoControl"
         , UInt, hVolume
         , UInt, 0x2D4808   <em>; IOCTL_STORAGE_EJECT_MEDIA</em>
         , UInt, 0, UInt, 0, UInt, 0, UInt, 0
         , UIntP, dwBytesReturned  <em>; Unused.</em>
         , UInt, 0)
-    DllCall(&quot;CloseHandle&quot;, UInt, hVolume)
+    DllCall("CloseHandle", UInt, hVolume)
 }</pre>
+
 <h3>Related</h3>
 <p><a href="DriveGet.htm">DriveGet</a></p>
-<h3>Example</h3>
-<pre class="NoIndent">Drive, Label, D:, BackupDrive
-Drive, Eject,, 1 <em>; Retract (close) the tray of the default CD or DVD drive.</em></pre>
 
 </body>
 </html>
