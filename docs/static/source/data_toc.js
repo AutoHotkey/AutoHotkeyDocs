@@ -288,10 +288,9 @@ toc = [
   [
     {label:"Controls",children:
     [
-      {label:"Control",path:"commands/Control.htm"},
+      {label:"Control functions",path:"commands/Control.htm"},
       {label:"ControlClick",path:"commands/ControlClick.htm"},
       {label:"ControlFocus",path:"commands/ControlFocus.htm"},
-      {label:"ControlGet",path:"commands/ControlGet.htm"},
       {label:"ControlGetFocus",path:"commands/ControlGetFocus.htm"},
       {label:"ControlGetPos",path:"commands/ControlGetPos.htm"},
       {label:"ControlGetText",path:"commands/ControlGetText.htm"},
