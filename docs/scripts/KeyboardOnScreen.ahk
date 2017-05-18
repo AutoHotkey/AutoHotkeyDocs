@@ -93,7 +93,7 @@ Gui.Add("Button", k_Position, ";")
 Gui.Add("Button", k_Position, "'")
 Gui.Add("Button", "x+%k_KeyMargin% h%k_KeyHeight%", "Enter")  ; Auto-width.
 
-; The first button below adds %A_Space% at the end to widen it a little,
+; The first button below adds spaces at the end to widen it a little,
 ; making the layout of keys next to it more accurately reflect a real keyboard:
 Gui.Add("Button", "xm y+%k_KeyMargin% h%k_KeyHeight%", "Shift  ")
 Gui.Add("Button", k_Position, "Z")
