@@ -1,7 +1,7 @@
 <!DOCTYPE HTML>
 <html>
 <head>
-<title>On-Screen Keyboard (requires XP/2k/NT) -- by Jon</title>
+<title>On-Screen Keyboard</title>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <link href="../static/theme.css" rel="stylesheet" type="text/css" />
@@ -9,7 +9,7 @@
 </head>
 <body>
 
-<h1>On-Screen Keyboard (requires XP/2k/NT) -- by Jon</h1>
+<h1>On-Screen Keyboard <span class="headnote">Based on the v1 script by Jon</span></h1>
 
 <p>This script creates a mock keyboard at the bottom of your screen that shows
  the keys you are pressing in real time. I made it to help me to learn to
@@ -40,197 +40,97 @@ k_Monitor := ""
 <em>;---- End of configuration section.  Don't change anything below this point
 ; unless you want to alter the basic nature of the script.</em>
 
+<em>;---- Create a GUI window for the on-screen keyboard:</em>
+Gui := GuiCreate("-Caption +ToolWindow +AlwaysOnTop +Disabled")
+Gui.SetFont("s%k_FontSize% %k_FontStyle%", k_FontName)
+Gui.MarginY := 0, Gui.MarginX := 0
 
 <em>;---- Alter the tray icon menu:</em>
-Menu, Tray, Add, %k_MenuItemHide%, k_ShowHide
-Menu, Tray, Add, &Exit, k_MenuExit
-Menu, Tray, Default, %k_MenuItemHide%
-Menu, Tray, NoStandard
+fn := Func("k_ShowHide").bind(Gui, k_MenuItemHide, k_MenuItemShow)
+Menu("Tray", "Add", k_MenuItemHide, fn)
+Menu("Tray", "Add", "&amp;Exit", "k_MenuExit")
+Menu("Tray", "Default", k_MenuItemHide)
+Menu("Tray", "NoStandard")
 
-<em>;---- Calculate object dimensions based on chosen font size:</em>
-k_KeyWidth := k_FontSize * 3
-k_KeyHeight := k_FontSize * 3
-k_KeyMargin := k_FontSize / 6
-k_SpacebarWidth := k_FontSize * 25
-k_KeyWidthHalf := k_KeyWidth / 2
+<em>;---- Add a button for each key:</em>
 
-k_KeySize := "w%k_KeyWidth% h%k_KeyHeight%"
-k_Position := "x+%k_KeyMargin% %k_KeySize%"
+<em>; The keyboard layout you see:</em>
+k_cL := [ ["``", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "-", "=", "Back "]
+        , ["Tab", "Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P", "[", "]", "\  "]
+        , ["Caps", "A", "S", "D", "F", "G", "H", "J", "K", "L", ";", "'", "Enter"]
+        , ["Shift", "Z", "X", "C", "V", "B", "N", "M", ",", ".", "/", "Shift  "]
+        , ["Ctrl", "Win", "Alt", "Space ", "Alt", "Win", "Menu", "Ctrl"] ]
 
-<em>;---- Create a GUI window for the on-screen keyboard:</em>
-Gui := GuiCreate("-Caption +E0x200 +ToolWindow")
-Gui.SetFont("s%k_FontSize% %k_FontStyle%", k_FontName)
-Gui.BackColor := "F1ECED"  <em>; This color will be made transparent later below.</em>
+<em>; AutoHotkey's official key names for the keys above (leave empty if identical):</em>
+k_oL := [ [, , , , , , , , , , , , , "Backspace"]
+        , []
+        , ["CapsLock"]
+        , ["LShift", , , , , , , , , , , "RShift"]
+        , ["LCtrl", "LWin", "LAlt", , "RAlt", "RWin", "AppsKey", "RCtrl"] ]
 
-<em>;---- Add a button for each key. Position the first button with absolute
-; coordinates so that all other buttons can be positioned relative to it:</em>
-Gui.Add("Button", "section %k_KeySize% xm+%k_KeyWidth%", "1")
-Gui.Add("Button", k_Position, "2")
-Gui.Add("Button", k_Position, "3")
-Gui.Add("Button", k_Position, "4")
-Gui.Add("Button", k_Position, "5")
-Gui.Add("Button", k_Position, "6")
-Gui.Add("Button", k_Position, "7")
-Gui.Add("Button", k_Position, "8")
-Gui.Add("Button", k_Position, "9")
-Gui.Add("Button", k_Position, "0")
-Gui.Add("Button", k_Position, "-")
-Gui.Add("Button", k_Position, "=")
-Gui.Add("Button", k_Position, "Bk")
-
-Gui.Add("Button", "xm y+%k_KeyMargin% h%k_KeyHeight%", "Tab")  <em>; Auto-width.</em>
-Gui.Add("Button", k_Position, "Q")
-Gui.Add("Button", k_Position, "W")
-Gui.Add("Button", k_Position, "E")
-Gui.Add("Button", k_Position, "R")
-Gui.Add("Button", k_Position, "T")
-Gui.Add("Button", k_Position, "Y")
-Gui.Add("Button", k_Position, "U")
-Gui.Add("Button", k_Position, "I")
-Gui.Add("Button", k_Position, "O")
-Gui.Add("Button", k_Position, "P")
-Gui.Add("Button", k_Position, "[")
-Gui.Add("Button", k_Position, "]")
-Gui.Add("Button", k_Position, "\")
-
-Gui.Add("Button", "xs+%k_KeyWidthHalf% y+%k_KeyMargin% %k_KeySize%", "A")
-Gui.Add("Button", k_Position, "S")
-Gui.Add("Button", k_Position, "D")
-Gui.Add("Button", k_Position, "F")
-Gui.Add("Button", k_Position, "G")
-Gui.Add("Button", k_Position, "H")
-Gui.Add("Button", k_Position, "J")
-Gui.Add("Button", k_Position, "K")
-Gui.Add("Button", k_Position, "L")
-Gui.Add("Button", k_Position, ";")
-Gui.Add("Button", k_Position, "'")
-Gui.Add("Button", "x+%k_KeyMargin% h%k_KeyHeight%", "Enter")  <em>; Auto-width.</em>
-
-<em>; The first button below adds spaces at the end to widen it a little,
-; making the layout of keys next to it more accurately reflect a real keyboard:</em>
-Gui.Add("Button", "xm y+%k_KeyMargin% h%k_KeyHeight%", "Shift  ")
-Gui.Add("Button", k_Position, "Z")
-Gui.Add("Button", k_Position, "X")
-Gui.Add("Button", k_Position, "C")
-Gui.Add("Button", k_Position, "V")
-Gui.Add("Button", k_Position, "B")
-Gui.Add("Button", k_Position, "N")
-Gui.Add("Button", k_Position, "M")
-Gui.Add("Button", k_Position, ",")
-Gui.Add("Button", k_Position, ".")
-Gui.Add("Button", k_Position, "/")
-
-Gui.Add("Button", "xm y+%k_KeyMargin% h%k_KeyHeight%", "Ctrl")  <em>; Auto-width.</em>
-Gui.Add("Button", "h%k_KeyHeight% x+%k_KeyMargin%", "Win")      <em>; Auto-width.</em>
-Gui.Add("Button", "h%k_KeyHeight% x+%k_KeyMargin%", "Alt")      <em>; Auto-width.</em>
-Gui.Add("Button", "h%k_KeyHeight% x+%k_KeyMargin% w%k_SpacebarWidth%", "Space")
-
-<em>;---- Show the window:</em>
-Gui.Show()
-k_IsVisible := true
-
-WinGetID, k_ID, A   <em>; Get its window ID.</em>
-WinGetPos,,, k_WindowWidth, k_WindowHeight, A
+<em>; Traverse each key in the list of custom key names:</em>
+For n, k_Row in k_cL
+  For i, k_CustomKeyName in k_Row
+  {
+    k_OfficialKeyName := k_oL[n][i]
+    <em>; Calculate object dimensions based on chosen font size:</em>
+    opt := "h" k_FontSize * 3 " w" k_FontSize * (StrLen(k_CustomKeyName) + 2) " x+m" 
+    if i = 1
+      opt .= " y+m xm"
+    <em>; When a key is pressed by the user, click the corresponding button on-screen:</em>
+    fn := Func("k_KeyPress").bind(Gui.Add("Button", opt, k_CustomKeyName))
+    <em>; If the key has an official key name use it:</em>
+    if k_OfficialKeyName
+      Hotkey("~*" k_OfficialKeyName, fn)
+    else
+      Hotkey("~*" Trim(k_CustomKeyName), fn)
+  }
 
 <em>;---- Position the keyboard at the bottom of the screen (taking into account
 ; the position of the taskbar):</em>
-MonitorGetWorkArea, %k_Monitor%, k_WorkAreaLeft,, k_WorkAreaRight, k_WorkAreaBottom
-
-<em>; Calculate window's X-position:</em>
-k_WindowX := k_WorkAreaRight
-k_WindowX -= k_WorkAreaLeft  <em>; Now k_WindowX contains the width of this monitor.</em>
-k_WindowX -= k_WindowWidth
-k_WindowX /= 2  <em>; Calculate position to center it horizontally.
+Gui.Show("Hide") <em>; Required to get the window's calculated width and height.
+; Calculate window's X-position:</em>
+MonitorGetWorkArea(k_Monitor, WL,, WR, WB)
+k_xPos := (WR - WL - Gui.Pos.W) / 2 <em>; Calculate position to center it horizontally.
 ; The following is done in case the window will be on a non-primary monitor
 ; or if the taskbar is anchored on the left side of the screen:</em>
-k_WindowX += k_WorkAreaLeft
-
+k_xPos += WL
 <em>; Calculate window's Y-position:</em>
-k_WindowY := k_WorkAreaBottom - k_WindowHeight
+k_yPos := WB - Gui.Pos.H
 
-WinMove, A,, %k_WindowX%, %k_WindowY%
-WinSetAlwaysOnTop, On, ahk_id %k_ID%
-WinSetTransColor, %Gui.BackColor% 220, ahk_id %k_ID%
+<em>;---- Show the window:</em>
+Gui.Show("x" k_xPos " y" k_yPos " NA")
 
-
-<em>;---- Set all keys as hotkeys. See www.asciitable.com</em>
-k_n := 1
-k_ASCII := 45
-
-Loop
-{
-    k_char := StrUpper(Chr(k_ASCII))
-    if !InStr("&lt;&gt;^~?,", k_char)
-        Hotkey, ~*%k_char%, k_KeyPress
-        <em>; In the above, the asterisk prefix allows the key to be detected regardless
-        ; of whether the user is holding down modifier keys such as Control and Shift.</em>
-    if k_ASCII = 93
-        break
-    k_ASCII++
+<em>;---- Function definitions:</em>
+k_KeyPress(BtnCtrl)
+{ 
+  BtnCtrl.Opt("Default") <em>; Highlight the last pressed key.</em>
+  ControlClick(, "ahk_id %BtnCtrl.Hwnd%",,,, "D")
+  KeyWait(SubStr(A_ThisHotkey, 3))
+  ControlClick(, "ahk_id %BtnCtrl.Hwnd%",,,, "U")
 }
 
-return <em>; End of auto-execute section.</em>
-
-
-<em>;---- When a key is pressed by the user, click the corresponding button on-screen:</em>
-
-~*Backspace::
-ControlClick, Bk, ahk_id %k_ID%, , LEFT, 1, D
-KeyWait, Backspace
-ControlClick, Bk, ahk_id %k_ID%, , LEFT, 1, U
-return
-
-
-<em>; LShift and RShift are used rather than "Shift" because when used as a hotkey,
-; "Shift" would default to firing upon release of the key (in older AHK versions):</em>
-~*LShift::
-~*RShift::
-~*LCtrl::  <em>; Must use Ctrl not Control to match button names.</em>
-~*RCtrl::
-~*LAlt::
-~*RAlt::
-~*LWin::
-~*RWin::
-k_ThisHotkey := SubStr(A_ThisHotkey, 3)
-ControlClick, %k_ThisHotkey%, ahk_id %k_ID%, , LEFT, 1, D
-KeyWait, %k_ThisHotkey%
-ControlClick, %k_ThisHotkey%, ahk_id %k_ID%, , LEFT, 1, U
-return
-
-
-~*,::
-~*'::
-~*Space::
-~*Enter::
-~*Tab::
-k_KeyPress:
-StrReplace, k_ThisHotkey, %A_ThisHotkey%, ~
-StrReplace, k_ThisHotkey, %k_ThisHotkey%, *
-SetTitleMatchMode, 3  <em>; Prevents the T and B keys from being confused with Tab and Backspace.</em>
-ControlClick, %k_ThisHotkey%, ahk_id %k_ID%, , LEFT, 1, D
-KeyWait, %k_ThisHotkey%
-ControlClick, %k_ThisHotkey%, ahk_id %k_ID%, , LEFT, 1, U
-Return
-
-
-k_ShowHide:
-if k_IsVisible = true
+k_ShowHide(GuiObj, HideText, ShowText)
 {
-    Gui.Hide()
-    Menu, Tray, Rename, %k_MenuItemHide%, %k_MenuItemShow%
-    k_IsVisible := false
+  static isVisible := true
+  if isVisible
+  {
+    GuiObj.Hide()
+    Menu("Tray", "Rename", HideText, ShowText)
+    isVisible := false
+  }
+  else
+  {
+    GuiObj.Show()
+    Menu("Tray", "Rename", ShowText, HideText)
+    isVisible := true
+  }
 }
-else
+
+k_MenuExit()
 {
-    Gui.Show()
-    Menu, Tray, Rename, %k_MenuItemShow%, %k_MenuItemHide%
-    k_IsVisible := true
+  ExitApp()
 }
-return
-
-
-k_MenuExit:
-ExitApp
 </pre>
 </body>
 </html>

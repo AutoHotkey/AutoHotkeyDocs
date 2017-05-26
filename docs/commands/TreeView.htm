@@ -33,13 +33,13 @@
 <pre class="Syntax" id="GuiAdd">TV := Gui.Add("TreeView", "Options")</pre>
 <p>Here is a working script that creates and displays a simple hierarchy of items:</p>
 <pre>Gui := GuiCreate()
-TV := Gui.Add(&quot;TreeView&quot;)
-<span class="red">P1</span> := TV.<a href="#Add">Add</a>(&quot;First parent&quot;)
-P1C1 := TV.Add(&quot;Parent 1's first child&quot;, <span class="red">P1</span>)  <em>; Specify P1 to be this item's parent.</em>
-P2 := TV.Add(&quot;Second parent&quot;)
-P2C1 := TV.Add(&quot;Parent 2's first child&quot;, P2)
-P2C2 := TV.Add(&quot;Parent 2's second child&quot;, P2)
-P2C2C1 := TV.Add(&quot;Child 2's first child&quot;, P2C2)
+TV := Gui.Add("TreeView")
+<span class="red">P1</span> := <a href="#Add">TV.Add</a>("First parent")
+P1C1 := TV.Add("Parent 1's first child", <span class="red">P1</span>)  <em>; Specify P1 to be this item's parent.</em>
+P2 := TV.Add("Second parent")
+P2C1 := TV.Add("Parent 2's first child", P2)
+P2C2 := TV.Add("Parent 2's second child", P2)
+P2C2C1 := TV.Add("Child 2's first child", P2C2)
 
 Gui.Show()  <em>; Show the window and its TreeView.</em></pre>
 <h2 id="Options">Options and Styles for the <em>Options</em> parameter</h2>
@@ -54,7 +54,7 @@ ImageListID := <a href="ListView.htm#IL_Create">IL_Create</a>(10)  <em>; Create 
 Loop 10  <em>; Load the ImageList with some standard system icons.</em>
     <a href="ListView.htm#IL_Add">IL_Add</a>(ImageListID, "shell32.dll", A_Index)
 TV := Gui.Add("TreeView", "<strong>ImageList%ImageListID%</strong>")
-TV.<a href="#Add">Add</a>("Name of Item", 0, "Icon4")  <em>; Add an item to the TreeView and give it a folder icon.</em>
+<a href="#Add">TV.Add</a>("Name of Item", 0, "Icon4")  <em>; Add an item to the TreeView and give it a folder icon.</em>
 Gui.Show()</pre>
 <p><strong>Lines</strong>: Specify <code>-Lines</code> (minus Lines) to avoid displaying a network of lines connecting parent items to their children. However, removing these lines also prevents the plus/minus buttons from being shown for top-level items.</p>
 <p id="ReadOnly"><strong>ReadOnly:</strong> Specify <code>-ReadOnly</code> (minus ReadOnly) to allow editing of the text/name of each item. To edit an item, select it then press the <a href="#WantF2">F2 key</a>. Alternatively, you can click an item once to select it, wait at least half a second, then click the same item again to edit it. After being edited, an item can be alphabetically repositioned among its siblings via the following example:</p>
@@ -234,9 +234,9 @@ Loop
 ...
 ButtonOK() {
   global
-  if Gui.FocusedCtrl.Name &lt;&gt; "MyTreeView"
+  if Gui.FocusedCtrl != TV
     return
-  MsgBox % &quot;Enter was pressed. The selected item ID is &quot; . TV.GetSelection()
+  MsgBox("Enter was pressed. The selected item ID is " TV.GetSelection())
 }</pre>
 <p>In addition to navigating from item to item with the keyboard, the user may also perform incremental search by typing the first few characters of an item's name. This causes the selection to jump to the nearest matching item.</p>
 <p>Although any length of text can be stored in each item of a TreeView, only the first 260 characters are displayed.</p>
@@ -249,102 +249,90 @@ ButtonOK() {
 <p><a href="ListView.htm">ListView</a>, <a href="GuiControls.htm">Other Control Types</a>, <a href="GuiCreate.htm">GuiCreate</a>, <a href="../objects/GuiOnEvent.htm#ContextMenu">ContextMenu event</a>, <a href="../objects/GuiControl.htm">Gui object</a>, <a href="../objects/GuiControl.htm">GuiControl object</a>, <a href="../misc/Styles.htm#TreeView">TreeView styles table</a></p>
 <h2 id="Examples">Example</h2>
 <pre class="NoIndent"><em>; The following is a working script that is more elaborate than the one near the top of this page.
-; It creates and displays a TreeView containing all folders in the all-users Start Menu.  When the
+; It creates and displays a TreeView containing all folders of the user's document folder. When the
 ; user selects a folder, its contents are shown in a ListView to the right (like Windows Explorer).
 ; In addition, a <a href="GuiControls.htm#StatusBar">StatusBar</a> control shows information about the currently selected folder.</em>
 
 <em>; The following folder will be the root folder for the TreeView. Note that loading might take a long
 ; time if an entire drive such as C:\ is specified:</em>
-TreeRoot := A_StartMenuCommon
+TreeRoot := A_MyDocuments
 TreeViewWidth := 280
-ListViewWidth := A_ScreenWidth - TreeViewWidth - 30
+ListViewWidth := A_ScreenWidth/2 - TreeViewWidth - 30
 
-<em>; Create the GUI window.</em>
-Gui := GuiCreate(, TreeRoot)  <em>; Display the source directory (TreeRoot) in the title bar.</em>
-Gui.OnEvent("Size", "Gui_Size")  <em>; Call Gui_Size whenever the window is resized.</em>
-
-<em>; Allow the user to maximize or drag-resize the window:</em>
-Gui.Opt("+Resize")
+<em>; Create the GUI window and display the source directory (TreeRoot) in the title bar:</em>
+Gui := GuiCreate("+Resize", TreeRoot)  <em>; Allow the user to maximize or drag-resize the window.</em>
 
 <em>; Create an ImageList and put some standard system icons into it:</em>
 ImageListID := <a href="ListView.htm#IL_Create">IL_Create</a>(5)
 Loop 5 
-  <a href="ListView.htm#IL_Add">IL_Add</a>(ImageListID, &quot;shell32.dll&quot;, A_Index)
+  <a href="ListView.htm#IL_Add">IL_Add</a>(ImageListID, "shell32.dll", A_Index)
 <em>; Create a TreeView and a ListView side-by-side to behave like Windows Explorer:</em>
 TV := <a href="#GuiAdd">Gui.Add</a>("TreeView", "r20 w%TreeViewWidth% <a href="#ImageList">ImageList</a>%ImageListID%")
 LV := Gui.Add("ListView", "r20 w%ListViewWidth% x+10", "Name|Modified")
 
-<em>; Call MyTreeView_ItemSelect whenever a new item is selected:</em>
-TV.OnEvent("ItemSelect", "MyTreeView_ItemSelect")
+<em>; Create a Status Bar to give info about the number of files and their total size:</em>
+SB := Gui.Add("<a href="GuiControls.htm#StatusBar">StatusBar</a>")
+<a href="GuiControls.htm#SB_SetParts">SB.SetParts</a>(60, 85)  <em>; Create three parts in the bar (the third part fills all the remaining width).</em>
+
+<em>; Add folders and their subfolders to the tree. Display the status in case loading takes a long time:</em>
+M := GuiCreate("ToolWindow -SysMenu", &quot;Loading the tree...&quot;), M.Show()
+DirList := AddSubFoldersToTree(TV, TreeRoot, {})
+M.Hide()
+
+<em>; Call TV_ItemSelect whenever a new item is selected:</em>
+TV.OnEvent("ItemSelect", Func("TV_ItemSelect").bind(DirList, SB, LV))
+
+<em>; Call Gui_Size whenever the window is resized:</em>
+Gui.OnEvent("Size", Func("Gui_Size").bind(TV, LV))
 
 <em>; Set the ListView's column widths (this is optional):</em>
 Col2Width := 70  <em>; Narrow to reveal only the YYYYMMDD part.</em>
 LV.ModifyCol(1, ListViewWidth - Col2Width - 30)  <em>; Allows room for vertical scrollbar.</em>
 LV.ModifyCol(2, Col2Width)
 
-<em>; Create a Status Bar to give info about the number of files and their total size:</em>
-SB := Gui.Add("<a href="GuiControls.htm#StatusBar">StatusBar</a>")
-SB.<a href="GuiControls.htm#SB_SetParts">SetParts</a>(60, 85)  <em>; Create three parts in the bar (the third part fills all the remaining width).</em>
-
-<em>; Add folders and their subfolders to the tree. Display the status in case loading takes a long time:</em>
-AddSubFoldersToTree(TV, TreeRoot)
-
-<em>; Display the window and return. The OS will notify the script whenever the user performs an eligible action:</em>
+<em>; Display the window. The OS will notify the script whenever the user performs an eligible action:</em>
 Gui.Show()
-return
 
-AddSubFoldersToTree(TV, Folder, ParentItemID := 0)
+AddSubFoldersToTree(TV, Folder, DirList, ParentItemID := 0)
 {
-  <em>; This function adds to the TreeView all subfolders in the specified folder.</em>
-  <em>; It also calls itself recursively to gather nested folders to any depth.</em>
-  Loop, Files, %Folder%\*.*, D  <em>; Retrieve all of Folder's sub-folders.</em>
-    AddSubFoldersToTree(TV, A_LoopFilePath, TV.<a href="#Add">Add</a>(A_LoopFileName, ParentItemID, &quot;Icon4&quot;))
+  <em>; This function adds to the TreeView all subfolders in the specified folder
+  ; and saves their paths associated with an ID into an object for later use.
+  ; It also calls itself recursively to gather nested folders to any depth.</em>
+  LoopFiles("%Folder%\*.*", "D")  <em>; Retrieve all of Folder's sub-folders.</em>
+  {
+    ItemID := <a href="#Add">TV.Add</a>(A_LoopFileName, ParentItemID, "Icon4")
+    DirList[ItemID] := A_LoopFilePath
+    DirList := AddSubFoldersToTree(TV, A_LoopFilePath, DirList, ItemID)
+  }
+  return DirList
 }
 
-MyTreeView_ItemSelect(TV, Item)  <em>; This function is called when a new item is selected.</em>
+TV_ItemSelect(DirList, SB, LV, TV, Item)  <em>; This function is called when a new item is selected.</em>
 {
-  global
-  <em>; Otherwise, populate the ListView with the contents of the selected folder.
-  ; First determine the full path of the selected folder:</em>
-  SelectedItemText := TV.<a href="#GetText">GetText</a>(Item)
-  ParentID := Item
-  Loop  <em>; Build the full path to the selected folder.</em>
-  {
-    ParentID := TV.<a href="#GetParent">GetParent</a>(ParentID)
-    if not ParentID  <em>; No more ancestors.</em>
-      break
-    ParentText := TV.GetText(ParentID)
-    SelectedItemText := "%ParentText%\%SelectedItemText%"
-  }
-  SelectedFullPath := "%TreeRoot%\%SelectedItemText%"
-
   <em>; Put the files into the ListView:</em>
   LV.Delete()  <em>; Clear all rows.</em>
   LV.Opt("-Redraw")  <em>; Improve performance by disabling redrawing during load.</em>
-  FileCount := 0  <em>; Init prior to loop below.</em>
-  TotalSize := 0
-  Loop, Files, %SelectedFullPath%\*.*  <em>; For simplicity, omit folders so that only files are shown in the ListView.</em>
+  TotalSize := 0  <em>; Init prior to loop below.</em>
+  LoopFiles(DirList[Item] "\*.*")  <em>; For simplicity, omit folders so that only files are shown in the ListView.</em>
   {
-    LV.Add(&quot;&quot;, A_LoopFileName, A_LoopFileTimeModified)
-    FileCount += 1
+    LV.Add(, A_LoopFileName, A_LoopFileTimeModified)
     TotalSize += A_LoopFileSize
   }
   LV.Opt("+Redraw")
 
   <em>; Update the three parts of the status bar to show info about the currently selected folder:</em>
-  SB.<a href="GuiControls.htm#SB_SetText">SetText</a>(FileCount . &quot; files&quot;, 1)
-  SB.SetText(Round(TotalSize / 1024, 1) . &quot; KB&quot;, 2)
-  SB.SetText(SelectedFullPath, 3)
+  <a href="GuiControls.htm#SB_SetText">SB.SetText</a>(LV.GetCount() " files", 1)
+  SB.SetText(Round(TotalSize / 1024, 1) " KB", 2)
+  SB.SetText(DirList[Item], 3)
 }
 
-Gui_Size(Gui, MinMax, Width, Height)  <em>; Expand/Shrink ListView and TreeView in response to the user's resizing.</em>
+Gui_Size(TV, LV, Gui, MinMax, Width, Height)  <em>; Expand/Shrink ListView and TreeView in response to the user's resizing.</em>
 {
-  global
   if MinMax = -1  <em>; The window has been minimized.  No action needed.</em>
     return
   <em>; Otherwise, the window has been resized or maximized. Resize the controls to match.</em>
-  TV.Move(&quot;H&quot; . (Height - 30))  <em>; -30 for StatusBar and margins.</em>
-  LV.Move(&quot;H&quot; . (Height - 30) . &quot; W&quot; . (Width - TreeViewWidth - 30))
+  TV.Move("H" Height - 30)  <em>; -30 for StatusBar and margins.</em>
+  LV.Move("H" Height - 30 " W" Width - TV.Pos.W - 30)
 }</pre>
 
 </body>

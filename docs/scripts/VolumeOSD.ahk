@@ -1,90 +1,79 @@
-﻿; Volume On-Screen-Display (OSD) -- by Rajat
-; http://www.autohotkey.com
-; This script assigns hotkeys of your choice to raise and lower the
-; master and/or wave volume.  Both volumes are displayed as different
-; color bar graphs.
+﻿/*
+Volume On-Screen-Display (based on the v1 script by Rajat)
+http://www.autohotkey.com
+This script assigns hotkeys of your choice to raise and lower the master and/or
+wave volume. Both volumes are displayed as different color bar graphs.
+*/
 
-;_________________________________________________ 
-;_______User Settings_____________________________ 
-
-; Make customisation only in this area or hotkey area only!! 
+; --- User Settings ---
 
 ; The percentage by which to raise or lower the volume each time:
-vol_Step := 4
+config := {Step: 4}
 
 ; How long to display the volume level bar graphs:
-vol_DisplayTime := 2000
+config.DisplayTime := 2000
 
-; Master Volume Bar color (see the help file to use more
-; precise shades):
-vol_CBM := "Red"
+; Master Volume Bar color (see the help file to use more precise shades):
+config.CBM := "Red"
 
-; Wave Volume Bar color
-vol_CBW := "Blue"
+; Wave Volume Bar color:
+config.CBW := "Blue"
 
-; Background color
-vol_CW := "Silver"
+; Background color:
+config.CW := "Silver"
 
-; Bar's screen position.  Use "center" to center the bar in that dimension:
-vol_PosX := "center"
-vol_PosY := "center"
-vol_Width := 150  ; width of bar
-vol_Thick := 12   ; thickness of bar
+; Bar's screen position. Use "center" to center the bar in that dimension:
+config.PosX := "center"
+config.PosY := "center"
+config.Width := 150  ; width of bar
+config.Thick := 12   ; thickness of bar
 
 ; If your keyboard has multimedia buttons for Volume, you can
 ; try changing the below hotkeys to use them by specifying
 ; Volume_Up, ^Volume_Up, Volume_Down, and ^Volume_Down:
-HotKey, #Up, vol_MasterUp      ; Win+UpArrow
-HotKey, #Down, vol_MasterDown
-HotKey, +#Up, vol_WaveUp       ; Shift+Win+UpArrow
-HotKey, +#Down, vol_WaveDown
+config.MasterUp := "#Up"      ; Win+UpArrow
+config.MasterDown := "#Down"
+config.WaveUp := "+#Up"       ; Shift+Win+UpArrow
+config.WaveDown := "+#Down"
 
-
-;___________________________________________ 
-;_____Auto Execute Section__________________ 
+; --- Auto Execute Section ---
 
 ; DON'T CHANGE ANYTHING HERE (unless you know what you're doing).
 
 #SingleInstance
 
-; Progress window
+; Create the Progress window:
+G := GuiCreate("+ToolWindow -Caption -Border +Disabled")
+G.MarginX := 0, G.MarginY := 0
+opt := "w" config.Width " h" config.Thick " background" config.CW
+G.Add("Progress", opt " vMaster c" config.CBM)
+G.Add("Progress", opt " vWave c" config.CBW)
 
-Gui := GuiCreate("+ToolWindow -Caption -Border +Disabled")
-Gui.MarginX := 0, Gui.MarginY := 0
-Master := Gui.Add("Progress", "w%vol_Width% h%vol_Thick% c%vol_CBM% background%vol_CW%")
-Wave := Gui.Add("Progress", "w%vol_Width% h%vol_Thick% c%vol_CBW% background%vol_CW%")
-Return
+; Create function references for the hotkeys:
+vol_MasterUp := Func("ChangeVolume").bind(config, G, "+")
+vol_MasterDown := Func("ChangeVolume").bind(config, G, "-")
+vol_WaveUp := Func("ChangeVolume").bind(config, G, "+", "Wave")
+vol_WaveDown := Func("ChangeVolume").bind(config, G, "-", "Wave")
 
-;___________________________________________ 
+; Register hotkeys:
+Hotkey(config.MasterUp, vol_MasterUp)
+Hotkey(config.MasterDown, vol_MasterDown)
+Hotkey(config.WaveUp, vol_WaveUp)
+Hotkey(config.WaveDown, vol_WaveDown)
 
-vol_WaveUp:
-SoundSet, +%vol_Step%, Wave
-Gosub, vol_ShowBars
-return
+; --- Function Definitions ---
 
-vol_WaveDown:
-SoundSet, -%vol_Step%, Wave
-Gosub, vol_ShowBars
-return
+ChangeVolume(config, G, Prefix, ComponentType := "Master")
+{
+  SoundSet(Prefix config.Step, ComponentType)
+  G.Control["Master"].Value := Round(SoundGet("Master"))
+  G.Control["Wave"].Value := Round(SoundGet("Wave"))
+  G.Show("x" config.PosX " y" config.PosY)
+  HideWindow := Func("HideWindow").bind(G)
+  SetTimer(HideWindow, -config.DisplayTime)
+}
 
-vol_MasterUp:
-SoundSet, +%vol_Step%
-Gosub, vol_ShowBars
-return
-
-vol_MasterDown:
-SoundSet, -%vol_Step%
-Gosub, vol_ShowBars
-return
-
-vol_ShowBars:
-; Get both volumes in case the user or an external program changed them:
-Master.Value := Round(SoundGet("Master"))
-Wave.Value := Round(SoundGet("Wave"))
-Gui.Show("x%vol_PosX% y%vol_PosY%")
-SetTimer, vol_BarOff, -%vol_DisplayTime%
-return
-
-vol_BarOff:
-Gui.Hide()
-return
+HideWindow(G)
+{
+  G.Hide()
+}

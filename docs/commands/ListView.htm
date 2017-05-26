@@ -39,25 +39,25 @@
 Gui := GuiCreate()
 
 <em>; Create the ListView with two columns, Name and Size:</em>
-LV := Gui.Add("ListView", "r20 w700 gMyListView", "Name|Size (KB)")
+LV := Gui.Add("ListView", "r20 w700", "Name|Size (KB)")
+
+<em>; Notify the script whenever the user double clicks a row:</em>
+LV.OnEvent("DoubleClick", "LV_DoubleClick")
 
 <em>; Gather a list of file names from a folder and put them into the ListView:</em>
-Loop, Files, %A_MyDocuments%\*.*
-  LV.<a href="#Add">Add</a>(, A_LoopFileName, A_LoopFileSizeKB)
+LoopFiles("%A_MyDocuments%\*.*")
+  <a href="#Add">LV.Add</a>(, A_LoopFileName, A_LoopFileSizeKB)
 
-LV.<a href="#ModifyCol">ModifyCol</a>()  <em>; Auto-size each column to fit its contents.</em>
-LV.ModifyCol(2, &quot;Integer&quot;)  <em>; For sorting purposes, indicate that column 2 is an integer.</em>
+<a href="#ModifyCol">LV.ModifyCol</a>()  <em>; Auto-size each column to fit its contents.</em>
+LV.ModifyCol(2, "Integer")  <em>; For sorting purposes, indicate that column 2 is an integer.</em>
 
-<em>; Display the window. The script will be notified whenever the user double clicks a row.</em>
+<em>; Display the window.</em>
 Gui.Show()
 
-MyListView(LV, GuiEvent, EventInfo)
+LV_DoubleClick(LV, RowNumber)
 {
-  if GuiEvent = "DoubleClick"
-  {
-    RowText := LV.<a href="#GetText">GetText</a>(EventInfo)  <em>; Get the text from the row's first field.</em>
-    ToolTip You double-clicked row number %EventInfo%. Text: &quot;%RowText%&quot;
-  }
+  RowText := <a href="#GetText">LV.GetText</a>(RowNumber)  <em>; Get the text from the row's first field.</em>
+  ToolTip("You double-clicked row number %RowNumber%. Text: '%RowText%'")
 }</pre>
 <h2 id="Options">Options and Styles for the <em>Options</em> parameter</h2>
 <p><strong>Background:</strong> Specify the word Background followed immediately by a color name (see <a href="../misc/Colors.htm">color chart</a>) or RGB value (the 0x prefix is optional). Examples: <code>BackgroundSilver</code>, <code>BackgroundFFDD99</code>. If this option is not present, the ListView initially defaults to the system's default background color. Specifying <code>BackgroundDefault</code> or <code>-Background</code> applies the system's default background color (usually white). For example, a ListView can be restored to the default color via <code>LV.Opt("+BackgroundDefault")</code>.</p>
@@ -221,7 +221,7 @@ MyListView(LV, GuiEvent, EventInfo)
       <dd>When this parameter is omitted, it returns the total number of rows in the control. When this parameter is &quot;S&quot; or &quot;Selected&quot;, the count includes only the selected/highlighted rows. When this parameter is &quot;Col&quot; or &quot;Column&quot;, it returns the number of columns in the control. The return value will be retrieved instantly, because the control keeps track of these counts.</dd>
     </dl>
     <p>This method is often used in the top line of a Loop, in which case the method would get called only once (prior to the first iteration). For example:</p>
-    <pre>Loop % LV.GetCount()
+    <pre>Loop(LV.GetCount())
 {
     RetrievedText := LV.GetText(A_Index)
     if InStr(RetrievedText, &quot;some filter text&quot;)
@@ -229,10 +229,10 @@ MyListView(LV, GuiEvent, EventInfo)
 }</pre>
     <p>To retrieve the widths of a ListView's columns -- for uses such as saving them to an INI file to be remembered between sessions -- follow this example:</p>
     <pre>Gui.Opt("+LastFound")
-Loop % LV.GetCount(&quot;Column&quot;)
+Loop(LV.GetCount("Column"))
 {
-    SendMessage, 4125, % A_Index - 1, 0, SysListView321  <em>; 4125 is LVM_GETCOLUMNWIDTH.</em>
-    MsgBox Column %A_Index%'s width is %ErrorLevel%.
+    ColWidth := SendMessage(4125, A_Index - 1, 0, "SysListView321")  <em>; 4125 is LVM_GETCOLUMNWIDTH.</em>
+    MsgBox("Column %A_Index%'s width is %ColWidth%.")
 }</pre>
   </div>
   <div class="methodShort" id="GetNext">
@@ -256,9 +256,9 @@ Loop
     MsgBox('The next selected row is #%RowNumber%, whose first field is &quot;%Text%&quot;.')
 }</pre>
     <p>An alternate method to find out if a particular row number is checked is the following:</p>
-    <pre>Gui.Opt(&quot;+LastFound&quot;)
-SendMessage, 4140, % <i>RowNumber</i> - 1, 0xF000, SysListView321  <em>; 4140 is LVM_GETITEMSTATE.  0xF000 is LVIS_STATEIMAGEMASK.</em>
-IsChecked := (ErrorLevel &gt;&gt; 12) - 1  <em>; This sets IsChecked to true if <i>RowNumber</i> is checked or false otherwise.</em></pre>
+    <pre>Gui.Opt("+LastFound")
+ItemState := SendMessage(4140, RowNumber - 1, 0xF000, "SysListView321")  <em>; 4140 is LVM_GETITEMSTATE. 0xF000 is LVIS_STATEIMAGEMASK.</em>
+IsChecked := (ItemState &gt;&gt; 12) - 1  <em>; This sets IsChecked to true if <i>RowNumber</i> is checked or false otherwise.</em></pre>
   </div>
   <div class="methodShort" id="GetText">
     <h3>GetText</h3>
@@ -312,9 +312,9 @@ IsChecked := (ErrorLevel &gt;&gt; 12) - 1  <em>; This sets IsChecked to true if 
 LV := Gui.Add("ListView", "h200 w180", "Icon &amp; Number|Description")  <em>; Create a ListView.</em>
 ImageListID := <a href="#IL_Create">IL_Create</a>(10)  <em>; Create an ImageList to hold 10 small icons.</em>
 LV.<a href="#SetImageList">SetImageList</a>(ImageListID)  <em>; Assign the above ImageList to the current ListView.</em>
-Loop 10  <em>; Load the ImageList with a series of icons from the DLL.</em>
+Loop(10)  <em>; Load the ImageList with a series of icons from the DLL.</em>
     <a href="#IL_Add">IL_Add</a>(ImageListID, &quot;shell32.dll&quot;, A_Index) 
-Loop 10  <em>; Add rows to the ListView (for demonstration purposes, one for each icon).</em>
+Loop(10)  <em>; Add rows to the ListView (for demonstration purposes, one for each icon).</em>
     LV.Add(&quot;Icon&quot; . A_Index, A_Index, &quot;n/a&quot;)
 LV.ModifyCol(&quot;Hdr&quot;)  <em>; Auto-adjust the column widths.</em>
 Gui.Show()</pre>
@@ -358,13 +358,13 @@ Gui.Show()</pre>
 <p><a href="../objects/Gui.htm#Submit">Gui.Submit</a> has no effect on a ListView control.</p>
 <p>After a column is sorted -- either by means of the user clicking its header or the script calling <code>LV.<a href="#ModifyCol">ModifyCol</a>(1, &quot;Sort&quot;)</code> -- any subsequently added rows will appear at the bottom of the list rather than obeying the sort order. The exception to this is the <a href="#Sort">Sort</a> and <a href="#SortDesc">SortDesc</a> styles, which move newly added rows into the correct positions.</p>
 <p id="Enter">To detect when the user has pressed Enter while a ListView has focus, use a <a href="GuiControls.htm#DefaultButton">default button</a> (which can be hidden if desired). For example:</p>
-<pre>Gui.Add("Button", "Hidden Default gButtonOK", "OK")
+<pre>Gui.Add("Button", "Hidden Default", "OK").OnEvent("Click", "LV_Enter")
 ...
-ButtonOK() {
+LV_Enter() {
   global
-  if Gui.FocusedCtrl.Name &lt;&gt; "MyListView"
+  if Gui.FocusedCtrl != LV
     return
-  MsgBox % &quot;Enter was pressed. The focused row number is &quot; . LV.GetNext(0, &quot;Focused&quot;)
+  MsgBox("Enter was pressed. The focused row number is " LV.GetNext(0, "Focused"))
 }</pre>
 <p>In addition to navigating from row to row with the keyboard, the user may also perform incremental search by typing the first few characters of an item in the first column. This causes the selection to jump to the nearest matching row.</p>
 <p>Although any length of text can be stored in each field of a ListView, only the first 260 characters are displayed.</p>
@@ -390,20 +390,21 @@ LV.<a href="#ModifyCol">ModifyCol</a>()  <em>; There are no parameters in this m
 ; It displays the files in a folder chosen by the user, with each file assigned the icon associated with
 ; its type. The user can double-click a file, or right-click one or more files to display a context menu.</em>
 
-<em>; Create a GUI window</em>
-Gui := GuiCreate()
-
-<em>; Allow the user to maximize or drag-resize the window:</em>
-Gui.Opt("+Resize")
+<em>; Create a GUI window:</em>
+Gui := GuiCreate("+Resize")  <em>; Allow the user to maximize or drag-resize the window.</em>
 
 <em>; Create some buttons:</em>
-Gui.Add("Button", "Default gButtonLoadFolder", "Load a folder")
-Gui.Add("Button", "x+20 gButtonClear", "Clear List")
-Gui.Add("Button", "x+20 gButtonSwitchView", "Switch View")
+B_1 := Gui.Add("Button", "Default", "Load a folder")
+B_2 := Gui.Add("Button", "x+20", "Clear List")
+B_3 := Gui.Add("Button", "x+20", "Switch View")
 
 <em>; Create the ListView and its columns:</em>
-LV := <a href="#GuiAdd">Gui.Add</a>("ListView", "xm r20 w700 vMyListView gMyListView", "Name|In Folder|Size (KB)|Type")
-LV.<a href="#ModifyCol">ModifyCol</a>(3, &quot;Integer&quot;)  <em>; For sorting, indicate that the Size column is an integer.</em>
+LV := <a href="#GuiAdd">Gui.Add</a>("ListView", "xm r20 w700", "Name|In Folder|Size (KB)|Type")
+<a href="#ModifyCol">LV.ModifyCol</a>(3, "Integer")  <em>; For sorting, indicate that the Size column is an integer.</em>
+
+<em>; Apply ListView events:</em>
+LV.OnEvent("<a href="../objects/GuiOnEvent.htm#DoubleClick">DoubleClick</a>", "RunFile")
+LV.OnEvent("<a href="../objects/GuiOnEvent.htm#Ctrl-ContextMenu">ContextMenu</a>", "ShowContextMenu")
 
 <em>; Create an ImageList so that the ListView can display some icons:</em>
 ImageListID1 := <a href="#IL_Create">IL_Create</a>(10)
@@ -413,29 +414,30 @@ ImageListID2 := IL_Create(10, 10, true)  <em>; A list of large icons to go with 
 LV.<a href="#SetImageList">SetImageList</a>(ImageListID1)
 LV.SetImageList(ImageListID2)
 
-<em>; Create a popup menu to be used as the context menu:</em>
-<a href="Menu.htm">Menu</a>, MyContextMenu, Add, Open, Context
-Menu, MyContextMenu, Add, Properties, Context
-Menu, MyContextMenu, Add, Clear from ListView, ContextClearRows
-Menu, MyContextMenu, Default, Open  <em>; Make &quot;Open&quot; a bold font to indicate that double-click does the same thing.</em>
+<em>; Apply control events:</em>
+LV.OnEvent("DoubleClick", "RunFile")
+LV.OnEvent("ContextMenu", "ShowContextMenu")
+B_1.OnEvent("Click", Func("LoadFolder").bind(Gui, LV, ImageListID1, ImageListID2))
+B_2.OnEvent("Click", Func("ClearList").bind(LV))
+B_3.OnEvent("Click", Func("SwitchView").bind(LV))
 
-<em>; Display the window. The OS will notify the script whenever the user
-; performs an eligible action:</em>
+<em>; Apply window events:</em>
+Gui.OnEvent("Size", Func("Gui_Size").bind(LV))
+
+<em>; Display the window:</em>
 Gui.Show()
 
-
-ButtonLoadFolder()
+LoadFolder(Gui, LV, ImageListID1, ImageListID2)
 {
-  global
+  static IconArray := []
   Gui.Opt("+OwnDialogs")  <em>; Forces user to dismiss the following dialog before using main window.</em>
-  DirSelect, Folder,, 3, Select a folder to read:
+  Folder := DirSelect(, 3, "Select a folder to read:")
   if not Folder  <em>; The user canceled the dialog.</em>
     return
 
   <em>; Check if the last character of the folder name is a backslash, which happens for root
   ; directories such as C:\. If it is, remove it to prevent a double-backslash later on.</em>
-  LastChar := SubStr(Folder, -1, 1)
-  if LastChar = "\"
+  if SubStr(Folder, -1, 1) = "\"
     Folder := SubStr(Folder, 1, -1)  <em>; Remove the trailing backslash.</em>
 
   <em>; Calculate buffer size required for SHFILEINFO structure.</em>
@@ -444,14 +446,14 @@ ButtonLoadFolder()
 
   <em>; Gather a list of file names from the selected folder and append them to the ListView:</em>
   LV.Opt("-Redraw")  <em>; Improve performance by disabling redrawing during load.</em>
-  Loop, Files, %Folder%\*.*
+  LoopFiles("%Folder%\*.*")
   {
-    FileName := A_LoopFilePath  <em>; Must save it to a writable variable for use below.</em>
+    FileName := A_LoopFilePath  <em>; Must save it to a writable variable for use below.
 
-    <em>; Build a unique extension ID to avoid characters that are illegal in variable names,</em>
-    <em>; such as dashes.  This unique ID method also performs better because finding an item</em>
-    <em>; in the array does not require search-loop.</em>
-    SplitPath, %FileName%,,, FileExt  <em>; Get the file's extension.</em>
+    ; Build a unique extension ID to avoid characters that are illegal in variable names,
+    ; such as dashes. This unique ID method also performs better because finding an item
+    ; in the array does not require search-loop.</em>
+    SplitPath(FileName,,, FileExt)  <em>; Get the file's extension.</em>
     if FileExt ~= "^(EXE|ICO|ANI|CUR)$"
     {
       ExtID := FileExt  <em>; Special ID as a placeholder.</em>
@@ -460,58 +462,56 @@ ButtonLoadFolder()
     else  <em>; Some other extension/file-type, so calculate its unique ID.</em>
     {
       ExtID := 0  <em>; Initialize to handle extensions that are shorter than others.</em>
-      Loop 7     <em>; Limit the extension to 7 characters so that it fits in a 64-bit value.</em>
+      Loop(7)     <em>; Limit the extension to 7 characters so that it fits in a 64-bit value.</em>
       {
         ExtChar := SubStr(FileExt, A_Index, 1)
         if not ExtChar  <em>; No more characters.</em>
           break
         <em>; Derive a Unique ID by assigning a different bit position to each character:</em>
-        ExtID := ExtID | (Ord(ExtChar) &lt;&lt; (8 * (A_Index - 1)))
+        ExtID := ExtID | (Ord(ExtChar) << (8 * (A_Index - 1)))
       }
-      <em>; Check if this file extension already has an icon in the ImageLists. If it does,</em>
-      <em>; several calls can be avoided and loading performance is greatly improved,</em>
-      <em>; especially for a folder containing hundreds of files:</em>
-      IconNumber := IconArray%ExtID%
+      <em>; Check if this file extension already has an icon in the ImageLists. If it does,
+      ; several calls can be avoided and loading performance is greatly improved,
+      ; especially for a folder containing hundreds of files:</em>
+      IconNumber := IconArray[ExtID]
     }
     if not IconNumber  <em>; There is not yet any icon for this extension, so load it.</em>
     {
       <em>; Get the high-quality small-icon associated with this file extension:</em>
-      if not DllCall(&quot;Shell32\SHGetFileInfoW&quot;, &quot;str&quot;, FileName
-        , &quot;uint&quot;, 0, &quot;ptr&quot;, &amp;sfi, &quot;uint&quot;, sfi_size, &quot;uint&quot;, 0x101)  <em>; 0x101 is SHGFI_ICON+SHGFI_SMALLICON</em>
-      IconNumber := 9999999  <em>; Set it out of bounds to display a blank icon.</em>
+      if not DllCall("Shell32\SHGetFileInfoW", "str", FileName
+      , "uint", 0, "ptr", &sfi, "uint", sfi_size, "uint", 0x101)  <em>; 0x101 is SHGFI_ICON+SHGFI_SMALLICON</em>
+        IconNumber := 9999999  <em>; Set it out of bounds to display a blank icon.</em>
       else <em>; Icon successfully loaded.</em>
       {
         <em>; Extract the hIcon member from the structure:</em>
         hIcon := NumGet(sfi, 0)
-        <em>; Add the HICON directly to the small-icon and large-icon lists.</em>
-        <em>; Below uses +1 to convert the returned index from zero-based to one-based:</em>
-        IconNumber := DllCall(&quot;ImageList_ReplaceIcon&quot;, &quot;ptr&quot;, ImageListID1, &quot;int&quot;, -1, &quot;ptr&quot;, hIcon) + 1
-        DllCall(&quot;ImageList_ReplaceIcon&quot;, &quot;ptr&quot;, ImageListID2, &quot;int&quot;, -1, &quot;ptr&quot;, hIcon)
+        <em>; Add the HICON directly to the small-icon and large-icon lists.
+        ; Below uses +1 to convert the returned index from zero-based to one-based:</em>
+        IconNumber := DllCall("ImageList_ReplaceIcon", "ptr", ImageListID1, "int", -1, "ptr", hIcon) + 1
+        DllCall("ImageList_ReplaceIcon", "ptr", ImageListID2, "int", -1, "ptr", hIcon)
         <em>; Now that it's been copied into the ImageLists, the original should be destroyed:</em>
-        DllCall(&quot;DestroyIcon&quot;, &quot;ptr&quot;, hIcon)
+        DllCall("DestroyIcon", "ptr", hIcon)
         <em>; Cache the icon to save memory and improve loading performance:</em>
-        IconArray%ExtID% := IconNumber
+        IconArray[ExtID] := IconNumber
       }
     }
 
     <em>; Create the new row in the ListView and assign it the icon number determined above:</em>
-    LV.<a href="#Add">Add</a>(&quot;Icon&quot; . IconNumber, A_LoopFileName, A_LoopFileDir, A_LoopFileSizeKB, FileExt)
+    <a href="#Add">LV.Add</a>("Icon" . IconNumber, A_LoopFileName, A_LoopFileDir, A_LoopFileSizeKB, FileExt)
   }
   LV.Opt("+Redraw")  <em>; Re-enable redrawing (it was disabled above).</em>
   LV.ModifyCol()  <em>; Auto-size each column to fit its contents.</em>
   LV.ModifyCol(3, 60) <em>; Make the Size column at little wider to reveal its header.</em>
 }
 
-
-ButtonClear()
+ClearList(LV)
 {
-  global
-  LV.<a href="#Delete">Delete</a>()  <em>; Clear the ListView, but keep icon cache intact for simplicity.</em>
+  <a href="#Delete">LV.Delete</a>()  <em>; Clear the ListView, but keep icon cache intact for simplicity.</em>
 }
 
-ButtonSwitchView()
+SwitchView(LV)
 {
-  global
+  static IconView
   if not IconView
     LV.Opt("+Icon")         <em>; Switch to icon view.</em>
   else
@@ -519,53 +519,53 @@ ButtonSwitchView()
   IconView := not IconView  <em>; Invert in preparation for next time.</em>
 }
 
-MyListView(LV, GuiEvent, EventInfo)
+RunFile(LV, RowNumber, Verb := "")
 {
-  if GuiEvent = "DoubleClick"  <em>; There are many other possible values the script can check.</em>
-  {
-    FileName := LV.<a href="#GetText">GetText</a>(EventInfo, 1) <em>; Get the text of the first field.</em>
-    FileDir := LV.GetText(EventInfo, 2)  <em>; Get the text of the second field.</em>
-    Run %FileDir%\%FileName%,, UseErrorLevel
-    if ErrorLevel
-      MsgBox Could not open &quot;%FileDir%\%FileName%&quot;.
-  }
+  FileName := <a href="#GetText">LV.GetText</a>(RowNumber, 1) <em>; Get the text of the first field.</em>
+  FileDir := LV.GetText(RowNumber, 2)  <em>; Get the text of the second field.</em>
+  FilePath := FileDir "\" FileName
+  Verb .= Verb ? " " : ""
+  try
+    Run(Verb FilePath)
+  catch Error
+    MsgBox(Error.Extra "`n" FilePath)
 }
 
-<a href="../objects/GuiOnEvent.htm#ContextMenu">GuiContextMenu</a>(Gui, GuiCtrl, EventInfo, IsRightClick, X, Y)  <em>; In response to right-click or Apps key.</em>
+ShowContextMenu(LV, Item, IsRightClick, X, Y)  <em>; In response to right-click or Apps key.</em>
 {
-  if GuiCtrl.Name &lt;&gt; "MyListView"  <em>; Display the menu only for clicks inside the ListView.</em>
-    return
-  <em>; Show the menu at the provided coordinates, X and Y.  These should be used
+  <em>; Create function references for the menu events:</em>
+  ContextOpen := Func("ContextOpen").bind(LV, Item)
+  ContextProperties := Func("ContextProperties").bind(LV, Item)
+  ContextClearRows := Func("ContextClearRows").bind(LV)
+ 
+  <em>; Create or update the popup menu to be used as the context menu:</em>
+  <a href="Menu.htm">Menu</a>("MyContextMenu", "Add", "Open", ContextOpen)
+  Menu("MyContextMenu", "Add", "Properties", ContextProperties)
+  Menu("MyContextMenu", "Add", "Clear from ListView", ContextClearRows)
+  Menu("MyContextMenu", "Default", "Open")  <em>; Make "Open" a bold font to indicate that double-click does the same thing.
+  ; Show the menu at the provided coordinates, X and Y.  These should be used
   ; because they provide correct coordinates even if the user pressed the Apps key:</em>
-  Menu, MyContextMenu, Show, %X%, %Y%
+  Menu("MyContextMenu", "Show", X, Y)
 }
 
-Context(ItemName, ItemPos, MenuName)  <em>; The user selected &quot;Open&quot; or &quot;Properties&quot; in the context menu.</em>
+ContextOpen(LV, RowNumber)  <em>; The user selected "Open" in the context menu.</em>
 {
-  global
-  <em>; For simplicitly, operate upon only the focused row rather than all selected rows:</em>
-  FocusedRowNumber := LV.<a href="#GetNext">GetNext</a>(0, &quot;F&quot;)  <em>; Find the focused row.</em>
-  if not FocusedRowNumber  <em>; No row is focused.</em>
-      return
-  FileName := LV.GetText(FocusedRowNumber, 1) <em>; Get the text of the first field.</em>
-  FileDir := LV.GetText(FocusedRowNumber, 2)  <em>; Get the text of the second field.</em>
-  if InStr(ItemName, "Open")  <em>; User selected &quot;Open&quot; from the context menu.</em>
-      Run %FileDir%\%FileName%,, UseErrorLevel
-  else  <em>; User selected &quot;Properties&quot; from the context menu.</em>
-      Run Properties &quot;%FileDir%\%FileName%&quot;,, UseErrorLevel
-  if ErrorLevel
-      MsgBox Could not perform requested action on &quot;%FileDir%\%FileName%&quot;.
+  RunFile(LV, RowNumber)
 }
 
-ContextClearRows()  <em>; The user selected &quot;Clear&quot; in the context menu.</em>
+ContextProperties(LV, RowNumber)  <em>; The user selected "Properties" in the context menu.</em>
 {
-  global
+  RunFile(LV, RowNumber, "properties")
+}
+
+ContextClearRows(LV)  <em>; The user selected "Clear" in the context menu.</em>
+{
   RowNumber := 0  <em>; This causes the first iteration to start the search at the top.</em>
   Loop
   {
-    <em>; Since deleting a row reduces the RowNumber of all other rows beneath it,</em>
-    <em>; subtract 1 so that the search includes the same row number that was previously</em>
-    <em>; found (in case adjacent rows are selected):</em>
+    <em>; Since deleting a row reduces the RowNumber of all other rows beneath it,
+    ; subtract 1 so that the search includes the same row number that was previously
+    ; found (in case adjacent rows are selected):</em>
     RowNumber := LV.GetNext(RowNumber - 1)
     if not RowNumber  <em>; The above returned zero, so there are no more selected rows.</em>
       break
@@ -573,13 +573,12 @@ ContextClearRows()  <em>; The user selected &quot;Clear&quot; in the context men
   }
 }
 
-GuiSize(Gui, EventInfo, Width, Height)  <em>; Expand/Shrink ListView in response to the user's resizing.</em>
+Gui_Size(LV, Gui, MinMax, Width, Height)  <em>; Expand/Shrink ListView in response to the user's resizing.</em>
 {
-  global
-  if EventInfo = 1  <em>; The window has been minimized.  No action needed.</em>
+  if MinMax = -1  <em>; The window has been minimized. No action needed.</em>
     return
   <em>; Otherwise, the window has been resized or maximized. Resize the ListView to match.</em>
-  LV.Move(&quot;W&quot; . (Width - 20) . &quot; H&quot; . (Height - 40))
+  LV.Move("W" Width-20 " H" Height-40)
 }</pre>
 
 </body>

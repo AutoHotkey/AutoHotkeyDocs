@@ -1,7 +1,7 @@
 <!DOCTYPE HTML>
 <html>
 <head>
-<title>Volume On-Screen-Display (OSD) -- by Rajat</title>
+<title>Volume On-Screen-Display</title>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <link href="../static/theme.css" rel="stylesheet" type="text/css" />
@@ -9,7 +9,7 @@
 </head>
 <body>
 
-<h1>Volume On-Screen-Display (OSD) -- by Rajat</h1>
+<h1>Volume On-Screen-Display <span class="headnote">Based on the v1 script by Rajat</span></h1>
 
 <p>This script assigns hotkeys of your choice to raise and lower the
  master and/or wave volume.  Both volumes are displayed as different
@@ -17,90 +17,77 @@
 </p>
 <p><a href="VolumeOSD.ahk">Download This Script</a> &nbsp;| &nbsp;<a href="index.htm">Other Sample Scripts</a> &nbsp;| &nbsp;<a href="../AutoHotkey.htm">Home</a></p>
 
-<pre class="NoIndent"><em>;_________________________________________________ 
-;_______User Settings_____________________________</em>
+<pre class="NoIndent"><em>; --- User Settings ---
 
-<em>; Make customisation only in this area or hotkey area only!!</em>
-
-<em>; The percentage by which to raise or lower the volume each time:</em>
-vol_Step := 4
+; The percentage by which to raise or lower the volume each time:</em>
+config := {Step: 4}
 
 <em>; How long to display the volume level bar graphs:</em>
-vol_DisplayTime := 2000
+config.DisplayTime := 2000
 
-<em>; Master Volume Bar color (see the help file to use more
-; precise shades):</em>
-vol_CBM := "Red"
+<em>; Master Volume Bar color (see the help file to use more precise shades):</em>
+config.CBM := "Red"
 
-<em>; Wave Volume Bar color</em>
-vol_CBW := "Blue"
+<em>; Wave Volume Bar color:</em>
+config.CBW := "Blue"
 
-<em>; Background color</em>
-vol_CW := "Silver"
+<em>; Background color:</em>
+config.CW := "Silver"
 
-<em>; Bar's screen position.  Use "center" to center the bar in that dimension:</em>
-vol_PosX := "center"
-vol_PosY := "center"
-vol_Width := 150  <em>; width of bar</em>
-vol_Thick := 12   <em>; thickness of bar</em>
+<em>; Bar's screen position. Use "center" to center the bar in that dimension:</em>
+config.PosX := "center"
+config.PosY := "center"
+config.Width := 150  <em>; width of bar</em>
+config.Thick := 12   <em>; thickness of bar</em>
 
 <em>; If your keyboard has multimedia buttons for Volume, you can
 ; try changing the below hotkeys to use them by specifying
 ; Volume_Up, ^Volume_Up, Volume_Down, and ^Volume_Down:</em>
-HotKey, #Up, vol_MasterUp      <em>; Win+UpArrow</em>
-HotKey, #Down, vol_MasterDown
-HotKey, +#Up, vol_WaveUp       <em>; Shift+Win+UpArrow</em>
-HotKey, +#Down, vol_WaveDown
+config.MasterUp := "#Up"      <em>; Win+UpArrow</em>
+config.MasterDown := "#Down"
+config.WaveUp := "+#Up"       <em>; Shift+Win+UpArrow</em>
+config.WaveDown := "+#Down"
 
+<em>; --- Auto Execute Section ---
 
-<em>;___________________________________________ 
-;_____Auto Execute Section__________________</em>
-
-<em>; DON'T CHANGE ANYTHING HERE (unless you know what you're doing).</em>
+; DON'T CHANGE ANYTHING HERE (unless you know what you're doing).</em>
 
 #SingleInstance
 
-<em>; Progress window</em>
+<em>; Create the Progress window:</em>
+G := GuiCreate("+ToolWindow -Caption -Border +Disabled")
+G.MarginX := 0, G.MarginY := 0
+opt := "w" config.Width " h" config.Thick " background" config.CW
+G.Add("Progress", opt " vMaster c" config.CBM)
+G.Add("Progress", opt " vWave c" config.CBW)
 
-Gui := GuiCreate("+ToolWindow -Caption -Border +Disabled")
-Gui.MarginX := 0, Gui.MarginY := 0
-Master := Gui.Add("Progress", "w%vol_Width% h%vol_Thick% c%vol_CBM% background%vol_CW%")
-Wave := Gui.Add("Progress", "w%vol_Width% h%vol_Thick% c%vol_CBW% background%vol_CW%")
-Return
+<em>; Create function references for the hotkeys:</em>
+vol_MasterUp := Func("ChangeVolume").bind(config, G, "+")
+vol_MasterDown := Func("ChangeVolume").bind(config, G, "-")
+vol_WaveUp := Func("ChangeVolume").bind(config, G, "+", "Wave")
+vol_WaveDown := Func("ChangeVolume").bind(config, G, "-", "Wave")
 
-<em>;___________________________________________</em>
+<em>; Register hotkeys:</em>
+Hotkey(config.MasterUp, vol_MasterUp)
+Hotkey(config.MasterDown, vol_MasterDown)
+Hotkey(config.WaveUp, vol_WaveUp)
+Hotkey(config.WaveDown, vol_WaveDown)
 
-vol_WaveUp:
-SoundSet, +%vol_Step%, Wave
-Gosub, vol_ShowBars
-return
+<em>; --- Function Definitions ---</em>
 
-vol_WaveDown:
-SoundSet, -%vol_Step%, Wave
-Gosub, vol_ShowBars
-return
+ChangeVolume(config, G, Prefix, ComponentType := "Master")
+{
+  SoundSet(Prefix config.Step, ComponentType)
+  G.Control["Master"].Value := Round(SoundGet("Master"))
+  G.Control["Wave"].Value := Round(SoundGet("Wave"))
+  G.Show("x" config.PosX " y" config.PosY)
+  HideWindow := Func("HideWindow").bind(G)
+  SetTimer(HideWindow, -config.DisplayTime)
+}
 
-vol_MasterUp:
-SoundSet, +%vol_Step%
-Gosub, vol_ShowBars
-return
-
-vol_MasterDown:
-SoundSet, -%vol_Step%
-Gosub, vol_ShowBars
-return
-
-vol_ShowBars:
-<em>; Get both volumes in case the user or an external program changed them:</em>
-Master.Value := Round(SoundGet("Master"))
-Wave.Value := Round(SoundGet("Wave"))
-Gui.Show("x%vol_PosX% y%vol_PosY%")
-SetTimer, vol_BarOff, -%vol_DisplayTime%
-return
-
-vol_BarOff:
-Gui.Hide()
-return
-</pre>
+HideWindow(G)
+{
+  G.Hide()
+}</pre>
 </body>
 </html>
