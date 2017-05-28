@@ -54,13 +54,12 @@ Gui.Add("Edit")</pre>
 <p>Description: An area where free-form text can be typed by the user. Example:</p>
 <pre>Gui.Add("Edit", "r9 vMyEdit", "Text to appear inside the edit control (omit this parameter to start off empty).")</pre>
 <p>The control will be multi-line if it has more than one row of text. For example, specifying <code>r3</code> in <em>Options</em> will create a 3-line edit control with the following default properties: a vertical scroll bar, word-wrapping enabled, and the Enter key captured as part of the input rather than triggering the window's <a href="#DefaultButton">default button</a>.</p>
-<p>To start a new line in a multi-line edit control, the last parameter (contents) may contain either a solitary linefeed (`n) or a carriage return and linefeed (`r`n). Both methods produce literal `r`n pairs inside the Edit control. However, when the control's content is retrieved via <a href="../objects/Gui.htm#Submit">Gui.Submit</a> or <a href="../objects/GuiControl.htm#Value">GuiCtrl.Value</a>, each `r`n in the text is always translated to a plain linefeed (`n). To bypass this End-of-Line translation, use <a href="../objects/GuiControl.htm#Text">GuiCtrl.Text</a>. To write the text to a file, follow this example: <code><a href="FileAppend.htm">FileAppend</a>, %MyEdit%, C:\Saved File.txt</code>.</p>
+<p>To start a new line in a multi-line edit control, the last parameter (contents) may contain either a solitary linefeed (`n) or a carriage return and linefeed (`r`n). Both methods produce literal `r`n pairs inside the Edit control. However, when the control's content is retrieved via <a href="../objects/Gui.htm#Submit">Gui.Submit</a> or <a href="../objects/GuiControl.htm#Value">GuiCtrl.Value</a>, each `r`n in the text is always translated to a plain linefeed (`n). To bypass this End-of-Line translation, use <a href="../objects/GuiControl.htm#Text">GuiCtrl.Text</a>. To write the text to a file, follow this example: <code><a href="FileAppend.htm">FileAppend</a>(MyEdit.Text, "C:\Saved File.txt")</code>.</p>
 <p>If the control has word-wrapping enabled (which is the default for multi-line edit controls), any wrapping that occurs as the user types will not produce linefeed characters (only the Enter keystroke can do that).</p>
 <p>Whenever the user changes the control's content, the <a href="../objects/GuiOnEvent.htm#Change">Change</a> event is raised.</p>
 <p>TIP: To load a text file into an Edit control, use <a href="FileRead.htm">FileRead</a> and <a href="../objects/GuiControl.htm#Value">GuiCtrl.Value</a>. For example:</p>
-<pre>Gui.Add("Edit", "R20 vMyEdit")
-FileRead, FileContents, C:\My File.txt
-Gui.Control["MyEdit"].Value := FileContents</pre>
+<pre>MyEdit := Gui.Add("Edit", "R20")
+MyEdit.Value := FileRead("C:\My File.txt")</pre>
 <h3>Edit Options</h3>
 <p>To remove an option rather than adding it, precede it with a minus sign:</p>
 <p><strong>Limit</strong>: Restricts the user's input to the visible width of the edit field. Alternatively, to limit input to a specific number of characters, include a number immediately afterward. For example, <code>Limit10</code> would allow no more than 10 characters to be entered.</p>
@@ -151,11 +150,11 @@ MyBtn.OnEvent("Click", "MyBtn_Click")  <em>; Call MyBtn_Click when clicked.</em>
 <p>Whenever the user selects a new item, the <a href="../objects/GuiOnEvent.htm#Change">Change</a> event is raised. The <a href="../objects/GuiOnEvent.htm#Focus">Focus</a> and <a href="../objects/GuiOnEvent.htm#LoseFocus">LoseFocus</a> events are also supported.</p>
 <p>Use the <a href="../objects/Gui.htm#R">R or H option</a> to control the height of the popup list. For example, specifying <code>R5</code> would make the list 5 rows tall, while <code>H400</code> would set the total height of the selection field and list to 400 pixels. If both R and H are omitted, the list will automatically expand to take advantage of the available height of the user's desktop (however, operating systems older than Windows XP will show 3 rows by default).</p>
 <p id="ComboBoxHeight">To set the height of the selection field or list items, use the <a href="http://msdn.microsoft.com/en-us/library/windows/desktop/bb775911">CB_SETITEMHEIGHT</a> message as in the example below:</p>
-<pre>Gui := GuiCreate(, "Test")
+<pre>Gui := GuiCreate()
 DDL := Gui.Add("DDL", "vcbx w200", "One||Two")
 <em>; CB_SETITEMHEIGHT = 0x153</em>
-PostMessage, 0x153, -1, 50,, ahk_id %DDL.Hwnd%  <em>; Set height of selection field.</em>
-PostMessage, 0x153,  0, 50,, ahk_id %DDL.Hwnd%  <em>; Set height of list items.</em>
+PostMessage(0x153, -1, 50,, "ahk_id " DDL.Hwnd)  <em>; Set height of selection field.</em>
+PostMessage(0x153, 0, 50,, "ahk_id " DDL.Hwnd)  <em>; Set height of list items.</em>
 Gui.Show("h70")</pre>
 <p>The separator between fields may be changed to something other than pipe (|). For example <code>Gui.Opt("+<a href="GuiCreate.htm#Delimiter">Delimiter</a>`n")</code> would change it to linefeed and <code>Gui.Opt("+DelimiterTab")</code> would change it to tab (`t).</p>
 
@@ -271,7 +270,7 @@ SS: Second 00</p>
 <p>It is usually best to omit width (W) and height (H) for a MonthCal because it automatically sizes itself to fit exactly one month. To display more than one month vertically, specify <code>R2</code> or higher in <em>Options</em>. To display more than one month horizontally, specify <code>W-2</code> (W negative two) or higher. These options may both be present to expand in both directions.</p>
 <p>The today-string at the bottom of the control can be clicked to select today's date. In addition, the year and month name are clickable and allow easy selection of a new year or month.</p>
 <p>Unlike <a href="#DateTime">DateTime</a>'s drop-down calendar, keyboard navigation is generally not supported in a MonthCal.</p>
-<p>When <a href="../objects/Gui.htm#Submit">Gui.Submit</a> or <a href="../objects/GuiControl.htm#Value">GuiCtrl.Value</a> is used, the return value is the selected date in YYYYMMDD format (without any time portion). However, when the <a href="#MonthCalMulti">multi-select</a> option is in effect, the minimum and maximum dates are retrieved with a dash between them (e.g. <code>20050101-20050108</code>). If only a single date was selected in a multi-select calendar, the minimum and maximum are both present but identical. <a href="StrSplit.htm">StrSplit</a> can be used to separate the dates. For example, the following would put the minimum in Date1 and the maximum in Date2: <code>StrSplit, Date, %MyMonthCal%, -</code>.</p>
+<p>When <a href="../objects/Gui.htm#Submit">Gui.Submit</a> or <a href="../objects/GuiControl.htm#Value">GuiCtrl.Value</a> is used, the return value is the selected date in YYYYMMDD format (without any time portion). However, when the <a href="#MonthCalMulti">multi-select</a> option is in effect, the minimum and maximum dates are retrieved with a dash between them (e.g. <code>20050101-20050108</code>). If only a single date was selected in a multi-select calendar, the minimum and maximum are both present but identical. <a href="StrSplit.htm">StrSplit</a> can be used to separate the dates. For example, the following would put the minimum in Date[1] and the maximum in Date[2]: <code>Date := StrSplit(MyMonthCal.Value, "-")</code>.</p>
 <p>The <a href="../objects/GuiOnEvent.htm#Change">Change</a> event is raised when: 1) the user changes the selection; or 2) every two minutes in case a new day has arrived (this behavior is a quirk of the OS).</p>
 <p>When specifying dates in the YYYYMMDD format, the MM and/or DD portions may be omitted, in which case they are assumed to be 1. For example, <code>200205</code> is seen as 20020501, and <code>2005</code> is seen as 20050101.</p>
 <h3>MonthCal Options</h3>
@@ -462,7 +461,7 @@ window is destroyed. Similarly, any old icon is destroyed when
 <code>SB.SetIcon()</code> replaces it with a new one. This can be avoided via:
 </p>
 <pre>Gui.Opt("+LastFound")
-<a href="PostMessage.htm">SendMessage</a>, 0x40F, part_number - 1, my_hIcon, msctls_statusbar321  <em>; 0x40F is SB_SETICON.</em></pre></div>
+<a href="PostMessage.htm">SendMessage</a>(0x40F, part_number - 1, my_hIcon, "msctls_statusbar321")  <em>; 0x40F is SB_SETICON.</em></pre></div>
 
 <div class="methodShort" id="SB_SetProgress">
 <h3>SetProgress</h3>
@@ -475,7 +474,7 @@ window is destroyed. Similarly, any old icon is destroyed when
 <h3>Font and Color</h3>
 <p>Although the font size, face, and style can be set via <a href="../objects/Gui.htm#SetFont">Gui.SetFont</a> (just like normal controls), the text color cannot be changed. The status bar's background color may be changed by specifying in <em>Options</em> the word <strong>Background</strong> followed immediately by a color name (see <a href="../misc/Colors.htm">color chart</a>) or RGB value (the 0x prefix is optional). Examples: <code>BackgroundSilver</code>, <code>BackgroundFFDD99</code>, <code>BackgroundDefault</code>.</p>
 <h3>Hiding the StatusBar</h3>
-<p>Upon creation, the bar can be hidden via <code>Gui.Add("StatusBar", "Hidden vMyStatusBar")</code>. To hide it sometime after creation, use <code>Gui.Control["MyStatusBar"].Visible := false</code>. To show it, use <code>Gui.Control["MyStatusBar"].Visible := true</code>. Note: Hiding the bar does not reduce the height of the window. If that is desired, one easy way is <code>Gui.Show("<a href="../objects/Gui.htm#AutoSize">AutoSize</a>")</code>.</p>
+<p>Upon creation, the bar can be hidden via <code>MyStatusBar := Gui.Add("StatusBar", "Hidden")</code>. To hide it sometime after creation, use <code>MyStatusBar.Visible := false</code>. To show it, use <code>MyStatusBar.Visible := true</code>. Note: Hiding the bar does not reduce the height of the window. If that is desired, one easy way is <code>Gui.Show("<a href="../objects/Gui.htm#AutoSize">AutoSize</a>")</code>.</p>
 <h3>Styles (rarely used)</h3>
 <p>See the <a href="../misc/Styles.htm#StatusBar">StatusBar styles table</a>.</p>
 <h3>Known Limitations</h3>
@@ -519,41 +518,40 @@ Gui.Add("Custom", "ClassScintilla")  <em>; Adds a <a href="http://scintilla.org/
 <p>AutoHotkey uses the standard Windows control text routines when text is to be retrieved/replaced in the control via <code>Gui.Add</code> or <code>GuiCtrl.Value</code>.</p>
 <p><strong>Events</strong>: Since the meaning of each notification code depends on the control which sent it, <a href="../objects/GuiOnEvent.htm">OnEvent</a> is not supported for Custom controls. However, if the control sends notifications in the form of a WM_NOTIFY or WM_COMMAND message, the script can use <a href="../objects/GuiOnNotify.htm">OnNotify</a> or <a href="../objects/GuiOnCommand.htm">OnCommand</a> to detect them.</p>
 <p>Here is an example that shows how to add and use an <a href="http://msdn.microsoft.com/en-us/library/windows/desktop/bb761374.aspx">IP address control</a>:</p>
-<pre>global Gui := GuiCreate()
+<pre>Gui := GuiCreate()
 
 <em>; Add and set up the IP address control:</em>
-global IP := Gui.Add("Custom", "ClassSysIPAddress32 r1 w150")
+IP := Gui.Add("Custom", "ClassSysIPAddress32 r1 w150")
 IPCtrlSetAddress(IP.Hwnd, A_IPAddress1)
-IP.OnNotify(-860, "IP_FieldChange")  <em>; IPN_FIELDCHANGED = -860</em>
-IP.OnCommand(0x300, "IP_EditChange")  <em>; EN_CHANGE = 0x300</em>
-
-global EditText := Gui.Add("Text", "wp")
-global FieldText := Gui.Add("Text", "wp y+m")
-Gui.Add("Button", "Default", "OK").OnEvent("Click", "OK_Click")
+IPText := Gui.Add("Text", "wp")
+IPField := Gui.Add("Text", "wp y+m")
+IP.OnCommand(0x300, Func("IP_EditChange").bind(IPText))  <em>; EN_CHANGE = 0x300</em>
+IP.OnNotify(-860, Func("IP_FieldChange").bind(IPField))  <em>; IPN_FIELDCHANGED = -860</em>
+fn := Func("OK_Click").bind(Gui, IP)
+Gui.Add("Button", "Default", "OK").OnEvent("Click", fn)
 Gui.Show()
 
-OK_Click()
+OK_Click(Gui, IP)
 {
-    global Gui
     Gui.Hide()
     MsgBox("You chose " IPCtrlGetAddress(IP.Hwnd))
     ExitApp()
 }
 
-IP_EditChange(IP)
+IP_EditChange(IPText, IP)
 {
-    EditText.Text := "New text: " IP.Text
+    IPText.Text := "New text: " IP.Text
 }
 
-IP_FieldChange(IP, nmipaddress)
+IP_FieldChange(IPField, IP, nmipaddress)
 {
     <em>; Extract info from the NMIPADDRESS structure.</em>
     iField := NumGet(nmipaddress + 3*A_PtrSize + 0, "int")
     iValue := NumGet(nmipaddress + 3*A_PtrSize + 4, "int")
     if iValue &gt;= 0
-        FieldText.Text := "Field #" iField " modified: " iValue
+        IPField.Text := "Field #" iField " modified: " iValue
     else
-        FieldText.Text := "Field #" iField " left empty"
+        IPField.Text := "Field #" iField " left empty"
 }
 
 IPCtrlSetAddress(hControl, ipaddress)
@@ -563,7 +561,7 @@ IPCtrlSetAddress(hControl, ipaddress)
 
     <em>; Pack the IP address into a 32-bit word for use with SendMessage.</em>
     ipaddrword := 0
-    Loop, Parse, % ipaddress, .
+    LoopParse(ipaddress, ".")
         ipaddrword := (ipaddrword * 256) + A_LoopField
     SendMessage(IPM_SETADDRESS, 0, ipaddrword,, "ahk_id " hControl)
 }

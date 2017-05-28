@@ -81,31 +81,33 @@ if ErrorLevel <em>; The PID still exists.</em>
 <pre class="NoIndent"><em>; Example #3: A hotkey to change the priority of the active window's process:</em>
 
 #z:: <em>; Win+Z hotkey</em>
-WinGetPID, active_pid, A
-WinGetTitle, active_title, A
 Gui := GuiCreate(, "Set Priority")
-Gui.Add("Text",, "Press ESCAPE to cancel, or double-click a new`npriority level for the following window:`n%active_title%")
-LB := Gui.Add("ListBox", "gMyListBox r5", "Normal|High|Low|BelowNormal|AboveNormal")
-Gui.Add("Button", "default gButtonOK", "OK")
-
-Gui.OnEscape := Gui.OnClose := ObjBindMethod(Gui, "Destroy")
-
+Gui.Add("Text",, "
+(
+  Press ESCAPE to cancel, or double-click a new
+  priority level for the following window:
+)")
+Gui.Add("Text", "wp", WinGetTitle("A"))
+LB := Gui.Add("ListBox", "r5", "Normal||High|Low|BelowNormal|AboveNormal")
+SetPriority := Func("SetPriority").bind(LB, WinGetPID("A"))
+LB.OnEvent("DoubleClick", SetPriority)
+Gui.Add("Button", "default", "OK").OnEvent("Click", SetPriority)
+Gui.OnEvent("Escape", "Gui_Close")
+Gui.OnEvent("Close", "Gui_Close")
 Gui.Show()
 return
 
-MyListBox(GuiCtrl, GuiEvent)
+SetPriority(LB, PID)
 {
-  if (GuiEvent = "DoubleClick")
-    ButtonOK()
+  if ProcessSetPriority(LB.Text, PID)
+    MsgBox("Success: Its priority was changed to '%LB.Text%'.")
+  else
+    MsgBox("Error: Its priority could not be changed to '%LB.Text%'.")
+  WinClose()
 }
 
-ButtonOK()
+Gui_Close(Gui)
 {
-  global
-  if ProcessSetPriority(LB.Text, active_pid)
-    MsgBox Success: Its priority was changed to "%LB.Text%".
-  else
-    MsgBox Error: Its priority could not be changed to "%LB.Text%".
   Gui.Destroy()
 }</pre>
 <p>&nbsp;</p>
