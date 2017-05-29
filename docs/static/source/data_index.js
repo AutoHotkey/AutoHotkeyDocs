@@ -476,6 +476,7 @@ index = [
   ["IniWrite","commands/IniWrite.htm"],
   ["Input","commands/Input.htm"],
   ["InputBox","commands/InputBox.htm"],
+  ["InputEnd","commands/Input.htm#InputEnd"],
   ["InsertAt method (Object)","objects/Object.htm#InsertAt"],
   ["Install","commands/FileInstall.htm"],
   ["Installer Options","Scripts.htm#install"],

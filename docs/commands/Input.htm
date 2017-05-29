@@ -13,14 +13,14 @@
 
 <p>Waits for the user to type a string.</p>
 
-<pre class="Syntax">Input [, OutputVar, Options, EndKeys, MatchList]</pre>
+<pre class="Syntax">Text := Input([Options, EndKeys, MatchList])</pre>
+
 <h3>Parameters</h3>
 <dl>
 
-  <dt>OutputVar</dt>
-  <dd><p>The name of the variable in which to store the text entered by the user (by default, artificial input is also captured).</p>
-      <p>If this and the other parameters are omitted, any Input in progress in another <a href="../misc/Threads.htm">thread</a> is terminated and its <a href="../misc/ErrorLevel.htm">ErrorLevel</a> is set to the word NewInput. By contrast, the <a href="../misc/ErrorLevel.htm">ErrorLevel</a> of the current command will be set to 0 if it terminated a prior Input, or 1 if there was no prior Input to terminate.</p>
-      <p><em>OutputVar</em> does not store keystrokes per se. Instead, it stores characters produced by keystrokes according to the active window's keyboard layout/language. Consequently, keystrokes that do not produce characters (such as PageUp and Escape) are not stored (though they can be recognized via the <em>EndKeys</em> parameter below).</p>
+  <dt>Text (return value)</dt>
+  <dd><p>The text entered by the user (by default, artificial input is also captured).</p>
+      <p>The text consists of characters produced by keystrokes according to the active window's keyboard layout/language. Consequently, keystrokes that do not produce characters (such as PageUp and Escape) are not stored (though they can be recognized via the <em>EndKeys</em> parameter below).</p>
       <p>Whitespace characters such as TAB (`t) are stored literally. ENTER is stored as linefeed (`n).</p></dd>
 
   <dt>Options</dt>
@@ -31,9 +31,9 @@
       <p><strong>L</strong>: Length limit (e.g. <code>L5</code>). The maximum allowed length of the input. When the text reaches this length, the Input will be terminated and <a href="../misc/ErrorLevel.htm">ErrorLevel</a> will be set to the word Max unless the text matches one of the <em>MatchList</em> phrases, in which case <a href="../misc/ErrorLevel.htm">ErrorLevel</a> is set to the word Match. If unspecified, the length limit is 16383, which is also the absolute maximum.</p>
       <p><strong>M</strong>: Modified keystrokes such as Control-A through Control-Z are recognized and transcribed if they correspond to real ASCII characters. Consider this example, which recognizes Control-C:</p>
       <pre>CtrlC := Chr(3) <em>; Store the character for Ctrl-C in the CtrlC var.</em>
-Input, OutputVar, L1 M
+OutputVar := Input("L1 M")
 if (OutputVar = CtrlC)
-    MsgBox, You pressed Control-C.
+    MsgBox "You pressed Control-C."
 ExitApp</pre>
       <p>Note: The characters Ctrl-A through Ctrl-Z correspond to <a href="Chr.htm">Chr(1)</a> through <a href="Chr.htm">Chr(26)</a>. Also, the <strong>M</strong> option might cause some keyboard shortcuts such as Ctrl-LeftArrow to misbehave while an Input is in progress.</p>
       <p><strong>T</strong>: Timeout (e.g. <code>T3</code>). The number of seconds to wait before terminating the Input and setting <a href="../misc/ErrorLevel.htm">ErrorLevel</a> to the word Timeout. If the Input times out, <em>OutputVar</em> will be set to whatever text the user had time to enter. This value can be a floating point number such as 2.5.</p>
@@ -53,21 +53,20 @@ ExitApp</pre>
   <dt>MatchList</dt>
   <dd><p>A comma-separated list of key phrases, any of which will cause the Input to be terminated (in which case <a href="../misc/ErrorLevel.htm">ErrorLevel</a> will be set to the word Match). The entirety of what the user types must exactly match one of the phrases for a match to occur (unless the <a href="#asterisk">* option</a> is present). In addition, <strong>any spaces or tabs around the delimiting commas are significant</strong>, meaning that they are part of the match string. For example, if <em>MatchList</em> is &quot;ABC , XYZ &quot;, the user must type a space after ABC or before XYZ to cause a match.</p>
       <p>Two consecutive commas results in a single literal comma. For example, the following would produce a single literal comma at the end of string: &quot;string1,,,string2&quot;. Similarly, the following list contains only a single item with a literal comma inside it: &quot;single,,item&quot;.</p>
-    <p>Because the items in <em>MatchList</em> are not treated as individual parameters, the list can be contained entirely within a variable. In fact, all or part of it must be contained in a variable if its length exceeds 16383 since that is the maximum length of any script line. For example, <em>MatchList</em> might consist of <code>%List1%,%List2%,%List3%</code> -- where each of the variables  contains a large sub-list of match phrases.</p>
+    <p>Because the items in <em>MatchList</em> are not treated as individual parameters, the list can be contained entirely within a variable. In fact, all or part of it must be contained in a variable if its length exceeds 16383 since that is the maximum length of any script line. For example, <em>MatchList</em> might be the <a href="../Variables.htm#Expressions">expression</a> <code>List1 "," List2 "," List3</code> -- where each of the variables  contains a large sub-list of match phrases.</p>
     </dd>
 
 </dl>
 
 <h3>ErrorLevel</h3>
-<p>This command is able to throw an exception if called with no parameters and there is no Input in progress. For more information, see <a href="Catch.htm#RuntimeErrors">Runtime Errors</a>.</p>
 <table class="info">
   <tr>
-    <td style="width:15%"><p>1 or 0</p></td>
-    <td><p>Whenever the command is used without parameters, <a href="../misc/ErrorLevel.htm">ErrorLevel</a> is set to 0 if it successfully terminates a prior input, or 1 if there is no Input in progress.</p></td>
+    <td style="width:15%">NewInput</td>
+    <td>The Input was terminated by another <a href="../misc/Threads.htm">thread</a> calling the Input function.</td>
   </tr>
   <tr>
-    <td>NewInput</td>
-    <td>The Input was interrupted by another <a href="../misc/Threads.htm">thread</a> that used the Input command.</td>
+    <td>End</td>
+    <td>The Input was terminated by another <a href="../misc/Threads.htm">thread</a> calling the <a href="#InputEnd">InputEnd</a> function.</td>
   </tr>
   <tr>
     <td>Max</td>
@@ -90,19 +89,31 @@ ExitApp</pre>
     </td>
   </tr>
 </table>
+
 <h3>Remarks</h3>
 <p>If this command is used while an Input is  already in progress in another <a href="../misc/Threads.htm">thread</a>, that Input will be terminated and its <a href="../misc/ErrorLevel.htm">ErrorLevel</a> will be set to the word NewInput. After that (if parameters were given), the new Input will commence.</p>
 <p>While an Input is in progress, new <a href="../misc/Threads.htm">threads</a> such as <a href="Menu.htm">custom menu items</a> and <a href="SetTimer.htm">timed subroutines</a> can still be created. Similarly, keyboard <a href="../Hotkeys.htm">hotkeys</a> are still in effect if the Input is <a href="#vis">visible</a>. If the Input is not visible, only <a href="_UseHook.htm">hook hotkeys</a> can be triggered.</p>
 <p>When a script first uses this command, the <a href="_InstallKeybdHook.htm">keyboard hook</a> is installed (if it is not already). The keyboard hook will stay installed until the next use of the <a href="Suspend.htm">Suspend</a> or <a href="Hotkey.htm">Hotkey</a> command, at which time it is removed if not required by any hotkeys or hotstrings.</p>
 <p>If you use multiple languages or keyboard layouts, Input uses the keyboard layout of the active window rather than the script's (regardless of whether the Input is <a href="#vis">visible</a>).</p>
 <p>Although not as flexible, <a href="../Hotstrings.htm">hotstrings</a> are generally easier to use than the Input command.</p>
+
+<h3 id="InputEnd">InputEnd</h3>
+<p>Terminates any Input in progress in another <a href="../misc/Threads.htm">thread</a>.</p>
+<pre class="Syntax">InputEnd()</pre>
+<p>Returns true if an Input was in progress, otherwise false.</p>
+
 <h3>Related</h3>
 <p><a href="KeyWait.htm">KeyWait</a>, <a href="../Hotstrings.htm">Hotstrings</a>, <a href="InputBox.htm">InputBox</a>, <a href="_InstallKeybdHook.htm">#InstallKeybdHook</a>, <a href="../misc/Threads.htm">Threads</a></p>
 <h3>Examples</h3>
 <pre class="NoIndent"><em>; Wait for the user to press any key.  Keys that produce no visible character -- such as
 ; the modifier keys, function keys, and arrow keys -- are listed as end keys so that they
 ; will be detected too.</em>
-Input, SingleKey, L1, {LControl}{RControl}{LAlt}{RAlt}{LShift}{RShift}{LWin}{RWin}{AppsKey}{F1}{F2}{F3}{F4}{F5}{F6}{F7}{F8}{F9}{F10}{F11}{F12}{Left}{Right}{Up}{Down}{Home}{End}{PgUp}{PgDn}{Del}{Ins}{BS}{Capslock}{Numlock}{PrintScreen}{Pause}</pre>
+SingleChar := Input("L1", "{LControl}{RControl}{LAlt}{RAlt}{LShift}{RShift}{LWin}{RWin}{AppsKey}{F1}{F2}{F3}{F4}{F5}{F6}{F7}{F8}{F9}{F10}{F11}{F12}{Left}{Right}{Up}{Down}{Home}{End}{PgUp}{PgDn}{Del}{Ins}{BS}{Capslock}{Numlock}{PrintScreen}{Pause}")
+if InStr(ErrorLevel, "EndKey:")
+    SingleKey := SubStr(ErrorLevel, 8)
+else
+    SingleKey := SingleChar
+MsgBox SingleKey</pre>
 <p>&nbsp;</p>
 <pre class="NoIndent"><em>; This is a working hotkey example.  Since the hotkey has the tilde (~)
 ; prefix, its own keystroke will pass through to the active window.
@@ -111,35 +122,35 @@ Input, SingleKey, L1, {LControl}{RControl}{LAlt}{RAlt}{LShift}{RShift}{LWin}{RWi
 ; action of your choice (such as replacing the typed text):</em>
 
 ~[::
-Input, UserInput, V T5 L4 C, {enter}.{esc}{tab}, btw,otoh,fl,ahk,ca
+UserInput := Input("V T5 L4 C", "{enter}.{esc}{tab}", "btw,otoh,fl,ahk,ca")
 if (ErrorLevel = "Max")
 {
-    MsgBox, You entered &quot;%UserInput%&quot;`, which is the maximum length of text.
+    MsgBox "You entered " UserInput ", which is the maximum length of text."
     return
 }
 if (ErrorLevel = "Timeout")
 {
-    MsgBox, You entered &quot;%UserInput%&quot; at which time the input timed out.
+    MsgBox "You entered " UserInput " at which time the input timed out."
     return
 }
 if (ErrorLevel = "NewInput")
     return
 If InStr(ErrorLevel, "EndKey:")
 {
-    MsgBox, You entered &quot;%UserInput%&quot; and terminated the input with %ErrorLevel%.
+    MsgBox "You entered " UserInput " and terminated the input with " ErrorLevel "."
     return
 }
 <em>; Otherwise, a match was found.</em>
 if (UserInput = "btw")
-    Send, {backspace 4}by the way
+    Send "{backspace 4}by the way"
 else if (UserInput = "otoh")
-    Send, {backspace 5}on the other hand
+    Send "{backspace 5}on the other hand"
 else if (UserInput = "fl")
-    Send, {backspace 3}Florida
+    Send "{backspace 3}Florida"
 else if (UserInput = "ca")
-    Send, {backspace 3}California
+    Send "{backspace 3}California"
 else if (UserInput = "ahk")
-    Run, https://autohotkey.com
+    Run "https://autohotkey.com"
 return</pre>
 
 </body>
