@@ -92,7 +92,6 @@ index = [
   ["A_LoopReadLine","commands/LoopReadFile.htm#LoopReadLine"],
   ["A_LoopRegKey","commands/LoopReg.htm#vars"],
   ["A_LoopRegName","commands/LoopReg.htm#vars"],
-  ["A_LoopRegSubKey","commands/LoopReg.htm#vars"],
   ["A_LoopRegTimeModified","commands/LoopReg.htm#vars"],
   ["A_LoopRegType","commands/LoopReg.htm#vars"],
   ["A_MDay","Variables.htm#DD"],
