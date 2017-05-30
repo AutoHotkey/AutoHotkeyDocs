@@ -13,20 +13,22 @@
 
 <p>Reads a file's contents into a <a href="../Variables.htm">variable</a>.</p>
 
-<pre class="Syntax">FileRead, OutputVar, Filename</pre>
+<pre class="Syntax">Text := FileRead(Filename [, Options])</pre>
 <h3>Parameters</h3>
 <dl>
 
-  <dt>OutputVar</dt>
-  <dd><p>The name of the <a href="../Variables.htm">variable</a> in which to store the retrieved data. <em>OutputVar</em> will be made blank if a problem occurs such as the file being &quot;in use&quot; or not existing (in which case <a href="../misc/ErrorLevel.htm">ErrorLevel</a> is set to 1). It will also be made blank if <em>Filename</em> is an empty file (in which case ErrorLevel is set to 0).</p></dd>
-
   <dt>Filename</dt>
-  <dd><p>The name of the file to read, which is assumed to be in <a href="../Variables.htm#WorkingDir">%A_WorkingDir%</a> if an absolute path isn't specified.</p>
-      <p><strong>Options</strong>: Zero or more of the following strings may be also be present immediately before the name of the file. Separate each option from the next with a single space or tab. For example: <code>*t *m5000 C:\Log Files\200601.txt</code>.</p>
-    <p><strong>*c</strong>: Load a <a href="../misc/Clipboard.htm#ClipboardAll">ClipboardAll</a> file or other binary data. All other options are ignored when <strong>*c</strong> is present.</p>
-    <p><strong>*m1024</strong>: If this option is omitted, the entire file is loaded unless there is insufficient memory, in which case an error message is shown and the thread exits (but <a href="Try.htm">Try</a> can be used to avoid this). Otherwise, replace 1024 with a decimal or hexadecimal number of bytes. If the file is larger than this, only its leading part is loaded. Note: This might result in the last line ending in a naked carriage return (`r) rather than `r`n.</p>    
-    <p><strong>*t</strong>: Replaces any/all occurrences of carriage return &amp; linefeed (`r`n) with linefeed (`n). However, this translation reduces performance and is usually not necessary. For example, text containing `r`n is already in the right format to be added to a <a href="StrReplace.htm">Gui Edit control</a>. Similarly, <a href="FileAppend.htm">FileAppend</a> detects the presence of `r`n when it opens a new file; it knows to write each `r`n as-is rather than translating it to `r`r`n. Finally, the following <a href="LoopParse.htm">parsing loop</a> will work correctly regardless of whether each line ends in `r`n or just `n: <code>Loop, parse, %MyFileContents%, `n, `r</code>.</p>
-    <p><strong>*Pnnn</strong>: Overrides the default encoding set by <a href="FileEncoding.htm">FileEncoding</a>, where <em>nnn</em> must be a numeric <a href="http://msdn.microsoft.com/en-us/library/dd317756.aspx">code page identifier</a>.</p></dd>
+  <dd><p>The name of the file to read, which is assumed to be in <a href="../Variables.htm#WorkingDir">A_WorkingDir</a> if an absolute path isn't specified.</p>
+  </dd>
+  
+  <dt>Options</dt>
+  <dd><p>Zero or more of the following strings. Separate each option from the next with a single space or tab. For example: <code>"`n m5000 UTF-8"</code></p>
+    <p><strong>Encoding</strong>: Specify any of the encoding names accepted by <a href="FileEncoding.htm">FileEncoding</a> (excluding the empty string) to use that encoding if the file lacks a UTF-8 or UTF-16 byte order mark. If omitted, it defaults to <a href="../Variables.htm#FileEncoding">A_FileEncoding</a>.</p>
+    <p><strong>RAW</strong>: Specify the word RAW (case-insensitive) to read the file's content as <a href="#Binary">raw binary data</a>. This option overrides any previously specified encoding and vice versa.</p>
+    <p><strong>m1024</strong>: If this option is omitted, the entire file is loaded unless there is insufficient memory, in which case an error message is shown and the thread exits (but <a href="Try.htm">Try</a> can be used to avoid this). Otherwise, replace 1024 with a decimal or hexadecimal number of bytes. If the file is larger than this, only its leading part is loaded. Note: This might result in the last line ending in a naked carriage return (`r) rather than `r`n.</p>
+    <p><strong>`n</strong> (a linefeed character): Replaces any/all occurrences of carriage return &amp; linefeed (`r`n) with linefeed (`n). However, this translation reduces performance and is usually not necessary. For example, text containing `r`n is already in the right format to be added to a <a href="StrReplace.htm">Gui Edit control</a>. The following <a href="LoopParse.htm">parsing loop</a> will work correctly regardless of whether each line ends in `r`n or just `n: <code>Loop Parse, MyFileContents, "`n", "`r"</code>.</p>
+  </dd>
+  
 </dl>
 
 <h3>ErrorLevel</h3>
@@ -34,18 +36,15 @@
 <p><a href="../Variables.htm#LastError">A_LastError</a> is set to the result of the operating system's GetLastError() function.</p>
 
 <h3 id="Binary">Reading Binary Data</h3>
-<p>Depending on the file, parameters and default settings, FileRead may interpret the file data as text and convert it to the <a href="../Compat.htm#Format">native encoding</a> used by the script. This is likely to cause problems if the file contains binary data, except in the following cases:</p>
-<ul>
-  <li>If the <span class="Syntax">*C</span> option is present, all code page and end-of-line translations are unconditionally bypassed.</li>
-  <li>If the <span class="Syntax">*P<i>nnn</i></span> option is present and <i>nnn</i> corresponds to the native string encoding, no code page translation occurrs.</li>
-  <li>If the current <a href="FileEncoding.htm">file encoding</a> setting corresponds to the native string encoding, no code page translation occurrs.</li>
-</ul>
-<p>Note that once the data has been read into <em>OutputVar</em>, only the text before the first binary zero (if any are present) will be &quot;seen&quot; by most AutoHotkey commands and functions. However, the entire contents are still present and can be accessed by advanced methods such as <a href="NumGet.htm">NumGet()</a>.</p>
+<p>When the <code>RAW</code> option is used, the return value is a string containing the raw, unmodified contents of the file. As the <a href="../Compat.htm#Format">native encoding</a> is UTF-16, the string always contains an even number of bytes. To get the number bytes which were read (rounded up to an even number), multiply the return value of <a href="../Functions.htm#StrLen">StrLen</a> by 2.</p>
+<p>This option is generally required for reading binary data because by default, any bytes read from file are interpreted as text and may be converted from the source file's encoding (as specified in the options or by <a href="../Variables.htm#FileEncoding">A_FileEncoding</a>) to the script's <a href="../Compat.htm#Format">native encoding</a>, UTF-16. If the data is not UTF-16 text, this conversion generally changes the data in undesired ways.</p>
+<p>If the data contains UTF-16 text, note that many functions assume the data ends at the first binary zero (if any are present). For example, MsgBox will only show characters up to the first binary zero. However, the entire contents are still present and can be copied between variables, passed to or returned from functions, concatenated or compared with other binary strings, or be accessed by advanced methods such as <a href="NumGet.htm">NumGet()</a>.</p>
+<p>For a demonstration of the RAW option, see <a href="../misc/Clipboard.htm#Save">Saving and Restoring the Clipboard</a>.</p>
 <p>Finally, <a href="FileOpen.htm">FileOpen()</a> and <a href="../objects/File.htm#RawRead">File.RawRead()</a> or <a href="../objects/File.htm#ReadNum">File.Read<i>Num</i>()</a> may be used to read binary data without first reading the entire file into memory.</p>
 
 <h3>Remarks</h3>
 <p>When the goal is to load all or a large part of a file into memory, FileRead performs much better than using a <a href="LoopReadFile.htm">file-reading loop</a>.</p>
-<p>A file greater than 1 GB in size will cause <a href="../misc/ErrorLevel.htm">ErrorLevel</a> to be set to 1 and <em>OutputVar</em> to be made blank unless the <strong>*m</strong> option is present, in which case the leading part of the file is loaded.</p>
+<p>A file greater than 4 GB in size will cause an exception to be thrown unless the <strong>*m</strong> option is present, in which case the leading part of the file is loaded. An exception will also be thrown if the program is unable to allocate enough memory to contain the requested amount of data.</p>
 <p>If there is concern about using too much memory, check the file size beforehand with <a href="FileGetSize.htm">FileGetSize</a>.</p>
 <p><a href="FileOpen.htm">FileOpen()</a> provides more advanced functionality than FileRead, such as reading or writing data at a specific location in the file without reading the entire file into memory. See <a href="../objects/File.htm">File Object</a> for a list of functions.</p>
 
@@ -54,14 +53,14 @@
 
 <h3>Examples</h3>
 <pre class="NoIndent" id="ex1"><em>; Example #1: Read text file into OutputVar.</em>
-FileRead, OutputVar, C:\My Documents\My File.txt</pre>
+MyText := FileRead("C:\My Documents\My File.txt")</pre>
 <pre class="NoIndent" id="ex2"><em>; Example #2: Quickly sort the contents of a file.</em>
-FileRead, Contents, C:\Address List.txt
+Contents := FileRead("C:\Address List.txt")
 if not ErrorLevel  <em>; Successfully loaded.</em>
 {
     Contents := <a href="Sort.htm">Sort</a>(Contents)
-    FileDelete, C:\Address List (alphabetical).txt
-    FileAppend, %Contents%, C:\Address List (alphabetical).txt
+    FileDelete "C:\Address List (alphabetical).txt"
+    FileAppend Contents, "C:\Address List (alphabetical).txt"
     Contents := "" <em>; Free the memory.</em>
 }</pre>
 

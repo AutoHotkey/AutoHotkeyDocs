@@ -11,21 +11,20 @@
 
 <h1>FileAppend</h1>
 
-<p>Writes text to the end of a file (first creating the file, if necessary).</p>
+<p>Writes text or binary data to the end of a file (first creating the file, if necessary).</p>
 
-<pre class="Syntax">FileAppend [, Text, Filename, Encoding]</pre>
+<pre class="Syntax">FileAppend(Text [, Filename, Options])</pre>
 <h3>Parameters</h3>
 <dl>
 
   <dt>Text</dt>
   <dd><p>The text to append to the file. This text may include linefeed characters (`n) to start new lines. In addition, a single long line can be broken up into several shorter ones by means of a <a href="../Scripts.htm#continuation">continuation section</a>.</p>
-      <p>If <em>Text</em> is blank, <em>Filename</em> will be created as an empty file (but if the file already exists, its modification time will be updated).</p>
-    <p>If <em>Text</em> is <a href="../misc/Clipboard.htm#ClipboardAll">%ClipboardAll%</a> or a variable that was previously assigned the value of ClipboardAll, <em>Filename</em> will be unconditionally overwritten with the entire contents of the clipboard (i.e. <a href="FileDelete.htm">FileDelete</a> is not necessary).</p></dd>
+    <p><em>Text</em> can contain binary data if the <code>RAW</code> option is used, but in that case FileAppend will always append an even number of bytes (<a href="../Functions.htm#StrLen">StrLen</a> times two). This can be used to <a href="../misc/Clipboard.htm#Save">save clipboard data to file</a>. <a href="../objects/File.htm#RawWrite">File.RawWrite</a> can be used to write an odd or even number of bytes.</p>
+    <p>If <em>Text</em> is blank, <em>Filename</em> will be created as an empty file (but if the file already exists, its modification time will be updated).</p>
+  </dd>
 
   <dt>Filename</dt>
-  <dd><p>The name of the file to be appended, which is assumed to be in <a href="../Variables.htm#WorkingDir">%A_WorkingDir%</a> if an absolute path isn't specified.</p>
-    <p><strong>End of line (EOL) translation</strong>: To disable EOL translation, prepend an asterisk to the filename. This causes each linefeed character (`n) to be written as a single linefeed (LF) rather than the Windows standard of CR+LF. For example: <code>*C:\My Unix File.txt</code>.</p>
-    <p>If the file is not already open (due to being inside a <a href="LoopReadFile.htm">file-reading loop</a>), EOL translation is automatically disabled if <em>Text</em> contains any carriage return and linefeed pairs (`r`n). In other words, the asterisk option described in the previous paragraph is put into effect automatically. However, specifying the asterisk when <em>Text</em> contains `r`n improves performance because the program does not need to scan <em>Text</em> for `r`n.</p>
+  <dd><p>The name of the file to be appended, which is assumed to be in <a href="../Variables.htm#WorkingDir">A_WorkingDir</a> if an absolute path isn't specified.</p>
     <p id="stdout"><strong>Standard Output (stdout)</strong>: Specifying an asterisk (*) for <em>Filename</em> causes <em>Text</em> to be sent to standard output (stdout). Such text can be redirected to a file, piped to another EXE, or captured by <a href="_ErrorStdOut.htm">fancy text editors</a>. For example, the following would be valid if typed at a command prompt:</p>
       <pre>&quot;%ProgramFiles%\AutoHotkey\AutoHotkey.exe&quot; &quot;My Script.ahk&quot; &gt;&quot;Error Log.txt&quot;</pre>
     <p>However, text sent to stdout will not appear at the command prompt it was launched from. This can be worked around by piping a script's output to another command or program. For example:</p>
@@ -33,8 +32,13 @@
       <pre>For /F &quot;tokens=*&quot; %L in ('&quot;&quot;%ProgramFiles%\AutoHotkey\AutoHotkey.exe&quot; &quot;My Script .ahk&quot;&quot;') do @Echo %L</pre>
     <p>Specifying two asterisks (**) for <em>Filename</em> causes <em>Text</em> to be sent to the stderr stream.</p>
     </dd>
-  <dt>Encoding</dt>
-  <dd><p>Overrides the default encoding set by <a href="FileEncoding.htm">FileEncoding</a>, where <em>Encoding</em> follows the same format.</p></dd>
+
+  <dt>Options</dt>
+  <dd><p>Zero or more of the following strings. Separate each option from the next with a single space or tab. For example: <code>"`n UTF-8"</code></p>
+    <p><strong>Encoding</strong>: Specify any of the encoding names accepted by <a href="FileEncoding.htm">FileEncoding</a> (excluding the empty string) to use that encoding if the file lacks a UTF-8 or UTF-16 byte order mark. If omitted, it defaults to <a href="../Variables.htm#FileEncoding">A_FileEncoding</a>.</p>
+    <p><strong>RAW</strong>: Specify the word RAW (case-insensitive) to write the exact bytes contained by <em>Text</em> to the file as-is, without any conversion. This option overrides any previously specified encoding and vice versa.</p>
+    <p><strong>`n</strong> (a linefeed character): Inserts a carriage return (`r) before each linefeed (`n) if one is not already present. In other words, it translates from `n to `r`n. This translation typically does not affect performance. If this option is not used, line endings within <em>Text</em> are not changed.</p>
+  </dd>
 
 </dl>
 
@@ -45,45 +49,44 @@
 <h3>Remarks</h3>
 <p>To overwrite an existing file, delete it with <a href="FileDelete.htm">FileDelete</a> prior to using FileAppend.</p>
 <p>The target file is automatically closed after the text is appended (except when FileAppend is used in its single-parameter mode inside a <a href="LoopReadFile.htm">file-reading/writing loop</a>).</p>
-<p><a href="FileOpen.htm">FileOpen()</a> in append mode provides more control than FileAppend and allows the file to be kept open rather than opening and closing it each time. Once a file is opened in append mode, use <code>file.<a href="../objects/File.htm#Write">Write</a>(string)</code> to append the string. File objects also support binary I/O via <a href="../objects/File.htm#RawWrite">RawWrite</a>/<a href="../objects/File.htm#RawRead">RawRead</a> or <a href="../objects/File.htm#WriteNum">Write<i>Num</i></a>/<a href="../objects/File.htm#ReadNum">Read<i>Num</i></a>, whereas FileAppend supports only text.</p>
+<p><a href="FileOpen.htm">FileOpen()</a> in append mode provides more control than FileAppend and allows the file to be kept open rather than opening and closing it each time. Once a file is opened in append mode, use <code>file.<a href="../objects/File.htm#Write">Write</a>(string)</code> to append the string. File objects also support binary I/O via <a href="../objects/File.htm#RawWrite">RawWrite</a>/<a href="../objects/File.htm#RawRead">RawRead</a> or <a href="../objects/File.htm#WriteNum">Write<i>Num</i></a>/<a href="../objects/File.htm#ReadNum">Read<i>Num</i></a>.</p>
 <h3>Related</h3>
 <p><a href="FileOpen.htm">FileOpen</a>/<a href="../objects/File.htm">File Object</a>, <a href="FileRead.htm">FileRead</a>, <a href="LoopReadFile.htm">file-reading loop</a>, <a href="IniWrite.htm">IniWrite</a>, <a href="FileDelete.htm">FileDelete</a>, <a href="OutputDebug.htm">OutputDebug</a>, <a href="../Scripts.htm#continuation">continuation sections</a></p>
 <h3>Example</h3>
-<pre class="NoIndent">FileAppend, Another line.`n, C:\My Documents\Test.txt
+<pre class="NoIndent">FileAppend "Another line.`n", "C:\My Documents\Test.txt"
 
 <em>; The following example uses a <a href="../Scripts.htm#continuation">continuation section</a> to enhance readability and maintainability:</em>
-FileAppend,
+FileAppend "
 (
 A line of text.
 By default, the hard carriage return (Enter) between the previous line and this one will be written to the file.
-    This line is indented with a tab; by default, that tab will also be written to the file.
-Variable references such as %Var% are expanded by default.
-), C:\My File.txt</pre>
+	This line is indented with a tab; by default, that tab will also be written to the file.
+)", A_Desktop "\My File.txt"</pre>
 <p>&nbsp;</p>
 <pre class="NoIndent" id="FTP"><em>; The following example demonstrates how to automate FTP uploading using the operating 
 ; system's built-in FTP command. This script has been tested on Windows XP.</em>
 
-FTPCommandFile := "%A_ScriptDir%\FTPCommands.txt"
-FTPLogFile := "%A_ScriptDir%\FTPLog.txt"
-FileDelete %FTPCommandFile%  <em>; In case previous run was terminated prematurely.</em>
+FTPCommandFile := A_ScriptDir "\FTPCommands.txt"
+FTPLogFile := A_ScriptDir "\FTPLog.txt"
+FileDelete FTPCommandFile  <em>; In case previous run was terminated prematurely.</em>
 
-FileAppend,  <em>; The comma is required in this case.</em>
-(
+FileAppend "
+(Q
 open host.domain.com
 username
 password
 binary
 cd htdocs
-put %VarContainingNameOfTargetFile%
+put " VarContainingNameOfTargetFile "
 delete SomeOtherFile.htm
 rename OldFileName.htm NewFileName.htm
 ls -l
 quit
-), %FTPCommandFile%
+)", FTPCommandFile
 
-RunWait %A_ComSpec% /c ftp.exe -s:&quot;%FTPCommandFile%&quot; &gt;&quot;%FTPLogFile%&quot;
-FileDelete %FTPCommandFile%  <em>; Delete for security reasons.</em>
-Run %FTPLogFile%  <em>; Display the log for review.</em></pre>
+RunWait A_ComSpec ' /c ftp.exe -s:"' FTPCommandFile '" &gt;"' FTPLogFile '"'
+FileDelete FTPCommandFile  <em>; Delete for security reasons.</em>
+Run FTPLogFile  <em>; Display the log for review.</em></pre>
 
 </body>
 </html>
