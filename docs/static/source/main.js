@@ -323,8 +323,8 @@ function AddChmAndOnlineFeatures()
 
   var divStyle = {fontSize: "11px", float: "right"};
   var aStyle = {cursor: "pointer", color: $("a:not([href=])").css("color")};
-  var selectLink = $('<a id="selectCode"></a>').text(translate.cdSelectBtn).css(aStyle);
-  var downloadLink = $('<a id="downloadCode"></a>').text(translate.cdDownloadBtn).css(aStyle);
+  var selectLink = $('<a class="selectCode"></a>').text(translate.cdSelectBtn).css(aStyle);
+  var downloadLink = $('<a class="downloadCode"></a>').text(translate.cdDownloadBtn).css(aStyle);
 
   $('pre').each(function(index) {
     if ($(this).is(".Syntax")) {
@@ -339,7 +339,7 @@ function AddChmAndOnlineFeatures()
 
   // Select complete code when clicking
 
-  $('a#selectCode').each(function(index) {
+  $('a.selectCode').each(function(index) {
     $(this).on('click', function(e) {
       var doc = document
         , text = $(this).parent().prev('pre')[0]
@@ -361,7 +361,7 @@ function AddChmAndOnlineFeatures()
 
   // Download complete code when clicking
 
-  $('a#downloadCode').each(function(index) {
+  $('a.downloadCode').each(function(index) {
     $(this).on('click', function(e) {
       var textToWrite = '\ufeff' + $(this).parent().prev('pre').text().replace(/\n/g, "\r\n");
       var textFileAsBlob = new Blob([textToWrite], {type:'text/csv'});
