@@ -34,23 +34,24 @@ CopyOfVar := Var</pre>
 <p>Variables which have not been assigned a value contain an empty string by default. Therefore, to erase the contents of a variable, simply assign an empty string:</p>
 <pre>MyVar := &quot;&quot;</pre>
 <p>A variable can also be assigned a value indirectly, by using it as an <em>output variable</em> of a command. For example:</p>
-<pre><a href="commands/WinGetTitle.htm">WinGetTitle</a> <strong>Title</strong>, A</pre>
-<p id="retrieving"><strong>Retrieving the contents of variables</strong>: To include the contents of a variable in a string, enclose the variable name in percent signs. For example:</p>
-<pre><a href="commands/MsgBox.htm">MsgBox</a>, The value in the variable named Var is %Var%.
-MsgBox(&quot;The value in the variable named Var is %Var%.&quot;)
+<pre><a href="commands/MouseGetPos.htm">MouseGetPos</a> <strong>x</strong>, <strong>y</strong></pre>
+<p id="retrieving"><strong>Retrieving the contents of variables</strong>: To include the contents of a variable in a string, use <a href="#concat">concatenation</a> or <a href="commands/Format.htm">Format</a>. For example:</p>
+<pre><a href="commands/MsgBox.htm">MsgBox</a> "The value of Var is " . Var . "."
+MsgBox "The value in the variable named Var is " Var "."
+MsgBox Format("Var has the value {1}.", Var)
 </pre>
-<p>By contrast, the percent signs are omitted for variable references in an expression (other than in a quoted string). For example:</p>
-<pre>MsgBox(&quot;The sum of X and Y is &quot; . (X + Y))  <em>; A period is used to concatenate (join) two strings.</em>
+<p>Sub-expressions can be combined with strings in the same way. For example:</p>
+<pre>MsgBox(&quot;The sum of X and Y is &quot; . (X + Y))
 </pre>
 <p><strong>Comparing variables</strong>: Please read the expressions section below for important notes about the different kinds of comparisons.</p>
 <h2 id="Expressions">Expressions</h2>
 <p>Expressions are used to perform one or more operations upon a series of variables, literal strings, and/or literal numbers.</p>
 <p>Variable names in an expression are not enclosed in percent signs (except for variables inside quoted strings, and <a href="misc/Arrays.htm#pseudo">pseudo-arrays</a> and other <a href="#ref">double references</a>). Consequently, literal strings must be enclosed in double quotes to distinguish them from variables. For example:</p>
 <pre>if (CurrentSetting &gt; 100 or FoundColor &lt;&gt; &quot;Blue&quot;)
-    MsgBox The setting is too high or the wrong color is present.</pre>
+    MsgBox "The setting is too high or the wrong color is present."</pre>
 <p>In the example above, &quot;Blue&quot; appears in quotes because it is a literal string. Single-quote marks (&apos;) and double-quote marks (&quot;) function identically, except that a string enclosed in single-quote marks can contain literal double-quote marks and vice versa. Therefore, to include an <em>actual</em> quote mark inside a literal string, <a href="misc/EscapeChar.htm">escape</a> the quote mark or enclose the string in the opposite type of quote mark. For example:</p>
-<pre>MsgBox % &quot;She said, <span class="red">`&quot;</span>An apple a day.<span class="red">`&quot;</span>&quot;
-MsgBox % <span class="red">&apos;</span>She said, &quot;An apple a day.&quot;<span class="red">&apos;</span></pre>
+<pre>MsgBox &quot;She said, <span class="red">`&quot;</span>An apple a day.<span class="red">`&quot;</span>&quot;
+MsgBox <span class="red">&apos;</span>She said, &quot;An apple a day.&quot;<span class="red">&apos;</span></pre>
 <p><strong>Empty strings</strong>: To specify an empty string in an expression, use an empty pair of quotes. For example, the statement <code>if (MyVar &lt;&gt; &quot;&quot;)</code> would be true if <em>MyVar</em> is not blank.</p>
 <p><strong>Storing the result of an expression</strong>: To assign a result to a variable, use the <a href="commands/SetExpression.htm">:= operator</a>. For example:</p>
 <pre>NetPrice := Price * (1 - Discount/100)</pre>
@@ -66,14 +67,6 @@ ContinueSearch := true</pre>
 <p>Within expressions, unquoted literal numbers such as <code>128</code>, <code>0x7F</code> and <code>1.0</code> are converted to pure numbers before the script begins executing, so converting the number to a string may produce a value different to the original literal value. For example:</p>
 <pre>MsgBox(0x7F)  <em>; Shows 128</em>
 MsgBox(1.00)  <em>; Shows 1.0</em></pre>
-<p id="percent-space"><strong>Force an expression</strong>: An expression can be used in a parameter that does not directly support it (except an OutputVar parameter) by preceding the expression with a percent sign and a space or tab. For example:</p>
-<pre><a href="commands/FileAppend.htm">FileAppend</a>, <strong>%</strong> MyArray[i], My File.txt
-<a href="commands/MsgBox.htm">MsgBox</a> <strong>%</strong> &quot;The variable MyVar contains &quot; . MyVar . &quot;.&quot;
-<a href="commands/WinSet.htm#Transparent">WinSetTransparent</a>, <strong>%</strong> X + 100
-<a href="commands/WinSet.htm">Control</a>, Choose, <strong>%</strong> CurrentSelection - 1</pre>
-<p>An expression can also be inserted at any point in a string by enclosing it in percent signs, as in the following example:</p>
-<pre>MsgBox, The time is %FormatTime(A_Now, "Time")%.</pre>
-<p>OutputVar parameters also allow this, but the result of the expression should be the (full or partial) name of a variable, as a string.</p>
 
 <h2 id="Operators">Operators in Expressions</h2>
 <p>Operators of equal precedence such as multiply (*) and divide (/) are evaluated in left-to-right order unless otherwise specified below. By contrast, an operator of lower precedence such as add (+) is evaluated <em>after</em> a higher one such as multiply (*). For example, 3 + 2 * 2 is evaluated as 3 + (2 * 2). Parentheses may be used to override precedence as in this example: (3 + 2) * 2</p>
@@ -84,12 +77,9 @@ MsgBox(1.00)  <em>; Shows 1.0</em></pre>
   <tr id="ref">
     <td style="text-align:center; white-space:nowrap"><strong>%Expr%</strong></td>
     <td>
-      <p>Embeds an expression (<em>Expr</em>) within a quoted string, or dynamically retrieves a variable by name. Percent signs cannot be used directly within <em>Expr</em> due to ambiguity, but can be nested within quoted strings and parentheses. Otherwise, <em>Expr</em> can be any expression.</p>
-      <p><strong>Within a quoted string:</strong> Evaluates <em>Expr</em> and inserts the result at that position within the string. For example, the following are equivalent:</p>
-      <pre>MsgBox("Hello, %A_UserName%!")
-MsgBox, Hello`, %A_Username%!
-MsgBox("Hello, " A_UserName "!")</pre>
-      <p><strong>Elsewhere:</strong> Dynamically retrieves a variable by name. The <u>result</u> of the sub-expression must be the name or partial name of the variable to be retrieved. If there are any adjoining <em>%Expr%</em> sequences and partial <a href="#Variable_names">variable names</a> (without any spaces or other characters between them), they are combined to form a single name.</p>
+      <p>Evaluates the sub-expression <em>Expr</em> and uses its value as the name or partial name of a variable or function. This allows the script to refer to a variable or function whose name is not written literally in the script, but is determined by evaluating <em>Expr</em>, which is typically another variable. Percent signs cannot be used directly within <em>Expr</em> due to ambiguity, but can be nested within parentheses. Otherwise, <em>Expr</em> can be any expression.</p>
+      <p><code>%Expr%()</code> performs a <a href="Functions.htm#DynCall">dynamic function call</a>.</p>
+      <p><code>%Expr%</code> dynamically retrieves a variable by name. The <u>result</u> of the sub-expression <em>Expr</em> must be the name or partial name of the variable to be retrieved. If there are any adjoining <em>%Expr%</em> sequences and partial <a href="#Variable_names">variable names</a> (without any spaces or other characters between them), they are combined to form a single name.</p>
       <p>If the variable does not already exist, a blank variable is created. An <a href="commands/Throw.htm#Exception">exception</a> is thrown if the name is <a href="#Variable_names">invalid</a>.</p>
       <p>This is most commonly used to reference <a href="misc/Arrays.htm#pseudo">pseudo-array</a> elements such as in the following example:</p>
       <pre>Loop 4
@@ -109,7 +99,7 @@ MsgBox("Hello, " A_UserName "!")</pre>
     <td style="text-align:center"><strong>++<br>
     --</strong></td>
     <td>
-      <p><strong>Pre- and post-increment/decrement</strong>. Adds or subtracts 1 from a variable. The operator may appear either before or after the variable's name. If it appears <em>before</em> the name, the operation is performed immediately and its result is used by the next operation. For example, <code>Var := ++X</code> increments X immediately and then assigns its value to <em>Var</em>. Conversely, if the operator appears <em>after</em> the variable's name, the operation is performed <em>after</em> the variable is used by the next operation. For example, <code>Var := X++</code> increments X only after assigning the current value of X to <em>Var</em>. Due to backward compatibility, the operators ++ and -- treat blank variables as zero, but only when they are alone on a line; for example, <code>y:=1, ++x</code> and <code>MsgBox % ++x</code> both produce a blank result when x is blank.</p>
+      <p><strong>Pre- and post-increment/decrement</strong>. Adds or subtracts 1 from a variable. The operator may appear either before or after the variable's name. If it appears <em>before</em> the name, the operation is performed immediately and its result is used by the next operation. For example, <code>Var := ++X</code> increments X immediately and then assigns its value to <em>Var</em>. Conversely, if the operator appears <em>after</em> the variable's name, the operation is performed <em>after</em> the variable is used by the next operation. For example, <code>Var := X++</code> increments X only after assigning the current value of X to <em>Var</em>. Due to backward compatibility, the operators ++ and -- treat blank variables as zero, but only when they are alone on a line; for example, <code>y:=1, ++x</code> and <code>MsgBox ++x</code> both produce a blank result when x is blank.</p>
       <p>If the target variable is empty, the operators <strong>++</strong> and <strong>--</strong> treat it as zero. This allows a line such as <code>Var++</code> to be used in a hotkey without <em>Var</em> having been initialized in the <a href="Scripts.htm#auto">auto-execute section</a>.</p>
     </td>
   </tr>
@@ -128,7 +118,7 @@ MsgBox("Hello, " A_UserName "!")</pre>
       <p><strong>Logical-not (!)</strong>: If the operand is blank or 0, the result of applying logical-not is 1, which means &quot;true&quot;. Otherwise, the result is 0 (false). For example: <code>!x or !(y and z)</code>. Note: The word NOT is synonymous with <strong>!</strong> except that <strong>!</strong> has a higher precedence. Consecutive unary operators such as <code><strong>!!</strong>Var</code> are allowed because they are evaluated in right-to-left order.</p>
       <p><strong>Bitwise-not (~)</strong>: This inverts each bit of its operand. If the operand is a floating point value, it is truncated to an integer prior to the calculation. If the operand  is between 0 and 4294967295 (0xffffffff), it will be treated as an <u>unsigned</u> 32-bit value. Otherwise, it is treated as a <u>signed</u> 64-bit value. For example, <code>~0xf0f</code> evaluates to 0xfffff0f0 (4294963440).</p>
       <p id="amp"><strong>Address (&amp;)</strong>: <code>&amp;MyVar</code> retrieves the address of <em>MyVar</em>'s contents in memory, which is typically used with <a href="commands/DllCall.htm#struct">DllCall structures</a>. <em>MyVar</em>'s contents can be a string, a 64-bit integer, a 64-bit floating-point number, or an object.</p>
-      <p><strong>Dereference (*)</strong>: <code>*Expression</code> assumes that <code>Expression</code> resolves to a numeric memory address; it retrieves the byte at that address as a number between 0 and 255 (0 is always retrieved if the address is 0; but any other invalid address must be avoided because it might crash the script). However, <a href="Functions.htm#NumGet">NumGet()</a> generally performs much better when retrieving binary numbers.</p></td>
+    </td>
   </tr>
   <tr>
     <td style="text-align:center"><strong>*<br>
@@ -165,7 +155,7 @@ MsgBox("Hello, " A_UserName "!")</pre>
       <p><strong>Concatenate</strong>. The period (dot) operator is used to combine two items into a single string (there must be at least one space on each side of the period). You may also omit the period to achieve the same result (except where ambiguous such as <code>x <strong>-</strong>y</code>, or when the item on the right side has a leading ++ or --). When the dot is omitted, there must be at least one space between the items to be merged.</p>
       <pre>Var := "The color is " <strong>.</strong> FoundColor  <em>; Explicit concat</em>
 Var := "The color is " FoundColor    <em>; Auto-concat</em>
-Var := "The color is %FoundColor%"   <em>; Variable substitution within a string</em></pre>
+</pre>
       <p>Sub-expressions can also be concatenated. For example: <code>Var := "The net price is " <strong>.</strong>  Price * (1 - Discount/100)</code>.</p>
       <p>A line that begins with a period (or any other operator) is automatically <a href="Scripts.htm#continuation">appended to</a> the line above it.</p>
       <p>The entire <a href="Functions.htm#StrLen">length</a> of each input is used, even if it includes binary zero. For example, <code>Chr(0x2010) Chr(0x0000) Chr(0x4030)</code> produces the following string of bytes (due to UTF-16-LE encoding): 0x10, 0x20, 0, 0, 0x30, 0x40. The result has an additional null-terminator (binary zero) which is not included in the length.</p>
@@ -329,7 +319,7 @@ Var := "The color is %FoundColor%"   <em>; Variable substitution within a string
   </tr>
   <tr id="LineNumber">
     <td>A_LineNumber</td>
-    <td><p>The number of the currently executing line within the script (or one of its <a href="commands/_Include.htm">#Include files</a>). This line number will match the one shown by <a href="commands/ListLines.htm">ListLines</a>; it can be useful for error reporting such as this example: <code>MsgBox Could not write to log file (line number %A_LineNumber%)</code>.</p>
+    <td><p>The number of the currently executing line within the script (or one of its <a href="commands/_Include.htm">#Include files</a>). This line number will match the one shown by <a href="commands/ListLines.htm">ListLines</a>; it can be useful for error reporting such as this example: <code>MsgBox "Could not write to log file (line number " A_LineNumber ")"</code>.</p>
     <p>Since a <a href="Scripts.htm#ahk2exe">compiled script</a> has merged all its <a href="commands/_Include.htm">#Include files</a> into one big script, its line numbering may be different than when it is run in non-compiled mode.</p></td>
   </tr>
   <tr id="LineFile">
@@ -366,7 +356,7 @@ Var := "The color is %FoundColor%"   <em>; Variable substitution within a string
 <table class="info">
   <tr id="YYYY">
     <td>A_YYYY</td>
-    <td>Current 4-digit year (e.g. 2004). Synonymous with A_Year. Note: To retrieve a formatted time or date appropriate for your locale and language, use <code><a href="commands/FormatTime.htm">FormatTime</a>, OutputVar</code> (time and long date) or <code><a href="commands/FormatTime.htm">FormatTime</a>, OutputVar,, LongDate</code> (retrieves long-format date).</td>
+    <td>Current 4-digit year (e.g. 2004). Synonymous with A_Year. Note: To retrieve a formatted time or date appropriate for your locale and language, use <code><a href="commands/FormatTime.htm">FormatTime</a>()</code> (time and long date) or <code><a href="commands/FormatTime.htm">FormatTime</a>(, "LongDate")</code> (retrieves long-format date).</td>
   </tr>
   <tr id="MM">
     <td>A_MM</td>
@@ -398,7 +388,7 @@ Var := "The color is %FoundColor%"   <em>; Variable substitution within a string
   </tr>
   <tr id="YDay">
     <td>A_YDay</td>
-    <td>Current day of the year (1-366). The value is not zero-padded, e.g. 9 is retrieved, not 009. To retrieve a zero-padded value, use the following: <code><a href="commands/FormatTime.htm">FormatTime</a>, OutputVar,, YDay0</code>.</td>
+    <td>Current day of the year (1-366). The value is not zero-padded, e.g. 9 is retrieved, not 009. To retrieve a zero-padded value, use the following: <code><a href="commands/FormatTime.htm">FormatTime</a>(, "YDay0")</code>.</td>
   </tr>
   <tr id="YWeek">
     <td>A_YWeek</td>
@@ -406,7 +396,7 @@ Var := "The color is %FoundColor%"   <em>; Variable substitution within a string
   </tr>
   <tr id="Hour">
     <td>A_Hour</td>
-    <td>Current 2-digit hour (00-23) in 24-hour time (for example, 17 is 5pm). To retrieve 12-hour time as well as an AM/PM indicator, follow this example: <code><a href="commands/FormatTime.htm">FormatTime</a>, OutputVar, , h:mm:ss tt</code></td>
+    <td>Current 2-digit hour (00-23) in 24-hour time (for example, 17 is 5pm). To retrieve 12-hour time as well as an AM/PM indicator, follow this example: <code><a href="commands/FormatTime.htm">FormatTime</a>(, "h:mm:ss tt")</code></td>
   </tr>
   <tr id="Min">
     <td>A_Min</td>
@@ -432,9 +422,9 @@ Var := "The color is %FoundColor%"   <em>; Variable substitution within a string
     <td>A_TickCount</td>
     <td><p>The number of milliseconds since the computer was rebooted. By storing A_TickCount in a variable, elapsed time can later be measured by subtracting that variable from the latest A_TickCount value. For example:</p>
         <pre>StartTime := A_TickCount
-Sleep, 1000
+Sleep 1000
 ElapsedTime := A_TickCount - StartTime
-MsgBox,  %ElapsedTime% milliseconds have elapsed.</pre>
+MsgBox ElapsedTime " milliseconds have elapsed."</pre>
 <p>If you need more precision than A_TickCount's 10ms, use <a href="commands/DllCall.htm#QPC">QueryPerformanceCounter()</a>.</p>
 </td>
   </tr>
@@ -451,7 +441,7 @@ MsgBox,  %ElapsedTime% milliseconds have elapsed.</pre>
   </tr>
   <tr id="IsCritical">
     <td>A_IsCritical</td>
-    <td>Contains 0 if <a href="commands/Critical.htm">Critical</a> is off for the <a href="misc/Threads.htm">current thread</a>. Otherwise it contains an integer greater than zero, namely the <a href="commands/Critical.htm#Interval">message-check frequency</a> being used by Critical. Since <code>Critical 0</code> turns off critical, the current state of Critical can be saved and restored via <code>Old_IsCritical := A_IsCritical</code> followed later by <code>Critical %Old_IsCritical%</code>.</td>
+    <td>Contains 0 if <a href="commands/Critical.htm">Critical</a> is off for the <a href="misc/Threads.htm">current thread</a>. Otherwise it contains an integer greater than zero, namely the <a href="commands/Critical.htm#Interval">message-check frequency</a> being used by Critical. The current state of Critical can be saved and restored via <code>Old_IsCritical := A_IsCritical</code> followed later by <code>A_IsCritical := Old_IsCritical</code>.</td>
   </tr>
   <tr id="TitleMatchMode">
     <td>A_TitleMatchMode</td>
@@ -534,11 +524,11 @@ MsgBox,  %ElapsedTime% milliseconds have elapsed.</pre>
   </tr>
   <tr id="IconTip">
     <td>A_IconTip</td>
-    <td>Blank unless a custom tooltip for the tray icon has been specified via <code><a href="commands/Menu.htm">Menu</a>, Tray, Tip</code> --  in which case it's the text of the tip.</td>
+    <td>Blank unless a custom tooltip for the tray icon has been specified via <code><a href="commands/Menu.htm">Menu</a> "Tray", "Tip"</code> --  in which case it's the text of the tip.</td>
   </tr>
   <tr id="IconFile">
     <td>A_IconFile</td>
-    <td>Blank unless a custom tray icon has been specified via <code><a href="commands/Menu.htm">Menu</a>, tray, icon</code> -- in which case it's the full path and name of the icon's file. <strong>Known limitation:</strong> This path may be incorrect if the script originally passed a relative path to a system DLL; for example, <code>Menu, Tray, Icon, user32.dll, 2</code>.</td>
+    <td>Blank unless a custom tray icon has been specified via <code><a href="commands/Menu.htm">Menu</a> "tray", "icon"</code> -- in which case it's the full path and name of the icon's file. <strong>Known limitation:</strong> This path may be incorrect if the script originally passed a relative path to a system DLL; for example, <code>Menu "Tray", "Icon", "user32.dll", 2</code>.</td>
   </tr>
   <tr id="IconNumber">
     <td>A_IconNumber</td>
@@ -551,7 +541,7 @@ MsgBox,  %ElapsedTime% milliseconds have elapsed.</pre>
     <td>A_TimeIdle</td>
     <td>The number of milliseconds that have elapsed since the system last received keyboard, mouse, or other input. This is useful for determining whether the user is away. Physical input from the user as well as artificial input generated by <strong>any</strong> program or script (such as the <a href="commands/Send.htm">Send</a> or <a href="commands/MouseMove.htm">MouseMove</a> commands) will reset this value back to zero. Since this value tends to increase by increments of 10, do not check whether it is equal to another value. Instead, check whether it is greater or less than another value. For example:
 <pre>if A_TimeIdle &gt; 600000
-    MsgBox, The last keyboard or mouse activity was at least 10 minutes ago.</pre></td>
+    MsgBox "The last keyboard or mouse activity was at least 10 minutes ago."</pre></td>
   </tr>
   <tr id="TimeIdlePhysical">
     <td>A_TimeIdlePhysical</td>
@@ -709,8 +699,8 @@ MsgBox,  %ElapsedTime% milliseconds have elapsed.</pre>
       <p>To discover the dimensions of other monitors in a multi-monitor system, use <a href="commands/SysGet.htm">SysGet</a>.</p>
       <p>To instead discover the width and height of the entire desktop (even if it spans multiple monitors), use the following example:</p>
 <pre>
-<a href="commands/SysGet.htm">SysGet</a>, VirtualWidth, 78
-<a href="commands/SysGet.htm">SysGet</a>, VirtualHeight, 79
+VirtualWidth := <a href="commands/SysGet.htm">SysGet</a>(78)
+VirtualHeight := <a href="commands/SysGet.htm">SysGet</a>(79)
 </pre>
     <p>In addition, use <a href="commands/SysGet.htm">SysGet</a> to discover the work area of a monitor, which can be smaller than the monitor's total area because the taskbar and other registered desktop toolbars are excluded.</p></td>
   </tr>
@@ -735,11 +725,10 @@ MsgBox,  %ElapsedTime% milliseconds have elapsed.</pre>
     <td><p>The current X and Y coordinates of the caret (text insertion point). The coordinates are relative to the active window unless <a href="commands/CoordMode.htm">CoordMode</a> is used to make them relative to the entire screen. If there is no active window or the caret position cannot be determined, these variables are blank.</p>
       <p>The following script allows you to move the caret around to see its current position displayed in an auto-update tooltip. Note that some windows (e.g. certain versions of MS Word) report the same caret position regardless of its actual position.</p>
 <pre>
-SetTimer, WatchCaret, 100
-return
-WatchCaret:
-  ToolTip, X%A_CaretX% Y%A_CaretY%, A_CaretX, A_CaretY - 20
-return
+SetTimer WatchCaret, 100
+WatchCaret() {
+    ToolTip, "X" A_CaretX " Y" A_CaretY, A_CaretX, A_CaretY - 20
+}
 </pre>
     </td>
   </tr>

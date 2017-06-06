@@ -31,19 +31,18 @@
 <p id="define">A function is similar to a subroutine (<a href="commands/Gosub.htm">Gosub</a>) except that it can accept parameters (inputs) from its caller. In addition, a function may optionally return a value to its caller. Consider the following simple function that accepts two numbers and returns their sum:</p>
 <pre>Add(x, y)
 {
-    return x + y   <em>; &quot;<a href="commands/Return.htm">Return</a>&quot; expects an <a href="Variables.htm#Expressions">expression</a>.</em>
+    <a href="commands/Return.htm">return</a> x + y
 }</pre>
 <p>The above is known as a function <em>definition</em> because it creates a function named &quot;Add&quot; (not case sensitive) and establishes that anyone who calls it must provide exactly two parameters (x and y). To call the function, assign its result to a variable with the <strong><a href="commands/SetExpression.htm">:=</a></strong><a href="commands/SetExpression.htm"> operator</a>. For example:</p>
 <pre>Var := Add(2, 3)  <em>; The number 5 will be stored in Var.</em></pre>
 <p>Also, a function may be called without storing its return value:</p>
-<pre>Add(2, 3)</pre>
+<pre>Add(2, 3)
+Add 2, 3  <em>; Parentheses can be omitted if used at the start of a line.</em></pre>
 <p>But in this case, any value returned by the function is discarded; so unless the function produces some effect other than its return value, the call would serve no purpose.</p>
-<p>Since a function call is an <a href="Variables.htm#Expressions">expression</a>, any variable names in its parameter list should not be enclosed in percent signs. By contrast, literal strings should be enclosed in double quotes. For example:</p>
+<p>Within an expression, a function call "evaluates to" the return value of the function. The return value can be assigned to a variable as shown above, or it can be used directly as shown below:</p>
 <pre>if <a href="commands/InStr.htm">InStr</a>(MyVar, &quot;fox&quot;)
-    MsgBox The variable MyVar contains the word fox.</pre>
-<p>Finally, functions may be called in the parameters of any command (except OutputVar parameters). However, parameters that do not support <a href="Variables.htm#Expressions">expressions</a> must use the &quot;% &quot; prefix as in this example:</p>
-<pre>MsgBox <strong>%</strong> &quot;The answer is: &quot; <strong>.</strong> Add(3, 2)</pre>
-<p>The &quot;% &quot; prefix is also permitted in parameters that natively support expressions, but it is simply ignored.</p>
+    MsgBox "The variable MyVar contains the word fox."</pre>
+
 <h2 id="param">Parameters</h2>
 <p>When a function is defined, its parameters are listed in parentheses next to its name (there must be no spaces between its name and the open-parenthesis). If a function does not accept any parameters, leave the parentheses empty; for example: <code>GetCurrentTimestamp()</code>.</p>
 <p id="ByRef"><strong>ByRef Parameters</strong>: From the function's point of view, parameters are essentially the same as <a href="#Locals">local variables</a> unless they are defined as <em>ByRef</em> as in this example:</p>
@@ -75,15 +74,14 @@
 <p id="missing">It is not possible to have optional parameters isolated in the middle of the parameter list. In other words, all parameters that lie to the right of the first optional parameter must also be marked optional. However, optional parameters may be omitted from the middle of the parameter list when calling the function, as shown below:</p>
 <pre>Func(1,, 3)
 Func(X, Y:=2, Z:=0) {  <em>; Note that Z must still be optional in this case.</em>
-    MsgBox("%X%, %Y%, %Z%")
+    MsgBox X ", " Y ", " Z
 }</pre>
-<p id="OptionalByRef"><a href="#ByRef">ByRef parameters</a> also support default values; for example: <code>Func(ByRef p1 = &quot;&quot;)</code>. Whenever the caller omits such a parameter, the function creates a local variable to contain the default value; in other words, the function behaves as though the keyword &quot;ByRef&quot; is absent.</p>
+<p id="OptionalByRef"><a href="#ByRef">ByRef parameters</a> also support default values; for example: <code>Func(ByRef p1 := "")</code>. Whenever the caller omits such a parameter, the function creates a local variable to contain the default value; in other words, the function behaves as though the keyword &quot;ByRef&quot; is absent.</p>
 <p>A parameter's default value must be one of the following: <code>true</code>, <code>false</code>, a literal integer, a literal floating point number, or a quoted/literal string such as &quot;fox&quot; or &quot;&quot;.</p>
 <h2 id="return">Returning Values to Caller</h2>
 <p>As described in <a href="#intro">introduction</a>, a function may optionally <a href="commands/Return.htm">return</a> a value to its caller.</p>
 <pre>
-Test := returnTest()
-MsgBox % Test
+MsgBox returnTest()
 
 returnTest() {
   return 123
@@ -92,7 +90,7 @@ returnTest() {
 <p>If you want to return extra results from a function, you may also use <a href="#ByRef">ByRef</a>:</p>
 <pre>
 returnByRef(A,B,C)
-MsgBox % A "," B "," C
+MsgBox A "," B "," C
 
 returnByRef(ByRef val1, ByRef val2, ByRef val3)
 {
@@ -105,13 +103,13 @@ returnByRef(ByRef val1, ByRef val2, ByRef val3)
 <p>Objects and Arrays can be used to return multiple values or even named values:</p>
 <pre>
 Test1 := returnArray1()
-MsgBox % Test1[1] "," Test1[2]
+MsgBox Test1[1] "," Test1[2]
 
 Test2 := returnArray2()
-MsgBox % Test2[1] "," Test2[2]
+MsgBox Test2[1] "," Test2[2]
 
 Test3 := returnObject()
-MsgBox % Test3.id "," Test3.val
+MsgBox Test3.id "," Test3.val
 
 returnArray1() {
   Test := [123,"ABC"]
@@ -136,7 +134,7 @@ returnObject() {
         str .= param . sep
     return SubStr(str, 1, -StrLen(sep))
 }
-MsgBox % Join("`n", "one", "two", "three")</pre>
+MsgBox Join("`n", "one", "two", "three")</pre>
 <p>When a variadic function is called, surplus parameters can be accessed via an object which is stored in the function's final parameter. The first surplus parameter is at <code>params[1]</code>, the second at <code>params[2]</code> and so on. As it is a standard <a href="objects/Object.htm">Object</a>, <code>params.<a href="objects/Object.htm#Length">Length</a>()</code> can be used to determine the number of parameters.</p>
 <p>Notes:</p>
 <ul>
@@ -177,7 +175,7 @@ MsgBox % Join("`n", <b class="blue">substrings*</b>)</pre>
 <pre>LogToFile(TextToLog)
 {
     <strong>global</strong> LogFileName  <em>; This global variable was previously given a value somewhere outside this function.</em>
-    FileAppend, %TextToLog%`n, %LogFileName%
+    FileAppend TextToLog "`n", LogFileName
 }</pre>
 <p id="AssumeGlobal"><strong>Assume-global mode</strong>: If a function needs to access or create a large number of global variables, it can be defined to assume that all its variables are global (except its parameters) by making its first line the word &quot;global&quot;. For example:</p>
 <pre>SetDefaults()
@@ -195,7 +193,7 @@ MsgBox % Join("`n", <b class="blue">substrings*</b>)</pre>
     <strong>static</strong> LoggedLines := 0
     LoggedLines += 1  <em>; Maintain a tally locally (its value is remembered between calls).</em>
     global LogFileName
-    FileAppend, %LoggedLines%: %TextToLog%`n, %LogFileName%
+    FileAppend LoggedLines ": " TextToLog "`n", LogFileName
 }</pre>
 <p id="InitStatic">A static variable may be initialized on the same line as its declaration by following it with <code>:=</code> followed by any <a href="Variables.htm#Expressions">expression</a>. For example: <code>static X:=0, Y:=&quot;fox&quot;</code>. Each static variable is initialized only once. Static variables are initialized in the order that they appear in the script file, but before the script's auto-execute section.</p>
 <p id="AssumeStatic"><strong>Assume-static mode</strong>: A function may be defined to assume that all its variables are static (except its parameters) by making its first line the word &quot;static&quot;. For example:</p>
