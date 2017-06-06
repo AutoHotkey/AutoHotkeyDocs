@@ -307,7 +307,6 @@ index = [
   ["delete files","commands/FileDelete.htm"],
   ["delete folder/directory","commands/DirDelete.htm"],
   ["Delete method (Object)","objects/Object.htm#Delete"],
-  ["Deref","commands/Deref.htm"],
   ["DetectHiddenText","commands/DetectHiddenText.htm"],
   ["DetectHiddenWindows","commands/DetectHiddenWindows.htm"],
   ["dialog DirSelect","commands/DirSelect.htm"],

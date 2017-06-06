@@ -222,7 +222,6 @@ toc = [
   ]},
   {label:"Misc.",children:
   [
-    {label:"Deref",path:"commands/Deref.htm"},
     {label:"Download",path:"commands/Download.htm"},
     {label:"Edit",path:"commands/Edit.htm"},
     {label:"Func",path:"commands/Func.htm"},
