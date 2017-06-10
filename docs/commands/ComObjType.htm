@@ -13,31 +13,36 @@
 
 <p>Retrieves type information from a COM object.</p>
 
-<pre class="Syntax">VarType := ComObjType(ComObject)
-Name    := ComObjType(ComObject, "Name")
-IID     := ComObjType(ComObject, "IID")</pre>
+<pre class="Syntax">
+VarType := ComObjType(ComObject)
+IName   := ComObjType(ComObject, "Name")
+IID     := ComObjType(ComObject, "IID")
+CName   := ComObjType(ComObject, "Class")  <em>; v1.1.26+</em>
+CLSID   := ComObjType(ComObject, "CLSID")  <em>; v1.1.26+</em>
+</pre>
 
 <h3>Parameters</h3>
 <dl>
 
   <dt>ComObject</dt>
   <dd><p>A wrapper object containing a COM object or typed value.</p></dd>
-
-  <dt>VarType</dt>
-  <dd><p>An integer indicating the type of value. See below.</p></dd>
-
-  <dt>Name</dt>
-  <dd><p>An interface type name.</p></dd>
-
-  <dt>IID</dt>
-  <dd><p>A globally unique identifier (GUID) representing the interface type.</p></dd>
+  
+  <dt>Param2</dt>
+  <dd><p>The second parameter is a string indicating the type information to retrieve.</p></dd>
 
 </dl>
 
 <h3>Return Value</h3>
-<p>If the second parameter is omitted, the variant type of the value contained by the wrapper object is returned.</p>
-<p>If the second parameter is "Name" or "IID" and the wrapper object contains a COM object (variant type VT_DISPATCH), the COM object's type name or the identifier of its primary interface is returned.</p>
-<p>If the parameters are invalid or an error occurs, an empty string is returned.</p>
+<p>The return value depends on the value of <em>Param2</em>:</p>
+<table class="info">
+  <tr><th style="white-space: nowrap">Param2</th><th>Return Value</th></tr>
+  <tr><td>Omitted</td><td>An integer <a href="#vt">variant type code</a> indicating the type of value contained by the COM wrapper object.</td></tr>
+  <tr><td>"Name"</td><td>The name of the object's default interface.</td></tr>
+  <tr><td>"IID"</td><td>The globally unique identifier (GUID) of the object's default interface.</td></tr>
+  <tr><td>"Class"</td><td><span class="ver">[v1.1.16+]:</span> The object's class name. Note that this is not the same as a Prog ID (a Prog ID is a name used to identify the class in the system registry, or for ComObjCreate).</td></tr>
+  <tr><td>"CLSID"</td><td><span class="ver">[v1.1.16+]:</span> The globally unique identifier (GUID) of the object's class. Classes are often registered by CLSID under the <code>HKCR\CLSID</code> registry key.</td></tr>
+</table>
+<p>An empty string is returned if either parameter is invalid or if the requested type information could not be retrieved.</p>
 
 <h3 id="vt">Variant Type Constants</h3>
 <pre>
@@ -77,7 +82,8 @@ VT_BYREF     = 0x4000  <em>; Pointer to another type of value</em>
 <h3>General Remarks</h3>
 <p>In most common cases, return values from methods or properties of COM objects are converted to an appropriate data type supported by AutoHotkey. Types which aren't specifically handled are coerced to strings via <a href="http://msdn.microsoft.com/en-us/library/ms221258.aspx">VariantChangeType</a>; if this fails or if the variant type contains the VT_ARRAY or VT_BYREF flag, an object containing both the value and its type is returned instead.</p>
 <p>For any variable <i>x</i>, if <code>ComObjType(x)</code> returns an integer, <i>x</i> contains a COM object wrapper.</p>
-
+<p>If <em>Param2</em> is "Name" or "IID", type information is retrieved via the <a href="https://msdn.microsoft.com/en-us/library/ms221571">IDispatch::GetTypeInfo</a> interface method. <em>ComObject</em>'s variant type must be VT_DISPATCH.</p>
+<p>If <em>Param2</em> is "Class" or "CLSID", type information is retrieved via the <a href="https://msdn.microsoft.com/en-us/library/ms690192">IProvideClassInfo::GetClassInfo</a> interface method. <em>ComObject</em>'s variant type must be VT_DISPATCH or VT_UNKNOWN, and the object must implement the IProvideClassInfo interface (some objects do not).</p>
 
 <h3>Related</h3>
 <p><a href="ComObjValue.htm">ComObjValue</a>, <a href="ComObjCreate.htm">ComObjCreate</a>, <a href="ComObjGet.htm">ComObjGet</a>, <a href="ComObjActive.htm">ComObjActive</a></p>
@@ -85,10 +91,14 @@ VT_BYREF     = 0x4000  <em>; Pointer to another type of value</em>
 <h3>Examples</h3>
 <pre class="NoIndent">
 d := <a href="ComObjCreate.htm">ComObjCreate</a>("Scripting.Dictionary")
-VarType := ComObjType(d)          <em>; Always 9 for script-callable objects.</em>
-Name    := ComObjType(d, "Name")  <em>; Only valid for script-callable objects.</em>
-IID     := ComObjType(d, "IID")   <em>; As above.</em>
-MsgBox Variant type:`t%VarType%`nType name:`t%Name%`nInterface ID:`t%IID%
+VarType := ComObjType(d)
+IName   := ComObjType(d, "Name")
+IID     := ComObjType(d, "IID")
+CName   := ComObjType(d, "Class")  <em>; v1.1.26+</em>
+CLSID   := ComObjType(d, "CLSID")  <em>; v1.1.26+</em>
+MsgBox % "Variant type:`t" VarType
+	. "`nInterface name:`t" IName "`nInterface ID:`t" IID
+	. "`nClass name:`t" CName "`nClass ID (CLSID):`t" CLSID
 </pre>
 
 </body>
