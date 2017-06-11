@@ -246,6 +246,8 @@ toc = [
     {label:"File Object",path:"objects/File.htm"},
     {label:"Func Object",path:"objects/Func.htm"},
     {label:"Function Objects",path:"objects/Functor.htm"},
+    {label:"Gui Object",path:"objects/Gui.htm"},
+    {label:"GuiControl Object",path:"objects/GuiControl.htm"},
     {label:"RegExMatch Object",path:"commands/RegExMatch.htm#MatchObject"},
   ]},
   {label:"Process",children:
