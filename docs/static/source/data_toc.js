@@ -1,6 +1,6 @@
 toc = [
   {label:"Quick Reference",path:"AutoHotkey.htm"},
-  {label:"Basic Usage and Syntax",children:
+  {label:"Usage and Syntax",children:
   [
     {label:"Hotkeys",path:"Hotkeys.htm"},
     {label:"Hotstrings & auto-replace",path:"Hotstrings.htm"},
@@ -9,6 +9,8 @@ toc = [
     {label:"Scripts",path:"Scripts.htm"},
     {label:"Variables and Expressions",path:"Variables.htm"},
     {label:"Functions",path:"Functions.htm"},
+    {label:"Labels",path:"misc/Labels.htm"},
+    {label:"Threads",path:"misc/Threads.htm"},
     {label:"Debugging (DBGp) Clients",path:"AHKL_DBGPClients.htm"},
     {label:"Objects",path:"Objects.htm",children:
     [
@@ -16,11 +18,7 @@ toc = [
       {label:"Extended Usage",path:"Objects.htm#Extended_Usage"},
       {label:"Custom Objects",path:"Objects.htm#Custom_Objects"},
       {label:"Default Base Object",path:"Objects.htm#Default_Base_Object"},
-      {label:"Implementation",path:"Objects.htm#Implementation"},
-      {label:"Object",path:"objects/Object.htm"},
-      {label:"Enumerator Object",path:"objects/Enumerator.htm"},
-      {label:"File Object",path:"objects/File.htm"},
-      {label:"Function Objects",path:"objects/Functor.htm"}
+      {label:"Implementation",path:"Objects.htm#Implementation"}
     ]}
   ]},
   {label:"Frequently Asked Questions",path:"FAQ.htm"},
@@ -76,7 +74,7 @@ toc = [
     {label:"FileCreateShortcut",path:"commands/FileCreateShortcut.htm"},
     {label:"FileDelete",path:"commands/FileDelete.htm"},
     {label:"FileEncoding",path:"commands/FileEncoding.htm"},
-    {label:"FileExist",path:"Functions.htm#FileExist"},
+    {label:"FileExist",path:"commands/FileExist.htm"},
     {label:"FileGetAttrib",path:"commands/FileGetAttrib.htm"},
     {label:"FileGetShortcut",path:"commands/FileGetShortcut.htm"},
     {label:"FileGetSize",path:"commands/FileGetSize.htm"},
@@ -148,10 +146,15 @@ toc = [
     {label:"GuiFromHwnd",path:"commands/GuiFromHwnd.htm"},
     {label:"Gui ListView control",path:"commands/ListView.htm"},
     {label:"Gui TreeView control",path:"commands/TreeView.htm"},
+    {label:"Image Handles",path:"misc/ImageHandles.htm"},
     {label:"InputBox",path:"commands/InputBox.htm"},
+    {label:"LoadPicture",path:"commands/LoadPicture.htm"},
     {label:"Menu",path:"commands/Menu.htm"},
+    {label:"MenuGetHandle",path:"commands/MenuGetHandle.htm"},
+    {label:"MenuGetName",path:"commands/MenuGetName.htm"},
     {label:"MsgBox",path:"commands/MsgBox.htm"},
     {label:"OnMessage",path:"commands/OnMessage.htm"},
+    {label:"Styles for a window/control",path:"misc/Styles.htm"},
     {label:"ToolTip",path:"commands/ToolTip.htm"},
     {label:"TrayTip",path:"commands/TrayTip.htm"}
   ]},
@@ -235,6 +238,16 @@ toc = [
     {label:"OutputDebug",path:"commands/OutputDebug.htm"},
     {label:"VarSetCapacity",path:"commands/VarSetCapacity.htm"}
   ]},
+  {label:"Object Types",children:
+  [
+    {label:"Object",path:"objects/Object.htm"},
+    {label:"Enumerator Object",path:"objects/Enumerator.htm"},
+    {label:"Exception Object",path:"commands/Throw.htm#Exception"},
+    {label:"File Object",path:"objects/File.htm"},
+    {label:"Func Object",path:"objects/Func.htm"},
+    {label:"Function Objects",path:"objects/Functor.htm"},
+    {label:"RegExMatch Object",path:"commands/RegExMatch.htm#MatchObject"},
+  ]},
   {label:"Process",children:
   [
     {label:"Process",path:"commands/Process.htm"},
@@ -271,6 +284,7 @@ toc = [
     {label:"InStr",path:"commands/InStr.htm"},
     {label:"Loop (parse a string)",path:"commands/LoopParse.htm"},
     {label:"Ord",path:"commands/Ord.htm"},
+    {label:"RegEx Quick Reference",path:"misc/RegEx-QuickRef.htm"},
     {label:"RegExMatch",path:"commands/RegExMatch.htm"},
     {label:"RegExReplace",path:"commands/RegExReplace.htm"},
     {label:"Sort",path:"commands/Sort.htm"},
@@ -308,6 +322,7 @@ toc = [
       {label:"GroupClose",path:"commands/GroupClose.htm"},
       {label:"GroupDeactivate",path:"commands/GroupDeactivate.htm"}
     ]},
+    {label:"Window Titles",path:"misc/WinTitle.htm"},
     {label:"#WinActivateForce",path:"commands/_WinActivateForce.htm"},
     {label:"DetectHiddenText",path:"commands/DetectHiddenText.htm"},
     {label:"DetectHiddenWindows",path:"commands/DetectHiddenWindows.htm"},
