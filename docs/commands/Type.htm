@@ -13,20 +13,51 @@
 <pre class="Syntax">OutputVar := <span class="func">Type</span>(Value)</pre>
 
 <h3>Return Value</h3>
-<p>The return value is a string indicating the type of <em>Value</em>. Possible values include:</p>
+<p>The return value is a string indicating the type of <em>Value</em>. For primitive values, the return value is one of the following:</p>
 <ul>
   <li>String</li>
   <li>Integer</li>
   <li>Float</li>
-  <li>Object</li>
 </ul>
-<p>If <em>Value</em> is an object, the return value may be "Object" or a more specific built-in type such as "<a href="../objects/Func.htm">Func</a>", "<a href="../objects/File.htm">FileObject</a>" or "<a href="ComObjCreate.htm">ComObject</a>".</p>
+<p>If <em>Value</em> is an object, the return value is the object's class name.</p>
+<p>For the <a href="../objects/Object.htm">Object</a> type, the class name is dynamic and is determined using an algorithm like the one below:</p>
+<pre>
+Object_Type(Value) {
+    if ObjHasKey(Value, "__Class")  <em>; Ensures classes aren't reported as an instance of the base class.</em>
+        return "Class"
+    while Value := Value.base
+        if ObjHasKey(Value, "__Class")
+            return Value.__Class
+    return "Object"
+}
+</pre>
+<p>However, unlike this function, Type() does not cause the object's meta-functions to be called.</p>
+<p>For COM wrapper objects, the return value depends on the wrapped <a href="ComObjType.htm">variant type</a>. It is determined as follows:</p>
+<pre>
+ComObject_Type(obj)
+{
+    if ComObjType(obj) &amp; 0x2000 <em>; VT_ARRAY</em>
+        return "<a href="ComObjArray.htm">ComObjArray</a>"
+    if ComObjType(obj) &amp; 0x4000 <em>; VT_BYREF</em>
+        return "<a href="ComObject.htm#ByRef">ComObjRef</a>"
+    if (ComObjType(obj) = 9 || ComObjType(obj) = 13) <em>; VT_DISPATCH || VT_UNKNOWN</em>
+        &amp;&amp; ComObjValue(obj) != 0
+    {
+        if (classname := <a href="ComObjType.htm">ComObjType</a>(obj, "Class")) != ""
+            return classname
+        if ComObjType(obj) = 9 <em>; VT_DISPATCH</em>
+            return "ComObject"
+    }
+    return "ComObj"
+}
+</pre>
 
 <h3>Remarks</h3>
 <p>This function typically shouldn't be used to determine if a value is numeric, since numeric <em>strings</em> are valid in math expressions and with most built-in functions. However, in some cases the exact type of a value is more important. For instance, if <a href="NumPut.htm">NumPut</a> is passed a variable containing a pure integer (not a numeric string), the integer will be used instead of the address of the variable.</p>
 <p>To check if a value can be used as a number, use the expression <code><a href="is.htm"><i>value</i> is <i>type</i></a></code>, where <em>type</em> is <code>"number"</code>, <code>"integer"</code>  or <code>"float"</code>.</p>
 <p>To check for any type of object, use the expression <code><a href="is.htm"><i>value</i> is 'object'</a></code>.</p>
 <p>To check if an object is derived from a particular user-defined class, use <code><a href="is.htm#Objects"><i>value</i> is <i>ClassName</i></a></code>.</p>
+<p>For built-in types, the object's class cannot be referenced directly.</p>
 
 <h3>Related</h3>
 <p><a href="../Variables.htm#Variable_types">Variable types</a>, <a href="../Variables.htm#Expressions">Expressions</a>, <a href="is.htm"><em>Value</em> is <em>Type</em></a></p>
