@@ -22,15 +22,13 @@
   <dt>Msg</dt>
   <dd><p>The message number to send. See the <a href="../misc/SendMessageList.htm">message list</a> to determine the number.</p></dd>
 
-  <dt>wParam</dt>
-  <dd><p>The first component of the message. If blank or omitted, 0 will be sent.</p></dd>
-
-  <dt>lParam</dt>
-  <dd><p>The second component of the message. If blank or omitted, 0 will be sent.</p></dd>
+  <dt>wParam, lParam</dt>
+  <dd><p>The message parameters. If omitted, each parameter defaults to 0.</p>
+    <p>Each parameter can be a pure integer or a string. If it is a string, the address of the string is sent (even if it is a numeric string). If it is a variable reference such as <code>myBuf</code> and that variable contains a string (or is empty), the variable's length is updated afterward in case the target window modified it.</p></dd>
 
   <dt>Control</dt>
   <dd><p>If this parameter is blank or omitted, the message will be sent directly to the target window rather than one of its controls. Otherwise, this parameter can be either ClassNN (the classname and instance number of the control) or the control's text, both of which can be determined via Window Spy. When using text, the matching behavior is determined by <a href="SetTitleMatchMode.htm">SetTitleMatchMode</a>.</p>
-    <p>To operate upon a control's HWND (window handle), leave the <em>Control</em> parameter blank and specify <code>ahk_id %ControlHwnd%</code> for the <em>WinTitle</em> parameter (this also works on hidden controls even when <a href="DetectHiddenWindows.htm">DetectHiddenWindows</a> is Off). The HWND of a control is typically retrieved via <a href="Control.htm#GetHwnd">ControlGetHwnd</a>, <a href="MouseGetPos.htm">MouseGetPos</a>, or <a href="DllCall.htm">DllCall</a>.</p>
+    <p>To operate upon a control's HWND (window handle), leave the <em>Control</em> parameter blank and specify <code>"ahk_id " ControlHwnd</code> for the <em>WinTitle</em> parameter (this also works on hidden controls even when <a href="DetectHiddenWindows.htm">DetectHiddenWindows</a> is Off). The HWND of a control is typically retrieved via <a href="Control.htm#GetHwnd">ControlGetHwnd</a>, <a href="MouseGetPos.htm">MouseGetPos</a>, or <a href="DllCall.htm">DllCall</a>.</p>
     </dd>
 
   <dt>WinTitle</dt>
@@ -46,31 +44,31 @@
   <dd><p>Windows whose text include this value will not be considered.</p></dd>
 
   <dt>Timeout</dt>
-  <dd><p>The maximum number of milliseconds to wait for the target window to process the message. If omitted, it defaults to 5000 (milliseconds), which is also the default behaviour in older versions of AutoHotkey which did not support this parameter. If the message is not processed within this time, the command finishes and sets ErrorLevel to the word ERROR.</p></dd>
+  <dd><p>The maximum number of milliseconds to wait for the target window to process the message. If omitted, it defaults to 5000 (milliseconds), which is also the default behaviour in older versions of AutoHotkey which did not support this parameter. If the message is not processed within this time, the command finishes and sets ErrorLevel to 1.</p></dd>
 
 </dl>
 
-<h3>ErrorLevel</h3>
-<p>PostMessage: <a href="../misc/ErrorLevel.htm">ErrorLevel</a> is set to 1 if there was a problem such as the target window or control not existing. Otherwise, it is set to 0.</p>
-<p>SendMessage: <a href="../misc/ErrorLevel.htm">ErrorLevel</a> is set to the word ERROR if there was a problem or the command timed out. Otherwise, it is set to the numeric result of the message, which might sometimes be a &quot;reply&quot; depending on the nature of the message and its target window.</p>
+<h3>Return Value</h3>
+<p>PostMessage returns an empty string.</p>
+<p>SendMessage returns an empty string if there was a problem or the message timed out. Otherwise, it returns the numeric result of the message, which might sometimes be a &quot;reply&quot; depending on the nature of the message and its target window.</p>
 <p>The range of possible values depends on the target window and the version of AutoHotkey that is running.  When using a 32-bit version of AutoHotkey, or if the target window is 32-bit, the result is a 32-bit unsigned integer between 0 and 4294967295. When using the 64-bit version of AutoHotkey with a 64-bit window, the result is a 64-bit signed integer between -9223372036854775808 and 9223372036854775807.</p>
 <p>If the result is intended to be a 32-bit signed integer (a value from -2147483648 to 2147483648), it can be truncated to 32-bit and converted to a signed value as follows:</p>
-<pre>MsgReply := ErrorLevel &lt;&lt; 32 &gt;&gt; 32</pre>
+<pre>MsgReply := MsgReply &lt;&lt; 32 &gt;&gt; 32</pre>
 <p>This conversion may be necessary even on AutoHotkey 64-bit, because results from 32-bit windows are zero-extended. For example, a result of -1 from a 32-bit window is seen as 0xFFFFFFFF on any version of AutoHotkey, whereas a result of -1 from a 64-bit window is seen as 0xFFFFFFFF on AutoHotkey 32-bit and -1 on AutoHotkey 64-bit.</p>
+
+<h3>ErrorLevel</h3>
+<p><a href="../misc/ErrorLevel.htm">ErrorLevel</a> is set to 1 if there was a problem such as the target window or control not existing, or if SendMessage timed out. Otherwise, it is set to 0.</p>
 
 <h3>Remarks</h3>
 <p>These commands should be used with caution because sending a message to the wrong window (or sending an invalid message) might cause unexpected behavior or even crash the target application. This is because most applications are not designed to expect certain types of messages from external sources.</p>
 <p>PostMessage places the message in the message queue associated with the target window. It does not wait for acknowledgement or reply. By contrast, SendMessage waits for the target window to process the message, up until the timeout period expires.</p>
-<p>The <em>wParam</em> and <em>lParam</em> parameters should be integers. If AutoHotkey or the target window is 32-bit, only the low 32 bits are used; that is, the value should be between -2147483648 and 4294967295 (0xFFFFFFFF). If AutoHotkey and the target window are both 64-bit, any integer value <a href="../Variables.htm#cap">supported by AutoHotkey</a> can be used. As with all integer values in AutoHotkey, a prefix of 0x indicates a hex value. For example, 0xFF is equivalent to 255.</p>
-<p>A string may be sent via <em>wParam</em> or <em>lParam</em> by specifying the address of a variable. The following example uses the <a href="../Variables.htm#amp">address operator (&amp;)</a> to do this:</p>
-<pre>SendMessage, 0xC, 0, <strong>&amp;MyVar</strong>, ClassNN, WinTitle  <em>; 0XC is WM_SETTEXT</em></pre>
-<p>A string put into MyVar by the receiver of the message is properly recognized without the need for extra steps. However, this works only if the parameter's first character is an ampersand (&amp;); for example, <code>5+&amp;MyVar</code> would not work but <code>&amp;MyVar</code> or <code>&amp;MyVar+5</code> would work.</p>
-<p>A quoted/literal string may also be sent as in the following working example (the &amp; operator should not be used in this case):</p>
-<pre>Run Notepad
-WinWait Untitled - Notepad
-SendMessage, 0xC, 0, <strong>&quot;New Notepad Title&quot;</strong>  <em>; 0XC is WM_SETTEXT</em></pre>
+<p>The <em>wParam</em> and <em>lParam</em> parameters should usually be pure integers. If AutoHotkey or the target window is 32-bit, only the low 32 bits are used; that is, the value should be between -2147483648 and 4294967295 (0xFFFFFFFF). If AutoHotkey and the target window are both 64-bit, any integer value <a href="../Variables.htm#cap">supported by AutoHotkey</a> can be used. As with all integer values in AutoHotkey, a prefix of 0x indicates a hex value. For example, 0xFF is equivalent to 255.</p>
+<p>If <em>wParam</em> or <em>lParam</em> is a string or variable containing a string (even an empty or numeric string), the address of the string or variable is sent. For example:</p>
+<pre>Run "Notepad"
+WinWait "Untitled - Notepad"
+SendMessage 0xC, 0, <strong>&quot;New Notepad Title&quot;</strong>  <em>; 0XC is WM_SETTEXT</em></pre>
 <p>To send a message to all windows in the system, including those that are hidden or disabled, specify <code>ahk_id 0xFFFF</code> for <em>WinTitle</em> (0xFFFF is HWND_BROADCAST). This technique should be used only for messages intended to be broadcast, such as the following example:</p>
-<pre>SendMessage, 0x1A,,,, ahk_id 0xFFFF  <em>; 0x1A is WM_SETTINGCHANGE</em></pre>
+<pre>SendMessage 0x1A,,,, "ahk_id 0xFFFF"  <em>; 0x1A is WM_SETTINGCHANGE</em></pre>
 <p>To have a script receive a message, use <a href="OnMessage.htm">OnMessage()</a>.</p>
 <p>See the <a href="../misc/SendMessage.htm">Message Tutorial</a> for an introduction to using these commands.</p>
 <p>Window titles and text are case sensitive. Hidden windows are not detected unless <a href="DetectHiddenWindows.htm">DetectHiddenWindows</a> has been turned on.</p>
@@ -81,40 +79,40 @@ SendMessage, 0xC, 0, <strong>&quot;New Notepad Title&quot;</strong>  <em>; 0XC i
 <pre class="NoIndent">#o::  <em>; Win+O hotkey that turns off the monitor.</em>
 Sleep 1000  <em>; Give user a chance to release keys (in case their release would wake up the monitor again).
 ; Turn Monitor Off:</em>
-SendMessage, 0x112, 0xF170, 2,, Program Manager  <em>; 0x112 is WM_SYSCOMMAND, 0xF170 is SC_MONITORPOWER.
+SendMessage 0x112, 0xF170, 2,, "Program Manager"  <em>; 0x112 is WM_SYSCOMMAND, 0xF170 is SC_MONITORPOWER.
 ; Note for the above: Use -1 in place of 2 to turn the monitor on.
 ; Use 1 in place of 2 to activate the monitor's low-power mode.</em>
 return
 
 <em>; Start the user's chosen screen saver:</em>
-SendMessage, 0x112, 0xF140, 0,, Program Manager  <em>; 0x112 is WM_SYSCOMMAND, and 0xF140 is SC_SCREENSAVE.</em>
+SendMessage 0x112, 0xF140, 0,, "Program Manager"  <em>; 0x112 is WM_SYSCOMMAND, and 0xF140 is SC_SCREENSAVE.</em>
 
 <em>; Scroll up by one line (for a control that has a vertical scroll bar):</em>
-ControlGetFocus, control, A
-SendMessage, 0x115, 0, 0, %control%, A
+ControlGetFocus control, "A"
+SendMessage 0x115, 0, 0, control, "A"
 
 <em>; Scroll down by one line:</em>
-ControlGetFocus, control, A
-SendMessage, 0x115, 1, 0, %control%, A
+ControlGetFocus control, "A"
+SendMessage 0x115, 1, 0, control, "A"
 
 <em>; Switch the active window's keyboard layout/language to English:</em>
-PostMessage, 0x50, 0, 0x4090409,, A  <em>; 0x50 is WM_INPUTLANGCHANGEREQUEST.</em>
+PostMessage 0x50, 0, 0x4090409,, "A"  <em>; 0x50 is WM_INPUTLANGCHANGEREQUEST.</em>
 
 <em>; This example asks Winamp which track number is currently active:</em>
-SetTitleMatchMode, 2
-SendMessage, 1024, 0, 120, - Winamp
-if ErrorLevel != &quot;Error&quot;
+SetTitleMatchMode 2
+track := SendMessage(1024, 0, 120, "- Winamp")
+if !ErrorLevel
 {
-    ErrorLevel++  <em>; Winamp's count starts at &quot;0&quot;, so adjust by 1.</em>
-    MsgBox, Track #%ErrorLevel% is active or playing.
+    track++  <em>; Winamp's count starts at 0, so adjust by 1.</em>
+    MsgBox "Track #" track " is active or playing."
 }
 <em>; See <a href="../misc/Winamp.htm">Automating Winamp</a> for more information.</em>
 
-<em>; To find the process ID of an AHK script (an alternative to &quot;<a href="WinGet.htm">WinGet PID</a>&quot;):</em>
-SetTitleMatchMode, 2
-DetectHiddenWindows, on
-SendMessage, 0x44, 0x405, 0, , SomeOtherScript.ahk - AutoHotkey v
-MsgBox %ErrorLevel% is the process id.</pre>
+<em>; To find the process ID of an AHK script (an alternative to <a href="WinGet.htm#PID">WinGetPID</a>):</em>
+SetTitleMatchMode 2
+DetectHiddenWindows true
+pid := SendMessage(0x44, 0x405, 0, , "SomeOtherScript.ahk - AutoHotkey v")
+MsgBox pid " is the process id."</pre>
 
 </body>
 </html>
