@@ -21,12 +21,12 @@
   <dd><p>The literal word <code>Files</code> (case-insensitive). This cannot be a variable or expression.</p></dd>
 
   <dt>FilePattern</dt>
-  <dd><p>The name of a single file or folder, or a wildcard pattern such as C:\Temp\*.tmp. <em>FilePattern</em> is assumed to be in <a href="../Variables.htm#WorkingDir">%A_WorkingDir%</a> if an absolute path isn't specified.</p>
+  <dd><p>The name of a single file or folder, or a wildcard pattern such as "C:\Temp\*.tmp". <em>FilePattern</em> is assumed to be in <a href="../Variables.htm#WorkingDir">A_WorkingDir</a> if an absolute path isn't specified.</p>
     <p>Both asterisks and question marks are supported as wildcards. A match occurs when the pattern appears in either the file's long/normal name or its <a href="#LoopFileShortName">8.3 short name</a>.</p>
     <p>If this parameter is a single file or folder (i.e. no wildcards) and <em>Recurse</em> is set to 1 or <em>Mode</em> includes <code>R</code>, more than one match will be found if the specified file name appears in more than one of the folders being searched.</p></dd>
 
   <dt>Mode</dt>
-  <dd><p>Zero or more of the following letters:</p>
+  <dd><p>An optional string containing zero or more of the following letters:</p>
     <p><code>D</code>: Include directories (folders).<br>
     <code>F</code>: Include files. If both F and D are omitted, files are included but not folders.<br>
     <code>R</code>: Recurse into subdirectories (subfolders). All subfolders will be recursed into, not just those whose names match <em>FilePattern</em>. If R is omitted, files and folders in subfolders are not included.</p>
@@ -57,7 +57,7 @@
     <td>A_LoopFileShortPath</td>
     <td><p>The 8.3 short path and name of the file/folder currently retrieved. For example: C:\MYDOCU~1\ADDRES~1.txt. If <em>FilePattern</em> contains a relative path rather than an absolute path, the path here will also be relative.</p>
       <p>To retrieve the complete 8.3 path and name for a single file or folder, specify its name for <em>FilePattern</em> as in this example:</p>
-<pre>Loop, Files, C:\My Documents\Address List.txt
+<pre>Loop Files, "C:\My Documents\Address List.txt"
     ShortPathName := A_LoopFileShortPath</pre>
         <p>NOTE: This variable will be <strong>blank</strong> if the file does not have a short name, which can happen on systems where NtfsDisable8dot3NameCreation has been set in the registry. It will also be blank if FilePattern contains a relative path and the body of the loop uses <a href="SetWorkingDir.htm">SetWorkingDir</a> to switch away from the working directory in effect for the loop itself.</p></td>
   </tr>
@@ -101,15 +101,15 @@
 <h3>Remarks</h3>
 <p>A file-loop is useful when you want to operate on a collection of files and/or folders, one at a time.</p>
 <p>All matching files are retrieved, including hidden files. By contrast, OS features such as the DIR command omit hidden files by default. To avoid processing hidden, system, and/or read-only files, use something like the following inside the loop:</p>
-<pre>if A_LoopFileAttrib contains H,R,S  <em>; Skip any file that is either H (Hidden), R (Read-only), or S (System). Note: No spaces in &quot;H,R,S&quot;.</em>
+<pre>if A_LoopFileAttrib ~= "[HRS]"  <em>; Skip any file that is either H (Hidden), R (Read-only), or S (System). See <a href="../Variables.htm#regex">~= operator</a>.</em>
     continue  <em>; Skip this file and move on to the next one.</em></pre>
-<p>To retrieve files' relative paths instead of absolute paths during a recursive search, use <a href="SetWorkingDir.htm">SetWorkingDir</a> to change to the base folder prior to the loop, and then omit the path from the Loop (e.g. <code>Loop, Files, *.*, R</code>). That will cause <a href="#LoopFilePath">A_LoopFilePath</a> to contain the file's path relative to the base folder.</p>
+<p>To retrieve files' relative paths instead of absolute paths during a recursive search, use <a href="SetWorkingDir.htm">SetWorkingDir</a> to change to the base folder prior to the loop, and then omit the path from the Loop (e.g. <code>Loop Files, "*.*", "R"</code>). That will cause <a href="#LoopFilePath">A_LoopFilePath</a> to contain the file's path relative to the base folder.</p>
 <p>A file-loop can disrupt itself if it creates or renames files or folders within its own purview. For example, if it renames files via <a href="FileMove.htm">FileMove</a> or other means, each such file might be found twice: once as its old name and again as its new name. To work around this, rename the files only after creating a list of them. For example:</p>
 <pre>FileList := &quot;&quot;
-Loop, Files, *.jpg
+Loop Files, "*.jpg"
    FileList .= A_LoopFileName &quot;`n&quot;
-Loop, Parse, %FileList%, `n
-   FileMove, %A_LoopField%, renamed_%A_LoopField%</pre>
+Loop Parse, FileList, "`n"
+   FileMove A_LoopField, "renamed_" A_LoopField</pre>
 <p>Files in an NTFS file system are probably always retrieved in alphabetical order. Files in other file systems are retrieved in no particular order. To ensure a particular ordering, use the <a href="Sort.htm">Sort</a> command as shown in the Examples section below.</p>
 <p>Files and folders with a complete path name longer than 259 characters are skipped over as though they do not exist. Such files are rare because normally, the operating system does not allow their creation.</p>
 <p>See <a href="Loop.htm">Loop</a> for information about <a href="Block.htm">Blocks</a>, <a href="Break.htm">Break</a>, <a href="Continue.htm">Continue</a>, and the A_Index variable (which exists in every type of loop).</p>
@@ -117,45 +117,45 @@ Loop, Parse, %FileList%, `n
 <p><a href="Loop.htm">Loop</a>, <a href="Break.htm">Break</a>, <a href="Continue.htm">Continue</a>, <a href="Block.htm">Blocks</a>, <a href="SplitPath.htm">SplitPath</a>, <a href="FileSetAttrib.htm">FileSetAttrib</a>, <a href="FileSetTime.htm">FileSetTime</a></p>
 <h3>Examples</h3>
 <pre class="NoIndent"><em>; Example #1:</em>
-Loop Files, %A_ProgramFiles%\*.txt, R  <em>; Recurse into subfolders.</em>
+Loop Files, A_ProgramFiles "\*.txt", R  <em>; Recurse into subfolders.</em>
 {
-    Result := MsgBox("Filename = %A_LoopFilePath%`n`nContinue?",, 4)
+    Result := MsgBox("Filename = " A_LoopFilePath "`n`nContinue?",, "y/n")
     if Result = "No"
         break
 }</pre>
 <p>&nbsp;</p>
 <pre class="NoIndent"><em>; Example #2: Calculate the size of a folder, including the files in all its subfolders:</em>
 FolderSizeKB := 0
-DirSelect, WhichFolder  <em>; Ask the user to pick a folder.</em>
-Loop, Files, %WhichFolder%\*.*, R
+WhichFolder := DirSelect()  <em>; Ask the user to pick a folder.</em>
+Loop Files, WhichFolder "\*.*", "R"
     FolderSizeKB += A_LoopFileSizeKB
-MsgBox Size of %WhichFolder% is %FolderSizeKB% KB.</pre>
+MsgBox "Size of " WhichFolder " is " FolderSizeKB " KB."</pre>
 <p>&nbsp;</p>
 <pre class="NoIndent"><em>; Example #3: Retrieve file names sorted by name (see next example to sort by date):</em>
 FileList := &quot;&quot;  <em>; Initialize to be blank.</em>
-Loop, Files, C:\*.*
+Loop Files, "C:\*.*"
     FileList .= A_LoopFileName &quot;`n&quot;
-Sort, FileList, %FileList%, R  <em>; The R option sorts in reverse order. See <a href="Sort.htm">Sort</a> for other options.</em>
-Loop, Parse, %FileList%, `n
+FileList := Sort(FileList, "R")  <em>; The R option sorts in reverse order. See <a href="Sort.htm">Sort</a> for other options.</em>
+Loop, Parse, FileList, "`n"
 {
     if A_LoopField = &quot;&quot;  <em>; Ignore the blank item at the end of the list.</em>
         continue
-    Result := MsgBox("File number %A_Index% is %A_LoopField%.  Continue?",, 4)
+    Result := MsgBox("File number " A_Index " is " A_LoopField ".  Continue?",, "y/n")
     if Result = "No"
         break
 }</pre>
 <p>&nbsp;</p>
 <pre class="NoIndent"><em>; Example #4: Retrieve file names sorted by modification date:</em>
 FileList := &quot;&quot;
-Loop, Files, %A_MyDocuments%\Photos\*.*, FD  <em>; Include Files and Directories</em>
+Loop Files, A_MyDocuments "\Photos\*.*", "FD"  <em>; Include Files and Directories</em>
     FileList .= A_LoopFileTimeModified &quot;`t&quot; A_LoopFileName &quot;`n&quot;
-Sort, FileList, %FileList%  <em>; Sort by date.</em>
-Loop, Parse, %FileList%, `n
+FileList := Sort(FileList)  <em>; Sort by date.</em>
+Loop Parse, FileList, "`n"
 {
     if A_LoopField = &quot;&quot; <em>; Omit the last linefeed (blank item) at the end of the list.</em>
         continue
     FileItem := StrSplit(A_LoopField, A_Tab)  <em>; Split into two parts at the tab char.</em>
-    Result := MsgBox(&quot;The next file (modified at &quot; FileItem[1] &quot;) is:`n&quot; FileItem[2] &quot;`n`nContinue?&quot;,, 4)
+    Result := MsgBox("The next file (modified at " FileItem[1] ") is:`n" FileItem[2] "`n`nContinue?",, "y/n")
     if Result = "No"
         break
 }</pre>
@@ -164,35 +164,35 @@ Loop, Parse, %FileList%, `n
 ; in the destination:</em>
 CopyIfNewer:
 <em>; Caller has set the variables CopySourcePattern and CopyDest for us.</em>
-Loop, Files, %CopySourcePattern%
+Loop Files, CopySourcePattern
 {
     copy_it := false
     if !FileExist(CopyDest &quot;\&quot; A_LoopFileName)  <em>; Always copy if target file doesn't yet exist.</em>
         copy_it := true
     else
     {
-        FileGetTime, time, %CopyDest%\%A_LoopFileName%
+        time := FileGetTime(CopyDest "\" A_LoopFileName)
         time := DateDiff(A_Now, A_LoopFileTimeModified, &quot;Seconds&quot;)  <em>; Subtract the source file's time from the destination's.</em>
         if time &lt; 0  <em>; Source file is newer than destination file.</em>
             copy_it := true
     }
     if copy_it
     {
-        FileCopy, %A_LoopFilePath%, %CopyDest%\%A_LoopFileName%, 1   <em>; Copy with overwrite=yes</em>
+        FileCopy A_LoopFilePath, CopyDest "\" A_LoopFileName, 1   <em>; Copy with overwrite=yes</em>
         if ErrorLevel
-            MsgBox, Could not copy &quot;%A_LoopFilePath%&quot; to &quot;%CopyDest%\%A_LoopFileName%&quot;.
+            MsgBox 'Could not copy "' A_LoopFilePath '" to "' CopyDest '\' A_LoopFileName '".'
     }
 }
 Return</pre>
 <p>&nbsp;</p>
 <pre class="NoIndent"><em>; Example #6: Convert filenames passed in via command-line parameters to long names,
 ; complete path, and correct uppercase/lowercase characters as stored in the file system.</em>
-Loop, A_Args.Length()  <em>; For each parameter (or file dropped onto a script):</em>
+Loop A_Args.Length()  <em>; For each parameter (or file dropped onto a script):</em>
 {
     GivenPath := A_Args[A_Index]
-    Loop Files, %GivenPath%, FD  <em>; Include files and directories.</em>
+    Loop Files, GivenPath, "FD"  <em>; Include files and directories.</em>
         LongPath := A_LoopFilePath
-    MsgBox The case-corrected long path name of file`n%GivenPath%`nis:`n%LongPath%
+    MsgBox "The case-corrected long path name of file`n" GivenPath "`nis:`n" LongPath
 }</pre>
 
 </body>

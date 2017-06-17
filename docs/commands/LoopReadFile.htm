@@ -21,15 +21,15 @@
   <dd><p>This parameter must be the word READ, and cannot be an expression or variable reference.</p></dd>
 
   <dt>InputFile</dt>
-  <dd><p>The name of the text file whose contents will be read by the loop, which is assumed to be in <a href="../Variables.htm#WorkingDir">%A_WorkingDir%</a> if an absolute path isn't specified. Windows and Unix formats are supported; that is, the file's lines may end in either carriage return and linefeed (`r`n) or just linefeed (`n).</p></dd>
+  <dd><p>The name of the text file whose contents will be read by the loop, which is assumed to be in <a href="../Variables.htm#WorkingDir">A_WorkingDir</a> if an absolute path isn't specified. The file's lines may end in carriage return and linefeed (`r`n), just linefeed (`n), or just carriage return (`r).</p></dd>
 
   <dt>OutputFile</dt>
-  <dd><p>(Optional) The name of the file to be kept open for the duration of the loop, which is assumed to be in <a href="../Variables.htm#WorkingDir">%A_WorkingDir%</a> if an absolute path isn't specified.</p>
-      <p>Within the loop's body, use the <a href="FileAppend.htm">FileAppend</a> command with only one parameter (the text to be written) to append to this special file. Appending to a file in this manner performs better than using <a href="FileAppend.htm">FileAppend</a> in its 2-parameter mode because the file does not need to be closed and re-opened for each operation. Remember to include a linefeed (`n) after the text, if desired.</p>
-      <p>The file is not opened if nothing is ever written to it. This happens if the Loop performs zero iterations or if it never uses the <a href="FileAppend.htm">FileAppend</a> command.</p>
-          <p><strong>End of line (EOL) translation</strong>: To disable EOL translation, prepend an asterisk to the filename. This causes each linefeed character (`n) to be written as a single linefeed (LF) rather than the Windows standard of CR+LF. For example: <code><strong>*</strong>C:\My Unix File.txt</code>. Even without the asterisk, EOL translation is disabled automatically if the Loop's <u>first</u> use of <a href="FileAppend.htm">FileAppend</a> writes any carriage return and linefeed pairs (`r`n).</p>
+  <dd><p>(Optional) The name of the file to be kept open for the duration of the loop, which is assumed to be in <a href="../Variables.htm#WorkingDir">A_WorkingDir</a> if an absolute path isn't specified.</p>
+      <p>Within the loop's body, use the <a href="FileAppend.htm">FileAppend</a> function without the <em>Filename</em> parameter (i.e. omit it) to append to this special file. Appending to a file in this manner performs better than using <a href="FileAppend.htm">FileAppend</a> in its 2-parameter mode because the file does not need to be closed and re-opened for each operation. Remember to include a linefeed (`n) or carriage return and linefeed (`r`n) after the text, if desired.</p>
+      <p>The file is not opened if nothing is ever written to it. This happens if the Loop performs zero iterations or if it never calls <a href="FileAppend.htm">FileAppend</a>.</p>
+      <p><strong>Options</strong>: The end of line (EOL) translation mode and output file encoding depend on which options are passed in the opening call to <a href="FileAppend.htm">FileAppend</a> (i.e. the first call which omits <em>Filename</em>). Subsequent calls ignore the <em>Options</em> parameter. EOL translation is not performed by default; that is, linefeed (`n) characters are written as-is unless the <code>"`n"</code> option is present.</p>
       <p><strong>Standard Output (stdout)</strong>: Specifying an asterisk (*) for <em>OutputFile</em> sends any text written by <a href="FileAppend.htm">FileAppend</a> to standard output (stdout). Although such output can be redirected to a file, piped to another EXE, or captured by <a href="_ErrorStdOut.htm">fancy text editors</a>, it will not appear at the command prompt it was launched from. See <a href="FileAppend.htm">FileAppend</a> for more details.</p>
-      <p><strong>Escaped Commas</strong>: Unlike the last parameter of most other commands, commas in <em>OutputFile</em> must be escaped (`,).</p></dd>
+    </dd>
 
 </dl>
 
@@ -38,11 +38,11 @@
 <p id="LoopReadLine">The built-in variable <strong>A_LoopReadLine</strong> exists within any file-reading loop. It contains the contents of the current line excluding the carriage return and linefeed (`r`n) that marks the end of the line. If an inner file-reading loop is enclosed by an outer file-reading loop, the innermost loop's file-line will take precedence.</p>
 <p>Lines up to 65,534 characters long can be read. If the length of a line exceeds this, its remaining characters will be read during the next loop iteration.</p>
 <p><a href="StrSplit.htm">StrSplit</a> or a <a href="LoopParse.htm">parsing loop</a> is often used inside a file-reading loop to parse the contents of each line retrieved from <em>InputFile</em>. For example, if <em>InputFile</em>'s lines are each a series of tab-delimited fields, those fields can individually retrieved as in this example:</p>
-<pre>Loop, read, C:\Database Export.txt
+<pre>Loop read, "C:\Database Export.txt"
 {
-    Loop, parse, %A_LoopReadLine%, %A_Tab%
+    Loop parse, A_LoopReadLine, A_Tab
     {
-        MsgBox, Field number %A_Index% is %A_LoopField%.
+        MsgBox "Field number " A_Index " is " A_LoopField "."
     }
 }</pre>
 <p>To load an entire file into a variable, use <a href="FileRead.htm">FileRead</a> because it performs much better than a loop (especially for large files).</p>
@@ -56,40 +56,41 @@
 <h3>Examples</h3>
 <pre class="NoIndent"><em>; Example #1: Only those lines of the 1st file that contain the word FAMILY will be written to the 2nd file.
 ; Uncomment the first line to overwrite rather than append to any existing file.
-;FileDelete, C:\Docs\Family Addresses.txt</em>
+;FileDelete "C:\Docs\Family Addresses.txt"</em>
 
-Loop, read, C:\Docs\Address List.txt, C:\Docs\Family Addresses.txt
+Loop read, "C:\Docs\Address List.txt", "C:\Docs\Family Addresses.txt"
 {
-    if InStr(A_LoopReadLine, "family"), FileAppend("%A_LoopReadLine%`n")
+    if InStr(A_LoopReadLine, "family")
+        FileAppend(A_LoopReadLine "`n")
 }</pre>
 <p>&nbsp;</p>
 <pre class="NoIndent"><em>; Example #2: Retrieve the last line from a text file.</em>
-Loop, read, C:\Log File.txt
+Loop read, "C:\Log File.txt"
     last_line := A_LoopReadLine  <em>; When loop finishes, this will hold the last line.</em></pre>
 <p>&nbsp;</p>
 <pre class="NoIndent"><em>; Example #3: A working script that attempts to extract all FTP and HTTP
 ; URLs from a text or HTML file:</em>
-FileSelect, SourceFile, 3,, Pick a text or HTML file to analyze.
+SourceFile := FileSelect(3,, "Pick a text or HTML file to analyze.")
 if SourceFile = ""
     return  <em>; This will exit in this case.</em>
 
-SplitPath, %SourceFile%,, SourceFilePath,, SourceFileNoExt
-DestFile := "%SourceFilePath%\%SourceFileNoExt% Extracted Links.txt"
+SplitPath SourceFile,, SourceFilePath,, SourceFileNoExt
+DestFile := SourceFilePath "\" SourceFileNoExt " Extracted Links.txt"
 
 if FileExist(DestFile)
 {
-    Result := MsgBox("Overwrite the existing links file? Press No to append to it.`n`nFILE: %DestFile%",, 4)
+    Result := MsgBox("Overwrite the existing links file? Press No to append to it.`n`nFILE: " DestFile,, 4)
     if Result = "Yes"
-        FileDelete, %DestFile%
+        FileDelete DestFile
 }
 
 LinkCount := 0
-Loop, read, %SourceFile%, %DestFile%
+Loop read, SourceFile, DestFile
 {
     URLSearchString := A_LoopReadLine
-    Gosub, URLSearch
+    Gosub URLSearch
 }
-MsgBox %LinkCount% links were found and written to &quot;%DestFile%&quot;.
+MsgBox LinkCount ' links were found and written to "' DestFile '".'
 return
 
 
@@ -125,7 +126,7 @@ if !URLStart  <em>; No URLs exist in URLSearchString.</em>
 
 <em>; Otherwise, extract this URL:</em>
 URL := SubStr(URLSearchString, URLStart)  <em>; Omit the beginning/irrelevant part.</em>
-Loop, parse, %URL%, %A_Tab%%A_Space%&lt;&gt;  <em>; Find the first space, tab, or angle (if any).</em>
+Loop parse, URL, " `t&lt;&gt;"  <em>; Find the first space, tab, or angle bracket (if any).</em>
 {
     URL := A_LoopField
     break  <em>; i.e. perform only one loop iteration to fetch the first &quot;field&quot;.</em>
@@ -136,15 +137,15 @@ Loop, parse, %URL%, %A_Tab%%A_Space%&lt;&gt;  <em>; Find the first space, tab, o
 <em>; If the URL ends in a double quote, remove it.  For now, StrReplace is used, but
 ; note that it seems that double quotes can legitimately exist inside URLs, so this
 ; might damage them:</em>
-StrReplace, URLCleansed, %URL%, `"
-FileAppend, %URLCleansed%`n
+URLCleansed := StrReplace(URL, '"')
+FileAppend URLCleansed "`n"
 LinkCount += 1
 
 <em>; See if there are any other URLs in this line:</em>
-StrLen, CharactersToOmit, %URL%
+CharactersToOmit := StrLen(URL)
 CharactersToOmit += URLStart
 URLSearchString := SubStr(URLSearchString, CharactersToOmit)
-Gosub, URLSearch  <em>; Recursive call to self.</em>
+Gosub URLSearch  <em>; Recursive call to self.</em>
 return</pre>
 
 </body>
