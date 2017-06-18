@@ -47,6 +47,30 @@ var relPath = location.href.replace(workingDir, '');
   if (isSearchBot())
     return;
 
+  // Add elements into head:
+  setHeadElements();
+  
+  // Special treatments for pages inside a iframe:
+  if (isInsideCHM())
+  {
+    if (isInsideFrame())
+    {
+      cache = JSON.parse(window.parent.name);
+      $(document).ready(function() {
+        $('html').attr('id', 'right'); 
+        $('body').attr('class', 'area');
+        addFeatures();
+      });
+      return;
+    }
+    else if (location.href.indexOf('iframe.htm') == -1)
+    {
+      cache.location = location.href; cache.save();
+      location.href = scriptDir + "/../iframe.htm";
+      return;
+    }
+  }
+
   // Add elements for sidebar:
   buildStructure();
 
@@ -82,15 +106,22 @@ var relPath = location.href.replace(workingDir, '');
   }
 })();
 
+// --- Add elements into head ---
+
+function setHeadElements() {
+  var metaViewport = '<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">';
+  var linkCSS = '<link href="' + scriptDir + '/content.css" rel="stylesheet" type="text/css" />';
+  document.write(metaViewport + linkCSS);
+}
+
 // --- Add elements for sidebar ---
 
 function buildStructure() {
-  var metaData = '<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"><link href="' + scriptDir + '/content.css" rel="stylesheet" type="text/css" />';
   var head = '<div id="head"><div class="h-tabs"><ul><li data-translate>Content</li><li data-translate>Index</li><li data-translate>Search</li></ul></div><div class="h-tools"><div class="main"><ul><li class="sidebar" title="Hide/Show sidebar" data-translate>&#926;</li></ul></div><div class="online"><ul><li class="home" title="Home page" data-translate><a href="' + location.protocol + '//' + location.host + '">&#916;</a></li></ul><ul><li class="language" title="Change language" data-translate>en</li></ul><ul class="languages"><li class="arrow">&#9658;</li><li title="English">en</li><li title="Deutsch (German)">de</li><li title="Chinese">zh</li></ul><ul><li class="version" title="Change AHK version" data-translate>v1</li></ul><ul class="versions"><li class="arrow">&#9658;</li><li title="AHK v1.1">v1</li><li title="AHK v2.0">v2</li></ul></div><div class="chm"><ul><li class="back" title="Go back" data-translate>&#9668;</li><li class="forward" title="Go forward" data-translate>&#9658</li><li class="zoom" title="Change font size" data-translate>Z</li><li class="print" title="Print current document" data-translate>P</li></ul></div></div></div></div>';
   var main = '<div id="main"><div id="left"><div class="toc"></div><div class="index"><div class="label" data-translate>Type in the keyword to find:</div><div class="input"><input type="text" /></div><div class="list"></div></div><div class="search"><div class="label" data-translate>Type in the word(s) to search for:</div><div class="input"><input type="text" /></div><div class="list"></div></div></div><div id="right"><div class="area">';
 
   // Write HTML before DOM is loaded to prevent flickering:
-  document.write(metaData + head + main);
+  document.write(head + main);
 }
 
 // --- Modify the elements of the TOC tab ---
@@ -131,17 +162,25 @@ function modifyTOC()
 
   // Select the item on click:
   tocList.on("click", function() {
+    $this = $(this);
     cache.toc.clickItem = tocList.index(this);
     cache.toc.scrollPos = toc.scrollTop();
     // Fold/unfold item with subitems:
-    if ($(this).parent().has("ul").length) {
-      $(this).siblings("ul").slideToggle(100);
-      $(this).closest("li").toggleClass("closed opened");
+    if ($this.parent().has("ul").length) {
+      $this.siblings("ul").slideToggle(100);
+      $this.closest("li").toggleClass("closed opened");
     }
     // Higlight item with link:
-    if ($(this).has("a").length) {
-      tocList.removeClass("selected");
-      $(this).addClass("selected");
+    if ($this.has("a").length) {
+      $(".selected", toc).removeClass("selected");
+      $this.addClass("selected");
+      if (isInsideCHM())
+      {
+        var href = $this.children('a').attr('href');
+        cache.save();
+        $("#iframe").attr("src", href);
+        return false;
+      }
     }
   });
 
@@ -158,13 +197,13 @@ function modifyTOC()
 
   // --- Apply stored settings ---
 
-  function preSelect() {
+  function preSelect(url, relPath) {
     var clicked = tocList.eq(cache.toc.clickItem);
     // Search for items which matches the address:
     var found = tocList.has('a[href$="/' + relPath + '"]');
     // If not found, search for items which matches the address without anchor:
     if (!found.length)
-      found = tocList.has('a[href$="/' + relPath.replace(location.hash,'') + '"]');
+      found = tocList.has('a[href$="/' + relPath.replace(url.hash,'') + '"]');
     var el = found;
     // If the last clicked item can be found in the matches, use it instead:
     if (clicked.is(found))
@@ -173,6 +212,11 @@ function modifyTOC()
       cache.toc.scrollPos = ""; // Force calculated scrolling.
     // If items are found:
     if (el.length) {
+      // Restore default state:
+      $(".selected", toc).removeClass("selected");
+      $(".opened", toc).toggleClass("closed opened");
+      $(".highlighted", toc).removeClass("highlighted");
+      $("li ul", toc).hide();
       // Select the items:
       el.addClass("selected");
       // Expand their parent items:
@@ -191,8 +235,13 @@ function modifyTOC()
     }
   }
 
-  preSelect();
-  setTimeout( function() { preSelect(); }, 0);
+  preSelect(location, relPath);
+  $('#iframe').load(function() {
+    var url = $(this).contents().get(0).location;
+    var relPath = url.href.replace(workingDir, '');
+    preSelect(url, relPath);
+  });
+  setTimeout( function() { preSelect(location, relPath); }, 0);
 }
 
 // --- Modify the elements of the index tab ---
@@ -514,9 +563,13 @@ function modifyStructure()
 
   if (isMobile()) { displaySidebar(false); }
 
-  // --- Set initial font size (for CHM's zoom tool) ---
-
-  $('div.area').css('font-size', cache.fontSize + 'em');
+  // --- Use iframe if inside CHM ---
+  
+  if (isInsideCHM() && !isInsideFrame())
+  {
+    cache.save();
+    $('div.area').replaceWith('<iframe frameBorder="0" id="iframe" src="' + cache.location + '">');
+  }
 
   // --- Translate elements with data-translate attribute ---
 
@@ -583,7 +636,7 @@ function modifyStructure()
     cache.fontSize += 0.2;
     if (cache.fontSize > 1.4)
       cache.fontSize = 0.6;
-    $('div.area').css('font-size', cache.fontSize + 'em');
+    $('#iframe').contents().find('.area').css('font-size', cache.fontSize + 'em');
   });
   // 'Print' button:
   $('.print', chm).on('click', function() { window.print(); });
@@ -637,7 +690,14 @@ function modifyStructure()
       var $grandparent = $parent.parent();
       // Store the item's index relative to its parent:
       cache[$grandparent.attr('class')].clickItem = $this.index();
-      window.location = $this.attr('href');
+      var href = $this.attr('href');
+      if (isInsideCHM())
+      {
+        cache.save();
+        $("#iframe").attr("src", href);
+      }
+      else
+        window.location = href;
       $this.focus();
     }
   }).on('touchmove', function() {
@@ -762,6 +822,10 @@ function modifyStructure()
 
 function addFeatures()
 {
+  // --- Set initial font size (for CHM's zoom tool) ---
+
+  $('.area').css('font-size', cache.fontSize + 'em');
+
   // --- Highlight search words with jQuery Highlight plugin ---
 
   if (cache.clickTab == 2) {
@@ -822,15 +886,6 @@ function addFeatures()
     }
     $(this).wrapInner('<a href="#' + $(this).attr('id') + '"></a>');
   });
-
-  // --- Ensure navigating to anchor ---
-
-  if (location.hash)
-  {
-    var requested_hash = location.hash.slice(1);
-    location.hash = '';
-    location.hash = requested_hash;
-  }
 
   // --- Open external links in a new tab/window ---
 
@@ -932,8 +987,16 @@ function addFeatures()
   // --- Add footer at the bottom of the site ---
 
   var footer = '<div class="footer">Copyright &copy; 2003-' + new Date().getFullYear() + ' ' + location.host + ' - LIC: <a href="' + scriptDir + '/../license.htm">GNU GPLv2</a></div>';
-  $('#right').append(footer);
+  $('.area').append(footer);
+  
+  // --- Ensure navigating to anchor ---
 
+  if (location.hash)
+  {
+    var requested_hash = location.hash.slice(1);
+    location.hash = '';
+    location.hash = requested_hash;
+  }
 }
 
 // --- Get the working directory of the site ---
@@ -951,6 +1014,16 @@ function getWorkingDir()
 
 function isInsideCHM() {
   return (location.href.search(/::/) > 0) ? 1 : 0;
+}
+
+// --- Check if the current site is inside a frame ---
+
+function isInsideFrame() {
+    try {
+        return window.self !== window.top;
+    } catch (e) {
+        return true;
+    }
 }
 
 // --- Check if the current user is a search bot ---
