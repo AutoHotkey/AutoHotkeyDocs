@@ -890,26 +890,29 @@ function addFeatures()
       }
       newTable += '</table>';
       table.outerHTML = newTable;
-      }
+    }
   }
 
   // --- Generate anchors for anchor-less head lines ---
 
-  var hs = content.querySelectorAll('h1, h2, h3, h4, h5, h6');
-  for(var i = 0; i < hs.length; i++) {
-    var h = hs[i];
-    var id = h.getAttribute('id');
-    h.className = "headLine"; // Apply extra CSS.
-    if(!id) // If head line doesn't have anchor...
-    {
-      var text = h.textContent || h.innerText;
-      var text = text.replace(/\s/g, '_'); // replace spaces with _
-      var text = text.replace(/[():.,;'#\[\]\/{}&="|?!]/g, ''); // remove special chars
-      // If anchor exist already, use unique anchor, else use anchor:
-      id = (document.getElementById(text)) ? (text + '_' + i) : text;
-      h.setAttribute('id', id);
+  if (!isInsideCHM)
+  {
+    var hs = content.querySelectorAll('h1, h2, h3, h4, h5, h6');
+    for(var i = 0; i < hs.length; i++) {
+      var h = hs[i];
+      var id = h.getAttribute('id');
+      h.className = "headLine"; // Apply extra CSS.
+      if(!id) // If head line doesn't have anchor...
+      {
+        var text = h.textContent || h.innerText;
+        var text = text.replace(/\s/g, '_'); // replace spaces with _
+        var text = text.replace(/[():.,;'#\[\]\/{}&="|?!]/g, ''); // remove special chars
+        // If anchor exist already, use unique anchor, else use anchor:
+        id = (document.getElementById(text)) ? (text + '_' + i) : text;
+        h.setAttribute('id', id);
+      }
+      h.innerHTML ='<a href="#' + id + '">' + h.innerHTML + '</a>';
     }
-    h.innerHTML ='<a href="#' + id + '">' + h.innerHTML + '</a>';
   }
 
   // --- Open external links in a new tab/window ---
