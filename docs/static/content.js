@@ -700,7 +700,8 @@ function modifyStructure()
         $("#iframe").attr("src", href);
       }
       else
-        window.location = href;
+        if (window.location.href != href)
+          window.location = href;
       $this.focus();
     }
   }).on('touchmove', function() {
@@ -725,19 +726,19 @@ function modifyStructure()
 
       case 38: // Up
       clicked = $('a.selected', $this).prev(); // Navigate up
-      clicked.click();
+      clicked.click(); clicked.focus();
       break;
 
       case 40: // Down
       clicked = $('a.selected', $this).next(); // Navigate down
-      clicked.click();
+      clicked.click(); clicked.focus();
       break;
 
       default:
       $('input', $grandparent).focus().select(); // Redirect other keys to Edit
       return;
     }
-    e.preventDefault(); // Prevent the default action (scroll / move caret).
+    return false; // Prevent the default action (scroll / move caret).
   });
   // If Enter would trigger keydown, it would also trigger
   // the Edit's keyup event after opening the new site.
@@ -745,20 +746,32 @@ function modifyStructure()
     var $this = $(this);
     if (e.which == 13) // Enter
       $('a.selected', $this).trigger('dblclick'); // Open the link
+    return false;
   });
 
-  // Redirect specific keys to the ListBox on keypress:
+  // Provide interaction with the ListBox on keypress:
   Edit.on('keydown', function(e) {
     var $this = $(this);
     var $grandparent = $this.parent().parent();
-    var keys = [13, 38, 40]; // Enter, Up, Down
-    $.each(keys, function(i, key) {
-      if (e.which == key) {
-        $('div.list a.selected', $grandparent).focus();
-        $('div.list', $grandparent).trigger({type: 'keydown', which: key, keyCode: key});
-        return false;
-      }
-    });
+    switch(e.which) {
+      case 13: // Enter
+      $('a.selected', $('div.list', $grandparent)).focus().trigger('dblclick');
+      break;
+
+      case 38: // Up
+      clicked = $('a.selected', $('div.list', $grandparent)).prev(); // Navigate up
+      clicked.click(); clicked.focus();
+      break;
+
+      case 40: // Down
+      clicked = $('a.selected', $('div.list', $grandparent)).next(); // Navigate down
+      clicked.click(); clicked.focus();
+      break;
+      
+      default:
+      return;
+    }
+    return false; // Prevent the default action (scroll / move caret).
   });
 
   // --- Apply stored values ---
