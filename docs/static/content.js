@@ -17,6 +17,7 @@ var cache = {
   firstStartup: true,
   fontSize: 1.0,
   clickTab: 0,
+  LastUsedSource: "",
   displaySidebar: true,
   translate: {},
   toc: {data: {}, clickItem: 0, scrollPos: 0},
@@ -59,11 +60,12 @@ var isMobile = ($(window).width() < 600);
   {
     if (isInsideFrame)
     {
-      cache = JSON.parse(window.parent.name);
+      $.extend(cache, JSON.parse(window.parent.name));
       $(document).ready(function() {
         $('html').attr('id', 'right'); 
         $('body').attr('class', 'area');
         addFeatures();
+        window.parent.name = JSON.stringify(cache);
       });
       return;
     }
@@ -181,7 +183,6 @@ function modifyTOC()
       if (isInsideCHM)
       {
         var href = $this.children('a').attr('href');
-        cache.save();
         $("#iframe").attr("src", href);
         return false;
       }
@@ -696,7 +697,9 @@ function modifyStructure()
       var $parent = $this.parent();
       var $grandparent = $parent.parent();
       // Store the item's index relative to its parent:
-      cache[$grandparent.attr('class')].clickItem = $this.index();
+      var className = $grandparent.attr('class');
+      cache[className].clickItem = $this.index();
+      cache.LastUsedSource = className;
       var href = $this.attr('href');
       if (isInsideCHM)
       {
@@ -852,7 +855,8 @@ function addFeatures()
 
   // --- Highlight search words with jQuery Highlight plugin ---
 
-  if (cache.clickTab == 2) {
+  if (cache.LastUsedSource == "search") {
+    cache.LastUsedSource = "";
     var qry = cache.search.input;
     qry = qry.toLowerCase().replace(/^ +| +$| +(?= )|\+/, '').split(' ');
     for (var i = 0; i < qry.length; i++) {
