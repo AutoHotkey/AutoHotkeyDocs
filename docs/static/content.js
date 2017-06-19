@@ -151,12 +151,12 @@ function modifyTOC()
     return output;
   }
 
-  var toc = $('#left .toc').html(createTOC(cache.toc.data));
+  var toc = $('#left div.toc').html(createTOC(cache.toc.data));
   var tocList = $('li > span', toc);
 
   // --- Fold items with subitems ---
 
-  $("li ul", toc).hide();
+  $("li > ul", toc).hide();
 
   // --- Hook up events ---
 
@@ -172,7 +172,7 @@ function modifyTOC()
     }
     // Higlight item with link:
     if ($this.has("a").length) {
-      $(".selected", toc).removeClass("selected");
+      $("span.selected", toc).removeClass("selected");
       $this.addClass("selected");
       if (isInsideCHM())
       {
@@ -213,10 +213,10 @@ function modifyTOC()
     // If items are found:
     if (el.length) {
       // Restore default state:
-      $(".selected", toc).removeClass("selected");
-      $(".opened", toc).toggleClass("closed opened");
+      $("span.selected", toc).removeClass("selected");
+      $("li.opened", toc).toggleClass("closed opened");
       $(".highlighted", toc).removeClass("highlighted");
-      $("li ul", toc).hide();
+      $("li > ul", toc).hide();
       // Select the items:
       el.addClass("selected");
       // Expand their parent items:
@@ -248,7 +248,7 @@ function modifyTOC()
 
 function modifyIndex()
 {
-  var index = $('#left .index');
+  var index = $('#left div.index');
   var indexInput = $('input', index);
 
   // --- Create and add the index links ---
@@ -265,7 +265,7 @@ function modifyIndex()
     return output;
   }
 
-  var indexList = $('.list', index).html(createIndexList(cache.index.data));
+  var indexList = $('div.list', index).html(createIndexList(cache.index.data));
 
   // --- Hook up events ---
 
@@ -318,8 +318,8 @@ function modifyIndex()
 
 function modifySearch()
 {
-  var search = $('#left .search');
-  var searchList = $('.list', search);
+  var search = $('#left div.search');
+  var searchList = $('div.list', search);
   var searchInput = $('input', search);
 
   // --- Hook up events ---
@@ -573,23 +573,25 @@ function modifyStructure()
 
   // --- Translate elements with data-translate attribute ---
 
-  $('*[data-translate]').each(function() {
-    var text = $(this).text();
-    var tooltip = $(this).attr('title');
+  $('*[data-translate]', $('#head').add($('#left'))).each(function() {
+    var $this = $(this);
+    var text = $this.text();
+    var tooltip = $this.attr('title');
     if (typeof text != '')
-      $(this).text(T(text));
+      $this.text(T(text));
     if (typeof tooltip !== 'undefined')
-      $(this).attr('title', T(tooltip));
+      $this.attr('title', T(tooltip));
   });
 
   // --- Main tools (always visible) ---
 
-  $('.h-tools .main .sidebar').on('click', function() {
+  var $tools = $('#head div.h-tools');
+  $('div.main li.sidebar', $tools).on('click', function() {
     displaySidebar(!cache.displaySidebar); });
 
   // --- Online tools (only visible if help is not CHM) ---
 
-  var online = $('.h-tools .online');
+  var $online = $('div.online', $tools);
   // Translation links. Keys are based on ISO 639-1 language name standard:
   var link = { "en": 'https://autohotkey.com/docs/',
                "de": 'https://ahkde.github.io/docs/',
@@ -597,65 +599,66 @@ function modifyStructure()
   // Version links:
   var ver  = { "v1": link[T("en")],
                "v2": T("https://lexikos.github.io/v2/docs/") }
+
+  var $langList = $('ul.languages', $online)
+  var $verList  = $('ul.versions', $online)
   // Bug - IE/Edge doesn't turn off list-style if element is hidden:
-  $('.languages, .versions', online).css("list-style", "none");
+  $langList.add($verList).css("list-style", "none");
   // Hide currently selected language and version in the selection lists:
-  $('.languages li:contains(' + T("en") + ')', online).hide();
-  $('.versions li:contains(' + T("v1") + ')', online).hide();
+  $('li:contains(' + T("en") + ')', $langList).hide();
+  $('li:contains(' + T("v1") + ')', $verList).hide();
   // Add the translation links:
-  $('.languages li', online).not('.arrow').each( function() {
+  $('li', $langList).not('li.arrow').each( function() {
     $(this).wrapInner('<a href="' + link[$(this).text()] + relPath + '">');
   });
-  $('.versions li', online).not('.arrow').each( function() {
+  $('li', $verList).not('li.arrow').each( function() {
     // Don't use relPath here due file differences between the versions:
     $(this).wrapInner('<a href="' + ver[$(this).text()] + '">');
   });
   // Show/Hide selection lists on click:
-  $('.language', online).on('click', function() {
-    var $list = $('.languages', online);
-    $list.animate({width: "toggle"}, 100);
+  $('li.language', $online).on('click', function() {
+    $langList.animate({width: "toggle"}, 100);
     $(this).toggleClass("selected");
-    $list.toggleClass("selected");
+    $langList.toggleClass("selected");
   });
-  $('.version', online).on('click', function() {
-    var $list = $('.versions', online);
-    $list.animate({width: "toggle"}, 100);
+  $('li.version', $online).on('click', function() {
+    $verList.animate({width: "toggle"}, 100);
     $(this).toggleClass("selected");
-    $list.toggleClass("selected");
+    $verList.toggleClass("selected");
   });
 
   // --- CHM tools (only visible if help is CHM) ---
 
-  var chm = $('.h-tools .chm');
+  var $chm = $('div.chm', $tools);
   // 'Go back' button:
-  $('.back', chm).on('click', function() { history.back(); });
+  $('li.back', $chm).on('click', function() { history.back(); });
   // 'Go forward' button:
-  $('.forward', chm).on('click', function() { history.forward(); });
+  $('li.forward', $chm).on('click', function() { history.forward(); });
   // 'Zoom' button:
-  $('.zoom', chm).on('click', function() {
+  $('li.zoom', $chm).on('click', function() {
     cache.fontSize += 0.2;
     if (cache.fontSize > 1.4)
       cache.fontSize = 0.6;
     $('#iframe').contents().find('.area').css('font-size', cache.fontSize + 'em');
   });
   // 'Print' button:
-  $('.print', chm).on('click', function() { window.print(); });
+  $('li.print', $chm).on('click', function() { window.print(); });
 
   // --- If help is CHM, hide online tools, otherwise hide CHM tools ---
 
-  (isInsideCHM()) ? online.hide() : chm.hide();
+  (isInsideCHM()) ? $online.hide() : $chm.hide();
 
   // --- Apply click events for sidebar tabs ---
 
-  var tab = $('.h-tabs li');
-  for (var i = 0; i < tab.length; i++) {
-    tab.eq(i).on('click', function(e) { showTab($(this).index()); });
+  var $tab = $('#head div.h-tabs li');
+  for (var i = 0; i < $tab.length; i++) {
+    $tab.eq(i).on('click', function(e) { showTab($(this).index()); });
   }
 
   // --- Apply Edit and ListBox events ---
 
   var Edit = $('#left input');
-  var ListBox = $('#left .list');
+  var ListBox = $('#left div.list');
 
   // Store current scrollbar position on scroll:
   ListBox.on('scroll', function() {
@@ -676,7 +679,7 @@ function modifyStructure()
         $this[0].scrollIntoView(); // Move up
     }
     // Select the item:
-    $('.selected', $parent).removeClass('selected');
+    $('a.selected', $parent).removeClass('selected');
     $this.addClass('selected');
     return false;
   });
@@ -721,12 +724,12 @@ function modifyStructure()
       break;
 
       case 38: // Up
-      clicked = $('.selected', $this).prev(); // Navigate up
+      clicked = $('a.selected', $this).prev(); // Navigate up
       clicked.click();
       break;
 
       case 40: // Down
-      clicked = $('.selected', $this).next(); // Navigate down
+      clicked = $('a.selected', $this).next(); // Navigate down
       clicked.click();
       break;
 
@@ -741,7 +744,7 @@ function modifyStructure()
   ListBox.on('keyup', function(e) {
     var $this = $(this);
     if (e.which == 13) // Enter
-      $('.selected', $this).trigger('dblclick'); // Open the link
+      $('a.selected', $this).trigger('dblclick'); // Open the link
   });
 
   // Redirect specific keys to the ListBox on keypress:
@@ -751,8 +754,8 @@ function modifyStructure()
     var keys = [13, 38, 40]; // Enter, Up, Down
     $.each(keys, function(i, key) {
       if (e.which == key) {
-        $('.list .selected', $grandparent).focus();
-        $('.list', $grandparent).trigger({type: 'keydown', which: key, keyCode: key});
+        $('div.list a.selected', $grandparent).focus();
+        $('div.list', $grandparent).trigger({type: 'keydown', which: key, keyCode: key});
         return false;
       }
     });
@@ -790,31 +793,31 @@ function modifyStructure()
   // Display or hide the sidebar:
   function displaySidebar(display) {
     cache.displaySidebar = display;
-    var headTabs = $('#head .h-tabs');
-    var leftArea = $('#left');
+    var $headTabs = $('#head div.h-tabs');
+    var $leftArea = $('#left');
     var props = {width: 0, visibility: "hidden"};
     if (display) {
-      headTabs.removeAttr('style');
-      leftArea.removeAttr('style');
-      $('input', leftArea).focus();
+      $headTabs.removeAttr('style');
+      $leftArea.removeAttr('style');
+      $('input', $leftArea).focus();
     }
     else {
-      headTabs.css(props);
-      leftArea.css(props);
+      $headTabs.css(props);
+      $leftArea.css(props);
     }
-    leftArea.focus();
+    $leftArea.focus();
   }
 
   // Show the specified tab:
   function showTab(pos) {
     cache.clickTab = pos;
-    var t = $('.h-tabs li');
-    var s = $('#left > div');
-    t.removeClass('selected')
-     .eq(pos).addClass('selected');
-    s.css("visibility", "hidden")
-     .eq(pos).css("visibility", "inherit")
-     .find('input').focus().select();
+    var $t = $('#head div.h-tabs li');
+    var $s = $('#left > div');
+    $t.removeClass('selected')
+      .eq(pos).addClass('selected');
+    $s.css("visibility", "hidden")
+      .eq(pos).css("visibility", "inherit")
+      .find('input').focus().select();
   }
 }
 
@@ -822,9 +825,13 @@ function modifyStructure()
 
 function addFeatures()
 {
+  var content = document.querySelectorAll('#right .area')[0];
+  if (typeof content === 'undefined')
+    return; // Leave the function, if site is iframe.htm.
+
   // --- Set initial font size (for CHM's zoom tool) ---
 
-  $('.area').css('font-size', cache.fontSize + 'em');
+  content.style.fontSize = cache.fontSize + 'em';
 
   // --- Highlight search words with jQuery Highlight plugin ---
 
@@ -832,71 +839,76 @@ function addFeatures()
     var qry = cache.search.input;
     qry = qry.toLowerCase().replace(/^ +| +$| +(?= )|\+/, '').split(' ');
     for (var i = 0; i < qry.length; i++) {
-      $('#right .area').highlight(qry[i]);
+      $(content).highlight(qry[i]);
     }
   }
 
   // --- Responsive tables (mobile) ---
 
   if (isMobile()) {
-    $('table').each( function() {
-      $this = $(this);
-      var tr = $('tr', $this);
-      var th = {}, table = "";
-      $this.hide();
-      var id = $this.attr('id');
-      table += (id !== undefined) ? '<table id="'+id+'"' : '<table';
-      table += ' class="mobile">';
-      for(var i = 0; i < tr.length; i++)
-      {
-        if (tr.eq(i).children('th').length) {
-          th = $('th', tr.eq(i));
-          continue;
+    var tables = content.querySelectorAll('table');
+    for(var i = 0; i < tables.length; i++) {
+      var table = tables[i], th = {}, newTable = "";
+      var id = table.getAttribute('id');
+      newTable += (id) ? '<table id="'+id+'"' : '<table';
+      newTable += ' class="mobile">';
+      var trs = table.querySelectorAll('tr');
+      for(var j = 0; j < trs.length; j++) {
+        var tr = trs[j];
+        ths = tr.querySelectorAll('th');
+        if (ths.length) {
+          th = ths; continue;
         }
-        var td = $('td', tr.eq(i));
-        var id = tr.eq(i).attr('id');
-        table += (id !== undefined) ? '<tbody id="'+id+'">' : '<tbody>';
-        for(var n = 0; n < td.length; n++)
-        {
-          var id = td.eq(n).attr('id');
-          table += (id !== undefined) ? '<tr id="'+id+'">' : '<tr>';
-          var first = (th.length) ? th.eq(n).html() : ""
-          table += '<td>'+first+'</td><td>'+td.eq(n).html()+'</td></tr>';
+        var id = tr.getAttribute('id');
+        newTable += (id) ? '<tbody id="'+id+'">' : '<tbody>';
+        var tds = tr.querySelectorAll('td');
+        for(var k = 0; k < tds.length; k++) {
+          var td = tds[k];
+          var id = td.getAttribute('id');
+          newTable += (id) ? '<tr id="'+id+'">' : '<tr>';
+          var first = (th.length) ? th[k].innerHTML : ""
+          newTable += '<td>'+first+'</td><td>'+td.innerHTML+'</td></tr>';
         }
-        table += '</tbody>';
+        newTable += '</tbody>';
       }
-      table += '</table>';
-      $this.after(table);
-      $this.remove();
-    });
+      newTable += '</table>';
+      table.outerHTML = newTable;
+      }
   }
 
   // --- Generate anchors for anchor-less head lines ---
 
-  $('h1, h2, h3, h4, h5, h6').each(function(index) {
-    $(this).addClass('headLine'); // Apply extra CSS.
-    if(!$(this).attr('id')) // If head line doesn't have anchor...
+  var hs = content.querySelectorAll('h1, h2, h3, h4, h5, h6');
+  for(var i = 0; i < hs.length; i++) {
+    var h = hs[i];
+    var id = h.getAttribute('id');
+    h.className = "headLine"; // Apply extra CSS.
+    if(!id) // If head line doesn't have anchor...
     {
-      var str = $(this).text().replace(/\s/g, '_'); // replace spaces with _
-      var str = str.replace(/[():.,;'#\[\]\/{}&="|?!]/g, ''); // remove special chars
-      if($('#' + str).length) // If anchor exist already...
-        $(this).attr('id', str + '_' + index); // set unique anchor
-      else
-        $(this).attr('id', str); // set anchor
+      var text = h.textContent || h.innerText;
+      var text = text.replace(/\s/g, '_'); // replace spaces with _
+      var text = text.replace(/[():.,;'#\[\]\/{}&="|?!]/g, ''); // remove special chars
+      // If anchor exist already, use unique anchor, else use anchor:
+      id = (document.getElementById(text)) ? (text + '_' + i) : text;
+      h.setAttribute('id', id);
     }
-    $(this).wrapInner('<a href="#' + $(this).attr('id') + '"></a>');
-  });
+    h.innerHTML ='<a href="#' + id + '">' + h.innerHTML + '</a>';
+  }
 
   // --- Open external links in a new tab/window ---
 
-  var extLinks = $("#right a[href^='http']");
-  extLinks.addClass('extLink'); // Apply extra CSS.
-  extLinks.attr('target', '_blank');
+  var as = content.querySelectorAll("a[href^='http']");
+  for(var i = 0; i < as.length; i++) {
+    var a = as[i];
+    a.className = "extLink"; a.target = "_blank";
+  }
 
   // --- Add links for version annotations ---
 
-  $('span.ver').each(function(idx, el) {
-    var m, title, href, text = $(this).text();
+  var spans = content.querySelectorAll("span.ver");
+  for(var i = 0; i < spans.length; i++) {
+    var span = spans[i], m, title, href;
+    var text = span.textContent || span.innerText;
     if (m = /AHK_L (\d+)\+/.exec(text)) {
       title = T("Applies to:\nAutoHotkey_L Revision {0} and later\nAutoHotkey v1.0.90.00 and later").format(m[1]);
       href = 'AHKL_ChangeLog.htm#L' + m[1];
@@ -909,22 +921,26 @@ function addFeatures()
         href = 'ChangeLogHelp.htm#' + m[0];
       else
         href = 'AHKL_ChangeLog.htm#' + m[0];
-    } else return;
-    $(this).text(text);
-    $(this).wrap('<a href="' + workingDir +  href + '" title="' + title + '"></a>')
-  });
+    } else continue;
+    span.outerHTML = '<a href="' + workingDir + href + '" title="' + title + '"><span class="ver">' + text + '</span></a>';
+  }
 
   // --- Useful features for code boxes ---
 
   // Show select and download above code boxes:
-  $('pre').wrap('<div class="codeMain">');
-  $('div.codeMain').wrap('<div class="codeContainer">');
-  $('div.codeContainer').prepend('<div class="codeHeader">');
-  $('div.codeHeader').html('<a class="selectCode">' + T('Select code') + '</a>');
-  $('div.codeContainer:not(:has(pre.Syntax)) div.codeHeader').append(' | <a class="downloadCode">' + T('Download code') + '</a>');
+  var pres = content.querySelectorAll("pre");
+  for(var i = 0; i < pres.length; i++) {
+    var pre = pres[i], codebox = "";
+    codebox += '<div class="codeContainer"><div class="codeHeader">';
+    codebox += '<a class="selectCode">' + T('Select code') + '</a>';
+    if (pre.className !== "Syntax")
+    codebox += ' | <a class="downloadCode">' + T('Download code') + '</a>';
+    codebox += '</div><div class="codeMain">' + pre.outerHTML + '</div></div>';
+    pre.outerHTML = codebox;
+  }
 
   // Select the code on click:
-  $('a.selectCode').on('click', function() {
+  $('a.selectCode', $(content)).on('click', function() {
     var doc = document
       , text = $('pre', $(this).parent().next())[0]
       , range, selection
@@ -943,7 +959,7 @@ function addFeatures()
   });
 
   // Download the code on click:
-  $('a.downloadCode').on('click', function(e) {
+  $('a.downloadCode', $(content)).on('click', function(e) {
     var textToWrite = '\ufeff' + $(this).parent().next().text().replace(/\n/g, "\r\n");
     var textFileAsBlob = new Blob([textToWrite], {type:'text/csv'});
     var fileNameToSaveAs = location.pathname.match(/([^\/]+)(?=\.\w+$)/)[0] + "-Script.ahk";
@@ -986,9 +1002,11 @@ function addFeatures()
 
   // --- Add footer at the bottom of the site ---
 
-  var footer = '<div class="footer">Copyright &copy; 2003-' + new Date().getFullYear() + ' ' + location.host + ' - LIC: <a href="' + scriptDir + '/../license.htm">GNU GPLv2</a></div>';
-  $('.area').append(footer);
-  
+  var div = document.createElement('div');
+  div.className = 'footer';
+  div.innerHTML = 'Copyright &copy; 2003-' + new Date().getFullYear() + ' ' + location.host + ' - LIC: <a href="' + scriptDir + '/../license.htm">GNU GPLv2</a>';
+  content.appendChild(div);
+
   // --- Ensure navigating to anchor ---
 
   if (location.hash)
