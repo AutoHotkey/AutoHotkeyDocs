@@ -39,21 +39,25 @@ var scriptFile = document.scripts[0].src;
 var scriptDir = scriptFile.substr(0, scriptFile.lastIndexOf('/'));
 var workingDir = getWorkingDir();
 var relPath = location.href.replace(workingDir, '');
+var isInsideCHM = (location.href.search(/::/) > 0) ? 1 : 0;
+var isInsideFrame = (window.self !== window.top);
+var isSearchBot = navigator.userAgent.match(/googlebot|bingbot|slurp/i);
+var isMobile = ($(window).width() < 600);
 
 (function () {
   // Exit the script if the user is a search bot. This is done because we want
   // to prevent the search bot from parsing the elements added via javascript,
   // otherwise the search results would be distorted:
-  if (isSearchBot())
+  if (isSearchBot)
     return;
 
   // Add elements into head:
   setHeadElements();
   
   // Special treatments for pages inside a iframe:
-  if (isInsideCHM())
+  if (isInsideCHM)
   {
-    if (isInsideFrame())
+    if (isInsideFrame)
     {
       cache = JSON.parse(window.parent.name);
       $(document).ready(function() {
@@ -174,7 +178,7 @@ function modifyTOC()
     if ($this.has("a").length) {
       $("span.selected", toc).removeClass("selected");
       $this.addClass("selected");
-      if (isInsideCHM())
+      if (isInsideCHM)
       {
         var href = $this.children('a').attr('href');
         cache.save();
@@ -186,7 +190,7 @@ function modifyTOC()
 
   // --- Show scrollbar on mouseover ---
 
-  if (!isMobile()) // if not mobile browser.
+  if (!isMobile) // if not mobile browser.
   {
     toc.css("overflow", "hidden").hover(function() {
       $(this).css("overflow", "auto");
@@ -561,11 +565,11 @@ function modifyStructure()
 {
   // --- Hide sidebar if using a mobile browser ---
 
-  if (isMobile()) { displaySidebar(false); }
+  if (isMobile) { displaySidebar(false); }
 
   // --- Use iframe if inside CHM ---
   
-  if (isInsideCHM() && !isInsideFrame())
+  if (isInsideCHM && !isInsideFrame)
   {
     cache.save();
     $('div.area').replaceWith('<iframe frameBorder="0" id="iframe" src="' + cache.location + '">');
@@ -646,7 +650,7 @@ function modifyStructure()
 
   // --- If help is CHM, hide online tools, otherwise hide CHM tools ---
 
-  (isInsideCHM()) ? $online.hide() : $chm.hide();
+  (isInsideCHM) ? $online.hide() : $chm.hide();
 
   // --- Apply click events for sidebar tabs ---
 
@@ -694,7 +698,7 @@ function modifyStructure()
       // Store the item's index relative to its parent:
       cache[$grandparent.attr('class')].clickItem = $this.index();
       var href = $this.attr('href');
-      if (isInsideCHM())
+      if (isInsideCHM)
       {
         cache.save();
         $("#iframe").attr("src", href);
@@ -794,7 +798,7 @@ function modifyStructure()
     // Goto anchor again after reloading the page:
     anchor[0].scrollIntoView();
     // When using mobile device hide sidebar and goto anchor:
-    if (isMobile())
+    if (isMobile)
       setTimeout( function() {
         displaySidebar(false);
         anchor[0].scrollIntoView();
@@ -858,7 +862,7 @@ function addFeatures()
 
   // --- Responsive tables (mobile) ---
 
-  if (isMobile()) {
+  if (isMobile) {
     var tables = content.querySelectorAll('table');
     for(var i = 0; i < tables.length; i++) {
       var table = tables[i], th = {}, newTable = "";
@@ -1039,34 +1043,6 @@ function getWorkingDir()
   for (i = 0; i < pathArray.length - 1; i++)
     wDir += pathArray[i] + "/";
   return wDir;
-}
-
-// --- Check if the current site is inside a CHM file ---
-
-function isInsideCHM() {
-  return (location.href.search(/::/) > 0) ? 1 : 0;
-}
-
-// --- Check if the current site is inside a frame ---
-
-function isInsideFrame() {
-    try {
-        return window.self !== window.top;
-    } catch (e) {
-        return true;
-    }
-}
-
-// --- Check if the current user is a search bot ---
-
-function isSearchBot() {
-  return navigator.userAgent.match(/googlebot|bingbot|slurp/i);
-}
-
-// --- Check if the browser is small enough to be a mobile app ---
-
-function isMobile() {
-  return ($(window).width() < 600);
 }
 
 // --- Check if an element is visible after scrolling ---
