@@ -946,7 +946,8 @@ function addFeatures()
       else
         href = 'AHKL_ChangeLog.htm#' + m[0];
     } else continue;
-    span.outerHTML = '<a href="' + workingDir + href + '" title="' + title + '"><span class="ver">' + text + '</span></a>';
+    // outerHTML/innerHTML not possible here because IE8 doesn't allow nested links:
+    $(span).html('<a href="' + workingDir + href + '" title="' + title + '">' + text + '</a>');
   }
 
   // --- Useful features for code boxes ---
