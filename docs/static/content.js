@@ -952,78 +952,82 @@ function addFeatures()
 
   // --- Useful features for code boxes ---
 
-  // Show select and download above code boxes:
+  // Provide select and download buttons:
   var pres = content.querySelectorAll("pre");
   for(var i = 0; i < pres.length; i++) {
-    var pre = pres[i], codebox = "";
-    codebox += '<div class="codeContainer"><div class="codeHeader">';
-    codebox += '<a class="selectCode">' + T('Select code') + '</a>';
+    var pre = pres[i], $pre = $(pre);
+    var div = '<div class="codeTools">';
+    div += '<a class="selectCode" title="' + T("Select code") + '">S</a>';
     if (pre.className !== "Syntax")
-    codebox += ' | <a class="downloadCode">' + T('Download code') + '</a>';
-    codebox += '</div><div class="codeMain">' + pre.outerHTML + '</div></div>';
-    pre.outerHTML = codebox;
+    div += '<a class="downloadCode" title="' + T("Download code") + '">&#8595;</a>';
+    div += '</div>';
+    pre.innerHTML = div+'<div>'+pre.innerHTML+'</div>';
+    $pre // Show these buttons on hover:
+    .mouseenter(function() {
+      $('div.codeTools', $(this)).fadeTo(200, 0.8);
+    })
+    .mouseleave(function() {
+      $('div.codeTools', $(this)).fadeTo(200, 0);
+    });
+    $('a.selectCode', $pre) // Select the code on click:
+    .on('click', function() {
+      var doc = document
+        , text = $(this).parent().next()[0]
+        , range, selection;
+      if (doc.body.createTextRange) {
+        range = document.body.createTextRange();
+        range.moveToElementText(text);
+        range.select();
+      } else if (window.getSelection) {
+        selection = window.getSelection();
+        range = document.createRange();
+        range.selectNodeContents(text);
+        selection.removeAllRanges();
+        selection.addRange(range);
+      }
+    });
+    $('a.downloadCode', $pre) // Download the code on click:
+    .on('click', function(e) {
+      var textToWrite = '\ufeff' + $(this).parent().next().text().replace(/\n/g, "\r\n");
+      var textFileAsBlob = new Blob([textToWrite], {type:'text/csv'});
+      var fileNameToSaveAs = location.pathname.match(/([^\/]+)(?=\.\w+$)/)[0] + "-Script.ahk";
+  
+      var downloadLink = document.createElement("a");
+      downloadLink.download = fileNameToSaveAs;
+      downloadLink.innerHTML = "Download File";
+  
+      // http://stackoverflow.com/a/9851769
+  
+      // Opera 8.0+
+      var isOpera = (!!window.opr && !!opr.addons) || !!window.opera || navigator.userAgent.indexOf(' OPR/') >= 0;
+      // Firefox 1.0+
+      var isFirefox = typeof InstallTrigger !== 'undefined';
+      // At least Safari 3+: "[object HTMLElementConstructor]"
+      var isSafari = Object.prototype.toString.call(window.HTMLElement).indexOf('Constructor') > 0;
+      // Internet Explorer 6-11
+      var isIE = /*@cc_on!@*/false || !!document.documentMode;
+      // Edge 20+
+      var isEdge = !isIE && !!window.StyleMedia;
+      // Chrome 1+
+      var isChrome = !!window.chrome && !!window.chrome.webstore;
+      // Blink engine detection
+      var isBlink = (isChrome || isOpera) && !!window.CSS;
+  
+      if (isIE || isEdge) {
+        navigator.msSaveBlob(textFileAsBlob, fileNameToSaveAs);
+      }
+      if (isChrome || isBlink) {
+        downloadLink.href = window.webkitURL.createObjectURL(textFileAsBlob);
+        downloadLink.click();
+      }
+      if (isFirefox) {
+        downloadLink.href = window.URL.createObjectURL(textFileAsBlob);
+        downloadLink.style.display = "none";
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+      }
+    });
   }
-
-  // Select the code on click:
-  $('a.selectCode', $(content)).on('click', function() {
-    var doc = document
-      , text = $('pre', $(this).parent().next())[0]
-      , range, selection
-    ;
-    if (doc.body.createTextRange) {
-      range = document.body.createTextRange();
-      range.moveToElementText(text);
-      range.select();
-    } else if (window.getSelection) {
-      selection = window.getSelection();
-      range = document.createRange();
-      range.selectNodeContents(text);
-      selection.removeAllRanges();
-      selection.addRange(range);
-    }
-  });
-
-  // Download the code on click:
-  $('a.downloadCode', $(content)).on('click', function(e) {
-    var textToWrite = '\ufeff' + $(this).parent().next().text().replace(/\n/g, "\r\n");
-    var textFileAsBlob = new Blob([textToWrite], {type:'text/csv'});
-    var fileNameToSaveAs = location.pathname.match(/([^\/]+)(?=\.\w+$)/)[0] + "-Script.ahk";
-
-    var downloadLink = document.createElement("a");
-    downloadLink.download = fileNameToSaveAs;
-    downloadLink.innerHTML = "Download File";
-
-    // http://stackoverflow.com/a/9851769
-
-    // Opera 8.0+
-    var isOpera = (!!window.opr && !!opr.addons) || !!window.opera || navigator.userAgent.indexOf(' OPR/') >= 0;
-    // Firefox 1.0+
-    var isFirefox = typeof InstallTrigger !== 'undefined';
-    // At least Safari 3+: "[object HTMLElementConstructor]"
-    var isSafari = Object.prototype.toString.call(window.HTMLElement).indexOf('Constructor') > 0;
-    // Internet Explorer 6-11
-    var isIE = /*@cc_on!@*/false || !!document.documentMode;
-    // Edge 20+
-    var isEdge = !isIE && !!window.StyleMedia;
-    // Chrome 1+
-    var isChrome = !!window.chrome && !!window.chrome.webstore;
-    // Blink engine detection
-    var isBlink = (isChrome || isOpera) && !!window.CSS;
-
-    if (isIE || isEdge) {
-      navigator.msSaveBlob(textFileAsBlob, fileNameToSaveAs);
-    }
-    if (isChrome || isBlink) {
-      downloadLink.href = window.webkitURL.createObjectURL(textFileAsBlob);
-      downloadLink.click();
-    }
-    if (isFirefox) {
-      downloadLink.href = window.URL.createObjectURL(textFileAsBlob);
-      downloadLink.style.display = "none";
-      document.body.appendChild(downloadLink);
-      downloadLink.click();
-    }
-  });
 
   // --- Add footer at the bottom of the site ---
 
