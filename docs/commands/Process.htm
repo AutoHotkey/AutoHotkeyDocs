@@ -52,26 +52,26 @@
 <h3>Examples</h3>
 <pre class="NoIndent"><em>; Example #1:</em>
 
-Run Notepad.exe, , , NewPID
-ProcessSetPriority, High, %NewPID%
-MsgBox The newly launched notepad's PID is %NewPID%.</pre>
+Run "Notepad.exe", , , NewPID
+ProcessSetPriority "High", NewPID
+MsgBox "The newly launched notepad's PID is " NewPID</pre>
 <p>&nbsp;</p>
 <pre class="NoIndent"><em>; Example #2:</em>
 
-ProcessWait, NewPID, Notepad.exe, 5.5
+NewPID := ProcessWait("Notepad.exe", 5.5)
 if NewPID = 0
 {
-    MsgBox The specified process did not appear within 5.5 seconds.
+    MsgBox "The specified process did not appear within 5.5 seconds."
     return
 }
 <em>; Otherwise:</em>
-MsgBox A matching process has appeared (Process ID is %NewPID%).
-ProcessSetPriority, Low, %NewPID%
-ProcessSetPriority, High  <em>; Have the script set itself to high priority.</em>
-WinClose Untitled - Notepad
-ProcessWaitClose, ErrorLevel, %NewPID%, 5
+MsgBox "A matching process has appeared (Process ID is " NewPID ")."
+ProcessSetPriority "Low", NewPID
+ProcessSetPriority "High"  <em>; Have the script set itself to high priority.</em>
+WinClose "Untitled - Notepad"
+ErrorLevel := ProcessWaitClose(NewPID, 5)
 if ErrorLevel <em>; The PID still exists.</em>
-    MsgBox The process did not close within 5 seconds.</pre>
+    MsgBox "The process did not close within 5 seconds."</pre>
 <p>&nbsp;</p>
 <pre class="NoIndent"><em>; Example #3: A hotkey to change the priority of the active window's process:</em>
 
@@ -89,21 +89,21 @@ LB.OnEvent("DoubleClick", SetPriority)
 Gui.Add("Button", "default", "OK").OnEvent("Click", SetPriority)
 Gui.OnEvent("Escape", "Gui_Close")
 Gui.OnEvent("Close", "Gui_Close")
-Gui.Show()
+Gui.Show
 return
 
 SetPriority(LB, PID)
 {
   if ProcessSetPriority(LB.Text, PID)
-    MsgBox("Success: Its priority was changed to '%LB.Text%'.")
+    MsgBox "Success: Its priority was changed to '" LB.Text "'."
   else
-    MsgBox("Error: Its priority could not be changed to '%LB.Text%'.")
-  WinClose()
+    MsgBox "Error: Its priority could not be changed to '" LB.Text "'."
+  WinClose
 }
 
 Gui_Close(Gui)
 {
-  Gui.Destroy()
+  Gui.Destroy
 }</pre>
 <p>&nbsp;</p>
 <pre class="NoIndent" id="ListEx"><em>; Example #4: Retrieves a list of running processes via DllCall then shows them in a MsgBox.</em>
@@ -131,7 +131,7 @@ hModule := DllCall("LoadLibrary", "Str", "Psapi.dll")  <em>; increase performanc
 s := VarSetCapacity(a, s)  <em>; an array that receives the list of process identifiers:</em>
 c := 0  <em>; counter for process idendifiers</em>
 DllCall("Psapi.dll\EnumProcesses", "Ptr", &amp;a, "UInt", s, "UIntP", r)
-Loop, % r // 4  <em>; parse array for identifiers as DWORDs (32 bits):</em>
+Loop r // 4  <em>; parse array for identifiers as DWORDs (32 bits):</em>
 {
    id := NumGet(a, A_Index * 4, "UInt")
    <em>; Open process with: PROCESS_VM_READ (0x0010) | PROCESS_QUERY_INFORMATION (0x0400)</em>
@@ -142,14 +142,14 @@ Loop, % r // 4  <em>; parse array for identifiers as DWORDs (32 bits):</em>
    e := DllCall("Psapi.dll\GetModuleBaseName", "Ptr", h, "Ptr", 0, "Str", n, "UInt", s//2)
    if !e    <em>; fall-back method for 64-bit processes when in 32-bit mode:</em>
       if e := DllCall("Psapi.dll\GetProcessImageFileName", "Ptr", h, "Str", n, "UInt", s//2)
-         SplitPath %n%, n
+         SplitPath n, n
    DllCall("CloseHandle", "Ptr", h)  <em>; close process handle to save memory</em>
    if (n &amp;&amp; e)  <em>; if image is not null add to list:</em>
-      l .= n . d, c++
+      l .= n "`n", c++
 }
 DllCall("FreeLibrary", "Ptr", hModule)  <em>; unload the library to free memory</em>
-<em>;Sort, l, C  ; uncomment this line to sort the list alphabetically</em>
-MsgBox("%l%", "%c% Processes", 0)</pre>
+<em>;l := Sort(l)  ; uncomment this line to sort the list alphabetically</em>
+MsgBox StrReplace(l, "`n", d), c " Processes", 0</pre>
 <p>&nbsp;</p>
 <pre class="NoIndent" id="ListCom"><em>; Example #5: Retrieves a list of running processes via COM.</em>
 
@@ -157,7 +157,7 @@ Gui := GuiCreate(, "Process List")
 LV := Gui.Add("ListView", "x2 y0 w400 h500", "Process Name|Command Line")
 for process in ComObjGet("winmgmts:").ExecQuery("Select * from Win32_Process")
     LV.Add("", process.Name, process.CommandLine)
-Gui.Show()
+Gui.Show
 
 <em>; Win32_Process: <a href="http://msdn.microsoft.com/en-us/library/aa394372.aspx">http://msdn.microsoft.com/en-us/library/aa394372.aspx</a></em>
 </pre>

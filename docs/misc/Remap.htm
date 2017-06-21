@@ -74,10 +74,10 @@ b::a</pre>
 <p>You can try out any of these examples by copying them into a new text file such as &quot;Remap.ahk&quot;, then launching the file.</p>
 <p>See the <a href="../KeyList.htm">Key List</a> for a complete list of key and mouse button names.</p>
 <h2>Remarks</h2>
-<p>The directives <a href="../commands/_IfWinActive.htm">#IfWinActive/Exist</a> can be used to make selected remappings active only in the windows you specify. For example:</p>
-<pre>#IfWinActive ahk_class Notepad
+<p>The directives <a href="../commands/_IfWinActive.htm">#IfWinActive/Exist</a> or <a href="../commands/_If.htm">#If</a> can be used to make selected remappings active only in the windows you specify. For example:</p>
+<pre>#If WinActive("ahk_class Notepad")
 a::b  <em>; Makes the 'a' key send a 'b' key, but only in Notepad.</em>
-#IfWinActive  <em>; This puts subsequent remappings and hotkeys in effect for all windows.</em></pre>
+#If  <em>; This puts subsequent remappings and hotkeys in effect for all windows.</em></pre>
 <p>Remapping a key or button is &quot;complete&quot; in the following respects:</p>
 <ul>
   <li>Holding down a modifier such as Control or Shift while typing the origin key will put that modifier into effect for the destination key. For example, <code>b::a</code> would produce Control-A if you press Control-B.</li>
@@ -89,7 +89,7 @@ a::b  <em>; Makes the 'a' key send a 'b' key, but only in Notepad.</em>
 <pre>a::b
 ^!a::
 ^!b::
-ToolTip You pressed %A_ThisHotkey%.
+ToolTip "You pressed " A_ThisHotkey
 return</pre>
 <p>Alternatively, <a href="../commands/_InputLevel.htm">#InputLevel</a> can be used to override the default behaviour. For example:</p>
 <pre>#InputLevel 1
@@ -97,36 +97,36 @@ a::b
 
 #InputLevel 0
 ^!b::
-ToolTip You pressed %A_ThisHotkey%.
+ToolTip "You pressed " A_ThisHotkey
 return</pre>
 <p id="SendPlay">If <a href="../commands/SendMode.htm">SendMode</a> is used in the auto-execute section (top part of the script), it affects all remappings. However, since remapping uses <a href="../commands/Send.htm#blind">Send {Blind}</a> and since the <a href="../commands/SendMode.htm">SendPlay mode</a> does not fully support  {Blind}, some remappings might not function properly in SendPlay mode (especially Control, Shift, Alt, and Win). To work around this, avoid SendPlay in auto-execute section when you have remappings; then use the command <a href="../commands/Send.htm#SendPlay">SendPlay</a> vs. Send in other places throughout the script. Alternatively, you could translate your remappings into hotkeys (as described below) that explicitly call SendEvent vs. Send.</p>
 <p id="actually">When a script is launched, each remapping is translated into a pair of <a href="../Hotkeys.htm">hotkeys</a>. For example, a script containing <code>a::b</code> actually contains the following two hotkeys instead:</p>
 <pre>*<strong>a</strong>::
 SetKeyDelay -1   <em>; If the destination key is a mouse button, SetMouseDelay is used instead.</em>
-Send <a href="../commands/Send.htm#blind">{Blind}</a>{<strong>b</strong> DownTemp}  <em>; DownTemp is like Down except that other Send commands in the script won't assume &quot;b&quot; should stay down during their Send.</em>
+Send "<a href="../commands/Send.htm#blind">{Blind}</a>{<strong>b</strong> DownTemp}"  <em>; DownTemp is like Down except that other Send commands in the script won't assume &quot;b&quot; should stay down during their Send.</em>
 return
 
 *<strong>a up</strong>::
 SetKeyDelay -1  <em>; See note below for why press-duration is not specified with either of these SetKeyDelays.</em>
-Send {Blind}{<strong>b</strong> Up}
+Send "{Blind}{<strong>b</strong> Up}"
 return</pre>
 <p>However, the above hotkeys vary under the following circumstances:</p>
 <ol>
-  <li>When the source key is LCtrl and the destination key is an Alt key, the line <code>Send {Blind}{LAlt DownTemp}</code> is replaced by <code>Send {Blind}<strong>{LCtrl Up}</strong>{LAlt DownTemp}</code>. The same is true if the source is RCtrl, except that <code>{RCtrl up}</code> is used.</li>
+  <li>When the source key is LCtrl and the destination key is an Alt key, the line <code>Send "{Blind}{LAlt DownTemp}"</code> is replaced by <code>Send "{Blind}<strong>{LCtrl Up}</strong>{LAlt DownTemp}"</code>. The same is true if the source is RCtrl, except that <code>{RCtrl up}</code> is used.</li>
   <li>When a keyboard key is being remapped to become a mouse button (e.g. <code>RCtrl::RButton</code>), the hotkeys above use SetMouseDelay in place of SetKeyDelay. In addition, the first hotkey above is replaced by the following, which prevents the keyboard's auto-repeat feature from generating repeated mouse clicks:
     <pre>*RCtrl::
 SetMouseDelay -1
 if not GetKeyState(&quot;RButton&quot;)  <em>; i.e. the right mouse button isn't down yet.</em>
-    Send {Blind}{RButton DownTemp}
+    Send "{Blind}{RButton DownTemp}"
 return</pre>
   </li>
 </ol>
 <p>Note that SetKeyDelay's second parameter (<a href="../commands/SetKeyDelay.htm#dur">press duration</a>) is omitted in the hotkeys above. This is because press-duration does not apply to down-only or up-only events such as <code>{b down}</code> and <code>{b up}</code>. However, it does apply to changes in the state of the Shift/Ctrl/Alt/Win keys, which affects remappings such as <code>a::B</code> or <code>a::^b</code>. Consequently, any press-duration a script puts into effect via its <a href="../Scripts.htm#auto">auto-execute section</a> will apply to all such remappings.</p>
 <p>Although a pair of keys cannot be directly remapped to single key (e.g. it's invalid to write <code>a &amp; c::b</code>), this effect can be achieved by explicitly adding the up and down hotkeys from the example higher above: simply replace <code>*a::</code> with <code>a &amp; c::</code>, and replace <code>*a up::</code> with <code>a &amp; c up::</code>.</p>
 <p>Since remappings are translated into hotkeys as described above, the <a href="../commands/Suspend.htm">Suspend</a> command affects them. Similarly, the <a href="../commands/Hotkey.htm">Hotkey</a> command can disable or modify a remapping. For example, the following two commands would disable the remapping <code>a::b</code>.</p>
-<pre>Hotkey, *a, off
-Hotkey, *a up, off</pre>
-<p id="AltTab">Alt-tab issues: If you remap a key or mouse button to become an Alt key, that key will probably not be able to alt-tab properly. A possible work-around is to add the hotkey <code>*Tab::Send {Blind}{Tab}</code> -- but be aware that it will likely interfere with using the real Alt key to alt-tab. Therefore, it should be used only when you alt-tab solely by means of remapped keys and/or <a href="../Hotkeys.htm#alttab">alt-tab hotkeys</a>.</p>
+<pre>Hotkey "*a", "Off"
+Hotkey "*a up", "Off"</pre>
+<p id="AltTab">Alt-tab issues: If you remap a key or mouse button to become an Alt key, that key will probably not be able to alt-tab properly. A possible work-around is to add the hotkey <code>*Tab::Send "{Blind}{Tab}"</code> -- but be aware that it will likely interfere with using the real Alt key to alt-tab. Therefore, it should be used only when you alt-tab solely by means of remapped keys and/or <a href="../Hotkeys.htm#alttab">alt-tab hotkeys</a>.</p>
 <p>In addition to the keys and mouse buttons on the <a href="../KeyList.htm">Key List</a> page, the source key may also be a virtual key (VKnn) or scan code (SCnnn) as described on the <a href="../KeyList.htm#SpecialKeys">special keys</a> page. The same is true for the destination key except that it may optionally specify a scan code after the virtual key. For example, <code>sc01e::vk42sc030</code> is equivalent to <code>a::b</code> on most keyboard layouts.</p>
 <p>To disable a key rather than remapping it, make it a hotkey that simply <a href="../commands/Return.htm">returns</a>. For example, <code>F1::return</code> would disable the F1 key.</p>
 <p>The following keys are not supported by the built-in remapping method:</p>
@@ -139,21 +139,21 @@ Hotkey, *a up, off</pre>
 </ul>
 <h2>Moving the Mouse Cursor via the Keyboard</h2>
 <p>The keyboard can be used to move the mouse cursor as demonstrated by the fully-featured <a href="../scripts/NumpadMouse.htm">Keyboard-To-Mouse script</a>. Since that script offers smooth cursor movement, acceleration, and other features, it is the recommended approach if you plan to do a lot of mousing with the keyboard. By contrast, the following example is a simpler demonstration:</p>
-<pre>*#up::MouseMove, 0, -10, 0, R  <em>; Win+UpArrow hotkey =&gt; Move cursor upward</em>
-*#Down::MouseMove, 0, 10, 0, R  <em>; Win+DownArrow =&gt; Move cursor downward</em>
-*#Left::MouseMove, -10, 0, 0, R  <em>; Win+LeftArrow =&gt; Move cursor to the left</em>
-*#Right::MouseMove, 10, 0, 0, R  <em>; Win+RightArrow =&gt; Move cursor to the right</em>
+<pre>*#up::MouseMove 0, -10, 0, "R"  <em>; Win+UpArrow hotkey =&gt; Move cursor upward</em>
+*#Down::MouseMove 0, 10, 0, "R"  <em>; Win+DownArrow =&gt; Move cursor downward</em>
+*#Left::MouseMove -10, 0, 0, "R"  <em>; Win+LeftArrow =&gt; Move cursor to the left</em>
+*#Right::MouseMove 10, 0, 0, "R"  <em>; Win+RightArrow =&gt; Move cursor to the right</em>
 
 *&lt;#RCtrl::  <em>; LeftWin + RightControl =&gt; Left-click (hold down Control/Shift to Control-Click or Shift-Click).</em>
-SendEvent {Blind}{LButton down}
-KeyWait RCtrl  <em>; Prevents keyboard auto-repeat from repeating the mouse click.</em>
-SendEvent {Blind}{LButton up}
+SendEvent "{Blind}{LButton down}"
+KeyWait "RCtrl"  <em>; Prevents keyboard auto-repeat from repeating the mouse click.</em>
+SendEvent "{Blind}{LButton up}"
 return
 
 *&lt;#AppsKey::  <em>; LeftWin + AppsKey =&gt; Right-click</em>
-SendEvent {Blind}{RButton down}
-KeyWait AppsKey  <em>; Prevents keyboard auto-repeat from repeating the mouse click.</em>
-SendEvent {Blind}{RButton up}
+SendEvent "{Blind}{RButton down}"
+KeyWait "AppsKey"  <em>; Prevents keyboard auto-repeat from repeating the mouse click.</em>
+SendEvent "{Blind}{RButton up}"
 return</pre>
 <h2 id="registry">Remapping via the Registry's &quot;Scancode Map&quot;</h2>
 <p><strong>Advantages:</strong></p>

@@ -145,7 +145,7 @@ MsgBox Join("`n", "one", "two", "three")</pre>
 <h3 id="VariadicCall">Variadic Function Calls</h3>
 <p>While variadic functions can <i>accept</i> a variable number of parameters, an array of parameters can be passed to <i>any</i> function by applying the same syntax to a function-call:</p>
 <pre>substrings := ["one", "two", "three"]
-MsgBox % Join("`n", <b class="blue">substrings*</b>)</pre>
+MsgBox Join("`n", <b class="blue">substrings*</b>)</pre>
 <p>Notes:</p>
 <ul>
   <li>Numbering of parameters within the source array begins at 1.</li>
@@ -229,7 +229,7 @@ static TotalAttempts := 0, PrevResult</pre>
 <h2 id="ShortCircuit">Short-circuit Boolean Evaluation</h2>
 <p>When <em>AND, OR</em>, and the <a href="Variables.htm#ternary">ternary operator</a> are used within an <a href="Variables.htm#Expressions">expression</a>, they short-circuit to enhance performance (regardless of whether any function calls are present). Short-circuiting operates by refusing to evaluate parts of an expression that cannot possibly affect its final result. To illustrate the concept, consider this example:</p>
 <pre>if (ColorName &lt;&gt; &quot;&quot; AND not FindColor(ColorName))
-    MsgBox %ColorName% could not be found.</pre>
+    MsgBox ColorName " could not be found."</pre>
 <p>In the example above, the FindColor() function never gets called if the <em>ColorName</em> variable is empty. This is because the left side of the <em>AND</em> would be <em>false</em>, and thus its right side would be incapable of making the final outcome <em>true</em>.</p>
 <p>Because of this behavior, it's important to realize that any side-effects produced by a function (such as altering a global variable's contents) might never occur if that function is called on the right side of an <em>AND</em> or <em>OR</em>.</p>
 <p>It should also be noted that short-circuit evaluation cascades into nested <em>AND</em>s and <em>OR</em>s. For example, in the following expression, only the leftmost comparison occurs whenever <em>ColorName</em> is blank. This is because the left side would then be enough to determine the final answer with certainty:</p>
@@ -266,9 +266,9 @@ static TotalAttempts := 0, PrevResult</pre>
 <p>Explanation: When the script's flow of execution encounters a function definition, it jumps over it (using an instantaneous method) and resumes execution at the line after its closing brace. Consequently, execution can never fall into a function from above, nor does the presence of one or more functions at the very top of a script affect the <a href="Scripts.htm#auto">auto-execute section</a>.</p>
 <h2 id="lib">Libraries of Functions: Standard Library and User Library</h2>
 <p>A script may call a function in an external file without having to use <a href="commands/_Include.htm">#Include</a>. For this to work, a file of the same name as the function must exist in one of the following library directories:</p>
-<pre><a href="Variables.htm#ScriptDir">%A_ScriptDir%</a>\Lib\  <em>; Local library.</em>
-<a href="Variables.htm#MyDocuments">%A_MyDocuments%</a>\AutoHotkey\Lib\  <em>; User library.</em>
-path-to-the-currently-running-AutoHotkey.exe\Lib\  <em>; Standard library.</em></pre>
+<pre><a href="Variables.htm#ScriptDir">A_ScriptDir</a> "\Lib\"  <em>; Local library.</em>
+<a href="Variables.htm#MyDocuments">A_MyDocuments</a> "\AutoHotkey\Lib\"  <em>; User library.</em>
+"path-to-the-currently-running-AutoHotkey.exe\Lib\"  <em>; Standard library.</em></pre>
 <p>For example, if a script calls a nonexistent function <code>MyFunc()</code>, the program searches for a file named &quot;MyFunc.ahk&quot; in the user library. If not found there, it searches for it in the standard library. If a match is still not found and the function's name contains an underscore (e.g. <code>MyPrefix_MyFunc</code>), the program searches both libraries for a file named <code>MyPrefix.ahk</code> and loads it if it exists. This allows <code>MyPrefix.ahk</code> to contain both the function <code>MyPrefix_MyFunc</code> and other related functions whose names start with <code>MyPrefix_</code>.</p>
 <p>The local library is searched before the user library and standard library.</p>
 <p>Only a direct function call such as <code>MyFunc()</code> can cause a library to be auto-included. If the function is only called dynamically or indirectly, such as by a timer or GUI event, the library must be explicitly included in the script.  For example: <code><a href="commands/_Include.htm">#Include</a> &lt;MyFunc&gt;</code></p>

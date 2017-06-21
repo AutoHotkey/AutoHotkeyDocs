@@ -29,7 +29,7 @@ k_Monitor := ""
 
 ;---- Create a GUI window for the on-screen keyboard:
 Gui := GuiCreate("-Caption +ToolWindow +AlwaysOnTop +Disabled")
-Gui.SetFont("s%k_FontSize% %k_FontStyle%", k_FontName)
+Gui.SetFont("s" k_FontSize " " k_FontStyle, k_FontName)
 Gui.MarginY := 0, Gui.MarginX := 0
 
 ;---- Alter the tray icon menu:
@@ -92,9 +92,9 @@ Gui.Show("x" k_xPos " y" k_yPos " NA")
 k_KeyPress(BtnCtrl)
 { 
   BtnCtrl.Opt("Default") ; Highlight the last pressed key.
-  ControlClick(, "ahk_id %BtnCtrl.Hwnd%",,,, "D")
+  ControlClick(, "ahk_id " BtnCtrl.Hwnd,,,, "D")
   KeyWait(SubStr(A_ThisHotkey, 3))
-  ControlClick(, "ahk_id %BtnCtrl.Hwnd%",,,, "U")
+  ControlClick(, "ahk_id " BtnCtrl.Hwnd,,,, "U")
 }
 
 k_ShowHide(GuiObj, HideText, ShowText)
@@ -102,13 +102,13 @@ k_ShowHide(GuiObj, HideText, ShowText)
   static isVisible := true
   if isVisible
   {
-    GuiObj.Hide()
+    GuiObj.Hide
     Menu("Tray", "Rename", HideText, ShowText)
     isVisible := false
   }
   else
   {
-    GuiObj.Show()
+    GuiObj.Show
     Menu("Tray", "Rename", ShowText, HideText)
     isVisible := true
   }
@@ -116,5 +116,5 @@ k_ShowHide(GuiObj, HideText, ShowText)
 
 k_MenuExit()
 {
-  ExitApp()
+  ExitApp
 }

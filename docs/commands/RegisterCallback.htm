@@ -27,7 +27,7 @@
   </dd>
 
   <dt>Options</dt>
-  <dd><p>Specify zero or more of the following words. Separate each option from the next with a space (e.g. <code>C Fast</code>).</p>
+  <dd><p>Specify zero or more of the following words. Separate each option from the next with a space (e.g. <code>"C Fast"</code>).</p>
     <p id="Fast"><strong>Fast</strong> or <strong>F</strong>: Avoids starting a new <a href="../misc/Threads.htm">thread</a> each time <em>FunctionName</em> is called. Although this performs better, it must be avoided whenever the thread from which <em>Address</em> is called varies (e.g. when the callback is triggered by an incoming message). This is because <em>FunctionName</em> will be able to change global settings such as <a href="../misc/ErrorLevel.htm">ErrorLevel</a>, <a href="../Variables.htm#LastError">A_LastError</a>, and the <a href="../misc/WinTitle.htm#LastFoundWindow">last-found window</a> for whichever thread happens to be running at the time it is called. For more information, see <a href="#Threads">Remarks</a>.</p>
     <p><strong>CDecl</strong> or <strong>C</strong>: Makes <em>Address</em> conform to the &quot;C&quot; calling convention. This is typically omitted because the standard calling convention is much more common for callbacks.</p></dd>
 
@@ -73,9 +73,9 @@ TheFunc("TheFunc was called directly.")          <em>; Call TheFunc directly.</e
 DllCall(callback, float, 10.5, int64, 42)        <em>; Call TheFunc via callback.</em>
 TheFunc(params*) {
     if IsObject(params)
-        MsgBox % params[1]
+        MsgBox params[1]
     else
-        MsgBox % <a href="NumGet.htm">NumGet</a>(params+0, "float") ", " NumGet(params+A_PtrSize, "int64")
+        MsgBox <a href="NumGet.htm">NumGet</a>(params+0, "float") ", " NumGet(params+A_PtrSize, "int64")
 }</pre>
 <p>Most callbacks use the <em>stdcall</em> calling convention, which requires a fixed number of parameters. In those cases, <em>ParamCount</em> must be set to the size of the parameter list, where Int64 and Double count as two 32-bit parameters.</p>
 <p>With <em>Cdecl</em> or the 64-bit calling convention, <em>ParamCount</em> only affects how many script parameters are assigned values. If omitted, all optional parameters receive their default values and are excluded from the calculations for the address stored in <em>params</em>.</p>
@@ -102,17 +102,17 @@ TheFunc(params*) {
 if not EnumAddress  <em>; Fast-mode is okay because it will be called only from this thread:</em>
     EnumAddress := <strong>RegisterCallback</strong>(&quot;EnumWindowsProc&quot;, &quot;Fast&quot;)
 
-DetectHiddenWindows On  <em>; Due to fast-mode, this setting will go into effect for the callback too.</em>
+DetectHiddenWindows True  <em>; Due to fast-mode, this setting will go into effect for the callback too.</em>
 
 <em>; Pass control to EnumWindows(), which calls the callback repeatedly:</em>
 DllCall(&quot;EnumWindows&quot;, Ptr, EnumAddress, Ptr, 0)
-MsgBox %Output%  <em>; Display the information accumulated by the callback.</em>
+MsgBox Output  <em>; Display the information accumulated by the callback.</em>
     
 EnumWindowsProc(hwnd, lParam)
 {
     global Output
-    WinGetTitle, title, ahk_id %hwnd%
-    WinGetClass, class, ahk_id %hwnd%
+    title := WinGetTitle("ahk_id " hwnd)
+    class := WinGetClass("ahk_id " hwnd)
     if title
         Output .= &quot;HWND: &quot; . hwnd . &quot;`tTitle: &quot; . title . &quot;`tClass: &quot; . class . &quot;`n&quot;
     return true  <em>; Tell EnumWindows() to continue until all windows have been enumerated.</em>
@@ -136,7 +136,7 @@ WindowProcNew := <strong>RegisterCallback</strong>(&quot;WindowProc&quot;, &quot
 WindowProcOld := DllCall(SetWindowLong, Ptr, Gui.Hwnd, Int, -4  <em>; -4 is GWL_WNDPROC</em>
     , Ptr, WindowProcNew, Ptr) <em>; Return value must be set to Ptr or UPtr vs. Int.</em>
 
-Gui.Show()
+Gui.Show
 
 WindowProc(hwnd, uMsg, wParam, lParam)
 {

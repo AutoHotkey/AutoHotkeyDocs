@@ -99,8 +99,8 @@ MsgBox("The current percentage is 25`%.")</pre>
 <p>Any lines you want to execute immediately when the script starts should appear at the top of the script, prior to the first <a href="Hotkeys.htm">hotkey</a>, <a href="Hotstrings.htm">hotstring</a>, or <a href="commands/Return.htm">Return</a>. For details, see <a href="Scripts.htm#auto">auto-execute section</a>.</p>
 <p>Also, a <a href="Hotkeys.htm">hotkey</a> that executes more than one line must list its first line <em>beneath</em> the hotkey, not on the same line. For example:</p>
 <pre>#space::  <em>; Win+Spacebar</em>
-Run Notepad
-WinWaitActive Untitled - Notepad
+Run "Notepad"
+WinWaitActive "Untitled - Notepad"
 WinMaximize
 return</pre>
 <h3 id="vista">Why doesn't my script work on Windows <em>xxx</em> even though it worked on a previous version?</h3>
@@ -141,8 +141,8 @@ return</pre>
 <p>For simple scripts, see <a href="Scripts.htm#debug">Debugging a Script</a>. To show contents of a variable, use <a href="commands/MsgBox.htm">MsgBox</a> or <a href="commands/ToolTip.htm">ToolTip</a>. For complex scripts, see <a href="Scripts.htm#idebug">Interactive Debugging</a>.</p>
 <h3 id="run">Why is the <a href="commands/Run.htm">Run</a> command unable to launch my game or program?</h3>
 <p>Some programs need to be started in their own directories (when in doubt, it is usually best to do so). For example:</p>
-<pre>Run, %A_ProgramFiles%\Some Application\App.exe, %A_ProgramFiles%\Some Application</pre>
-<p>If the program you are trying to start is in <code>%A_WinDir%\System32</code> and you are using AutoHotkey 32-bit on a 64-bit system, the <a href="https://msdn.microsoft.com/en-us/library/aa384187">File System Redirector</a> may be interfering. To work around this, use <code>%A_WinDir%\SysNative</code> instead; this is a virtual directory only visible to 32-bit programs running on 64-bit systems.</p>
+<pre>Run A_ProgramFiles "\Some Application\App.exe", A_ProgramFiles "\Some Application"</pre>
+<p>If the program you are trying to start is in <code>A_WinDir "\System32"</code> and you are using AutoHotkey 32-bit on a 64-bit system, the <a href="https://msdn.microsoft.com/en-us/library/aa384187">File System Redirector</a> may be interfering. To work around this, use <code>A_WinDir "\SysNative"</code> instead; this is a virtual directory only visible to 32-bit programs running on 64-bit systems.</p>
 
 <h3 id="games">Why do <a href="Hotstrings.htm">Hotstrings</a>, <a href="commands/Send.htm">Send</a>, and <a href="commands/Click.htm">Click</a> have no effect in certain games?</h3>
 <p>Not all games allow AHK to send keys and clicks or receive pixel colors.</p>
@@ -150,9 +150,9 @@ return</pre>
 <ul>
   <li>
   <p>Use SendPlay via the <a href="commands/Send.htm#SendPlay">SendPlay</a> command, <a href="commands/SendMode.htm">SendMode Play</a> and/or the <a href="Hotstrings.htm">hotstring option SP</a>.</p>
-  <pre>SendPlay, abc</pre>
-  <pre>SendMode, Play
-Send, abc</pre>
+  <pre>SendPlay "abc"</pre>
+  <pre>SendMode "Play"
+Send "abc"</pre>
   <pre>:SP:btw::by the way
 
 <em>; or</em>
@@ -163,27 +163,27 @@ Send, abc</pre>
   </li>
   <li>
   <p>Increase <a href="commands/SetKeyDelay.htm">SetKeyDelay</a>. For example:</p>
-  <pre>SetKeyDelay, 0, 50
-SetKeyDelay, 0, 50, Play</pre>
+  <pre>SetKeyDelay 0, 50
+SetKeyDelay 0, 50, "Play"</pre>
   </li>
   <li>
   <p>Try <a href="commands/ControlSend.htm">ControlSend</a>, which might work in cases where the other Send modes fail:</p>
-  <pre>ControlSend,, abc, game_title</pre>
+  <pre>ControlSend "abc",, <i>GameTitle</i></pre>
   </li>
   <li>
   <p>Try the down and up event of a key with the various send methods:</p>
-  <pre>Send {KEY down}{KEY up}</pre>
+  <pre>Send "{<i>KEY</i> Down}{<i>KEY</i> Up}"</pre>
   </li>
   <li>
   <p>Try the down and up event of a key with a <a href="commands/ControlSend.htm">Sleep</a> between them:</p>
-  <pre>Send {KEY down}
-Sleep 10 <em>; try various milliseconds</em>
-Send {KEY Up}</pre>
+  <pre>Send "{<i>KEY</i> Down}"
+Sleep 10 <em>; Try various milliseconds.</em>
+Send "{<i>KEY</i> Up}"</pre>
   </li>
 </ul>
 <h3 id="perf">How can performance be improved for games or at other times when the CPU is under heavy load?</h3>
 <p>If a script's <a href="Hotkeys.htm">Hotkeys</a>, <a href="commands/Click.htm">Clicks</a>, or <a href="commands/Send.htm">Sends</a> are noticeably slower than normal while the CPU is under heavy load, raising the script's process-priority may help. To do this, include the following line near the top of the script:</p>
-<pre><a href="commands/Process.htm#Priority">ProcessSetPriority</a>, High</pre>
+<pre><a href="commands/Process.htm#Priority">ProcessSetPriority</a> "High"</pre>
 <h3 id="Virus">My antivirus program flagged AutoHotkey or a compiled script as malware. Is it really a virus?</h3>
 <p>Although it is certainly possible that the file has been infected, most often these alerts are <em>false positives</em>, meaning that the antivirus program is mistaken. One common suggestion is to upload the file to an online service such as <a href="https://www.virustotal.com/">virustotal</a> or <a href="https://virusscan.jotti.org/">Jotti</a> and see what other antivirus programs have to say. If in doubt, you could send the file to the vendor of your antivirus software for confirmation. This might also help us and other AutoHotkey users, as the vendor may confirm it is a false positive and fix their product to play nice with AutoHotkey.</p>
 <p>False positives might be more common for compiled scripts which have been compressed, such as with UPX (default for AutoHotkey 1.0 but not 1.1) or MPRESS (optional for AutoHotkey 1.1). As the default AutoHotkey installation does not include a compressor, compiled scripts are not compressed by default.</p>
@@ -196,18 +196,18 @@ Send {KEY Up}</pre>
 <p>See <a href="Scripts.htm#port">Portability of AutoHotkey.exe</a>. Note that if you use auto-included function libraries, AutoHotkey.exe and the Lib folder must be up one level from Ahk2Exe.exe (e.g. \AutoHotkey.exe vs \Compiler\Ahk2Exe.exe). Also note that Ahk2Exe saves settings to the following registry key: <code>HKEY_CURRENT_USER\Software\AutoHotkey\Ahk2Exe</code>.</p>
 <h3 id="output">How can the output of a command line operation be retrieved?</h3>
 <p>Testing shows that due to file caching, a temporary file can be very fast for relatively small outputs. In fact, if the file is deleted immediately after use, it often does not actually get written to disk. For example:</p>
-<pre><a href="commands/Run.htm">RunWait</a> %comspec% /c dir &gt; C:\My Temp File.txt
-FileRead, VarToContainContents, C:\My Temp File.txt
-FileDelete, C:\My Temp File.txt</pre>
+<pre><a href="commands/Run.htm">RunWait</a> ComSpec ' /c dir &gt; C:\My Temp File.txt'
+VarToContainContents := FileRead("C:\My Temp File.txt")
+FileDelete "C:\My Temp File.txt"</pre>
 <p>To avoid using a temporary file (especially if the output is large), consider using the <a href="commands/Run.htm#StdOut">Shell.Exec()</a> method as shown in the examples for the <a href="commands/Run.htm">Run</a> command.</p>
 <h3 id="close">How can a script close, pause, or suspend other script(s)?</h3>
 <p>First, here is an example that closes another script:</p>
-<pre>DetectHiddenWindows On  <em>; Allows a script's hidden main window to be detected.</em>
+<pre>DetectHiddenWindows True  <em>; Allows a script's hidden main window to be detected.</em>
 SetTitleMatchMode 2  <em>; Avoids the need to specify the full path of the file below.</em>
-WinClose Script's File Name.ahk - AutoHotkey  <em>; Update this to reflect the script's name (case sensitive).</em></pre>
+WinClose "Script's File Name.ahk - AutoHotkey"  <em>; Update this to reflect the script's name (case sensitive).</em></pre>
 <p>To <a href="commands/Suspend.htm">suspend</a> or <a href="commands/Pause.htm">pause</a> another script, replace the last line above with one of these:</p>
-<pre>PostMessage, 0x111, 65305,,, Script's File Name.ahk - AutoHotkey  <em>; Suspend.</em>
-PostMessage, 0x111, 65306,,, Script's File Name.ahk - AutoHotkey  <em>; Pause.</em></pre>
+<pre>PostMessage 0x111, 65305,,, "Script's File Name.ahk - AutoHotkey"  <em>; Suspend.</em>
+PostMessage 0x111, 65306,,, "Script's File Name.ahk - AutoHotkey"  <em>; Pause.</em></pre>
 <h3 id="repeat">How can a repeating action be stopped without exiting the script?</h3>
 <p>To pause or resume the entire script at the press of a key, assign a hotkey to the <a href="commands/Pause.htm">Pause</a> command as in this example:</p>
 <pre>^!p::Pause  <em>; Press Ctrl+Alt+P to pause. Press it again to resume.</em></pre>
@@ -225,7 +225,7 @@ KeepWinZRunning := true
 Loop
 {
     <strong><em>; The next four lines are the action you want to repeat (update them to suit your preferences):</em></strong>
-    ToolTip, Press Win-Z again to stop this from flashing.
+    ToolTip "Press Win-Z again to stop this from flashing."
     Sleep 1000
     ToolTip
     Sleep 1000
@@ -240,15 +240,15 @@ return</pre>
 <h3 id="load">How to detect when a web page is finished loading?</h3>
 <p>With Internet Explorer, perhaps the most reliable method is to use DllCall and COM as demonstrated at <a href="http://www.autohotkey.com/forum/topic19256.html">www.autohotkey.com/forum/topic19256.html</a>. On a related note, the contents of the address bar and status bar can be retrieved as demonstrated at <a href="http://www.autohotkey.com/forum/topic19255.html">www.autohotkey.com/forum/topic19255.html</a>.</p>
 <p><strong>Older, less reliable method:</strong> The technique in the following example will work with MS Internet Explorer for most pages. A similar technique might work in other browsers:</p>
-<pre>Run, www.yahoo.com
-MouseMove, 0, 0  <em>; Prevents the status bar from showing a mouse-hover link instead of &quot;Done&quot;.</em>
-WinWait, Yahoo! - 
-WinActivate 
-<a href="commands/StatusBarWait.htm">StatusBarWait</a>, Done, 30
+<pre>Run "www.yahoo.com"
+MouseMove 0, 0  <em>; Prevents the status bar from showing a mouse-hover link instead of &quot;Done&quot;.</em>
+WinWait "Yahoo! - 
+WinActivate
+<a href="commands/StatusBarWait.htm">StatusBarWait</a> "Done", 30
 if ErrorLevel
-   MsgBox The wait timed out or the window was closed. 
+   MsgBox "The wait timed out or the window was closed."
 else 
-   MsgBox The page is done loading.</pre>
+   MsgBox "The page is done loading."</pre>
 <h3 id="time">How can dates and times be compared or manipulated?</h3>
 <p>The <a href="commands/DateAdd.htm">DateAdd</a> command can add or subtract a quantity of days, hours, minutes, or seconds to a time-string that is in the <a href="commands/FileSetTime.htm#YYYYMMDD">YYYYMMDDHH24MISS</a> format. The following example subtracts 7 days from the specified time:</p>
 <pre>Result := DateAdd(VarContainingTimestamp, -7, "days")</pre>
@@ -269,12 +269,12 @@ else
 Gui.Add("Text",, "Enter some Text and press Submit:")
 Gui.Add("Edit", "vMyEdit")
 Gui.Add("Button",, "Submit").OnEvent("Click", "Submit")
-Gui.Show()
+Gui.Show
 
 Submit(Btn)
 {
   Saved := Btn.Gui.Submit(false)
-  MsgBox("Content of the edit control: " Saved.MyEdit)
+  MsgBox "Content of the edit control: " Saved.MyEdit
 }</pre>
 <h3 id="GDIPlus">Can I draw something with AHK?</h3>
 <p>See <a href="http://www.autohotkey.com/forum/topic32238.html">GDI+ standard library</a> by tic. It's also possible with some rudimentary methods using Gui, but in a limited way.</p>
@@ -302,18 +302,18 @@ Submit(Btn)
 <p>Use <a href="Variables.htm#h">built-in variables for hotkeys</a> as follows:</p>
 <pre>~Ctrl::
     if (A_ThisHotkey = A_PriorHotkey &amp;&amp; A_TimeSincePriorHotkey &lt; 200)
-        MsgBox double-press
+        MsgBox "double-press"
 return</pre>
 <h3 id="HotContext">How can a <a href="Hotkeys.htm">hotkey</a> or <a href="Hotstrings.htm">hotstring</a> be made exclusive to  certain program(s)? In other words, I want a certain key to act as it normally does except when a specific window is active.</h3>
 <p>The preferred method is <a href="commands/_IfWinActive.htm">#IfWinActive</a>. For example:</p>
-<pre>#IfWinActive, ahk_class Notepad
-^a::MsgBox You pressed Control-A while Notepad is active.
+<pre>#IfWinActive ahk_class Notepad
+^a::MsgBox "You pressed Control-A while Notepad is active."
 </pre>
 <h3 id="HotPrefix">How can  a prefix key be made to perform its native function rather than doing nothing?</h3>
 <p>Consider the following example, which makes Numpad0 into a prefix key:</p>
-<pre>Numpad0 &amp; Numpad1::MsgBox, You pressed Numpad1 while holding down Numpad0.</pre>
+<pre>Numpad0 &amp; Numpad1::MsgBox "You pressed Numpad1 while holding down Numpad0."</pre>
 <p>Now, to make Numpad0 send a real Numpad0 keystroke whenever it wasn't used to launch a hotkey such as the above, add the following hotkey:</p>
-<pre> $Numpad0::Send, {Numpad0}</pre>
+<pre> $Numpad0::Send "{Numpad0}"</pre>
 <p>The $ prefix is needed to prevent a warning dialog about an infinite loop (since the hotkey &quot;sends itself&quot;). In addition, the above action occurs at the time the key is <strong>released.</strong></p>
 <h3 id="HotOverride">How can the built-in Windows shortcut keys, such as Win+U (Utility Manager) and Win+R (Run), be changed or disabled?</h3>
 <p>Here are some <a href="misc/Override.htm">examples</a>.</p>

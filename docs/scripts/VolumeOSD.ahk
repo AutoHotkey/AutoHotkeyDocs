@@ -75,5 +75,5 @@ ChangeVolume(config, G, Prefix, ComponentType := "Master")
 
 HideWindow(G)
 {
-  G.Hide()
+  G.Hide
 }

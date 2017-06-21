@@ -26,7 +26,7 @@
 
   <dt id="MaxThreads">MaxThreads</dt>
   <dd><p>This integer is normally omitted, in which case the monitor function is limited to one <a href="../misc/Threads.htm">thread</a> at a time. This is usually best because otherwise, the script would process messages out of chronological order whenever the monitor function interrupts itself. Therefore, as an alternative to <em>MaxThreads</em>, consider using <em>Critical</em> as described <a href="#Critical">below</a>.</p>
-  <p>By default, when multiple functions are registered for a single <em>MsgNumber</em>, they are called in the order that they were registered. To register a function to be called before any previously registered functions, specify a negative value for <em>MaxThreads</em>. For example, <code>OnMessage(Msg, Fn, -2)</code> registers <code>Fn</code> to be called before any other functions previously registered for <em>Msg</em>, and allows <em>Fn</em> a maximum of 2 threads. However, if the function is already registered, the order will not change unless it is unregistered and then re-registered.</p></dd>
+  <p>By default, when multiple functions are registered for a single <em>MsgNumber</em>, they are called in the order that they were registered. To register a function to be called before any previously registered functions, specify a negative value for <em>MaxThreads</em>. For example, <code>OnMessage Msg, Fn, -2</code> registers <code>Fn</code> to be called before any other functions previously registered for <em>Msg</em>, and allows <em>Fn</em> a maximum of 2 threads. However, if the function is already registered, the order will not change unless it is unregistered and then re-registered.</p></dd>
 
 </dl>
 
@@ -67,7 +67,7 @@ Parameter #4: The HWND (unique ID) of the window or control to which the message
 <h3>Additional Information Available to the Function</h3>
 <p>In addition to the parameters received above, the function may also consult the built-in variable <a href="../Variables.htm#EventInfo">A_EventInfo</a>, which contains 0 if the message was sent via SendMessage. If sent via PostMessage, it contains the <a href="../Variables.htm#TickCount">tick-count time</a> the message was posted.</p>
 <p>A monitor function's <a href="../misc/WinTitle.htm#LastFoundWindow">last found window</a> starts off as the parent window to which the message was sent (even if it was sent to a control). If the window is hidden but not a GUI window (such as the script's main window), turn on <a href="DetectHiddenWindows.htm">DetectHiddenWindows</a> before using it. For example:</p>
-<pre>DetectHiddenWindows On
+<pre>DetectHiddenWindows True
 MsgParentWindow := WinExist()  <em>; This stores the unique ID of the window to which the message was sent.</em></pre>
 
 <h3>What the Function Should <em>Return</em></h3>
@@ -96,8 +96,8 @@ Gui := GuiCreate(, "Example Window")
 Gui.Add("Text",, "Click anywhere in this window.")
 Gui.Add("Edit", "w200")
 Gui.OnEvent("Close", "Gui_Close")
-Gui.Show()
-OnMessage(0x201, "WM_LBUTTONDOWN")
+Gui.Show
+OnMessage 0x201, "WM_LBUTTONDOWN"
 
 WM_LBUTTONDOWN(wParam, lParam, msg, hwnd)
 {
@@ -110,11 +110,11 @@ WM_LBUTTONDOWN(wParam, lParam, msg, hwnd)
         Gui := GuiControl.Gui
         Control := "`n(in control " . GuiControl.ClassNN . ")"
     }
-    ToolTip("You left-clicked in Gui window '%Gui.Title%' at client coordinates %X%x%Y%." Control)
+    ToolTip "You left-clicked in Gui window '" Gui.Title "' at client coordinates " X "x" Y "." Control
 }
 
 Gui_Close() {
-    ExitApp()
+    ExitApp
 }</pre>
 
 <pre class="NoIndent" id="shutdown"><em>; Example: The following script detects system shutdown/logoff and allows you to abort it (this is
@@ -122,8 +122,8 @@ Gui_Close() {
 ; Related topic: <a href="OnExit.htm">OnExit</a></em>
 
 <em>; The following DllCall is optional: it tells the OS to shut down this script <i>first</i> (prior to all other applications).</em>
-DllCall(&quot;kernel32.dll\SetProcessShutdownParameters&quot;, UInt, 0x4FF, UInt, 0)
-OnMessage(0x11, &quot;WM_QUERYENDSESSION&quot;)
+DllCall &quot;kernel32.dll\SetProcessShutdownParameters&quot;, UInt, 0x4FF, UInt, 0
+OnMessage 0x11, &quot;WM_QUERYENDSESSION&quot;
 return
 
 WM_QUERYENDSESSION(wParam, lParam)
@@ -133,7 +133,7 @@ WM_QUERYENDSESSION(wParam, lParam)
         EventType := "Logoff"
     else  <em>; System is either shutting down or restarting.</em>
         EventType := "Shutdown"
-    Result := MsgBox("%EventType% in progress.  Allow it?",, 4)
+    Result := MsgBox(EventType " in progress. Allow it?",, 4)
     <em>; Tell the OS to allow the shutdown/logoff to continue only if the user clicked Yes.</em>
     return Result = "Yes"
 }</pre>
@@ -141,22 +141,22 @@ WM_QUERYENDSESSION(wParam, lParam)
 <pre class="NoIndent"><em>; Example: Have a script receive a custom message and up to two numbers from some other script or program
 ; (to send strings rather than numbers, see the example after this one).</em>
 
-OnMessage(0x5555, &quot;MsgMonitor&quot;)
-OnMessage(0x5556, &quot;MsgMonitor&quot;)
+OnMessage 0x5555, &quot;MsgMonitor&quot;
+OnMessage 0x5556, &quot;MsgMonitor&quot;
 
 MsgMonitor(wParam, lParam, msg)
 {
     <em>; Since returning quickly is often important, it is better to use a ToolTip than</em>
     <em>; something like MsgBox that would prevent the function from finishing:</em>
-    ToolTip Message %msg% arrived:`nWPARAM: %wParam%`nLPARAM: %lParam%
+    ToolTip "Message " msg " arrived:`nWPARAM: " wParam "`nLPARAM: " lParam
 }
 
 <em>; The following could be used inside some other script to run the function inside the above script:</em>
 SetTitleMatchMode 2
-DetectHiddenWindows On
+DetectHiddenWindows True
 if WinExist(&quot;Name of Receiving Script.ahk ahk_class AutoHotkey&quot;)
-    PostMessage, 0x5555, 11, 22  <em>; The message is sent  to the &quot;<a href="../misc/WinTitle.htm#LastFoundWindow">last found window</a>&quot; due to WinExist() above.</em>
-DetectHiddenWindows Off  <em>; Must not be turned off until after PostMessage.</em></pre>
+    PostMessage 0x5555, 11, 22  <em>; The message is sent  to the &quot;<a href="../misc/WinTitle.htm#LastFoundWindow">last found window</a>&quot; due to WinExist() above.</em>
+DetectHiddenWindows False  <em>; Must not be turned off until after PostMessage.</em></pre>
 
 <pre class="NoIndent" id="SendString"><em>; Example: Send a string of any length from one script to another.  This is a working example.
 ; To use it, save and run both of the following scripts then press Win+Space to show an
@@ -164,7 +164,7 @@ DetectHiddenWindows Off  <em>; Must not be turned off until after PostMessage.</
 
 <em>; Save the following script as &quot;<strong>Receiver.ahk</strong>&quot; then launch it:</em>
 #SingleInstance
-OnMessage(0x4a, &quot;Receive_WM_COPYDATA&quot;)  <em>; 0x4a is WM_COPYDATA</em>
+OnMessage 0x4a, &quot;Receive_WM_COPYDATA&quot;  <em>; 0x4a is WM_COPYDATA</em>
 return
 
 Receive_WM_COPYDATA(wParam, lParam)
@@ -172,7 +172,7 @@ Receive_WM_COPYDATA(wParam, lParam)
     StringAddress := NumGet(lParam + 2*A_PtrSize)  <em>; Retrieves the CopyDataStruct's lpData member.</em>
     CopyOfData := StrGet(StringAddress)  <em>; Copy the string out of the structure.</em>
     <em>; Show it with ToolTip vs. MsgBox so we can return in a timely fashion:</em>
-    ToolTip %A_ScriptName%`nReceived the following string:`n%CopyOfData%
+    ToolTip A_ScriptName "`nReceived the following string:`n" CopyOfData
     return true  <em>; Returning 1 (true) is the traditional way to acknowledge this message.</em>
 }
 
@@ -180,14 +180,14 @@ Receive_WM_COPYDATA(wParam, lParam)
 TargetScriptTitle := "Receiver.ahk ahk_class AutoHotkey"
 
 #space::  <em>; Win+Space hotkey. Press it to show an InputBox for entry of a message string.</em>
-InputBox, StringToSend, Enter some text to Send:, Send text via WM_COPYDATA
+StringToSend := InputBox("Enter some text to Send:", "Send text via WM_COPYDATA")
 if ErrorLevel  <em>; User pressed the Cancel button.</em>
     return
 result := Send_WM_COPYDATA(StringToSend, TargetScriptTitle)
-if result = "ERROR"
-    MsgBox SendMessage failed. Does the following WinTitle exist?:`n%TargetScriptTitle%
+if result = ""
+    MsgBox "SendMessage failed or timed out. Does the following WinTitle exist?:`n" TargetScriptTitle
 else if result = 0
-    MsgBox Message sent but the target window responded with 0, which may mean it ignored it.
+    MsgBox "Message sent but the target window responded with 0, which may mean it ignored it."
 return
 
 Send_WM_COPYDATA(ByRef StringToSend, ByRef TargetScriptTitle)  <em>; ByRef saves a little memory in this case.
@@ -201,14 +201,14 @@ Send_WM_COPYDATA(ByRef StringToSend, ByRef TargetScriptTitle)  <em>; ByRef saves
     NumPut(&amp;StringToSend, CopyDataStruct, 2*A_PtrSize)  <em>; Set lpData to point to the string itself.</em>
     Prev_DetectHiddenWindows := A_DetectHiddenWindows
     Prev_TitleMatchMode := A_TitleMatchMode
-    DetectHiddenWindows On
+    DetectHiddenWindows True
     SetTitleMatchMode 2
-    TimeOutTime := 4000  <em>; Optional. Milliseconds to wait for response from receiver.ahk. Default is 5000</em>
-    <em>; Must use SendMessage not PostMessage.</em>
-    SendMessage 0x4a, 0, &amp;CopyDataStruct,, TargetScriptTitle,,,, TimeOutTime <em>; 0x4a is WM_COPYDATA.</em>
-    DetectHiddenWindows %Prev_DetectHiddenWindows%  <em>; Restore original setting for the caller.</em>
-    SetTitleMatchMode %Prev_TitleMatchMode%         <em>; Same.</em>
-    return ErrorLevel  <em>; Return SendMessage's reply back to our caller.</em>
+    TimeOutTime := 4000  <em>; Optional. Milliseconds to wait for response from receiver.ahk. Default is 5000
+    ; Must use SendMessage not PostMessage.</em>
+    RetValue := SendMessage(0x4a, 0, &amp;CopyDataStruct,, TargetScriptTitle,,,, TimeOutTime) <em>; 0x4a is WM_COPYDATA.</em>
+    DetectHiddenWindows Prev_DetectHiddenWindows  <em>; Restore original setting for the caller.</em>
+    SetTitleMatchMode Prev_TitleMatchMode         <em>; Same.</em>
+    return RetValue  <em>; Return SendMessage's reply back to our caller.</em>
 }</pre>
 
 <pre class="NoIndent"><em>; Example: See the <a href="../scripts/WinLIRC.htm">WinLIRC client script</a> for a demonstration of how to use OnMessage() to receive

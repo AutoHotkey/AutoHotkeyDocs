@@ -29,26 +29,26 @@ $^2::
 SetWinDelay 10
 SetKeyDelay 0
 
-C_ClipboardPrev := clipboard
-clipboard := ""
+C_ClipboardPrev := Clipboard
+Clipboard := ""
 <em>; Use the highlighted word if there is one (since sometimes the user might
 ; intentionally highlight something that isn't a command):</em>
-Send, ^c
-ClipWait, 0.1
-if ErrorLevel &lt;&gt; 0
+Send "^c"
+ClipWait 0.1
+if ErrorLevel
 {
     <em>; Get the entire line because editors treat cursor navigation keys differently:</em>
-    Send, {home}+{end}^c
-    ClipWait, 0.2
-    if ErrorLevel &lt;&gt; 0  <em>; Rare, so no error is reported.</em>
+    Send "{home}+{end}^c"
+    ClipWait 0.2
+    if ErrorLevel  <em>; Rare, so no error is reported.</em>
     {
-        clipboard := C_ClipboardPrev
+        Clipboard := C_ClipboardPrev
         return
     }
 }
-C_Cmd := Trim(clipboard)  <em>; This will trim leading and trailing tabs & spaces.</em>
-clipboard := C_ClipboardPrev  <em>; Restore the original clipboard for the user.</em>
-Loop, parse, %C_Cmd%, %A_Space%`,  <em>; The first space or comma is the end of the command.</em>
+C_Cmd := Trim(Clipboard)  <em>; This will trim leading and trailing tabs & spaces.</em>
+Clipboard := C_ClipboardPrev  <em>; Restore the original clipboard for the user.</em>
+Loop Parse, C_Cmd, "`s,"  <em>; The first space or comma is the end of the command.</em>
 {
     C_Cmd := A_LoopField
     break <em>; i.e. we only need one interation.</em>
@@ -56,29 +56,29 @@ Loop, parse, %C_Cmd%, %A_Space%`,  <em>; The first space or comma is the end of 
 if !WinExist("AutoHotkey Help")
 {
     <em>; Determine AutoHotkey's location:</em>
-    RegRead, ahk_dir, HKEY_LOCAL_MACHINE\SOFTWARE\AutoHotkey, InstallDir
+    ahk_dir := RegRead("HKEY_LOCAL_MACHINE\SOFTWARE\AutoHotkey", "InstallDir")
     if ErrorLevel  <em>; Not found, so look for it in some other common locations.</em>
     {
         if A_AhkPath
-            SplitPath, %A_AhkPath%,, ahk_dir
+            SplitPath A_AhkPath,, ahk_dir
         else if FileExist("..\..\AutoHotkey.chm")
             ahk_dir := "..\.."
-        else if FileExist("%A_ProgramFiles%\AutoHotkey\AutoHotkey.chm")
-            ahk_dir := "%A_ProgramFiles%\AutoHotkey"
+        else if FileExist(A_ProgramFiles "\AutoHotkey\AutoHotkey.chm")
+            ahk_dir := A_ProgramFiles "\AutoHotkey"
         else
         {
-            MsgBox Could not find the AutoHotkey folder.
+            MsgBox "Could not find the AutoHotkey folder."
             return
         }
     }
-    Run %ahk_dir%\AutoHotkey.chm
-    WinWait AutoHotkey Help
+    Run ahk_dir "\AutoHotkey.chm"
+    WinWait "AutoHotkey Help"
 }
 <em>; The above has set the "last found" window which we use below:</em>
 WinActivate
 WinWaitActive
-StrReplace, C_Cmd, %C_Cmd%, #, {#}
-send, !n{home}+{end}%C_Cmd%{enter}
+C_Cmd := StrReplace(C_Cmd, "#", "{#}")
+Send "!n{home}+{end}" C_Cmd "{enter}"
 return
 </pre>
 </body>

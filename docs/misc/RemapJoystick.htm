@@ -29,67 +29,67 @@
 <h2 id="button">Making a Joystick Button Send Keystrokes or Mouse Clicks</h2>
 <p>Below are three approaches, starting at the simplest and ending with the most complex. The most complex method works in the broadest variety of circumstances (such as games that require a key or mouse button to be held down).</p>
 <p><strong>Method #1</strong>: This method sends simple keystrokes and mouse clicks. For example:</p>
-<pre>Joy1::<a href="../commands/Send.htm">Send</a> {Left}  <em>; Have button #1 send a left-arrow keystroke.</em>
+<pre>Joy1::<a href="../commands/Send.htm">Send</a> "{Left}"  <em>; Have button #1 send a left-arrow keystroke.</em>
 Joy2::<a href="../commands/Click.htm">Click</a>  <em>; Have button #2 send a click of left mouse button.</em>
-Joy3::Send a{Esc}{Space}{Enter}  <em>; Have button #3 send the letter &quot;a&quot; followed by Escape, Space, and Enter.</em>
-Joy4::Send Sincerely,{Enter}John Smith  <em>; Have button #4 send a two-line signature.</em></pre>
+Joy3::Send "a{Esc}{Space}{Enter}"  <em>; Have button #3 send the letter &quot;a&quot; followed by Escape, Space, and Enter.</em>
+Joy4::Send "Sincerely,{Enter}John Smith"  <em>; Have button #4 send a two-line signature.</em></pre>
 <p>To have a button perform more than one command, put the first command <em>beneath</em> the button name and make the last command a <a href="../commands/Return.htm">return</a>. For example:</p>
 <pre>Joy5::
-Run Notepad
-WinWait Untitled - Notepad
+Run "notepad"
+WinWait "Untitled - Notepad"
 WinActivate
-Send This is the text that will appear in Notepad.{Enter}
+Send "This is the text that will appear in Notepad.{Enter}"
 return</pre>
 <p>See the <a href="../KeyList.htm">Key List</a> for the complete list of keys and mouse/joystick buttons.</p>
 <br>
 <p><strong>Method #2</strong>: This method is necessary in cases where a key or mouse button must be held down for the entire time that you're holding down a joystick button. The following example makes the joystick's second button become the left-arrow key:</p>
 <pre>Joy2::
-Send {Left down}  <em>; Hold down the left-arrow key.</em>
-<a href="../commands/KeyWait.htm">KeyWait</a> Joy2  <em>; Wait for the user to release the joystick button.</em>
-Send {Left up}  <em>; Release the left-arrow key.</em>
+Send "{Left down}"  <em>; Hold down the left-arrow key.</em>
+<a href="../commands/KeyWait.htm">KeyWait</a> "Joy2"  <em>; Wait for the user to release the joystick button.</em>
+Send "{Left up}"  <em>; Release the left-arrow key.</em>
 return</pre>
 <br>
 <p><strong>Method #3</strong>: This method is necessary in cases where you have more than one joystick hotkey of the type described in Method #2, and you sometimes press and release such hotkeys simultaneously. The following example makes the joystick's third button become the left mouse button:</p>
 <pre>Joy3::
-Send {LButton down}   <em>; Hold down the left mouse button.</em>
-SetTimer, WaitForButtonUp3, 10
+Send "{LButton down}"   <em>; Hold down the left mouse button.</em>
+SetTimer "WaitForButtonUp3", 10
 return
 
 WaitForButtonUp3:
 if <a href="../commands/GetKeyState.htm">GetKeyState</a>(&quot;Joy3&quot;)  <em>; The button is still, down, so keep waiting.</em>
     return
 <em>; Otherwise, the button has been released.</em>
-Send {LButton up}  <em>; Release the left mouse button.</em>
-SetTimer,, off
+Send "{LButton up}"  <em>; Release the left mouse button.</em>
+SetTimer , "Off"
 return
 </pre>
 <br>
 <p><strong>Auto-repeating a keystroke</strong>: Some programs or games might require a key to be sent repeatedly (as though you are holding it down on the keyboard). The following example achieves this by sending spacebar keystrokes repeatedly while you hold down the joystick's second button:</p>
 <pre>Joy2::
-Send {Space down}   <em>; Press the spacebar down.</em>
-SetTimer, WaitForJoy2, <strong>30</strong>  <em>; Reduce the number <strong>30</strong> to 20 or 10 to send keys faster. Increase it to send slower.</em>
+Send "{Space down}"   <em>; Press the spacebar down.</em>
+SetTimer "WaitForJoy2", <strong>30</strong>  <em>; Reduce the number <strong>30</strong> to 20 or 10 to send keys faster. Increase it to send slower.</em>
 return
 
 WaitForJoy2:
 if not GetKeyState(&quot;Joy2&quot;)  <em>; The button has been released.</em>
 {
-    Send {Space up}  <em>; Release the spacebar.</em>
-    SetTimer,, off  <em>; Stop monitoring the button.</em>
+    Send "{Space up}"  <em>; Release the spacebar.</em>
+    SetTimer , "Off"  <em>; Stop monitoring the button.</em>
     return
 }
 <em>; Since above didn't &quot;return&quot;, the button is still being held down.</em>
-Send {Space down}  <em>; Send another Spacebar keystroke.</em>
+Send "{Space down}"  <em>; Send another Spacebar keystroke.</em>
 return</pre>
 <p><strong>Context-sensitive Joystick Buttons</strong>: The directives <a href="../commands/_IfWinActive.htm">#IfWinActive/Exist</a> can be used to make selected joystick buttons perform a different action (or none at all) depending on the type of window that is active or exists.</p>
 <p><strong>Using a Joystick as a Mouse</strong>: The <a href="../scripts/JoystickMouse.htm">Joystick-To-Mouse script</a> converts a joystick into a mouse by remapping its buttons and axis control.</p>
 <h2 id="axis">Making a Joystick Axis or POV Hat Send Keystrokes or Mouse Clicks</h2>
 <p>To have a script respond to movement of a joystick's axis or POV hat, use <a href="../commands/SetTimer.htm">SetTimer</a> and <a href="../commands/GetKeyState.htm">GetKeyState</a>. The following example makes the joystick's X and Y axes behave like the arrow key cluster on a keyboard (left, right, up, and down):</p>
-<pre><a href="../commands/SetTimer.htm">SetTimer</a>, WatchAxis, 5
+<pre><a href="../commands/SetTimer.htm">SetTimer</a> "WatchAxis", 5
 return
 
 WatchAxis:
-<a href="../commands/GetKeyState.htm">GetKeyState</a>, JoyX, JoyX  <em>; Get position of X axis.</em>
-GetKeyState, JoyY, JoyY  <em>; Get position of Y axis.</em>
+JoyX := <a href="../commands/GetKeyState.htm">GetKeyState</a>("JoyX")  <em>; Get position of X axis.</em>
+JoyY := GetKeyState("JoyY")  <em>; Get position of Y axis.</em>
 KeyToHoldDownPrev := KeyToHoldDown  <em>; Prev now holds the key that was down before (if any).</em>
 
 if JoyX &gt; 70
@@ -109,17 +109,17 @@ if KeyToHoldDown = KeyToHoldDownPrev  <em>; The correct key is already down (or 
 <em>; Otherwise, release the previous key and press down the new key:</em>
 SetKeyDelay -1  <em>; Avoid delays between keystrokes.</em>
 if KeyToHoldDownPrev   <em>; There is a previous key to release.</em>
-    Send, {%KeyToHoldDownPrev% up}  <em>; Release it.</em>
+    Send "{" KeyToHoldDownPrev " up}"  <em>; Release it.</em>
 if KeyToHoldDown   <em>; There is a key to press down.</em>
-    Send, {%KeyToHoldDown% down}  <em>; Press it down.</em>
+    Send "{" KeyToHoldDown " down}"  <em>; Press it down.</em>
 return</pre>
 <p>&nbsp;</p>
 <p>The following example makes the joystick's POV hat behave like the arrow key cluster on a keyboard; that is, the POV hat will send arrow keystrokes (left, right, up, and down):</p>
-<pre>SetTimer, WatchPOV, 5
+<pre>SetTimer "WatchPOV", 5
 return
 
 WatchPOV:
-GetKeyState, POV, JoyPOV  <em>; Get position of the POV control.</em>
+POV := GetKeyState("JoyPOV")  <em>; Get position of the POV control.</em>
 KeyToHoldDownPrev := KeyToHoldDown  <em>; Prev now holds the key that was down before (if any).</em>
 
 <em>; Some joysticks might have a smooth/continous POV rather than one in fixed increments.
@@ -143,9 +143,9 @@ if KeyToHoldDown = KeyToHoldDownPrev  <em>; The correct key is already down (or 
 <em>; Otherwise, release the previous key and press down the new key:</em>
 SetKeyDelay -1  <em>; Avoid delays between keystrokes.</em>
 if KeyToHoldDownPrev   <em>; There is a previous key to release.</em>
-    Send, {%KeyToHoldDownPrev% up}  <em>; Release it.</em>
+    Send "{" KeyToHoldDownPrev " up}"  <em>; Release it.</em>
 if KeyToHoldDown   <em>; There is a key to press down.</em>
-    Send, {%KeyToHoldDown% down}  <em>; Press it down.</em>
+    Send "{" KeyToHoldDown " down}"  <em>; Press it down.</em>
 return</pre>
 <p>&nbsp;</p>
 <p><strong>Auto-repeating a keystroke</strong>: Both examples above can be modified to send the key repeatedly rather than merely holding it down (that is, they can mimic physically holding down a key on the keyboard). To do this, replace the following line:</p>
@@ -153,7 +153,7 @@ return</pre>
 <p>WITH:</p>
 <pre>{
     if KeyToHoldDown
-        Send, {%KeyToHoldDown% down}  <em>; Auto-repeat the keystroke.</em>
+        Send "{" KeyToHoldDown " down}"  <em>; Auto-repeat the keystroke.</em>
     return
 }</pre>
 <h2 id="Remarks">Remarks</h2>

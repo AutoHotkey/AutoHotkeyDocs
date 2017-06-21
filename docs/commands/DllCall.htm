@@ -135,7 +135,7 @@ DllCall("DeleteFile", Ptr, &amp;filename) <em>; Omit the quote marks around Ptr.
 <h3 id="load">Performance</h3>
 <p>When making repeated calls to a DLL, performance can be dramatically improved by loading it explicitly (<em>this is not necessary for a <a href="#std">standard DLL</a> such as User32 because it is always resident</em>). This practice avoids the need for DllCall to internally call LoadLibrary and FreeLibrary each time. For example:</p>
 <pre>hModule := DllCall(&quot;<strong>LoadLibrary</strong>&quot;, &quot;Str&quot;, &quot;MyFunctions.dll&quot;, &quot;Ptr&quot;)  <em>; Avoids the need for DllCall() in the loop to load the library.</em>
-Loop, Files, C:\My Documents\*.*, R
+Loop Files, "C:\My Documents\*.*", "R"
     result := DllCall(&quot;MyFunctions\BackupFile&quot;, &quot;Str&quot;, A_LoopFilePath)
 DllCall(&quot;<strong>FreeLibrary</strong>&quot;, &quot;Ptr&quot;, hModule)  <em>; To conserve memory, the DLL may be unloaded after using it.</em></pre>
 <p>Even faster performance can be achieved by looking up the function's address beforehand. For example:</p>
@@ -174,7 +174,7 @@ result := DllCall(&quot;CharLower&quot;, <strong><u>str</u></strong>, DllCall(&q
 <pre class="NoIndent"><em>; Example: Calls the Windows API function &quot;MessageBox&quot; and report which button the user presses.</em>
 
 WhichButton := DllCall(&quot;MessageBox&quot;, &quot;Int&quot;, &quot;0&quot;, &quot;Str&quot;, &quot;Press Yes or No&quot;, &quot;Str&quot;, &quot;Title of box&quot;, &quot;Int&quot;, 4)
-MsgBox You pressed button #%WhichButton%.</pre>
+MsgBox "You pressed button #" WhichButton</pre>
 
 <pre class="NoIndent"><em>; Example: Changes the desktop wallpaper to the specified bitmap (.bmp) file.</em>
 
@@ -182,22 +182,22 @@ DllCall(&quot;SystemParametersInfo&quot;, UInt, 0x14, UInt, 0, Str, <i>A_WinDir 
 
 <pre class="NoIndent"><em>; Example: Calls the API function &quot;IsWindowVisible&quot; to find out if a Notepad window is visible.</em>
 
-DetectHiddenWindows On
+DetectHiddenWindows True
 if not DllCall(&quot;IsWindowVisible&quot;, &quot;Ptr&quot;, WinExist(&quot;Untitled - Notepad&quot;))  <em>; WinExist() returns an HWND.</em>
-    MsgBox The window is not visible.</pre>
+    MsgBox "The window is not visible."</pre>
 
 <pre class="NoIndent"><em>; Example: Calls the API's wsprintf() to pad the number 432 with leading zeros to make it 10 characters wide (0000000432).</em>
 
 VarSetCapacity(ZeroPaddedNumber, 20)  <em>; Ensure the variable is large enough to accept the new string.</em>
 DllCall(&quot;wsprintf&quot;, &quot;Str&quot;, ZeroPaddedNumber, &quot;Str&quot;, &quot;%010d&quot;, &quot;Int&quot;, 432, &quot;Cdecl&quot;)  <em>; Requires the Cdecl calling convention.</em>
-MsgBox %ZeroPaddedNumber%</pre>
+MsgBox ZeroPaddedNumber</pre>
 
 <pre class="NoIndent" id="QPC"><em>; Example: Demonstrates QueryPerformanceCounter(), which gives more precision than <a href="../Variables.htm#TickCount">A_TickCount's</a> 10ms.</em>
 
 DllCall(&quot;QueryPerformanceCounter&quot;, &quot;Int64*&quot;, CounterBefore)
 Sleep 1000
 DllCall(&quot;QueryPerformanceCounter&quot;, &quot;Int64*&quot;, CounterAfter)
-MsgBox % &quot;Elapsed QPC time is &quot; . CounterAfter - CounterBefore</pre>
+MsgBox &quot;Elapsed QPC time is &quot; . CounterAfter - CounterBefore</pre>
 
 <pre class="NoIndent"><em>; Example: This is a hotkey that temporarily reduces the mouse cursor's speed, which facilitates precise positioning.
 ; Hold down the F1 key to slow down the cursor. Release it to return to original speed.</em>
@@ -209,7 +209,7 @@ SPI_SETMOUSESPEED := 0x71
 <strong>DllCall</strong>(&quot;SystemParametersInfo&quot;, UInt, SPI_GETMOUSESPEED, UInt, 0, UIntP, OrigMouseSpeed, UInt, 0)
 <em>; Now set the mouse to the slower speed specified in the next-to-last parameter (the range is 1-20, 10 is default):</em>
 <strong>DllCall</strong>(&quot;SystemParametersInfo&quot;, UInt, SPI_SETMOUSESPEED, UInt, 0, Ptr, <strong>3</strong>, UInt, 0)
-KeyWait F1  <em>; This prevents keyboard auto-repeat from doing the DllCall repeatedly.</em>
+KeyWait "F1"  <em>; This prevents keyboard auto-repeat from doing the DllCall repeatedly.</em>
 return
 
 F1 up::<strong>DllCall</strong>(&quot;SystemParametersInfo&quot;, UInt, 0x71, UInt, 0, Ptr, OrigMouseSpeed, UInt, 0)  <em>; Restore the original speed.</em></pre>
@@ -217,15 +217,15 @@ F1 up::<strong>DllCall</strong>(&quot;SystemParametersInfo&quot;, UInt, 0x71, UI
 <pre class="NoIndent"><em>; Example: Monitors the active window and display the position of its vertical scroll bar in its
 ; focused control (with real-time updates).</em>
 
-SetTimer, WatchScrollBar, 100
+SetTimer "WatchScrollBar", 100
 return
 
 WatchScrollBar:
 ActiveWindow := WinExist(&quot;A&quot;)
-if not ActiveWindow  <em>; No active window.</em>
+if !ActiveWindow  <em>; No active window.</em>
     return
 FocusedControl := ControlGetFocus()  <em>; Omit all parameter to use the Last Found Window.</em>
-if not FocusedControl  <em>; No focused control.</em>
+if !FocusedControl  <em>; No focused control.</em>
     return
 <em>; Display the vertical or horizontal scroll bar's position in a ToolTip:</em>
 ChildHWND := ControlGetHwnd(FocusedControl)
@@ -236,15 +236,15 @@ return</pre>
 ; This method can be used to help performance in cases where multiple files are being read or written simultaneously.
 ; Alternatively, <a href="FileOpen.htm">FileOpen</a> can be used to the <a href="FileOpen.htm#writeread">same effect</a>.</em>
 
-FileSelect, FileName, S16,, Create a new file:
+FileName := FileSelect("S16",, "Create a new file:")
 if FileName = ""
     return
 GENERIC_WRITE := 0x40000000  <em>; Open the file for writing rather than reading.</em>
 CREATE_ALWAYS := 2  <em>; Create new file (overwriting any existing file).</em>
 hFile := <strong>DllCall</strong>(&quot;CreateFile&quot;, Str, FileName, UInt, GENERIC_WRITE, UInt, 0, Ptr, 0, UInt, CREATE_ALWAYS, UInt, 0, Ptr, 0, Ptr)
-if not hFile
+if !hFile
 {
-    MsgBox Can't open &quot;%FileName%&quot; for writing.
+    MsgBox "Can't open '" FileName "' for writing."
     return
 }
 TestString := "This is a test string.`r`n"  <em>; When writing a file this way, use `r`n rather than `n to start a new line.</em>
@@ -257,73 +257,68 @@ OPEN_EXISTING := 3  <em>; This mode indicates that the file to be opened must al
 FILE_SHARE_READ := 0x1 <em>; This and the next are whether other processes can open the file while we have it open.</em>
 FILE_SHARE_WRITE := 0x2
 hFile := <strong>DllCall</strong>(&quot;CreateFile&quot;, Str, FileName, UInt, GENERIC_READ, UInt, FILE_SHARE_READ|FILE_SHARE_WRITE, Ptr, 0, UInt, OPEN_EXISTING, UInt, 0, Ptr, 0)
-if not hFile
+if !hFile
 {
-    MsgBox Can't open &quot;%FileName%&quot; for reading.
+    MsgBox "Can't open '" FileName "' for reading."
     return
 }
 <em>; Make the variable empty for testing purposes, but ensure it retains sufficient capacity:</em>
 BytesToRead := VarSetCapacity(TestString, StrLen(TestString))
 <strong>DllCall</strong>(&quot;ReadFile&quot;, Ptr, hFile, Str, TestString, UInt, BytesToRead, UIntP, BytesActuallyRead, Ptr, 0)
 <strong>DllCall</strong>(&quot;CloseHandle&quot;, Ptr, hFile)  <em>; Close the file.</em>
-MsgBox The following string was read from the file: %TestString%</pre>
+MsgBox "The following string was read from the file: " TestString</pre>
 
-<pre class="NoIndent" id="HideCursor"><em>; Example: Hides the mouse cursor when you press Win+C. To later show the cursor, press Win+C again.
-; This script is from <a href="http://www.autohotkey.com/forum/topic6107.html">www.autohotkey.com/forum/topic6107.html</a></em>
+<pre class="NoIndent" id="HideCursor"><em>; Example: Hides the mouse cursor when you press Win+C. To later show the cursor, press Win+C again.</em>
 
-OnExit("ShowCursor")  <em>; Ensure the cursor is made visible when the script exits.</em>
-return
+OnExit(Func("SystemCursor").bind("Show"))  <em>; Ensure the cursor is made visible when the script exits.</em>
 
-ShowCursor()
+#c::SystemCursor("Toggle")  <em>; Win+C hotkey to toggle the cursor on and off.</em>
+
+SystemCursor(cmd)  <em>; cmd = "Show|Hide|Toggle"</em>
 {
-    SystemCursor(&quot;On&quot;)
-}
-
-#c::SystemCursor(&quot;Toggle&quot;)  <em>; Win+C hotkey to toggle the cursor on and off.</em>
-
-SystemCursor(OnOff:=1)   <em>; INIT = &quot;I&quot;,&quot;Init&quot;; OFF = 0,&quot;Off&quot;; TOGGLE = -1,&quot;T&quot;,&quot;Toggle&quot;; ON = others</em>
-{
-    static AndMask, XorMask, type, h_cursor
-        ,c0,c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c11,c12,c13 <em>; system cursors</em>
-        , b1,b2,b3,b4,b5,b6,b7,b8,b9,b10,b11,b12,b13   <em>; blank cursors</em>
-        , h1,h2,h3,h4,h5,h6,h7,h8,h9,h10,h11,h12,h13   <em>; handles of default cursors</em>
-    if (OnOff = &quot;Init&quot; or OnOff = &quot;I&quot; or type = &quot;&quot;)    <em>; init when requested or at first call</em>
+  static vision := true, c := {}
+  static system_cursors := "32512,32513,32514,32515,32516,32642,32643,32644,32645,32646,32648,32649,32650"
+  VarSetCapacity(h_cursor, 4444, 1)
+  if (cmd = "Reload" or !c.Length())  <em>; Reload when requested or at first call.</em>
+  {
+    VarSetCapacity(AndMask, 32*4, 0xFF)
+    VarSetCapacity(XorMask, 32*4, 0)
+    For i, resID in StrSplit(system_cursors, ",")
     {
-        type := "h"                                    <em>; active default cursors</em>
-        VarSetCapacity( h_cursor,4444, 1 )
-        VarSetCapacity( AndMask, 32*4, 0xFF )
-        VarSetCapacity( XorMask, 32*4, 0 )
-        system_cursors := "32512,32513,32514,32515,32516,32642,32643,32644,32645,32646,32648,32649,32650"
-        c := StrSplit(system_cursors, ",")
-        Loop c.Length
-        {
-            h_cursor   := DllCall( &quot;LoadCursor&quot;, &quot;Ptr&quot;,0, &quot;Ptr&quot;,c[A_Index] )
-            h%A_Index% := DllCall( &quot;CopyImage&quot;, &quot;Ptr&quot;,h_cursor, &quot;UInt&quot;,2, &quot;Int&quot;,0, &quot;Int&quot;,0, &quot;UInt&quot;,0 )
-            b%A_Index% := DllCall( &quot;CreateCursor&quot;, &quot;Ptr&quot;,0, &quot;Int&quot;,0, &quot;Int&quot;,0
-                , &quot;Int&quot;,32, &quot;Int&quot;,32, &quot;Ptr&quot;,&amp;AndMask, &quot;Ptr&quot;,&amp;XorMask )
-        }
+      h_cursor := DllCall("LoadCursor", Ptr, 0, Ptr, resID)
+      <em>; System cursors:</em>
+      c[i] := {r: resID}
+      <em>; Handles of default cursors:</em>
+      c[i][1] := DllCall("CopyImage", Ptr, h_cursor, UInt, 2, Int, 0, Int, 0, UInt, 0)
+      <em>; Blank cursors:</em>
+      c[i][0] := DllCall("CreateCursor", Ptr, 0, Int, 0, Int, 0, Int, 32, Int, 32, Ptr, &AndMask, Ptr, &XorMask)
     }
-    if (OnOff = 0 or OnOff = &quot;Off&quot; or type = &quot;h&quot; and (OnOff &lt; 0 or OnOff = &quot;Toggle&quot; or OnOff = &quot;T&quot;))
-        type := "b"  <em>; use blank cursors</em>
-    else
-        type := "h"  <em>; use the saved cursors</em>
-
-    Loop c.Length
-    {
-        h_cursor := DllCall( &quot;CopyImage&quot;, &quot;Ptr&quot;,%type%%A_Index%, &quot;UInt&quot;,2, &quot;Int&quot;,0, &quot;Int&quot;,0, &quot;UInt&quot;,0 )
-        DllCall( &quot;SetSystemCursor&quot;, &quot;Ptr&quot;,h_cursor, &quot;UInt&quot;,c[A_Index] )
-    }
+  }
+  if (cmd = "Show")
+    vision := true
+  else if (cmd = "Hide")
+    vision := false
+  else if (cmd = "Toggle")
+    vision := !vision
+  else
+    return
+  For i, cursor in c
+  {
+    h_cursor := DllCall("CopyImage", Ptr, cursor[vision], UInt, 2, Int, 0, Int, 0, UInt, 0)
+    DllCall("SetSystemCursor", Ptr, h_cursor, UInt, cursor.r)
+  }
 }</pre>
 
 <pre class="NoIndent" id="ExStruct"><em>; Structure Example: Pass the address of a RECT structure to GetWindowRect(), which sets the structure's
 ; members to the positions of the left, top, right, and bottom sides of a window (relative to the screen).</em>
 
-Run Notepad
-WinWait Untitled - Notepad  <em>; This also sets the &quot;<a href="../misc/WinTitle.htm#LastFoundWindow">last found window</a>&quot; for use with WinExist() below.</em>
+Run "Notepad"
+WinWait "Untitled - Notepad"  <em>; This also sets the &quot;<a href="../misc/WinTitle.htm#LastFoundWindow">last found window</a>&quot; for use with WinExist() below.</em>
 VarSetCapacity(Rect, 16)  <em>; A RECT is a struct consisting of four 32-bit integers (i.e. 4*4=16).</em>
 <strong>DllCall</strong>(&quot;GetWindowRect&quot;, Ptr, WinExist(), Ptr, &amp;Rect)  <em>; WinExist() returns an HWND.</em>
-MsgBox % &quot;Left &quot; . <a href="NumGet.htm">NumGet</a>(Rect, 0, "Int") . &quot; Top &quot; . NumGet(Rect, 4, "Int")
-    . &quot; Right &quot; . NumGet(Rect, 8, "Int") . &quot; Bottom &quot; . NumGet(Rect, 12, "Int")</pre>
+L := NumGet(Rect, 0, "Int"), T := NumGet(Rect, 4, "Int")
+R := NumGet(Rect, 8, "Int"), B := NumGet(Rect, 12, "Int")
+MsgBox Format("Left {1} Top {2} Right {3} Bottom {4}", L, T, R, B)</pre>
 
 <pre class="NoIndent"><em>; Structure Example: Pass to FillRect() the address of a RECT structure that indicates a part of the
 ; screen to temporarily paint red.</em>

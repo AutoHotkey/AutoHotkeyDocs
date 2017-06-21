@@ -30,10 +30,10 @@ MenuItems := "Notepad/Calculator/Section 3/Section 4/Section 5"
 ;______Dynamic menuitems here_______________
 
 ; Syntax:
-;     Dyn# = MenuItem|Window title
+;     Dyn[#] := "MenuItem|Window title"
 
-Dyn1 := "MS Word|- Microsoft Word"
-Dyn2 := "Notepad II|- Notepad"
+Dyn := [ "MS Word|- Microsoft Word"
+       , "Notepad II|- Notepad" ]
 
 ;___________________________________________
 
@@ -46,32 +46,32 @@ Exit
 ; Create / Edit Menu Sections here.
 
 Notepad:
-Run, Notepad.exe
-Return
+Run "Notepad.exe"
+return
 
 Calculator:
-Run, Calc
-Return
+Run "Calc"
+return
 
 Section3:
-MsgBox, You selected 3
-Return
+MsgBox "You selected 3"
+return
 
 Section4:
-MsgBox, You selected 4
-Return
+MsgBox "You selected 4"
+return
 
 Section5:
-MsgBox, You selected 5
-Return
+MsgBox "You selected 5"
+return
 
 MSWord:
-msgbox, this is a dynamic entry (word)
-Return
+MsgBox "this is a dynamic entry (word)"
+return
 
 NotepadII:
-msgbox, this is a dynamic entry (notepad)
-Return
+MsgBox "this is a dynamic entry (notepad)"
+return
 
 
 ;___________________________________________
@@ -81,80 +81,58 @@ Return
 HowLong := 0
 Loop
 {
-	HowLong++
-	Sleep, 10
-	if !GetKeyState("MButton", "P")
-		Break
+    HowLong++
+    Sleep 10
+    if !GetKeyState("MButton", "P")
+        Break
 }
-if HowLong < UMDelay, return
+if HowLong < UMDelay
+    return
 
 
-;prepares dynamic menu
+; Prepares dynamic menu:
 DynMenu := ""
-Loop
+For i, item in Dyn
 {
-	if Dyn%a_index% = "", break
-
-	ppos := InStr(dyn%a_index%, "|")
-	item := SubStr(dyn%a_index%, 1, ppos)
-	ppos += 2
-	win := SubStr(dyn%a_index%, ppos, 1000)
-
-	if WinActive(win)
-		DynMenu .= "/" item
+    mp := StrSplit(item, "|")
+    if WinActive(mp[2])
+        DynMenu .= "/" mp[1]
 }
 
 
-;Joins sorted main menu and dynamic menu
-TempMenu := Sort(MenuItems, "D/") DynMenu
+; Joins sorted main menu and dynamic menu, and
+; clears earlier entries and creates new entries:
+MenuItem := StrSplit(Sort(MenuItems, "D/") DynMenu, "/")
 
-
-;clears earlier entries
-Loop
-{
-	if MenuItem%a_index% = "", break
-	MenuItem%a_index% := ""
-}
-
-;creates new entries
-Loop, Parse, %TempMenu%, /
-{
-	MenuItem%a_index% := a_loopfield
-}
-
-;creates the menu
+; Creates the menu:
 Menu := MenuTitle
-Loop
-{
-	if MenuItem%a_index% = "", break
-	numItems++
-	MenuText := MenuItem%a_index%
-	Menu .= "`n" MenuText
-}
+For i, item in MenuItem
+    Menu .= "`n" item
 
-MouseGetPos, mX, mY
-HotKey, ~LButton, MenuClick
-HotKey, ~LButton, On
-ToolTip, %Menu%, %mX%, %mY%
-WinActivate, %MenuTitle%
-Return
+MouseGetPos mX, mY
+HotKey "~LButton", "MenuClick"
+HotKey "~LButton", "On"
+ToolTip Menu, mX, mY
+WinActivate MenuTitle
+return
 
 
 MenuClick:
-HotKey, ~LButton, Off
+HotKey "~LButton", "Off"
 if !WinActive(MenuTitle)
 {
-	ToolTip
-	Return
+    ToolTip
+    return
 }
 
-MouseGetPos, mX, mY
+MouseGetPos mX, mY
 ToolTip
-mY -= 3		;space after which first line starts
-mY /= 13	;space taken by each line
-if mY < 1, return
-if mY > numItems, return
-TargetSection := MenuItem%Round(mY)%
-StrReplace, TargetSection, %TargetSection%, %a_space%
-Gosub, %TargetSection%
-Return
+mY -= 3   ; Space after which first line starts.
+mY /= 13  ; Space taken by each line.
+if mY < 1
+    return
+if mY > MenuItem.Length()
+    return
+TargetSection := MenuItem[Round(mY)]
+Gosub(StrReplace(TargetSection, "`s"))
+return
