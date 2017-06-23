@@ -1,4 +1,4 @@
-translate = {
+translateData = {
   // sidebar
   "Content":true,
   "Index":true,

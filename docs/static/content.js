@@ -44,6 +44,10 @@ var isInsideCHM = (location.href.search(/::/) > 0) ? 1 : 0;
 var isInsideFrame = (window.self !== window.top);
 var isSearchBot = navigator.userAgent.match(/googlebot|bingbot|slurp/i);
 var isMobile = ($(window).width() < 600);
+var structure = new ctor_structure;
+var toc = new ctor_toc;
+var index = new ctor_index;
+var search = new ctor_search;
 
 (function () {
   // Exit the script if the user is a search bot. This is done because we want
@@ -52,8 +56,8 @@ var isMobile = ($(window).width() < 600);
   if (isSearchBot)
     return;
 
-  // Add elements into head:
-  setHeadElements();
+  // Add designated elements into the head:
+  structure.addHeadElements();
   
   // Special treatments for pages inside a iframe:
   if (isInsideCHM)
@@ -79,36 +83,36 @@ var isMobile = ($(window).width() < 600);
   }
 
   // Add elements for sidebar:
-  buildStructure();
+  structure.build();
 
   // Get the data if needed and modify the site:
   if (cache.firstStartup) {
     cache.firstStartup = false;
     loadScript(scriptDir + '/source/data_translate.js', function() {
-      cache.translate = translate;
-      modifyStructure();
+      cache.translate = translateData;
+      structure.modify();
       $(document).ready(addFeatures);
     });
     loadScript(scriptDir + '/source/data_toc.js', function() {
-      cache.toc.data = toc;
-      modifyTOC();
+      cache.toc.data = tocData;
+      toc.modify();
     });
     loadScript(scriptDir + '/source/data_index.js', function() {
-      cache.index.data = index;
-      modifyIndex();
+      cache.index.data = indexData;
+      index.modify();
     });
     loadScript(scriptDir + '/source/data_search.js', function() {
       cache.search.index = SearchIndex;
       cache.search.files = SearchFiles;
       cache.search.titles = SearchTitles;
-      modifySearch();
+      search.modify();
     });
   }
   else {
-    modifyStructure();
-    modifyTOC();
-    modifyIndex();
-    modifySearch();
+    structure.modify();
+    toc.modify();
+    index.modify();
+    search.modify();
     $(document).ready(addFeatures);
   }
 })();
@@ -135,46 +139,26 @@ function pressKey(keyname) {
   else {
     switch(keyname) {
       case "C":
-      showTab(0); // Content tab
+      structure.showTab(0); // Content tab
       break;
 
       case "N":
-      showTab(1); // Index tab
+      structure.showTab(1); // Index tab
       break;
 
       case "S":
-      showTab(2); // Search tab
+      structure.showTab(2); // Search tab
       break;
     }
   }
 }
 
-// --- Add elements into head ---
+// --- Constructor: Table of content ---
 
-function setHeadElements() {
-  var metaViewport = '<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">';
-  var linkCSS = '<link href="' + scriptDir + '/content.css" rel="stylesheet" type="text/css" />';
-  document.write(metaViewport + linkCSS);
-}
-
-// --- Add elements for sidebar ---
-
-function buildStructure() {
-  var head = '<div id="head"><div class="h-tabs"><ul><li data-translate>Content</li><li data-translate>Index</li><li data-translate>Search</li></ul></div><div class="h-tools"><div class="main"><ul><li class="sidebar" title="Hide/Show sidebar" data-translate>&#926;</li></ul></div><div class="online"><ul><li class="home" title="Home page" data-translate><a href="' + location.protocol + '//' + location.host + '">&#916;</a></li></ul><ul><li class="language" title="Change language" data-translate>en</li></ul><ul class="languages"><li class="arrow">&#9658;</li><li title="English">en</li><li title="Deutsch (German)">de</li><li title="Chinese">zh</li></ul><ul><li class="version" title="Change AHK version" data-translate>v1</li></ul><ul class="versions"><li class="arrow">&#9658;</li><li title="AHK v1.1">v1</li><li title="AHK v2.0">v2</li></ul></div><div class="chm"><ul><li class="back" title="Go back" data-translate>&#9668;</li><li class="forward" title="Go forward" data-translate>&#9658</li><li class="zoom" title="Change font size" data-translate>Z</li><li class="print" title="Print current document" data-translate>P</li></ul></div></div></div></div>';
-  var main = '<div id="main"><div id="left"><div class="toc"></div><div class="index"><div class="label" data-translate>Type in the keyword to find:</div><div class="input"><input type="text" /></div><div class="list"></div></div><div class="search"><div class="label" data-translate>Type in the word(s) to search for:</div><div class="input"><input type="text" /></div><div class="list"></div></div></div><div id="right"><div class="area">';
-
-  // Write HTML before DOM is loaded to prevent flickering:
-  document.write(head + main);
-}
-
-// --- Modify the elements of the TOC tab ---
-
-function modifyTOC()
+function ctor_toc()
 {
-  // --- Create and add TOC items ---
-
-  function createTOC(input)
-  {
+  var self = this;
+  self.create = function(input) { // Create and add TOC items.
     var output = '';
     output += '<ul>';
     for(var i = 0; i < input.length; i++) {
@@ -184,7 +168,7 @@ function modifyTOC()
       li = '<span>' + li + '</span>';
       if(input[i][2] != undefined && input[i][2].length > 0) {
         output += '<li class ="closed" title="' + input[i][0] + '">' + li;
-        output += createTOC(input[i][2]);
+        output += self.create(input[i][2]);
       }
       else
         output += '<li  title="' + input[i][0] + '">' + li;
@@ -192,54 +176,59 @@ function modifyTOC()
     }
     output += '</ul>';
     return output;
-  }
+  };
+  // --- Modify the elements of the TOC tab ---
+  self.modify = function() {
+    toc = $('#left div.toc').html(self.create(cache.toc.data));
+    tocList = $('li > span', toc);
+    // --- Fold items with subitems ---
 
-  var toc = $('#left div.toc').html(createTOC(cache.toc.data));
-  var tocList = $('li > span', toc);
+    $("li > ul", toc).hide();
 
-  // --- Fold items with subitems ---
+    // --- Hook up events ---
 
-  $("li > ul", toc).hide();
-
-  // --- Hook up events ---
-
-  // Select the item on click:
-  tocList.on("click", function() {
-    $this = $(this);
-    cache.toc.clickItem = tocList.index(this);
-    cache.toc.scrollPos = toc.scrollTop();
-    // Fold/unfold item with subitems:
-    if ($this.parent().has("ul").length) {
-      $this.siblings("ul").slideToggle(100);
-      $this.closest("li").toggleClass("closed opened");
-    }
-    // Higlight item with link:
-    if ($this.has("a").length) {
-      $("span.selected", toc).removeClass("selected");
-      $this.addClass("selected");
-      if (isInsideCHM)
-      {
-        var href = $this.children('a').attr('href');
-        $("#iframe").attr("src", href);
-        return false;
+    // Select the item on click:
+    tocList.on("click", function() {
+      $this = $(this);
+      cache.toc.clickItem = tocList.index(this);
+      cache.toc.scrollPos = toc.scrollTop();
+      // Fold/unfold item with subitems:
+      if ($this.parent().has("ul").length) {
+        $this.siblings("ul").slideToggle(100);
+        $this.closest("li").toggleClass("closed opened");
       }
-    }
-  });
-
-  // --- Show scrollbar on mouseover ---
-
-  if (!isMobile) // if not mobile browser.
-  {
-    toc.css("overflow", "hidden").hover(function() {
-      $(this).css("overflow", "auto");
-    }, function() {
-      $(this).css("overflow", "hidden");
+      // Higlight item with link:
+      if ($this.has("a").length) {
+        $("span.selected", toc).removeClass("selected");
+        $this.addClass("selected");
+        if (isInsideCHM)
+        {
+          var href = $this.children('a').attr('href');
+          $("#iframe").attr("src", href);
+          return false;
+        }
+      }
     });
-  }
 
-  // --- Apply stored settings ---
+    // --- Show scrollbar on mouseover ---
 
-  function preSelect(url, relPath) {
+    if (!isMobile) // if not mobile browser.
+    {
+      toc.css("overflow", "hidden").hover(function() {
+        $(this).css("overflow", "auto");
+      }, function() {
+        $(this).css("overflow", "hidden");
+      });
+    }
+    self.preSelect(tocList, location, relPath);
+    $('#iframe').load(function() {
+      var url = $(this).contents().get(0).location;
+      var relPath = url.href.replace(workingDir, '');
+      self.preSelect(tocList, url, relPath);
+    });
+    setTimeout( function() { self.preSelect(tocList, location, relPath); }, 0);
+  };
+  self.preSelect = function(tocList, url, relPath) { // Apply stored settings.
     var clicked = tocList.eq(cache.toc.clickItem);
     // Search for items which matches the address:
     var found = tocList.has('a[href$="/' + relPath + '"]');
@@ -276,27 +265,14 @@ function modifyTOC()
       }
     }
   }
-
-  preSelect(location, relPath);
-  $('#iframe').load(function() {
-    var url = $(this).contents().get(0).location;
-    var relPath = url.href.replace(workingDir, '');
-    preSelect(url, relPath);
-  });
-  setTimeout( function() { preSelect(location, relPath); }, 0);
 }
 
-// --- Modify the elements of the index tab ---
+// --- Constructor: Keyword search ---
 
-function modifyIndex()
+function ctor_index()
 {
-  var index = $('#left div.index');
-  var indexInput = $('input', index);
-
-  // --- Create and add the index links ---
-
-  function createIndexList(input)
-  {
+  var self = this;
+  self.create = function(input) { // Create and add the index links.
     var output = '';
     input.sort(function(a, b) {
       var textA = a[0].toLowerCase(), textB = b[0].toLowerCase()
@@ -305,114 +281,114 @@ function modifyIndex()
     for (var i = 0, len = input.length; i < len; i++)
       output += '<a href="' + workingDir + input[i][1] + '">' + input[i][0] + '</a>';
     return output;
-  }
+  };
+  self.modify = function() { // Modify the elements of the index tab.
+    var index = $('#left div.index');
+    var indexInput = $('input', index);
+    var indexList = $('div.list', index).html(self.create(cache.index.data));
 
-  var indexList = $('div.list', index).html(createIndexList(cache.index.data));
+    // --- Hook up events ---
 
-  // --- Hook up events ---
-
-  // Select closest index entry and show color indicator on input:
-  indexInput.on('keyup', function() { // keyup instead of input due IE8.
-    var $this = $(this);
-    var input = cache.index.input = $this.val().toLowerCase();
-    // if no input, remove color indicator and return:
-    if (!input) {
-      $this.removeAttr('class');
-      return;
-    }
-    // Otherwise find the first item which matches the input value:
-    var indexListChildren = indexList.children();
-    var match = {};
-    for (var i = 0; i < indexListChildren.length; i++) {
-      var listitem = indexListChildren[i].innerText.substr(0, input.length).toLowerCase();
-      if (listitem == input) {
-        match = indexListChildren.eq(i);
-        // Scroll to 5th item below the match to improve readability:
-        scrollTarget = indexListChildren.eq(i+5);
-        if (!scrollTarget.length) { scrollTarget = indexListChildren.last(); };
-        break;
+    // Select closest index entry and show color indicator on input:
+    indexInput.on('keyup', function() { // keyup instead of input due IE8.
+      var $this = $(this);
+      var input = cache.index.input = $this.val().toLowerCase();
+      // if no input, remove color indicator and return:
+      if (!input) {
+        $this.removeAttr('class');
+        return;
       }
-    }
-    // Select the found item, scroll to it and add color indicator:
-    if (match.length) {
-      match.click();
-      scrollTarget[0].scrollIntoView(false);
-      $this.attr('class', 'match'); // 'items found'
-    }
-    else
-      $this.attr('class', 'mismatch'); // 'items not found'
-  });
-
-  // --- Apply stored settings ---
-
-  function preSelect() {
+      // Otherwise find the first item which matches the input value:
+      var indexListChildren = indexList.children();
+      var match = {};
+      for (var i = 0; i < indexListChildren.length; i++) {
+        var listitem = indexListChildren[i].innerText.substr(0, input.length).toLowerCase();
+        if (listitem == input) {
+          match = indexListChildren.eq(i);
+          // Scroll to 5th item below the match to improve readability:
+          scrollTarget = indexListChildren.eq(i+5);
+          if (!scrollTarget.length) { scrollTarget = indexListChildren.last(); };
+          break;
+        }
+      }
+      // Select the found item, scroll to it and add color indicator:
+      if (match.length) {
+        match.click();
+        scrollTarget[0].scrollIntoView(false);
+        $this.attr('class', 'match'); // 'items found'
+      }
+      else
+        $this.attr('class', 'mismatch'); // 'items not found'
+    });
+    self.preSelect(indexList, indexInput);
+    setTimeout( function() { self.preSelect(indexList, indexInput); }, 0);
+  };
+  self.preSelect = function(indexList, indexInput) { // Apply stored settings.
     var clicked = indexList.children().eq(cache.index.clickItem);
     indexInput.val(clicked.text()).select();
     indexList.scrollTop(cache.index.scrollPos);
     clicked.click();
-  }
-
-  preSelect();
-  setTimeout( function() { preSelect(); }, 0);
+  };
 }
 
-// --- Modify the elements of the search tab ---
+// --- Constructor: Full text search ---
 
-function modifySearch()
+function ctor_search()
 {
-  var search = $('#left div.search');
-  var searchList = $('div.list', search);
-  var searchInput = $('input', search);
+  var self = this;
+  self.modify = function() { // Modify the elements of the search tab.
+    var search = $('#left div.search');
+    var searchList = $('div.list', search);
+    var searchInput = $('input', search);
 
-  // --- Hook up events ---
+    // --- Hook up events ---
 
-  // Refresh the search list and show color indicator on input:
-  searchInput.on('keyup', function() { // keyup instead of input due IE8.
-    var $this = $(this);
-    var input = cache.search.input = $this.val();
-    // if no input, empty the search list, remove color indicator and return:
-    if (!input) {
-      searchList.empty();
-      $this.removeAttr('class');
-      return;
-    }
-    // Otherwise fill the search list:
-    cache.search.data = createSearchList(input);
-    searchList.html(cache.search.data);
-    // Select the first item and add color indicator:
-    var searchListChildren = searchList.children();
-    if (searchListChildren.length) {
-      searchListChildren.first().addClass("selected");
-      cache.search.clickItem = 0;
-      $this.attr('class', 'match'); // 'items found'
-    }
-    else
-      $this.attr('class', 'mismatch'); // 'items not found'
-  });
-
-  // --- Apply stored settings ---
-
-  function preSelect() {
+    // Refresh the search list and show color indicator on input:
+    searchInput.on('keyup', function() { // keyup instead of input due IE8.
+      var $this = $(this);
+      var input = cache.search.input = $this.val();
+      // if no input, empty the search list, remove color indicator and return:
+      if (!input) {
+        searchList.empty();
+        $this.removeAttr('class');
+        return;
+      }
+      // Otherwise fill the search list:
+      cache.search.data = self.create(input);
+      searchList.html(cache.search.data);
+      // Select the first item and add color indicator:
+      var searchListChildren = searchList.children();
+      if (searchListChildren.length) {
+        searchListChildren.first().addClass("selected");
+        cache.search.clickItem = 0;
+        $this.attr('class', 'match'); // 'items found'
+      }
+      else
+        $this.attr('class', 'mismatch'); // 'items not found'
+    });
+    self.preSelect(searchList, searchInput);
+    setTimeout( function() { self.preSelect(searchList, searchInput); }, 0);
+  };
+  self.preSelect = function(searchList, searchInput) { // Apply stored settings.
     searchInput.val(cache.search.input).select();
     searchList.html(cache.search.data);
     searchList.scrollTop(cache.search.scrollPos);
     searchList.children().eq(cache.search.clickItem).click();
+  };
+  self.convertToArray = function(SearchText) { // Convert text to array.
+    // Normalize whitespace:
+    SearchText = SearchText.toLowerCase().replace(/^ +| +$| +(?= )|\+/, '');
+    if (SearchText == '')
+      return '';
+    else
+      return SearchText.split(' ');
   }
-
-  preSelect();
-  setTimeout( function() { preSelect(); }, 0);
-
-  // --- Local Function Definitions ---
-
-  function createSearchList(qry) {
+  self.create = function(qry) { // Create search list.
     var PartialIndex = {};
     var RESULT_LIMIT = 50;
-    // Normalize whitespace:
-    qry = qry.toLowerCase().replace(/^ +| +$| +(?= )/, '')
+    qry = self.convertToArray(qry);
     if (qry == '')
       return
-
-    qry = qry.split(' ')
 
     function file_has_all_words(file_index, words, start) {
       for ( ; start < words.length; ++start) {
@@ -594,265 +570,278 @@ function modifySearch()
       PartialIndex[word] = unique
       return unique
     }
-  }
+  };
 }
 
-// --- Modify elements added via buildStructure ---
+// --- Constructor: Navigation structure ---
 
-function modifyStructure()
+function ctor_structure()
 {
-  // --- Hide sidebar if using a mobile browser ---
-
-  if (isMobile) { displaySidebar(false); }
-
-  // --- Add shortcuts ---
-
-  addShortcuts();
-
-  // --- Use iframe if inside CHM ---
+  var self = this;
+  self.addHeadElements = function() { // Add designated elements into the head.
+    var metaViewport = '<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">';
+    var linkCSS = '<link href="' + scriptDir + '/content.css" rel="stylesheet" type="text/css" />';
+    document.write(metaViewport + linkCSS);
+  };
+  self.build = function() { // Add elements for sidebar.
+    var head = '<div id="head"><div class="h-tabs"><ul><li data-translate>Content</li><li data-translate>Index</li><li data-translate>Search</li></ul></div><div class="h-tools"><div class="main"><ul><li class="sidebar" title="Hide/Show sidebar" data-translate>&#926;</li></ul></div><div class="online"><ul><li class="home" title="Home page" data-translate><a href="' + location.protocol + '//' + location.host + '">&#916;</a></li></ul><ul><li class="language" title="Change language" data-translate>en</li></ul><ul class="languages"><li class="arrow">&#9658;</li><li title="English">en</li><li title="Deutsch (German)">de</li><li title="Chinese">zh</li></ul><ul><li class="version" title="Change AHK version" data-translate>v1</li></ul><ul class="versions"><li class="arrow">&#9658;</li><li title="AHK v1.1">v1</li><li title="AHK v2.0">v2</li></ul></div><div class="chm"><ul><li class="back" title="Go back" data-translate>&#9668;</li><li class="forward" title="Go forward" data-translate>&#9658</li><li class="zoom" title="Change font size" data-translate>Z</li><li class="print" title="Print current document" data-translate>P</li></ul></div></div></div></div>';
+    var main = '<div id="main"><div id="left"><div class="toc"></div><div class="index"><div class="label" data-translate>Type in the keyword to find:</div><div class="input"><input type="text" /></div><div class="list"></div></div><div class="search"><div class="label" data-translate>Type in the word(s) to search for:</div><div class="input"><input type="text" /></div><div class="list"></div></div></div><div id="right"><div class="area">';
   
-  if (isInsideCHM && !isInsideFrame)
-  {
-    cache.save();
-    $('div.area').replaceWith('<iframe frameBorder="0" id="iframe" src="' + cache.location + '">');
-  }
+    // Write HTML before DOM is loaded to prevent flickering:
+    document.write(head + main);
+  };
+  self.modify = function() { // Modify elements added via build.
 
-  // --- Translate elements with data-translate attribute ---
+    // --- Hide sidebar if using a mobile browser ---
 
-  $('*[data-translate]', $('#head').add($('#left'))).each(function() {
-    var $this = $(this);
-    var text = $this.text();
-    var tooltip = $this.attr('title');
-    if (typeof text != '')
-      $this.text(T(text));
-    if (typeof tooltip !== 'undefined')
-      $this.attr('title', T(tooltip));
-  });
+    if (isMobile) { self.displaySidebar(false); }
 
-  // --- Main tools (always visible) ---
+    // --- Add shortcuts ---
 
-  var $tools = $('#head div.h-tools');
-  $('div.main li.sidebar', $tools).on('click', function() {
-    displaySidebar(!cache.displaySidebar); });
+    addShortcuts();
 
-  // --- Online tools (only visible if help is not CHM) ---
-
-  var $online = $('div.online', $tools);
-  // Translation links. Keys are based on ISO 639-1 language name standard:
-  var link = { "en": 'https://autohotkey.com/docs/',
-               "de": 'https://ahkde.github.io/docs/',
-               "zh": 'http://ahkcn.sourceforge.net/docs/' }
-  // Version links:
-  var ver  = { "v1": link[T("en")],
-               "v2": T("https://lexikos.github.io/v2/docs/") }
-
-  var $langList = $('ul.languages', $online)
-  var $verList  = $('ul.versions', $online)
-  // Bug - IE/Edge doesn't turn off list-style if element is hidden:
-  $langList.add($verList).css("list-style", "none");
-  // Hide currently selected language and version in the selection lists:
-  $('li:contains(' + T("en") + ')', $langList).hide();
-  $('li:contains(' + T("v1") + ')', $verList).hide();
-  // Add the translation links:
-  $('li', $langList).not('li.arrow').each( function() {
-    $(this).wrapInner('<a href="' + link[$(this).text()] + relPath + '">');
-  });
-  $('li', $verList).not('li.arrow').each( function() {
-    // Don't use relPath here due file differences between the versions:
-    $(this).wrapInner('<a href="' + ver[$(this).text()] + '">');
-  });
-  // Show/Hide selection lists on click:
-  $('li.language', $online).on('click', function() {
-    $langList.animate({width: "toggle"}, 100);
-    $(this).toggleClass("selected");
-    $langList.toggleClass("selected");
-  });
-  $('li.version', $online).on('click', function() {
-    $verList.animate({width: "toggle"}, 100);
-    $(this).toggleClass("selected");
-    $verList.toggleClass("selected");
-  });
-
-  // --- CHM tools (only visible if help is CHM) ---
-
-  var $chm = $('div.chm', $tools);
-  // 'Go back' button:
-  $('li.back', $chm).on('click', function() { history.back(); });
-  // 'Go forward' button:
-  $('li.forward', $chm).on('click', function() { history.forward(); });
-  // 'Zoom' button:
-  $('li.zoom', $chm).on('click', function() {
-    cache.fontSize += 0.2;
-    if (cache.fontSize > 1.4)
-      cache.fontSize = 0.6;
-    $('#iframe').contents().find('.area').css('font-size', cache.fontSize + 'em');
-  });
-  // 'Print' button:
-  $('li.print', $chm).on('click', function() { window.print(); });
-
-  // --- If help is CHM, hide online tools, otherwise hide CHM tools ---
-
-  (isInsideCHM) ? $online.hide() : $chm.hide();
-
-  // --- Apply click events for sidebar tabs ---
-
-  var $tab = $('#head div.h-tabs li');
-  for (var i = 0; i < $tab.length; i++) {
-    $tab.eq(i).on('click', function(e) { showTab($(this).index()); });
-  }
-
-  // --- Apply Edit and ListBox events ---
-
-  var Edit = $('#left input');
-  var ListBox = $('#left div.list');
-
-  // Store current scrollbar position on scroll:
-  ListBox.on('scroll', function() {
-    var $this = $(this);
-    var $parent = $this.parent();
-    cache[$parent.attr('class')].scrollPos = $this.scrollTop();
-  });
-  // Select the item on click and scroll to it:
-  ListBox.on('click', '> a', function() {
-    var $this = $(this);
-    var $parent = $this.parent();
-    // Scroll the item into view:
-    if (!isScrolledIntoView($this, $parent)) {
-      var half = ($parent.height() + $parent.offset().top) / 2;
-      if ($this.offset().top > half)
-        $this[0].scrollIntoView(false); // Move down
-      else
-        $this[0].scrollIntoView(); // Move up
+    // --- Use iframe if inside CHM ---
+    
+    if (isInsideCHM && !isInsideFrame)
+    {
+      cache.save();
+      $('div.area').replaceWith('<iframe frameBorder="0" id="iframe" src="' + cache.location + '">');
     }
-    // Select the item:
-    $('a.selected', $parent).removeClass('selected');
-    $this.addClass('selected');
-    return false;
-  });
-  // Open the link on double-click or touch (for mobile) and store its index
-  // relative to its parent:
-  var touchmoved;
-  ListBox.on('dblclick touchend', '> a', function() {
-    if (touchmoved != true) {
+
+    // --- Translate elements with data-translate attribute ---
+
+    $('*[data-translate]', $('#head').add($('#left'))).each(function() {
+      var $this = $(this);
+      var text = $this.text();
+      var tooltip = $this.attr('title');
+      if (typeof text != '')
+        $this.text(T(text));
+      if (typeof tooltip !== 'undefined')
+        $this.attr('title', T(tooltip));
+    });
+
+    // --- Main tools (always visible) ---
+
+    var $tools = $('#head div.h-tools');
+    $('div.main li.sidebar', $tools).on('click', function() {
+      self.displaySidebar(!cache.displaySidebar); });
+
+    // --- Online tools (only visible if help is not CHM) ---
+
+    var $online = $('div.online', $tools);
+    // Translation links. Keys are based on ISO 639-1 language name standard:
+    var link = { "en": 'https://autohotkey.com/docs/',
+                 "de": 'https://ahkde.github.io/docs/',
+                 "zh": 'http://ahkcn.sourceforge.net/docs/' }
+    // Version links:
+    var ver  = { "v1": link[T("en")],
+                 "v2": T("https://lexikos.github.io/v2/docs/") }
+
+    var $langList = $('ul.languages', $online)
+    var $verList  = $('ul.versions', $online)
+    // Bug - IE/Edge doesn't turn off list-style if element is hidden:
+    $langList.add($verList).css("list-style", "none");
+    // Hide currently selected language and version in the selection lists:
+    $('li:contains(' + T("en") + ')', $langList).hide();
+    $('li:contains(' + T("v1") + ')', $verList).hide();
+    // Add the translation links:
+    $('li', $langList).not('li.arrow').each( function() {
+      $(this).wrapInner('<a href="' + link[$(this).text()] + relPath + '">');
+    });
+    $('li', $verList).not('li.arrow').each( function() {
+      // Don't use relPath here due file differences between the versions:
+      $(this).wrapInner('<a href="' + ver[$(this).text()] + '">');
+    });
+    // Show/Hide selection lists on click:
+    $('li.language', $online).on('click', function() {
+      $langList.animate({width: "toggle"}, 100);
+      $(this).toggleClass("selected");
+      $langList.toggleClass("selected");
+    });
+    $('li.version', $online).on('click', function() {
+      $verList.animate({width: "toggle"}, 100);
+      $(this).toggleClass("selected");
+      $verList.toggleClass("selected");
+    });
+
+    // --- CHM tools (only visible if help is CHM) ---
+
+    var $chm = $('div.chm', $tools);
+    // 'Go back' button:
+    $('li.back', $chm).on('click', function() { history.back(); });
+    // 'Go forward' button:
+    $('li.forward', $chm).on('click', function() { history.forward(); });
+    // 'Zoom' button:
+    $('li.zoom', $chm).on('click', function() {
+      cache.fontSize += 0.2;
+      if (cache.fontSize > 1.4)
+        cache.fontSize = 0.6;
+      $('#iframe').contents().find('.area').css('font-size', cache.fontSize + 'em');
+    });
+    // 'Print' button:
+    $('li.print', $chm).on('click', function() { window.print(); });
+
+    // --- If help is CHM, hide online tools, otherwise hide CHM tools ---
+
+    (isInsideCHM) ? $online.hide() : $chm.hide();
+
+    // --- Apply click events for sidebar tabs ---
+
+    var $tab = $('#head div.h-tabs li');
+    for (var i = 0; i < $tab.length; i++) {
+      $tab.eq(i).on('click', function(e) { self.showTab($(this).index()); });
+    }
+
+    // --- Apply Edit and ListBox events ---
+
+    var Edit = $('#left input');
+    var ListBox = $('#left div.list');
+
+    // Store current scrollbar position on scroll:
+    ListBox.on('scroll', function() {
       var $this = $(this);
       var $parent = $this.parent();
-      var $grandparent = $parent.parent();
-      // Store the item's index relative to its parent:
-      var className = $grandparent.attr('class');
-      cache[className].clickItem = $this.index();
-      cache.LastUsedSource = className;
-      var href = $this.attr('href');
-      if (isInsideCHM)
-      {
-        cache.save();
-        $("#iframe").attr("src", href);
+      cache[$parent.attr('class')].scrollPos = $this.scrollTop();
+    });
+    // Select the item on click and scroll to it:
+    ListBox.on('click', '> a', function() {
+      var $this = $(this);
+      var $parent = $this.parent();
+      // Scroll the item into view:
+      if (!isScrolledIntoView($this, $parent)) {
+        var half = ($parent.height() + $parent.offset().top) / 2;
+        if ($this.offset().top > half)
+          $this[0].scrollIntoView(false); // Move down
+        else
+          $this[0].scrollIntoView(); // Move up
       }
-      else
-        if (window.location.href != href)
-          window.location = href;
-      $this.focus();
-    }
-  }).on('touchmove', function() {
-    touchmoved = true;
-  }).on('touchstart', function() {
-    touchmoved = false;
-  });
-  // Show tooltip on mouseover if a item exceeds the length of its parent:
-  ListBox.on('mouseenter', '> a', function() {
-    var $this = $(this);
-    if(this.offsetWidth < this.scrollWidth && !$this.attr('title')) {
-      $this.attr('title', $this.text());
-    }
-  });
-  // Provide ListBox functionality and interaction with the Edit on keypress:
-  ListBox.on('keydown', function(e) {
-    var $this = $(this);
-    var $grandparent = $this.parent().parent();
-    switch(e.which) {
-      case 13: // Enter. See keyup event below.
-      break;
+      // Select the item:
+      $('a.selected', $parent).removeClass('selected');
+      $this.addClass('selected');
+      return false;
+    });
+    // Open the link on double-click or touch (for mobile) and store its index
+    // relative to its parent:
+    var touchmoved;
+    ListBox.on('dblclick touchend', '> a', function() {
+      if (touchmoved != true) {
+        var $this = $(this);
+        var $parent = $this.parent();
+        var $grandparent = $parent.parent();
+        // Store the item's index relative to its parent:
+        var className = $grandparent.attr('class');
+        cache[className].clickItem = $this.index();
+        cache.LastUsedSource = className;
+        var href = $this.attr('href');
+        if (isInsideCHM)
+        {
+          cache.save();
+          $("#iframe").attr("src", href);
+        }
+        else
+          if (window.location.href != href)
+            window.location = href;
+        $this.focus();
+      }
+    }).on('touchmove', function() {
+      touchmoved = true;
+    }).on('touchstart', function() {
+      touchmoved = false;
+    });
+    // Show tooltip on mouseover if a item exceeds the length of its parent:
+    ListBox.on('mouseenter', '> a', function() {
+      var $this = $(this);
+      if(this.offsetWidth < this.scrollWidth && !$this.attr('title')) {
+        $this.attr('title', $this.text());
+      }
+    });
+    // Provide ListBox functionality and interaction with the Edit on keypress:
+    ListBox.on('keydown', function(e) {
+      var $this = $(this);
+      var $grandparent = $this.parent().parent();
+      switch(e.which) {
+        case 13: // Enter. See keyup event below.
+        break;
 
-      case 38: // Up
-      clicked = $('a.selected', $this).prev(); // Navigate up
-      clicked.click(); clicked.focus();
-      break;
+        case 38: // Up
+        clicked = $('a.selected', $this).prev(); // Navigate up
+        clicked.click(); clicked.focus();
+        break;
 
-      case 40: // Down
-      clicked = $('a.selected', $this).next(); // Navigate down
-      clicked.click(); clicked.focus();
-      break;
+        case 40: // Down
+        clicked = $('a.selected', $this).next(); // Navigate down
+        clicked.click(); clicked.focus();
+        break;
 
-      default:
-      $('input', $grandparent).focus().select(); // Redirect other keys to Edit
-      return;
-    }
-    return false; // Prevent the default action (scroll / move caret).
-  });
-  // If Enter would trigger keydown, it would also trigger
-  // the Edit's keyup event after opening the new site.
-  ListBox.on('keyup', function(e) {
-    var $this = $(this);
-    if (e.which == 13) // Enter
-      $('a.selected', $this).trigger('dblclick'); // Open the link
-    return false;
-  });
+        default:
+        $('input', $grandparent).focus().select(); // Redirect other keys to Edit
+        return;
+      }
+      return false; // Prevent the default action (scroll / move caret).
+    });
+    // If Enter would trigger keydown, it would also trigger
+    // the Edit's keyup event after opening the new site.
+    ListBox.on('keyup', function(e) {
+      var $this = $(this);
+      if (e.which == 13) // Enter
+        $('a.selected', $this).trigger('dblclick'); // Open the link
+      return false;
+    });
 
-  // Provide interaction with the ListBox on keypress:
-  Edit.on('keydown', function(e) {
-    var $this = $(this);
-    var $grandparent = $this.parent().parent();
-    switch(e.which) {
-      case 13: // Enter
-      $('a.selected', $('div.list', $grandparent)).focus().trigger('dblclick');
-      break;
+    // Provide interaction with the ListBox on keypress:
+    Edit.on('keydown', function(e) {
+      var $this = $(this);
+      var $grandparent = $this.parent().parent();
+      switch(e.which) {
+        case 13: // Enter
+        $('a.selected', $('div.list', $grandparent)).focus().trigger('dblclick');
+        break;
 
-      case 38: // Up
-      clicked = $('a.selected', $('div.list', $grandparent)).prev(); // Navigate up
-      clicked.click(); clicked.focus();
-      break;
+        case 38: // Up
+        clicked = $('a.selected', $('div.list', $grandparent)).prev(); // Navigate up
+        clicked.click(); clicked.focus();
+        break;
 
-      case 40: // Down
-      clicked = $('a.selected', $('div.list', $grandparent)).next(); // Navigate down
-      clicked.click(); clicked.focus();
-      break;
-      
-      default:
-      return;
-    }
-    return false; // Prevent the default action (scroll / move caret).
-  });
+        case 40: // Down
+        clicked = $('a.selected', $('div.list', $grandparent)).next(); // Navigate down
+        clicked.click(); clicked.focus();
+        break;
+        
+        default:
+        return;
+      }
+      return false; // Prevent the default action (scroll / move caret).
+    });
 
-  // --- Apply stored values ---
+    // --- Apply stored values ---
 
-  showTab(cache.clickTab);
-  displaySidebar(cache.displaySidebar);
+    self.showTab(cache.clickTab);
+    self.displaySidebar(cache.displaySidebar);
 
-  // --- Save settings before leaving site ---
+    // --- Save settings before leaving site ---
 
-  $(window).on('beforeunload', function() {
-    cache.save();
-  });
+    $(window).on('beforeunload', function() {
+      cache.save();
+    });
 
-  // --- Perform actions on anchor change ---
+    // --- Perform actions on anchor change ---
 
-  $(window).on('hashchange', function() {
-    anchor = $(location.hash);
-    if (!anchor.length)
-      return;
-    // Goto anchor again after reloading the page:
-    anchor[0].scrollIntoView();
-    // When using mobile device hide sidebar and goto anchor:
-    if (isMobile)
-      setTimeout( function() {
-        displaySidebar(false);
-        anchor[0].scrollIntoView();
-      }, 200);
-  });
-
-  // --- Local Function Definitions ---
-
+    $(window).on('hashchange', function() {
+      anchor = $(location.hash);
+      if (!anchor.length)
+        return;
+      // Goto anchor again after reloading the page:
+      anchor[0].scrollIntoView();
+      // When using mobile device hide sidebar and goto anchor:
+      if (isMobile)
+        setTimeout( function() {
+          this.displaySidebar(false);
+          anchor[0].scrollIntoView();
+        }, 200);
+    });
+  };
   // Display or hide the sidebar:
-  function displaySidebar(display) {
+  self.displaySidebar = function(display) {
     cache.displaySidebar = display;
     var $headTabs = $('#head div.h-tabs');
     var $leftArea = $('#left');
@@ -867,20 +856,18 @@ function modifyStructure()
       $leftArea.css(props);
     }
     $leftArea.focus();
-  }
-}
-
-// --- Show the specified tab ---
-
-function showTab(pos) {
-  cache.clickTab = pos;
-  var $t = $('#head div.h-tabs li');
-  var $s = $('#left > div');
-  $t.removeClass('selected')
-    .eq(pos).addClass('selected');
-  $s.css("visibility", "hidden")
-    .eq(pos).css("visibility", "inherit")
-    .find('input').focus().select();
+  };
+  // Show the specified tab
+  self.showTab = function(pos) {
+    cache.clickTab = pos;
+    var $t = $('#head div.h-tabs li');
+    var $s = $('#left > div');
+    $t.removeClass('selected')
+      .eq(pos).addClass('selected');
+    $s.css("visibility", "hidden")
+      .eq(pos).css("visibility", "inherit")
+      .find('input').focus().select();
+  };
 }
 
 // --- Modify elements provided by the HTML site ---
@@ -899,8 +886,7 @@ function addFeatures()
 
   if (cache.LastUsedSource == "search") {
     cache.LastUsedSource = "";
-    var qry = cache.search.input;
-    qry = qry.toLowerCase().replace(/^ +| +$| +(?= )|\+/, '').split(' ');
+    var qry = search.convertToArray(cache.search.input);
     for (var i = 0; i < qry.length; i++) {
       $(content).highlight(qry[i]);
     }
