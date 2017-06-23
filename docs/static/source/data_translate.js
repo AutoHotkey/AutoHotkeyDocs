@@ -17,6 +17,10 @@ translate = {
   "Go forward":true,
   "Change font size":true,
   "Print current document":true,
+  // ALT+... shortcuts (needs uppercase)
+  "C":true,
+  "N":true,
+  "S":true,
   // content
   "Select code":true,
   "Download code":true,

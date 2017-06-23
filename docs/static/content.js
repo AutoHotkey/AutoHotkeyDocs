@@ -61,6 +61,7 @@ var isMobile = ($(window).width() < 600);
     if (isInsideFrame)
     {
       $.extend(cache, JSON.parse(window.parent.name));
+      addShortcuts();
       $(document).ready(function() {
         $('html').attr('id', 'right'); 
         $('body').attr('class', 'area');
@@ -111,6 +112,42 @@ var isMobile = ($(window).width() < 600);
     $(document).ready(addFeatures);
   }
 })();
+
+// --- Add shortcuts ---
+
+function addShortcuts() {
+  $(document).on("keydown", function(e) {
+    if (e.altKey) {
+      var keyList = ["C", "N", "S"];
+      for (var i = 0; i < keyList.length; i++)
+        if (e.which == T(keyList[i]).charCodeAt(0)) {
+          pressKey(keyList[i]);
+          break;
+        }
+    }
+  });
+}
+
+function pressKey(keyname) {
+  if (isInsideFrame) {
+      parent.pressKey(keyname);
+  }
+  else {
+    switch(keyname) {
+      case "C":
+      showTab(0); // Content tab
+      break;
+
+      case "N":
+      showTab(1); // Index tab
+      break;
+
+      case "S":
+      showTab(2); // Search tab
+      break;
+    }
+  }
+}
 
 // --- Add elements into head ---
 
@@ -568,6 +605,10 @@ function modifyStructure()
 
   if (isMobile) { displaySidebar(false); }
 
+  // --- Add shortcuts ---
+
+  addShortcuts();
+
   // --- Use iframe if inside CHM ---
   
   if (isInsideCHM && !isInsideFrame)
@@ -827,18 +868,19 @@ function modifyStructure()
     }
     $leftArea.focus();
   }
+}
 
-  // Show the specified tab:
-  function showTab(pos) {
-    cache.clickTab = pos;
-    var $t = $('#head div.h-tabs li');
-    var $s = $('#left > div');
-    $t.removeClass('selected')
-      .eq(pos).addClass('selected');
-    $s.css("visibility", "hidden")
-      .eq(pos).css("visibility", "inherit")
-      .find('input').focus().select();
-  }
+// --- Show the specified tab ---
+
+function showTab(pos) {
+  cache.clickTab = pos;
+  var $t = $('#head div.h-tabs li');
+  var $s = $('#left > div');
+  $t.removeClass('selected')
+    .eq(pos).addClass('selected');
+  $s.css("visibility", "hidden")
+    .eq(pos).css("visibility", "inherit")
+    .find('input').focus().select();
 }
 
 // --- Modify elements provided by the HTML site ---
