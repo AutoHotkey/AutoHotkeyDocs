@@ -49,16 +49,20 @@ var toc = new ctor_toc;
 var index = new ctor_index;
 var search = new ctor_search;
 
-(function () {
+(function() {
   // Exit the script if the user is a search bot. This is done because we want
   // to prevent the search bot from parsing the elements added via javascript,
   // otherwise the search results would be distorted:
   if (isSearchBot)
     return;
 
+  // Exit the script on sites which doesn't need the sidebar:
+  if (location.href.indexOf("search.htm") != -1)
+    return;
+
   // Add designated elements into the head:
   structure.addHeadElements();
-  
+
   // Special treatments for pages inside a iframe:
   if (isInsideCHM)
   {
@@ -88,20 +92,20 @@ var search = new ctor_search;
   // Get the data if needed and modify the site:
   if (cache.firstStartup) {
     cache.firstStartup = false;
-    loadScript(scriptDir + '/source/data_translate.js', function() {
+    loadScript(structure.dataPath, function() {
       cache.translate = translateData;
       structure.modify();
       $(document).ready(addFeatures);
     });
-    loadScript(scriptDir + '/source/data_toc.js', function() {
+    loadScript(toc.dataPath, function() {
       cache.toc.data = tocData;
       toc.modify();
     });
-    loadScript(scriptDir + '/source/data_index.js', function() {
+    loadScript(index.dataPath, function() {
       cache.index.data = indexData;
       index.modify();
     });
-    loadScript(scriptDir + '/source/data_search.js', function() {
+    loadScript(search.dataPath, function() {
       cache.search.index = SearchIndex;
       cache.search.files = SearchFiles;
       cache.search.titles = SearchTitles;
@@ -158,6 +162,7 @@ function pressKey(keyname) {
 function ctor_toc()
 {
   var self = this;
+  self.dataPath = scriptDir + '/source/data_toc.js';
   self.create = function(input) { // Create and add TOC items.
     var output = '';
     output += '<ul>';
@@ -272,6 +277,7 @@ function ctor_toc()
 function ctor_index()
 {
   var self = this;
+  self.dataPath = scriptDir + '/source/data_index.js';
   self.create = function(input) { // Create and add the index links.
     var output = '';
     input.sort(function(a, b) {
@@ -300,20 +306,13 @@ function ctor_index()
       }
       // Otherwise find the first item which matches the input value:
       var indexListChildren = indexList.children();
-      var match = {};
-      for (var i = 0; i < indexListChildren.length; i++) {
-        var listitem = indexListChildren[i].innerText.substr(0, input.length).toLowerCase();
-        if (listitem == input) {
-          match = indexListChildren.eq(i);
-          // Scroll to 5th item below the match to improve readability:
-          scrollTarget = indexListChildren.eq(i+5);
-          if (!scrollTarget.length) { scrollTarget = indexListChildren.last(); };
-          break;
-        }
-      }
+      var match = self.findMatch(indexListChildren, input);
       // Select the found item, scroll to it and add color indicator:
       if (match.length) {
         match.click();
+        // Scroll to 5th item below the match to improve readability:
+        scrollTarget = match.next().next().next().next().next();
+        if (!scrollTarget.length) { scrollTarget = indexListChildren.last(); };
         scrollTarget[0].scrollIntoView(false);
         $this.attr('class', 'match'); // 'items found'
       }
@@ -323,9 +322,22 @@ function ctor_index()
     self.preSelect(indexList, indexInput);
     setTimeout( function() { self.preSelect(indexList, indexInput); }, 0);
   };
+  self.findMatch = function(indexListChildren, input) {
+    var match = {};
+    if (!input)
+      return match;
+    for (var i = 0; i < indexListChildren.length; i++) {
+      var listitem = indexListChildren[i].innerText.substr(0, input.length).toLowerCase();
+      if (listitem == input) {
+        match = indexListChildren.eq(i);
+        break;
+      }
+    }
+    return match;
+  };
   self.preSelect = function(indexList, indexInput) { // Apply stored settings.
     var clicked = indexList.children().eq(cache.index.clickItem);
-    indexInput.val(clicked.text()).select();
+    indexInput.val(cache.index.input).select();
     indexList.scrollTop(cache.index.scrollPos);
     clicked.click();
   };
@@ -336,6 +348,7 @@ function ctor_index()
 function ctor_search()
 {
   var self = this;
+  self.dataPath = scriptDir + '/source/data_search.js';
   self.modify = function() { // Modify the elements of the search tab.
     var search = $('#left div.search');
     var searchList = $('div.list', search);
@@ -578,6 +591,7 @@ function ctor_search()
 function ctor_structure()
 {
   var self = this;
+  self.dataPath = scriptDir + '/source/data_translate.js';
   self.addHeadElements = function() { // Add designated elements into the head.
     var metaViewport = '<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">';
     var linkCSS = '<link href="' + scriptDir + '/content.css" rel="stylesheet" type="text/css" />';
