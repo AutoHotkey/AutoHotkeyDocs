@@ -4,8 +4,8 @@
 ; a button on your remote control. It can be used to automate Winamp,
 ; Windows Media Player, etc. It's easy to configure. For example, if
 ; WinLIRC recognizes a button named "VolUp" on your remote control,
-; create a label named VolUp and beneath it use the command
-; "SoundSet +5" to increase the soundcard's volume by 5%.
+; create a label named VolUp and beneath it use the function
+; <SoundSet "+5"> to increase the soundcard's volume by 5%.
 
 ; Here are the steps to use this script:
 ; 1) Configure WinLIRC to recognize your remote control and its buttons.

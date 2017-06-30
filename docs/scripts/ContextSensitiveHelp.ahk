@@ -1,8 +1,8 @@
 ﻿; Context Sensitive Help in Any Editor -- by Rajat
 ; http://www.autohotkey.com
 ; This script makes Ctrl+2 (or another hotkey of your choice) show the help file
-; page for the selected AutoHotkey command or keyword. If nothing is selected,
-; the command name will be extracted from the beginning of the current line.
+; page for the selected AutoHotkey function or keyword. If nothing is selected,
+; the function name will be extracted from the beginning of the current line.
 
 ; The hotkey below uses the clipboard to provide compatibility with the maximum
 ; number of editors (since ControlGet doesn't work with most advanced editors).
@@ -19,7 +19,7 @@ SetKeyDelay 0
 C_ClipboardPrev := Clipboard
 Clipboard := ""
 ; Use the highlighted word if there is one (since sometimes the user might
-; intentionally highlight something that isn't a command):
+; intentionally highlight something that isn't a function):
 Send "^c"
 ClipWait 0.1
 if ErrorLevel
@@ -35,7 +35,7 @@ if ErrorLevel
 }
 C_Cmd := Trim(Clipboard)  ; This will trim leading and trailing tabs & spaces.
 Clipboard := C_ClipboardPrev  ; Restore the original clipboard for the user.
-Loop Parse, C_Cmd, "`s,"  ; The first space or comma is the end of the command.
+Loop Parse, C_Cmd, "`s"  ; The first space is the end of the function.
 {
     C_Cmd := A_LoopField
     break ; i.e. we only need one interation.

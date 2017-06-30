@@ -106,7 +106,7 @@ if mwt_ActiveClass ~= "Shell_TrayWnd|Progman"
 ; about to be hidden) to the back of the stack, which seems best:
 Send "!{esc}"
 ; Hide it only now that WinGetTitle/WinGetClass above have been run (since
-; by default, those commands cannot detect hidden windows):
+; by default, those functions cannot detect hidden windows):
 WinHide
 
 ; If the title is blank, use the class instead. This serves two purposes:
