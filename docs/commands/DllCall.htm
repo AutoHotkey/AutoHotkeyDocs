@@ -9,7 +9,7 @@
 </head>
 <body>
 
-<h1>DllCall()</h1>
+<h1>DllCall</h1>
 
 <p>Calls a function inside a DLL, such as a standard Windows API function.</p>
 
@@ -25,7 +25,7 @@
       <p id="std"><em>DllFile</em> may be omitted when calling a function that resides in User32.dll, Kernel32.dll, ComCtl32.dll, or Gdi32.dll. For example, <code>&quot;User32\IsWindowVisible&quot;</code> produces the same result as <code>&quot;IsWindowVisible&quot;</code>.</p>
       <p>If no function can be found by the given name, a "W" (Unicode) suffix is automatically appended. For example, <code>"MessageBox"</code> is the same as <code>"MessageBoxW"</code>.</p>
       <p>Performance can be dramatically improved when making <em>repeated</em> calls to a DLL by <a href="#load">loading it beforehand</a>.</p>
-      <p>This parameter may also consist solely of an integer, which is interpreted as the address of the function to call. Sources of such addresses include <a href="#COM">COM</a> and <a href="RegisterCallback.htm">RegisterCallback()</a>.</p></dd>
+      <p>This parameter may also consist solely of an integer, which is interpreted as the address of the function to call. Sources of such addresses include <a href="#COM">COM</a> and <a href="RegisterCallback.htm">RegisterCallback</a>.</p></dd>
 
   <dt>Type1, Arg1</dt>
   <dd><p>Each of these pairs represents a single parameter to be passed to the function. The number of pairs is unlimited. For <em>Type</em>, see the <a href="#types">types table</a> below. For <em>Arg</em>, specify the value to be passed to the function.</p></dd>
@@ -134,7 +134,7 @@ DllCall("DeleteFile", Ptr, &amp;filename) <em>; Omit the quote marks around Ptr.
 
 <h3 id="load">Performance</h3>
 <p>When making repeated calls to a DLL, performance can be dramatically improved by loading it explicitly (<em>this is not necessary for a <a href="#std">standard DLL</a> such as User32 because it is always resident</em>). This practice avoids the need for DllCall to internally call LoadLibrary and FreeLibrary each time. For example:</p>
-<pre>hModule := DllCall(&quot;<strong>LoadLibrary</strong>&quot;, &quot;Str&quot;, &quot;MyFunctions.dll&quot;, &quot;Ptr&quot;)  <em>; Avoids the need for DllCall() in the loop to load the library.</em>
+<pre>hModule := DllCall(&quot;<strong>LoadLibrary</strong>&quot;, &quot;Str&quot;, &quot;MyFunctions.dll&quot;, &quot;Ptr&quot;)  <em>; Avoids the need for DllCall in the loop to load the library.</em>
 Loop Files, "C:\My Documents\*.*", "R"
     result := DllCall(&quot;MyFunctions\BackupFile&quot;, &quot;Str&quot;, A_LoopFilePath)
 DllCall(&quot;<strong>FreeLibrary</strong>&quot;, &quot;Ptr&quot;, hModule)  <em>; To conserve memory, the DLL may be unloaded after using it.</em></pre>
@@ -149,7 +149,7 @@ Loop 500
 <h3 id="struct">Structures and Arrays</h3>
 <p>A structure is a collection of <em>members</em> (fields) stored adjacently in memory. Most members tend to be integers.</p>
 <p>Functions that accept the address of a structure (or a memory-block array) can be called by storing the structure's raw binary data in a normal variable. The following steps are generally used:</p>
-<p>1) Call <code><a href="VarSetCapacity.htm">VarSetCapacity</a>(MyStruct, 123, 0)</code> to ensure that the target variable is large enough to hold the structure's data. Replace 123 with a number that is at least as large as the size of the structure. Specifying zero as the last parameter is optional; it initializes all members to be binary zero, which is typically used to avoid calling NumPut() as often in the next step.</p>
+<p>1) Call <code><a href="VarSetCapacity.htm">VarSetCapacity</a>(MyStruct, 123, 0)</code> to ensure that the target variable is large enough to hold the structure's data. Replace 123 with a number that is at least as large as the size of the structure. Specifying zero as the last parameter is optional; it initializes all members to be binary zero, which is typically used to avoid calling NumPut as often in the next step.</p>
 <p>2) If the target function uses the values initially in the structure, call <code><a href="NumPut.htm">NumPut</a>(123, MyStruct, 4, "UInt")</code> to initialize any members that should be non-zero. Replace 123 with the integer to be put into the target member (or specify <code>&amp;Var</code> to store the <a href="../Variables.htm#amp">address</a> of a variable). Replace 4 with the offset of the target member (see step #4 for description of &quot;offset&quot;). Replace "UInt" with the appropriate type or omit it if the member is a pointer or handle.</p>
 <p>3) Call the target function, passing the <a href="../Variables.htm#amp">address</a> of MyStruct as a UInt or Ptr argument. For example, <code>DllCall(&quot;MyDll\MyFunc&quot;, Ptr, <strong>&amp;</strong>MyStruct)</code>. The function will examine and/or change some of the members.</p>
 <p>4) Use <code>MyInteger := <a href="NumGet.htm">NumGet</a>(MyStruct, 4, "UInt")</code> to retrieve any desired integers from the structure. Replace 4 with the offset of the target member in the structure. The first member is always at offset 0. The second member is at offset 0 plus the size of the first member (typically 4). Members beyond the second are at the offset of the previous member plus the size of the previous member. Most members -- such as DWORD, Int, and <a href="#Int">other types of 32-bit integers</a> -- are 4 bytes in size. Replace "UInt" with the appropriate type or omit it if the member is a pointer or handle.</p>
@@ -157,7 +157,7 @@ Loop 500
 <h3 id="limits">Known Limitations</h3>
 <p>When a <a href="../Variables.htm#amp">variable's address</a> (e.g. <code>&amp;MyVar</code>) is passed to a function and that function alters the length of the variable's contents, subsequent uses of the variable may behave incorrectly. To fix this, do one of the following: 1) Pass MyVar as a <a href="#str">&quot;Str&quot;</a> argument rather than as a Ptr/address; 2) Call <code><a href="VarSetCapacity.htm#neg1">VarSetCapacity(MyVar, -1)</a></code> to update the variable's internally-stored length after calling DllCall.</p>
 <p>Any binary zero stored in a variable by a function hides all data to the right of the zero; that is, such data cannot be accessed or changed by most built-in functions. However, such data can be manipulated by the <a href="../Variables.htm#amp">address operator</a> and <a href="NumPut.htm">NumPut</a>/<a href="NumGet.htm">NumGet</a>, as well as DllCall itself.</p>
-<p>A function that returns the address of one of the strings that was passed into it might return an identical string in a different memory address than expected. For example calling <code>CharLower(CharUpper(MyVar))</code> in a programming language would convert <em>MyVar</em>'s contents to lowercase. But when the same is done with DllCall(), <em>MyVar</em> would be uppercase after the following call because CharLower would have operated on a different/temporary string whose contents were identical to <em>MyVar</em>:</p>
+<p>A function that returns the address of one of the strings that was passed into it might return an identical string in a different memory address than expected. For example calling <code>CharLower(CharUpper(MyVar))</code> in a programming language would convert <em>MyVar</em>'s contents to lowercase. But when the same is done with DllCall, <em>MyVar</em> would be uppercase after the following call because CharLower would have operated on a different/temporary string whose contents were identical to <em>MyVar</em>:</p>
 <pre>MyVar := "ABC"
 result := DllCall(&quot;CharLower&quot;, <strong><u>str</u></strong>, DllCall(&quot;CharUpper&quot;, Str, MyVar, <strong><u>Str</u></strong>), Str)</pre>
 <p>To work around this, change the two underlined &quot;Str&quot; values above to Ptr. This interprets CharUpper's return value as a pure address that will get passed as an integer to CharLower.</p>
@@ -169,7 +169,7 @@ result := DllCall(&quot;CharLower&quot;, <strong><u>str</u></strong>, DllCall(&q
 </p>
 
 <h3>Related</h3>
-<p><a href="../Compat.htm#DllCall">Script Compatibility</a>, <a href="PostMessage.htm">PostMessage</a>, <a href="OnMessage.htm">OnMessage()</a>, <a href="RegisterCallback.htm">RegisterCallback()</a>, <a href="Run.htm">Run</a>, <a href="VarSetCapacity.htm">VarSetCapacity</a>, <a href="../Functions.htm">Functions</a>, <a href="SysGet.htm">SysGet</a>, <a href="http://msdn.microsoft.com/library/">MSDN Library</a></p>
+<p><a href="../Compat.htm#DllCall">Script Compatibility</a>, <a href="PostMessage.htm">PostMessage</a>, <a href="OnMessage.htm">OnMessage</a>, <a href="RegisterCallback.htm">RegisterCallback</a>, <a href="Run.htm">Run</a>, <a href="VarSetCapacity.htm">VarSetCapacity</a>, <a href="../Functions.htm">Functions</a>, <a href="SysGet.htm">SysGet</a>, <a href="http://msdn.microsoft.com/library/">MSDN Library</a></p>
 <h3>Examples</h3>
 <pre class="NoIndent"><em>; Example: Calls the Windows API function &quot;MessageBox&quot; and report which button the user presses.</em>
 
@@ -183,7 +183,7 @@ DllCall(&quot;SystemParametersInfo&quot;, UInt, 0x14, UInt, 0, Str, <i>A_WinDir 
 <pre class="NoIndent"><em>; Example: Calls the API function &quot;IsWindowVisible&quot; to find out if a Notepad window is visible.</em>
 
 DetectHiddenWindows True
-if not DllCall(&quot;IsWindowVisible&quot;, &quot;Ptr&quot;, WinExist(&quot;Untitled - Notepad&quot;))  <em>; WinExist() returns an HWND.</em>
+if not DllCall(&quot;IsWindowVisible&quot;, &quot;Ptr&quot;, WinExist(&quot;Untitled - Notepad&quot;))  <em>; WinExist returns an HWND.</em>
     MsgBox "The window is not visible."</pre>
 
 <pre class="NoIndent"><em>; Example: Calls the API's wsprintf() to pad the number 432 with leading zeros to make it 10 characters wide (0000000432).</em>
@@ -313,9 +313,9 @@ SystemCursor(cmd)  <em>; cmd = "Show|Hide|Toggle"</em>
 ; members to the positions of the left, top, right, and bottom sides of a window (relative to the screen).</em>
 
 Run "Notepad"
-WinWait "Untitled - Notepad"  <em>; This also sets the &quot;<a href="../misc/WinTitle.htm#LastFoundWindow">last found window</a>&quot; for use with WinExist() below.</em>
+WinWait "Untitled - Notepad"  <em>; This also sets the &quot;<a href="../misc/WinTitle.htm#LastFoundWindow">last found window</a>&quot; for use with WinExist below.</em>
 VarSetCapacity(Rect, 16)  <em>; A RECT is a struct consisting of four 32-bit integers (i.e. 4*4=16).</em>
-<strong>DllCall</strong>(&quot;GetWindowRect&quot;, Ptr, WinExist(), Ptr, &amp;Rect)  <em>; WinExist() returns an HWND.</em>
+<strong>DllCall</strong>(&quot;GetWindowRect&quot;, Ptr, WinExist(), Ptr, &amp;Rect)  <em>; WinExist returns an HWND.</em>
 L := NumGet(Rect, 0, "Int"), T := NumGet(Rect, 4, "Int")
 R := NumGet(Rect, 8, "Int"), B := NumGet(Rect, 12, "Int")
 MsgBox Format("Left {1} Top {2} Right {3} Bottom {4}", L, T, R, B)</pre>
@@ -367,7 +367,7 @@ SetSystemTime(YYYYMMDDHHMISS)
 
 <pre class="NoIndent"><em>/* <strong>More Structure Examples:</strong>
 
-1) See the <a href="../scripts/WinLIRC.htm">WinLIRC client script</a> for a demonstration of how to use DllCall() to make a network connection
+1) See the <a href="../scripts/WinLIRC.htm">WinLIRC client script</a> for a demonstration of how to use DllCall to make a network connection
 to a TCP/IP server and receive data from it.
 
 2) The operating system offers standard dialog boxes that prompt the user to pick a font and/or color, or an icon.
