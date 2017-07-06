@@ -36,33 +36,33 @@ return  <em>; End of auto-execute section</em>
 ; into a custom menu item rather than a hotkey.  The delay allows
 ; the active window that was deactivated by the displayed menu to
 ; become active again:
-;Sleep, 200</em>
-WinGetID, ws_ID, A
-Loop, Parse, %ws_IDList%, |
+;Sleep 200</em>
+ws_ID := WinGetID("A")
+Loop Parse, ws_IDList, "|"
 {
     if A_LoopField = ws_ID
     {
         <em>; Match found, so this window should be restored (unrolled):</em>
         ws_Height := ws_Window%ws_ID%
-        WinMove, ahk_id %ws_ID%,,,,, %ws_Height%
-        StrReplace, ws_IDList, %ws_IDList%, |%ws_ID%
+        WinMove ,,, ws_Height, "ahk_id " ws_ID
+        ws_IDList := StrReplace(ws_IDList, "|" ws_ID)
         return
     }
 }
-WinGetPos,,,, ws_Height, A
+WinGetPos ,,, ws_Height, "A"
 ws_Window%ws_ID% := ws_Height
-WinMove, ahk_id %ws_ID%,,,,, %ws_MinHeight%
+WinMove ,,, ws_MinHeight, "ahk_id " ws_ID
 ws_IDList .= "|" ws_ID
 return
 
 ExitSub()
 {
-    Loop, Parse, %ws_IDList%, |
+    Loop Parse, ws_IDList, "|"
     {
         if A_LoopField = ""  <em>; First field in list is normally blank.</em>
             continue         <em>; So skip it.</em>
         ws_Height := ws_Window%A_LoopField%
-        WinMove, ahk_id %A_LoopField%,,,,, %ws_Height%
+        WinMove ,,, ws_Height, "ahk_id " A_LoopField
     }
     ExitApp  <em>; Must do this for the OnExit subroutine to actually Exit the script.</em>
 }

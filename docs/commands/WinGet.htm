@@ -19,7 +19,7 @@
 <dl>
 
   <dt>OutputVar</dt>
-  <dd><p>The name of the variable in which to store the result of the command. When calling the command as a function, <em>OutputVar</em> represents its return value.</p></dd>
+  <dd><p>The name of the variable in which to store the result of the function.</p></dd>
 
   <dt>WinTitle</dt>
   <dd><p>A window title or other criteria identifying the target window. See <a href="../misc/WinTitle.htm">WinTitle</a>.</p></dd>
@@ -52,70 +52,78 @@
 <p>The control currently under the mouse cursor can be retrieved via <a href="MouseGetPos.htm">MouseGetPos</a>.</p>
 <p id="ControlsHwnd"><strong>WinGetControlsHwnd</strong>: Same as above except it retrieves the <a href="Control.htm#GetHwnd">window handle (HWND)</a> of each control rather than its ClassNN.</p>
 <p id="Transparent"><strong>WinGetTransparent</strong>: Retrieves the degree of transparency of a window (see <a href="WinSet.htm">WinSet</a> for how to set transparency). <em>OutputVar</em> is made blank if: 1) the OS is older than Windows XP; 2) there are no matching windows; 3) the window has no transparency level; or 4) other conditions (caused by OS behavior) such as the window having been minimized, restored, and/or resized since it was made transparent. Otherwise, a number between 0 and 255 is stored, where 0 indicates an invisible window and 255 indicates an opaque window. For example:</p>
-<pre>MouseGetPos,,, MouseWin
-WinGetTransparent, Transparent, ahk_id %MouseWin%  <em>; Transparency of window under the mouse cursor.</em></pre>
+<pre>MouseGetPos ,, MouseWin
+Transparent := WinGetTransparent("ahk_id " MouseWin)  <em>; Transparency of window under the mouse cursor.</em></pre>
 <p id="TransColor"><strong>WinGetTransColor</strong>: Retrieves the color that is marked transparent in a window (see <a href="WinSet.htm#TransColor">WinSet</a> for how to set the TransColor). <em>OutputVar</em> is made blank if: 1) the OS is older than Windows XP; 2) there are no matching windows; 3) the window has no transparent color; or 4) other conditions (caused by OS behavior) such as the window having been minimized, restored, and/or resized since it was made transparent. Otherwise, a six-digit hexadecimal RGB color is stored, e.g. 0x00CC99. For example:</p>
-<pre>MouseGetPos,,, MouseWin
-WinGetTransColor, TransColor, ahk_id %MouseWin%  <em>; TransColor of the window under the mouse cursor.</em></pre>
+<pre>MouseGetPos ,, MouseWin
+TransColor := WinGetTransColor("ahk_id " MouseWin)  <em>; TransColor of the window under the mouse cursor.</em></pre>
 <p id="Style"><strong>WinGetStyle</strong> or <strong>WinGetExStyle</strong>: Retrieves an integer representing the style or extended style (respectively) of a window. If there are no matching windows, <em>OutputVar</em> is made blank. The following example determines whether a window has the WS_DISABLED style:</p>
-<pre>WinGetStyle, Style, My Window Title
-if (Style &amp; 0x8000000)  <em>; 0x8000000 is WS_DISABLED.</em>
+<pre>if (WinGetStyle("My Window Title") &amp; 0x8000000)  <em>; 0x8000000 is WS_DISABLED.</em>
   ... the window is disabled, so perform appropriate action.</pre>
 <p>The next example determines whether a window has the WS_EX_TOPMOST style (always-on-top):</p>
-<pre>WinGetExStyle, ExStyle, My Window Title
-if (ExStyle &amp; 0x8)  <em>; 0x8 is WS_EX_TOPMOST.</em>
+<pre>if (WinGetExStyle("My Window Title") &amp; 0x8)  <em>; 0x8 is WS_EX_TOPMOST.</em>
   ... the window is always-on-top, so perform appropriate action.</pre>
 <p>See the <a href="../misc/Styles.htm">styles table</a> for a partial listing of styles.</p>
 <h3>Remarks</h3>
 <p>A window's ID number is valid only during its lifetime. In other words, if an application restarts, all of its windows will get new ID numbers.</p>
-<p>ID numbers retrieved by these commands are numeric (the prefix &quot;ahk_id&quot; is not included).</p>
+<p>ID numbers retrieved by these functions are numeric (the prefix &quot;ahk_id&quot; is not included).</p>
 <p>The ID of the window under the mouse cursor can be retrieved with <a href="MouseGetPos.htm">MouseGetPos</a>.</p>
 <p>Window titles and text are case sensitive. Hidden windows are not detected unless <a href="DetectHiddenWindows.htm">DetectHiddenWindows</a> has been turned on.</p>
 <h3>Related</h3>
 <p><a href="WinGetClass.htm">WinGetClass</a>, <a href="Process.htm">Process</a>, <a href="WinGetTitle.htm">WinGetTitle</a>, <a href="MouseGetPos.htm">MouseGetPos</a>, <a href="Control.htm">Control functions</a>, <a href="ControlFocus.htm">ControlFocus</a>, <a href="GroupAdd.htm">GroupAdd</a></p>
 <h3>Examples</h3>
 <pre class="NoIndent"><em>; Example #1: Maximize the active window and report its unique ID:</em>
-WinGetID, active_id, A
-WinMaximize, ahk_id %active_id%
-MsgBox, The active window's ID is &quot;%active_id%&quot;.
+active_id := WinGetID("A")
+WinMaximize "ahk_id " active_id
+MsgBox "The active window's ID is " active_id
 
 <em>; Example #2: This will visit all windows on the entire system and display info about each of them:</em>
-WinGetList, id,,, Program Manager
-Loop % id.Length
+id := WinGetList(,, "Program Manager")
+Loop id.Length()
 {
     this_id := id[A_Index]
-    WinActivate, ahk_id %this_id%
-    WinGetClass, this_class, ahk_id %this_id%
-    WinGetTitle, this_title, ahk_id %this_id%
-    Result := MsgBox("Visiting All Windows`n%a_index% of %id.Length%`nahk_id %this_id%`nahk_class %this_class%`n%this_title%`n`nContinue?",, 4)
-    if Result = "No", break
+    WinActivate "ahk_id " this_id
+    this_class := WinGetClass("ahk_id " this_id)
+    this_title := WinGetTitle("ahk_id " this_id)
+    Result := MsgBox(Format("
+    (
+      Visiting All Windows
+      {1} of {2}
+      ahk_id {3}
+      ahk_class {4}
+      {5}
+  
+      Continue?
+    )", A_Index, id.Length(), this_id, this_class, this_title),, 4)
+    if Result = "No"
+        break
 }
 
 <em>; Example #3: Display each of a window's control names:</em>
 for n, ctrl in WinGetControls("A")
 {
-    Result := MsgBox("Control #%n% is &quot;%ctrl%&quot;. Continue?",, 4)
+    Result := MsgBox("Control #" n " is '" ctrl "'. Continue?",, 4)
     if Result = "No"
         break
 }
 
 <em>; Example #4: Display in real time the active window's control list:</em>
-SetTimer, WatchActiveWindow, 200
+SetTimer "WatchActiveWindow", 200
 
 WatchActiveWindow() {
     ControlList := ""
-    WinGetControls, Controls, A
+    Controls := WinGetControls("A")
     if !Controls {
-        ToolTip, No visible window is active.
+        ToolTip "No visible window is active."
         return
     }
     if !Controls.Length() {
-        ToolTip, The active window has no controls.
+        ToolTip "The active window has no controls."
         return
     }
-    Loop % Controls.Length()
+    Loop Controls.Length()
         ControlList .= Controls[A_Index] . "`n"
-    ToolTip, %ControlList%
+    ToolTip ControlList
 }</pre>
 
 </body>

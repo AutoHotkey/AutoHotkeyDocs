@@ -46,11 +46,11 @@ f_Hotkey := "~MButton"
 
 <em>/*
 ITEMS IN FAVORITES MENU <-- Do not change this string.
-Desktop      ; %A_Desktop%
-Favorites    ; %A_Desktop%\..\Favorites
-My Documents ; %A_MyDocuments%
+Desktop      ; %USERPROFILE%\Desktop
+Favorites    ; %USERPROFILE%\Favorites
+My Documents ; %USERPROFILE%\My Documents
 
-Program Files; %A_ProgramFiles%
+Program Files; %PROGRAMFILES%
 */</em>
 
 
@@ -60,24 +60,23 @@ Program Files; %A_ProgramFiles%
 
 #SingleInstance  <em>; Needed since the hotkey is dynamically created.</em>
 
-Hotkey, %f_Hotkey%, f_DisplayMenu
-f_HotkeyFirstChar := SubStr(f_Hotkey, 1, 1)
-if f_HotkeyFirstChar = "~"  <em>; Show menu only for certain window types.</em>
+Hotkey f_Hotkey, "f_DisplayMenu"
+if SubStr(f_Hotkey, 1, 1) = "~"  <em>; Show menu only for certain window types.</em>
     f_AlwaysShowMenu := false
 else
     f_AlwaysShowMenu := true
 
 <em>; Used to reliably determine whether script is compiled:</em>
-SplitPath, %A_ScriptName%,,, f_FileExt
+SplitPath A_ScriptName,,, f_FileExt
 if f_FileExt = "Exe"  <em>; Read the menu items from an external file.</em>
-    f_FavoritesFile := "%A_ScriptDir%\Favorites.ini"
+    f_FavoritesFile := A_ScriptDir "\Favorites.ini"
 else  <em>; Read the menu items directly from this script file.</em>
     f_FavoritesFile := A_ScriptFullPath
 
 <em>;----Read the configuration file.</em>
 f_AtStartingPos := false
 f_MenuItemCount := 0
-Loop, Read, %f_FavoritesFile%
+Loop Read, f_FavoritesFile
 {
     if f_FileExt &lt;&gt; "Exe"
     {
@@ -98,15 +97,14 @@ Loop, Read, %f_FavoritesFile%
     <em>; with A_ThisMenuItemPos:</em>
     f_MenuItemCount++
     if !A_LoopReadLine  <em>; Blank indicates a separator line.</em>
-        Menu, Favorites, Add
+        Menu "Favorites", "Add"
     else
     {
-        f_line := StrSplit(A_LoopReadLine, ";", " `t")
+        f_line := StrSplit(A_LoopReadLine, ";", "`s`t")
         <em>; Resolve any references to variables within either field, and
         ; create a new array element containing the path of this favorite:</em>
-        f_path%f_MenuItemCount% := Deref(f_line[2])
-        f_line[1] := Deref(f_line[1])
-        Menu, Favorites, Add, % f_line[1], f_OpenFavorite
+        f_path%f_MenuItemCount% := f_line[2]
+        Menu "Favorites", "Add",  f_line[1], "f_OpenFavorite"
     }
 }
 return  <em>;----End of auto-execute section.</em>
@@ -122,59 +120,61 @@ if f_class = "#32770"    <em>; It's a dialog.</em>
 {
     <em>; Activate the window so that if the user is middle-clicking
     ; outside the dialog, subsequent clicks will also work:</em>
-    WinActivate ahk_id %f_window_id%
+    WinActivate "ahk_id " f_window_id
     <em>; Retrieve any filename that might already be in the field so
     ; that it can be restored after the switch to the new folder:</em>
-    ControlGetText, f_text, Edit1, ahk_id %f_window_id%
-    ControlSetText, Edit1, %f_path%, ahk_id %f_window_id%
-    ControlFocus, Edit1, ahk_id %f_window_id%
-    ControlSend, Edit1, {Enter}, ahk_id %f_window_id%
-    Sleep, 100  <em>; It needs extra time on some dialogs or in some cases.</em>
-    ControlSetText, Edit1, %f_text%, ahk_id %f_window_id%
+    f_text := ControlGetText("Edit1", "ahk_id " f_window_id)
+    ControlSetText f_path, "Edit1", "ahk_id " f_window_id
+    ControlFocus "Edit1", "ahk_id " f_window_id
+    ControlSend "{Enter}", "Edit1", "ahk_id " f_window_id
+    Sleep 100  <em>; It needs extra time on some dialogs or in some cases.</em>
+    ControlSetText f_text, "Edit1", "ahk_id " f_window_id
     return
     <em>; else fall through to the bottom of the subroutine to take standard action.</em>
 }
 else if f_class  ~= "ExploreWClass|CabinetWClass"  <em>; In Explorer, switch folders.</em>
 {
-    ControlClick, ToolbarWindow323, ahk_id %f_window_id%,,,, NA x1 y1
-    ControlSetText, Edit1, %f_path%, ahk_id %f_window_id%
+    if StrSplit(A_OSVersion, ".")[1] >= 6  <em>; Windows Vista and later.</em>
+        ControlClick "ToolbarWindow323", "ahk_id " f_window_id,,,, "NA x1 y1"
+    ControlFocus "Edit1", "ahk_id " f_window_id
+    ControlSetText f_path, "Edit1", "ahk_id " f_window_id
     <em>; Tekl reported the following: "If I want to change to Folder L:\folder
     ; then the addressbar shows http://www.L:\folder.com. To solve this,
     ; I added a {right} before {Enter}":</em>
-    ControlSend, Edit1, {Right}{Enter}, ahk_id %f_window_id%
+    ControlSend "{Right}{Enter}", "Edit1", "ahk_id " f_window_id
     return
     <em>; else fall through to the bottom of the subroutine to take standard action.</em>
 }
 else if f_class = "ConsoleWindowClass" <em>; In a console window, CD to that directory</em>
 {
-    WinActivate, ahk_id %f_window_id% <em>; Because sometimes the mclick deactivates it.</em>
-    SetKeyDelay, 0  <em>; This will be in effect only for the duration of this thread.</em>
+    WinActivate "ahk_id " f_window_id <em>; Because sometimes the mclick deactivates it.</em>
+    SetKeyDelay 0  <em>; This will be in effect only for the duration of this thread.</em>
     if InStr(f_path, ":")  <em>; It contains a drive letter</em>
     {
         f_path_drive := SubStr(f_path, 1, 1)
-        Send %f_path_drive%:{enter}
+        Send f_path_drive ":{enter}"
     }
-    Send, cd %f_path%{Enter}
+    Send "cd " f_path "{Enter}"
     return
 }
 <em>; Since the above didn't return, one of the following is true:
 ; 1) It's an unsupported window type but f_AlwaysShowMenu is y (yes).</em>
-Run, Explorer %f_path%  <em>; Might work on more systems without double quotes.</em>
+Run "explorer " f_path  <em>; Might work on more systems without double quotes.</em>
 return
 
 
 <em>;----Display the menu</em>
 f_DisplayMenu:
 <em>; These first few variables are set here and used by f_OpenFavorite:</em>
-WinGetID, f_window_id, A
-WinGetClass, f_class, ahk_id %f_window_id%
+f_window_id := WinGetID("A")
+f_class := WinGetClass("ahk_id " f_window_id)
 if f_AlwaysShowMenu = false  <em>; The menu should be shown only selectively.</em>
 {
     if !(f_class ~= "#32770|ExploreWClass|CabinetWClass|ConsoleWindowClass")
         return <em>; Since it's some other window type, don't display menu.</em>
 }
 <em>; Otherwise, the menu should be presented for this type of window:</em>
-Menu, Favorites, show
+Menu "Favorites", "Show"
 return
 </pre>
 </body>

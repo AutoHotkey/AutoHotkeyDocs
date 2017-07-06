@@ -6,19 +6,19 @@
 ; buttons be referred to by their original names.
 
 #SingleInstance
-SetTimer, ChangeButtonNames, 50 
+SetTimer "ChangeButtonNames", 50
 Result := MsgBox("Choose a button:", "Add or Delete", 4)
-if Result = "Yes" 
-	MsgBox, You chose Add. 
-else 
-	MsgBox, You chose Delete. 
-return 
+if Result = "Yes"
+    MsgBox "You chose Add."
+else
+    MsgBox "You chose Delete."
+return
 
-ChangeButtonNames: 
+ChangeButtonNames:
 if !WinExist("Add or Delete")
-	return  ; Keep waiting.
-SetTimer,, off 
-WinActivate 
-ControlSetText, Button1, &Add 
-ControlSetText, Button2, &Delete 
+    return  ; Keep waiting.
+SetTimer , "Off"
+WinActivate
+ControlSetText "&Add", "Button1"
+ControlSetText "&Delete", "Button2"
 return

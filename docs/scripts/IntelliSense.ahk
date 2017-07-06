@@ -27,160 +27,158 @@ I_Icon := ""
 ; END OF CONFIGURATION SECTION (do not make changes below this point unless
 ; you want to change the basic functionality of the script).
 
-SetKeyDelay, 0
+SetKeyDelay 0
 #SingleInstance
 
 if I_HelpHotkey <> ""
-	Hotkey, %I_HelpHotkey%, I_HelpHotkey
+    Hotkey I_HelpHotkey, "I_HelpHotkey"
 
 ; Change tray icon (if one was specified in the configuration section above):
 if I_Icon <> ""
-	if FileExist(I_Icon)
-		Menu, Tray, Icon, %I_Icon%
+    if FileExist(I_Icon)
+        Menu "Tray", "Icon", I_Icon
 
 ; Determine AutoHotkey's location:
-RegRead, ahk_dir, HKEY_LOCAL_MACHINE\SOFTWARE\AutoHotkey, InstallDir
+ahk_dir := RegRead("HKEY_LOCAL_MACHINE\SOFTWARE\AutoHotkey", "InstallDir")
 if ErrorLevel  ; Not found, so look for it in some other common locations.
 {
-	if A_AhkPath
-		SplitPath, %A_AhkPath%,, ahk_dir
-	else if FileExist("..\..\AutoHotkey.chm")
-		ahk_dir := "..\.."
-	else if FileExist("%A_ProgramFiles%\AutoHotkey\AutoHotkey.chm")
-		ahk_dir := "%A_ProgramFiles%\AutoHotkey"
-	else
-	{
-		MsgBox Could not find the AutoHotkey folder.
-		ExitApp
-	}
+    if A_AhkPath
+        SplitPath A_AhkPath,, ahk_dir
+    else if FileExist("..\..\AutoHotkey.chm")
+        ahk_dir := "..\.."
+    else if FileExist(A_ProgramFiles "\AutoHotkey\AutoHotkey.chm")
+        ahk_dir := A_ProgramFiles "\AutoHotkey"
+    else
+    {
+        MsgBox "Could not find the AutoHotkey folder."
+        ExitApp
+    }
 }
 
-ahk_help_file := "%ahk_dir%\AutoHotkey.chm"
+ahk_help_file := ahk_dir "\AutoHotkey.chm"
 
 ; Read command syntaxes; can be found in AHK Basic, but it's outdated:
-Loop, Read, %ahk_dir%\Extras\Editors\Syntax\Commands.txt
+Loop Read, ahk_dir "\Extras\Editors\Syntax\Commands.txt"
 {
-	I_FullCmd := A_LoopReadLine
+    I_FullCmd := A_LoopReadLine
 
-	; Directives have a first space instead of a first comma.
-	; So use whichever comes first as the end of the command name:
-	I_cPos := InStr(I_FullCmd, ",")
-	I_sPos := InStr(I_FullCmd, " ")
-	if (!I_cPos or (I_cPos > I_sPos and I_sPos))
-		I_EndPos := I_sPos
-	else
-		I_EndPos := I_cPos
+    ; Directives have a first space instead of a first comma.
+    ; So use whichever comes first as the end of the command name:
+    I_cPos := InStr(I_FullCmd, ",")
+    I_sPos := InStr(I_FullCmd, "`s")
+    if (!I_cPos or (I_cPos > I_sPos and I_sPos))
+        I_EndPos := I_sPos
+    else
+        I_EndPos := I_cPos
 
-	if I_EndPos
-		I_CurrCmd := SubStr(I_FullCmd, 1, I_EndPos - 1)
-	else  ; This is a directive/command with no parameters.
-		I_CurrCmd := A_LoopReadLine
-	
-	StrReplace, I_CurrCmd, %I_CurrCmd%, [
-	StrReplace, I_CurrCmd, %I_CurrCmd%, %A_Space%
-	StrReplace, I_FullCmd, %I_FullCmd%, ``n, `n
-	StrReplace, I_FullCmd, %I_FullCmd%, ``t, `t
-	
-	; Make arrays of command names and full cmd syntaxes:
-	I_Cmd%A_Index% := I_CurrCmd
-	I_FullCmd%A_Index% := I_FullCmd
+    if I_EndPos
+        I_CurrCmd := SubStr(I_FullCmd, 1, I_EndPos - 1)
+    else  ; This is a directive/command with no parameters.
+        I_CurrCmd := A_LoopReadLine
+    
+    I_CurrCmd := StrReplace(I_CurrCmd, "[")
+    I_CurrCmd := StrReplace(I_CurrCmd, "`s")
+    I_FullCmd := StrReplace(I_FullCmd, "``n", "`n")
+    I_FullCmd := StrReplace(I_FullCmd, "``t", "`t")
+    
+    ; Make arrays of command names and full cmd syntaxes:
+    I_Cmd%A_Index% := I_CurrCmd
+    I_FullCmd%A_Index% := I_FullCmd
 }
 
 ; Use the Input command to watch for commands that the user types:
 Loop
 {
-	; Editor window check:
-	WinGetTitle, ActiveTitle, A
-	if !InStr(ActiveTitle, I_Editor)
-	{
-		ToolTip
-		Sleep, 500
-		Continue
-	}
-	
-	; Get all keys till endkey:
-	Input, I_Word, V, {enter}{escape}{space}`,
-	I_EndKey := ErrorLevel
-	
-	; Tooltip is hidden in these cases:
-	if I_EndKey = "EndKey:Enter" or I_EndKey = "EndKey:Escape"
-	{
-		ToolTip
-		Continue
-	}
+    ; Editor window check:
+    if !InStr(WinGetTitle("A"), I_Editor)
+    {
+        ToolTip
+        Sleep 500
+        Continue
+    }
+    
+    ; Get all keys till endkey:
+    I_Word := Input("V", "{Enter}{Escape}{Space},")
+    I_EndKey := ErrorLevel
+    
+    ; Tooltip is hidden in these cases:
+    if I_EndKey = "EndKey:Enter" or I_EndKey = "EndKey:Escape"
+    {
+        ToolTip
+        Continue
+    }
 
-	; Editor window check again!
-	WinGetTitle, ActiveTitle, A
-	if !InStr(ActiveTitle, I_Editor)
-	{
-		ToolTip
-		Continue
-	}
+    ; Editor window check again!
+    if !InStr(WinGetTitle("A"), I_Editor)
+    {
+        ToolTip
+        Continue
+    }
 
-	; Compensate for any indentation that is present:
-	StrReplace, I_Word, %I_Word%, %A_Space%
-	StrReplace, I_Word, %I_Word%, %A_Tab%
-	if I_Word = ""
-		Continue
-	
-	; Check for commented line:
-	I_Check := SubStr(I_Word, 1, 1)
-	if (I_Check = ";" or I_Word = "If")  ; "If" seems a little too annoying to show tooltip for.
-		Continue
+    ; Compensate for any indentation that is present:
+    I_Word := StrReplace(I_Word, "`s")
+    I_Word := StrReplace(I_Word, "`t")
+    if I_Word = ""
+        Continue
+    
+    ; Check for commented line:
+    I_Check := SubStr(I_Word, 1, 1)
+    if (I_Check = ";" or I_Word = "If")  ; "If" seems a little too annoying to show tooltip for.
+        Continue
 
-	; Match word with command:
-	I_Index := ""
-	Loop
-	{
-		; It helps performance to resolve dynamic variables only once.
-		; In addition, the value put into I_ThisCmd is also used by the
-		; I_HelpHotkey subroutine:
-		I_ThisCmd := I_Cmd%A_Index%
-		if I_ThisCmd = ""
-			break
-		if (I_Word = I_ThisCmd)
-		{
-			I_Index := A_Index
-			I_HelpOn := I_ThisCmd
-			break
-		}
-	}
-	
-	; If no match then resume watching user input:
-	if I_Index = ""
-		Continue
-	
-	; Show matched command to guide the user:
-	I_ThisFullCmd := I_FullCmd%I_Index%
-	ToolTip, %I_ThisFullCmd%, %A_CaretX%, %A_CaretY% + 20
+    ; Match word with command:
+    I_Index := ""
+    Loop
+    {
+        ; It helps performance to resolve dynamic variables only once.
+        ; In addition, the value put into I_ThisCmd is also used by the
+        ; I_HelpHotkey subroutine:
+        I_ThisCmd := I_Cmd%A_Index%
+        if I_ThisCmd = ""
+            break
+        if (I_Word = I_ThisCmd)
+        {
+            I_Index := A_Index
+            I_HelpOn := I_ThisCmd
+            break
+        }
+    }
+    
+    ; If no match then resume watching user input:
+    if I_Index = ""
+        Continue
+    
+    ; Show matched command to guide the user:
+    I_ThisFullCmd := I_FullCmd%I_Index%
+    ToolTip I_ThisFullCmd, A_CaretX, A_CaretY + 20
 }
 
 
 
 I_HelpHotkey:
-WinGetTitle, ActiveTitle, A
-if !InStr(ActiveTitle, I_Editor), Return
+if !InStr(WinGetTitle("A"), I_Editor)
+  return
 
 ToolTip  ; Turn off syntax helper since there is no need for it now.
 
-SetTitleMatchMode, 1  ; In case it's 3. This setting is in effect only for this thread.
+SetTitleMatchMode 1  ; In case it's 3. This setting is in effect only for this thread.
 if !WinExist("AutoHotkey Help")
 {
-	if !FileExist(ahk_help_file)
-	{
-		MsgBox, Could not find the help file: %ahk_help_file%.
-		return
-	}
-	Run, %ahk_help_file%
-	WinWait, AutoHotkey Help
+    if !FileExist(ahk_help_file)
+    {
+        MsgBox "Could not find the help file: " ahk_help_file
+        return
+    }
+    Run ahk_help_file
+    WinWait "AutoHotkey Help"
 }
 
 if I_ThisCmd = ""  ; Instead, use what was most recently typed.
-	I_ThisCmd := I_Word
+    I_ThisCmd := I_Word
 
 ; The above has set the "last found" window which we use below:
 WinActivate
 WinWaitActive
-StrReplace, I_ThisCmd, %I_ThisCmd%, #, {#}  ; Replace leading #, if any.
-Send, !n{home}+{end}%I_HelpOn%{enter}
+I_ThisCmd := StrReplace(I_ThisCmd, "#", "{#}")  ; Replace leading #, if any.
+Send "!n{home}+{end}" I_HelpOn "{enter}"
 return

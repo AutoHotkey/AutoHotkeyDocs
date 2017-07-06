@@ -24,65 +24,54 @@ JoystickNumber := 0
 ; Auto-detect the joystick number if called for:
 if JoystickNumber <= 0
 {
-	Loop 16  ; Query each joystick number to find out which ones exist.
-	{
-		GetKeyState, JoyName, %A_Index%JoyName
-		if JoyName <> ""
-		{
-			JoystickNumber := A_Index
-			break
-		}
-	}
-	if JoystickNumber <= 0
-	{
-		MsgBox The system does not appear to have any joysticks.
-		ExitApp
-	}
+    Loop 16  ; Query each joystick number to find out which ones exist.
+    {
+        if GetKeyState(A_Index "JoyName")
+        {
+            JoystickNumber := A_Index
+            break
+        }
+    }
+    if JoystickNumber <= 0
+    {
+        MsgBox "The system does not appear to have any joysticks."
+        ExitApp
+    }
 }
 
 #SingleInstance
-GetKeyState, joy_buttons, %JoystickNumber%JoyButtons
-GetKeyState, joy_name, %JoystickNumber%JoyName
-GetKeyState, joy_info, %JoystickNumber%JoyInfo
+joy_buttons := GetKeyState(JoystickNumber "JoyButtons")
+joy_name := GetKeyState(JoystickNumber "JoyName")
+joy_info := GetKeyState(JoystickNumber "JoyInfo")
 Loop
 {
-	buttons_down := ""
-	Loop, joy_buttons
-	{
-		GetKeyState, joy%a_index%, %JoystickNumber%joy%a_index%
-		if joy%a_index%
-			buttons_down .= " " a_index
-	}
-	GetKeyState, joyx, %JoystickNumber%JoyX
-	axis_info := "X" Round(joyx)
-	GetKeyState, joyy, %JoystickNumber%JoyY
-	axis_info .= "  Y" Round(joyy)
-	if InStr(joy_info, "Z")
-	{
-		GetKeyState, joyz, %JoystickNumber%JoyZ
-		axis_info .= "  Z" Round(joyz)
-	}
-	if InStr(joy_info, "R")
-	{
-		GetKeyState, joyr, %JoystickNumber%JoyR
-		axis_info .= "  R" Round(joyr)
-	}
-	if InStr(joy_info, "U")
-	{
-		GetKeyState, joyu, %JoystickNumber%JoyU
-		axis_info .= "  U" Round(joyu)
-	}
-	if InStr(joy_info, "V")
-	{
-		GetKeyState, joyv, %JoystickNumber%JoyV
-		axis_info .= "  V" Round(joyv)
-	}
-	if InStr(joy_info, "P")
-	{
-		GetKeyState, joyp, %JoystickNumber%JoyPOV
-		axis_info .= "  POV" Round(joyp)
-	}
-	ToolTip, %joy_name% (#%JoystickNumber%):`n%axis_info%`nButtons Down: %buttons_down%`n`n(right-click the tray icon to exit)
-	Sleep, 100
+    buttons_down := ""
+    Loop joy_buttons
+    {
+        if GetKeyState(JoystickNumber "Joy" A_Index)
+            buttons_down .= " " A_Index
+    }
+    axis_info := "X" Round(GetKeyState(JoystickNumber "JoyX"))
+    axis_info .= "  Y" Round(GetKeyState(JoystickNumber "JoyY"))
+    if InStr(joy_info, "Z")
+        axis_info .= "  Z" Round(GetKeyState(JoystickNumber "JoyZ"))
+    if InStr(joy_info, "R")
+        axis_info .= "  R" Round(GetKeyState(JoystickNumber "JoyR"))
+    if InStr(joy_info, "U")
+        axis_info .= "  U" Round(GetKeyState(JoystickNumber "JoyU"))
+    if InStr(joy_info, "V")
+        axis_info .= "  V" Round(GetKeyState(JoystickNumber "JoyV"))
+    if InStr(joy_info, "P")
+        axis_info .= "  POV" Round(GetKeyState(JoystickNumber "JoyPOV"))
+    ToolTip "
+    (Q
+      " joy_name " (#" JoystickNumber "):
+      " axis_info "
+      Buttons Down:
+      " buttons_down "
+
+      (right-click the tray icon to exit)
+    )"
+    Sleep 100
 }
 return

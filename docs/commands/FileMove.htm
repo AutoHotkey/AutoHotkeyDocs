@@ -18,12 +18,12 @@
 <dl>
 
   <dt>SourcePattern</dt>
-  <dd><p>The name of a single file or a wildcard pattern such as C:\Temp\*.tmp. <em>SourcePattern</em> is assumed to be in <a href="../Variables.htm#WorkingDir">%A_WorkingDir%</a> if an absolute path isn't specified.</p></dd>
+  <dd><p>The name of a single file or a wildcard pattern such as C:\Temp\*.tmp. <em>SourcePattern</em> is assumed to be in <a href="../Variables.htm#WorkingDir">A_WorkingDir</a> if an absolute path isn't specified.</p></dd>
 
   <dt>DestPattern</dt>
-  <dd><p>The name or pattern of the  destination, which is assumed to be in <a href="../Variables.htm#WorkingDir">%A_WorkingDir%</a> if an absolute path isn't specified.  To perform a simple move -- retaining the existing file name(s) -- specify only the folder name as shown in these functionally identical examples:</p>
-<pre>FileMove, C:\*.txt, C:\My Folder</pre>
-<pre>FileMove, C:\*.txt, C:\My Folder\*.*</pre>
+  <dd><p>The name or pattern of the  destination, which is assumed to be in <a href="../Variables.htm#WorkingDir">A_WorkingDir</a> if an absolute path isn't specified.  To perform a simple move -- retaining the existing file name(s) -- specify only the folder name as shown in these functionally identical examples:</p>
+<pre>FileMove "C:\*.txt, C:\My Folder"</pre>
+<pre>FileMove "C:\*.txt, C:\My Folder\*.*"</pre>
     </dd>
 
   <dt>Flag</dt>
@@ -34,25 +34,25 @@
 </dl>
 
 <h3>ErrorLevel</h3>
-<p><a href="../misc/ErrorLevel.htm">ErrorLevel</a> is set to the number of files that could not be moved due to an error, or 0 otherwise. However, if the source file is a single file (no wildcards) and it does not exist, ErrorLevel is set to 0. To detect this condition, use <a href="FileExist.htm">FileExist()</a> on the source file prior to moving it.</p>
+<p><a href="../misc/ErrorLevel.htm">ErrorLevel</a> is set to the number of files that could not be moved due to an error, or 0 otherwise. However, if the source file is a single file (no wildcards) and it does not exist, ErrorLevel is set to 0. To detect this condition, use <a href="FileExist.htm">FileExist</a> on the source file prior to moving it.</p>
 <p>Unlike <a href="FileCopy.htm">FileCopy</a>, moving a file onto itself is always considered successful, even if the overwrite mode is not in effect.</p>
 <p>If files were found, <a href="../Variables.htm#LastError">A_LastError</a> is set to 0 (zero) or the result of the operating system's GetLastError() function immediately after the last failure. Otherwise A_LastError contains an error code that might indicate why no files were found.</p>
 
 <h3>Remarks</h3>
 <p>FileMove moves files only. To instead move the contents of a folder (all its files and subfolders), see the examples section below. To move or rename a single folder, use <a href="DirMove.htm">DirMove</a>.</p>
 <p>The operation will continue even if error(s) are encountered.</p>
-<p>Although this command is capable of moving files to a different volume, the operation will take longer than a same-volume move. This is because a same-volume move is similar to a rename, and therefore much faster.</p>
+<p>Although this function is capable of moving files to a different volume, the operation will take longer than a same-volume move. This is because a same-volume move is similar to a rename, and therefore much faster.</p>
 <h3>Related</h3>
 <p><a href="FileCopy.htm">FileCopy</a>, <a href="DirCopy.htm">DirCopy</a>, <a href="DirMove.htm">DirMove</a>, <a href="FileDelete.htm">FileDelete</a></p>
 <h3>Examples</h3>
-<pre class="NoIndent">FileMove, C:\My Documents\List1.txt, D:\Main Backup\  <em>; Move the file without renaming it.</em>
-FileMove, C:\File Before.txt, C:\File After.txt  <em>; Rename a single file.</em>
-FileMove, C:\Folder1\*.txt, D:\New Folder\*.bkp  <em>; Move and rename files to a new extension.</em></pre>
+<pre class="NoIndent">FileMove "C:\My Documents\List1.txt", "D:\Main Backup\"  <em>; Move the file without renaming it.</em>
+FileMove "C:\File Before.txt", "C:\File After.txt"  <em>; Rename a single file.</em>
+FileMove "C:\Folder1\*.txt", "D:\New Folder\*.bkp"  <em>; Move and rename files to a new extension.</em></pre>
 <p>&nbsp;</p>
 <pre class="NoIndent"><em>; The following example moves all files and folders inside a folder to a different folder:</em>
 ErrorCount := MoveFilesAndFolders(&quot;C:\My Folder\*.*&quot;, &quot;D:\Folder to receive all files &amp; folders&quot;)
 if ErrorCount &lt;&gt; 0
-    MsgBox %ErrorCount% files/folders could not be moved.
+    MsgBox ErrorCount " files/folders could not be moved."
 
 MoveFilesAndFolders(SourcePattern, DestinationFolder, DoOverwrite := false)
 <em>; Moves all files and folders matching SourcePattern into the folder named DestinationFolder and
@@ -61,15 +61,15 @@ MoveFilesAndFolders(SourcePattern, DestinationFolder, DoOverwrite := false)
     if DoOverwrite = 1
         DoOverwrite := 2  <em>; See <a href="DirMove.htm">DirMove</a> for description of mode 2 vs. 1.</em>
     <em>; First move all the files (but not the folders):</em>
-    FileMove, %SourcePattern%, %DestinationFolder%, %DoOverwrite%
+    FileMove SourcePattern, DestinationFolder, DoOverwrite
     ErrorCount := ErrorLevel
     <em>; Now move all the folders:</em>
-    Loop, Files, %SourcePattern%, D  <em>; D means &quot;retrieve folders only&quot;.</em>
+    Loop Files, SourcePattern, "D"  <em>; D means &quot;retrieve folders only&quot;.</em>
     {
-        DirMove, %A_LoopFilePath%, %DestinationFolder%\%A_LoopFileName%, %DoOverwrite%
+        DirMove A_LoopFilePath, DestinationFolder "\" A_LoopFileName, DoOverwrite
         ErrorCount += ErrorLevel
         if ErrorLevel  <em>; Report each problem folder by name.</em>
-            MsgBox Could not move %A_LoopFilePath% into %DestinationFolder%.
+            MsgBox "Could not move " A_LoopFilePath " into " DestinationFolder
     }
     return ErrorCount
 }</pre>

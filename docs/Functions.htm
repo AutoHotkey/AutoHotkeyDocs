@@ -57,7 +57,7 @@ Add 2, 3  <em>; Parentheses can be omitted if used at the start of a line.</em><
 <p>Since <a href="commands/Return.htm">return</a> can send back only one value to a function's caller, <em>ByRef</em> can be used to send back extra results. This is achieved by having the caller pass in a variable (usually empty) in which the function stores a value.</p>
 <p>When passing large strings to a function, <em>ByRef</em> enhances performance and conserves memory by avoiding the need to make a copy of the string. Similarly, using <em>ByRef</em> to send a long string back to the caller usually performs better than something like <code>Return HugeString</code>.</p>
 <p>If something other than a modifiable variable is passed to a ByRef parameter, the function behaves as though the keyword "ByRef" is absent. For example, <code>Swap(A_Index, i)</code> stores the value of <i>A_Index</i> in <i>i</i>, but the value assigned to <i>Left</i> is discarded once the <i>Swap</i> function returns.</p>
-<p>The <a href="#IsByRef">IsByRef()</a> function can be used to determine whether the caller supplied a variable for a given ByRef parameter.</p>
+<p>The <a href="#IsByRef">IsByRef</a> function can be used to determine whether the caller supplied a variable for a given ByRef parameter.</p>
 <p>Known limitations:</p>
 <ul>
   <li>It is not possible to pass properties of objects (such as <code>foo.bar</code>), <a href="misc/Clipboard.htm">Clipboard</a> or other <a href="Variables.htm#BuiltIn">built-in variables</a> to a function by reference. Instead, the function acts as though <em>ByRef</em> was omitted.</li>
@@ -145,7 +145,7 @@ MsgBox Join("`n", "one", "two", "three")</pre>
 <h3 id="VariadicCall">Variadic Function Calls</h3>
 <p>While variadic functions can <i>accept</i> a variable number of parameters, an array of parameters can be passed to <i>any</i> function by applying the same syntax to a function-call:</p>
 <pre>substrings := ["one", "two", "three"]
-MsgBox % Join("`n", <b class="blue">substrings*</b>)</pre>
+MsgBox Join("`n", <b class="blue">substrings*</b>)</pre>
 <p>Notes:</p>
 <ul>
   <li>Numbering of parameters within the source array begins at 1.</li>
@@ -223,13 +223,13 @@ static TotalAttempts := 0, PrevResult</pre>
 <p>If the function cannot be called due to one of the reasons below, an <a href="commands/Catch.htm#RuntimeErrors">exception</a> is thrown:</p>
 <ul>
   <li>Calling a nonexistent function, which can be avoided by using <code>If <a href="#IsFunc">IsFunc</a>(VarContainingFuncName)</code>. Except for <a href="#BuiltIn">built-in functions</a>, the called function's <a href="#define">definition</a> must exist explicitly in the script by means such as <a href="commands/_Include.htm">#Include</a> or a non-dynamic call to a <a href="#lib">library function</a>.</li>
-  <li>Passing too few parameters, which can be avoided by checking <a href="#IsFunc">IsFunc()</a>'s return value (which is the number of mandatory parameters plus one). Note: Passing too many parameters is tolerated; each extra parameter is fully evaluated (including any calls to functions) and then discarded.</li>
+  <li>Passing too few parameters, which can be avoided by checking <a href="#IsFunc">IsFunc</a>'s return value (which is the number of mandatory parameters plus one). Note: Passing too many parameters is tolerated; each extra parameter is fully evaluated (including any calls to functions) and then discarded.</li>
 </ul>
 <p>Finally, a dynamic call to a function is slightly slower than a normal call because normal calls are resolved (looked up) before the script begins running.</p>
 <h2 id="ShortCircuit">Short-circuit Boolean Evaluation</h2>
 <p>When <em>AND, OR</em>, and the <a href="Variables.htm#ternary">ternary operator</a> are used within an <a href="Variables.htm#Expressions">expression</a>, they short-circuit to enhance performance (regardless of whether any function calls are present). Short-circuiting operates by refusing to evaluate parts of an expression that cannot possibly affect its final result. To illustrate the concept, consider this example:</p>
 <pre>if (ColorName &lt;&gt; &quot;&quot; AND not FindColor(ColorName))
-    MsgBox %ColorName% could not be found.</pre>
+    MsgBox ColorName " could not be found."</pre>
 <p>In the example above, the FindColor() function never gets called if the <em>ColorName</em> variable is empty. This is because the left side of the <em>AND</em> would be <em>false</em>, and thus its right side would be incapable of making the final outcome <em>true</em>.</p>
 <p>Because of this behavior, it's important to realize that any side-effects produced by a function (such as altering a global variable's contents) might never occur if that function is called on the right side of an <em>AND</em> or <em>OR</em>.</p>
 <p>It should also be noted that short-circuit evaluation cascades into nested <em>AND</em>s and <em>OR</em>s. For example, in the following expression, only the leftmost comparison occurs whenever <em>ColorName</em> is blank. This is because the left side would then be enough to determine the final answer with certainty:</p>
@@ -245,11 +245,11 @@ static TotalAttempts := 0, PrevResult</pre>
 <p>A function may contain externally-called subroutines such as <a href="commands/SetTimer.htm">timer</a>s, and <a href="commands/Menu.htm">menu items</a>. This is generally done to encapsulate them in a separate file for use with <a href="commands/_Include.htm">#Include</a>, which prevents them from interfering with the script's <a href="Scripts.htm#auto">auto-execute section</a>. However, the following limitations apply:</p>
 <ul>
   <li>Such subroutines should use only <a href="#static">static</a> and <a href="#Global">global</a> variables (not <a href="#Locals">locals</a>) if their function is ever called normally. This is because a subroutine <a href="misc/Threads.htm">thread</a> that interrupts a function-call thread (or vice versa) would be able to change the values of local variables seen by the interrupted thread. Furthermore, any time a function returns to its caller, all of its local variables are made blank to free their memory.</li>
-  <li>When a function is entered by a subroutine <a href="misc/Threads.htm">thread</a>, any references to <a href="misc/Arrays.htm">dynamic variables</a> made by that thread are treated as <a href="#Global">globals</a> (including commands that create arrays). Similarly, <a href="misc/Labels.htm">local labels</a> cannot be referenced dynamically.</li>
+  <li>When a function is entered by a subroutine <a href="misc/Threads.htm">thread</a>, any references to <a href="misc/Arrays.htm">dynamic variables</a> made by that thread are treated as <a href="#Global">globals</a> (including functions that create arrays). Similarly, <a href="misc/Labels.htm">local labels</a> cannot be referenced dynamically.</li>
 </ul>
 <h2 id="remarks">Return, Exit, and General Remarks</h2>
 <p>If the flow of execution within a function reaches the function's closing brace prior to encountering a <a href="commands/Return.htm">Return</a>, the function ends and returns a blank value (empty string) to its caller. A blank value is also returned whenever the function explicitly omits <a href="commands/Return.htm">Return</a>'s parameter.</p>
-<p>When a function uses the <a href="commands/Exit.htm">Exit</a> command to terminate the <a href="misc/Threads.htm">current thread</a>, its caller does not receive a return value at all. For example, the statement <code>Var := Add(2, 3)</code> would leave <code>Var</code> unchanged if <code>Add()</code> exits. The same thing happens if a function causes a runtime error such as <a href="commands/Run.htm">running</a> a nonexistent file (when <a href="commands/Run.htm#UseErrorLevel">UseErrorLevel</a> is not in effect).</p>
+<p>When a function uses <a href="commands/Exit.htm">Exit</a> to terminate the <a href="misc/Threads.htm">current thread</a>, its caller does not receive a return value at all. For example, the statement <code>Var := Add(2, 3)</code> would leave <code>Var</code> unchanged if <code>Add()</code> exits. The same thing happens if a function causes a runtime error such as <a href="commands/Run.htm">running</a> a nonexistent file (when <a href="commands/Run.htm#UseErrorLevel">UseErrorLevel</a> is not in effect).</p>
 <p>A function may alter the value of <a href="misc/ErrorLevel.htm">ErrorLevel</a> for the purpose of returning an extra value that is easy to remember.</p>
 <p>To call a function with one or more blank values (empty strings), use an empty pair of quotes as in this example: <code>FindColor(ColorName, &quot;&quot;)</code>.</p>
 <p>Since calling a function does not start a new <a href="misc/Threads.htm">thread</a>, any changes made by a function to settings such as <a href="commands/SendMode.htm">SendMode</a> and <a href="commands/SetTitleMatchMode.htm">SetTitleMatchMode</a> will go into effect for its caller too.</p>
@@ -266,9 +266,9 @@ static TotalAttempts := 0, PrevResult</pre>
 <p>Explanation: When the script's flow of execution encounters a function definition, it jumps over it (using an instantaneous method) and resumes execution at the line after its closing brace. Consequently, execution can never fall into a function from above, nor does the presence of one or more functions at the very top of a script affect the <a href="Scripts.htm#auto">auto-execute section</a>.</p>
 <h2 id="lib">Libraries of Functions: Standard Library and User Library</h2>
 <p>A script may call a function in an external file without having to use <a href="commands/_Include.htm">#Include</a>. For this to work, a file of the same name as the function must exist in one of the following library directories:</p>
-<pre><a href="Variables.htm#ScriptDir">%A_ScriptDir%</a>\Lib\  <em>; Local library.</em>
-<a href="Variables.htm#MyDocuments">%A_MyDocuments%</a>\AutoHotkey\Lib\  <em>; User library.</em>
-path-to-the-currently-running-AutoHotkey.exe\Lib\  <em>; Standard library.</em></pre>
+<pre><a href="Variables.htm#ScriptDir">A_ScriptDir</a> "\Lib\"  <em>; Local library.</em>
+<a href="Variables.htm#MyDocuments">A_MyDocuments</a> "\AutoHotkey\Lib\"  <em>; User library.</em>
+"path-to-the-currently-running-AutoHotkey.exe\Lib\"  <em>; Standard library.</em></pre>
 <p>For example, if a script calls a nonexistent function <code>MyFunc()</code>, the program searches for a file named &quot;MyFunc.ahk&quot; in the user library. If not found there, it searches for it in the standard library. If a match is still not found and the function's name contains an underscore (e.g. <code>MyPrefix_MyFunc</code>), the program searches both libraries for a file named <code>MyPrefix.ahk</code> and loads it if it exists. This allows <code>MyPrefix.ahk</code> to contain both the function <code>MyPrefix_MyFunc</code> and other related functions whose names start with <code>MyPrefix_</code>.</p>
 <p>The local library is searched before the user library and standard library.</p>
 <p>Only a direct function call such as <code>MyFunc()</code> can cause a library to be auto-included. If the function is only called dynamically or indirectly, such as by a timer or GUI event, the library must be explicitly included in the script.  For example: <code><a href="commands/_Include.htm">#Include</a> &lt;MyFunc&gt;</code></p>
@@ -278,8 +278,8 @@ path-to-the-currently-running-AutoHotkey.exe\Lib\  <em>; Standard library.</em><
 <p>Functions included from a library perform just as well as other functions because they are pre-loaded before the script begins executing.</p>
 <h2 id="BuiltIn">Built-in Functions</h2>
 <p>Any optional parameters at the end of a built-in function's parameter list may be completely omitted. For example, <code>WinExist(&quot;Untitled - Notepad&quot;)</code> is valid because its other three parameters would be considered blank.</p>
-<p>A built-in function is overridden if the script defines its own function of the same name. For example, a script could have its own custom WinExist() function that is called instead of the standard one. However, the script would then have no way to call the original function.</p>
-<p>External functions that reside in DLL files may be called with <a href="commands/DllCall.htm">DllCall()</a>.</p>
+<p>A built-in function is overridden if the script defines its own function of the same name. For example, a script could have its own custom WinExist function that is called instead of the standard one. However, the script would then have no way to call the original function.</p>
+<p>External functions that reside in DLL files may be called with <a href="commands/DllCall.htm">DllCall</a>.</p>
 <p>To get more details about a particular built-in function below, simply click on its name.</p>
 <h3>Frequently-used Functions</h3>
 <table class="info">

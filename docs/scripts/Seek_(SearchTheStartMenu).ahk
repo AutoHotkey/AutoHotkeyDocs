@@ -7,7 +7,8 @@ word/phrase that it will use to filter only the matching programs and
 directories from the Start Menu, so that you can easily open your target
 program from a handful of matched entries. This eliminates the drudgery of
 searching and traversing the Start Menu.
-
+*/
+/*
 Options:
 
 -cache Use the cached directory-listing if available (this is the default mode
@@ -22,10 +23,9 @@ Important notes:
 Check AutoHotkey's Tutorial how to run this script, or to compile it if
 necessary.
 
-The only 2 files 'Seek' creates are placed in your TMP directory:
+The only file 'Seek' creates is placed in your TMP directory:
 
-  a. _Seek.key  (cache file for last query string)
-  b. _Seek.list (cache file for directory listing)
+  a. _Seek.ini  (cache file for last query string and directory listing)
 
 When you run 'Seek' for the first time, it'll scan your Start Menu,
 and save the directory listing into a cache file.
@@ -59,14 +59,14 @@ User's customised list of additional directories to be included in the
 scanning. The full path must not be enclosed by quotes or double-quotes.
 If this file is missing, only the default directories will be scanned.
 */
-config.SeekMyDir := "%A_ScriptDir%\Seek.dir"
+config.SeekMyDir := A_ScriptDir "\Seek.dir"
 
 /*
 Specify the filename and directory location to save the cached directory/program
 listing and the cached key word/phrase of the last search.
 There is no need to change this unless you want to.
 */
-config.saveFile := "%A_Temp%\_Seek.ini"
+config.saveFile := A_Temp "\_Seek.ini"
 
 /*
 Track search string (True/False)
@@ -110,21 +110,21 @@ if A_Args[1] ~= "^(--help|-help|/h|-h|/\?|-\?)$"
         time-consuming directory-scanning as a background job)
       -help  Show this help
   )", config.ScriptTitle)
-  ExitApp()
+  ExitApp
 }
 
 ; Check that the mandatory environment variables exist and are valid:
 if !FileExist(A_Temp) ; Path does not exist.
 {
   MsgBox("
-  (
+  (Q
     This mandatory environment variable is either not defined or invalid:
     
-        TMP = %A_Temp%
+        TMP = " A_Temp "
         
     Please fix it before running Seek.
   )", config.ScriptTitle)
-  ExitApp()
+  ExitApp
 }
 
 ; Scan the Start Menu without Gui:
@@ -190,7 +190,8 @@ FindMatches(config, LB, B_1, B_2, E_Search)
 
 ; Retrieve the last selection from cache file and select the item:
 if config.TrackKeyPhrase
-  LB.Choose(IniRead(config.saveFile, "LastSession", "Selection"))
+  if (LastSelection := IniRead(config.saveFile, "LastSession", "Selection"))
+    LB.Choose(LastSelection)
 
 ; Function definitions ---
 
@@ -230,15 +231,15 @@ SaveFileList(config)
 
   ; Include additional user-defined paths for scanning:
   if FileExist(config.SeekMyDir)
-    LoopRead(config.SeekMyDir)
+    Loop Read, config.SeekMyDir
     {
       if !FileExist(A_LoopReadLine)
         MsgBox("
-        (
+        (Q
           Processing your customised directory list...
           
-          '%A_LoopReadLine%' does not exist and will be excluded from the scanning.
-          Please update [ %config.SeekMyDir% ].
+          '" A_LoopReadLine "' does not exist and will be excluded from the scanning.
+          Please update [ " config.SeekMyDir " ].
         )", config.ScriptTitle, 8192)
       else
         LocationArray.Push(A_LoopReadLine)
@@ -252,9 +253,9 @@ SaveFileList(config)
     ; Save space by using relative paths:
     IniWrite(Location, config.saveFile, "LocationList", "L" i)
     A_WorkingDir := Location
-    LoopFiles("*", config.ScanMode "R")
+    Loop Files, "*", config.ScanMode "R"
       if !InStr(FileGetAttrib(A_LoopFilePath), "H") ; Exclude hidden file.
-        FileList .= "`%L" i "`%\" A_LoopFilePath "`n"
+        FileList .= "%L" i "%\" A_LoopFilePath "`n"
   }
   IniDelete(config.saveFile, "FileList")
   IniWrite(FileList, config.saveFile, "FileList")
@@ -275,9 +276,11 @@ FindMatches(config, LB, B_1, B_2, E_Search)
         break
       L%A_Index% := Location
     }
-    LoopParse(IniRead(config.saveFile, "FileList"), "`n")
+    Loop Parse, IniRead(config.saveFile, "FileList"), "`n"
     {
-      Line := Deref(A_LoopField) ; Replace %L_n% with location paths.
+      Line := A_LoopField
+      if RegExMatch(Line, "%(L\d+)%", m) ; Replace %L_n% with location paths.
+        Line := StrReplace(Line, "%" m[1] "%", %m[1]%)
       if SearchText <> E_Search.Value
       {
         ; User has changed the search string.
@@ -289,7 +292,7 @@ FindMatches(config, LB, B_1, B_2, E_Search)
         ; Append matching records into the list:
         SplitPath(Line, Name)
         MatchFound := true
-        LoopParse(SearchText, " ")
+        Loop Parse, SearchText, "`s"
         {
           if !InStr(Name, A_LoopField)
           {
@@ -332,8 +335,8 @@ OpenTarget(config, LB)
   if !FileExist(LB.Text)
   {
     MsgBox("
-    (
-      %LB.Text% does not exist.
+    (Q
+      " LB.Text " does not exist.
       
       This means that the directory cache is outdated. You may click on
       the 'Scan Start-Menu' button below to update the directory cache with your
@@ -351,13 +354,13 @@ OpenTarget(config, LB)
   else
   {
     MsgBox("
-    (
-      %LB.Text% is neither a DIRECTORY or a FILE.
+    (Q
+      " LB.Text " is neither a DIRECTORY or a FILE.
       
       This shouldn't happen. Seek cannot proceed. Quitting...
     )")
   }
-  WinClose()
+  WinClose
 }
 
 ; User clicked on 'Open Directory' button:
@@ -365,9 +368,9 @@ OpenFolder(config, LB)
 {
   Path := LB.Text
   ; If user selected a file-record instead of a directory-record, extract the
-  ; directory path (I'm using DriveGet instead of FileGetAttrib to allow the
+  ; directory path (I'm using DriveGetStatus instead of FileGetAttrib to allow the
   ; scenario whereby LB.Text is invalid but the directory path of LB.Text is valid):
-  if DriveGet("Status", Path) <> "Ready" ; not a directory
+  if DriveGetStatus(Path) <> "Ready" ; not a directory
   {
     SplitPath(Path,, Dir)
     Path := Dir
@@ -377,8 +380,8 @@ OpenFolder(config, LB)
   if !FileExist(Path)
   {
     MsgBox("
-    (
-      %Path% does not exist.
+    (Q
+      " Path " does not exist.
       
       This means that the directory cache is outdated. You may click on
       the 'Scan Start-Menu' button below to update the directory cache with your
@@ -389,7 +392,7 @@ OpenFolder(config, LB)
 
   ; Open the directory:
   if FileExist(config.dirExplorer)
-    Run('"%config.dirExplorer%" "%Path%"') ; Open with custom file explorer.
+    Run(Format('"{1}" "{2}"', config.dirExplorer, Path)) ; Open with custom file explorer.
   else
     Run(Path) ; Open with default windows file explorer.
 }
@@ -403,5 +406,5 @@ Gui_Close(config, E_Search, LB)
     IniWrite(E_Search.Value, config.saveFile, "LastSession", "SearchText")
     IniWrite(LB.Text, config.saveFile, "LastSession", "Selection")
   }
-  ExitApp()
+  ExitApp
 }

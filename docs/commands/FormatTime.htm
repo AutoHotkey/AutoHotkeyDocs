@@ -169,7 +169,7 @@
 </table>
 <h3>Additional Options</h3>
 <p>The following options can appear inside the <em>YYYYMMDDHH24MISS</em> parameter immediately after the timestamp (if there is no timestamp, they may be used alone). In the following example, note the lack of commas between the last four items:</p>
-<pre>FormatTime, OutputVar, 20040228 LSys D1 D4</pre>
+<pre>OutputVar := FormatTime("20040228 LSys D1 D4")</pre>
 <p><strong>R</strong>: Reverse. Have the date come before the time (meaningful only when <em>Format</em> is blank).</p>
 <p><strong>Ln</strong>: If this option is <em>not</em> present, the current user's locale is used to format the string. To use the system's locale instead, specify LSys. To use a specific locale, specify the letter L followed by a hexadecimal or decimal locale identifier (LCID). For information on how to construct an LCID, search <a href="http://www.microsoft.com">www.microsoft.com</a> for the following phrase: Locale Identifiers</p>
 <p><strong>Dn</strong>: Date options. Specify for <strong>n</strong> one of the following numbers:<br>
@@ -191,9 +191,9 @@
   12: Combination of the above two.<br>
   0x80000000: Do not obey any overrides the user may have in effect for the system's default time format. <br>
   0x40000000: Use the system ANSI code page for string translation instead of the locale's code page.</p>
-<p><strong>Note</strong>: Dn and Tn may be repeated to put more than one option into effect, such as this example: <code>FormatTime, OutputVar, 20040228 D2 D4 T1 T8</code></p>
+<p><strong>Note</strong>: Dn and Tn may be repeated to put more than one option into effect, such as this example: <code>FormatTime("20040228 D2 D4 T1 T8")</code></p>
 <h3 id="Remarks">Remarks</h3>
-<p>Letters and numbers that you want to be transcribed literally from <em>Format</em> into <em>OutputVar</em> should be enclosed in single quotes as in this example: <code>'Date:' MM/dd/yy 'Time:' hh:mm:ss tt</code>.</p>
+<p>Letters and numbers that you want to be transcribed literally from <em>Format</em> into <em>OutputVar</em> should be enclosed in single quotes as in this example: <code>"'Date:' MM/dd/yy 'Time:' hh:mm:ss tt"</code>.</p>
 <p>By contrast, non-alphanumeric characters such as spaces, tabs, linefeeds (`n), slashes, colons, commas, and other punctuation do not need to be enclosed in single quotes. The exception to this is the single quote character itself: to produce it literally, use four consecutive single quotes (''''), or just two if the quote is already inside an outer pair of quotes.</p>
 <p>If <em>Format</em> contains date and time elements together, they must not be intermixed. In other words, the string should be dividable into two halves: a time half and a date half. For example, a format string consisting of &quot;hh yyyy mm&quot; would not produce the expected result because it has a date element in between two time elements.</p>
 <p>When <em>Format</em> contains a numeric day of the month (either d or dd) followed by the full month name (MMMM), the genitive form of the month name is used (if the language has a genitive form).</p>
@@ -203,53 +203,50 @@
 <p>To convert in the reverse direction -- that is, <em>from</em> a formatted date/time <em>to</em> <a href="FileSetTime.htm#YYYYMMDD">YYYYMMDDHH24MISS</a> format -- see <a href="http://www.autohotkey.com/forum/topic20405.html">www.autohotkey.com/forum/topic20405.html</a></p>
 <p>See also: <a href="GuiControls.htm#DateTime">Gui DateTime control</a>, <a href="../Variables.htm#date">built-in date and time variables</a>, <a href="FileGetTime.htm">FileGetTime</a></p>
 <h3>Examples</h3>
-<pre class="NoIndent">FormatTime, TimeString
-MsgBox The current time and date (time first) is %TimeString%.
+<pre class="NoIndent">TimeString := FormatTime()
+MsgBox "The current time and date (time first) is " TimeString
 
-FormatTime, TimeString, R
-MsgBox The current time and date (date first) is %TimeString%.
+TimeString := FormatTime("R")
+MsgBox "The current time and date (time first) is " TimeString
 
-FormatTime, TimeString,, Time
-MsgBox The current time is %TimeString%.
+TimeString := FormatTime(, "Time")
+MsgBox "The current time is " TimeString
 
-FormatTime, TimeString, T12, Time
-MsgBox The current 24-hour time is %TimeString%.
+TimeString := FormatTime("T12", "Time")
+MsgBox "The current 24-hour time is " TimeString
 
-FormatTime, TimeString,, LongDate
-MsgBox The current date (long format) is %TimeString%.
+TimeString := FormatTime(, "LongDate")
+MsgBox "The current date (long format) is " TimeString
 
-FormatTime, TimeString, 20050423220133, dddd MMMM d, yyyy hh:mm:ss tt
-MsgBox The specified date and time`, when formatted`, is %TimeString%.
+TimeString := FormatTime(20050423220133, "dddd MMMM d, yyyy hh:mm:ss tt")
+MsgBox "The specified date and time, when formatted, is " TimeString
 
-FormatTime, TimeString, 200504, 'Month Name': MMMM`n'Day Name': dddd
-MsgBox %TimeString%
+MsgBox FormatTime(200504, "'Month Name': MMMM`n'Day Name': dddd")
 
-FormatTime, YearWeek, 20050101, YWeek
-MsgBox January 1st of 2005 is in the following ISO year and week number: %YearWeek%</pre>
+YearWeek := FormatTime(20050101, "YWeek")
+MsgBox "January 1st of 2005 is in the following ISO year and week number: " YearWeek</pre>
 
 <pre class="NoIndent"><em>; Change the date-time stamp of a file:</em>
-FileSelect, FileName, 3,, Pick a file
+FileName := FileSelect(3,, "Pick a file")
 if FileName = "" <em>; The user didn't pick a file.</em>
     return
-FileGetTime, FileTime, %FileName%
-FormatTime, FileTime, %FileTime%   <em>; Since the last parameter is omitted, the long date and time are retrieved.</em>
-MsgBox The selected file was last modified at %FileTime%.</pre>
+FileTime := FileGetTime(FileName)
+FileTime := FormatTime(FileTime)   <em>; Since the last parameter is omitted, the long date and time are retrieved.</em>
+MsgBox "The selected file was last modified at " FileTime</pre>
 
 <pre class="NoIndent"><em>; The following function converts the specified number of seconds into the corresponding
 ; number of hours, minutes, and seconds (hh:mm:ss format).</em>
 
-MsgBox % FormatSeconds(7384)  <em>; 7384 = 2 hours + 3 minutes + 4 seconds. It yields: 2:03:04</em>
+MsgBox FormatSeconds(7384)  <em>; 7384 = 2 hours + 3 minutes + 4 seconds. It yields: 2:03:04</em>
 
 FormatSeconds(NumberOfSeconds)  <em>; Convert the specified number of seconds to hh:mm:ss format.</em>
 {
     time := 19990101  <em>; *Midnight* of an arbitrary date.</em>
     time := DateAdd(time, NumberOfSeconds, "Seconds")
-    FormatTime, mmss, %time%, mm:ss
-    return NumberOfSeconds//3600 &quot;:&quot; mmss
+    return NumberOfSeconds//3600 &quot;:&quot; FormatTime(time, "mm:ss")
     <em>/*
     ; Unlike the method used above, this would not support more than 24 hours worth of seconds:
-    FormatTime, hmmss, %time%, h:mm:ss
-    return hmmss
+    return FormatTime(time, "h:mm:ss")
     */</em>
 }</pre>
 

@@ -100,14 +100,14 @@ Gui.Add("Text",, "First name:")
 Gui.Add("Text",, "Last name:")
 Gui.Add("Edit", "vFirstName ym")  <em>; The ym option starts a new column of controls.</em>
 Gui.Add("Edit", "vLastName")
-Gui.Add("Button", "default", "OK").OnEvent("Click", "Gui_Close")
+Gui.Add("Button", "default", "OK").OnEvent("Click", Func("Gui_Close").bind(Gui))
 Gui.OnEvent("Close", "Gui_Close")
 Gui.Show()
 
 Gui_Close(Gui)
 {
   Saved := Gui.Submit()  <em>; Save the contents of named controls into an object.</em>
-  MsgBox("You entered '%Saved.FirstName% %Saved.LastName%'.")
+  MsgBox("You entered '" Saved.FirstName " " Saved.LastName "'.")
 }</pre>
 
 <pre class="NoIndent"><em>; Example: Tab control:</em>
@@ -121,7 +121,8 @@ Gui.Add("Radio",, "Sample radio2")
 Tab.UseTab(3)
 Gui.Add("Edit", "vMyEdit r5")  <em>; r5 means 5 rows tall.</em>
 Tab.UseTab()  <em>; i.e. subsequently-added controls will not belong to the tab control.</em>
-Gui.Add("Button", "default xm", "OK").OnEvent("Click", "Gui_Close")  <em>; xm puts it at the bottom left corner.</em>
+Btn := Gui.Add("Button", "default xm", "OK")  <em>; xm puts it at the bottom left corner.</em>
+Btn.OnEvent("Click", Func("Gui_Close").bind(Gui))
 Gui.OnEvent("Close", "Gui_Close")
 Gui.OnEvent("Escape", "Gui_Close")
 Gui.Show()
@@ -138,7 +139,7 @@ Gui := GuiCreate()
 Gui.Add("Text",, "Pick a file to launch from the list below.")
 fn := Func("LaunchFile").bind(Gui)
 LB := Gui.Add("ListBox", "w640 r10 vFile"), LB.OnEvent("DoubleClick", fn)
-LoopFiles("C:\*.*")  <em>; Change this folder and wildcard pattern to suit your preferences.</em>
+Loop Files, "C:\*.*"  <em>; Change this folder and wildcard pattern to suit your preferences.</em>
     LB.Add(A_LoopFilePath)
 Gui.Add("Button", "Default", "OK").OnEvent("Click", fn)
 Gui.Show()
@@ -146,7 +147,7 @@ Gui.Show()
 LaunchFile(Gui)
 {
   Saved := Gui.Submit()
-  if MsgBox("Would you like to launch the file or document below?`n`n%Saved.File%",, 4) = "No"
+  if MsgBox("Would you like to launch the file or document below?`n`n" Saved.File,, 4) = "No"
     return
   try <em>; Otherwise, try to launch it:</em>
     Run(Saved.File)
@@ -157,22 +158,22 @@ LaunchFile(Gui)
 <pre class="NoIndent" id="ExToolTip"><em>; Example: Display context-senstive help (via ToolTip) whenever the user moves the mouse over a particular control:</em>
 
 Gui := GuiCreate()
-Gui.Add("Edit", "vMyEdit")
-MyEdit_TT := "This is a tooltip for the control whose name is MyEdit."
-Gui.Add("DropDownList", "vMyDDL", "Red|Green|Blue")
-MyDDL_TT := "Choose a color from the drop-down list."
+Gui.Add("Edit", "v<strong>MyEdit</strong>")
+<strong>MyEdit</strong>_TT := "This is a tooltip for the control whose name is MyEdit."
+Gui.Add("DropDownList", "v<strong>MyDDL</strong>", "Red|Green|Blue")
+<strong>MyDDL</strong>_TT := "Choose a color from the drop-down list."
 Gui.Add("Checkbox", "vMyCheckBox", "This control has no tooltip.")
 Gui.OnEvent("Close", "Gui_Close")
 Gui.Show()
-OnMessage(0x200, "WM_MOUSEMOVE")
+<a href="OnMessage.htm">OnMessage</a>(0x200, "WM_MOUSEMOVE")
 
 WM_MOUSEMOVE(wParam, lParam, msg, Hwnd)
 {
   global  
   static PrevHwnd
-  if (Hwnd &lt;gt; PrevHwnd)
+  if (Hwnd &lt;&gt; PrevHwnd)
   {
-    Text := "", ToolTip() <em>; Turn off any previous tooltip.</em>
+    Text := "", <a href="ToolTip.htm">ToolTip</a>() <em>; Turn off any previous tooltip.</em>
     CurrControl := GuiCtrlFromHwnd(Hwnd)
     if CurrControl
     {
@@ -211,14 +212,14 @@ Gui.Show("x0 y400 NoActivate")  <em>; NoActivate avoids deactivating the current
 UpdateOSD(GuiCtrl)
 {
   MouseGetPos(MouseX, MouseY)
-  GuiCtrl.Value := "X%MouseX%, Y%MouseY%"
+  GuiCtrl.Value := "X" MouseX ", Y" MouseY
 }</pre>
 
 <pre class="NoIndent"><em>; Example: A moving progress bar overlayed on a background image.</em>
 
 Gui := GuiCreate()
 Gui.BackColor := "White"
-Gui.Add("Picture", "x0 y0 h350 w450", "%A_WinDir%\Web\Wallpaper\Windows\img0.jpg")
+Gui.Add("Picture", "x0 y0 h350 w450", A_WinDir "\Web\Wallpaper\Windows\img0.jpg")
 MyBtn := Gui.Add("Button", "Default xp+20 yp+250", "Start the Bar Moving")
 MyProgress := Gui.Add("Progress", "w416")
 MyText := Gui.Add("Text", "wp")  <em>; wp means "use width of previous".</em>
@@ -227,7 +228,7 @@ Gui.Show()
 
 MoveBar(ProgressCtrl, TextCtrl)
 {
-  LoopFiles("%A_WinDir%\*.*")
+  Loop Files, A_WinDir "\*.*"
   {
     if A_Index > 100
       break
@@ -263,7 +264,7 @@ LoadNewImage(Gui, RadioCtrl, PicCtrl)
     Width := A_ScreenWidth - 28  <em>; Minus 28 to allow room for borders and margins inside.</em>
     Height := -1  <em>; "Keep aspect ratio" seems best.</em>
   }
-  PicCtrl.Value := "*w%Width% *h%Height% %File%"  <em>; Load the image.</em>
+  PicCtrl.Value := Format("*w{1} *h{2} {3}", Width, Height, File)  <em>; Load the image.</em>
   Gui.Title := File
   Gui.Show("xCenter y0 AutoSize")  <em>; Resize the window to match the picture size.</em>
 }</pre>
@@ -339,7 +340,7 @@ MenuFileExit()  <em>; User chose "Exit" from the File menu.</em>
 
 MenuHelpAbout()
 {
-  About := GuiCreate("+owner%Gui.Hwnd%")  <em>; Make the main window the owner of the "about box".</em>
+  About := GuiCreate("+owner" Gui.Hwnd)  <em>; Make the main window the owner of the "about box".</em>
   Gui.Opt("+Disabled")  <em>; Disable main window.</em>
   About.Add("Text",, "Text for about box.")
   About.Add("Button", "Default", "OK").OnEvent("Click", "About_Close")
@@ -353,7 +354,7 @@ readContent(FileName)
   FileContent := FileRead(FileName)  <em>; Read the file's contents into the variable.</em>
   if ErrorLevel
   {
-    MsgBox("Could not open '%FileName%'.")
+    MsgBox("Could not open '" FileName "'.")
     return
   }
   MainEdit.Value := FileContent  <em>; Put the text into the control.</em>
@@ -369,7 +370,7 @@ saveContent(FileName)
     FileDelete(FileName)
     if ErrorLevel
     {
-      MsgBox("The attempt to overwrite '%FileName%' failed.")
+      MsgBox("The attempt to overwrite '" FileName "' failed.")
       return
     }
   }
@@ -395,7 +396,7 @@ Gui_Size(Gui, MinMax, Width, Height)
   if MinMax = -1  <em>; The window has been minimized. No action needed.</em>
     return
   <em>; Otherwise, the window has been resized or maximized. Resize the Edit control to match.</em>
-  MainEdit.Move("W%Width-20% H%Height-20%")
+  MainEdit.Move("W" Width-20 " H" Height-20)
 }</pre>
 </body>
 </html>
