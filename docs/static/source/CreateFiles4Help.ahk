@@ -31,7 +31,7 @@ TOC_CreateHHC(data)
     <param name="ImageType" value="Folder">
     </object>
     )
-    output .= TOC_CreateListCallback("", sc.Eval("toc"))
+    output .= TOC_CreateListCallback("", sc.Eval("tocData"))
     output .= "`n</body>`n</html>`n"
     return % output
 }
@@ -73,7 +73,7 @@ INDEX_CreateHHK(data)
     sc := ComObjCreate("ScriptControl")
     sc.Language := "JScript"
     sc.ExecuteStatement(data)
-    data := sc.Eval("index")
+    data := sc.Eval("indexData")
     output =
     ( LTrim
     <!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
