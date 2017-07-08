@@ -19,6 +19,7 @@ var cache = {
   clickTab: 0,
   LastUsedSource: "",
   displaySidebar: true,
+  sidebarWidth: 255,
   translate: {},
   toc: {data: {}, clickItem: 0, scrollPos: 0},
   index: {data: {}, input: "", clickItem: 0, scrollPos: 0},
@@ -598,8 +599,8 @@ function ctor_structure()
     document.write(metaViewport + linkCSS);
   };
   self.build = function() { // Add elements for sidebar.
-    var head = '<div id="head"><div class="h-tabs"><ul><li data-translate>Content</li><li data-translate>Index</li><li data-translate>Search</li></ul></div><div class="h-tools"><div class="main"><ul><li class="sidebar" title="Hide/Show sidebar" data-translate>&#926;</li></ul></div><div class="online"><ul><li class="home" title="Home page" data-translate><a href="' + location.protocol + '//' + location.host + '">&#916;</a></li></ul><ul><li class="language" title="Change language" data-translate>en</li></ul><ul class="languages"><li class="arrow">&#9658;</li><li title="English">en</li><li title="Deutsch (German)">de</li><li title="Chinese">zh</li></ul><ul><li class="version" title="Change AHK version" data-translate>v1</li></ul><ul class="versions"><li class="arrow">&#9658;</li><li title="AHK v1.1">v1</li><li title="AHK v2.0">v2</li></ul></div><div class="chm"><ul><li class="back" title="Go back" data-translate>&#9668;</li><li class="forward" title="Go forward" data-translate>&#9658</li><li class="zoom" title="Change font size" data-translate>Z</li><li class="print" title="Print current document" data-translate>P</li></ul></div></div></div></div>';
-    var main = '<div id="main"><div id="left"><div class="toc"></div><div class="index"><div class="label" data-translate>Type in the keyword to find:</div><div class="input"><input type="text" /></div><div class="list"></div></div><div class="search"><div class="label" data-translate>Type in the word(s) to search for:</div><div class="input"><input type="text" /></div><div class="list"></div></div></div><div id="right"><div class="area">';
+    var head = '<div id="head"><div class="h-tabs"><ul><li data-translate>Content</li><li data-translate>Index</li><li data-translate>Search</li></ul></div><div class="dragbar"></div><div class="h-tools"><div class="main"><ul><li class="sidebar" title="Hide/Show sidebar" data-translate>&#926;</li></ul></div><div class="online"><ul><li class="home" title="Home page" data-translate><a href="' + location.protocol + '//' + location.host + '">&#916;</a></li></ul><ul><li class="language" title="Change language" data-translate>en</li></ul><ul class="languages"><li class="arrow">&#9658;</li><li title="English">en</li><li title="Deutsch (German)">de</li><li title="Chinese">zh</li></ul><ul><li class="version" title="Change AHK version" data-translate>v1</li></ul><ul class="versions"><li class="arrow">&#9658;</li><li title="AHK v1.1">v1</li><li title="AHK v2.0">v2</li></ul></div><div class="chm"><ul><li class="back" title="Go back" data-translate>&#9668;</li><li class="forward" title="Go forward" data-translate>&#9658</li><li class="zoom" title="Change font size" data-translate>Z</li><li class="print" title="Print current document" data-translate>P</li></ul></div></div></div></div>';
+    var main = '<div id="main"><div id="left"><div class="toc"></div><div class="index"><div class="label" data-translate>Type in the keyword to find:</div><div class="input"><input type="text" /></div><div class="list"></div></div><div class="search"><div class="label" data-translate>Type in the word(s) to search for:</div><div class="input"><input type="text" /></div><div class="list"></div></div></div><div class="dragbar"></div><div id="right"><div class="area">';
   
     // Write HTML before DOM is loaded to prevent flickering:
     document.write(head + main);
@@ -853,21 +854,49 @@ function ctor_structure()
           anchor[0].scrollIntoView();
         }, 200);
     });
+
+    // --- Resize the sidebar's width via mouse ---
+
+    var dragging = false;
+    $('.dragbar').mousedown(function(e) {
+      e.preventDefault();
+      dragging = true;
+      $('#iframe').hide(); // Prevent the mouse events from being interrupted.
+      var ghostbar = $('<div>', {'class': 'ghostbar', 'css': {left: $('#left').width()+2}});
+      ghostbar.appendTo('body');
+      $(document).mousemove(function(e) { ghostbar.css("left", e.pageX+2); });
+    });
+
+    $(document).mouseup(function(e) {
+      if (dragging) 
+      {
+        cache.sidebarWidth = e.pageX+2;
+        $('#left').add('#head div.h-tabs').width(cache.sidebarWidth);
+        $('#iframe').fadeIn();
+        $('div.ghostbar').remove();
+        $(document).unbind('mousemove');
+        dragging = false;
+      }
+    });
   };
   // Display or hide the sidebar:
   self.displaySidebar = function(display) {
     cache.displaySidebar = display;
     var $headTabs = $('#head div.h-tabs');
     var $leftArea = $('#left');
-    var props = {width: 0, visibility: "hidden"};
+    var $dragbar = $('.dragbar');
+    var hide = {width: 0, visibility: "hidden"};
+    var show = {width: cache.sidebarWidth+"px", visibility: "visible"};
     if (display) {
-      $headTabs.removeAttr('style');
-      $leftArea.removeAttr('style');
+      $headTabs.css(show);
+      $leftArea.css(show);
+      $dragbar.show();
       $('input', $leftArea).focus();
     }
     else {
-      $headTabs.css(props);
-      $leftArea.css(props);
+      $headTabs.css(hide);
+      $leftArea.css(hide);
+      $dragbar.hide();
     }
     $leftArea.focus();
   };
