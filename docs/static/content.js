@@ -625,7 +625,8 @@ function ctor_structure()
     if (isInsideCHM && !isInsideFrame)
     {
       cache.save();
-      $('div.area').replaceWith('<iframe frameBorder="0" id="iframe" src="' + cache.location + '">');
+      $('div.area').replaceWith('<iframe frameBorder="0" id="iframe" src="AutoHotkey.htm">');
+      if (cache.location) { $("#iframe").attr("src", cache.location); }
     }
 
     // --- Translate elements with data-translate attribute ---
