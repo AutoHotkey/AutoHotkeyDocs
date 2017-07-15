@@ -42,6 +42,7 @@ var scriptDir = scriptFile.substr(0, scriptFile.lastIndexOf('/'));
 var workingDir = getWorkingDir();
 var relPath = location.href.replace(workingDir, '');
 var isInsideCHM = (location.href.search(/::/) > 0) ? 1 : 0;
+var isFrameParent = (location.href.indexOf('iframe.htm') != -1);
 var isInsideFrame = (window.self !== window.top);
 var isSearchBot = navigator.userAgent.match(/googlebot|bingbot|slurp/i);
 var isMobile = ($(window).width() < 600);
@@ -79,7 +80,7 @@ var search = new ctor_search;
       });
       return;
     }
-    else if (location.href.indexOf('iframe.htm') == -1)
+    else if (!isFrameParent)
     {
       cache.location = location.href; cache.save();
       location.href = scriptDir + "/../iframe.htm";
@@ -320,8 +321,10 @@ function ctor_index()
       else
         $this.attr('class', 'mismatch'); // 'items not found'
     });
-    self.preSelect(indexList, indexInput);
-    setTimeout( function() { self.preSelect(indexList, indexInput); }, 0);
+    if (!isFrameParent) {
+      self.preSelect(indexList, indexInput);
+      setTimeout( function() { self.preSelect(indexList, indexInput); }, 0);
+    }
   };
   self.findMatch = function(indexListChildren, input) {
     var match = {};
@@ -380,8 +383,10 @@ function ctor_search()
       else
         $this.attr('class', 'mismatch'); // 'items not found'
     });
-    self.preSelect(searchList, searchInput);
-    setTimeout( function() { self.preSelect(searchList, searchInput); }, 0);
+    if (!isFrameParent) {
+      self.preSelect(searchList, searchInput);
+      setTimeout( function() { self.preSelect(searchList, searchInput); }, 0);
+    }
   };
   self.preSelect = function(searchList, searchInput) { // Apply stored settings.
     searchInput.val(cache.search.input).select();
@@ -909,7 +914,9 @@ function ctor_structure()
       .eq(pos).addClass('selected');
     $s.css("visibility", "hidden")
       .eq(pos).css("visibility", "inherit")
-      .find('input').focus().select();
+      .find('input').focus();
+    if (!isFrameParent)
+      $s.find('input').select();
   };
 }
 
