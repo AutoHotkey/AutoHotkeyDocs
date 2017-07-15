@@ -762,7 +762,6 @@ function ctor_structure()
         else
           if (window.location.href != href)
             window.location = href;
-        $this.focus();
       }
     }).on('touchmove', function() {
       touchmoved = true;
@@ -815,7 +814,7 @@ function ctor_structure()
       var $grandparent = $this.parent().parent();
       switch(e.which) {
         case 13: // Enter
-        $('a.selected', $('div.list', $grandparent)).focus().trigger('dblclick');
+        $('a.selected', $('div.list', $grandparent)).trigger('dblclick');
         break;
 
         case 38: // Up
