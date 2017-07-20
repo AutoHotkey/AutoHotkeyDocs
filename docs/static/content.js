@@ -45,7 +45,7 @@ var isInsideCHM = (location.href.search(/::/) > 0) ? 1 : 0;
 var isFrameParent = (location.href.indexOf('iframe.htm') != -1);
 var isInsideFrame = (window.self !== window.top);
 var isSearchBot = navigator.userAgent.match(/googlebot|bingbot|slurp/i);
-var isMobile = ($(window).width() < 600);
+var isMobile = (window.outerWidth < 600);
 var structure = new ctor_structure;
 var toc = new ctor_toc;
 var index = new ctor_index;
