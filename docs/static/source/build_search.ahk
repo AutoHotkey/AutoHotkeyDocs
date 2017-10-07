@@ -1,7 +1,7 @@
-%"_requires_v2_"%
+; requires AHK v2 32-bit
 #Warn
-SetWorkingDir %A_ScriptDir%\..\..
-FileEncoding("UTF-8")
+SetWorkingDir A_ScriptDir "\..\.."
+FileEncoding "UTF-8"
 
 common_words1 := "
 (Join| C
@@ -82,7 +82,7 @@ ScanFiles()
     titles_map := {}
     titles := {}
     
-    Loop Files, *.htm, R
+    Loop Files, "*.htm", "R"
     {
         if A_LoopFilePath ~= "i)^(scripts|search)\\"
         {
@@ -108,7 +108,7 @@ ScanFiles()
     sfiles := []
     stitles := []
     smap := {}
-    Loop Parse, %title_list%, `n
+    Loop Parse, title_list, "`n"
     {
         file_index := titles_map[A_LoopField]
         sfiles.Push(files[file_index])
@@ -125,7 +125,7 @@ ScanFiles()
         static js_keywords := "boolean|break|byte|case|catch|char|continue|default|delete|do|double|else|false|final|finally|float|for|function|if|in|instanceof|int|long|new|null|return|short|switch|this|throw|true|try|typeof|var|void|while|with"
             . "|class|const|debugger|enum|export|extends|import|super"  ; These probably only in JScript.
         word := StrLower(SubStr(word, 2))
-        if word ~= "(?!\b(%js_keywords%)\b)^[\p{Ll}_][\p{L}\d_]*$"
+        if word ~= "(?!\b(" js_keywords ")\b)^[\p{Ll}_][\p{L}\d_]*$"
             s .= word ':"'
         else
             s .= '"' word '":"'
@@ -142,7 +142,7 @@ ScanFiles()
             , "F" : "Functions#" }
     s .= 'var'
     for a, p in abbs
-        s .= ' %a%="%p%",'
+        s .= Format(' {1}="{2}",', a, p)
     s := SubStr(s, 1, -1)
     s .= '`n'
     
@@ -153,16 +153,16 @@ ScanFiles()
         for a, p in abbs
             if InStr(f, p) = 1
             {
-                s .= '%a%+"' SubStr(f, StrLen(p)+1) '",'
-                continue, 2
+                s .= Format('{1}+"{2}",', a, SubStr(f, StrLen(p)+1))
+                continue 2
             }
-        s .= '"%f%",'
+        s .= Format('"{1}",', f)
     }
     s := SubStr(s,1,-1) "]`n`n"
     
     s .= "var SearchTitles = ["
     for i, t in stitles
-        s .= '"%t%",'
+        s .= Format('"{1}",', t)
     s := SubStr(s,1,-1) "]`n`n"
     
     s .= "
@@ -171,13 +171,13 @@ ScanFiles()
         $(window.onReceiveSearchIndex); // $() for local IE8.
     )"
     
-    FileDelete static\source\data_search.js
-    FileAppend %s%, static\source\data_search.js
+    FileDelete "static\source\data_search.js"
+    FileAppend s, "static\source\data_search.js"
 }
 
 ScanFile(filename)
 {
-    FileRead html, %filename%
+    html := FileRead(filename)
     
     ; Index only content, not markup
     doc := ComObjCreate("htmlfile")
@@ -206,12 +206,12 @@ ScanFile(filename)
     
     titles[file_index] := doc.title
     if titles_map[doc.title]
-        throw Exception("Duplicate title: %doc.title%`n  %files[file_index]%`n  %files[titles_map[doc.title]]%")
+        throw Exception("Duplicate title: " doc.title "`n  " files[file_index] "`n  " files[titles_map[doc.title]])
     titles_map[doc.title] := file_index
     
-    SplitPath %filename%, name
-    FileDelete test\%name%
-    FileAppend %text%, test\%name%
+    SplitPath filename, name
+    FileDelete "test\" name
+    FileAppend text, "test\" name
     
     words := {}
     filewords[file_index] := words
@@ -301,16 +301,16 @@ ScanIndex()
 {
     if A_PtrSize != 4
     {
-        D("skipping index; need 32-bit to eval index.js")
+        D("skipping index; need 32-bit to eval data_index.js")
         return
     }
     sc := ComObjCreate("ScriptControl"), sc.Language := "JScript"
     sc.AddCode(FileRead("static\source\data_index.js"))
-    ji := sc.Eval("index")
+    ji := sc.Eval("indexData")
     if !(ji && ji.length)
-        throw Exception("Failed to read/parse index.js")
+        throw Exception("Failed to read/parse data_index.js")
     
-    Loop % ji.length
+    Loop ji.length
     {
         title := ji[A_Index-1][0]
         path  := ji[A_Index-1][1]
@@ -358,6 +358,5 @@ encode_number(n, length := "")
 
 
 D(s) {  ; debug output.
-    FileAppend %s%`n, *
+    FileAppend s "`n", "*"
 }
-
