@@ -13,6 +13,8 @@ translateData = {
   "v1":true,
   "Change AHK version":true,
   "https://lexikos.github.io/v2/docs/":true,
+  "Edit page on GitHub":true,
+  "https://github.com/Lexikos/AutoHotkey_L-Docs/edit/master/docs/":true,
   "Go back":true,
   "Go forward":true,
   "Change font size":true,

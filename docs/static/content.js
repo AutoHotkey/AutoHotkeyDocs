@@ -604,7 +604,7 @@ function ctor_structure()
     document.write(metaViewport + linkCSS);
   };
   self.build = function() { // Add elements for sidebar.
-    var head = '<div id="head"><div class="h-tabs"><ul><li data-translate>Content</li><li data-translate>Index</li><li data-translate>Search</li></ul></div><div class="dragbar"></div><div class="h-tools"><div class="main"><ul><li class="sidebar" title="Hide/Show sidebar" data-translate>&#926;</li></ul></div><div class="online"><ul><li class="home" title="Home page" data-translate><a href="' + location.protocol + '//' + location.host + '">&#916;</a></li></ul><ul><li class="language" title="Change language" data-translate>en</li></ul><ul class="languages"><li class="arrow">&#9658;</li><li title="English">en</li><li title="Deutsch (German)">de</li><li title="Chinese">zh</li></ul><ul><li class="version" title="Change AHK version" data-translate>v1</li></ul><ul class="versions"><li class="arrow">&#9658;</li><li title="AHK v1.1">v1</li><li title="AHK v2.0">v2</li></ul></div><div class="chm"><ul><li class="back" title="Go back" data-translate>&#9668;</li><li class="forward" title="Go forward" data-translate>&#9658</li><li class="zoom" title="Change font size" data-translate>Z</li><li class="print" title="Print current document" data-translate>P</li></ul></div></div></div></div>';
+    var head = '<div id="head"><div class="h-tabs"><ul><li data-translate>Content</li><li data-translate>Index</li><li data-translate>Search</li></ul></div><div class="dragbar"></div><div class="h-tools"><div class="main"><ul><li class="sidebar" title="Hide/Show sidebar" data-translate>&#926;</li></ul></div><div class="online"><ul><li class="home" title="Home page" data-translate><a href="' + location.protocol + '//' + location.host + '">&#916;</a></li></ul><ul><li class="language" title="Change language" data-translate>en</li></ul><ul class="languages"><li class="arrow">&#9658;</li><li title="English">en</li><li title="Deutsch (German)">de</li><li title="Chinese">zh</li></ul><ul><li class="version" title="Change AHK version" data-translate>v1</li></ul><ul class="versions"><li class="arrow">&#9658;</li><li title="AHK v1.1">v1</li><li title="AHK v2.0">v2</li></ul><ul><li class="edit" title="Edit page on GitHub" data-translate><a>E</a></li></ul></div><div class="chm"><ul><li class="back" title="Go back" data-translate>&#9668;</li><li class="forward" title="Go forward" data-translate>&#9658</li><li class="zoom" title="Change font size" data-translate>Z</li><li class="print" title="Print current document" data-translate>P</li></ul></div></div></div></div>';
     var main = '<div id="main"><div id="left"><div class="toc"></div><div class="index"><div class="label" data-translate>Type in the keyword to find:</div><div class="input"><input type="text" /></div><div class="list"></div></div><div class="search"><div class="label" data-translate>Type in the word(s) to search for:</div><div class="input"><input type="text" /></div><div class="list"></div></div></div><div class="dragbar"></div><div id="right"><div class="area">';
   
     // Write HTML before DOM is loaded to prevent flickering:
@@ -683,6 +683,10 @@ function ctor_structure()
       $verList.animate({width: "toggle"}, 100);
       $(this).toggleClass("selected");
       $verList.toggleClass("selected");
+    });
+    $("li.edit > a").attr({
+      href: T("https://github.com/Lexikos/AutoHotkey_L-Docs/edit/master/docs/") + relPath,
+      target: "_blank"
     });
 
     // --- CHM tools (only visible if help is CHM) ---
