@@ -1,14 +1,31 @@
-translate = {
-  hdSearchTxt: "Enter search term ...",
-  hdSearchBtn: "Search",
-  hdSearchLnk: "http://www.google.com/cse?cx=010629462602499112316:ywoq_rufgic&q={0}",
-  sbContent: "Content",
-  sbIndex: "Index",
-  ftLicense: "License:",
-  ftExtra: "",
-  cdSelectBtn: "Select",
-  cdDownloadBtn: "Download",
-  verToolTipAHK_L: "Applies to:\nAutoHotkey_L Revision {0} and later\nAutoHotkey v1.0.90.00 and later",
-  verToolTipDefault: "Applies to AutoHotkey {0} and later",
-  tutLocalMessage: "Since you're viewing this documentation locally, you've probably already installed AutoHotkey and can skip to section b."
+translateData = {
+  // sidebar
+  "Content":true,
+  "Index":true,
+  "Type in the keyword to find:":true,
+  "Search":true,
+  "Type in the word(s) to search for:":true,
+  // header
+  "Hide/Show sidebar":true,
+  "Home page":true,
+  "en":true,
+  "Change language":true,
+  "v1":true,
+  "Change AHK version":true,
+  "https://lexikos.github.io/v2/docs/":true,
+  "Edit page on GitHub":true,
+  "https://github.com/Lexikos/AutoHotkey_L-Docs/edit/master/docs/":true,
+  "Go back":true,
+  "Go forward":true,
+  "Change font size":true,
+  "Print current document":true,
+  // ALT+... shortcuts (needs uppercase)
+  "C":true,
+  "N":true,
+  "S":true,
+  // content
+  "Select code":true,
+  "Download code":true,
+  "Applies to:\nAutoHotkey_L Revision {0} and later\nAutoHotkey v1.0.90.00 and later":true,
+  "Applies to AutoHotkey {0} and later":true
 };

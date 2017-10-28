@@ -1,4 +1,4 @@
-index = [
+indexData = [
   ["#AllowSameLineComments","commands/_AllowSameLineComments.htm"],
   ["#ClipboardTimeout","commands/_ClipboardTimeout.htm"],
   ["#CommentFlag","commands/_CommentFlag.htm"],
