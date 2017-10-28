@@ -187,6 +187,8 @@ tocData = [
     ["Floor","commands/Math.htm#Floor"],
     ["Log","commands/Math.htm#Log"],
     ["Ln","commands/Math.htm#Ln"],
+    ["Max","commands/Math.htm#Max"],
+    ["Min","commands/Math.htm#Min"],
     ["Mod","commands/Math.htm#Mod"],
     ["Random","commands/Random.htm"],
     ["Round","commands/Math.htm#Round"],
