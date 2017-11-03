@@ -15,6 +15,7 @@ padding:"inner"+a,content:b,"":"outer"+a},function(c,d){n.fn[d]=function(d,e){va
 
 var cache = {
   firstStartup: true,
+  scriptDir: document.scripts[0].src.substr(0, document.scripts[0].src.lastIndexOf('/')),
   fontSize: 1.0,
   clickTab: 0,
   LastUsedSource: "",
@@ -25,7 +26,7 @@ var cache = {
   index: {data: {}, input: "", clickItem: 0, scrollPos: 0},
   search: {index: {}, files: {}, titles: {}, data: {}, input: "", clickItem: 0, scrollPos: 0},
   load: function() {
-    if (window.name.indexOf("firstStartup") != -1)
+    if (window.name.indexOf(this.scriptDir) != -1)
       $.extend(this, JSON.parse(window.name));
   },
   save: function() {
@@ -37,8 +38,7 @@ var cache = {
 
 // Set global variables:
 cache.load();
-var scriptFile = document.scripts[0].src;
-var scriptDir = scriptFile.substr(0, scriptFile.lastIndexOf('/'));
+var scriptDir = cache.scriptDir;
 var workingDir = getWorkingDir();
 var relPath = location.href.replace(workingDir, '');
 var isInsideCHM = (location.href.search(/::/) > 0) ? 1 : 0;
