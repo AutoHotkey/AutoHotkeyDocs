@@ -234,7 +234,6 @@ toc = [
     {label:"IsObject",path:"commands/IsObject.htm"},
     {label:"ListLines",path:"commands/ListLines.htm"},
     {label:"ListVars",path:"commands/ListVars.htm"},
-    {label:"MonitorGet",path:"commands/MonitorGet.htm"},
     {label:"OutputDebug",path:"commands/OutputDebug.htm"},
     {label:"VarSetCapacity",path:"commands/VarSetCapacity.htm"}
   ]},
@@ -265,9 +264,10 @@ toc = [
     {label:"RegWrite",path:"commands/RegWrite.htm"},
     {label:"SetRegView",path:"commands/SetRegView.htm"}
   ]},
-  {label:"Screen",children:
+  {label:"Screen and Monitor",children:
   [
     {label:"ImageSearch",path:"commands/ImageSearch.htm"},
+    {label:"MonitorGet",path:"commands/MonitorGet.htm"},
     {label:"PixelGetColor",path:"commands/PixelGetColor.htm"},
     {label:"PixelSearch",path:"commands/PixelSearch.htm"}
   ]},
