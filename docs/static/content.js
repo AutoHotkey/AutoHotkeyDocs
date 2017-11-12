@@ -672,7 +672,7 @@ function ctor_structure()
       if (thisLink == null)
         $(this).hide(); // Hide language button
       else
-        $(this).wrapInner('<a href="' + thisLink + relPath + '">');
+        $(this).wrapInner('<a href="' + thisLink + relPath + '"></a>');
     });
     // Add the version links:
     $('li', $verList).not('li.arrow').each( function() {
@@ -681,7 +681,7 @@ function ctor_structure()
       // Fallback to default docs:
       thisLink = (thisLink == null) ? link[$thisVer]['en'] : thisLink;
       // Don't use relPath here due file differences between the versions:
-      $(this).wrapInner('<a href="' + thisLink + '">');
+      $(this).wrapInner('<a href="' + thisLink + '"></a>');
     });
     // Show/Hide selection lists on click:
     $('li.language', $online).on('click', function() {
