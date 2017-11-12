@@ -650,28 +650,38 @@ function ctor_structure()
     // --- Online tools (only visible if help is not CHM) ---
 
     var $online = $('div.online', $tools);
-    // Translation links. Keys are based on ISO 639-1 language name standard:
-    var link = { "en": 'https://autohotkey.com/docs/',
-                 "de": 'https://ahkde.github.io/docs/',
-                 "zh": 'http://ahkcn.sourceforge.net/docs/' }
-    // Version links:
-    var ver  = { "v1": link[T("en")],
-                 "v2": T("https://lexikos.github.io/v2/docs/") }
+    // Set language code and version:
+    var lang = T("en"), ver = T("v1");
+    // language links. Keys are based on ISO 639-1 language name standard:
+    var link = { 'v1': { 'en': 'https://autohotkey.com/docs/',
+                         'de': 'https://ahkde.github.io/docs/',
+                         'zh': 'http://ahkcn.sourceforge.net/docs/' },
+                 'v2': { 'en': 'https://lexikos.github.io/v2/docs/',
+                         'de': 'https://ahkde.github.io/v2/docs/' } }
 
     var $langList = $('ul.languages', $online)
     var $verList  = $('ul.versions', $online)
     // Bug - IE/Edge doesn't turn off list-style if element is hidden:
     $langList.add($verList).css("list-style", "none");
     // Hide currently selected language and version in the selection lists:
-    $('li:contains(' + T("en") + ')', $langList).hide();
-    $('li:contains(' + T("v1") + ')', $verList).hide();
-    // Add the translation links:
+    $('li:contains(' + lang + ')', $langList).hide();
+    $('li:contains(' + ver + ')', $verList).hide();
+    // Add the language links:
     $('li', $langList).not('li.arrow').each( function() {
-      $(this).wrapInner('<a href="' + link[$(this).text()] + relPath + '">');
+      var thisLink = link[ver][$(this).text()];
+      if (thisLink == null)
+        $(this).hide(); // Hide language button
+      else
+        $(this).wrapInner('<a href="' + thisLink + relPath + '">');
     });
+    // Add the version links:
     $('li', $verList).not('li.arrow').each( function() {
+      var $thisVer = $(this).text();
+      var thisLink = link[$thisVer][lang];
+      // Fallback to default docs:
+      thisLink = (thisLink == null) ? link[$thisVer]['en'] : thisLink;
       // Don't use relPath here due file differences between the versions:
-      $(this).wrapInner('<a href="' + ver[$(this).text()] + '">');
+      $(this).wrapInner('<a href="' + thisLink + '">');
     });
     // Show/Hide selection lists on click:
     $('li.language', $online).on('click', function() {
