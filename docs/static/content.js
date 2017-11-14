@@ -21,6 +21,7 @@ var cache = {
   LastUsedSource: "",
   displaySidebar: true,
   sidebarWidth: 255,
+  RightIsFocused: true,
   translate: {},
   toc: {data: {}, clickItem: 0, scrollPos: 0},
   index: {data: {}, input: "", clickItem: 0, scrollPos: 0},
@@ -208,6 +209,7 @@ function ctor_toc()
       if ($this.has("a").length) {
         $("span.selected", toc).removeClass("selected");
         $this.addClass("selected");
+        setTimeout( function() { $('#right').focus(); }, 0);
         if (isInsideCHM)
         {
           var href = $this.children('a').attr('href');
@@ -341,7 +343,7 @@ function ctor_index()
   };
   self.preSelect = function(indexList, indexInput) { // Apply stored settings.
     var clicked = indexList.children().eq(cache.index.clickItem);
-    indexInput.val(cache.index.input).select();
+    indexInput.val(cache.index.input);
     indexList.scrollTop(cache.index.scrollPos);
     clicked.click();
   };
@@ -389,7 +391,7 @@ function ctor_search()
     }
   };
   self.preSelect = function(searchList, searchInput) { // Apply stored settings.
-    searchInput.val(cache.search.input).select();
+    searchInput.val(cache.search.input);
     searchList.html(cache.search.data);
     searchList.scrollTop(cache.search.scrollPos);
     searchList.children().eq(cache.search.clickItem).click();
@@ -605,7 +607,7 @@ function ctor_structure()
   };
   self.build = function() { // Add elements for sidebar.
     var head = '<div id="head"><div class="h-tabs"><ul><li data-translate>Content</li><li data-translate>Index</li><li data-translate>Search</li></ul></div><div class="dragbar"></div><div class="h-tools"><div class="main"><ul><li class="sidebar" title="Hide/Show sidebar" data-translate>&#926;</li></ul></div><div class="online"><ul><li class="home" title="Home page" data-translate><a href="' + location.protocol + '//' + location.host + '">&#916;</a></li></ul><ul><li class="language" title="Change language" data-translate>en</li></ul><ul class="languages"><li class="arrow">&#9658;</li><li title="English">en</li><li title="Deutsch (German)">de</li><li title="Chinese">zh</li></ul><ul><li class="version" title="Change AHK version" data-translate>v1</li></ul><ul class="versions"><li class="arrow">&#9658;</li><li title="AHK v1.1">v1</li><li title="AHK v2.0">v2</li></ul><ul><li class="edit" title="Edit page on GitHub" data-translate><a>E</a></li></ul></div><div class="chm"><ul><li class="back" title="Go back" data-translate>&#9668;</li><li class="forward" title="Go forward" data-translate>&#9658</li><li class="zoom" title="Change font size" data-translate>Z</li><li class="print" title="Print current document" data-translate>P</li></ul></div></div></div></div>';
-    var main = '<div id="main"><div id="left"><div class="toc"></div><div class="index"><div class="label" data-translate>Type in the keyword to find:</div><div class="input"><input type="text" /></div><div class="list"></div></div><div class="search"><div class="label" data-translate>Type in the word(s) to search for:</div><div class="input"><input type="text" /></div><div class="list"></div></div></div><div class="dragbar"></div><div id="right"><div class="area">';
+    var main = '<div id="main"><div id="left"><div class="toc"></div><div class="index"><div class="label" data-translate>Type in the keyword to find:</div><div class="input"><input type="text" /></div><div class="list"></div></div><div class="search"><div class="label" data-translate>Type in the word(s) to search for:</div><div class="input"><input type="text" /></div><div class="list"></div></div></div><div class="dragbar"></div><div id="right" tabIndex="-1"><div class="area">';
   
     // Write HTML before DOM is loaded to prevent flickering:
     document.write(head + main);
@@ -855,7 +857,17 @@ function ctor_structure()
     // --- Save settings before leaving site ---
 
     $(window).on('beforeunload', function() {
+      cache.RightIsFocused = $(':focus').closest('#right, #left > div.toc').length;
       cache.save();
+    });
+
+    // --- Set keyboard focus at the right place after loading site ---
+
+    $(window).on('load', function() {
+      if (cache.RightIsFocused)
+        $('#right').focus();
+      else
+        $('#left').find('input').focus();
     });
 
     // --- Perform actions on anchor change ---
@@ -929,8 +941,6 @@ function ctor_structure()
     $s.css("visibility", "hidden")
       .eq(pos).css("visibility", "inherit")
       .find('input').focus();
-    if (!isFrameParent)
-      $s.find('input').select();
   };
 }
 
