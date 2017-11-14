@@ -289,7 +289,7 @@ function ctor_index()
       return textA.localeCompare(textB);
     });
     for (var i = 0, len = input.length; i < len; i++)
-      output += '<a href="' + workingDir + input[i][1] + '">' + input[i][0] + '</a>';
+      output += '<a href="' + workingDir + input[i][1] + '" tabindex="-1">' + input[i][0] + '</a>';
     return output;
   };
   self.modify = function() { // Modify the elements of the index tab.
@@ -378,7 +378,7 @@ function ctor_search()
       // Select the first item and add color indicator:
       var searchListChildren = searchList.children();
       if (searchListChildren.length) {
-        searchListChildren.first().addClass("selected");
+        searchListChildren.first().click();
         cache.search.clickItem = 0;
         $this.attr('class', 'match'); // 'items found'
       }
@@ -533,7 +533,7 @@ function ctor_search()
     function append_results(ro) {
       var output = '';
       for (var t = 0; t < ro.length && t < RESULT_LIMIT; ++t) {
-        output += '<a href="' + workingDir + ro[t].u + '">' + ro[t].n + '</a>';
+        output += '<a href="' + workingDir + ro[t].u + '" tabindex="-1">' + ro[t].n + '</a>';
       }
       return output;
     }
@@ -753,10 +753,15 @@ function ctor_structure()
           $this[0].scrollIntoView(); // Move up
       }
       // Select the item:
-      $('a.selected', $parent).removeClass('selected');
-      $this.addClass('selected');
+      $('a.selected', $parent).removeClass('selected').attr('tabindex', -1);
+      $this.addClass('selected').attr('tabindex', 0);
       return false;
     });
+    // Prevent focusing ListBox elements:
+    // ListBox.on('focus', function() {
+    //   $("a.selected", this).focus();
+    //   return false;
+    // });
     // Open the link on double-click or touch (for mobile) and store its index
     // relative to its parent:
     var touchmoved;
@@ -792,29 +797,42 @@ function ctor_structure()
       }
     });
     // Provide ListBox functionality and interaction with the Edit on keypress:
-    ListBox.on('keydown', function(e) {
-      var $this = $(this);
-      var $grandparent = $this.parent().parent();
-      switch(e.which) {
+    function processKeys($ListBox, keyCode) {
+      var $clicked = $('a.selected', $ListBox);
+      switch(keyCode) {
+        case 9: // Tab
+        return;
+
         case 13: // Enter. See keyup event below.
         break;
 
-        case 38: // Up
-        clicked = $('a.selected', $this).prev(); // Navigate up
-        clicked.click(); clicked.focus();
+        case 33: // Page Up
+        case 34: // Page Down
+        var n = Math.floor($ListBox.height() / $ListBox.children().first().outerHeight());
+        var direction = keyCode == 33 ? 'prevAll' : 'nextAll';
+        if ($clicked[direction]().length < n)
+          $ListBox.children()[keyCode == 33 ? 'first' : 'last']().click().focus();
+        else
+          $clicked[direction]().eq(n).click();
         break;
 
+        case 35: // End
+        case 36: // Home
+        $ListBox.children()[keyCode == 35 ? 'last' : 'first']().click().focus();
+        break;
+
+        case 38: // Up
         case 40: // Down
-        clicked = $('a.selected', $this).next(); // Navigate down
-        clicked.click(); clicked.focus();
+        $clicked[keyCode == 38 ? 'prev' : 'next']().click().focus();
         break;
 
         default:
-        $('input', $grandparent).focus().select(); // Redirect other keys to Edit
+        $('input', $ListBox.parent().parent()).focus().select(); // Redirect other keys to Edit
         return;
       }
       return false; // Prevent the default action (scroll / move caret).
-    });
+    }
+    ListBox.on('keydown', function(e) { return processKeys($(this), e.which); });
     // If Enter would trigger keydown, it would also trigger
     // the Edit's keyup event after opening the new site.
     ListBox.on('keyup', function(e) {
@@ -826,23 +844,21 @@ function ctor_structure()
 
     // Provide interaction with the ListBox on keypress:
     Edit.on('keydown', function(e) {
-      var $this = $(this);
-      var $grandparent = $this.parent().parent();
+      var $ListBox = $('div.list', $(this).parent().parent());
       switch(e.which) {
         case 13: // Enter
-        $('a.selected', $('div.list', $grandparent)).trigger('dblclick');
+        $('a.selected', $ListBox).trigger('dblclick');
         break;
 
-        case 38: // Up
-        clicked = $('a.selected', $('div.list', $grandparent)).prev(); // Navigate up
-        clicked.click(); clicked.focus();
+        case 33:
+        case 34:
+        case 38:
+        case 40:
+        // $ListBox.focus();
+        $('a.selected', $ListBox).focus();
+        processKeys($ListBox, e.which);
         break;
 
-        case 40: // Down
-        clicked = $('a.selected', $('div.list', $grandparent)).next(); // Navigate down
-        clicked.click(); clicked.focus();
-        break;
-        
         default:
         return;
       }
