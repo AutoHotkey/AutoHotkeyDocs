@@ -323,10 +323,8 @@ function ctor_index()
       else
         $this.attr('class', 'mismatch'); // 'items not found'
     });
-    if (!isFrameParent) {
-      self.preSelect(indexList, indexInput);
-      setTimeout( function() { self.preSelect(indexList, indexInput); }, 0);
-    }
+    self.preSelect(indexList, indexInput);
+    setTimeout( function() { self.preSelect(indexList, indexInput); }, 0);
   };
   self.findMatch = function(indexListChildren, input) {
     var match = {};
