@@ -1031,7 +1031,15 @@ function addFeatures()
         id = (document.getElementById(text)) ? (text + '_' + i) : text;
         h.setAttribute('id', id);
       }
-      h.innerHTML ='<a href="#' + id + '">' + h.innerHTML + '</a>';
+      var headLink = '<a class="headLink" href="#' + id + '">';
+      var innerHTML = h.innerHTML;
+      // Nested links are forbidden, so they must be separated from each other:
+      var as = h.querySelectorAll('a');
+      for(var n = 0; n < as.length; n++) {
+        var a = as[n].outerHTML;
+        innerHTML = innerHTML.replace(a, '</a>' + a + headLink);
+      }
+      h.innerHTML = headLink + innerHTML + '</a>';
     }
   }
 
