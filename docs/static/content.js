@@ -655,7 +655,7 @@ function ctor_structure()
     // language links. Keys are based on ISO 639-1 language name standard:
     var link = { 'v1': { 'en': 'https://autohotkey.com/docs/',
                          'de': 'https://ahkde.github.io/docs/',
-                         'zh': 'http://ahkcn.sourceforge.net/docs/' },
+                         'zh': 'https://wyagd001.github.io/zh-cn/docs/' },
                  'v2': { 'en': 'https://lexikos.github.io/v2/docs/',
                          'de': 'https://ahkde.github.io/v2/docs/' } }
 
