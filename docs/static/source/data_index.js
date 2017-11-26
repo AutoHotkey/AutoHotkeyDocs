@@ -1,4 +1,4 @@
-index = [
+indexData = [
   ["#ClipboardTimeout","commands/_ClipboardTimeout.htm"],
   ["#ErrorStdOut","commands/_ErrorStdOut.htm"],
   ["#HotkeyInterval","commands/_HotkeyInterval.htm"],

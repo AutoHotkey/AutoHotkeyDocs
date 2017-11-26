@@ -1,0 +1,79 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<script src="static/content.js" type="text/javascript"></script>
+</head>
+<body>
+<p>Searching...</p>
+<p id="container" style="display:none"></p>
+<script>
+/*
+Usage: search.htm?q=query&m=mode
+
+  mode = 1 -> index tab
+  mode = 2 -> search tab
+
+&m=mode is optional and defaults to mode #1 (index).
+*/
+var pQuery = getUrlParameter("q");
+var pMode = (Number(getUrlParameter("m")) || 1);
+
+switch(pMode) {
+  case 1:
+  cache.index.input = pQuery;
+  cache.clickTab = 1;
+  loadScript(index.dataPath, function() {
+    cache.index.data = indexData;
+    document.getElementById('container').innerHTML = index.create(cache.index.data);
+    var aList = $('#container').children();
+    match = index.findMatch(aList, pQuery.toLowerCase());
+    if (match.length) {
+      cache.index.clickItem = match.index();
+      window.location = match.attr('href');
+    }
+    else {
+      window.location = scriptDir+"/../";
+    }
+    cache.save();
+  });
+  break;
+  case 2:
+  cache.search.input = pQuery;
+  cache.clickTab = 2;
+  cache.LastUsedSource = "search";
+  loadScript(search.dataPath, function() {
+    cache.search.index = SearchIndex;
+    cache.search.files = SearchFiles;
+    cache.search.titles = SearchTitles;
+    cache.search.data = search.create(pQuery.toLowerCase());
+    document.getElementById('container').innerHTML = cache.search.data;
+    var aList = $('#container').children();
+    if (aList.length)
+      window.location = aList.eq(0).attr('href');
+    else {
+      window.location = scriptDir+"/../";
+    }
+    cache.save();
+  });
+  break;
+}
+// https://stackoverflow.com/a/21903119
+function getUrlParameter(sParam) {
+    var sPageURL = decodeURIComponent(window.location.search.substring(1)),
+        sURLVariables = sPageURL.split('&'),
+        sParameterName,
+        i;
+
+    for (i = 0; i < sURLVariables.length; i++) {
+        sParameterName = sURLVariables[i].split('=');
+
+        if (sParameterName[0] === sParam) {
+            return sParameterName[1] === undefined ? true : sParameterName[1];
+        }
+    }
+};
+</script>
+</body>
+</html>
