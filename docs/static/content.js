@@ -15,7 +15,7 @@ padding:"inner"+a,content:b,"":"outer"+a},function(c,d){n.fn[d]=function(d,e){va
 
 var cache = {
   firstStartup: true,
-  scriptDir: document.scripts[0].src.substr(0, document.scripts[0].src.lastIndexOf('/')),
+  host: location.host,
   fontSize: 1.0,
   clickTab: 0,
   LastUsedSource: "",
@@ -27,7 +27,7 @@ var cache = {
   index: {data: {}, input: "", clickItem: 0, scrollPos: 0},
   search: {index: {}, files: {}, titles: {}, data: {}, input: "", clickItem: 0, scrollPos: 0},
   load: function() {
-    if (window.name.indexOf(this.scriptDir) != -1)
+    if (window.name.indexOf('"host":"'+this.host+'"') != -1)
       $.extend(this, JSON.parse(window.name));
   },
   save: function() {
@@ -39,7 +39,7 @@ var cache = {
 
 // Set global variables:
 cache.load();
-var scriptDir = cache.scriptDir;
+var scriptDir = document.scripts[0].src.substr(0, document.scripts[0].src.lastIndexOf('/'));
 var workingDir = getWorkingDir();
 var relPath = location.href.replace(workingDir, '');
 var isInsideCHM = (location.href.search(/::/) > 0) ? 1 : 0;
@@ -604,7 +604,7 @@ function ctor_structure()
     document.write(metaViewport + linkCSS);
   };
   self.build = function() { // Add elements for sidebar.
-    var head = '<div id="head"><div class="h-tabs"><ul><li data-translate>Content</li><li data-translate>Index</li><li data-translate>Search</li></ul></div><div class="dragbar"></div><div class="h-tools"><div class="main"><ul><li class="sidebar" title="Hide/Show sidebar" data-translate>&#926;</li></ul></div><div class="online"><ul><li class="home" title="Home page" data-translate><a href="' + location.protocol + '//' + location.host + '">&#916;</a></li></ul><ul><li class="language" title="Change language" data-translate>en</li></ul><ul class="languages"><li class="arrow">&#9658;</li><li title="English">en</li><li title="Deutsch (German)">de</li><li title="Chinese">zh</li></ul><ul><li class="version" title="Change AHK version" data-translate>v1</li></ul><ul class="versions"><li class="arrow">&#9658;</li><li title="AHK v1.1">v1</li><li title="AHK v2.0">v2</li></ul><ul><li class="edit" title="Edit page on GitHub" data-translate><a>E</a></li></ul></div><div class="chm"><ul><li class="back" title="Go back" data-translate>&#9668;</li><li class="forward" title="Go forward" data-translate>&#9658</li><li class="zoom" title="Change font size" data-translate>Z</li><li class="print" title="Print current document" data-translate>P</li></ul></div></div></div></div>';
+    var head = '<div id="head"><div class="h-tabs"><ul><li data-translate>Content</li><li data-translate>Index</li><li data-translate>Search</li></ul></div><div class="dragbar"></div><div class="h-tools"><div class="main"><ul><li class="sidebar" title="Hide/Show sidebar" data-translate>&#926;</li></ul></div><div class="online"><ul><li class="home" title="Home page" data-translate><a href="' + location.protocol + '//' + location.host + '">&#916;</a></li></ul><ul><li class="language" title="Change language" data-translate>en</li></ul><ul class="languages"><li class="arrow">&#9658;</li><li title="English">en</li><li title="Deutsch (German)">de</li><li title="&#x4E2D;&#x6587; (Chinese)">zh</li></ul><ul><li class="version" title="Change AHK version" data-translate>v1</li></ul><ul class="versions"><li class="arrow">&#9658;</li><li title="AHK v1.1">v1</li><li title="AHK v2.0">v2</li></ul><ul><li class="edit" title="Edit page on GitHub" data-translate><a>E</a></li></ul></div><div class="chm"><ul><li class="back" title="Go back" data-translate>&#9668;</li><li class="forward" title="Go forward" data-translate>&#9658</li><li class="zoom" title="Change font size" data-translate>Z</li><li class="print" title="Print current document" data-translate>P</li></ul></div></div></div></div>';
     var main = '<div id="main"><div id="left"><div class="toc"></div><div class="index"><div class="label" data-translate>Type in the keyword to find:</div><div class="input"><input type="text" /></div><div class="list"></div></div><div class="search"><div class="label" data-translate>Type in the word(s) to search for:</div><div class="input"><input type="text" /></div><div class="list"></div></div></div><div class="dragbar"></div><div id="right" tabIndex="-1"><div class="area">';
   
     // Write HTML before DOM is loaded to prevent flickering:
@@ -655,7 +655,7 @@ function ctor_structure()
     // language links. Keys are based on ISO 639-1 language name standard:
     var link = { 'v1': { 'en': 'https://autohotkey.com/docs/',
                          'de': 'https://ahkde.github.io/docs/',
-                         'zh': 'http://ahkcn.sourceforge.net/docs/' },
+                         'zh': 'https://wyagd001.github.io/zh-cn/docs/' },
                  'v2': { 'en': 'https://lexikos.github.io/v2/docs/',
                          'de': 'https://ahkde.github.io/v2/docs/' } }
 
