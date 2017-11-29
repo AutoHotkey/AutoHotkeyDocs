@@ -39,7 +39,7 @@ var cache = {
 
 // Set global variables:
 cache.load();
-var scriptDir = document.scripts[0].src.substr(0, document.scripts[0].src.lastIndexOf('/'));
+var scriptDir = document.scripts[document.scripts.length-1].src.substr(0, document.scripts[document.scripts.length-1].src.lastIndexOf('/'));
 var workingDir = getWorkingDir();
 var relPath = location.href.replace(workingDir, '');
 var isInsideCHM = (location.href.search(/::/) > 0) ? 1 : 0;
