@@ -1078,7 +1078,9 @@ function addFeatures()
       title = T("Applies to AutoHotkey {0} and later").format(m[0]);
       if (!m[1])
         m[0] = m[0] + '.00';
-      if (m[0] <= 'v1.0.48.05')
+      if (m[0] < 'v1.0.45.00')
+        href = 'ChangeLogHelp.htm#Older_Changes';
+      else if (m[0] <= 'v1.0.48.05')
         href = 'ChangeLogHelp.htm#' + m[0];
       else
         href = 'AHKL_ChangeLog.htm#' + m[0];
