@@ -76,6 +76,7 @@ indexData = [
   ["A_AllowMainWindow","Variables.htm#AllowMainWindow"],
   ["A_AppData","Variables.htm#AppData"],
   ["A_AppDataCommon","Variables.htm#AppDataCommon"],
+  ["A_Args","Variables.htm#Args"],
   ["A_CaretX","Variables.htm#Caret"],
   ["A_CaretY","Variables.htm#Caret"],
   ["A_ComputerName","Variables.htm#ComputerName"],
