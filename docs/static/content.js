@@ -897,6 +897,12 @@ function ctor_structure()
           this.displaySidebar(false);
           anchor[0].scrollIntoView();
         }, 200);
+      // Briefly highlight anchor:
+      anchor.css("backgroundColor", "#ff9632");
+      setTimeout( function() {
+        anchor.css("backgroundColor", "");
+        anchor.css("transition", "background-color 1s"); // CSS3 only
+      }, 200);
     });
 
     // --- Resize the sidebar's width via mouse ---
