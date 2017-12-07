@@ -202,6 +202,7 @@ tocData = [
     ["#InstallMouseHook","commands/_InstallMouseHook.htm"],
     ["#KeyHistory","commands/_KeyHistory.htm"],
     ["BlockInput","commands/BlockInput.htm"],
+    ["CaretGetPos","commands/CaretGetPos.htm"],
     ["Click","commands/Click.htm"],
     ["ControlClick","commands/ControlClick.htm"],
     ["ControlSend, ControlSendRaw","commands/ControlSend.htm"],
