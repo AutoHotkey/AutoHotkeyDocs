@@ -315,7 +315,6 @@ tocData = [
       ["ControlMove","commands/ControlMove.htm"],
       ["ControlSend/ControlSendRaw","commands/ControlSend.htm"],
       ["ControlSetText","commands/ControlSetText.htm"],
-      ["Menu","commands/Menu.htm"],
       ["MenuSelect","commands/MenuSelect.htm"],
       ["PostMessage/SendMessage","commands/PostMessage.htm"],
       ["SetControlDelay","commands/SetControlDelay.htm"]

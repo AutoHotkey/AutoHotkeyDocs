@@ -34,10 +34,10 @@ Gui.MarginY := 0, Gui.MarginX := 0
 
 ;---- Alter the tray icon menu:
 fn := Func("k_ShowHide").bind(Gui, k_MenuItemHide, k_MenuItemShow)
-Menu("Tray", "Add", k_MenuItemHide, fn)
-Menu("Tray", "Add", "&Exit", "k_MenuExit")
-Menu("Tray", "Default", k_MenuItemHide)
-Menu("Tray", "NoStandard")
+A_TrayMenu.Add k_MenuItemHide, fn
+A_TrayMenu.Add "&Exit", "k_MenuExit"
+A_TrayMenu.Default := k_MenuItemHide
+A_TrayMenu.Standard := false
 
 ;---- Add a button for each key:
 
@@ -103,13 +103,13 @@ k_ShowHide(GuiObj, HideText, ShowText)
   if isVisible
   {
     GuiObj.Hide
-    Menu("Tray", "Rename", HideText, ShowText)
+    A_TrayMenu.Rename HideText, ShowText
     isVisible := false
   }
   else
   {
     GuiObj.Show
-    Menu("Tray", "Rename", ShowText, HideText)
+    A_TrayMenu.Rename ShowText, HideText
     isVisible := true
   }
 }

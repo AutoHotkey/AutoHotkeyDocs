@@ -219,7 +219,7 @@ Gui.SetFont(, "Verdana")  <em>; Preferred font.</em></pre></dd>
 <p><em>RetrievedColor</em> is a 6-digit RGB value of the current color previously set by this property.</p>
 <p><em>NewColor</em> is one of the 16 primary <a href="../misc/Colors.htm">HTML color names</a>, a hexadecimal RGB color value (the 0x prefix is optional), a pure numeric RGB color value, or the word Default for its default color. Example values: <code>"Silver"</code>, <code>"FFFFAA"</code>, <code>0xFFFFAA</code>, <code>"Default"</code>.</p>
 <p>By default, the window's background color is the system's color for the face of buttons.</p>
-<p>The color of the <a href="#Menu">menu bar</a> and its submenus can be changed as in this example: <code><a href="../commands/Menu.htm">Menu</a> "MyMenuBar", "Color", "White"</code>.</p>
+<p>The color of the <a href="#Menu">menu bar</a> and its submenus can be changed as in this example: <code>MyMenuBar.<a href="Menu.htm#SetColor">SetColor</a> "White"</code>.</p>
 <p>To make the background transparent, use <a href="../commands/WinSet.htm#TransColor">WinSetTransColor</a>. However, if you do this without first having assigned a custom window via <a href="#BackColor">Gui.BackColor</a>, buttons will also become transparent. To prevent this, first assign a custom color and then make that color transparent. For example:</p>
 <pre>Gui.BackColor("EEAA99")
 WinSetTransColor("EEAA99")</pre>
@@ -268,19 +268,22 @@ Gui.<span class="func">Options</span>(Options)</pre>
 <div class="methodShort" id="Menu">
 <h2>Menu</h2>
 <p>Attaches a menu bar to the window.</p>
-<pre class="Syntax">Gui.Menu := MenuName</pre>
-<p><em>MenuName</em> is the name of an ordinary menu created by the <a href="../commands/Menu.htm">Menu</a> function. For example:</p>
-<pre>Menu("FileMenu", "Add", "&amp;Open<a href="../misc/EscapeChar.htm">`t</a>Ctrl+O", "MenuFileOpen")  <em>; See remarks below about Ctrl+O.</em>
-Menu("FileMenu", "Add", "E&amp;xit", "MenuHandler")
-Menu("FileMenu", "Add", "&amp;About", "MenuHandler")
-Menu("MyMenuBar", "Add", "&amp;File", ":FileMenu")  <em>; Attach the two sub-menus that were created above.</em>
-Menu("MyMenuBar", "Add", "&amp;Help", ":HelpMenu")
-<strong>Gui.Menu := "MyMenuBar"</strong></pre>
+<pre class="Syntax">Gui.Menu := MenuBar</pre>
+<p><em>MenuBar</em> is a <a href="../objects/Menu.htm">Menu object</a> created by the <a href="../commands/MenuCreate.htm">MenuCreate</a> function. For example:</p>
+<pre>FileMenu := MenuCreate()
+FileMenu.Add "&amp;Open<a href="../misc/EscapeChar.htm">`t</a>Ctrl+O", "MenuFileOpen"  <em>; See remarks below about Ctrl+O.</em>
+FileMenu.Add "E&amp;xit", "MenuHandler"
+HelpMenu := MenuCreate()
+HelpMenu.Add "&amp;About", "MenuHandler"
+MenuBar := MenuCreate()
+MenuBar.Add "&amp;File", FileMenu  <em>; Attach the two submenus that were created above.</em>
+MenuBar.Add "&amp;Help", HelpMenu
+<strong>Gui.Menu := MenuBar</strong></pre>
 <p>In the first line above, notice that <code>&amp;Open</code> is followed by <code>Ctrl+O</code> (with a tab character in between). This indicates a keyboard shortcut that the user may press instead of selecting the menu item. If the shortcut uses only the standard modifier key names Ctrl, Alt and Shift, it is automatically registered as a <em>keyboard accelerator</em> for the GUI. Single-character accelerators with no modifiers are case-sensitive and can be triggered by unusual means such as IME or Alt+NNNN.</p>
 <p>If a particular key combination does not work automatically, the use of a <a href="../commands/_IfWinActive.htm">context-sensitive hotkey</a> may be required. However, such hotkeys typically cannot be triggered by <a href="../commands/Send.htm">Send</a> and are more likely to interfere with other scripts than a standard keyboard accelerator.</p>
 <p>To remove a window's current menu bar, use <code>Gui.Menu := ""</code> (that is, assign an empty string).</p>
 <p>Once a menu has been used as a menu bar, it should not be used as a popup menu or a submenu. This is because menu bars internally require a different format (however, this restriction applies only to the menu bar itself, not its submenus). If you need to work around this, create one menu to use as the menu bar and another identical menu to use for everything else.</p>
-<p>The use of certain destructive <a href="../commands/Menu.htm">menu sub-commands</a> such as Delete and DeleteAll against a menu that is currently being used as a menu bar (and in some cases, its submenus) is not supported and will cause an error dialog to be displayed (unless <a href="../commands/Menu.htm">UseErrorLevel</a> is in effect). Use the following steps to make such changes: 1) detach the menu bar via <code>Gui.Menu := ""</code>; 2) make the changes; 3) reattach the menu bar via <code>Gui.Menu := "MyMenuBar"</code>.</p></div>
+<p>The use of certain destructive <a href="Menu.htm">menu methods</a> such as Delete against a menu that is currently being used as a menu bar (and in some cases, its submenus) is not supported and will cause an error dialog to be displayed (unless it is suppressed with <a href="../commands/Try.htm">Try</a>). Use the following steps to make such changes: 1) detach the menu bar via <code>Gui.Menu := ""</code>; 2) make the changes; 3) reattach the menu bar via <code>Gui.Menu := MyMenuBar</code>.</p></div>
 
 <div class="methodShort" id="Minimize">
 <h2>Minimize</h2>
