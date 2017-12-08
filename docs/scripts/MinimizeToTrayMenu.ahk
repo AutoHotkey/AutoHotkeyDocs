@@ -180,23 +180,24 @@ if mwt_AlreadyExists = false
 return
 
 
-RestoreFromTrayMenu:
-Menu "Tray", "Delete", A_ThisMenuItem
-; Find window based on its unique title stored as the menu item name:
-Loop mwt_MaxWindows
+RestoreFromTrayMenu(ThisMenuItem)
 {
-    if mwt_WindowTitle%a_index% = A_ThisMenuItem  ; Match found.
+    A_TrayMenu.Delete ThisMenuItem
+    ; Find window based on its unique title stored as the menu item name:
+    Loop mwt_MaxWindows
     {
-        IDToRestore := mwt_WindowID%A_Index%
-        WinShow "ahk_id " IDToRestore
-        WinActivate "ahk_id " IDToRestore  ; Sometimes needed.
-        mwt_WindowID%A_Index% := ""  ; Make it blank to free up a slot.
-        mwt_WindowTitle%A_Index% := ""
-        mwt_WindowCount -= 1
-        break
+        if mwt_WindowTitle%a_index% = ThisMenuItem  ; Match found.
+        {
+            IDToRestore := mwt_WindowID%A_Index%
+            WinShow "ahk_id " IDToRestore
+            WinActivate "ahk_id " IDToRestore  ; Sometimes needed.
+            mwt_WindowID%A_Index% := ""  ; Make it blank to free up a slot.
+            mwt_WindowTitle%A_Index% := ""
+            mwt_WindowCount -= 1
+            break
+        }
     }
 }
-return
 
 
 ; This will pop the last minimized window off the stack and unhide it.

@@ -35,7 +35,7 @@ f_Hotkey := "~MButton"
 ITEMS IN FAVORITES MENU <-- Do not change this string.
 Desktop      ; %USERPROFILE%\Desktop
 Favorites    ; %USERPROFILE%\Favorites
-My Documents ; %USERPROFILE%\My Documents
+Documents    ; %USERPROFILE%\Documents
 
 Program Files; %PROGRAMFILES%
 */
@@ -62,7 +62,8 @@ else  ; Read the menu items directly from this script file.
 
 ;----Read the configuration file.
 f_AtStartingPos := false
-f_MenuItemCount := 0
+f_Paths := []
+f_Menu := MenuCreate()
 Loop Read, f_FavoritesFile
 {
     if f_FileExt <> "Exe"
@@ -81,73 +82,74 @@ Loop Read, f_FavoritesFile
             break  ; terminate the loop
     }
     ; Menu separator lines must also be counted to be compatible
-    ; with A_ThisMenuItemPos:
+    ; with ItemPos:
     f_MenuItemCount++
     if !A_LoopReadLine  ; Blank indicates a separator line.
-        Menu "Favorites", "Add"
+        f_Menu.Add()
     else
     {
         f_line := StrSplit(A_LoopReadLine, ";", "`s`t")
         ; Resolve any references to variables within either field, and
         ; create a new array element containing the path of this favorite:
-        f_path%f_MenuItemCount% := f_line[2]
-        Menu "Favorites", "Add",  f_line[1], "f_OpenFavorite"
+        f_Paths.Push(f_line[2])
+        f_Menu.Add(f_line[1], "f_OpenFavorite")
     }
 }
 return  ;----End of auto-execute section.
 
 
 ;----Open the selected favorite
-f_OpenFavorite:
-; Fetch the array element that corresponds to the selected menu item:
-f_path := f_path%A_ThisMenuItemPos%
-if f_path = ""
-    return
-if f_class = "#32770"    ; It's a dialog.
+f_OpenFavorite(ItemName, ItemPos)
 {
-    ; Activate the window so that if the user is middle-clicking
-    ; outside the dialog, subsequent clicks will also work:
-    WinActivate "ahk_id " f_window_id
-    ; Retrieve any filename that might already be in the field so
-    ; that it can be restored after the switch to the new folder:
-    f_text := ControlGetText("Edit1", "ahk_id " f_window_id)
-    ControlSetText f_path, "Edit1", "ahk_id " f_window_id
-    ControlFocus "Edit1", "ahk_id " f_window_id
-    ControlSend "{Enter}", "Edit1", "ahk_id " f_window_id
-    Sleep 100  ; It needs extra time on some dialogs or in some cases.
-    ControlSetText f_text, "Edit1", "ahk_id " f_window_id
-    return
-    ; else fall through to the bottom of the subroutine to take standard action.
-}
-else if f_class  ~= "ExploreWClass|CabinetWClass"  ; In Explorer, switch folders.
-{
-    if StrSplit(A_OSVersion, ".")[1] >= 6  ; Windows Vista and later.
-        ControlClick "ToolbarWindow323", "ahk_id " f_window_id,,,, "NA x1 y1"
-    ControlFocus "Edit1", "ahk_id " f_window_id
-    ControlSetText f_path, "Edit1", "ahk_id " f_window_id
-    ; Tekl reported the following: "If I want to change to Folder L:\folder
-    ; then the addressbar shows http://www.L:\folder.com. To solve this,
-    ; I added a {right} before {Enter}":
-    ControlSend "{Right}{Enter}", "Edit1", "ahk_id " f_window_id
-    return
-    ; else fall through to the bottom of the subroutine to take standard action.
-}
-else if f_class = "ConsoleWindowClass" ; In a console window, CD to that directory
-{
-    WinActivate "ahk_id " f_window_id ; Because sometimes the mclick deactivates it.
-    SetKeyDelay 0  ; This will be in effect only for the duration of this thread.
-    if InStr(f_path, ":")  ; It contains a drive letter
+    global
+    
+    ; Fetch the array element that corresponds to the selected menu item:
+    f_path := f_Paths[ItemPos]
+    if f_path = ""
+        return
+    if f_class = "#32770"    ; It's a dialog.
     {
-        f_path_drive := SubStr(f_path, 1, 1)
-        Send f_path_drive ":{enter}"
+        ; Activate the window so that if the user is middle-clicking
+        ; outside the dialog, subsequent clicks will also work:
+        WinActivate "ahk_id " f_window_id
+        ; Retrieve any filename that might already be in the field so
+        ; that it can be restored after the switch to the new folder:
+        f_text := ControlGetText("Edit1", "ahk_id " f_window_id)
+        ControlSetText f_path, "Edit1", "ahk_id " f_window_id
+        ControlFocus "Edit1", "ahk_id " f_window_id
+        ControlSend "{Enter}", "Edit1", "ahk_id " f_window_id
+        Sleep 100  ; It needs extra time on some dialogs or in some cases.
+        ControlSetText f_text, "Edit1", "ahk_id " f_window_id
+        return
     }
-    Send "cd " f_path "{Enter}"
-    return
+    else if f_class  ~= "ExploreWClass|CabinetWClass"  ; In Explorer, switch folders.
+    {
+        if StrSplit(A_OSVersion, ".")[1] >= 6  ; Windows Vista and later.
+            ControlClick "ToolbarWindow323", "ahk_id " f_window_id,,,, "NA x1 y1"
+        ControlFocus "Edit1", "ahk_id " f_window_id
+        ControlSetText f_path, "Edit1", "ahk_id " f_window_id
+        ; Tekl reported the following: "If I want to change to Folder L:\folder
+        ; then the addressbar shows http://www.L:\folder.com. To solve this,
+        ; I added a {right} before {Enter}":
+        ControlSend "{Right}{Enter}", "Edit1", "ahk_id " f_window_id
+        return
+    }
+    else if f_class = "ConsoleWindowClass" ; In a console window, CD to that directory
+    {
+        WinActivate "ahk_id " f_window_id ; Because sometimes the mclick deactivates it.
+        SetKeyDelay 0  ; This will be in effect only for the duration of this thread.
+        if InStr(f_path, ":")  ; It contains a drive letter
+        {
+            f_path_drive := SubStr(f_path, 1, 1)
+            Send f_path_drive ":{enter}"
+        }
+        Send "cd " f_path "{Enter}"
+        return
+    }
+    ; Since the above didn't return, one of the following is true:
+    ; 1) It's an unsupported window type but f_AlwaysShowMenu is y (yes).
+    Run "explorer " f_path  ; Might work on more systems without double quotes.
 }
-; Since the above didn't return, one of the following is true:
-; 1) It's an unsupported window type but f_AlwaysShowMenu is y (yes).
-Run "explorer " f_path  ; Might work on more systems without double quotes.
-return
 
 
 ;----Display the menu
@@ -161,5 +163,5 @@ if f_AlwaysShowMenu = false  ; The menu should be shown only selectively.
         return ; Since it's some other window type, don't display menu.
 }
 ; Otherwise, the menu should be presented for this type of window:
-Menu "Favorites", "Show"
+f_Menu.Show()
 return

@@ -45,10 +45,10 @@ f_Hotkey := "~MButton"
 ; Use a blank line to create a separator line.</em>
 
 <em>/*
-ITEMS IN FAVORITES MENU <-- Do not change this string.
+ITEMS IN FAVORITES MENU &lt;-- Do not change this string.
 Desktop      ; %USERPROFILE%\Desktop
 Favorites    ; %USERPROFILE%\Favorites
-My Documents ; %USERPROFILE%\My Documents
+Documents    ; %USERPROFILE%\Documents
 
 Program Files; %PROGRAMFILES%
 */</em>
@@ -75,14 +75,15 @@ else  <em>; Read the menu items directly from this script file.</em>
 
 <em>;----Read the configuration file.</em>
 f_AtStartingPos := false
-f_MenuItemCount := 0
+f_Paths := []
+f_Menu := MenuCreate()
 Loop Read, f_FavoritesFile
 {
     if f_FileExt &lt;&gt; "Exe"
     {
-        <em>; Since the menu items are being read directly from this</em>
-        <em>; script, skip over all lines until the starting line is</em>
-        <em>; arrived at.</em>
+        <em>; Since the menu items are being read directly from this
+        ; script, skip over all lines until the starting line is
+        ; arrived at.</em>
         if !f_AtStartingPos
         {
             if InStr(A_LoopReadLine, "ITEMS IN FAVORITES MENU")
@@ -93,74 +94,75 @@ Loop Read, f_FavoritesFile
         if A_LoopReadLine = "*/"
             break  <em>; terminate the loop</em>
     }
-    <em>; Menu separator lines must also be counted to be compatible</em>
-    <em>; with A_ThisMenuItemPos:</em>
+    <em>; Menu separator lines must also be counted to be compatible
+    ; with ItemPos:</em>
     f_MenuItemCount++
     if !A_LoopReadLine  <em>; Blank indicates a separator line.</em>
-        Menu "Favorites", "Add"
+        f_Menu.Add()
     else
     {
-        f_line := StrSplit(A_LoopReadLine, ";", "`s`t")
-        <em>; Resolve any references to variables within either field, and
+        f_line := StrSplit(A_LoopReadLine, "<em>;", "`s`t")
+        ; Resolve any references to variables within either field, and
         ; create a new array element containing the path of this favorite:</em>
-        f_path%f_MenuItemCount% := f_line[2]
-        Menu "Favorites", "Add",  f_line[1], "f_OpenFavorite"
+        f_Paths.Push(f_line[2])
+        f_Menu.Add(f_line[1], "f_OpenFavorite")
     }
 }
-return  <em>;----End of auto-execute section.</em>
+return  <em>;----End of auto-execute section.
 
 
-<em>;----Open the selected favorite</em>
-f_OpenFavorite:
-<em>; Fetch the array element that corresponds to the selected menu item:</em>
-f_path := f_path%A_ThisMenuItemPos%
-if f_path = ""
-    return
-if f_class = "#32770"    <em>; It's a dialog.</em>
+;----Open the selected favorite</em>
+f_OpenFavorite(ItemName, ItemPos)
 {
-    <em>; Activate the window so that if the user is middle-clicking
-    ; outside the dialog, subsequent clicks will also work:</em>
-    WinActivate "ahk_id " f_window_id
-    <em>; Retrieve any filename that might already be in the field so
-    ; that it can be restored after the switch to the new folder:</em>
-    f_text := ControlGetText("Edit1", "ahk_id " f_window_id)
-    ControlSetText f_path, "Edit1", "ahk_id " f_window_id
-    ControlFocus "Edit1", "ahk_id " f_window_id
-    ControlSend "{Enter}", "Edit1", "ahk_id " f_window_id
-    Sleep 100  <em>; It needs extra time on some dialogs or in some cases.</em>
-    ControlSetText f_text, "Edit1", "ahk_id " f_window_id
-    return
-    <em>; else fall through to the bottom of the subroutine to take standard action.</em>
-}
-else if f_class  ~= "ExploreWClass|CabinetWClass"  <em>; In Explorer, switch folders.</em>
-{
-    if StrSplit(A_OSVersion, ".")[1] >= 6  <em>; Windows Vista and later.</em>
-        ControlClick "ToolbarWindow323", "ahk_id " f_window_id,,,, "NA x1 y1"
-    ControlFocus "Edit1", "ahk_id " f_window_id
-    ControlSetText f_path, "Edit1", "ahk_id " f_window_id
-    <em>; Tekl reported the following: "If I want to change to Folder L:\folder
-    ; then the addressbar shows http://www.L:\folder.com. To solve this,
-    ; I added a {right} before {Enter}":</em>
-    ControlSend "{Right}{Enter}", "Edit1", "ahk_id " f_window_id
-    return
-    <em>; else fall through to the bottom of the subroutine to take standard action.</em>
-}
-else if f_class = "ConsoleWindowClass" <em>; In a console window, CD to that directory</em>
-{
-    WinActivate "ahk_id " f_window_id <em>; Because sometimes the mclick deactivates it.</em>
-    SetKeyDelay 0  <em>; This will be in effect only for the duration of this thread.</em>
-    if InStr(f_path, ":")  <em>; It contains a drive letter</em>
+    global
+    
+    <em>; Fetch the array element that corresponds to the selected menu item:</em>
+    f_path := f_Paths[ItemPos]
+    if f_path = ""
+        return
+    if f_class = "#32770"    <em>; It's a dialog.</em>
     {
-        f_path_drive := SubStr(f_path, 1, 1)
-        Send f_path_drive ":{enter}"
+        <em>; Activate the window so that if the user is middle-clicking
+        ; outside the dialog, subsequent clicks will also work:</em>
+        WinActivate "ahk_id " f_window_id
+        <em>; Retrieve any filename that might already be in the field so
+        ; that it can be restored after the switch to the new folder:</em>
+        f_text := ControlGetText("Edit1", "ahk_id " f_window_id)
+        ControlSetText f_path, "Edit1", "ahk_id " f_window_id
+        ControlFocus "Edit1", "ahk_id " f_window_id
+        ControlSend "{Enter}", "Edit1", "ahk_id " f_window_id
+        Sleep 100  <em>; It needs extra time on some dialogs or in some cases.</em>
+        ControlSetText f_text, "Edit1", "ahk_id " f_window_id
+        return
     }
-    Send "cd " f_path "{Enter}"
-    return
+    else if f_class  ~= "ExploreWClass|CabinetWClass"  <em>; In Explorer, switch folders.</em>
+    {
+        if StrSplit(A_OSVersion, ".")[1] >= 6  <em>; Windows Vista and later.</em>
+            ControlClick "ToolbarWindow323", "ahk_id " f_window_id,,,, "NA x1 y1"
+        ControlFocus "Edit1", "ahk_id " f_window_id
+        ControlSetText f_path, "Edit1", "ahk_id " f_window_id
+        <em>; Tekl reported the following: "If I want to change to Folder L:\folder
+        ; then the addressbar shows http://www.L:\folder.com. To solve this,
+        ; I added a {right} before {Enter}":</em>
+        ControlSend "{Right}{Enter}", "Edit1", "ahk_id " f_window_id
+        return
+    }
+    else if f_class = "ConsoleWindowClass" <em>; In a console window, CD to that directory</em>
+    {
+        WinActivate "ahk_id " f_window_id <em>; Because sometimes the mclick deactivates it.</em>
+        SetKeyDelay 0  <em>; This will be in effect only for the duration of this thread.</em>
+        if InStr(f_path, ":")  <em>; It contains a drive letter</em>
+        {
+            f_path_drive := SubStr(f_path, 1, 1)
+            Send f_path_drive ":{enter}"
+        }
+        Send "cd " f_path "{Enter}"
+        return
+    }
+    <em>; Since the above didn't return, one of the following is true:
+    ; 1) It's an unsupported window type but f_AlwaysShowMenu is y (yes).</em>
+    Run "explorer " f_path  <em>; Might work on more systems without double quotes.</em>
 }
-<em>; Since the above didn't return, one of the following is true:
-; 1) It's an unsupported window type but f_AlwaysShowMenu is y (yes).</em>
-Run "explorer " f_path  <em>; Might work on more systems without double quotes.</em>
-return
 
 
 <em>;----Display the menu</em>
@@ -174,7 +176,7 @@ if f_AlwaysShowMenu = false  <em>; The menu should be shown only selectively.</e
         return <em>; Since it's some other window type, don't display menu.</em>
 }
 <em>; Otherwise, the menu should be presented for this type of window:</em>
-Menu "Favorites", "Show"
+f_Menu.Show()
 return
 </pre>
 </body>
