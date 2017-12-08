@@ -172,7 +172,9 @@ function ctor_toc()
     for(var i = 0; i < input.length; i++) {
       var li = input[i][0];
       if (input[i][1] != '')
-        li = '<a href="' + workingDir + input[i][1] + '">' + li + '</a>';
+        li = '<a href="' + workingDir + input[i][1] + '" data-content="' + li + '"></a>';
+      else
+        li = '<span data-content="' + li + '"></span>';
       li = '<span>' + li + '</span>';
       if(input[i][2] != undefined && input[i][2].length > 0) {
         output += '<li class ="closed" title="' + input[i][0] + '">' + li;
@@ -289,7 +291,7 @@ function ctor_index()
       return textA.localeCompare(textB);
     });
     for (var i = 0, len = input.length; i < len; i++)
-      output += '<a href="' + workingDir + input[i][1] + '" tabindex="-1">' + input[i][0] + '</a>';
+      output += '<a href="' + workingDir + input[i][1] + '" tabindex="-1" data-content="' + input[i][0] + '"></a>';
     return output;
   };
   self.modify = function() { // Modify the elements of the index tab.
@@ -331,7 +333,7 @@ function ctor_index()
     if (!input)
       return match;
     for (var i = 0; i < indexListChildren.length; i++) {
-      var listitem = indexListChildren[i].innerText.substr(0, input.length).toLowerCase();
+      var listitem = indexListChildren[i].getAttribute('data-content').substr(0, input.length).toLowerCase();
       if (listitem == input) {
         match = indexListChildren.eq(i);
         break;
@@ -603,8 +605,8 @@ function ctor_structure()
     document.write(metaViewport);
   };
   self.build = function() { // Add elements for sidebar.
-    var head = '<div id="head"><div class="h-tabs"><ul><li data-translate>Content</li><li data-translate>Index</li><li data-translate>Search</li></ul></div><div class="dragbar"></div><div class="h-tools"><div class="main"><ul><li class="sidebar" title="Hide/Show sidebar" data-translate>&#926;</li></ul></div><div class="online"><ul><li class="home" title="Home page" data-translate><a href="' + location.protocol + '//' + location.host + '">&#916;</a></li></ul><ul><li class="language" title="Change language" data-translate>en</li></ul><ul class="languages"><li class="arrow">&#9658;</li><li title="English">en</li><li title="Deutsch (German)">de</li><li title="&#x4E2D;&#x6587; (Chinese)">zh</li></ul><ul><li class="version" title="Change AHK version" data-translate>v1</li></ul><ul class="versions"><li class="arrow">&#9658;</li><li title="AHK v1.1">v1</li><li title="AHK v2.0">v2</li></ul><ul><li class="edit" title="Edit page on GitHub" data-translate><a>E</a></li></ul></div><div class="chm"><ul><li class="back" title="Go back" data-translate>&#9668;</li><li class="forward" title="Go forward" data-translate>&#9658</li><li class="zoom" title="Change font size" data-translate>Z</li><li class="print" title="Print current document" data-translate>P</li></ul></div></div></div></div>';
-    var main = '<div id="main"><div id="left"><div class="toc"></div><div class="index"><div class="label" data-translate>Type in the keyword to find:</div><div class="input"><input type="text" /></div><div class="list"></div></div><div class="search"><div class="label" data-translate>Type in the word(s) to search for:</div><div class="input"><input type="text" /></div><div class="list"></div></div></div><div class="dragbar"></div><div id="right" tabIndex="-1"><div class="area">';
+    var head = '<div id="head"><div class="h-tabs"><ul><li data-translate data-content="Content"></li><li data-translate data-content="Index"></li><li data-translate data-content="Search"></li></ul></div><div class="dragbar"></div><div class="h-tools"><div class="main"><ul><li class="sidebar" title="Hide/Show sidebar" data-translate>&#926;</li></ul></div><div class="online"><ul><li class="home" title="Home page" data-translate><a href="' + location.protocol + '//' + location.host + '">&#916;</a></li></ul><ul><li class="language" title="Change language" data-translate data-content="en"></li></ul><ul class="languages"><li class="arrow">&#9658;</li><li><a title="English" data-content="en"></a></li><li><a title="Deutsch (German)" data-content="de"></a></li><li><a title="&#x4E2D;&#x6587; (Chinese)" data-content="zh"></a></li></ul><ul><li class="version" title="Change AHK version" data-translate data-content="v1"></li></ul><ul class="versions"><li class="arrow">&#9658;</li><li><a title="AHK v1.1" data-content="v1"></a></li><li><a title="AHK v2.0" data-content="v2"></a></li></ul><ul><li class="edit" title="Edit page on GitHub" data-translate><a data-content="E"></a></li></ul></div><div class="chm"><ul><li class="back" title="Go back" data-translate>&#9668;</li><li class="forward" title="Go forward" data-translate>&#9658;</li><li class="zoom" title="Change font size" data-translate data-content="Z"></li><li class="print" title="Print current document" data-translate data-content="P"></li></ul></div></div></div></div>';
+    var main = '<div id="main"><div id="left"><div class="toc"></div><div class="index"><div class="label" data-translate data-content="Type in the keyword to find:"></div><div class="input"><input type="text" /></div><div class="list"></div></div><div class="search"><div class="label" data-translate data-content="Type in the word(s) to search for:"></div><div class="input"><input type="text" /></div><div class="list"></div></div></div><div class="dragbar"></div><div id="right" tabIndex="-1"><div class="area">';
   
     // Write HTML before DOM is loaded to prevent flickering:
     document.write(head + main);
@@ -634,10 +636,13 @@ function ctor_structure()
       var $this = $(this);
       var text = $this.text();
       var tooltip = $this.attr('title');
+      var dataContent = $this.attr('data-content');
       if (typeof text != '')
         $this.text(T(text));
       if (typeof tooltip !== 'undefined')
         $this.attr('title', T(tooltip));
+      if (typeof dataContent !== 'undefined')
+        $this.attr('data-content', T(dataContent));
     });
 
     // --- Main tools (always visible) ---
@@ -663,24 +668,26 @@ function ctor_structure()
     // Bug - IE/Edge doesn't turn off list-style if element is hidden:
     $langList.add($verList).css("list-style", "none");
     // Hide currently selected language and version in the selection lists:
-    $('li:contains(' + lang + ')', $langList).hide();
-    $('li:contains(' + ver + ')', $verList).hide();
+    $('a[data-content=' + lang + ']', $langList).parent().hide();
+    $('a[data-content=' + ver + ']', $verList).parent().hide();
     // Add the language links:
     $('li', $langList).not('li.arrow').each( function() {
-      var thisLink = link[ver][$(this).text()];
+      var a = $('a', this);
+      var thisLink = link[ver][a.attr('data-content')];
       if (thisLink == null)
         $(this).hide(); // Hide language button
       else
-        $(this).wrapInner('<a href="' + thisLink + relPath + '"></a>');
+        a.attr('href', thisLink + relPath);
     });
     // Add the version links:
     $('li', $verList).not('li.arrow').each( function() {
-      var $thisVer = $(this).text();
-      var thisLink = link[$thisVer][lang];
+      var a = $('a', this);
+      var ver = a.attr('data-content');
+      var thisLink = link[ver][lang];
       // Fallback to default docs:
-      thisLink = (thisLink == null) ? link[$thisVer]['en'] : thisLink;
+      thisLink = (thisLink == null) ? link[ver]['en'] : thisLink;
       // Don't use relPath here due file differences between the versions:
-      $(this).wrapInner('<a href="' + thisLink + '"></a>');
+      a.attr('href', thisLink);
     });
     // Show/Hide selection lists on click:
     $('li.language', $online).on('click', function() {
@@ -790,7 +797,7 @@ function ctor_structure()
     ListBox.on('mouseenter', '> a', function() {
       var $this = $(this);
       if(this.offsetWidth < this.scrollWidth && !$this.attr('title')) {
-        $this.attr('title', $this.text());
+        $this.attr('title', $this.attr('data-content'));
       }
     });
     // Provide ListBox functionality and interaction with the Edit on keypress:
@@ -955,6 +962,7 @@ function ctor_structure()
     cache.clickTab = pos;
     var $t = $('#head div.h-tabs li');
     var $s = $('#left > div');
+    $s.eq(pos).css("visibility", "visible").parent().focus(); // IE8 redraw fix
     $t.removeClass('selected')
       .eq(pos).addClass('selected');
     $s.css("visibility", "hidden")
