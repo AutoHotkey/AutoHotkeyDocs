@@ -895,10 +895,10 @@ function ctor_structure()
         document.getElementById('right').scrollTop = history.state.scrollTop;
       // When using mobile device hide sidebar and goto anchor:
       if (isMobile && location.hash) {
-        anchor = $(location.hash);
+        anchor = document.getElementById(location.hash.substr(1));
         setTimeout( function() {
           self.displaySidebar(false);
-          anchor[0].scrollIntoView();
+          anchor.scrollIntoView();
         }, 200);
       }
     });
@@ -918,13 +918,13 @@ function ctor_structure()
 
     $(window).on('load hashchange', function() {
       if (location.hash)
-        anchor = $(location.hash);
+        anchor = document.getElementById(location.hash.substr(1));
       else
         return;
-      anchor.css("backgroundColor", "#ff9632");
+      $(anchor).css("backgroundColor", "#ff9632");
       setTimeout( function() {
-        anchor.css("backgroundColor", "");
-        anchor.css("transition", "background-color 1s"); // CSS3 only
+        $(anchor).css("backgroundColor", "")
+                 .css("transition", "background-color 1s"); // CSS3 only
       }, 200);
     });
 
