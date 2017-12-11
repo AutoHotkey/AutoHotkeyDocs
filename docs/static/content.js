@@ -761,11 +761,6 @@ function ctor_structure()
       $this.addClass('selected').attr('tabindex', 0);
       return false;
     });
-    // Prevent focusing ListBox elements:
-    // ListBox.on('focus', function() {
-    //   $("a.selected", this).focus();
-    //   return false;
-    // });
     // Open the link on double-click or touch (for mobile) and store its index
     // relative to its parent:
     var touchmoved;
