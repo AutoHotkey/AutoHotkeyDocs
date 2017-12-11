@@ -872,6 +872,8 @@ function ctor_structure()
     // --- Save settings before leaving site ---
 
     $(window).on('beforeunload', function() {
+      if (history.replaceState)
+        history.replaceState({scrollTop:$('#right')[0].scrollTop}, null, null);
       cache.RightIsFocused = $(':focus').closest('#right, #left > div.toc').length;
       cache.save();
     });
@@ -888,18 +890,37 @@ function ctor_structure()
     // --- Perform actions on anchor change ---
 
     $(window).on('hashchange', function() {
-      anchor = $(location.hash);
-      if (!anchor.length)
-        return;
-      // Goto anchor again after reloading the page:
-      anchor[0].scrollIntoView();
+      // Scroll to right position:
+      if (history.state)
+        document.getElementById('right').scrollTop = history.state.scrollTop;
       // When using mobile device hide sidebar and goto anchor:
-      if (isMobile)
+      if (isMobile && location.hash) {
+        anchor = $(location.hash);
         setTimeout( function() {
           this.displaySidebar(false);
           anchor[0].scrollIntoView();
         }, 200);
-      // Briefly highlight anchor:
+      }
+    });
+
+    // --- Save scroll position of the right pane on scroll ---
+
+    if (history.replaceState)
+    {
+      if (!history.state) // To have scrolling to top by default.
+        history.replaceState({scrollTop:0}, null, null);
+      $('#right').on('scroll', function() {
+        history.replaceState({scrollTop:$(this)[0].scrollTop}, null, null);
+      });
+    }
+
+    // --- Briefly highlight anchor on page load and anchor change ---
+
+    $(window).on('load hashchange', function() {
+      if (location.hash)
+        anchor = $(location.hash);
+      else
+        return;
       anchor.css("backgroundColor", "#ff9632");
       setTimeout( function() {
         anchor.css("backgroundColor", "");
@@ -1170,14 +1191,10 @@ function addFeatures()
   div.innerHTML = 'Copyright &copy; 2003-' + new Date().getFullYear() + ' ' + location.host + ' - LIC: <a href="' + scriptDir + '/../license.htm">GNU GPLv2</a>';
   content.appendChild(div);
 
-  // --- Ensure navigating to anchor ---
+  // --- Ensure setting right scroll position when traversing history ---
 
-  if (location.hash)
-  {
-    var requested_hash = location.hash.slice(1);
-    location.hash = '';
-    location.hash = requested_hash;
-  }
+  if (history.state)
+    document.getElementById('right').scrollTop = history.state.scrollTop;
 }
 
 // --- Get the working directory of the site ---
