@@ -1069,16 +1069,16 @@ function addFeatures()
       title = T("Applies to:\nAutoHotkey_L Revision {0} and later\nAutoHotkey v1.0.90.00 and later").format(m[1]);
       href = 'AHKL_ChangeLog.htm#L' + m[1];
       text = text.replace(m[0], 'v1.0.90+'); // For users who don't know what AHK_L was.
-    } else if (m = /v\d\.\d\.(\d+\.)?\d+(\+)?/.exec(text)) {
-      title = m[2] ? T("Applies to AutoHotkey {0} and later").format(m[0]) : "";
-      if (!m[1])
-        m[0] = m[0] + '.00';
-      if (m[0] < 'v1.0.45.00')
+    } else if (m = /(v\d\.\d\.(\d+\.)?\d+)(\+)?/.exec(text)) {
+      title = m[3] ? T("Applies to AutoHotkey {0} and later").format(m[1]) : "";
+      if (!m[2])
+        m[1] = m[1] + '.00';
+      if (m[1] < 'v1.0.45.00')
         href = 'ChangeLogHelp.htm#Older_Changes';
-      else if (m[0] <= 'v1.0.48.05')
-        href = 'ChangeLogHelp.htm#' + m[0];
+      else if (m[1] <= 'v1.0.48.05')
+        href = 'ChangeLogHelp.htm#' + m[1];
       else
-        href = 'AHKL_ChangeLog.htm#' + m[0];
+        href = 'AHKL_ChangeLog.htm#' + m[1];
     } else continue;
     // outerHTML/innerHTML not possible here because IE8 doesn't allow nested links:
     $(span).html('<a href="' + workingDir + href + '" title="' + title + '">' + text + '</a>');
