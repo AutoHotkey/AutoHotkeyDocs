@@ -897,7 +897,7 @@ function ctor_structure()
       if (isMobile && location.hash) {
         anchor = $(location.hash);
         setTimeout( function() {
-          this.displaySidebar(false);
+          self.displaySidebar(false);
           anchor[0].scrollIntoView();
         }, 200);
       }
