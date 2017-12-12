@@ -189,19 +189,19 @@ function ctor_toc()
   };
   // --- Modify the elements of the TOC tab ---
   self.modify = function() {
-    toc = $('#left div.toc').html(self.create(cache.toc.data));
-    tocList = $('li > span', toc);
+    $toc = $('#left div.toc').html(self.create(cache.toc.data));
+    $tocList = $('li > span', $toc);
     // --- Fold items with subitems ---
 
-    $("li > ul", toc).hide();
+    $("li > ul", $toc).hide();
 
     // --- Hook up events ---
 
     // Select the item on click:
-    tocList.on("click", function() {
+    $tocList.on("click", function() {
       $this = $(this);
-      cache.toc.clickItem = tocList.index(this);
-      cache.toc.scrollPos = toc.scrollTop();
+      cache.toc.clickItem = $tocList.index(this);
+      cache.toc.scrollPos = $toc.scrollTop();
       // Fold/unfold item with subitems:
       if ($this.parent().has("ul").length) {
         $this.siblings("ul").slideToggle(100);
@@ -209,7 +209,7 @@ function ctor_toc()
       }
       // Higlight item with link:
       if ($this.has("a").length) {
-        $("span.selected", toc).removeClass("selected");
+        $("span.selected", $toc).removeClass("selected");
         $this.addClass("selected");
         setTimeout( function() { $('#right').focus(); }, 0);
         if (isInsideCHM)
@@ -225,27 +225,27 @@ function ctor_toc()
 
     if (!isMobile) // if not mobile browser.
     {
-      toc.css("overflow", "hidden").hover(function() {
+      $toc.css("overflow", "hidden").hover(function() {
         $(this).css("overflow", "auto");
       }, function() {
         $(this).css("overflow", "hidden");
       });
     }
-    self.preSelect(tocList, location, relPath);
+    self.preSelect($tocList, location, relPath);
     $('#iframe').load(function() {
       var url = $(this).contents().get(0).location;
       var relPath = url.href.replace(workingDir, '');
-      self.preSelect(tocList, url, relPath);
+      self.preSelect($tocList, url, relPath);
     });
-    setTimeout( function() { self.preSelect(tocList, location, relPath); }, 0);
+    setTimeout( function() { self.preSelect($tocList, location, relPath); }, 0);
   };
-  self.preSelect = function(tocList, url, relPath) { // Apply stored settings.
-    var clicked = tocList.eq(cache.toc.clickItem);
+  self.preSelect = function($tocList, url, relPath) { // Apply stored settings.
+    var clicked = $tocList.eq(cache.toc.clickItem);
     // Search for items which matches the address:
-    var found = tocList.has('a[href$="/' + relPath + '"]');
+    var found = $tocList.has('a[href$="/' + relPath + '"]');
     // If not found, search for items which matches the address without anchor:
     if (!found.length)
-      found = tocList.has('a[href$="/' + relPath.replace(url.hash,'') + '"]');
+      found = $tocList.has('a[href$="/' + relPath.replace(url.hash,'') + '"]');
     var el = found;
     // If the last clicked item can be found in the matches, use it instead:
     if (clicked.is(found))
@@ -255,10 +255,10 @@ function ctor_toc()
     // If items are found:
     if (el.length) {
       // Restore default state:
-      $("span.selected", toc).removeClass("selected");
-      $("li.opened", toc).toggleClass("closed opened");
-      $(".highlighted", toc).removeClass("highlighted");
-      $("li > ul", toc).hide();
+      $("span.selected", $toc).removeClass("selected");
+      $("li.opened", $toc).toggleClass("closed opened");
+      $(".highlighted", $toc).removeClass("highlighted");
+      $("li > ul", $toc).hide();
       // Select the items:
       el.addClass("selected");
       // Expand their parent items:
@@ -269,10 +269,10 @@ function ctor_toc()
       el.parent().parents('li').addClass('highlighted');
       // Scroll to the last match:
       if (cache.toc.scrollPos !== "" || cache.toc.scrollPos !== 0)
-        toc.scrollTop(cache.toc.scrollPos);
-      if (!isScrolledIntoView(el, toc)) {
+        $toc.scrollTop(cache.toc.scrollPos);
+      if (!isScrolledIntoView(el, $toc)) {
         el[el.length-1].scrollIntoView(false);
-        toc.scrollTop(toc.scrollTop()+100);
+        $toc.scrollTop($toc.scrollTop()+100);
       }
     }
   }
@@ -295,14 +295,14 @@ function ctor_index()
     return output;
   };
   self.modify = function() { // Modify the elements of the index tab.
-    var index = $('#left div.index');
-    var indexInput = $('input', index);
-    var indexList = $('div.list', index).html(self.create(cache.index.data));
+    var $index = $('#left div.index');
+    var $indexInput = $('input', $index);
+    var $indexList = $('div.list', $index).html(self.create(cache.index.data));
 
     // --- Hook up events ---
 
     // Select closest index entry and show color indicator on input:
-    indexInput.on('keyup', function() { // keyup instead of input due IE8.
+    $indexInput.on('keyup', function() { // keyup instead of input due IE8.
       var $this = $(this);
       var input = cache.index.input = $this.val().toLowerCase();
       // if no input, remove color indicator and return:
@@ -311,7 +311,7 @@ function ctor_index()
         return;
       }
       // Otherwise find the first item which matches the input value:
-      var indexListChildren = indexList.children();
+      var indexListChildren = $indexList.children();
       var match = self.findMatch(indexListChildren, input);
       // Select the found item, scroll to it and add color indicator:
       if (match.length) {
@@ -325,8 +325,8 @@ function ctor_index()
       else
         $this.attr('class', 'mismatch'); // 'items not found'
     });
-    self.preSelect(indexList, indexInput);
-    setTimeout( function() { self.preSelect(indexList, indexInput); }, 0);
+    self.preSelect($indexList, $indexInput);
+    setTimeout( function() { self.preSelect($indexList, $indexInput); }, 0);
   };
   self.findMatch = function(indexListChildren, input) {
     var match = {};
@@ -341,10 +341,10 @@ function ctor_index()
     }
     return match;
   };
-  self.preSelect = function(indexList, indexInput) { // Apply stored settings.
-    var clicked = indexList.children().eq(cache.index.clickItem);
-    indexInput.val(cache.index.input);
-    indexList.scrollTop(cache.index.scrollPos);
+  self.preSelect = function($indexList, $indexInput) { // Apply stored settings.
+    var clicked = $indexList.children().eq(cache.index.clickItem);
+    $indexInput.val(cache.index.input);
+    $indexList.scrollTop(cache.index.scrollPos);
     clicked.click();
   };
 }
@@ -356,27 +356,27 @@ function ctor_search()
   var self = this;
   self.dataPath = scriptDir + '/source/data_search.js';
   self.modify = function() { // Modify the elements of the search tab.
-    var search = $('#left div.search');
-    var searchList = $('div.list', search);
-    var searchInput = $('input', search);
+    var $search = $('#left div.search');
+    var $searchList = $('div.list', $search);
+    var $searchInput = $('input', $search);
 
     // --- Hook up events ---
 
     // Refresh the search list and show color indicator on input:
-    searchInput.on('keyup', function() { // keyup instead of input due IE8.
+    $searchInput.on('keyup', function() { // keyup instead of input due IE8.
       var $this = $(this);
       var input = cache.search.input = $this.val();
       // if no input, empty the search list, remove color indicator and return:
       if (!input) {
-        searchList.empty();
+        $searchList.empty();
         $this.removeAttr('class');
         return;
       }
       // Otherwise fill the search list:
       cache.search.data = self.create(input);
-      searchList.html(cache.search.data);
+      $searchList.html(cache.search.data);
       // Select the first item and add color indicator:
-      var searchListChildren = searchList.children();
+      var searchListChildren = $searchList.children();
       if (searchListChildren.length) {
         searchListChildren.first().click();
         cache.search.clickItem = 0;
@@ -386,15 +386,15 @@ function ctor_search()
         $this.attr('class', 'mismatch'); // 'items not found'
     });
     if (!isFrameParent) {
-      self.preSelect(searchList, searchInput);
-      setTimeout( function() { self.preSelect(searchList, searchInput); }, 0);
+      self.preSelect($searchList, $searchInput);
+      setTimeout( function() { self.preSelect($searchList, $searchInput); }, 0);
     }
   };
-  self.preSelect = function(searchList, searchInput) { // Apply stored settings.
-    searchInput.val(cache.search.input);
-    searchList.html(cache.search.data);
-    searchList.scrollTop(cache.search.scrollPos);
-    searchList.children().eq(cache.search.clickItem).click();
+  self.preSelect = function($searchList, $searchInput) { // Apply stored settings.
+    $searchInput.val(cache.search.input);
+    $searchList.html(cache.search.data);
+    $searchList.scrollTop(cache.search.scrollPos);
+    $searchList.children().eq(cache.search.clickItem).click();
   };
   self.convertToArray = function(SearchText) { // Convert text to array.
     // Normalize whitespace:
