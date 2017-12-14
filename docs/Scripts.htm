@@ -213,7 +213,27 @@ Usage:
 <p>Note: In old versions prior to <a href="AHKL_ChangeLog.htm#L51">revision 51</a>, the program looked for AutoHotkey.ini in the working directory or AutoHotkey.ahk in My Documents.</p>
 <p><span class="ver">[v1.1.17+]:</span> Specify an asterisk (*) for the filename to read the script text from standard input (stdin). For an example, see <a href="commands/Run.htm#ExecScript">ExecScript()</a>.</p>
 <p id="cmd_args"><strong>Script Parameters:</strong> The string(s) you want to pass into the script, with each separated from the next by a space. Any parameter that contains spaces should be enclosed in quotation marks. A literal quotation mark may be passed in by preceding it with a backslash (\&quot;). Consequently, any trailing slash in a quoted parameter (such as &quot;C:\My Documents<span class="red">\&quot;</span>) is treated as a literal quotation mark (that is, the script would receive the string C:\My Documents<span class="red">&quot;</span>). To remove such quotes, use <code><a href="commands/StringReplace.htm">StringReplace</a>, 1, 1, <span class="red">&quot;</span>,, All</code>.</p>
-<p>The script sees incoming parameters as the <a href="Variables.htm">variables</a> %1%, %2%, and so on. In addition, %0% contains the number of parameters passed (0 if none). However, these variables cannot be referenced directly in an expression because they would be seen as numbers rather than variables. The following example exits the script when too few parameters are passed to it:</p>
+<p id="cmd_args"><span class="ver">[v1.1.27+]:</span> Incoming parameters, if present, are stored as an array in the built-in variable <strong>A_Args</strong>, and can be accessed using <a href="Objects.htm#Usage_Simple_Arrays">array syntax</a>. <code>A_Args[1]</code> contains the first parameter. The following example exits the script when too few parameters are passed to it:</p>
+<pre>if A_Args.Length() &lt; 3
+{
+    MsgBox % "This script requires at least 3 parameters but it only received " A_Args.Length() "."
+    ExitApp
+}</pre>
+<p>If the number of parameters passed into a script varies (perhaps due to the user dragging and dropping a set of files onto a script), the following example can be used to extract them one by one:</p>
+<pre>for n, param in A_Args  <em>; For each parameter:</em>
+{
+    MsgBox Parameter number %n% is %param%.
+}
+</pre>
+<p>If the parameters are file names, the following example can be used to convert them to their case-corrected long names (as stored in the file system), including complete/absolute path:</p>
+<pre>for n, GivenPath in A_Args  <em>; For each parameter (or file dropped onto a script):</em>
+{
+    Loop Files, %GivenPath%, FD  <em>; Include files and directories.</em>
+        LongPath := A_LoopFileFullPath
+    MsgBox The case-corrected long path name of file`n%GivenPath%`nis:`n%LongPath%
+}</pre>
+<p><strong>Known limitation:</strong> dragging files onto a .ahk script may fail to work properly if 8-dot-3 (short) names have been turned off in an NTFS file system. One work-around is to <a href="#ahk2exe">compile</a> the script then drag the files onto the resulting EXE.</p>
+<p id="cmd_args_old"><strong>Legacy:</strong> The command line parameters are also stored in the <a href="Variables.htm">variables</a> %1%, %2%, and so on, as in versions prior to <span class="ver">[v1.1.27]</span>. In addition, %0% contains the number of parameters passed (0 if none). However, these variables cannot be referenced directly in an expression because they would be seen as numbers rather than variables. The following example exits the script when too few parameters are passed to it:</p>
 <pre>if 0 &lt; 3  <em>; The left side of a <a href="commands/IfEqual.htm">non-expression if-statement</a> is always the name of a variable.</em>
 {
     MsgBox This script requires at least 3 incoming parameters but it only received %0%.
@@ -235,7 +255,6 @@ Usage:
         LongPath = %A_LoopFileLongPath%
     MsgBox The case-corrected long path name of file`n%GivenPath%`nis:`n%LongPath%
 }</pre>
-<p>Known limitation: dragging files onto a .ahk script may fail to work properly if 8-dot-3 (short) names have been turned off in an NTFS file system. One work-around is to <a href="#ahk2exe">compile</a> the script then drag the files onto the resulting EXE.</p>
 
 <h2 id="cp">Script File Codepage <span class="ver">[AHK_L 51+]</span></h2>
 <p>The characters a script file may contain are restricted by the codepage used to load the file.</p>
