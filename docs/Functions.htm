@@ -168,14 +168,21 @@ MsgBox % Join("`n", <b class="blue">substrings*</b>)</pre>
 <h3>Local Variables</h3>
 <p>Local variables are specific to a single function and are visible only inside that function. Consequently, a local variable may have the same name as a global variable and both will have separate contents. Separate functions may also safely use the same variable names.</p>
 <p>All local variables which are not <a href="#static">static</a> are automatically freed (made empty) when the function returns.</p>
-<p>Variables access or created inside a function are local by default, with the following exceptions:</p>
+<p>Built-in variables such as <a href="misc/Clipboard.htm">Clipboard</a>, <a href="misc/ErrorLevel.htm">ErrorLevel</a>, and <a href="Variables.htm#TimeIdle">A_TimeIdle</a> are never local (they can be accessed from anywhere), and cannot be redeclared.</p>
+<p id="AssumeLocal">Functions are <strong>assume-local</strong> by default. Variables accessed or created inside an assume-local function are local by default, with the following exceptions:</p>
 <ul>
   <li><a href="#SuperGlobal">Super-global</a> variables, including <a href="Objects.htm#Custom_Classes">classes</a>.</li>
-  <li>Built-in variables such as <a href="misc/Clipboard.htm">Clipboard</a>, <a href="misc/ErrorLevel.htm">ErrorLevel</a>, and <a href="Variables.htm#TimeIdle">A_TimeIdle</a>.</li>
   <li>A <a href="#DynVar">dynamic variable reference</a> may resolve to an existing global variable if no local variable exists by that name.</li>
   <li><a href="#PseudoArrays">Commands that create pseudo-arrays</a> may create all elements as global even if only the first element is declared.</li>
 </ul>
-<p>The default may also be overridden as shown below.</p>
+<p>The default may also be overridden as shown below (by declaring the variable or by changing the mode of the function).</p>
+<p id="ForceLocal"><strong>Force-local mode</strong> <span class="ver">[v1.1.27+]</span>: If the function's first line is the word "local", all variable references (even dynamic ones) are assumed to be local unless they are declared as global <em>inside</em> the function. Unlike the default mode, force-local mode has the following behavior:</p>
+<ul>
+  <li>Super-global variables (including classes) cannot be accessed without declaring them inside the function.</li>
+  <li>Dynamic variable references follow the same rules as non-dynamic ones. Only global variables which are declared inside the function can be accessed.</li>
+  <li>StringSplit and other commands which create pseudo-arrays follow the same rules as non-dynamic variable references (avoiding a common source of confusion).</li>
+  <li>The <em>LocalSameAsGlobal</em> <a href="commands/_Warn.htm">warning</a> is never raised for variables within a force-local function.</li>
+</ul>
 
 <h3 id="Global">Global variables</h3>
 <p>To refer to an existing global variable inside a function (or create a new one), declare the variable as global prior to using it. For example:</p>
@@ -192,7 +199,7 @@ MsgBox % Join("`n", <b class="blue">substrings*</b>)</pre>
     local x, y:=0, z  <em>; Local variables must be declared in this mode, otherwise they would be assumed global.</em>
 }</pre>
 <p>This assume-global mode can also be used by a function to create a global <a href="misc/Arrays.htm">array</a>, such as a loop that assigns values to <code>Array%A_Index%</code>.</p>
-<p id="SuperGlobal"><strong>Super-global variables</strong> <span class="ver">[v1.1.05+]</span>: If a global declaration appears outside of any function, it takes effect for all functions by default. This avoids the need to redeclare the variable in each function. However, if a function parameter or local variable with the same name is declared, it takes precedence over the global variable. Variables created by the <a href="Objects.htm#Custom_Classes">class</a> keyword are also super-global.</p>
+<p id="SuperGlobal"><strong>Super-global variables</strong> <span class="ver">[v1.1.05+]</span>: If a global declaration appears outside of any function, it takes effect for all functions by default (excluding <a href="#ForceLocal">force-local</a> functions). This avoids the need to redeclare the variable in each function. However, if a function parameter or local variable with the same name is declared, it takes precedence over the global variable. Variables created by the <a href="Objects.htm#Custom_Classes">class</a> keyword are also super-global.</p>
 <h3 id="static">Static variables</h3>
 <p>Static variables are always implicitly local, but differ from locals because their values are remembered between calls. For example:</p>
 <pre>LogToFile(TextToLog)
@@ -217,15 +224,28 @@ MsgBox % Join("`n", <b class="blue">substrings*</b>)</pre>
     }
     return StaticArray%WhichItemNumber%
 }</pre>
-<p>In assume-static mode, any variable that should not be static must be declared as local or global.</p>
+<p>In assume-static mode, any variable that should not be static must be declared as local or global (with the same exceptions as for <a href="#AssumeLocal">assume-local mode</a>, unless <a href="#ForceLocal">force-local mode</a> is also in effect).</p>
+<p><span class="ver">[v1.1.27+]:</span> <a href="#ForceLocal">Force-local mode</a> can be combined with assume-static mode by specifying <code>local</code> and then <code>static</code>, as shown below. This allows the function to use force-local rules but create variables as static by default.</p>
+<pre>global MyVar := "This is global"
+DemonstrateForceStatic()
+
+DemonstrateForceStatic()
+{
+    local
+    static
+    MyVar := "This is static"
+    ListVars
+    MsgBox
+}
+</pre>
 <h3>More about locals and globals</h3>
 <p>Multiple variables may be declared on the same line by separating them with commas as in these examples:</p>
 <pre>global LogFileName, MaxRetries := 5
 static TotalAttempts = 0, PrevResult</pre>
 <p id="DeclareInit"><span class="ver">[v1.0.46+]</span>: A local or global variable may be initialized on the same line as its declaration by following it with <code>:=</code> or <code>=</code> followed by any <a href="Variables.htm#Expressions">expression</a> (the <code>=</code> operator behaves the same as <code>:=</code> in declarations). Unlike <a href="#InitStatic">static initializers</a>, the initializers of locals and globals execute every time the function is called, but only if/when the flow of control actually reaches them. In other words, a line like <code>local x = 0</code> has the same effect as writing two separate lines: <code>local x</code> followed by <code>x = 0</code>.</p>
 <p>Because the words <em>local</em>, <em>global</em>, and <em>static</em> are processed immediately when the script launches, a variable cannot be conditionally declared by means of an <a href="commands/IfExpression.htm">IF statement</a>. In other words, a declaration inside an IF's or ELSE's <a href="commands/Block.htm">block</a> takes effect unconditionally for all lines between the declaration and the function's closing brace. Also note that it is not currently possible to declare a dynamic variable such as <code>global Array%i%</code>.</p>
-<p id="PseudoArrays">For commands that create <a href="misc/Arrays.htm">pseudo-arrays</a> (such as <a href="commands/StringSplit.htm">StringSplit</a>), each variable in the resulting pseudo-array is local if the <a href="#AssumeGlobal">assume-global mode</a> is not in effect or if the pseudo-array's first element has been declared as a local variable (this is also true if one of the function's parameters is passed -- even if that parameter is <a href="#ByRef">ByRef</a> -- because parameters are similar to local variables). Conversely, if the first element has been <a href="#Global">declared global</a>, a global array is created. However, the <i>common source of confusion</i> below applies even in these cases. The first element for <a href="commands/StringSplit.htm">StringSplit</a> is ArrayName0. For other array-creating commands such as <a href="commands/WinGet.htm">WinGet List</a>, the first element is ArrayName (i.e. without the number).</p>
-<p id="DynVar"><span id="Dynamic"></span>Within a function, any dynamic variable reference such as <code>Array%i%</code> always resolves to a local variable unless no variable of that name exists, in which case a global is used if it exists. If neither exists and the usage requires the variable to be created, it is created as a local variable unless the <a href="#AssumeGlobal">assume-global mode</a> is in effect. Consequently, a function can create a global <a href="misc/Arrays.htm">array</a> manually (by means such as <code>Array%i% := A_Index</code>) only if it has been defined as an <a href="#AssumeGlobal">assume-global</a> function.</p>
+<p id="PseudoArrays">For commands that create <a href="misc/Arrays.htm">pseudo-arrays</a> (such as <a href="commands/StringSplit.htm">StringSplit</a>), each variable in the resulting pseudo-array is local if the <a href="#AssumeGlobal">assume-global mode</a> is not in effect or if the pseudo-array's first element has been declared as a local variable (this is also true if one of the function's parameters is passed -- even if that parameter is <a href="#ByRef">ByRef</a> -- because parameters are similar to local variables). Conversely, if the first element has been <a href="#Global">declared global</a>, a global array is created. However, the <i>common source of confusion</i> below applies even in these cases. The first element for <a href="commands/StringSplit.htm">StringSplit</a> is ArrayName0. For other array-creating commands such as <a href="commands/WinGet.htm">WinGet List</a>, the first element is ArrayName (i.e. without the number). <span class="ver">[v1.1.27+]:</span> When <a href="#ForceLocal">force-local mode</a> is in effect, these commands follow rules consistent with normal variable references; that is, any pseudo-array element not declared as global will be local even if other elements are declared global.</p>
+<p id="DynVar"><span id="Dynamic"></span>Within a function (unless <a href="#ForceLocal">force-local mode</a> is in effect), any dynamic variable reference such as <code>Array%i%</code> always resolves to a local variable unless no variable of that name exists, in which case a global is used if it exists. If neither exists and the usage requires the variable to be created, it is created as a local variable unless the <a href="#AssumeGlobal">assume-global mode</a> is in effect. Consequently, a function can create a global <a href="misc/Arrays.htm">array</a> manually (by means such as <code>Array%i% := A_Index</code>) only if it has been defined as an <a href="#AssumeGlobal">assume-global</a> function.</p>
 <p id="ArrayConfusion"><strong>Common source of confusion</strong>: Any <em>non</em>-dynamic reference to a variable creates that variable the moment the script launches. For example, when used outside a function, <code>MsgBox %Array1%</code> creates Array1 as a global the moment the script launches. Conversely, when used inside a function <code>MsgBox %Array1%</code> creates Array1 as one of the function's locals the moment the script launches (unless <a href="#AssumeGlobal">assume-global</a> is in effect), even if Array and Array0 are declared global.</p>
 <h2 id="DynCall">Dynamically Calling a Function</h2>
 <p><span class="ver">[v1.0.47.06+]</span>: A function (even a <a href="#BuiltIn">built-in function</a>) may be called dynamically via percent signs. For example, <code>%Var%(x, &quot;fox&quot;)</code> would call the function whose name is contained in <em>Var</em>. Similarly, <code>Func%A_Index%()</code> would call Func1() or Func2(), etc., depending on the current value of A_Index.</p>
