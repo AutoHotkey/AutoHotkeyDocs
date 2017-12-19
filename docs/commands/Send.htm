@@ -34,7 +34,9 @@ SendEvent Keys</pre>
 
 <p id="SendRaw"><strong>Raw mode</strong> - <em>SendRaw</em> or <a href="#Raw">{Raw}</a>: The characters <code>^+!#{}</code> are interpreted literally rather than translating <code>{Enter}</code> to an ENTER keystroke, <code>^c</code> to Control-C, etc. To use raw mode with SendInput, SendPlay, SendEvent, or ControlSend, write <a href="#Raw">{Raw}</a> as the first item in the string; for example: <code>SendInput {Raw}abc</code>.</p>
 <p><em>Raw mode</em> does not affect the interpretation of <a href="_EscapeChar.htm">escape sequences</a>, <a href="../Variables.htm#retrieving">variable references</a> and <a href="../Variables.htm#Expressions">expressions</a>. For example, <code>SendRaw, ``100`%</code> sends the string <code>`100%</code>. When using <a href="ControlSend.htm">ControlSend</a>, it is also necessary to escape literal commas (<code>`,</code>).</p>
-<p id="specialchars"><strong>Normal mode</strong>: When not in raw mode, the following symbols have special meaning: <code>!+^#{}</code></p>
+<p id="SendText"><strong>Text mode</strong> - <code>{Text}</code> <span class="ver">[v1.1.27+]</span>: Similar to Raw mode, except that no attempt is made to translate characters (other than <code>`r</code>, <code>`n</code>, <code>`t</code> and <code>`b</code>) to keycodes; instead, the <a href="#fallback">fallback method</a> is used for all of the remaining characters. For SendEvent, SendInput and ControlSend, this improves reliability because the characters are much less dependent on correct modifier state. Text mode can be combined with Blind mode to avoid releasing any modifier keys: <code>Send {Blind}{Text}your text</code>. However, some applications require that the modifier keys be released.</p>
+<p><code>`n</code>, <code>`r</code> and <code>`r`n</code> are all translated to a single Enter keystroke, unlike normal mode and Raw mode, which translate <code>`r`n</code> to two Enter keystrokes. <code>`t</code> is translated to Tab and <code>`b</code> to Backspace, but all other characters are sent without translation.</p>
+<p id="specialchars"><strong>Normal mode</strong>: When not in Raw mode or Text mode, the following symbols have special meaning: <code>!+^#{}</code></p>
 <p>The modifiers <code>!+^#</code> affect only the very next key. To send the corresponding modifier key on its own, enclose the key name in braces. To just press (hold down) or release the key, follow the key name with the word "down" or "up" as shown below.</p>
 <style>
 #modifierkeys td:not(:last-child) { white-space: nowrap; text-align: center }
@@ -303,7 +305,7 @@ SendEvent Keys</pre>
   <tr id="Unicode">
     <td>{U+nnnn}</td>
     <td><p id="sendu"><span class="ver">[AHK_L 24+]:</span> Sends a Unicode character where <em>nnnn</em> is the hexadecimal value of the character excluding the 0x prefix. This typically isn't needed in Unicode versions of AutoHotkey, where Send and ControlSend automatically support Unicode text.</p>
-    <p><a href="http://msdn.microsoft.com/en-us/library/ms646310.aspx">SendInput()</a> or <a href="http://msdn.microsoft.com/en-us/library/ms646276.aspx">WM_CHAR</a> is used to send the character and the current Send mode has no effect. Characters sent this way usually do not trigger shortcut keys or hotkeys, which are typically handled by virtual keycode, not by character.</p></td>
+    <p><a href="http://msdn.microsoft.com/en-us/library/ms646310.aspx">SendInput()</a> or <a href="http://msdn.microsoft.com/en-us/library/ms646276.aspx">WM_CHAR</a> is used to send the character and the current Send mode has no effect. Characters sent this way usually do not trigger shortcut keys or hotkeys.</p></td>
   </tr>
   <tr id="vk">
     <td><p>{vkXX}<br>
@@ -510,6 +512,11 @@ SendEvent Keys</pre>
     <span class="ver">[v1.0.43+]</span></td>
     <td>Enables <a href="#SendRaw"><em>Raw mode</em></a>, which causes the following characters to be interpreted literally: <code>^+!#{}</code>. Although the string <code>{Raw}</code> need not occur at the beginning of the string, once specified, it stays in effect for the remainder of the string.</td>
   </tr>
+  <tr id="Text">
+    <td><strong>{Text}</strong><br>
+    <span class="ver">[v1.1.27+]</span></td>
+    <td>Enables <a href="#SendText"><em>Text mode</em></a>, which sends a stream of characters rather than keystrokes. Like Raw mode, Text mode causes the following characters to be interpreted literally: <code>^+!#{}</code>. Although the string <code>{Text}</code> need not occur at the beginning of the string, once specified, it stays in effect for the remainder of the string.</td>
+  </tr>
 </table>
 
 <h2>Repeating  or Holding Down a Key</h2>
@@ -534,14 +541,19 @@ Send {Tab up}  <em>; Release the key.</em></pre>
 <p>If a character does not correspond to a virtual key on the current keyboard layout, it cannot be "pressed" or "released". For example, <code>Send {µ up}</code> has no effect on most layouts, and <code>Send {µ down}</code> is equivalent to <code>Send µ</code>.</p>
 
 <h2 id="Remarks">General Remarks</h2>
-<p id="characters">There are no specific limitations on which characters the Send command supports. If a character does not exist in the current keyboard layout, it is simulated by sending a <a href="#Unicode">Unicode character packet</a> or <a href="#asc">Alt+nnnnn</a> combination, depending on the version of AutoHotkey. Unicode characters are supported directly as text in Unicode versions of AutoHotkey, or using <a href="#Unicode">{U+nnnn} notation</a> in any version.</p>
-<p class="warning"><strong>Note:</strong> Characters sent using either of the above methods usually do not trigger keyboard shortcuts or hotkeys, which are typically handled by virtual keycode, not by character.</p>
+<p id="characters"><strong>Characters vs. keys</strong>: By default, characters are sent by first translating them to keystrokes. If this translation is not possible (that is, if the current keyboard layout does not contain a key or key combination which produces that character), the character is sent by one of following fallback methods:</p>
+<ul id="fallback">
+  <li>SendEvent and SendInput use <a href="http://msdn.microsoft.com/en-us/library/ms646310">SendInput()</a> with the <a href="https://msdn.microsoft.com/en-us/library/ms646271#keyeventf_unicode">KEYEVENTF_UNICODE flag</a>. <span class="ver">[v1.1.27+]:</span> ANSI builds of AutoHotkey convert the character to Unicode before sending it. Prior to v1.1.27, ANSI builds used the Alt+nnnnn method.</span></li>
+  <li>SendPlay uses the <a href="#asc">Alt+nnnnn</a> method, which produces Unicode only if supported by the target application.</li>
+  <li>ControlSend posts a <a href="http://msdn.microsoft.com/en-us/library/ms646276.aspx">WM_CHAR</a> message.</li>
+</ul>
+<p class="warning"><strong>Note:</strong> Characters sent using any of the above methods usually do not trigger keyboard shortcuts or hotkeys.</p>
 <p id="AZ"><span class="ver">[v1.1.27+]:</span> For characters in the range <strong>a-z</strong> or <strong>A-Z</strong> (plain ASCII letters), each character which does not exist in the current keyboard layout may be sent either as a character or as the corresponding virtual keycode (vk41-vk5A):</p>
 <ul>
   <li>If a naked letter is sent (that is, without modifiers or braces), or if <a href="#Raw">Raw</a> mode is in effect, it is sent as a character. For example, <code>Send {Raw}Regards</code> sends the expected text, even though pressing the "r" key (vk52) produces some other character (such as к on the Russian layout). <code>{Raw}</code> can be omitted in this case, unless a modifier key was put into effect by a prior Send.</li>
   <li>If one or more modifier keys have been put into effect by the Send command, or if the letter is wrapped in braces, it is sent as a keycode (modified with Shift if the letter is upper-case). This allows the script to easily activate standard keyboard shortcuts. For example, <code>^c</code> and <code>{Ctrl down}c{Ctrl up}</code> activate the standard Ctrl+C shortcut and <code>{c}</code> is equivalent to <code>{vk43}</code>.</li>
 </ul>
-<p>If the letter exists in the current keyboard layout, it is always sent as whichever keycode the layout associates with that letter. In other words, the section above is only relevant for non-Latin based layouts such as Russian.</p>
+<p>If the letter exists in the current keyboard layout, it is always sent as whichever keycode the layout associates with that letter (unless <a href="#SendText">Text mode</a> is used, in which case the character is sent by other means). In other words, the section above is only relevant for non-Latin based layouts such as Russian.</p>
 <p id="mask"><strong>Modifier State</strong>: When Send is required to change the state of the Win or Alt modifier keys (such as if the user was holding one of those keys), it may inject additional keystrokes (Ctrl by default) to prevent the Start menu or window menu from appearing. For details, see <a href="_MenuMaskKey.htm">#MenuMaskKey</a>.</p>
 <p><strong>BlockInput Compared to SendInput/SendPlay</strong>: Although the <a href="BlockInput.htm">BlockInput</a> command can be used to prevent any keystrokes physically typed by the user from disrupting the flow of simulated keystrokes, it is often better to use <a href="#SendInputDetail">SendInput</a> or <a href="#SendPlayDetail">SendPlay</a> so that keystrokes and mouse clicks become uninterruptible. This is because unlike BlockInput, SendInput/Play does not discard what the user types during the send; instead, such keystrokes are buffered and sent afterward.</p>
 <p>When sending a large number of keystrokes, a <a href="../Scripts.htm#continuation">continuation section</a> can be used to improve readability and maintainability.</p>
