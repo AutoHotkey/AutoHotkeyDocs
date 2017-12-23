@@ -27,6 +27,19 @@
 <p>This setting is global, meaning that it needs to be specified only once (anywhere in the script) to affect the behavior of the entire script.</p>
 <p>The mask key is sent automatically to prevent the Start menu or the active window's menu bar from activating at unexpected times.</p>
 <p><strong>Hotkeys:</strong> If a hotkey is implemented using the keyboard hook or mouse hook, the final keypress may be invisible to the active window and the system. If the system was to detect <em>only</em> a Win or Alt keydown and keyup with no intervening keypress, it would usually activate a menu. To prevent this, the keyboard or mouse hook may automatically send the mask key.</p>
+<p><span class="ver">[v1.1.27+]:</span> Pressing a hook hotkey causes the next Alt or Win keyup to be masked if all of the following conditions are met:</p>
+<ul>
+  <li>The hotkey is suppressed (it lacks the <a href="../Hotkeys.htm#Tilde">tilde modifier</a>).</li>
+  <li>Alt or Win is logically down when the hotkey is pressed.</li>
+  <li>The modifier is physically down or the hotkey requires the modifier to activate. For example, <code>$#a::</code> in combination with <code>AppsKey::RWin</code> causes masking when AppsKey+A is pressed, but AppsKey on its own is able to open the Start Menu.</li>
+  <li>Alt is not masked if Ctrl was down when the hotkey was pressed, since Ctrl+Alt does not activate the menu bar.</li>
+  <li>Win is not masked if the most recent Win keydown was modified with Ctrl, Shift or Alt, since the Start Menu does not normally activate in those cases. However, key-repeat occurs even for the Win key if it was the last key physically pressed, so it can be hard to predict <em>when</em> the most recent Win keydown was.</li>
+  <li>Either the keyboard hook is not installed (i.e. for a mouse hotkey), or there have been no other (unsuppressed) keydown or keyup events since the last Alt or Win keydown. Note that key-repeat occurs even for modifier keys and even after sending other keys, but only for the last physically pressed key.</li>
+</ul>
+<p>Mouse hotkeys may send the mask key immediately if the keyboard hook is not installed.</p>
+<p>Hotkeys with the <a href="../Hotkeys.htm#Tilde">tilde modifier</a> are not intended to block the native function of the key, so in <span class="ver">[v1.1.27+]</span> they do not cause masking. Hotkeys like <code>~#a::</code> still suppress the menu, since the system detects that the Win key has been used in combination with another key. However, mouse hotkeys and the Win keys themselves (<code>~LWin::</code> and <code>~RWin::</code>) do not suppress the Start Menu.</p>
+<p>The Start Menu (or the active window's menu bar) can be suppressed by sending any keystroke. The following example disables the ability for LWin to activate the Start Menu, while still allowing its use as a modifier:</p>
+<pre>~LWin::Send {Blind}{vk07}</pre>
 <p><strong>Send:</strong> <a href="Send.htm">Send</a>, <a href="ControlSend.htm">ControlSend</a> and related often release modifier keys as part of their normal operation. For example, the hotkey <code>&lt;#a::SendRaw %Address%</code> usually must release the LWin key prior to sending the contents of <em>Address</em>, and press the LWin key back down afterward (so that other Win key combinations continue working). The mask key may be sent in such cases to prevent a Win or Alt keyup from activating a menu.</p>
 
 <h3>Related</h3>
