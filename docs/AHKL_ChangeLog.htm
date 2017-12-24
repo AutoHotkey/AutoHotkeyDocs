@@ -14,6 +14,67 @@
 <p>For older changes, see <a href="ChangeLogHelp.htm">Archived Changes</a>.</p>
 
 <!--new revisions go here-->
+<h2 id="v1.1.27.00">1.1.27.00 - December 25, 2017</h2>
+<h4>Changes:</h4>
+<p>Replaced AU3_Spy.exe with WindowSpy.ahk.</p>
+<ul>
+  <li>AU3_Spy.exe is still launched if WindowSpy.ahk is not found.</li>
+  <li>It now follows the focused control by default, and has a checkbox for both window and control to follow the mouse.</li>
+  <li>It no longer takes over a global hotkey (Win+A). Instead, hold Ctrl or Shift to suspend updates (release them after focusing Window Spy).</li>
+  <li>It is now possible to Alt-Tab to Window Spy on Windows 10 without the contents of the GUI changing.</li>
+</ul>
+<p>Changed <a href="commands/Send.htm#AZ">a-z to mean vk41-vk5A</a> when absent from the keyboard layout, except with Raw mode or when sending single unmodified characters. This allows hotkeys and sent keyboard shortcuts to work more intuitively on certain non-English keyboard layouts.</p>
+<p>Changed Send on ANSI versions to use <a href="http://msdn.microsoft.com/en-us/library/ms646310">SendInput()</a> in place of Alt+nnnnn for <a href="commands/Send.htm#characters">special characters</a>.</p>
+<p>Changed the rules for <a href="commands/_MenuMaskKey.htm">masking Alt/Win</a> after pressing a hook hotkey:</p>
+<ul>
+  <li>Explicitly sent Alt/Win up may be masked.  This fixes remappings such as <code>AppsKey::RWin</code>, but hotkeys which are intended to activate the Start Menu may require new workarounds.</li>
+  <li>If Alt/Win is logically but not physically down, only hotkeys which require Alt/Win (such as <code>#a::</code>, not <code>*a::</code>) cause masking. This is to allow a remapping or wildcard hotkey to send the key-up without it    being masked.</li>
+  <li>Unsuppressed hotkeys such as <code>~#a::</code> no longer cause masking, because the unsuppressed keydown/keyup is sufficient to prevent a menu. However, mouse hotkeys like <code>~*MButton::</code> no longer suppress the Start Menu if combined with the Win key.  It can be suppressed manually with <code>Send {Blind}{vk07}</code> or similar.</li>
+  <li>The keyboard hook now tracks events in relation to Alt/Win, so that the mask key does not need to be sent if Alt/Win was already masked by some other event (physical or sent).</li>
+</ul>
+<p class="warning">The hotkeys <code>~LWin::</code> and <code>~RWin::</code> no longer suppress the Start Menu. See <a href="commands/_MenuMaskKey.htm">#MenuMaskKey</a> for details and a workaround.</p>
+<p>Added proper validation for vk or sc key names, so names such as "sc01notvalid" are no longer recognized as keys.</p>
+<p class="warning">Scripts containing hotkeys of the form <code>VKnnSCnnn::</code> will need to be corrected by removing <code>SCnnn</code>, which was previously ignored.</p>
+<p>Help file: Replaced the standard HTML Help Viewer sidebar with the new HTML5 sidebar developed by Ragnar-F.</p>
+
+<h4>New features:</h4>
+<ul>
+<li>Added <a href="commands/Math.htm#Min">Min</a>/<a href="commands/Math.htm#Max">Max</a> built-in functions. [PR #84 from Ragnar-F]</li>
+<li>Added <a href="Variables.htm#Args">A_Args</a> as an alternative to the numbered variables.</li>
+<li>Added <a href="Functions.htm#ForceLocal">force-local mode</a> for functions.</li>
+<li>Added <a href="commands/_Warn.htm#ClassOverwrite">#Warn ClassOverwrite</a>.</li>
+<li>Added <a href="commands/Send.htm#SendText">{Text} mode</a> for Send and <a href="Hotstrings.htm#T">T option</a> for hotstrings. These are like the Raw mode, but more reliable.</li>
+<li>Added <a href="commands/Send.htm#DownR">{<em>key</em> <strong>DownR</strong>}</a> and changed remapping to use it, to fix issues with <code>AppsKey::RWin</code> and similar.</li>
+</ul>
+
+<h4>Bug fixes:</h4>
+<ul>
+<li>Fixed icon-loading to not default to ID 0 when the index is invalid.</li>
+<li>Fixed VK&harr;SC mapping of PrintScreen. SC&rarr;VK was already correct on Vista and later.</li>
+<li>Fixed Hotkey control returning scXXX instead of names in some cases.</li>
+<li>Fixed ListVars crashing if a ByRef parameter refers to a variable containing an object. [PR #86 from HotKeyIt]</li>
+<li>Fixed some (very unlikely) memory leaks.</li>
+<li>Fixed menu handles not being freed if only the standard items are used.</li>
+<li>Fixed bold font not being applied to default menu item if it has a submenu and a Win32 menu handle.</li>
+<li>Fixed Send to use the correct modifier state with Unicode chars.</li>
+<li>Fixed <code>ControlSend {u n}</code>, where u is Unicode, to send n times, not just 1.</li>
+<li>Fixed inconsistent behavior of AltGr between OS versions. Specifically, <code>RAlt::</code> once again causes the system to "release" LCtrl on Windows 10, as it did prior to v1.1.26.01 (but unlike those old versions, it prevents the RAlt-up from reaching the active window). This change should not affect layouts without AltGr.</li>
+<li>Fixed <code>Menu Tray, Icon</code> and SB_SetIcon to allow bitmaps.</li>
+<li>Fixed menu items to not disappear when a cursor is set as a menu item's icon.</li>
+<li>Improved launching of Window Spy and the help file:
+<ul>
+  <li>If AutoHotkey is installed but the current executable is in a different directory (i.e. portable), the installed file is no longer preferred as it may be the wrong version. It may still be used as a fallback.</li>
+  <li>On failure to launch the file, show the error message inside the dialog, not in its titlebar.</li>
+</ul></li>
+<li>Fixed one-line hotkeys with expressions beginning in <code>sc</code> or <code>vk</code>.</li>
+<li>Fixed <code>&gt;</code>/<code>&lt;</code> hotkey modifiers incorrectly allowing both keys to be pressed. For example, <code>&lt;^A</code> could erroneously be triggered by LCtrl+RCtrl+A, thereby preventing the <code>&lt;&gt;^A</code> hotkey from working.</li>
+<li>Fixed auto-replace hotstrings inserting the literal text "{Raw}" in some cases (specifically, when the replacement contains <code>{Raw}</code> and the O, R and * options were not used).</li>
+<li>Fixed some hotkeys not using the hook when eclipsed by a wildcard hotkey, depending on the order of definition.</li>
+<li>Fixed key-down hotkeys to revert to "reg" if they were only "k-hook" because of a corresponding key-up hotkey which has since been disabled. (Prior to v1.1.07.03 this already happened, but the key-down hotkey was never set to "k-hook" in the first place if defined after the key-up.)</li>
+<li>Fixed hook hotkeys to ignore modifier changes made by <code>Send !^+#{key}</code> or when sending Unicode characters. This restores Send to how it was prior to v1.1.06 when at SendLevel 0, but keeps the v1.1.06+ behavior at SendLevel &gt;= 1, allowing Send to trigger the right hotkeys.</li>
+<li>Improved the odds that Send from a "reg" hotkey such as <code>^m::Send x</code> will restore the modifier state if Send is being called for the very first time. This makes it less likely to produce a different (and unexpected) result the first time it is held down, such as xmmm instead of xxxx.</li>
+</ul>
+
 <h2 id="v1.1.26.01">1.1.26.01 - July 16, 2017</h2>
 <p>Fixed RegDelete (with no args) failing when A_LoopRegSubKey is blank, such as when enumerating keys directly under the root key.</p>
 <p>Fixed <code>RAlt/LAlt::</code> sometimes failing to prevent menu activation after the user alt-tabs away from a window and reactivates it.</p>
