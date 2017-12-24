@@ -69,7 +69,7 @@ else
 Menu, Tray, Add, &Unhide All Hidden Windows, mwt_RestoreAll
 Menu, Tray, Add  ; Another separator line to make the above more special.
 
-if a_AhkVersion =   ; Since it's blank, version is older than 1.0.22.
+if A_AhkVersion =   ; Since it's blank, version is older than 1.0.22.
 	mwt_MaxLength = 100
 else
 	mwt_MaxLength = 260  ; Reduce this to restrict the width of the menu.
@@ -125,7 +125,7 @@ StringLeft, mwt_ActiveTitle, mwt_ActiveTitle, %mwt_MaxLength%
 ; isn't already:
 Loop, %mwt_MaxWindows%
 {
-	if mwt_WindowTitle%a_index% = %mwt_ActiveTitle%
+	if mwt_WindowTitle%A_Index% = %mwt_ActiveTitle%
 	{
 		; Match found, so it's not unique.
 		; First remove the 0x from the hex number to conserve menu space:
@@ -155,7 +155,7 @@ Loop, %mwt_MaxWindows%
 mwt_AlreadyExists = n
 Loop, %mwt_MaxWindows%
 {
-	if mwt_WindowID%a_index% = %mwt_ActiveID%
+	if mwt_WindowID%A_Index% = %mwt_ActiveID%
 	{
 		mwt_AlreadyExists = y
 		break
@@ -170,10 +170,10 @@ if mwt_AlreadyExists = n
 	Loop, %mwt_MaxWindows%  ; Search for a free slot.
 	{
 		; It should always find a free slot if things are designed right.
-		if mwt_WindowID%a_index% =  ; An empty slot was found.
+		if mwt_WindowID%A_Index% =  ; An empty slot was found.
 		{
-			mwt_WindowID%a_index% = %mwt_ActiveID%
-			mwt_WindowTitle%a_index% = %mwt_ActiveTitle%
+			mwt_WindowID%A_Index% = %mwt_ActiveID%
+			mwt_WindowTitle%A_Index% = %mwt_ActiveTitle%
 			break
 		}
 	}
@@ -186,13 +186,13 @@ Menu, Tray, delete, %A_ThisMenuItem%
 ; Find window based on its unique title stored as the menu item name:
 Loop, %mwt_MaxWindows%
 {
-	if mwt_WindowTitle%a_index% = %A_ThisMenuItem%  ; Match found.
+	if mwt_WindowTitle%A_Index% = %A_ThisMenuItem%  ; Match found.
 	{
-		StringTrimRight, IDToRestore, mwt_WindowID%a_index%, 0
+		StringTrimRight, IDToRestore, mwt_WindowID%A_Index%, 0
 		WinShow, ahk_id %IDToRestore%
 		WinActivate ahk_id %IDToRestore%  ; Sometimes needed.
-		mwt_WindowID%a_index% =  ; Make it blank to free up a slot.
-		mwt_WindowTitle%a_index% =
+		mwt_WindowID%A_Index% =  ; Make it blank to free up a slot.
+		mwt_WindowTitle%A_Index% =
 		mwt_WindowCount -= 1
 		break
 	}
@@ -230,17 +230,17 @@ ExitApp  ; Do a true exit.
 mwt_RestoreAll:
 Loop, %mwt_MaxWindows%
 {
-	if mwt_WindowID%a_index% <>
+	if mwt_WindowID%A_Index% <>
 	{
-		StringTrimRight, IDToRestore, mwt_WindowID%a_index%, 0
+		StringTrimRight, IDToRestore, mwt_WindowID%A_Index%, 0
 		WinShow, ahk_id %IDToRestore%
 		WinActivate ahk_id %IDToRestore%  ; Sometimes needed.
 		; Do it this way vs. DeleteAll so that the sep. line and first
 		; item are retained:
-		StringTrimRight, MenuToRemove, mwt_WindowTitle%a_index%, 0
+		StringTrimRight, MenuToRemove, mwt_WindowTitle%A_Index%, 0
 		Menu, Tray, delete, %MenuToRemove%
-		mwt_WindowID%a_index% =  ; Make it blank to free up a slot.
-		mwt_WindowTitle%a_index% =
+		mwt_WindowID%A_Index% =  ; Make it blank to free up a slot.
+		mwt_WindowTitle%A_Index% =
 		mwt_WindowCount -= 1
 	}
 	if mwt_WindowCount = 0

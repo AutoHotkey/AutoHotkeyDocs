@@ -87,7 +87,7 @@ WaitForLeftButtonUp:
 if GetKeyState(JoystickPrefix . ButtonLeft)
 	return  ; The button is still, down, so keep waiting.
 ; Otherwise, the button has been released.
-SetTimer, WaitForLeftButtonUp, off
+SetTimer, WaitForLeftButtonUp, Off
 SetMouseDelay, -1  ; Makes movement smoother.
 MouseClick, left,,, 1, 0, U  ; Release the mouse button.
 return
@@ -96,7 +96,7 @@ WaitForRightButtonUp:
 if GetKeyState(JoystickPrefix . ButtonRight)
 	return  ; The button is still, down, so keep waiting.
 ; Otherwise, the button has been released.
-SetTimer, WaitForRightButtonUp, off
+SetTimer, WaitForRightButtonUp, Off
 MouseClick, right,,, 1, 0, U  ; Release the mouse button.
 return
 
@@ -104,36 +104,36 @@ WaitForMiddleButtonUp:
 if GetKeyState(JoystickPrefix . ButtonMiddle)
 	return  ; The button is still, down, so keep waiting.
 ; Otherwise, the button has been released.
-SetTimer, WaitForMiddleButtonUp, off
+SetTimer, WaitForMiddleButtonUp, Off
 MouseClick, middle,,, 1, 0, U  ; Release the mouse button.
 return
 
 WatchJoystick:
 MouseNeedsToBeMoved := false  ; Set default.
 SetFormat, float, 03
-GetKeyState, joyx, %JoystickNumber%JoyX
-GetKeyState, joyy, %JoystickNumber%JoyY
-if joyx > %JoyThresholdUpper%
+GetKeyState, JoyX, %JoystickNumber%JoyX
+GetKeyState, JoyY, %JoystickNumber%JoyY
+if JoyX > %JoyThresholdUpper%
 {
 	MouseNeedsToBeMoved := true
-	DeltaX := joyx - JoyThresholdUpper
+	DeltaX := JoyX - JoyThresholdUpper
 }
-else if joyx < %JoyThresholdLower%
+else if JoyX < %JoyThresholdLower%
 {
 	MouseNeedsToBeMoved := true
-	DeltaX := joyx - JoyThresholdLower
+	DeltaX := JoyX - JoyThresholdLower
 }
 else
 	DeltaX = 0
-if joyy > %JoyThresholdUpper%
+if JoyY > %JoyThresholdUpper%
 {
 	MouseNeedsToBeMoved := true
-	DeltaY := joyy - JoyThresholdUpper
+	DeltaY := JoyY - JoyThresholdUpper
 }
-else if joyy < %JoyThresholdLower%
+else if JoyY < %JoyThresholdLower%
 {
 	MouseNeedsToBeMoved := true
-	DeltaY := joyy - JoyThresholdLower
+	DeltaY := JoyY - JoyThresholdLower
 }
 else
 	DeltaY = 0

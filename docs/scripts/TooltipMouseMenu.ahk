@@ -69,11 +69,11 @@ MsgBox, You selected 5
 Return
 
 MSWord:
-msgbox, this is a dynamic entry (word)
+MsgBox, this is a dynamic entry (word)
 Return
 
 NotepadII:
-msgbox, this is a dynamic entry (notepad)
+MsgBox, this is a dynamic entry (notepad)
 Return
 
 
@@ -96,12 +96,12 @@ IfLess, HowLong, %UMDelay%, Return
 DynMenu =
 Loop
 {
-	IfEqual, Dyn%a_index%,, Break
+	IfEqual, Dyn%A_Index%,, Break
 
-	StringGetPos, ppos, dyn%a_index%, |
-	StringLeft, item, dyn%a_index%, %ppos%
+	StringGetPos, ppos, dyn%A_Index%, |
+	StringLeft, item, dyn%A_Index%, %ppos%
 	ppos += 2
-	StringMid, win, dyn%a_index%, %ppos%, 1000
+	StringMid, win, dyn%A_Index%, %ppos%, 1000
 
 	IfWinActive, %win%,
 		DynMenu = %DynMenu%/%item%
@@ -116,36 +116,36 @@ TempMenu = %MenuItems%%DynMenu%
 ;clears earlier entries
 Loop
 {
-	IfEqual, MenuItem%a_index%,, Break
-	MenuItem%a_index% =
+	IfEqual, MenuItem%A_Index%,, Break
+	MenuItem%A_Index% =
 }
 
 ;creates new entries
 Loop, Parse, TempMenu, /
 {
-	MenuItem%a_index% = %a_loopfield%
+	MenuItem%A_Index% = %A_LoopField%
 }
 
 ;creates the menu
 Menu = %MenuTitle%
 Loop
 {
-	IfEqual, MenuItem%a_index%,, Break
+	IfEqual, MenuItem%A_Index%,, Break
 	numItems ++
-	StringTrimLeft, MenuText, MenuItem%a_index%, 0
+	StringTrimLeft, MenuText, MenuItem%A_Index%, 0
 	Menu = %Menu%`n%MenuText%
 }
 
 MouseGetPos, mX, mY
-HotKey, ~LButton, MenuClick
-HotKey, ~LButton, On
+Hotkey, ~LButton, MenuClick
+Hotkey, ~LButton, On
 ToolTip, %Menu%, %mX%, %mY%
 WinActivate, %MenuTitle%
 Return
 
 
 MenuClick:
-HotKey, ~LButton, Off
+Hotkey, ~LButton, Off
 IfWinNotActive, %MenuTitle%
 {
 	ToolTip
@@ -159,6 +159,6 @@ mY /= 13	;space taken by each line
 IfLess, mY, 1, Return
 IfGreater, mY, %numItems%, Return
 StringTrimLeft, TargetSection, MenuItem%mY%, 0
-StringReplace, TargetSection, TargetSection, %a_space%,, A
+StringReplace, TargetSection, TargetSection, %A_Space%,, A
 Gosub, %TargetSection%
 Return

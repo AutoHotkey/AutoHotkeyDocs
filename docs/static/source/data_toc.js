@@ -253,7 +253,7 @@ tocData = [
     ["SetMouseDelay","commands/SetMouseDelay.htm"],
     ["SetNumLockState","commands/SetNumScrollCapsLockState.htm"],
     ["SetScrollLockState","commands/SetNumScrollCapsLockState.htm"],
-    ["SetStoreCapslockMode","commands/SetStoreCapslockMode.htm"]
+    ["SetStoreCapsLockMode","commands/SetStoreCapslockMode.htm"]
   ]],
   ["Misc.","",
   [
