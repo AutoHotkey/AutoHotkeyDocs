@@ -1,0 +1,606 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<title>Scripting Language</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<link href="static/theme.css" rel="stylesheet" type="text/css" />
+<script src="static/content.js" type="text/javascript"></script>
+</head>
+<body>
+<h1>Scripting Language</h1>
+<p>An AutoHotkey script is basically a set of instructions for the program to follow, written in a custom language exclusive to AutoHotkey. This language bears some similarities to several other scripting languages, but also has its own unique strengths and pitfalls. This document describes the language and also tries to point out common pitfalls.</p>
+<p class="note">See <a href="Concepts.htm">Concepts and Conventions</a> for more general explanation of various concepts utilised by AutoHotkey.</p>
+<p class="warning">There are two distinct styles of syntax used in AutoHotkey: <a href="#legacy-syntax">legacy syntax</a> and <a href="#expressions">expressions</a>.</p>
+
+<h2>Table of Contents</h2>
+<ul>
+  <li><a href="#general-conventions">General Conventions</a></li>
+  <li><a href="#comments">Comments</a></li>
+  <li><a href="#expressions">Expressions</a>
+  <ul>
+    <li><a href="#strings">Strings / Text</a></li>
+    <li><a href="#variables">Variables</a></li>
+    <li><a href="#operators">Operators</a></li>
+    <li><a href="#function-calls">Function Calls</a></li>
+    <li><a href="#operators-for-objects">Operators for Objects</a></li>
+    <li><a href="#expression-statements">Expression Statements</a></li>
+  </ul></li>
+  <li><a href="#legacy-syntax">Legacy Syntax</a></li>
+  <li><a href="#commands">Commands</a>
+  <ul>
+    <li><a href="#outputvar-and-inputvar-parameters">OutputVar and InputVar Parameters</a></li>
+    <li><a href="#text-parameters">Text Parameters</a></li>
+    <li><a href="#numeric-parameters">Numeric Parameters</a></li>
+    <li><a href="#-expression">% Expression</a></li>
+    <li><a href="#documentation-conventions">Documentation Conventions</a></li>
+    <li><a href="#optional-parameters">Optional Parameters</a></li>
+  </ul></li>
+  <li><a href="#expressions-vs-legacy-syntax">Expressions vs Legacy Syntax</a>
+  <ul>
+    <li><a href="#different-equals">Different Equals</a></li>
+    <li><a href="#commands-vs-functions">Commands vs Functions</a></li>
+  </ul></li>
+  <li><a href="#control-flow">Control Flow Statements</a>
+  <ul>
+    <li><a href="#control-flow-vs-commands">Control Flow vs Commands</a></li>
+    <li><a href="#if-statement">If Statement</a></li>
+    <li><a href="#loop-statement">Loop Statement</a></li>
+    <li><a href="#not-control-flow">Not Control Flow</a></li>
+  </ul></li>
+  <li><a href="#structure-of-a-script">Structure of a Script</a>
+  <ul>
+    <li><a href="#auto-execute-section">Auto-execute Section</a></li>
+    <li><a href="#subroutines">Subroutines</a></li>
+    <li><a href="#user-defined-functions">User-Defined Functions</a></li>
+    <li><a href="#-include">#Include</a></li>
+  </ul></li>
+  <li><a href="#misc">Miscellaneous</a>
+  <ul>
+    <li><a href="#dynamic-variables">Dynamic Variables</a>
+    <ul>
+      <li><a href="#pseudo-arrays">Pseudo-arrays</a></li>
+      <li><a href="#associative-pseudo-arrays">Associative pseudo-arrays</a></li>
+      <li><a href="#commands-which-create-pseudo-arrays">Commands which create pseudo-arrays</a></li>
+    </ul></li>
+    <li><a href="#labels">Labels</a></li>
+  </ul></li>
+</ul>
+<!-- TODO:
+Directives
+Declarations
+Class definitions
+Methods?
+-->
+
+<h2 id="general-conventions">General Conventions</h2>
+<p><strong>Names:</strong> Variable and function names are not case sensitive (for example, <code>CurrentDate</code> is the same as <code>currentdate</code>). For details such as maximum length and usable characters, see <a href="Concepts.htm#names">Names</a>.</p>
+<p><strong>No typed variables:</strong> Variables have no explicitly defined type; instead, a value of any type can be stored in any variable (excluding built-in variables). Numbers may be automatically converted to strings (text) and vice versa, depending on the situation.</p>
+<p><strong>Declarations are optional:</strong> Except where noted on the <a href="Functions.htm">functions page</a>, variables do not need to be declared; they come into existence simply by using them (and each variable starts off empty/blank).</p>
+<p><strong>Spaces are mostly ignored:</strong> Indentation (leading space) is important for writing readable code, but is not required by the program and is generally ignored. Spaces and tabs are <em>generally</em> ignored at the end of a line, within an expression (except between quotes), and before and after command parameters. However, spaces are significant in some cases, including:</p>
+<ul>
+  <li><a href="#function-calls">Function</a> and method calls require there to be no space between the function/method name and <code>(</code>.</li>
+  <li>Spaces are required when performing concatenation.</li>
+  <li>Spaces may be required between two operators, to remove ambiguity.</li>
+  <li>Single-line <a href="#comments">comments</a> require a leading space if they are not at the start of the line.</li>
+</ul>
+<p><strong>Line breaks are meaningful:</strong> Line breaks generally act as a statement seperator, terminating the previous command or expression. (A <em>statement</em> is simply the smallest standalone element of the language that expresses some action to be carried out.) The exception to this is <a href="Scripts.htm#continuation">line continuation</a>, which works through preprocessing; that is, it is handled before--and independently of--the other language elements.</p>
+<p><strong>Line continuation:</strong> Long lines can be divided up into a collection of smaller ones to improve readability and maintainability. This is achieved by preprocessing, so is not part of the language as such. There are two methods:</p>
+<ul>
+  <li><a href="Scripts.htm#continuation-line">Line continuation</a>, where lines that begin with an <a href="Variables.htm#operators">expression operator</a> (except ++ and --) are merged with the previous line. Lines are merged regardless of whether the line actually contains an expression.</li>
+  <li><a href="Scripts.htm#continuation-section">Continuation sections</a>, where multiple lines are merged with the line above the section. The start and end of a continuation section are marked with <code>(</code> and <code>)</code> (both symbols must appear at the beginning of a line, excluding whitespace).</li>
+</ul>
+ 
+
+<h2 id="comments">Comments</h2>
+<p><em>Comments</em> are portions of text within the script which are ignored by the program. They are typically used to add explanation or disable parts of the code.</p>
+<p>Scripts can be commented by using a semicolon at the beginning of a line. For example:</p>
+<pre><em>; This entire line is a comment.</em></pre>
+<p>Comments may also be added at the end of a line, in which case the semicolon must have at least one space or tab to its left. For example:</p>
+<pre>Run Notepad  <em>; This is a comment on the same line as a command.</em></pre>
+<p>In addition, the <code><em>/*</em></code> and <code><em>*/</em></code> symbols can be used to comment out an entire section, <em>but only if the symbols appear at the beginning of a line</em> as in this example:</p>
+<pre><em>/*
+MsgBox, This line is commented out (disabled).
+MsgBox, Common mistake: */ this does not end the comment.
+MsgBox, This line is commented out. 
+*/</em>
+</pre>
+<p>Since comments are ignored when a script is launched, they do not impact performance or memory utilization.</p>
+<p>The default comment character (semicolon) can be changed to some other character or string via <a href="commands/_CommentFlag.htm">#CommentFlag</a>.</p>
+
+<h2 id="expressions">Expressions</h2>
+<p><strong><em>Expressions</em></strong> are combinations of one or more <a href="Concepts.htm#values">values</a>, <a href="Concepts.htm#variables">variables</a>, <a href="#operators">operators</a> and <a href="#function-calls">function calls</a>. For example, <code>10</code>, <code>1+1</code> and <code>MyVar</code> are valid expressions. Usually, an expression takes one or more values as input, performs one or more operations, and produces a value as the result. The process of finding out the value of an expression is called <em>evaluation</em>. For example, the expression <code>1+1</code> <em>evaluates</em> to the number 2.</p>
+<p><a href="#commands">Commands</a> are designed to take a list of parameters and perform only a single action per line, whereas simple expressions can be pieced together to form increasingly more complex expressions. For example, if <code>Discount/100</code> converts a discount percentage to a fraction, <code>1 - Discount/100</code> calculates a fraction representing the remaining amount, and <code>Price * (1 - Discount/100)</code> applies it to produce the net price.</p>
+<p><em>Values</em> are <a href="Concepts.htm#numbers">numbers</a>, <a href="Concepts.htm#objects">objects</a> or <a href="Concepts.htm#strings">strings</a>. A <em>literal</em> value is one written physically in the script; one that you can see when you look at the code.</p>
+
+<h3 id="strings">Strings / Text</h3>
+<p class="note">For a more general explanation of strings, see <a href="Concepts.htm#strings">Strings</a>.</p>
+<p>A <em>string</em>, or <em>string of characters</em>, is just a text value. In an expression, literal text must be enclosed in quotation marks to differentiate it from a variable name or some other expression. This is often referred to as a <em>quoted literal string</em>, or just <em>quoted string</em>. For example, <code>&quot;This is a quoted string.&quot;</code>.</p>
+<p>To include an <em>actual</em> quote character inside a quoted string, specify two consecutive quotes as shown twice in this example: <code>&quot;She said, &quot;&quot;An apple a day.&quot;&quot;&quot;</code>.</p>
+<p>Quoted strings can contain <a href="commands/_EscapeChar.htm">escape sequences</a> such as <code>`t</code> (tab), <code>`n</code> (linefeed), and <code>`r</code> (carriage return). Unlike <a href="#unquoted-text">unquoted text</a>, it is not necessary to escape commas or percent signs, as quoted strings cannot contain variables. The use of the <code>`&quot;</code> escape sequence to produce a literal quote-character is currently not supported; instead, use two consecutive quotes as shown above.</p>
+
+<h3 id="variables">Variables</h3>
+<p class="note">For a basic explanation and general details about variables, see <a href="Concepts.htm#variables">Variables</a>.</p>
+<p><em>Variables</em> can be used in an expression simply by writing the variable's name. For example, <code>A_ScreenWidth/2</code>. However, variables cannot be used inside a quoted string. Instead, variables and other values can be combined with text through a process called <a href="Variables.htm#concat"><em>concatenation</em></a>. There are two ways to <em>concatenate</em> values in an expression:</p>
+<ul>
+  <li>Implicit concatenation: <code>&quot;The value is &quot; MyVar</code></li>
+  <li>Explicit concatenation: <code>&quot;The value is &quot; . MyVar</code></li>
+</ul>
+<p>Implicit concatenation is also known as <em>auto-concat</em>. In both cases, the spaces preceding the variable and dot are mandatory.</p>
+<p>The <a href="commands/Format.htm">Format</a> function can also be used for this purpose. For example:</p>
+<pre>MsgBox % Format(&quot;You are using AutoHotkey v{1} {2}-bit.&quot;, A_AhkVersion, A_PtrSize*8)
+</pre>
+<p>To assign a value to a variable, use the <code>:=</code> <a href="Variables.htm#AssignOp">assignment operator</a>, as in <code>MyVar := &quot;Some text&quot;</code>.</p>
+<p><em>Percent signs</em> within an expression are used to create <a href="#dynamic-variables">dynamic variable references</a> and <a href="Functions.htm#DynCall">dynamic function calls</a>. Most of the time these constructs are not needed, so in general, variable names should not be enclosed in percent signs within an expression.</p>
+
+<h3 id="operators">Operators</h3>
+<p><em>Operators</em> take the form of a symbol or group of symbols such as <code>+</code> or <code>:=</code>, or one of the words <code>and</code>, <code>or</code>, <code>not</code> or <code>new</code>. They take one, two or three values as input and return a value as the result. A value or sub-expression used as input for an operator is called an <em>operand</em>.</p>
+<ul>
+  <li><em>Unary</em> operators are written either before or after a single operand, depending on the operator. For example, <code>-x</code> or <code>not keyIsDown</code>.</li>
+  <li><em>Binary</em> operators are written in between their two operands. For example, <code>1+1</code> or <code>2 * 5</code>.</li>
+  <li>AutoHotkey has only one <em>ternary</em> operator, which takes the form <a href="Variables.htm#ternary"><code>condition ? valueIfTrue : valueIfFalse</code></a>.</li>
+</ul>
+<p>Some unary and binary operators share the same symbols, in which case the meaning of the operator depends on whether it is written before, after or in between two values. For example, <code>x-y</code> performs subtraction while <code>-x</code> inverts the sign of <code>x</code> (producing a a positive value from a negative value and vice versa).</p>
+<p>Operators of equal precedence such as multiply (<code>*</code>) and divide (<code>/</code>) are evaluated in left-to-right order unless otherwise specified in the <a href="Variables.htm#Expression_Operators_in_descending_precedence_order">operator table</a>. By contrast, an operator of lower precedence such as add (<code>+</code>) is evaluated after a higher one such as multiply (<code>*</code>). For example, <code>3 + 2 * 2</code> is evaluated as <code>3 + (2 * 2)</code>. Parentheses may be used to override precedence as in this example: <code>(3 + 2) * 2</code></p>
+
+<h3 id="function-calls">Function Calls</h3>
+<p class="note">For a general explanation of functions and related terminology, see <a href="Concepts.htm#functions">Functions/Commands</a>.</p>
+<p><em>Functions</em> take a varying number of inputs, perform some action or calculation, and then <a href="Concepts.htm#return-a-value"><em>return</em></a> a result. The inputs of a function are called <a href="Concepts.htm#parameters"><em>parameters</em></a> or <em>arguments</em>. A function is <a href="Concepts.htm#call"><em>called</em></a> simply by writing its name followed by its parameters enclosed in parentheses. For example, <code>GetKeyState(&quot;Shift&quot;)</code> returns (evaluates to) 1 if the Shift key is being held down or 0 otherwise.</p>
+<p class="warning"><strong>Note:</strong> There must not be any space between the function name and open parenthesis.
+</p>
+<p>When compared to <a href="#commands">commands</a>, the requirement for parentheses may seem cryptic or verbose at first, but they are what allows a function call to be combined with other operations. For example, the expression <code>GetKeyState(&quot;Shift&quot;, &quot;P&quot;) and GetKeyState(&quot;Ctrl&quot;, &quot;P&quot;)</code> returns 1 only if both keys are being physically held down.</p>
+<p>Function names are always global, and are separate to variable names. For example, <code>Round</code> can be both a variable name and a function name, and <code>Round := 1</code> will not affect <code>Round(n)</code> in any way.</p>
+
+<h3 id="operators-for-objects">Operators for Objects</h3>
+<p>There are other symbols used in expressions which don't quite fit into any of the categories defined above, or that affect the meaning of other parts of the expression, as described below. These all relate to <em>objects</em> in some way. Providing a full explanation of what each construct does would require introducing more concepts which are outside the scope of this section.</p>
+<p><code>Alpha.Beta</code> is often called <em>member access</em>. <em>Alpha</em> is an ordinary variable, and could be replaced with a function call or some other sub-expression which returns an object. When evaluated, the object is sent a request &quot;give me the value of property <em>Beta</em>&quot;, &quot;store this value in property <em>Beta</em>&quot; or &quot;call the method named <em>Beta</em>&quot;. In other words, <em>Beta</em> is a name which has meaning to the object; it is not a local or global variable.</p>
+<p><code>Alpha.Beta()</code> is a <em>method call</em>, as described above.</p>
+<p><code>Alpha.Beta[Param]</code> is a specialised form of member access which includes additional parameters in the request. While <em>Beta</em> is a simple name, <em>Param</em> is an ordinary variable or sub-expression, or a list of sub-expressions separated by commas (the same as in a function's parameter list).</p>
+<p><code>Alpha[Index]</code> has a similar function to <code>Alpha.Beta</code>, but each part is interpreted in a more standard way. That is, both <em>Alpha</em> and <em>Index</em> are variables in this case, and could be replaced with virtually any sub-expression. This syntax is usually used to retrieve an element of an <a href="Objects.htm#Usage_Simple_Arrays">array</a> or <a href="Objects.htm#Usage_Associative_Arrays">associative array</a>.</p>
+<p><code>new ClassName()</code> is used to instantiate a class, or create an object derived from another object. Although this looks like a function call, <em>ClassName</em> is actually an ordinary variable. Similarly, <code>new Alpha.Beta()</code> would create an object derived from the object returned by <code>Alpha.Beta</code>; <em>Beta</em> is neither a function nor a method. If the optional parentheses are present, they may contain parameters for the object's <a href="Objects.htm#Custom_NewDelete">__New</a> method.</p>
+<p><code>[A, B, C]</code> creates an <a href="Objects.htm#Usage_Simple_Arrays">array</a> with the initial contents A, B and C (all variables in this case), where A is element 1.</p>
+<p><code>{Key1: Value1, Key2: Value2}</code> creates an <a href="Objects.htm#Usage_Associative_Arrays">associative array</a> from a list of key-value pairs. A value can later be retrieved by its associated key. Writing a plain word (consisting of alphanumeric characters, underscore and non-ASCII characters) to the left of <code>:</code> is equivalent to enclosing that word in quotation marks. For example, <code>{A: B}</code> is equivalent to <code>{&quot;A&quot;: B}</code>. However, <code>{(A): B}</code> uses the contents of the variable <code>A</code> as the key.</p>
+<p><code>MyFunc(Params*)</code> is a <a href="Functions.htm#VariadicCall">variadic function call</a>. The asterisk must immediately precede the closing parenthesis at the end of the function's parameter list. <em>Params</em> must be a variable or sub-expression which returns an array object. Although it isn't valid to use <code>Params*</code> just anywhere, it can be used in an array literal (<code>[A, B, C, ArrayToAppend*]</code>) or indexer (<code>Alpha[Params*]</code>).</p>
+
+<h3 id="expression-statements">Expression Statements</h3>
+<p>Not all expressions can be used alone on a line. For example, a line consisting of just <code>21*2</code> or <code>&quot;Some text&quot;</code> wouldn't make any sense. An expression <em>statement</em> is an expression used on its own, typically for its side-effects. Most expressions with side-effects can be used this way, so it is generally not necessary to memorise the details of this section.</p>
+<p>The following types of expressions can be used as statements:</p>
+<p>Assignments, as in <code>x := y</code>, compound assignments such as <code>x += y</code>, and increment/decrement operators such as <code>++x</code> and <code>x--</code>. However, in AutoHotkey v1, <code>++</code>, <code>--</code>, <code>+=</code>, <code>-=</code>, <code>*=</code> and <code>/=</code> have slightly different behavior when used alone on a line, as they are actually equivalent to EnvAdd, EnvSub, EnvMult or EnvDiv. For details, see &quot;Known limitations&quot; under <a href="Variables.htm#AssignOp">Assign</a> in the table of operators.</p>
+<p>Function calls such as <code>MyFunc(Params)</code>. However, a standalone function call cannot be followed by an open brace <code>{</code> (at the end of the line or on the next line), because it would be confused with a function declaration.</p>
+<p>Method calls such as <code>MyObj.MyMethod()</code>.</p>
+<p>Member access using square brackets, such as <code>MyObj[Index]</code>, which can have side-effects like a function call.</p>
+<p>Expressions starting with the <code>new</code> operator, as in <code>new ClassName</code>, because sometimes a class can be instantiated just for its side-effects.</p>
+<p>Ternary expressions such as <code>x ? CallIfTrue() : CallIfFalse()</code>. However, in AutoHotkey v1, command names take precedence. For example, <code>MsgBox ? 1 : 0</code> shows a message box.</p>
+<p>Expressions starting with <code>(</code>. However, there usually must be a matching <code>)</code> on the same line, otherwise the line would be interpreted as the start of a <a href="Scripts.htm#continuation">continuation section</a>.</p>
+<p>Expressions that start with any of those described above (but not those described below) are also allowed, for simplicity. For example, <code>MyFunc()+1</code> is currently allowed, although the <code>+1</code> has no effect and its result is discarded. Such expressions might become invalid in the future due to enhanced error-checking.</p>
+<p>Member access using a dot (once or in a series), such as <code>ExcelApp.Quit</code> or <code>x.y.z</code>. However, unless parentheses are used (as in a method call), this cannot be the prefix of a larger expression. For example, <code>ExcelApp.Quit, xxx</code> is prohibited due to the apparent similarity to command syntax.</p>
+
+<h2 id="legacy-syntax">Legacy Syntax</h2>
+<p><em><strong>Legacy</strong></em> or <em><strong>command</strong></em> syntax generally only allows a single action per line, but uses fewer characters to perform simple tasks such as <a href="commands/Send.htm">sending keystrokes</a> or <a href="commands/Run.htm">running a program</a>. The syntax consists of command and variable names, <em>unquoted text</em> and a few symbols such as <code>,</code>, <code>=</code> and <code>%</code>.</p>
+<p id="unquoted-text"><em>Unquoted text</em> is simply text, not enclosed in quote marks, just straight up. Since the text has no explicit start and end marks, it ends at the end of the line or the end of the parameter. Leading and trailing spaces and tabs are ignored. Within unquoted text, the following characters have special meaning:</p>
+<ul>
+  <li>
+<p><code>%</code>: Enclose a variable name in percent signs to include the contents of that variable. For example, <code>The year is %A_Year%.</code></p>
+<p class="warning"><strong>Note:</strong> Variable names are not <em>always</em> enclosed in percent signs; they are required only within unquoted text. Percent signs should not be used anywhere else, except to create a <a href="#dynamic-variables">dynamic variable reference</a> or <a href="Functions.htm#DynCall">dynamic function call</a>.
+</p>
+<p class="warning"><strong>Note:</strong> Only a plain variable name can be used. <a href="Objects.htm#Usage_Simple_Arrays">Array elements</a>, <a href="Objects.htm#Usage_Objects">properties</a> and other <a href="#expressions">expressions</a> are not supported.
+</p>
+</li>
+  <li>
+<p><code>,</code>: Comma is used to delimit (separate) the parameters of a command, with <a href="#escape-comma">some exceptions</a>. It has no special meaning when used in an assignment or comparison, so is interpreted literally in such cases.</p>
+</li>
+  <li>
+<p><code>`</code>: An <a href="commands/_EscapeChar.htm">escape character</a> is usually used to indicate that the character immediately following it should be interpreted differently than it normally would. For example, <code>`%</code> produces a literal percent sign and <code>`,</code> produces a literal comma. Some other common escape sequences produce special characters, such as <code>`t</code> (tab), <code>`n</code> (linefeed), and <code>`r</code> (carriage return).</p>
+</li>
+</ul>
+<p><a href="#commands">Commands</a> accept a mixture of <a href="#text-parameters">unquoted text</a>, <a href="#outputvar-and-inputvar-parameters">variable names</a> and <a href="#numeric-parameters">numeric expressions</a>.</p>
+<pre>Send, The time is %A_Hour% o'clock.
+</pre>
+<p><a href="commands/SetEnv.htm">Legacy assignment</a> assigns <a href="#unquoted-text">unquoted text</a> to a variable.</p>
+<pre>Clipboard = This text is copied to the clipboard.
+</pre>
+<p><a href="#if-statement">If statements</a> perform an action only if the specified condition is met.</p>
+<pre>If Var = Text value
+</pre>
+<p>There are also several other <a href="#control-flow">control flow statements</a> (such as loops) which use legacy syntax similar to commands.</p>
+
+<h2 id="commands">Commands</h2>
+<p>A <em>command</em> is an instruction to carry out a specific predefined action. &quot;Command&quot; may also refer to a specific predefined action, such as <a href="commands/MsgBox.htm">MsgBox</a>. The set of available <a href="commands/index.htm">commands</a> is predefined and cannot be changed by the script.</p>
+<p>A command is <em>called</em> simply by writing its name at the beginning of a line, optionally followed by parameters. For example:</p>
+<pre>MsgBox, The time is %A_Hour% o'clock.
+</pre>
+<p>The comma separating the command name from its parameters is optional, except in the following cases:</p>
+<ul>
+  <li>
+<p>When necessary to prevent the line from being interpreted as a <a href="commands/SetEnv.htm">legacy assignment</a> or <a href="Variables.htm#AssignOp">assignment expression</a>.</p>
+<pre>MsgBox, := This would be an assignment without the comma.
+</pre>
+</li>
+  <li>
+<p>When the first parameter is blank.</p>
+<pre>MsgBox,, Second, Third
+</pre>
+</li>
+  <li>
+<p>When the command is alone at the top of a <a href="Scripts.htm#continuation">continuation section</a>.</p>
+</li>
+</ul>
+<p>Each parameter of a command may accept different syntax, depending on the command. There are four types of parameters:</p>
+<ul>
+  <li>OutputVar</li>
+  <li>InputVar</li>
+  <li>Text</li>
+  <li>Number</li>
+</ul>
+<p>In most cases the <a href="#-expression">percent prefix</a> can be used to pass an expression.</p>
+
+<h3 id="outputvar-and-inputvar-parameters">OutputVar and InputVar Parameters</h3>
+<p><em>OutputVar</em> and <em>InputVar</em> parameters require a variable name or <a href="#dynamic-variables">dynamic variable reference</a>. For example:</p>
+<pre>; Replace all spaces with pluses:
+StringReplace, NewStr, OldStr, %A_SPACE%, +, All
+</pre>
+<p>This command reads the value from <em>OldStr</em> (the InputVar) and stores the result in <em>NewStr</em> (the OutputVar).</p>
+<p class="warning"><strong>Note:</strong> Only a plain variable can be used as an <em>OutputVar</em>. <a href="Objects.htm#Usage_Simple_Arrays">Array elements</a>, <a href="Objects.htm#Usage_Objects">properties</a> and other <a href="#expressions">expressions</a> are not supported.
+</p>
+<p><em>InputVar</em> parameters can accept an expression only when the <a href="#-expression">percent prefix</a> is used. However, the prefix is not supported in the <em>var</em> parameters of <a href="#legacy-if">legacy If commands</a>, so <a href="commands/IfExpression.htm">If (expression)</a> should be used instead.</p>
+
+<h3 id="text-parameters">Text Parameters</h3>
+<p>Text parameters accept <a href="#unquoted-text">unquoted text</a>. For example:</p>
+<pre>MsgBox, The time is %A_Hour% o'clock.
+</pre>
+<p id="escape-comma">Since commas and percent signs have special meaning, use the <a href="commands/_EscapeChar.htm">escape sequence</a> <code>`,</code> to specify a literal comma and <code>`%</code> to specify a literal percent sign. For clarity, it is best to always escape any comma which is intended to be literal, but escaping comma is optional in the following cases:</p>
+<ul>
+  <li>In the last parameter of any command.</li>
+  <li>In the <em>Text</em> parameter of MsgBox, which has smart comma handling.</li>
+</ul>
+<p>To include a leading or trailing space or tab, use the built-in variables <a href="Variables.htm#Space">%A_Space%</a> and <a href="Variables.htm#Tab">%A_Tab%</a> or a forced expression such as <code>% &quot; x &quot;</code>. <span class="ver">[v1.1.06+:]</span> Whitespace can also be preserved by preceding the space or tab with an <a href="commands/_EscapeChar.htm">escape character</a>, except for whitespace at the end of a line.</p>
+<p>Text parameters can also accept a <a href="#-expression">forced expression</a>.</p>
+
+<h3 id="numeric-parameters">Numeric Parameters</h3>
+<p>Numeric parameters accept a literal number or an <a href="#expressions">expression</a>, and can be identified by phrasing like &quot;This parameter can be an expression.&quot;</p>
+<p>For historical reasons, simple variable references alone or combined with digits are not interpreted as expressions. For example:</p>
+<pre>Sleep %n%000  <em>; Sleep for n seconds.</em>
+Sleep %m%     <em>; Sleep for m milliseconds.</em>
+</pre>
+<p>To perform a <a href="#dynamic-variables">double-deref</a> in such cases, use a <a href="#-expression">forced expression</a>.</p>
+<p>Note that mixed-type parameters such as <a href="commands/SetTimer.htm">SetTimer's</a> second parameter, which sometimes accepts a number and sometimes accepts a string such as <code>On</code> or <code>Off</code>, are actually Text parameters, and as such, they do not accept expressions unless the <a href="#-expression">percent prefix</a> is used.</p>
+<p>Although the <a href="#-expression">percent prefix</a> is usually unnecessary with numeric parameters, it is allowed.</p>
+
+<h3 id="-expression">% Expression</h3>
+<p>Although purely numeric parameters accept an expression by default, all other parameters of commands do not. Specify a percent sign followed by a space or tab to force a parameter to accept an <a href="#expressions">expression</a>. For example, all of the following are effectively identical because <a href="commands/Sleep.htm">Sleep</a>'s first parameter is expression-capable:</p>
+<pre>Sleep MillisecondsToWait
+Sleep %MillisecondsToWait%
+Sleep % MillisecondsToWait
+</pre>
+<p>All parameters support the percent-space prefix except for:</p>
+<ul>
+  <li>The <em>var</em> parameter of any <a href="#legacy-if">legacy If</a> command. Users can avoid confusion by always using <a href="commands/IfExpression.htm">if (expression)</a>.</li>
+  <li><em>OutputVar</em> parameters, which accept a variable reference using the same syntax as expressions.</li>
+</ul>
+<p>Some users may find it easier to always force an expression, keeping to one consistent syntax (expression syntax) as much as possible.</p>
+
+<h3 id="documentation-conventions">Documentation Conventions</h3>
+<p>At the top of each page which documents a command, there is usually a block showing syntax, like this:</p>
+<pre>Run, Target [, WorkingDir, Max|Min|Hide|UseErrorLevel, OutputVarPID]
+</pre>
+<p>The square brackets denote optional parameters; the brackets themselves must be omitted from the actual code.</p>
+<p>Sometimes the value or values a parameter accepts are written directly in the syntax block. For example, the third parameter of Run shown above accepts one or more of the words shown, as text. The pipe symbol denotes alternatives; the symbol itself should be omitted from the actual code. The exact syntax of the parameter is described in the <em>Parameters</em> table, and varies between commands.</p>
+
+<h3 id="optional-parameters">Optional Parameters</h3>
+<p>Optional parameters can simply be left blank. The comma preceding an optional parameter can also be omitted if all subsequent parameters are omitted. For example, the <a href="commands/Run.htm">Run</a> command can accept between one and four parameters. All of the following are valid:</p>
+<pre>Run, notepad.exe, C:\
+Run, notepad.exe,, Min
+Run notepad.exe, , , notepadPID
+</pre>
+
+<h2 id="expressions-vs-legacy-syntax">Expressions vs Legacy Syntax</h2>
+<p>Many command parameters do not accept expressions by default. Use the <a href="#-expression">percent-space prefix</a> at the beginning of a parameter to evaluate that parameter as an expression. In the following examples, the expression is shown on the first line (beginning <em>after</em> the percent sign), with pure legacy syntax shown on the second line.</p>
+<pre>MsgBox % 1+1  <em>; Shows &quot;2&quot;</em>
+MsgBox   1+1  <em>; Shows &quot;1+1&quot;</em>
+</pre>
+<p>Literal text in an expression is always enclosed in quote marks. These are called <em>quoted strings</em>.</p>
+<pre>MsgBox % &quot;This is text.&quot;
+MsgBox    This is text.
+</pre>
+<p>Variables in an expression are never enclosed in percent signs, except to create a <a href="#dynamic-variables">double reference</a>.</p>
+<pre>MsgBox %  A_AhkVersion
+MsgBox   %A_AhkVersion%
+</pre>
+<p>Variables cannot be used inside a quoted string.</p>
+<pre>MsgBox % &quot;Hello %A_UserName%.&quot;  <em>; Shows &quot;%A_UserName%&quot;</em>
+MsgBox    Hello %A_UserName%.   <em>; Shows your username.</em>
+</pre>
+<p>Instead, values are <a href="Variables.htm#concat"><em>concatenated</em></a> by writing them in sequence, separated by a space or tab, or a dot surrounded by spaces.</p>
+<pre>MsgBox % &quot;Hello &quot; . A_UserName . &quot;.&quot;  <em>; Shows your username.</em>
+</pre>
+<p>One alternative is to use the <a href="commands/Format.htm">Format</a> function, which can also format the parameter value in various ways.</p>
+<pre>MsgBox % Format(&quot;Hello {1}.&quot;, A_UserName)  <em>; {} also works in place of {1}.</em>
+</pre>
+<p>A value is assigned to a variable with <code>:=</code> instead of <code>=</code>:</p>
+<pre>MyVar := &quot;This is text.&quot;
+MyVar = This is text.
+</pre>
+<p>Comparisons are performed using the same symbols as <a href="#legacy-if">legacy If</a>: <code>=</code>, <code>&lt;&gt;</code> or <code>!=</code>, <code>&gt;</code>, <code>&gt;=</code>, <code>&lt;</code> and <code>&lt;=</code>.</p>
+<pre>if (Var1 = Var2)
+if Var1 = %Var2%
+</pre>
+<p>In an expression, both values can be simple values or complex sub-expressions. A comparison can also be combined with other conditions using <a href="Variables.htm#Operators">operators</a> such as <code>and</code> and <code>or</code> (which are equivalent to <code>&amp;&amp;</code> and <code>||</code>).</p>
+<pre>if (Var1 &gt;= Low and Var1 &lt;= High)
+if Var1 between %Low% and %High%  
+</pre>
+
+<h3 id="different-equals">Different Equals</h3>
+<p>One common mistake is to write <code>=</code> where <code>:=</code> is needed. For example:</p>
+<pre>Total = A + B   <em>; Assigns the literal text &quot;A + B&quot;</em>
+</pre>
+<p>This can be difficult to avoid (at least until such time as the legacy assignment syntax is removed), but it may help to always use <code>:=</code> where an assignment is intended.</p>
+<p>The equal sign (when not used with another symbol, such as <code>&lt;=</code>) has the following meanings:</p>
+<ul>
+  <li><a href="commands/SetEnv.htm">Legacy assignment</a>: <code>Var = Value</code></li>
+  <li><a href="commands/IfEqual.htm">Legacy If equal</a>: <code>if Var = Value</code></li>
+  <li><a href="Variables.htm#equal">Case-insensitive equal</a>: <code>if (Expr1 = Expr2)</code> (also valid in other expressions, not just <code>if</code>)</li>
+  <li><a href="Variables.htm#comma">Assign after comma</a>: <code>x:=1, y=2, a=b=c</code> (all are assignments due to a special rule)</li>
+  <li><a href="Functions.htm#DeclareInit">Declare and initialize</a>: <code>local x = Expr</code> (always accepts an expression)</li>
+  <li><a href="Functions.htm#optional">Set parameter default value</a>: <code>MyFunc(Param=&quot;Default value&quot;) {</code>...</li>
+</ul>
+<p>The first two cases can be avoided by always using the <code>:=</code> <a href="Variables.htm#AssignOp">assignment operator</a> and <a href="commands/IfExpression.htm">if (expression)</a>.</p>
+<p>For the last three cases, <code>:=</code> should have been used instead of <code>=</code>.</p>
+
+<h3 id="commands-vs-functions">Commands vs Functions</h3>
+<p>In AutoHotkey v1, it is currently not possible to call a command from an expression, or to call a function using the <em>command syntax</em>. However, several commands have a function replacement.</p>
+<table class="info">
+  <tr><th>Command</th><th>Replacement</th></tr>
+  <tr><td><a href="commands/FileAppend.htm">FileAppend</a></td><td><a href="commands/FileOpen.htm">FileOpen</a> and <a href="objects/File.htm#Write">File.Write</a></td></tr>
+  <tr><td><a href="commands/FileGetAttrib.htm">FileGetAttrib</a></td><td><a href="commands/FileExist.htm">FileExist</a></td></tr>
+  <tr><td><a href="commands/FileRead.htm">FileRead</a></td><td><a href="commands/FileOpen.htm">FileOpen</a> and <a href="objects/File.htm#Read">File.Read</a></td></tr>
+  <tr><td><a href="commands/GetKeyState.htm">GetKeyState</a></td><td><a href="commands/GetKeyState.htm">GetKeyState</a> (the function returns 0 or 1, not &quot;U&quot; or &quot;D&quot;)</td></tr>
+  <tr><td><a href="commands/IfExist.htm">IfExist</a></td><td><a href="commands/FileExist.htm">FileExist</a></td></tr>
+  <tr><td><a href="commands/IfInString.htm">IfInString</a></td><td><a href="commands/InStr.htm">InStr</a></td></tr>
+  <tr><td><a href="commands/WinActive.htm">IfWinActive</a></td><td><a href="commands/WinActive.htm">WinActive</a></td></tr>
+  <tr><td><a href="commands/WinExist.htm">IfWinExist</a></td><td><a href="commands/WinExist.htm">WinExist</a></td></tr>
+  <tr><td><a href="commands/StringGetPos.htm">StringGetPos</a></td><td><a href="commands/InStr.htm">InStr</a></td></tr>
+  <tr><td><a href="commands/StringLen.htm">StringLen</a></td><td><a href="commands/StringLen.htm">StrLen</a></td></tr>
+  <tr><td><a href="commands/StringReplace.htm">StringReplace</a></td><td><a href="commands/StringReplace.htm">StrReplace</a></td></tr>
+  <tr><td><a href="commands/StringSplit.htm">StringSplit</a></td><td><a href="commands/StringSplit.htm">StrSplit</a></td></tr>
+  <tr>
+    <td><a href="commands/StringLower.htm">StringLower<br>StringUpper</a></td>
+    <td><code><a href="commands/Format.htm">Format</a>(&quot;{:L}&quot;, input)</code>, <code>Format(&quot;{:U}&quot;, input)</code> or <code>Format(&quot;{:T}&quot;, input)</code></td>
+  </tr>
+  <tr>
+    <td><a href="commands/StringLeft.htm">StringLeft</a><br><a href="commands/StringMid.htm">StringMid</a><br><a href="commands/StringLeft.htm">StringRight</a><br><a href="commands/StringTrimLeft.htm">StringTrimLeft<br>StringTrimRight</a></td>
+    <td><a href="commands/SubStr.htm">SubStr</a></td>
+  </tr>
+</table>
+
+<h2 id="control-flow">Control Flow Statements</h2>
+<p class="note">For a general explanation of control flow, see <a href="Concepts.htm#control-flow">Control Flow</a>.</p>
+<p><a href="Concepts.htm#statement">Statements</a> are grouped together into a <a href="commands/Block.htm"><em>block</em></a> by enclosing them in braces<code>{}</code>, as in C, JavaScript and similar languages, but usually the braces must appear at the start of a line. Control flow statements can be applied to an entire block or just a single statement.</p>
+<p>The <a href="Concepts.htm#body">body</a> of a control flow statement is always a single <em>group</em> of statements. A block counts as a single group of statements, as does a control flow statement and its body. The following related statements are also grouped with each other, along with their bodies: <code>If</code> with <code>Else</code>; <code>Loop</code>/<code>For</code> with <code>Until</code>; <code>Try</code> with <code>Catch</code> and/or <code>Finally</code>. In other words, when a group of these statements is used as a whole, it does not always need to be enclosed in braces (however, some coding styles always include the braces, for clarity).</p>
+<p>Control flow statements which have a body and therefore must always be followed by a related statement or group of statements: <code>If</code>, <code>Else</code>, <code>Loop</code>, <code>While</code>, <code>For</code>, <code>Try</code>, <code>Catch</code> and <code>Finally</code>.</p>
+<p id="control-flow-list">The following control flow statements exist:</p>
+<ul>
+  <li>A <a href="commands/Block.htm">block</a> (denoted by a pair of braces) groups zero or more statements to act as a single statement.</li>
+  <li>An <a href="#if-statement">If statement</a> causes its body to be executed or not depending on a condition. It can be followed by an <a href="commands/Else.htm">Else</a> statement, which executes only if the condition was not met.</li>
+  <li><a href="commands/Goto.htm">Goto</a> jumps to the specified label and continues execution.</li>
+  <li><a href="commands/Gosub.htm">Gosub</a> calls a <a href="#subroutines">subroutine</a>.</li>
+  <li><a href="commands/Return.htm">Return</a> returns from a <a href="#subroutines">subroutine</a> or function.</li>
+  <li>A <a href="#loop-statement">Loop statement</a> (<a href="commands/Loop.htm">Loop</a>, <a href="commands/While.htm">While</a> or <a href="commands/For.htm">For</a>) executes its body repeatedly.
+  <ul>
+    <li><a href="commands/Break.htm">Break</a> exits (terminates) a loop.</li>
+    <li><a href="commands/Continue.htm">Continue</a> skips the rest of the current loop iteration and begins a new one.</li>
+    <li><a href="commands/Until.htm">Until</a> causes a loop to terminate when an expression evaluates to true. The expression is evaluated after each iteration.</li>
+  </ul></li>
+  <li>Exception handling:
+  <ul>
+    <li><a href="commands/Try.htm">Try</a> guards its body against runtime errors and exceptions thrown by the throw command.</li>
+    <li><a href="commands/Catch.htm">Catch</a> executes its body after an exception is thrown within a try statement (and only if an exception is thrown).</li>
+    <li><a href="commands/Finally.htm">Finally</a> executes its body when control is being transferred out of a try or catch statement's body.</li>
+    <li><a href="commands/Throw.htm">Throw</a> throws an exception to be handled by try/catch or display an error dialog.</li>
+  </ul></li>
+</ul>
+
+<h3 id="control-flow-vs-commands">Control Flow vs Commands</h3>
+<p>Control flow statements have syntax resembling <a href="#commands">commands</a>, and are often referred to as such, but some differ from commands:</p>
+<ul>
+  <li>There are several types of <a href="#if-statement">If statement</a>, with each having different syntax.</li>
+  <li><a href="commands/For.htm">For</a> and several types of <a href="#if-statement">If statement</a> use keywords or an operator instead of commas to separate some of their parameters.</li>
+  <li>The opening brace of a <a href="commands/Block.htm">block</a> can be written at the end of the same line as an <a href="commands/IfExpression.htm">If (expression)</a>, <a href="commands/Else.htm">Else</a>, <a href="commands/Loop.htm">Loop Count</a>, <a href="commands/While.htm">While</a>, <a href="commands/For.htm">For</a>, <a href="commands/Try.htm">Try</a>, <a href="commands/Catch.htm">Catch</a> or <a href="commands/Finally.htm">Finally</a> statement (basically any control flow statement which does not use <a href="#legacy-syntax">legacy syntax</a>). This is referred to as the One True Brace (OTB) style. It is not supported by the other Loop sub-commands or <a href="#legacy-if">legacy If statement</a>, as the brace would be interpreted as a literal <code>{</code> character.</li>
+  <li><a href="commands/Else.htm">Else</a>, <a href="commands/Try.htm">Try</a> and <a href="commands/Finally.htm">Finally</a> allow any valid statement to their right, in place of a parameter.</li>
+  <li><a href="commands/IfExpression.htm">If (expression)</a> and <a href="commands/While.htm">While</a> allow an open parenthesis to be used immediately after the name. For example, <code>if(expression)</code>.</li>
+  <li><a href="commands/For.htm">For</a>, <a href="commands/While.htm">While</a>, <a href="commands/Until.htm">Until</a> and <a href="commands/Throw.htm">Throw</a> always accept expressions. They treat <code>%var%</code>, <code>%var%000</code> and similar as expressions, whereas <a href="#numeric-parameters">numeric parameters</a> of other commands do not. The requirement for backward-compatibility does not apply to these control flow statements as they are relatively new.</li>
+</ul>
+
+<h3 id="if-statement">If Statement</h3>
+<p><a href="commands/IfExpression.htm">If (expression)</a> evaluates an expression and executes the following statement only if the result is true.</p>
+<p id="legacy-if"><strong>Common cause of confusion:</strong> There are several other types of If statements, some of which look very similar to <em>If (expression)</em>. These should be avoided in new scripts. If in doubt, it is best to always begin the expression with an open-parenthesis. The &quot;legacy&quot; If statements are as follows:</p>
+<ul>
+  <li><a href="commands/IfEqual.htm">If Var</a></li>
+  <li><a href="commands/IfEqual.htm">If Var <em>op</em> Value</a>, where <em>op</em> is one of the following operators: <code>=</code>, <code>&lt;&gt;</code>, <code>!=</code>, <code>&gt;</code>, <code>&gt;=</code>, <code>&lt;</code>, <code>&lt;=</code>.</li>
+  <li><a href="commands/IfBetween.htm">If Var [not] between Lower and Upper</a></li>
+  <li><a href="commands/IfIn.htm">If Var [not] in/contains MatchList</a></li>
+  <li><a href="commands/IfIs.htm">If Var is [not] Type</a></li>
+</ul>
+<p>Any If statement which does not match one of the usages shown above is interpreted as <a href="commands/IfExpression.htm">If (expression)</a>.</p>
+<p>These are some common points of confusion related to legacy If statements:</p>
+<ul>
+  <li>Variable names must be enclosed in percent signs <em>only</em> on the right-hand side of the operator.</li>
+  <li><code>between</code>, <code>in</code>, <code>contains</code> and <code>is</code> are only valid in this context; they cannot be used in <a href="#expressions">expressions</a>.</li>
+  <li>Multiple conditions cannot be written on the same line (such as with the <code>and</code> operator).</li>
+  <li>None of the parameters are expressions.</li>
+</ul>
+<p id="named-if">The following &quot;legacy&quot; named If statements also exist:</p>
+<ul>
+  <li><a href="commands/IfEqual.htm">IfEqual, IfNotEqual, IfLess, IfLessOrEqual, IfGreater and IfGreaterOrEqual</a></li>
+  <li><a href="commands/IfExist.htm">If[Not]Exist</a></li>
+  <li><a href="commands/IfInString.htm">If[Not]InString</a></li>
+  <li><a href="commands/WinActive.htm">If[Not]WinActive</a></li>
+  <li><a href="commands/WinExist.htm">If[Not]WinExist</a></li>
+  <li><a href="commands/IfMsgBox.htm">IfMsgBox</a></li>
+</ul>
+<p>With the exception of IfMsgBox, these are all obsolete and generally should be avoided in new scripts.</p>
+<p>Named If statements allow a <a href="#commands">command</a> to be written on the same line, but mispelled command names are treated as literal text. Such errors may be difficult to detect.</p>
+
+<h3 id="loop-statement">Loop Statement</h3>
+<p>There are several types of loop statements:</p>
+<ul>
+  <li><a href="commands/Loop.htm">Loop Count</a> executes a statement repeatedly: either the specified number of times or until break is encountered.</li>
+  <li><a href="commands/LoopReg.htm">Loop Reg</a> retrieves the contents of the specified registry subkey, one item at a time.</li>
+  <li><a href="commands/LoopFile.htm">Loop Files</a> retrieves the specified files or folders, one at a time.</li>
+  <li><a href="commands/LoopParse.htm">Loop Parse</a> retrieves substrings (fields) from a string, one at a time.</li>
+  <li><a href="commands/LoopReadFile.htm">Loop Read</a> retrieves the lines in a text file, one at a time.</li>
+  <li><a href="commands/While.htm">While</a> executes a statement repeatedly until the specified expression evaluates to false. The expression is evaluated before each iteration.</li>
+  <li><a href="commands/For.htm">For</a> executes a statement once for each value or pair of values returned by an enumerator, such as each key-value pair in an object.</li>
+</ul>
+<p><a href="commands/Break.htm">Break</a> exits (terminates) a loop, effectively jumping to the next line after the loop's body.</p>
+<p><a href="commands/Continue.htm">Continue</a> skips the rest of the current loop iteration and begins a new one.</p>
+<p><a href="commands/Until.htm">Until</a> causes a loop to terminate when an expression evaluates to true. The expression is evaluated after each iteration.</p>
+<p>A <a href="#labels">label</a> can be used to &quot;name&quot; a loop for <a href="commands/Continue.htm">Continue</a> and <a href="commands/Break.htm">Break</a>. This allows the script to easily continue or break out of any number of nested loops without using <a href="commands/Goto.htm">Goto</a>.</p>
+<p>The built-in variable <strong>A_Index</strong> contains the number of the current loop iteration. It contains 1 the first time the loop's body is executed. For the second time, it contains 2; and so on. If an inner loop is enclosed by an outer loop, the inner loop takes precedence. A_Index works inside all types of loops, but contains 0 outside of a loop.</p>
+<p>For some loop types, other built-in variables return information about the current loop item (registry key/value, file, substring or line of text). These variables have names beginning with <strong>A_Loop</strong>, such as A_LoopFileName and A_LoopReadLine. Their values always correspond to the most recently started (but not yet stopped) loop of the appropriate type. For example, A_LoopField returns the current substring in the innermost parsing loop, even if it is used inside a file or registry loop.</p>
+<pre>t := &quot;column 1`tcolumn 2`nvalue 1`tvalue 2&quot;
+Loop Parse, t, `n
+{
+    rowtext := A_LoopField
+    rownum := A_Index  <em>; Save this for use in the second loop, below.</em>
+    Loop Parse, rowtext, `t
+    {
+        MsgBox %rownum%:%A_Index% = %A_LoopField%
+    }
+}
+</pre>
+<p>Loop variables can also be used outside the body of a loop, such as in a function or subroutine which is called from within a loop.</p>
+
+<h3 id="not-control-flow">Not Control Flow</h3>
+<p>As directives, labels (including hotkeys and hotstrings), and declarations without assignments are processed when the script is loaded from file, they are not subject to control flow. In other words, they take effect unconditionally, before the script ever executes any control flow statements. Similarly, the #If directives such as <a href="commands/_If.htm">#IfWinActive</a> cannot affect control flow; they merely set the criteria for any hotkey labels and hotstrings specified in the code. A hotkey's criteria is evaluated each time it is pressed, not when the #If directive is encountered in the code.</p>
+
+<h2 id="structure-of-a-script">Structure of a Script</h2>
+
+<h3 id="auto-execute-section">Auto-execute Section</h3>
+<p>After the script has been loaded, it begins executing at the top line, continuing until a <a href="commands/Return.htm">Return</a>, <a href="commands/ExitApp.htm">Exit</a>, the script's first <a href="Hotkeys.htm">hotkey/hotstring label</a>, or the physical end of the script is encountered (whichever comes first). This top portion of the script is referred to as the <em>auto-execute section</em>, but it is really just a <a href="#subroutines">subroutine</a> which is called after program startup.</p>
+<p class="warning"><strong>Note:</strong> While the script's <em>first</em> hotkey/hotstring label has the same effect as <a href="commands/Return.htm">return</a>, other hotkeys and labels do not.</p>
+<p>The auto-execute section is often used to configure settings which apply to every newly launched <a href="misc/Threads.htm">thread</a>. For details, see <a href="Scripts.htm#auto">The Top of the Script</a>.</p>
+
+<h3 id="subroutines">Subroutines</h3>
+<p>A <em>subroutine</em> (or sub) is a reusable block of code which can be <em>called</em> to perform some task.</p>
+<p>When a subroutine is called, execution begins at the subroutine's first line,</p>
+<p>Scripts use subroutines to define what should happen when a particular hotkey is pressed or some other event occurs. Scripts can also call subroutines directly, by using <a href="commands/Gosub.htm">Gosub</a>.</p>
+<p>Any <a href="#labels">label</a> can be used as the starting point of a subroutine. A subroutine has no explicitly marked ending point, but instead ends if and when control is returned to the subroutine's caller by <a href="commands/Return.htm">Return</a> or when the thread is exited.  For example:</p>
+<pre>gosub Label1
+
+Label1:
+MsgBox %A_ThisLabel%
+return
+</pre>
+<p>Note that as labels have no effect when reached during normal execution, in this example a MsgBox would be shown twice: once while the subroutine is running and again after it returns. One important consequence is that you cannot define one subroutine inside another subroutine, because the &quot;body&quot; of the inner subroutine would execute automatically and then <em>return</em>, effectively terminating the outer subroutine.</p>
+<p>Subroutines should typically be defined separately to any other block of code, but can also be <a href="Functions.htm#gosub">defined inside a function</a>, allowing the subroutine access to that function's static variables (and local variables, but only while the function is running).</p>
+<p class="warning"><strong>Note:</strong> Subroutines defined inside a function have certain limitations regarding the use of local variables and <a href="#dynamic-variables">dynamic variable references</a>, including <a href="commands/Gui.htm#Events">Gui control variables</a>. For details, see <a href="Functions.htm#gosub">Using Subroutines Within a Function</a>.
+</p>
+
+<h3 id="user-defined-functions">User-Defined Functions</h3>
+<p>Generally speaking, a <a href="Functions.htm">function</a> is a kind of subroutine. However, within the AutoHotkey documentation, &quot;subroutine&quot; typically refers to the kind of subroutine defined by a label (described above).</p>
+<p>User-defined functions differ from subroutines in that they can <em>accept parameters</em> and <em>return a value</em>, and they can have <a href="Functions.htm#Local">local variables</a>. They can be called either by a <a href="#function-calls">function call</a> within the script or by the program itself, such as if a function was passed to the <a href="commands/Hotkey.htm">Hotkey</a> or <a href="commands/SetTimer.htm">SetTimer</a> commands.</p>
+<p>Functions are defined using syntax resembling a function call followed by a block of code enclosed in braces:</p>
+<pre>MyFunction(FirstParameter, Second, ByRef Third, Fourth:=&quot;&quot;)
+{
+	...
+	return &quot;a value&quot;
+}
+</pre>
+<p>As with function calls, there must be no space between the function name and open-parenthesis.</p>
+<p>The line break between the close-parenthesis and open-brace is optional. There can be any amount of whitespace or comments between the two.</p>
+<p><a href="Functions.htm#ByRef">ByRef</a> indicates that the parameter accepts a variable reference, making that parameter an alias for whichever variable the caller passes. If the caller does not pass a variable, the parameter acts as a normal local variable. ByRef parameters can also be optional.</p>
+<p><a href="Functions.htm#optional">Optional</a> parameters are specified by following the parameter name with <code>:=</code> or <code>=</code> and a default value, which must be a literal quoted string, a number, <code>true</code> or <code>false</code>. The operators <code>:=</code> and <code>=</code> are interchangeable for historical reasons, but it is best to use <code>:=</code> for consistency with assignment in expressions.</p>
+<p>The function can <a href="Functions.htm#return">return a value</a>. If it does not, the default return value is an empty string.</p>
+<p>A function cannot be defined inside another function. Otherwise, the position of a function definition does not matter; any function defined within the script can be called from anywhere else.</p>
+<p class="note">See <a href="Functions.htm">Functions</a> for much more detail.</p>
+
+<h3 id="-include">#Include</h3>
+<p>The <a href="commands/_Include.htm">#Include</a> directive causes the script to behave as though the specified file's contents are present at this exact position. This is often used to organise code into separate files, or to make use of script libraries written by other users.</p>
+<p class="warning"><strong>Note:</strong> The following paragraphs detail some common points of confusion.
+</p>
+<p>When using #Include, it is important to consider what effect the file's contents would have if placed at that position, since #Include will have the same effect. For instance:</p>
+<ul>
+  <li>
+<p>#Include generally should not be used in the middle of a subroutine or function.</p>
+</li>
+  <li>
+<p>The use of #Include in the script's <a href="#auto-execute-section">auto-execute section</a> requires special consideration, because the auto-execute section is essentially just a subroutine. Execution of a subroutine halts if it reaches a <code>return</code>, regardless of which file that <code>return</code> is in. Similarly, if the file contains a hotkey/hotstring, it may be considered the script's <em>first</em> hotkey/hotstring, which would act like <code>return</code>.</p>
+</li>
+  <li>
+<p>The script only has one <a href="#auto-execute-section">auto-execute section</a>, not one per file.</p>
+</li>
+</ul>
+<p>#Include can be safely used within the <a href="#auto-execute-section">auto-execute section</a> to include files which contain only function definitions, since function definitions (but not function calls) are skipped over during execution. If a file contains other code, one can avoid breaking the auto-execute section by skipping over the file's contents with <a href="commands/Goto.htm">Goto</a>.</p>
+<p>Unlike in C/C++, #Include does nothing if the file has already been included by a previous directive. To include the contents of the same file multiple times, use <a href="commands/_Include.htm">#IncludeAgain</a>.</p>
+<p>Script files containing functions can be <em>automatically</em> included without having to use #Include, if they are saved in a standard location and named appropriately. The effect is similar to using #Include at the end of the main script file. For details, see <a href="Functions.htm#lib">Libraries of Functions</a>.</p>
+
+<h2 id="misc">Miscellaneous</h2>
+
+<h3 id="dynamic-variables">Dynamic Variables</h3>
+<p>A <em>dynamic variable reference</em> takes a text value and interprets it as the name of a variable.</p>
+<p>The most common form of dynamic variable reference is called a <em>double reference</em> or <em>double-deref</em>. Before performing a double reference, the name of the target variable is stored in a second variable. This second variable can then be used to assign a value to the target variable indirectly, using a double reference. For example:</p>
+<pre>target := 42
+second := &quot;target&quot;
+MsgBox   %second%  <em>; Normal (single) variable reference in text =&gt; target</em>
+MsgBox %  second   <em>; Normal (single) variable reference in an expression =&gt; target</em>
+MsgBox % %second%  <em>; Double-deref in an expression =&gt; 42</em>
+</pre>
+<p>At first, it would appear that percent signs have a different meaning depending on whether they are used in text or in an expression. However, it may make more sense to think of <code>%second%</code> as being replaced with the contents of the variable <code>second</code> in <em>both</em> cases:</p>
+<ul>
+  <li><code>MsgBox %second%</code> &rarr; <code>MsgBox target</code>: Shows &quot;target&quot;.</li>
+  <li><code>MsgBox % %second%</code> &rarr; <code>MsgBox % target</code>: Shows the contents of <code>target</code>, i.e. &quot;42&quot;.</li>
+</ul>
+<p>Currently, <code>second</code> must always contain a variable name in the second case; arbitrary expressions are not supported.</p>
+<p>A dynamic variable reference can also take one or more pieces of literal text and the content of one or more variables, and join them together to form a single variable name. This is done simply by writing the pieces of the name and percent-enclosed variables in sequence, without any spaces. For example, <code>MyArray%A_Index%</code> or <code>MyGrid%X%_%Y%</code>. This is used to access <em>pseudo-arrays</em>, described below.</p>
+<p>For a description of how dynamic variable references inside functions are resolved, see <a href="Functions.htm#Dynamic">Functions: More about locals and globals</a>.</p>
+
+<h4 id="pseudo-arrays">Pseudo-arrays</h4>
+<p>A <em>pseudo-array</em> is actually just a bunch of discrete variables, but with a naming pattern which allows them to be used like elements of an array. For example:</p>
+<pre>MyArray1 = A
+MyArray2 = B
+MyArray3 = C
+Loop 3
+	MsgBox % MyArray%A_Index%  <em>; Shows A, then B, then C.</em>
+</pre>
+<p>As the individual elements are just normal variables, one can assign or retrieve a value, but cannot <em>remove</em> or <em>insert</em> elements. Because the pseudo-array itself doesn't really exist, it can't be passed to or returned from a function, or copied as a whole. For these reasons, it is generally recommended to use <a href="Objects.htm#Usage_Simple_Arrays">normal arrays</a> instead, where possible.</p>
+
+<h4 id="associative-pseudo-arrays">Associative pseudo-arrays</h4>
+<p>The &quot;index&quot; used to form the final variable name does not have to be numeric; it could instead be a letter or keyword, making the pseudo-array similar to an <a href="Objects.htm#Usage_Associative_Arrays">associative array</a> or an <a href="Objects.htm">object</a>. The following example creates a pseudo-array with elements &quot;Left&quot;, &quot;Top&quot;, &quot;Right&quot; and &quot;Bottom&quot;:</p>
+<pre>SysGet, WA, MonitorWorkArea
+MsgBox, Left: %WALeft% -- Top: %WATop% -- Right: %WARight% -- Bottom %WABottom%.
+</pre>
+
+<h4 id="commands-which-create-pseudo-arrays">Commands which create pseudo-arrays</h4>
+<p>There are several commands which create associative pseudo-arrays:</p>
+<ul>
+  <li><a href="commands/GuiControlGet.htm">GuiControlGet Pos</a>.</li>
+  <li><a href="commands/RegExMatch.htm">RegExMatch</a>, except when given the <code>O)</code> option, which causes it to output a single object containing all match information.</li>
+  <li><a href="commands/SysGet.htm">SysGet Monitor/MonitorWorkArea</a>, as demonstrated above.</li>
+  <li><a href="commands/StringSplit.htm">StringSplit</a>. New scripts should use <a href="commands/StringSplit.htm">StrSplit()</a> instead, as it creates a <a href="Objects.htm#Usage_Simple_Arrays">normal arrays</a>.</li>
+  <li><a href="commands/WinGet.htm">WinGet List</a>.</li>
+</ul>
+<p class="warning"><strong>Caution:</strong> These commands do not follow the same rules as <em>dynamic variable references</em>. If used within a function, the resulting pseudo-array is either entirely global or entirely local, depending only on the first element (or base name) of the array.  Some of the variables in the pseudo-array may be inaccessible if they are not individually declared. For details, see <a href="Functions.htm#PseudoArrays">Functions: More about locals and globals</a>.
+</p>
+<p>AutoHotkey also creates one global pseudo-array to contain any <a href="Scripts.htm#cmd_args">command line parameters</a> that were passed to the script.</p>
+
+<h3 id="labels">Labels</h3>
+<p>A label identifies a line of code, and can be used as a <a href="commands/Goto.htm">Goto</a> target or to form a <a href="#subroutines">subroutine</a>. There are three kinds of label: normal named labels, <a href="Hotkeys.htm">hotkey</a> labels and <a href="Hotstrings.htm">hotstring</a> labels.</p>
+<p>Normal labels consist of a name followed by a colon.</p>
+<pre>this_is_a_label:
+</pre>
+<p>Hotkey labels consist of a hotkey followed by double-colon.</p>
+<pre>^a::
+</pre>
+<p>Hotstring labels consist of a colon, zero or more <a href="Hotstrings.htm#Options">options</a>, another colon, an abbreviation and double-colon.</p>
+<pre>:*:btw::
+</pre>
+<p>Generally, aside from whitespace and comments, no other code can be written on the same line as a label. However:</p>
+<ul>
+  <li>A hotkey label can be directly followed by a command or other statement to create a <em>one-line</em> hotkey. In other words, if a command, assignment or expression is present on the same line as a hotkey label, it acts as though followed by <code>return</code>.</li>
+  <li>A hotkey with a <a href="KeyList.htm">key name</a> written to the right of the double-colon is actually a <a href="misc/Remap.htm"><em>remapping</em></a>, which is shorthand for <a href="misc/Remap.htm#actually">a pair of hotkeys</a>. For example, <code>a::b</code> creates hotkeys and labels for <code>*a</code> and <code>*a Up</code>, and does not create a label named <code>a</code>.</li>
+  <li>A hotstring with text written to the right of the final double-colon is an <em>auto-replace</em> hotstring. Auto-replace hotstrings do not act as labels.</li>
+</ul>
+<p>For more details, see <a href="misc/Labels.htm">Labels</a>.</p>
+
+</body>
+</html>
