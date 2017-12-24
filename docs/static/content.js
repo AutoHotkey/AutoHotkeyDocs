@@ -47,6 +47,13 @@ var isFrameParent = (location.href.indexOf('iframe.htm') != -1);
 var isInsideFrame = (window.self !== window.top);
 var isSearchBot = navigator.userAgent.match(/googlebot|bingbot|slurp/i);
 var isMobile = (window.outerWidth < 600);
+var isOpera = (!!window.opr && !!opr.addons) || !!window.opera || navigator.userAgent.indexOf(' OPR/') >= 0; // Opera 8.0+
+var isFirefox = typeof InstallTrigger !== 'undefined'; // Firefox 1.0+
+var isSafari = Object.prototype.toString.call(window.HTMLElement).indexOf('Constructor') > 0; // At least Safari 3+: "[object HTMLElementConstructor]"
+var isIE = /*@cc_on!@*/false || !!document.documentMode; // Internet Explorer 6-11
+var isEdge = !isIE && !!window.StyleMedia; // Edge 20+
+var isChrome = !!window.chrome && !!window.chrome.webstore; // Chrome 1+
+var isBlink = (isChrome || isOpera) && !!window.CSS; // Blink engine detection
 var structure = new ctor_structure;
 var toc = new ctor_toc;
 var index = new ctor_index;
@@ -172,9 +179,9 @@ function ctor_toc()
     for(var i = 0; i < input.length; i++) {
       var li = input[i][0];
       if (input[i][1] != '')
-        li = '<a href="' + workingDir + input[i][1] + '" data-content="' + li + '"></a>';
+        li = '<a href="' + workingDir + input[i][1] + '"' + (isIE || isEdge ? '>' + li : ' data-content="' + li + '">') + '</a>';
       else
-        li = '<span data-content="' + li + '"></span>';
+        li = '<span' + (isIE || isEdge ? '>' + li : ' data-content="' + li + '">') + '</span>';
       li = '<span>' + li + '</span>';
       if(input[i][2] != undefined && input[i][2].length > 0) {
         output += '<li class ="closed" title="' + input[i][0] + '">' + li;
@@ -291,7 +298,7 @@ function ctor_index()
       return textA.localeCompare(textB);
     });
     for (var i = 0, len = input.length; i < len; i++)
-      output += '<a href="' + workingDir + input[i][1] + '" tabindex="-1" data-content="' + input[i][0] + '"></a>';
+      output += '<a href="' + workingDir + input[i][1] + '" tabindex="-1"' + (isIE || isEdge ? '>' + input[i][0] : ' data-content="' + input[i][0] + '">') + '</a>';
     return output;
   };
   self.modify = function() { // Modify the elements of the index tab.
@@ -333,7 +340,8 @@ function ctor_index()
     if (!input)
       return match;
     for (var i = 0; i < indexListChildren.length; i++) {
-      var listitem = indexListChildren[i].getAttribute('data-content').substr(0, input.length).toLowerCase();
+      var text = isIE || isEdge ? indexListChildren[i].innerText : indexListChildren[i].getAttribute('data-content');
+      var listitem = text.substr(0, input.length).toLowerCase();
       if (listitem == input) {
         match = indexListChildren.eq(i);
         break;
@@ -607,9 +615,10 @@ function ctor_structure()
   self.build = function() { // Add elements for sidebar.
     var head = '<div id="head"><div class="h-tabs"><ul><li data-translate data-content="Content"></li><li data-translate data-content="Index"></li><li data-translate data-content="Search"></li></ul></div><div class="dragbar"></div><div class="h-tools"><div class="main"><ul><li class="sidebar" title="Hide/Show sidebar" data-translate>&#926;</li></ul></div><div class="online"><ul><li class="home" title="Home page" data-translate><a href="' + location.protocol + '//' + location.host + '">&#916;</a></li></ul><ul><li class="language" title="Change language" data-translate data-content="en"></li></ul><ul class="languages"><li class="arrow">&#9658;</li><li><a title="English" data-content="en"></a></li><li><a title="Deutsch (German)" data-content="de"></a></li><li><a title="&#x4E2D;&#x6587; (Chinese)" data-content="zh"></a></li></ul><ul><li class="version" title="Change AHK version" data-translate data-content="v1"></li></ul><ul class="versions"><li class="arrow">&#9658;</li><li><a title="AHK v1.1" data-content="v1"></a></li><li><a title="AHK v2.0" data-content="v2"></a></li></ul><ul><li class="edit" title="Edit page on GitHub" data-translate><a data-content="E"></a></li></ul></div><div class="chm"><ul><li class="back" title="Go back" data-translate>&#9668;</li><li class="forward" title="Go forward" data-translate>&#9658;</li><li class="zoom" title="Change font size" data-translate data-content="Z"></li><li class="print" title="Print current document" data-translate data-content="P"></li></ul></div></div></div></div>';
     var main = '<div id="main"><div id="left"><div class="toc"></div><div class="index"><div class="label" data-translate data-content="Type in the keyword to find:"></div><div class="input"><input type="text" /></div><div class="list"></div></div><div class="search"><div class="label" data-translate data-content="Type in the word(s) to search for:"></div><div class="input"><input type="text" /></div><div class="list"></div></div></div><div class="dragbar"></div><div id="right" tabIndex="-1"><div class="area">';
+    var combined = head + main;
   
     // Write HTML before DOM is loaded to prevent flickering:
-    document.write(head + main);
+    document.write(isIE || isEdge ? combined.replace(/ data-content="(.*?)">/g, '>$1') : combined);
   };
   self.modify = function() { // Modify elements added via build.
 
@@ -668,12 +677,12 @@ function ctor_structure()
     // Bug - IE/Edge doesn't turn off list-style if element is hidden:
     $langList.add($verList).css("list-style", "none");
     // Hide currently selected language and version in the selection lists:
-    $('a[data-content=' + lang + ']', $langList).parent().hide();
-    $('a[data-content=' + ver + ']', $verList).parent().hide();
+    $(isIE || isEdge ? 'a:contains(' + lang + ')' : 'a[data-content=' + lang + ']', $langList).parent().hide();
+    $(isIE || isEdge ? 'a:contains(' + ver + ')' : 'a[data-content=' + ver + ']', $verList).parent().hide();
     // Add the language links:
     $('li', $langList).not('li.arrow').each( function() {
       var a = $('a', this);
-      var thisLink = link[ver][a.attr('data-content')];
+      var thisLink = link[ver][isIE || isEdge ? a.text() : a.attr('data-content')];
       if (thisLink == null)
         $(this).hide(); // Hide language button
       else
@@ -682,7 +691,7 @@ function ctor_structure()
     // Add the version links:
     $('li', $verList).not('li.arrow').each( function() {
       var a = $('a', this);
-      var ver = a.attr('data-content');
+      var ver = isIE || isEdge ? a.text() : a.attr('data-content');
       var thisLink = link[ver][lang];
       // Fallback to default docs:
       thisLink = (thisLink == null) ? link[ver]['en'] : thisLink;
@@ -792,7 +801,7 @@ function ctor_structure()
     ListBox.on('mouseenter', '> a', function() {
       var $this = $(this);
       if(this.offsetWidth < this.scrollWidth && !$this.attr('title')) {
-        $this.attr('title', $this.attr('data-content'));
+        $this.attr('title', isIE || isEdge ? $this.text() : $this.attr('data-content'));
       }
     });
     // Provide ListBox functionality and interaction with the Edit on keypress:
@@ -978,7 +987,6 @@ function ctor_structure()
     cache.clickTab = pos;
     var $t = $('#head div.h-tabs li');
     var $s = $('#left > div');
-    $s.eq(pos).css("visibility", "visible").parent().focus(); // IE8 redraw fix
     $t.removeClass('selected')
       .eq(pos).addClass('selected');
     $s.css("visibility", "hidden")
@@ -1152,21 +1160,6 @@ function addFeatures()
       downloadLink.innerHTML = "Download File";
   
       // http://stackoverflow.com/a/9851769
-  
-      // Opera 8.0+
-      var isOpera = (!!window.opr && !!opr.addons) || !!window.opera || navigator.userAgent.indexOf(' OPR/') >= 0;
-      // Firefox 1.0+
-      var isFirefox = typeof InstallTrigger !== 'undefined';
-      // At least Safari 3+: "[object HTMLElementConstructor]"
-      var isSafari = Object.prototype.toString.call(window.HTMLElement).indexOf('Constructor') > 0;
-      // Internet Explorer 6-11
-      var isIE = /*@cc_on!@*/false || !!document.documentMode;
-      // Edge 20+
-      var isEdge = !isIE && !!window.StyleMedia;
-      // Chrome 1+
-      var isChrome = !!window.chrome && !!window.chrome.webstore;
-      // Blink engine detection
-      var isBlink = (isChrome || isOpera) && !!window.CSS;
   
       if (isIE || isEdge) {
         navigator.msSaveBlob(textFileAsBlob, fileNameToSaveAs);
