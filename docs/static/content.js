@@ -15,7 +15,7 @@ padding:"inner"+a,content:b,"":"outer"+a},function(c,d){n.fn[d]=function(d,e){va
 
 var cache = {
   firstStartup: true,
-  host: location.host,
+  host: location.host || /*for IE8+chm*/"",
   fontSize: 1.0,
   clickTab: 0,
   LastUsedSource: "",
