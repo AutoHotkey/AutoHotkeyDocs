@@ -96,6 +96,7 @@ indexData = [
   ["A_LastError","Variables.htm#LastError"],
   ["A_LineFile","Variables.htm#LineFile"],
   ["A_LineNumber","Variables.htm#LineNumber"],
+  ["A_ListLines","Variables.htm#ListLines"],
   ["A_LoopField","commands/LoopParse.htm#LoopField"],
   ["A_LoopFileAttrib","commands/LoopFile.htm#LoopFileAttrib"],
   ["A_LoopFileDir","commands/LoopFile.htm#LoopFileDir"],
