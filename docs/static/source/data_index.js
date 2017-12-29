@@ -166,6 +166,8 @@ indexData = [
   ["A_ThisMenuItemPos","Variables.htm#ThisMenuItemPos"],
   ["A_TickCount","Variables.htm#TickCount"],
   ["A_TimeIdle","Variables.htm#TimeIdle"],
+  ["A_TimeIdleKeyboard","Variables.htm#TimeIdleKeyboard"],
+  ["A_TimeIdleMouse","Variables.htm#TimeIdleMouse"],
   ["A_TimeIdlePhysical","Variables.htm#TimeIdlePhysical"],
   ["A_TimeSincePriorHotkey","Variables.htm#TimeSincePriorHotkey"],
   ["A_TimeSinceThisHotkey","Variables.htm#TimeSinceThisHotkey"],
