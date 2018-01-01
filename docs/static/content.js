@@ -16,6 +16,7 @@ padding:"inner"+a,content:b,"":"outer"+a},function(c,d){n.fn[d]=function(d,e){va
 var cache = {
   firstStartup: true,
   host: location.host || /*for IE8+chm*/"",
+  location: 'AutoHotkey.htm',
   fontSize: 1.0,
   clickTab: 0,
   LastUsedSource: "",
@@ -78,7 +79,7 @@ var search = new ctor_search;
   {
     if (isInsideFrame)
     {
-      $.extend(cache, JSON.parse(window.parent.name));
+      cache = window.parent.cache;
       addShortcuts();
       $(document).ready(function() {
         $('html').attr('id', 'right'); 
@@ -614,9 +615,10 @@ function ctor_structure()
   };
   self.build = function() { // Add elements for sidebar.
     var head = '<div id="head"><div class="h-tabs"><ul><li data-translate data-content="Content"></li><li data-translate data-content="Index"></li><li data-translate data-content="Search"></li></ul></div><div class="dragbar"></div><div class="h-tools"><div class="main"><ul><li class="sidebar" title="Hide/Show sidebar" data-translate>&#926;</li></ul></div><div class="online"><ul><li class="home" title="Home page" data-translate><a href="' + location.protocol + '//' + location.host + '">&#916;</a></li></ul><ul><li class="language" title="Change language" data-translate data-content="en"></li></ul><ul class="languages"><li class="arrow">&#9658;</li><li><a title="English" data-content="en"></a></li><li><a title="Deutsch (German)" data-content="de"></a></li><li><a title="&#x4E2D;&#x6587; (Chinese)" data-content="zh"></a></li></ul><ul><li class="version" title="Change AHK version" data-translate data-content="v1"></li></ul><ul class="versions"><li class="arrow">&#9658;</li><li><a title="AHK v1.1" data-content="v1"></a></li><li><a title="AHK v2.0" data-content="v2"></a></li></ul><ul><li class="edit" title="Edit page on GitHub" data-translate><a data-content="E"></a></li></ul></div><div class="chm"><ul><li class="back" title="Go back" data-translate>&#9668;</li><li class="forward" title="Go forward" data-translate>&#9658;</li><li class="zoom" title="Change font size" data-translate data-content="Z"></li><li class="print" title="Print current document" data-translate data-content="P"></li></ul></div></div></div></div>';
-    var main = '<div id="main"><div id="left"><div class="toc"></div><div class="index"><div class="label" data-translate data-content="Type in the keyword to find:"></div><div class="input"><input type="text" /></div><div class="list"></div></div><div class="search"><div class="label" data-translate data-content="Type in the word(s) to search for:"></div><div class="input"><input type="text" /></div><div class="list"></div></div></div><div class="dragbar"></div><div id="right" tabIndex="-1"><div class="area">';
-    var combined = head + main;
-  
+    var main = '<div id="main"><div id="left"><div class="toc"></div><div class="index"><div class="label" data-translate data-content="Type in the keyword to find:"></div><div class="input"><input type="text" /></div><div class="list"></div></div><div class="search"><div class="label" data-translate data-content="Type in the word(s) to search for:"></div><div class="input"><input type="text" /></div><div class="list"></div></div></div><div class="dragbar"></div><div id="right" tabIndex="-1">';
+    var area = (isInsideCHM && !isInsideFrame) ? '<iframe frameBorder="0" id="iframe" src="'+cache.location+'">' : '<div class="area">';
+    var combined = head + main + area;
+
     // Write HTML before DOM is loaded to prevent flickering:
     document.write(isIE || isEdge ? combined.replace(/ data-content="(.*?)">/g, '>$1') : combined);
   };
@@ -629,15 +631,6 @@ function ctor_structure()
     // --- Add shortcuts ---
 
     addShortcuts();
-
-    // --- Use iframe if inside CHM ---
-    
-    if (isInsideCHM && !isInsideFrame)
-    {
-      cache.save();
-      $('div.area').replaceWith('<iframe frameBorder="0" id="iframe" src="AutoHotkey.htm">');
-      if (cache.location) { $("#iframe").attr("src", cache.location); }
-    }
 
     // --- Translate elements with data-translate attribute ---
 
