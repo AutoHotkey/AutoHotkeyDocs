@@ -91,7 +91,7 @@ Loop Read, f_FavoritesFile
         f_line := StrSplit(A_LoopReadLine, ";", "`s`t")
         ; Resolve any references to variables within either field, and
         ; create a new array element containing the path of this favorite:
-        f_Paths.Push(f_line[2])
+        f_Paths[f_MenuItemCount] := f_line[2]
         f_Menu.Add(f_line[1], "f_OpenFavorite")
     }
 }
