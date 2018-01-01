@@ -182,6 +182,7 @@ return
 
 RestoreFromTrayMenu(ThisMenuItem)
 {
+    global
     A_TrayMenu.Delete ThisMenuItem
     ; Find window based on its unique title stored as the menu item name:
     Loop mwt_MaxWindows
