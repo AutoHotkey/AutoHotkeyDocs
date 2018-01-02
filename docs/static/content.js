@@ -136,6 +136,10 @@ var search = new ctor_search;
 
 function addShortcuts() {
   $(document).on("keydown", function(e) {
+    if (e.which == 117) {
+      pressKey("F6");
+      return false;
+    }
     if (e.altKey) {
       var keyList = ["C", "N", "S"];
       for (var i = 0; i < keyList.length; i++)
@@ -163,6 +167,13 @@ function pressKey(keyname) {
 
       case "S":
       structure.showTab(2); // Search tab
+      break;
+
+      case "F6": // Move focus between left and right area
+      if ($(document.activeElement).closest('#right').length)
+        $('#left > div').eq(cache.clickTab).children().find(':input, [tabindex="0"]').eq(0).focus();
+      else
+        $('#iframe').length ? $('#iframe')[0].contentWindow.focus() : $('#right').focus();
       break;
     }
   }
@@ -876,7 +887,7 @@ function ctor_structure()
     $(window).on('beforeunload', function() {
       if (history.replaceState)
         history.replaceState({scrollTop:$('#right')[0].scrollTop}, null, null);
-      cache.RightIsFocused = $(':focus').closest('#right, #left > div.toc').length;
+      cache.RightIsFocused = $(document.activeElement).closest('#right, #left > div.toc').length;
       cache.save();
     });
 
@@ -884,7 +895,7 @@ function ctor_structure()
 
     $(window).on('load', function() {
       if (cache.RightIsFocused)
-        $('#right').focus();
+        $('#iframe').length ? $('#iframe')[0].contentWindow.focus() : $('#right').focus();
       else
         $('#left').find('input').focus();
     });
