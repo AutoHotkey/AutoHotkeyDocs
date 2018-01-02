@@ -469,6 +469,7 @@ indexData = [
   ["Hotkey, other features","HotkeyFeatures.htm"],
   ["HotkeyInterval","commands/_HotkeyInterval.htm"],
   ["HotkeyModifierTimeout","commands/_HotkeyModifierTimeout.htm"],
+  ["Hotstring()","commands/Hotstring.htm"],
   ["hotstrings and auto-replace","Hotstrings.htm"],
   ["HTML color names","commands/Progress.htm#colors"],
   ["HWND (of a control)","commands/ControlGet.htm#Hwnd"],
