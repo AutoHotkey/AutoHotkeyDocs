@@ -47,7 +47,7 @@ var isInsideCHM = (location.href.search(/::/) > 0) ? 1 : 0;
 var isFrameParent = (location.href.indexOf('iframe.htm') != -1);
 var isInsideFrame = (window.self !== window.top);
 var isSearchBot = navigator.userAgent.match(/googlebot|bingbot|slurp/i);
-var isMobile = (screen.width <= 600);
+var isPhone = (screen.width <= 600);
 var isTouch = !!("ontouchstart" in window) || !!(navigator.msMaxTouchPoints);
 var isOpera = (!!window.opr && !!opr.addons) || !!window.opera || navigator.userAgent.indexOf(' OPR/') >= 0; // Opera 8.0+
 var isFirefox = typeof InstallTrigger !== 'undefined'; // Firefox 1.0+
@@ -638,7 +638,7 @@ function ctor_structure()
 
     // --- Hide sidebar if using a mobile browser ---
 
-    if (isMobile) { self.displaySidebar(false); }
+    if (isPhone) { self.displaySidebar(false); }
 
     // --- Add shortcuts ---
 
@@ -908,7 +908,7 @@ function ctor_structure()
       if (history.state)
         document.getElementById('right').scrollTop = history.state.scrollTop;
       // When using mobile device hide sidebar and goto anchor:
-      if (isMobile && location.hash) {
+      if (isPhone && location.hash) {
         anchor = document.getElementById(location.hash.substr(1));
         setTimeout( function() {
           self.displaySidebar(false);
@@ -1024,7 +1024,7 @@ function addFeatures()
 
   // --- Responsive tables (mobile) ---
 
-  if (isMobile) {
+  if (isPhone) {
     var tables = content.querySelectorAll('table');
     for(var i = 0; i < tables.length; i++) {
       var table = tables[i], th = {}, newTable = "";
