@@ -48,6 +48,7 @@ var isFrameParent = (location.href.indexOf('iframe.htm') != -1);
 var isInsideFrame = (window.self !== window.top);
 var isSearchBot = navigator.userAgent.match(/googlebot|bingbot|slurp/i);
 var isMobile = (screen.width <= 600);
+var isTouch = !!("ontouchstart" in window) || !!(navigator.msMaxTouchPoints);
 var isOpera = (!!window.opr && !!opr.addons) || !!window.opera || navigator.userAgent.indexOf(' OPR/') >= 0; // Opera 8.0+
 var isFirefox = typeof InstallTrigger !== 'undefined'; // Firefox 1.0+
 var isSafari = Object.prototype.toString.call(window.HTMLElement).indexOf('Constructor') > 0; // At least Safari 3+: "[object HTMLElementConstructor]"
@@ -242,7 +243,7 @@ function ctor_toc()
 
     // --- Show scrollbar on mouseover ---
 
-    if (!isMobile) // if not mobile browser.
+    if (!isTouch) // if not touch device.
     {
       $toc.css("overflow", "hidden").hover(function() {
         $(this).css("overflow", "auto");
