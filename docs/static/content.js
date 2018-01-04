@@ -1090,7 +1090,8 @@ function addFeatures()
   var as = content.querySelectorAll("a[href^='http']");
   for(var i = 0; i < as.length; i++) {
     var a = as[i];
-    a.className = "extLink"; a.target = "_blank";
+    if (!a.querySelector('img'))
+      a.className = "extLink"; a.target = "_blank";
   }
 
   // --- Add links for version annotations ---
