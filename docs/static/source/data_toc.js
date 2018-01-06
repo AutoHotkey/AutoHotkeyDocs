@@ -92,8 +92,8 @@ tocData = [
     ["IniDelete","commands/IniDelete.htm"],
     ["IniRead","commands/IniRead.htm"],
     ["IniWrite","commands/IniWrite.htm"],
-    ["Loop (files & folders)","commands/LoopFile.htm"],
-    ["Loop (read file contents)","commands/LoopReadFile.htm"],
+    ["Loop Files (and folders)","commands/LoopFiles.htm"],
+    ["Loop Read (file contents)","commands/LoopRead.htm"],
     ["SetWorkingDir","commands/SetWorkingDir.htm"],
     ["SplitPath","commands/SplitPath.htm"]
   ]],
@@ -116,10 +116,10 @@ tocData = [
     ["Loop","commands/Loop.htm",
     [
       ["Loop","commands/Loop.htm"],
-      ["Loop (files & folders)","commands/LoopFile.htm"],
-      ["Loop (parse a string)","commands/LoopParse.htm"],
-      ["Loop (read file contents)","commands/LoopReadFile.htm"],
-      ["Loop (registry)","commands/LoopReg.htm"]
+      ["Loop Files (and folders)","commands/LoopFiles.htm"],
+      ["Loop Parse (strings)","commands/LoopParse.htm"],
+      ["Loop Read (file contents)","commands/LoopRead.htm"],
+      ["Loop Reg (registry)","commands/LoopReg.htm"]
     ]],
     ["OnExit","commands/OnExit.htm"],
     ["Pause","commands/Pause.htm"],
@@ -263,7 +263,7 @@ tocData = [
   ]],
   ["Registry","",
   [
-    ["Loop (registry)","commands/LoopReg.htm"],
+    ["Loop Reg","commands/LoopReg.htm"],
     ["RegDelete","commands/RegDelete.htm"],
     ["RegRead","commands/RegRead.htm"],
     ["RegWrite","commands/RegWrite.htm"],
@@ -289,7 +289,7 @@ tocData = [
     ["Format","commands/Format.htm"],
     ["FormatTime","commands/FormatTime.htm"],
     ["InStr","commands/InStr.htm"],
-    ["Loop (parse a string)","commands/LoopParse.htm"],
+    ["Loop Parse (strings)","commands/LoopParse.htm"],
     ["Ord","commands/Ord.htm"],
     ["RegEx Quick Reference","misc/RegEx-QuickRef.htm"],
     ["RegExMatch","commands/RegExMatch.htm"],
