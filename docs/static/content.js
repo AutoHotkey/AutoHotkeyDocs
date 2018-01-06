@@ -47,7 +47,8 @@ var isInsideCHM = (location.href.search(/::/) > 0) ? 1 : 0;
 var isFrameParent = (location.href.indexOf('iframe.htm') != -1);
 var isInsideFrame = (window.self !== window.top);
 var isSearchBot = navigator.userAgent.match(/googlebot|bingbot|slurp/i);
-var isMobile = (window.outerWidth < 600);
+var isPhone = (screen.width <= 600);
+var isTouch = !!("ontouchstart" in window) || !!(navigator.msMaxTouchPoints);
 var isOpera = (!!window.opr && !!opr.addons) || !!window.opera || navigator.userAgent.indexOf(' OPR/') >= 0; // Opera 8.0+
 var isFirefox = typeof InstallTrigger !== 'undefined'; // Firefox 1.0+
 var isSafari = Object.prototype.toString.call(window.HTMLElement).indexOf('Constructor') > 0; // At least Safari 3+: "[object HTMLElementConstructor]"
@@ -83,7 +84,6 @@ var search = new ctor_search;
       addShortcuts();
       $(document).ready(function() {
         $('html').attr('id', 'right'); 
-        $('body').attr('class', 'area');
         addFeatures();
         window.parent.name = JSON.stringify(cache);
       });
@@ -136,6 +136,10 @@ var search = new ctor_search;
 
 function addShortcuts() {
   $(document).on("keydown", function(e) {
+    if (e.which == 117) {
+      pressKey("F6");
+      return false;
+    }
     if (e.altKey) {
       var keyList = ["C", "N", "S"];
       for (var i = 0; i < keyList.length; i++)
@@ -163,6 +167,13 @@ function pressKey(keyname) {
 
       case "S":
       structure.showTab(2); // Search tab
+      break;
+
+      case "F6": // Move focus between left and right area
+      if ($(document.activeElement).closest('#right').length)
+        $('#left > div').eq(cache.clickTab).children().find(':input, [tabindex="0"]').eq(0).focus();
+      else
+        $('#iframe').length ? $('#iframe')[0].contentWindow.focus() : $('#right').focus();
       break;
     }
   }
@@ -231,7 +242,7 @@ function ctor_toc()
 
     // --- Show scrollbar on mouseover ---
 
-    if (!isMobile) // if not mobile browser.
+    if (!isTouch) // if not touch device.
     {
       $toc.css("overflow", "hidden").hover(function() {
         $(this).css("overflow", "auto");
@@ -614,10 +625,11 @@ function ctor_structure()
     document.write(metaViewport);
   };
   self.build = function() { // Add elements for sidebar.
-    var head = '<div id="head"><div class="h-tabs"><ul><li data-translate data-content="Content"></li><li data-translate data-content="Index"></li><li data-translate data-content="Search"></li></ul></div><div class="dragbar"></div><div class="h-tools"><div class="main"><ul><li class="sidebar" title="Hide/Show sidebar" data-translate>&#926;</li></ul></div><div class="online"><ul><li class="home" title="Home page" data-translate><a href="' + location.protocol + '//' + location.host + '">&#916;</a></li></ul><ul><li class="language" title="Change language" data-translate data-content="en"></li></ul><ul class="languages"><li class="arrow">&#9658;</li><li><a title="English" data-content="en"></a></li><li><a title="Deutsch (German)" data-content="de"></a></li><li><a title="&#x4E2D;&#x6587; (Chinese)" data-content="zh"></a></li></ul><ul><li class="version" title="Change AHK version" data-translate data-content="v1"></li></ul><ul class="versions"><li class="arrow">&#9658;</li><li><a title="AHK v1.1" data-content="v1"></a></li><li><a title="AHK v2.0" data-content="v2"></a></li></ul><ul><li class="edit" title="Edit page on GitHub" data-translate><a data-content="E"></a></li></ul></div><div class="chm"><ul><li class="back" title="Go back" data-translate>&#9668;</li><li class="forward" title="Go forward" data-translate>&#9658;</li><li class="zoom" title="Change font size" data-translate data-content="Z"></li><li class="print" title="Print current document" data-translate data-content="P"></li></ul></div></div></div></div>';
+    var body = '<div id="body">'
+    var head = '<div id="head"><div class="h-tabs"><ul><li data-translate data-content="Content"></li><li data-translate data-content="Index"></li><li data-translate data-content="Search"></li></ul></div><div class="dragbar"></div><div class="h-tools"><div class="main"><ul><li class="sidebar" title="Hide/Show sidebar" data-translate>&#926;</li></ul></div><div class="online"><ul><li class="home" title="Home page" data-translate><a href="' + location.protocol + '//' + location.host + '">&#916;</a></li></ul><ul><li class="language" title="Change language" data-translate data-content="en"></li></ul><ul class="languages"><li class="arrow">&#9658;</li><li><a title="English" data-content="en"></a></li><li><a title="Deutsch (German)" data-content="de"></a></li><li><a title="&#x4E2D;&#x6587; (Chinese)" data-content="zh"></a></li></ul><ul><li class="version" title="Change AHK version" data-translate data-content="v1"></li></ul><ul class="versions"><li class="arrow">&#9658;</li><li><a title="AHK v1.1" data-content="v1"></a></li><li><a title="AHK v2.0" data-content="v2"></a></li></ul><ul><li class="edit" title="Edit page on GitHub" data-translate><a data-content="E"></a></li></ul></div><div class="chm"><ul><li class="back" title="Go back" data-translate>&#9668;</li><li class="forward" title="Go forward" data-translate>&#9658;</li><li class="zoom" title="Change font size" data-translate data-content="Z"></li><li class="print" title="Print current document" data-translate data-content="P"></li></ul></div></div></div>';
     var main = '<div id="main"><div id="left"><div class="toc"></div><div class="index"><div class="label" data-translate data-content="Type in the keyword to find:"></div><div class="input"><input type="text" /></div><div class="list"></div></div><div class="search"><div class="label" data-translate data-content="Type in the word(s) to search for:"></div><div class="input"><input type="text" /></div><div class="list"></div></div></div><div class="dragbar"></div><div id="right" tabIndex="-1">';
     var area = (isInsideCHM && !isInsideFrame) ? '<iframe frameBorder="0" id="iframe" src="'+cache.location+'">' : '<div class="area">';
-    var combined = head + main + area;
+    var combined = body + head + main + area;
 
     // Write HTML before DOM is loaded to prevent flickering:
     document.write(isIE || isEdge ? combined.replace(/ data-content="(.*?)">/g, '>$1') : combined);
@@ -626,7 +638,7 @@ function ctor_structure()
 
     // --- Hide sidebar if using a mobile browser ---
 
-    if (isMobile) { self.displaySidebar(false); }
+    if (isPhone) { self.displaySidebar(false); }
 
     // --- Add shortcuts ---
 
@@ -719,7 +731,7 @@ function ctor_structure()
       cache.fontSize += 0.2;
       if (cache.fontSize > 1.4)
         cache.fontSize = 0.6;
-      $('#iframe').contents().find('.area').css('font-size', cache.fontSize + 'em');
+      $('#iframe').contents().find('body').css('font-size', cache.fontSize + 'em');
     });
     // 'Print' button:
     $('li.print', $chm).on('click', function() { window.print(); });
@@ -876,7 +888,7 @@ function ctor_structure()
     $(window).on('beforeunload', function() {
       if (history.replaceState)
         history.replaceState({scrollTop:$('#right')[0].scrollTop}, null, null);
-      cache.RightIsFocused = $(':focus').closest('#right, #left > div.toc').length;
+      cache.RightIsFocused = $(document.activeElement).closest('#right, #left > div.toc').length;
       cache.save();
     });
 
@@ -884,7 +896,7 @@ function ctor_structure()
 
     $(window).on('load', function() {
       if (cache.RightIsFocused)
-        $('#right').focus();
+        $('#iframe').length ? $('#iframe')[0].contentWindow.focus() : $('#right').focus();
       else
         $('#left').find('input').focus();
     });
@@ -896,7 +908,7 @@ function ctor_structure()
       if (history.state)
         document.getElementById('right').scrollTop = history.state.scrollTop;
       // When using mobile device hide sidebar and goto anchor:
-      if (isMobile && location.hash) {
+      if (isPhone && location.hash) {
         anchor = document.getElementById(location.hash.substr(1));
         setTimeout( function() {
           self.displaySidebar(false);
@@ -992,7 +1004,7 @@ function ctor_structure()
 
 function addFeatures()
 {
-  var content = document.querySelectorAll('#right .area')[0];
+  var content = document.querySelectorAll('#right .area, #right body')[0];
   if (typeof content === 'undefined')
     return; // Leave the function, if site is iframe.htm.
 
@@ -1012,7 +1024,7 @@ function addFeatures()
 
   // --- Responsive tables (mobile) ---
 
-  if (isMobile) {
+  if (isPhone) {
     var tables = content.querySelectorAll('table');
     for(var i = 0; i < tables.length; i++) {
       var table = tables[i], th = {}, newTable = "";
@@ -1078,7 +1090,8 @@ function addFeatures()
   var as = content.querySelectorAll("a[href^='http']");
   for(var i = 0; i < as.length; i++) {
     var a = as[i];
-    a.className = "extLink"; a.target = "_blank";
+    if (!a.querySelector('img'))
+      a.className = "extLink"; a.target = "_blank";
   }
 
   // --- Add links for version annotations ---
