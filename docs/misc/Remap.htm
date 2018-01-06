@@ -103,7 +103,7 @@ return</pre>
 <p id="actually">When a script is launched, each remapping is translated into a pair of <a href="../Hotkeys.htm">hotkeys</a>. For example, a script containing <code>a::b</code> actually contains the following two hotkeys instead:</p>
 <pre>*<strong>a</strong>::
 SetKeyDelay -1   <em>; If the destination key is a mouse button, SetMouseDelay is used instead.</em>
-Send "<a href="../commands/Send.htm#blind">{Blind}</a>{<strong>b</strong> DownTemp}"  <em>; DownTemp is like Down except that other Send functions in the script won't assume &quot;b&quot; should stay down during their Send.</em>
+Send "<a href="../commands/Send.htm#blind">{Blind}</a>{<strong>b</strong> <a href="../commands/Send.htm#DownR">DownR</a>}"  <em>; DownR is like Down except that other calls to the Send function won't assume "b" should stay down while sending other keys.</em>
 return
 
 *<strong>a up</strong>::
@@ -112,15 +112,17 @@ Send "{Blind}{<strong>b</strong> Up}"
 return</pre>
 <p>However, the above hotkeys vary under the following circumstances:</p>
 <ol>
-  <li>When the source key is LCtrl and the destination key is an Alt key, the line <code>Send "{Blind}{LAlt DownTemp}"</code> is replaced by <code>Send "{Blind}<strong>{LCtrl Up}</strong>{LAlt DownTemp}"</code>. The same is true if the source is RCtrl, except that <code>{RCtrl up}</code> is used.</li>
+  <li>When the source key is LCtrl and the destination key is an Alt key, the line <code>Send "{Blind}{LAlt DownR}"</code> is replaced by <code>Send "{Blind}<strong>{LCtrl Up}</strong>{LAlt DownR}"</code>. The same is true if the source is RCtrl, except that <code>{RCtrl up}</code> is used.</li>
   <li>When a keyboard key is being remapped to become a mouse button (e.g. <code>RCtrl::RButton</code>), the hotkeys above use SetMouseDelay in place of SetKeyDelay. In addition, the first hotkey above is replaced by the following, which prevents the keyboard's auto-repeat feature from generating repeated mouse clicks:
     <pre>*RCtrl::
 SetMouseDelay -1
 if not GetKeyState(&quot;RButton&quot;)  <em>; i.e. the right mouse button isn't down yet.</em>
-    Send "{Blind}{RButton DownTemp}"
+    Send "{Blind}{RButton DownR}"
 return</pre>
   </li>
+  <li>When the source is a <a href="../Hotkeys.htm#combo">custom combination</a> in <span class="ver">[v1.1.27.01+]</span>, the wildcard modifier (*) is omitted to allow the hotkeys to work.</li>
 </ol>
+<p>Prior to <span class="ver">[v1.1.27]</span>, <a href="../commands/Send.htm#DownTemp">DownTemp</a> was used instead of <a href="../commands/Send.htm#DownR">DownR</a>.</p>
 <p>Note that SetKeyDelay's second parameter (<a href="../commands/SetKeyDelay.htm#dur">press duration</a>) is omitted in the hotkeys above. This is because press-duration does not apply to down-only or up-only events such as <code>{b down}</code> and <code>{b up}</code>. However, it does apply to changes in the state of the Shift/Ctrl/Alt/Win keys, which affects remappings such as <code>a::B</code> or <code>a::^b</code>. Consequently, any press-duration a script puts into effect via its <a href="../Scripts.htm#auto">auto-execute section</a> will apply to all such remappings.</p>
 <p>Although a pair of keys cannot be directly remapped to single key (e.g. it's invalid to write <code>a &amp; c::b</code>), this effect can be achieved by explicitly adding the up and down hotkeys from the example higher above: simply replace <code>*a::</code> with <code>a &amp; c::</code>, and replace <code>*a up::</code> with <code>a &amp; c up::</code>.</p>
 <p>Since remappings are translated into hotkeys as described above, the <a href="../commands/Suspend.htm">Suspend</a> function affects them. Similarly, the <a href="../commands/Hotkey.htm">Hotkey</a> function can disable or modify a remapping. For example, the following two functions would disable the remapping <code>a::b</code>.</p>

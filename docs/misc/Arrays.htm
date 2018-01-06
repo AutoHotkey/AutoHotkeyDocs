@@ -10,21 +10,29 @@
 
 <body>
 <h1>Arrays</h1>
+<p>In AutoHotkey, there are two different types of things that are related to arrays:</p>
+<ul>
+  <li><a href="#object-based">Object-based Arrays</a></li>
+  <li><a href="#pseudo">Pseudo-Arrays</a> (not recommended for use)</li>
+</ul>
+<p class="note"><strong>Note</strong>: The following code examples show different approaches which lead to the same end result.</p>
 
-<h2 id="Associative_Arrays">Associative Arrays</h2>
-<p>Self-contained associative arrays can be created by calling the <a href="../Objects.htm#Arrays">Object</a> function. For example:</p>
+<h2 id="object-based">Object-based Arrays</h2>
+<p>Such arrays can be <a href="../Objects.htm#Usage_Associative_Arrays">associative arrays</a> or <a href="../Objects.htm#Usage_Simple_Arrays">simple arrays</a>. Associative arrays are created using the Object function or the brace syntax, while simple arrays are created using the array function or bracket syntax. For more information, see the <a href="../Tutorial.htm#s7">AutoHotkey Beginner Tutorial</a> or the <a href="../Objects.htm">Objects page</a>.</p>
+
+<p>The following example shows the usage of a simple array:</p>
 <pre><em>; Create the array, initially empty:</em>
-Array := Object()
+Array := [] <em>; or Array := Array()</em>
 
 <em>; Write to the array:</em>
-Loop Read, "C:\Guest List.txt" <em>; This loop retrieves each line from the file, one at a time.</em>
+Loop Read A_WinDir "\system.ini" <em>; This loop retrieves each line from the file, one at a time.</em>
 {
     Array.Push(A_LoopReadLine) <em>; Append this line to the array.</em>
 }
 
 <em>; Read from the array:
 ; Loop Array.Length()   ; More traditional approach.</em>
-for index, element in Array <em>; Recommended approach in most cases.</em>
+for index, element in Array <em>; Enumeration is the recommended approach in most cases.</em>
 {
     <em>; Using "Loop", indices must be consecutive numbers from 1 to the number
     ; of elements in the array (or they must be calculated within the loop).
@@ -35,10 +43,10 @@ for index, element in Array <em>; Recommended approach in most cases.</em>
     MsgBox "Element number " . index . " is " . element
 }</pre>
 <p>This shows only a small subset of the <a href="../objects/Object.htm">functionality</a> provided by <a href="../Objects.htm">objects</a>. Items can be set, retrieved, inserted, removed and enumerated. Strings and objects can be used as keys in addition to numbers. Objects can be stored as values in other objects and passed as function parameters or return values. Objects can also be <a href="../Objects.htm#Custom_Objects">extended</a> with new functionality.</p>
-<p>Though the Push method and for-loops have their uses, some users might find it easier to use the more traditional approach:</p>
+<p>Though Push() and enumerators have their uses, some users might find it easier to use the more traditional approach (the commented out lines are the counterparts using the <a href="#pseudo">pseudo-arrays</a> described below):</p>
 <pre>
 <em>; Each array must be initialized before use:</em>
-Array := Object()
+Array := []
 
 <em>; Array%j% := A_LoopField</em>
 Array[j] := A_LoopField
@@ -47,7 +55,7 @@ Array[j] := A_LoopField
 Array[j, k] := A_LoopReadLine
 
 ArrayCount := 0
-Loop Read, "C:\Guest List.txt"
+Loop Read A_WinDir "\system.ini"
 {
   ArrayCount += 1
   <em>; Array%ArrayCount% := A_LoopReadLine</em>
@@ -62,19 +70,19 @@ Loop ArrayCount
   MsgBox "Element number " . A_Index . " is " . Array[A_Index]
 }
 </pre>
-<p><i>ArrayCount</i> is left as a variable for convenience, but can be stored in the array itself with <code>Array.Count := <i>n</i></code> or it can be removed and <code>Array.<a href="../objects/Object.htm#Length">Length()</a></code> used in its place.</p>
+<p><i>ArrayCount</i> is left as a variable for convenience, but can be stored in the array itself with <code>Array.Count := <i>n</i></code> or it can be removed and <code>Array.<a href="../objects/Object.htm#MinMaxIndex">MaxIndex</a>()</code> used in its place. If a starting index other than 1 is desired, <code>Array.<a href="../objects/Object.htm#MinMaxIndex">MinIndex</a>()</code> can also be used.</p>
 
 <h2 id="pseudo">Pseudo-Arrays</h2>
+  <p class="note"><strong>Note</strong>: If possible, always use the object-based array mentioned above. It is superior to a pseudo-array in almost every aspect: it is space-saving, more flexible, clearer, and similar to many other programming languages.</p>
 <p>Pseudo-arrays are mostly conceptual: Each array is really just a collection of sequentially numbered <a href="../Variables.htm">variables</a> or <a href="../Functions.htm">functions</a>, each one being perceived as an <em>element</em> of the array. AutoHotkey does not link these elements together in any way.</p>
-<p>In addition to array-creating functions like <a href="../commands/StrSplit.htm">StrSplit</a> and &quot;<a href="../commands/WinGet.htm">WinGet List</a>&quot;, any function that accepts an OutputVar or that assigns a value to a variable can be used to create an array. The simplest example is the <a href="../commands/SetExpression.htm">assignment operator (:=)</a>, as shown below:</p>
+<p>Any command that accepts an OutputVar or that assigns a value to a variable can be used to create an array. The simplest example is the <a href="../commands/SetExpression.htm">assignment operator (:=)</a>, as shown below:</p>
 <pre>Array%j% := A_LoopField</pre>
 <p>Multidimensional arrays are possible by using a separator character of your choice between the indices. For example:</p>
 <pre>Array%j%_%k% := A_LoopReadLine</pre>
-<br>
 <p>The following example demonstrates how to create and access an array, in this case a series of names retrieved from a text file:</p>
 <pre><em><strong>; Write to the array:</strong></em>
 ArrayCount := 0
-Loop Read, "C:\Guest List.txt"   <em>; This loop retrieves each line from the file, one at a time.</em>
+Loop Read A_WinDir "\system.ini"   <em>; This loop retrieves each line from the file, one at a time.</em>
 {
     ArrayCount += 1  <em>; Keep track of how many items are in the array.</em>
     Array%ArrayCount% := A_LoopReadLine  <em>; Store this line in the next array element.</em>

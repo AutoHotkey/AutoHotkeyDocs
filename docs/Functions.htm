@@ -18,7 +18,7 @@
   <li><a href="#optional">Optional Parameters</a></li>
   <li><a href="#return">Returning Values to Caller</a></li>
   <li><a href="#Variadic">Variadic Functions</a></li>
-  <li><a href="#Locals">Local Variables</a></li>
+  <li><a href="#Local">Local Variables</a></li>
   <li><a href="#DynCall">Dynamically Calling a Function</a></li>
   <li><a href="#ShortCircuit">Short-circuit Boolean Evaluation</a></li>
   <li><a href="#gosub">Using Subroutines Within a Function</a></li>
@@ -45,7 +45,7 @@ Add 2, 3  <em>; Parentheses can be omitted if used at the start of a line.</em><
 
 <h2 id="param">Parameters</h2>
 <p>When a function is defined, its parameters are listed in parentheses next to its name (there must be no spaces between its name and the open-parenthesis). If a function does not accept any parameters, leave the parentheses empty; for example: <code>GetCurrentTimestamp()</code>.</p>
-<p id="ByRef"><strong>ByRef Parameters</strong>: From the function's point of view, parameters are essentially the same as <a href="#Locals">local variables</a> unless they are defined as <em>ByRef</em> as in this example:</p>
+<p id="ByRef"><strong>ByRef Parameters</strong>: From the function's point of view, parameters are essentially the same as <a href="#Local">local variables</a> unless they are defined as <em>ByRef</em> as in this example:</p>
 <pre>Swap(ByRef Left, ByRef Right)
 {
     temp := Left
@@ -61,7 +61,7 @@ Add 2, 3  <em>; Parentheses can be omitted if used at the start of a line.</em><
 <p>Known limitations:</p>
 <ul>
   <li>It is not possible to pass properties of objects (such as <code>foo.bar</code>), <a href="misc/Clipboard.htm">Clipboard</a> or other <a href="Variables.htm#BuiltIn">built-in variables</a> to a function by reference. Instead, the function acts as though <em>ByRef</em> was omitted.</li>
-  <li id="recurse">Although a function may call itself recursively, if it passes one of its own <a href="#Locals">local variables</a> or non-ByRef parameters to itself <em>ByRef</em>, the new layer's <em>ByRef</em> parameter will refer to its own local variable of that name rather than the previous layer's. However, this issue does not occur when a function passes to itself a <a href="#Global">global variable</a>, <a href="#static">static variable</a>, or <em>ByRef</em> parameter.</li>
+  <li id="recurse">Although a function may call itself recursively, if it passes one of its own <a href="#Local">local variables</a> or non-ByRef parameters to itself <em>ByRef</em>, the new layer's <em>ByRef</em> parameter will refer to its own local variable of that name rather than the previous layer's. However, this issue does not occur when a function passes to itself a <a href="#Global">global variable</a>, <a href="#static">static variable</a>, or <em>ByRef</em> parameter.</li>
   <li>If a parameter in a function-call resolves to a variable (e.g. <code>Var</code> or <code>++Var</code> or <code>Var*=2</code>), other parameters to its left or right can alter that variable before it is passed to the function. For example, <code>func(Var, Var++)</code> would unexpectedly pass 1 and 0 when <em>Var</em> is initially 0, even when the function's first parameter is not <em>ByRef</em>. Since this behavior is counterintuitive, it might change in a future release.</li>
   <li>ByRef is not directly supported in functions called by COM clients, or when calling COM methods. Instead, the script receives or must pass a <a href="commands/ComObject.htm#ByRef">wrapper object</a> containing the <a href="commands/ComObjType.htm">VarType</a> and address of the value.</li>
 </ul>
@@ -162,15 +162,22 @@ MsgBox Join("`n", <b class="blue">substrings*</b>)</pre>
   <li>There must not be any non-whitespace characters between the asterisk (<code>*</code>) and the symbol which ends the parameter list.</li>
 </ul>
 <h2 id="Locals">Local and Global Variables</h2>
-<h3>Local Variables</h3>
+<h3 id="Local">Local Variables</h3>
 <p>Local variables are specific to a single function and are visible only inside that function. Consequently, a local variable may have the same name as a global variable and both will have separate contents. Separate functions may also safely use the same variable names.</p>
 <p>All local variables which are not <a href="#static">static</a> are automatically freed (made empty) when the function returns.</p>
-<p>Variables access or created inside a function are local by default, with the following exceptions:</p>
+<p>Built-in variables such as <a href="misc/Clipboard.htm">Clipboard</a>, <a href="misc/ErrorLevel.htm">ErrorLevel</a>, and <a href="Variables.htm#TimeIdle">A_TimeIdle</a> are never local (they can be accessed from anywhere), and cannot be redeclared.</p>
+<p id="AssumeLocal">Functions are <strong>assume-local</strong> by default. Variables accessed or created inside an assume-local function are local by default, with the following exceptions:</p>
 <ul>
   <li><a href="#SuperGlobal">Super-global</a> variables, including <a href="Objects.htm#Custom_Classes">classes</a>.</li>
-  <li>Built-in variables such as <a href="misc/Clipboard.htm">Clipboard</a>, <a href="misc/ErrorLevel.htm">ErrorLevel</a>, and <a href="Variables.htm#TimeIdle">A_TimeIdle</a>.</li>
 </ul>
-<p>The default may also be overridden as shown below.</p>
+<p>The default may also be overridden as shown below (by declaring the variable or by changing the mode of the function).</p>
+<p id="ForceLocal"><strong>Force-local mode</strong> <span class="ver">[v1.1.27+]</span>: If the function's first line is the word "local", all variable references (even dynamic ones) are assumed to be local unless they are declared as global <em>inside</em> the function. Unlike the default mode, force-local mode has the following behavior:</p>
+<ul>
+  <li>Super-global variables (including classes) cannot be accessed without declaring them inside the function.</li>
+  <li>Dynamic variable references follow the same rules as non-dynamic ones. Only global variables which are declared inside the function can be accessed.</li>
+  <li>StringSplit and other commands which create pseudo-arrays follow the same rules as non-dynamic variable references (avoiding a common source of confusion).</li>
+  <li>The <em>LocalSameAsGlobal</em> <a href="commands/_Warn.htm">warning</a> is never raised for variables within a force-local function.</li>
+</ul>
 
 <h3 id="Global">Global variables</h3>
 <p>To refer to an existing global variable inside a function (or create a new one), declare the variable as global prior to using it. For example:</p>
@@ -187,7 +194,7 @@ MsgBox Join("`n", <b class="blue">substrings*</b>)</pre>
     local x, y:=0, z  <em>; Local variables must be declared in this mode, otherwise they would be assumed global.</em>
 }</pre>
 <p>This assume-global mode can also be used by a function to create a global <a href="misc/Arrays.htm">pseudo-array</a>, such as a loop that assigns values to <code>Array%A_Index%</code>.</p>
-<p id="SuperGlobal"><strong>Super-global variables</strong>: If a global declaration appears outside of any function, it takes effect for all functions by default. This avoids the need to redeclare the variable in each function. However, if a function parameter or local variable with the same name is declared, it takes precedence over the global variable. Variables created by the <a href="Objects.htm#Custom_Classes">class</a> keyword are also super-global.</p>
+<p id="SuperGlobal"><strong>Super-global variables</strong>: If a global declaration appears outside of any function, it takes effect for all functions by default (excluding <a href="#ForceLocal">force-local</a> functions). This avoids the need to redeclare the variable in each function. However, if a function parameter or local variable with the same name is declared, it takes precedence over the global variable. Variables created by the <a href="Objects.htm#Custom_Classes">class</a> keyword are also super-global.</p>
 <h3 id="static">Static variables</h3>
 <p>Static variables are always implicitly local, but differ from locals because their values are remembered between calls. For example:</p>
 <pre>LogToFile(TextToLog)
@@ -211,7 +218,20 @@ MsgBox Join("`n", <b class="blue">substrings*</b>)</pre>
     }
     return StaticArray%WhichItemNumber%
 }</pre>
-<p>In assume-static mode, any variable that should not be static must be declared as local or global.</p>
+<p>In assume-static mode, any variable that should not be static must be declared as local or global (with the same exceptions as for <a href="#AssumeLocal">assume-local mode</a>, unless <a href="#ForceLocal">force-local mode</a> is also in effect).</p>
+<p><span class="ver">[v1.1.27+]:</span> <a href="#ForceLocal">Force-local mode</a> can be combined with assume-static mode by specifying <code>local</code> and then <code>static</code>, as shown below. This allows the function to use force-local rules but create variables as static by default.</p>
+<pre>global MyVar := "This is global"
+DemonstrateForceStatic()
+
+DemonstrateForceStatic()
+{
+    local
+    static
+    MyVar := "This is static"
+    ListVars
+    MsgBox
+}
+</pre>
 <h3>More about locals and globals</h3>
 <p>Multiple variables may be declared on the same line by separating them with commas as in these examples:</p>
 <pre>global LogFileName, MaxRetries := 5
@@ -241,12 +261,12 @@ static TotalAttempts := 0, PrevResult</pre>
 <p>The <a href="Variables.htm#ternary">ternary conditional operator (?:)</a> also short-circuits by not evaluating the losing branch.</p>
 <h2 id="gosub">Using Subroutines Within a Function</h2>
 <p>Although a function cannot contain <a href="#define">definitions</a> of other functions, it can contain subroutines. As with other subroutines, use <a href="commands/Gosub.htm">Gosub</a> to launch them and <a href="commands/Return.htm">Return</a> to return (in which case the Return would belong to the Gosub and not the function).</p>
-<p id="GosubPublic">If a function uses <a href="commands/Gosub.htm">Gosub</a> to jump to a public subroutine (one that lies outside of the function's braces), all variables outside are global and the function's own <a href="#Locals">local variables</a> are not accessible until the subroutine returns. However, A_ThisFunc will still contain the name of the function.</p>
+<p id="GosubPublic">If a function uses <a href="commands/Gosub.htm">Gosub</a> to jump to a public subroutine (one that lies outside of the function's braces), all variables outside are global and the function's own <a href="#Local">local variables</a> are not accessible until the subroutine returns. However, A_ThisFunc will still contain the name of the function.</p>
 <p>Although <a href="commands/Goto.htm">Goto</a> cannot be used to jump from inside a function to outside, it is possible for a function to <a href="commands/Gosub.htm">Gosub</a> an external/public subroutine and then do a Goto from there.</p>
 <p>Although the use of <a href="commands/Goto.htm">Goto</a> is generally discouraged, it can be used inside a function to jump to another position within the same function. This can help simplify complex functions that have many points of return, all of which need to do some clean-up prior to returning.</p>
 <p>A function may contain externally-called subroutines such as <a href="commands/SetTimer.htm">timer</a>s, and <a href="objects/Menu.htm">menu items</a>. This is generally done to encapsulate them in a separate file for use with <a href="commands/_Include.htm">#Include</a>, which prevents them from interfering with the script's <a href="Scripts.htm#auto">auto-execute section</a>. However, the following limitations apply:</p>
 <ul>
-  <li>Such subroutines should use only <a href="#static">static</a> and <a href="#Global">global</a> variables (not <a href="#Locals">locals</a>) if their function is ever called normally. This is because a subroutine <a href="misc/Threads.htm">thread</a> that interrupts a function-call thread (or vice versa) would be able to change the values of local variables seen by the interrupted thread. Furthermore, any time a function returns to its caller, all of its local variables are made blank to free their memory.</li>
+  <li>Such subroutines should use only <a href="#static">static</a> and <a href="#Global">global</a> variables (not <a href="#Local">locals</a>) if their function is ever called normally. This is because a subroutine <a href="misc/Threads.htm">thread</a> that interrupts a function-call thread (or vice versa) would be able to change the values of local variables seen by the interrupted thread. Furthermore, any time a function returns to its caller, all of its local variables are made blank to free their memory.</li>
   <li>When a function is entered by a subroutine <a href="misc/Threads.htm">thread</a>, any references to <a href="misc/Arrays.htm">dynamic variables</a> made by that thread are treated as <a href="#Global">globals</a> (including functions that create arrays). Similarly, <a href="misc/Labels.htm">local labels</a> cannot be referenced dynamically.</li>
 </ul>
 <h2 id="remarks">Return, Exit, and General Remarks</h2>
@@ -255,10 +275,10 @@ static TotalAttempts := 0, PrevResult</pre>
 <p>A function may alter the value of <a href="misc/ErrorLevel.htm">ErrorLevel</a> for the purpose of returning an extra value that is easy to remember.</p>
 <p>To call a function with one or more blank values (empty strings), use an empty pair of quotes as in this example: <code>FindColor(ColorName, &quot;&quot;)</code>.</p>
 <p>Since calling a function does not start a new <a href="misc/Threads.htm">thread</a>, any changes made by a function to settings such as <a href="commands/SendMode.htm">SendMode</a> and <a href="commands/SetTitleMatchMode.htm">SetTitleMatchMode</a> will go into effect for its caller too.</p>
-<p>The caller of a function may pass a nonexistent variable or <a href="misc/Arrays.htm">array</a> element to it, which is useful when the function expects the corresponding parameter to be <a href="#ByRef">ByRef</a>. For example, calling <code>GetNextLine(BlankArray%i%)</code> would create the variable <code>BlankArray%i%</code> automatically as a <a href="#Locals">local</a> or global (depending on whether the caller is inside a function and whether it has the <a href="#AssumeGlobal">assume-global mode</a> in effect).</p>
-<p>When used inside a function, <a href="commands/ListVars.htm">ListVars</a> displays a function's <a href="#Locals">local variables</a> along with their contents. This can help debug a script.</p>
+<p>The caller of a function may pass a nonexistent variable or <a href="misc/Arrays.htm">array</a> element to it, which is useful when the function expects the corresponding parameter to be <a href="#ByRef">ByRef</a>. For example, calling <code>GetNextLine(BlankArray%i%)</code> would create the variable <code>BlankArray%i%</code> automatically as a <a href="#Local">local</a> or global (depending on whether the caller is inside a function and whether it has the <a href="#AssumeGlobal">assume-global mode</a> in effect).</p>
+<p>When used inside a function, <a href="commands/ListVars.htm">ListVars</a> displays a function's <a href="#Local">local variables</a> along with their contents. This can help debug a script.</p>
 <h2>Style and Naming Conventions</h2>
-<p>You might find that complex functions are more readable and maintainable if their special variables are given a distinct prefix. For example, naming each parameter in a function's parameter list with a leading &quot;p&quot; or &quot;p_&quot; makes their special nature easy to discern at a glance, especially when a function has several dozen <a href="#Locals">local variables</a> competing for your attention. Similarly, the prefix &quot;r&quot; or &quot;r_&quot; could be used for <a href="#ByRef">ByRef parameters</a>, and &quot;s&quot; or &quot;s_&quot; could be used for <a href="#static">static variables</a>.</p>
+<p>You might find that complex functions are more readable and maintainable if their special variables are given a distinct prefix. For example, naming each parameter in a function's parameter list with a leading &quot;p&quot; or &quot;p_&quot; makes their special nature easy to discern at a glance, especially when a function has several dozen <a href="#Local">local variables</a> competing for your attention. Similarly, the prefix &quot;r&quot; or &quot;r_&quot; could be used for <a href="#ByRef">ByRef parameters</a>, and &quot;s&quot; or &quot;s_&quot; could be used for <a href="#static">static variables</a>.</p>
 <p>The <a href="commands/Block.htm#otb">One True Brace (OTB) style</a> may optionally be used to define functions. For example:</p>
 <pre>Add(x, y) <strong>{</strong>
     return x + y

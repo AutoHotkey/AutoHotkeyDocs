@@ -10,26 +10,29 @@
 <body>
 
 <h1>Scripts</h1>
+<p>Related topics:</p>
+<ul>
+  <li><a href="Program.htm">Using the Program</a>: How to use AutoHotkey, in general.</li>
+  <li><a href="Concepts.htm">Concepts and Conventions</a>: General explanation of various concepts utilised by AutoHotkey.</li>
+  <li><a href="Language.htm">Scripting Language</a>: Specific details about syntax (how to write scripts).</li>
+</ul>
 
 <h2>Table of Contents</h2>
 <ul>
   <li><a href="#intro">Introduction</a></li>
   <li><a href="#auto">The Top of the Script (the Auto-execute Section)</a>: This portion executes automatically when the script starts.</li>
-  <li><a href="#esc">Escape Sequences</a>: When to use `&quot; to indicate a literal quotation mark.</li>
-  <li><a href="#Comments">Comments in Scripts</a>: The use of semicolon and the symbols /*...*/ to add remarks to a script.</li>
   <li><a href="#continuation">Splitting a Long Line into a Series of Shorter Ones</a>: This can improve a script's readability and maintainability.</li>
   <li><a href="#ahk2exe">Convert a Script to an EXE (ahk2exe)</a>: Convert a .ahk script into a .exe file that can run on any PC.</li>
   <li><a href="#cmd">Passing Command Line Parameters to a Script</a>: The variable A_Args contains the incoming parameters.</li>
   <li><a href="#cp">Script File Codepage</a>: Using non-ASCII characters safely in scripts.</li>
   <li><a href="#debug">Debugging a Script</a>: How to find the flaws in a misbehaving script.</li>
-  <li><a href="#port">Portability of AutoHotkey.exe</a>: Having a copy of AutoHotkey.exe is enough to execute any .ahk file.</li>
-  <li><a href="#install">Installer Options</a>: How to do unattended/silent installations or uninstallations.</li>
 </ul>
 <h2 id="intro">Introduction</h2>
 <p>Each script is a plain text file containing lines to be executed by the program (AutoHotkey.exe). A script may also contain <a href="Hotkeys.htm">hotkeys</a> and <a href="Hotstrings.htm">hotstrings</a>, or even consist entirely of them. However, in the absence of hotkeys and hotstrings, a script will perform its functions sequentially from top to bottom the moment it is launched.</p>
 <p>The program loads the script into memory line by line, and each line may be up to 16,383 characters long. During loading, the script is <a href="misc/Performance.htm">optimized</a> and validated. Any syntax errors will be displayed, and they must be corrected before the script can run.</p>
 <h2 id="auto">The Top of the Script (the Auto-execute Section)</h2>
 <p>After the script has been loaded, it begins executing at the top line, continuing until a <a href="commands/Return.htm">Return</a>, <a href="commands/Exit.htm">Exit</a>, <a href="Hotkeys.htm">hotkey/hotstring label</a>, or the physical end of the script is encountered (whichever comes first). This top portion of the script is referred to as the <em>auto-execute</em> section.</p>
+<p class="warning"><strong>Note:</strong> While the script's <em>first</em> hotkey/hotstring label has the same effect as <a href="commands/Return.htm">return</a>, other hotkeys and labels do not.</p>
 <p id="persistent">A script that lacks <a href="Hotkeys.htm">hotkeys</a>, <a href="Hotstrings.htm">hotstrings</a>, visible <a href="objects/Gui.htm">GUIs</a>, active <a href="commands/OnMessage.htm">message monitors</a>, active <a href="commands/SetTimer.htm">timers</a>, active <a href="commands/OnClipboardChange.htm">OnClipboardChange</a> callback functions, custom tray <a href="objects/Menu.htm">menu items</a> and the <a href="commands/_Persistent.htm">#Persistent</a> directive will terminate after the auto-execute section has completed. Otherwise, it will stay running in an idle state, responding to events such as hotkeys, hotstrings, <a href="objects/GuiOnEvent.htm">GUI events</a>, <a href="objects/Menu.htm">custom menu items</a>, and <a href="commands/SetTimer.htm">timers</a>. If these conditions change after the auto-execute section completes (for example, the last timer is disabled), the script may exit when the last running thread completes or the last GUI closes.</p>
 <p>Every <a href="misc/Threads.htm">thread</a> launched by a <a href="Hotkeys.htm">hotkey</a>, <a href="Hotstrings.htm">hotstring</a>, <a href="objects/Menu.htm">menu item</a>, <a href="objects/GuiOnEvent.htm">GUI event</a>, or <a href="commands/SetTimer.htm">timer</a> starts off fresh with the default values for the following attributes as set in the auto-execute section. If unset, the standard defaults will apply (as documented on each of the following pages): <a href="commands/DetectHiddenWindows.htm">DetectHiddenWindows</a>,  <a href="commands/DetectHiddenText.htm">DetectHiddenText</a>,  <a href="commands/SetTitleMatchMode.htm">SetTitleMatchMode</a>, <a href="commands/SendMode.htm">SendMode</a>, <a href="commands/SetKeyDelay.htm">SetKeyDelay</a>,  <a href="commands/SetMouseDelay.htm">SetMouseDelay</a>,
   <a href="commands/SetWinDelay.htm">SetWinDelay</a>,
@@ -38,26 +41,11 @@
   <a href="commands/CoordMode.htm">CoordMode</a>,
   <a href="commands/SetStoreCapslockMode.htm">SetStoreCapslockMode</a>, <a href="commands/StringCaseSense.htm">StringCaseSense</a>, <a href="commands/Thread.htm">Thread</a>, and <a href="commands/Critical.htm">Critical</a>.</p>
 <p>If the auto-execute section takes a long time to complete (or never completes), the default values for the above settings will be put into effect after 100 milliseconds. When the auto-execute section finally completes (if ever), the defaults are updated again to be those that were in effect at the end of the auto-execute section. Thus, it's usually best to make any desired changes to the defaults at the top of scripts that contain <a href="Hotkeys.htm">hotkeys</a>, <a href="Hotstrings.htm">hotstrings</a>, <a href="commands/SetTimer.htm">timers</a>, or <a href="objects/Menu.htm">custom menu items</a>. Also note that each <a href="misc/Threads.htm">thread</a> retains its own collection of the above settings. Changes made to those settings will not affect other <a href="misc/Threads.htm">threads</a>.</p>
-<h2 id="esc">Escape Sequences</h2>
-<p>AutoHotkey's <a href="misc/EscapeChar.htm">escape character</a> is accent/backtick (`), which is at the upper left corner of most English keyboards. Using this character rather than backslash avoids the need for double blackslashes in file paths.</p>
-<p>A quote mark can be escaped to include it inside a <a href="Variables.htm#Expressions">quoted string</a>. For example, the expressions <code>"`""</code>, <code>'"'</code> and <code>Chr(34)</code> all produce a string containing a double quote mark.</p>
-<p>Certain special characters are also produced by means of an escape sequence. The most common ones are <code>`t</code> (tab), <code>`n</code> (linefeed), and <code>`r</code> (carriage return).</p>
-<h2 id="Comments">Comments in Scripts</h2>
-<p>Scripts can be commented by using a semicolon at the beginning of a line. For example:</p>
-<pre><em>; This entire line is a comment.</em></pre>
-<p>Comments may also be added to the end of a function, in which case the semicolon must have at least one space or tab to its left. For example:</p>
-<pre>Run "Notepad"  <em>; This is a comment on the same line as a function.</em></pre>
-<p>In addition, the <code>/*</code> and <code>*/</code> symbols can be used to comment out an entire section, as in this example:</p>
-<pre><em>/*
-MsgBox "This line is commented out (disabled)."
-MsgBox "This one too."
-*/</em></pre>
-<p>Excluding whitespace, <code>/*</code> must appear at the start of the line, while <code>*/</code> can appear only at the start or end of a line. It is also valid to omit <code>*/</code>, in which case the remainder of the file is commented out.</p>
-<p>Since comments are ignored when a script is launched, they do not impact performance or memory utilization.</p>
 
+<p>Excluding whitespace, <code>/*</code> must appear at the start of the line, while <code>*/</code> can appear only at the start or end of a line. It is also valid to omit <code>*/</code>, in which case the remainder of the file is commented out.</p>
 <h2 id="continuation">Splitting a Long Line into a Series of Shorter Ones</h2>
 <p>Long lines can be divided up into a collection of smaller ones to improve readability and maintainability. This does not reduce the script's execution speed because such lines are merged in memory the moment the script launches.</p>
-<p><strong>Method #1</strong>: A line that starts with &quot;and&quot;, &quot;or&quot;,  ||, &amp;&amp;, a comma, or a <a href="Variables.htm#concat">period</a> is automatically merged with the line directly above it (the same is true for all other <a href="Variables.htm#Operators">expression operators</a> except ++ and --). In the following example, the second line is appended to the first because it begins with a comma:</p>
+<p id="continuation-line"><strong>Method #1</strong>: A line that starts with a comma or any other <a href="Variables.htm#Operators">expression operator</a> (except ++ and --) is automatically merged with the line directly above it. In the following example, the second line is appended to the first because it begins with a comma:</p>
 <pre>FileAppend "This is the text to append.`n"   <em>; A comment is allowed here.</em>
     <strong>,</strong> A_ProgramFiles "\SomeApplication\LogFile.txt"  <em>; Comment.</em></pre>
 <p>Similarly, the following lines would get merged into a single line because the last two start with &quot;and&quot; or &quot;or&quot;:</p>
@@ -68,8 +56,8 @@ MsgBox "This one too."
 <pre>ProductIsAvailable := (Color = &quot;Red&quot;)
     <strong>?</strong> false  <em>; We don't have any red products, so don't bother calling the function.</em>
     <strong>:</strong> ProductIsAvailableInColor(Product, Color)</pre>
-<p>Although the indentation used in the examples above is optional, it might improve clarity by indicating which lines belong to ones above them. Also, it is not necessary to include extra spaces for lines starting with the words &quot;AND&quot; and &quot;OR&quot;; the program does this automatically. Finally, blank lines or <a href="#Comments">comments</a> may be added between or at the end of any of the lines in the above examples.</p>
-<p><strong>Method #2</strong>: This method should be used to merge a large number of lines or when the lines are not suitable for Method #1. Although this method is especially useful for <a href="Hotstrings.htm">auto-replace hotstrings</a>, it can also be used with any function or <a href="Variables.htm#Expressions">expression</a>. For example:</p>
+<p>Although the indentation used in the examples above is optional, it might improve clarity by indicating which lines belong to ones above them. Also, it is not necessary to include extra spaces for lines starting with the words &quot;AND&quot; and &quot;OR&quot;; the program does this automatically. Finally, blank lines or <a href="Language.htm#comments">comments</a> may be added between or at the end of any of the lines in the above examples.</p>
+<p id="continuation-section"><strong>Method #2</strong>: This method should be used to merge a large number of lines or when the lines are not suitable for Method #1. Although this method is especially useful for <a href="Hotstrings.htm">auto-replace hotstrings</a>, it can also be used with any <a href="Variables.htm#Expressions">expression</a>. For example:</p>
 <pre><em>; EXAMPLE #1:</em>
 Var := "
 (
@@ -92,7 +80,7 @@ By default, the hard carriage return (Enter) between the previous line and this 
 <p id="LTrim"><strong>LTrim</strong>: Omits all spaces and tabs at the beginning of each line. This is usually unnecessary because of the <a href="#continuation_defaults">default &quot;smart&quot; behaviour</a>.</p>
 <p id="LTrim0"><strong>LTrim0</strong> (LTrim followed by a zero): Turns off the omission of spaces and tabs from the beginning of each line.</p>
 <p id="RTrim0"><strong>RTrim0</strong> (RTrim followed by a zero): Turns off the omission of spaces and tabs from the end of each line.</p>
-<p id="CommentOption"><strong>Comments</strong> (or <strong>Comment</strong> or <strong>Com</strong> or <strong>C</strong>): Allows <a href="#Comments">semicolon comments</a> inside the continuation section (but not <code>/*..*/</code>). Such comments (along with any spaces and tabs to their left) are entirely omitted from the joined result rather than being treated as literal text. Each comment can appear to the right of a line or on a new line by itself.</p>
+<p id="CommentOption"><strong>Comments</strong> (or <strong>Comment</strong> or <strong>Com</strong> or <strong>C</strong>): Allows <a href="Language.htm#comments">semicolon comments</a> inside the continuation section (but not <code>/*..*/</code>). Such comments (along with any spaces and tabs to their left) are entirely omitted from the joined result rather than being treated as literal text. Each comment can appear to the right of a line or on a new line by itself.</p>
 <p id="QuotesOption"><strong>Quotes</strong> (or <strong>Q</strong>): Restores the ability to terminate quoted strings when an expression is used in a continuation section.</p>
 <p id="accent"><strong>`</strong> (accent): Treats each backtick character literally rather than as an <a href="misc/EscapeChar.htm">escape character</a>. This also prevents commas and percent signs from being explicitly and individually escaped. In addition, it prevents the translation of any explicitly specified escape sequences such as `r and `t.</p>
 <p id="non-continuation"><strong>)</strong>: If a closing parenthesis appears in the continuation section's options (except as a parameter of the <a href="#Join">Join</a> option), the line is reinterpreted as an expression instead of the beginning of a continuation section. This allows expressions like <code>(x.y)[z]()</code> to work without the need to escape the opening parenthesis.</p>
@@ -226,7 +214,6 @@ Usage:
         LongPath := A_LoopFileFullPath
     MsgBox "The case-corrected long path name of file`n" GivenPath "`nis:`n" LongPath
 }</pre>
-<p>Known limitation: dragging files onto a .ahk script may fail to work properly if 8-dot-3 (short) names have been turned off in an NTFS file system. One work-around is to <a href="#ahk2exe">compile</a> the script then drag the files onto the resulting EXE.</p>
 
 <h2 id="cp">Script File Codepage</h2>
 <p>The characters a script file may contain are restricted by the codepage used to load the file.</p>
@@ -285,57 +272,6 @@ if WinExist(ScriptPath " ahk_class AutoHotkey")
     PostMessage DllCall("RegisterWindowMessage",  Str, "AHK_ATTACH_DEBUGGER")
 </pre>
 <p>Once the debugger client is connected, it may detach without terminating the script by sending the "detach" DBGp command.</p>
-
-<h2 id="port">Portability of AutoHotkey.exe</h2>
-<p>The file AutoHotkey.exe is all that is needed to launch any .ahk script.</p>
-<p>Renaming AutoHotkey.exe also changes which script it runs <a href="#defaultfile">by default</a>, which can be an alternative to compiling a script for use on a computer without AutoHotkey installed. For instance, <i>MyScript</i>.exe automatically runs <i>MyScript</i>.ahk if a filename is not supplied, but is also capable of running other scripts.</p>
-<h2 id="install">Installer Options</h2>
-<p>To silently install AutoHotkey into the default directory (which is the same directory displayed by non-silent mode), pass the parameter /S to the installer. For example:</p>
-<pre>AutoHotkey110800_Install.exe /S</pre>
-<p>A directory other than the default may be specified via the /D parameter (in the absence of /S, this changes the default directory displayed by the installer). For example:</p>
-<pre>AutoHotkey110800_Install.exe /S /D=C:\Program Files\AutoHotkey</pre>
-<p><strong>Version</strong>: If AutoHotkey was previously installed, the installer automatically detects which version of AutoHotkey.exe to set as the default. Otherwise, the default is Unicode 32-bit or Unicode 64-bit depending on whether the OS is 64-bit. To override which version of AutoHotkey.exe is set as the default, pass one of the following switches:</p>
-<ul>
-  <li><code>/A32</code> or <code>/ANSI</code>: ANSI 32-bit.</li>
-  <li><code>/U64</code> or <code>/x64</code>: Unicode 64-bit (only valid on 64-bit systems).</li>
-  <li><code>/U32</code>: Unicode 32-bit.</li>
-</ul>
-<p>For example, the following installs silently and sets ANSI 32-bit as the default:</p>
-<pre>AutoHotkey110800_Install.exe /S /A32</pre>
-<p><strong>Uninstall</strong>: To silently uninstall AutoHotkey, pass the <code>/Uninstall</code> parameter to Installer.ahk. For example:</p>
-<pre>"C:\Program Files\AutoHotkey\AutoHotkey.exe" "C:\Program Files\AutoHotkey\Installer.ahk" /Uninstall</pre>
-<p>For AutoHotkey versions older than 1.1.08.00, use <code>uninst.exe /S</code>. For example:</p>
-<pre>&quot;C:\Program Files\AutoHotkey\uninst.exe&quot; /S</pre>
-<p><strong>Note:</strong> Installer.ahk must be run as admin to work correctly.</p>
-<p><strong>Extract</strong>: Later versions of the installer include a link in the bottom-right corner to extract setup files without installing. If this function is present, the <code>/E</code> switch can be used to invoke it from the command line. For example:</p>
-<pre>AutoHotkey110903_Install.exe /D=F:\AutoHotkey /E</pre>
-<p><strong>Restart scripts</strong> <span class="ver">[v1.1.19.02+]</span>: In silent install/uninstall mode, running scripts are closed automatically, where necessary. Pass the <code>/R</code> switch to automatically reload these scripts using whichever EXE they were running on, <strong>without</strong> command line args. Setup will attempt to launch the scripts via Explorer, so they do not run as administrator if UAC is enabled.</p>
-
-<p id="Installer_IsHostApp"><strong>Taskbar buttons</strong> <span class="ver">[v1.1.08+]</span>: On Windows 7 and later, taskbar buttons for multiple scripts are automatically grouped together or combined into one button by default. The <em>Separate taskbar buttons</em> option disables this by registering each AutoHotkey executable as a <a href="https://msdn.microsoft.com/en-us/library/ee872121#APPLICATIONS">host app (IsHostApp)</a>.</p>
-<p><span class="ver">[v1.1.24.02+]:</span> For command-line installations, specify <code>/IsHostApp</code> or <code>/IsHostApp=1</code> to enable the option and <code>/IsHostApp=0</code> to disable it.</p>
-
-<h3 id="Installer_uiAccess">Run with UI Access <span class="ver">[v1.1.24.02+]</span></h3>
-<p>The installer GUI has an option "Add 'Run with UI Access' to context menus". This context menu option provides a workaround for common <a href="FAQ.htm#uac">UAC-related issues</a> by allowing the script to automate administrative programs - without the script running as admin. To achieve this, the installer does the following:</p>
-<ul>
-  <li>Copies AutoHotkeyA32.exe, AutoHotkeyU32.exe and (if present) AutoHotkeyU64.exe to AutoHotkey*_UIA.exe.</li>
-  <li>Sets the <a href="https://msdn.microsoft.com/en-us/library/ee671610">uiAccess attribute</a> in each UIA file's embedded manifest.</li>
-  <li>Creates a self-signed digital certificate named "AutoHotkey" and signs each UIA file.</li>
-  <li>Registers the context menu option to run the appropriate exe file.</li>
-</ul>
-<p>If any these UIA files are present before installation, the installer will automatically update them even if the UI Access option is not enabled.</p>
-<p>For command-line installations, specify <code>/uiAccess</code> or <code>/uiAccess=1</code> to enable the option and <code>/uiAccess=0</code> to disable it. By default, the installer will enable the option if UAC is enabled and the UI Access context menu option was present before installation.</p>
-<p>Scripts which need to run other scripts with UI access can simply <a href="commands/Run.htm">Run</a> the appropriate UIA.exe file with the normal <a href="#cmd">command line parameters</a>.</p>
-<p><strong>Known limitations</strong>:</p>
-<ul>
-  <li>UIA is only effective if the file is in a trusted location; i.e. a Program Files sub-directory.</li>
-  <li>UIA.exe files created on one computer cannot run on other computers without first installing the digital certificate which was used to sign them.</li>
-  <li>UIA.exe files cannot be started via CreateProcess due to security restrictions. ShellExecute can be used instead. <a href="commands/Run.htm">Run</a> tries both.</li>
-  <li>UIA.exe files cannot be modified, as it would invalidate the file's digital signature.</li>
-  <li>Because UIA programs run at a different "integrity level" than other programs, they can only access objects registered by other UIA programs. For example, <code><a href="commands/ComObjActive.htm">ComObjActive</a>("Word.Application")</code> will fail because Word is not marked for UI Access.</li>
-  <li>The script's own windows can't be automated by non-UIA programs/scripts for security reasons.</li>
-  <li>Running a non-UIA script which uses a mouse hook (even as simple as <code>#InstallMouseHook</code>) may prevent all mouse hotkeys from working when the mouse is pointing at a window owned by a UIA script, even hotkeys implemented by the UIA script itself. A workaround is to ensure UIA scripts are loaded last.</li>
-</ul>
-<p>For more details, see <a href="https://autohotkey.com/board/topic/70449-enable-interaction-with-administrative-programs/">Enable interaction with administrative programs</a> on the archive forum.</p>
 
 <h2>Script Showcase</h2>
 <p>See <a href="scripts/">this page</a> for some useful scripts.</p>
