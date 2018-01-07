@@ -259,7 +259,7 @@ indexData = [
   ["command line parameters","Scripts.htm#cmd"],
   ["commands, alphabetical list","commands/index.htm"],
   ["CommentFlag","commands/_CommentFlag.htm"],
-  ["comments in scripts","Scripts.htm#Comments"],
+  ["comments in scripts","Language.htm#comments"],
   ["ComObj...()","commands/ComObjActive.htm"],
   ["ComObjActive()","commands/ComObjActive.htm"],
   ["ComObjArray()","commands/ComObjArray.htm"],
