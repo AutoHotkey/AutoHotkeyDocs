@@ -268,7 +268,7 @@ indexData = [
   ["ComboBox controls (GUI)","commands/GuiControls.htm#ComboBox"],
   ["comma operator (multi-statement)","Variables.htm#comma"],
   ["command line parameters","Scripts.htm#cmd"],
-  ["comments in scripts","Scripts.htm#Comments"],
+  ["comments in scripts","Language.htm#comments"],
   ["ComObjActive","commands/ComObjActive.htm"],
   ["ComObjArray","commands/ComObjArray.htm"],
   ["ComObjConnect","commands/ComObjConnect.htm"],

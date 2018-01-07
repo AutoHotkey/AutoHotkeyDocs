@@ -34,7 +34,7 @@
 
 <p id="SendRaw"><strong>Raw mode</strong> - <em>SendRaw</em> or <a href="#Raw">{Raw}</a>: The characters <code>^+!#{}</code> are interpreted literally rather than translating <code>{Enter}</code> to an ENTER keystroke, <code>^c</code> to Control-C, etc. To use raw mode with SendInput, SendPlay, SendEvent, or ControlSend, write <a href="#Raw">{Raw}</a> as the first item in the string; for example: <code>SendInput "{Raw}abc"</code>.</p>
 <p><em>Raw mode</em> does not affect the interpretation of <a href="../misc/EscapeChar.htm">escape sequences</a> and <a href="../Variables.htm#Expressions">expressions</a>. For example, <code>SendRaw "``100`%"</code> sends the string <code>`100%</code>. When using <a href="ControlSend.htm">ControlSend</a>, it is also necessary to escape literal commas (<code>`,</code>).</p>
-<p id="SendText"><strong>Text mode</strong> - <code>{Text}</code> <span class="ver">[v1.1.27+]</span>: Similar to Raw mode, except that no attempt is made to translate characters (other than <code>`r</code>, <code>`n</code>, <code>`t</code> and <code>`b</code>) to keycodes; instead, the <a href="#fallback">fallback method</a> is used for all of the remaining characters. For SendEvent, SendInput and ControlSend, this improves reliability because the characters are much less dependent on correct modifier state. Text mode can be combined with Blind mode to avoid releasing any modifier keys: <code>Send {Blind}{Text}your text</code>. However, some applications require that the modifier keys be released.</p>
+<p id="SendText"><strong>Text mode</strong> - <code>{Text}</code>: Similar to Raw mode, except that no attempt is made to translate characters (other than <code>`r</code>, <code>`n</code>, <code>`t</code> and <code>`b</code>) to keycodes; instead, the <a href="#fallback">fallback method</a> is used for all of the remaining characters. For SendEvent, SendInput and ControlSend, this improves reliability because the characters are much less dependent on correct modifier state. Text mode can be combined with Blind mode to avoid releasing any modifier keys: <code>Send "{Blind}{Text}your text"</code>. However, some applications require that the modifier keys be released.</p>
 <p><code>`n</code>, <code>`r</code> and <code>`r`n</code> are all translated to a single Enter keystroke, unlike normal mode and Raw mode, which translate <code>`r`n</code> to two Enter keystrokes. <code>`t</code> is translated to Tab and <code>`b</code> to Backspace, but all other characters are sent without translation.</p>
 <p id="specialchars"><strong>Normal mode</strong>: When not in Raw mode or Text mode, the following symbols have special meaning: <code>!+^#{}</code></p>
 <p>The modifiers <code>!+^#</code> affect only the very next key. To send the corresponding modifier key on its own, enclose the key name in braces. To just press (hold down) or release the key, follow the key name with the word "down" or "up" as shown below.</p>
@@ -85,7 +85,7 @@
   <tr>
     <td>{ }</td>
     <td colspan="4" style="white-space: normal; text-align: left"><p>Braces are used to enclose <a href="#keynames">key names and other options</a>, and to send special characters literally. For example, <code>{Tab}</code> is the Tab key and <code>{!}</code> is a literal exclamation mark.</p>
-    <p><span class="ver">[v1.1.27+]:</span> Enclosing a plain ASCII letter (a-z or A-Z) in braces forces it to be sent as the corresponding virtual keycode, even if the character does not exist on the current keyboard layout. In other words, <code>Send a</code> produces the letter "a" while <code>Send {a}</code> may or may not produce "a", depending on the keyboard layout. For details, see the <a href="#AZ">remarks below</a>.</p></td>
+    <p>Enclosing a plain ASCII letter (a-z or A-Z) in braces forces it to be sent as the corresponding virtual keycode, even if the character does not exist on the current keyboard layout. In other words, <code>Send "a"</code> produces the letter "a" while <code>Send "{a}"</code> may or may not produce "a", depending on the keyboard layout. For details, see the <a href="#AZ">remarks below</a>.</p></td>
   </tr>
 </table>
 <p class="note"><strong>Note</strong>: As capital letters are produced by sending the SHIFT key, <code>A</code> produces a different effect in some programs than <code>a</code>. For example, <code>!A</code> presses ALT+SHIFT+A and <code>!a</code> presses ALT+a. If in doubt, use lowercase.</p>
@@ -313,7 +313,7 @@
     {vkXXscYYY}</p></td>
     <td><p>Sends a keystroke that has virtual key XX and scan code YYY. For example: <code>Send "{vkFFsc159}"</code>. If the sc or vk portion is omitted, the most appropriate value is sent in its place.</p>
       <p>The values for XX and YYY are hexadecimal and can usually be determined from the main window's <a href="KeyHistory.htm">View-&gt;Key history</a> menu item. See also: <a href="../KeyList.htm#SpecialKeys">Special Keys</a></p>
-      <p class="warning"><strong>Warning:</strong> Combining vk and sc in this manner is valid only with Send. Prior to <span class="ver">[v1.1.27]</span>, hotkeys permitted but ignored any non-hexadecimal characters following XX.</p></td>
+      <p class="warning"><strong>Warning:</strong> Combining vk and sc in this manner is valid only with Send.</p></td>
   </tr>
   <tr>
     <th>&nbsp;</th>
@@ -511,8 +511,7 @@
     <td>Enables <a href="#SendRaw"><em>Raw mode</em></a>, which causes the following characters to be interpreted literally: <code>^+!#{}</code>. Although the string <code>{Raw}</code> need not occur at the beginning of the string, once specified, it stays in effect for the remainder of the string.</td>
   </tr>
   <tr id="Text">
-    <td><strong>{Text}</strong><br>
-    <span class="ver">[v1.1.27+]</span></td>
+    <td><strong>{Text}</strong></td>
     <td>Enables <a href="#SendText"><em>Text mode</em></a>, which sends a stream of characters rather than keystrokes. Like Raw mode, Text mode causes the following characters to be interpreted literally: <code>^+!#{}</code>. Although the string <code>{Text}</code> need not occur at the beginning of the string, once specified, it stays in effect for the remainder of the string.</td>
   </tr>
 </table>
@@ -535,9 +534,9 @@ Send "{Up up}"  <em>; Release the up-arrow key.</em></pre>
     Sleep 30  <em>; The number of milliseconds between keystrokes (or use <a href="SetKeyDelay.htm">SetKeyDelay</a>).</em>
 }
 Send "{Tab up}"  <em>; Release the key.</em></pre>
-<p>By default, Send will not automatically release a modifier key (Control/Shift/Alt/Win) if that modifier key was "pressed down" by sending it. For example, <code>Send a</code> may behave similar to <code>Send <a href="#blind">{Blind}</a>{Ctrl up}a{Ctrl down}</code> if the user is physically holding Ctrl, but <code>Send {Ctrl Down}</code> followed by <code>Send a</code> will produce a control-A keystroke. <em>DownTemp</em> and <em>DownR</em> can be used to override this behavior. <em>DownTemp</em> and <em>DownR</em> have the same effect as <em>Down</em> except for the modifer keys (Control/Shift/Alt/Win).</p>
+<p>By default, Send will not automatically release a modifier key (Control/Shift/Alt/Win) if that modifier key was "pressed down" by sending it. For example, <code>Send a</code> may behave similar to <code>Send "<a href="#blind">{Blind}</a>{Ctrl up}a{Ctrl down}"</code> if the user is physically holding Ctrl, but <code>Send "{Ctrl Down}"</code> followed by <code>Send a</code> will produce a control-A keystroke. <em>DownTemp</em> and <em>DownR</em> can be used to override this behavior. <em>DownTemp</em> and <em>DownR</em> have the same effect as <em>Down</em> except for the modifer keys (Control/Shift/Alt/Win).</p>
 <p id="DownTemp"><strong>DownTemp</strong> tells subsequent sends that the key is not permanently down, and may be released whenever a keystroke calls for it. For example, <code>Send "{Control DownTemp}"</code> followed later by <code>Send "a"</code> would produce a normal "a" keystroke, not a control-A keystroke. Any use of Send may potentially release the modifier permanently, so <em>DownTemp</em> is not ideal for <a href="../misc/Remap.htm">remapping</a> modifier keys.</p>
-<p id="DownR"><span class="ver">[v1.1.27+]:</span> <strong>DownR</strong> (where "R" stands for <a href="../misc/Remap.htm">remapping</a>, which is its main use) tells subsequent sends that if the key is automatically released, it should be pressed down again when send is finished. For example, <code>Send {Control DownR}</code> followed later by <code>Send a</code> would produce a normal "a" keystroke, not a control-A keystroke, but will leave the control key in the pressed state for use with keyboard shortcuts. In other words, <em>DownR</em> has an effect similar to physically pressing the key.</p>
+<p id="DownR"><strong>DownR</strong> (where "R" stands for <a href="../misc/Remap.htm">remapping</a>, which is its main use) tells subsequent sends that if the key is automatically released, it should be pressed down again when send is finished. For example, <code>Send "{Control DownR}"</code> followed later by <code>Send "a"</code> would produce a normal "a" keystroke, not a control-A keystroke, but will leave the control key in the pressed state for use with keyboard shortcuts. In other words, <em>DownR</em> has an effect similar to physically pressing the key.</p>
 <p>If a character does not correspond to a virtual key on the current keyboard layout, it cannot be "pressed" or "released". For example, <code>Send {µ up}</code> has no effect on most layouts, and <code>Send {µ down}</code> is equivalent to <code>Send µ</code>.</p>
 
 <h2 id="Remarks">General Remarks</h2>
@@ -548,7 +547,7 @@ Send "{Tab up}"  <em>; Release the key.</em></pre>
   <li>ControlSend posts a <a href="http://msdn.microsoft.com/en-us/library/ms646276.aspx">WM_CHAR</a> message.</li>
 </ul>
 <p class="warning"><strong>Note:</strong> Characters sent using any of the above methods usually do not trigger keyboard shortcuts or hotkeys.</p>
-<p id="AZ"><span class="ver">[v1.1.27+]:</span> For characters in the range <strong>a-z</strong> or <strong>A-Z</strong> (plain ASCII letters), each character which does not exist in the current keyboard layout may be sent either as a character or as the corresponding virtual keycode (vk41-vk5A):</p>
+<p id="AZ">For characters in the range <strong>a-z</strong> or <strong>A-Z</strong> (plain ASCII letters), each character which does not exist in the current keyboard layout may be sent either as a character or as the corresponding virtual keycode (vk41-vk5A):</p>
 <ul>
   <li>If a naked letter is sent (that is, without modifiers or braces), or if <a href="#Raw">Raw</a> mode is in effect, it is sent as a character. For example, <code>Send {Raw}Regards</code> sends the expected text, even though pressing the "r" key (vk52) produces some other character (such as к on the Russian layout). <code>{Raw}</code> can be omitted in this case, unless a modifier key was put into effect by a prior Send.</li>
   <li>If one or more modifier keys have been put into effect by the Send command, or if the letter is wrapped in braces, it is sent as a keycode (modified with Shift if the letter is upper-case). This allows the script to easily activate standard keyboard shortcuts. For example, <code>^c</code> and <code>{Ctrl down}c{Ctrl up}</code> activate the standard Ctrl+C shortcut and <code>{c}</code> is equivalent to <code>{vk43}</code>.</li>
