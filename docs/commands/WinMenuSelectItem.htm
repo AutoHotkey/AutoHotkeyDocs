@@ -24,23 +24,19 @@
   <dd><p>If present, this parameter must be a substring from a single text element of the target window (as revealed by the included Window Spy utility). Hidden text elements are detected if <a href="DetectHiddenText.htm">DetectHiddenText</a> is ON.</p></dd>
 
   <dt>Menu</dt>
-  <dd><p>The name of the top-level menu, e.g. File, Edit, View. It can also be the position of the desired menu item by using 1&amp; to represent the first menu, 2&amp; the second, and so on.</p></dd>
+  <dd><p>The name of the top-level menu item, e.g. File, Edit, View. It can also be the position of the desired menu item by using <code>1&amp;</code> to represent the first menu, <code>2&amp;</code> the second, and so on.</p>
+  <p><span class="ver">[v1.1.28+]:</span> Specify <code>0&amp;</code> to use the window's <a href="#sys">system menu</a>.</p></dd>
 
   <dt>SubMenu1</dt>
-  <dd><p>The name of the menu item to select or its position (see above).</p></dd>
+  <dd><p>The name of the menu item to select or its position (see above).</p>
+  <p>This can be omitted if the top-level item does not contain a menu (rare).</p></dd>
 
   <dt>SubMenu2</dt>
   <dd><p>If <em>SubMenu1</em> itself contains a menu, this is the name of the menu item inside, or its position.</p></dd>
 
   <dt>SubMenu3</dt>
-  <dd><p>Same as above.</p></dd>
-
   <dt>SubMenu4</dt>
-  <dd><p>Same as above.</p></dd>
-
   <dt>SubMenu5</dt>
-  <dd><p>Same as above.</p></dd>
-
   <dt>SubMenu6</dt>
   <dd><p>Same as above.</p></dd>
 
@@ -55,12 +51,24 @@
 <h3>ErrorLevel</h3>
 <p><span class="ver">[v1.1.04+]</span>: This command is able to throw an exception on failure. For more information, see <a href="Catch.htm#RuntimeErrors">Runtime Errors</a>.</p>
 <p><a href="../misc/ErrorLevel.htm">ErrorLevel</a> is set to 1 if there was a problem or 0 otherwise.</p>
+
 <h3>Remarks</h3>
 <p>For this command to work, the target window need not be active. However, some windows might need to be in a <a href="WinRestore.htm">non-minimized</a> state.</p>
 <p>This command <strong>will not work</strong> with applications that use non-standard menu bars. Examples include Microsoft Outlook and Outlook Express, which use disguised toolbars for their menu bars. In these cases, consider using <a href="ControlSend.htm">ControlSend</a> or <a href="PostMessage.htm">PostMessage</a>, which should be able to interact with some of these non-standard menu bars.</p>
 <p>The menu name parameters are not case sensitive (i.e. File-&gt;Save is the same as file-&gt;save) and the use of ampersand (&amp;) to indicate the underlined letter in a menu item is not necessary (i.e. &amp;File is the same as File).</p>
 <p>The menu name parameters can also specify positions. This method exists to support menus that don't contain text (perhaps because they contain pictures of text rather than actual text). Position 1&amp; is the first menu item (e.g. the File menu), position 2&amp; is the second menu item (e.g. the Edit menu), and so on. Menu separator lines count as menu items for the purpose of determining the position of a menu item.</p>
 <p>Window titles and text are case sensitive. Hidden windows are not detected unless <a href="DetectHiddenWindows.htm">DetectHiddenWindows</a> has been turned on.</p>
+
+<h3 id="sys">System Menu <span class="ver">[v1.1.28+]</span></h3>
+<p><em>Menu</em> can be <code>0&amp;</code> to select an item within the window's system menu, which typically appears when the user presses Alt+Space or clicks on the icon in the window's title bar. For example:</p>
+<pre><em>; Paste a command into cmd.exe without activating the window.</em>
+Clipboard := "echo Hello, world!`r"
+WinMenuSelectItem ahk_exe cmd.exe,, 0&amp;, Edit, Paste</pre>
+<p>If the window does not already have a custom system menu, a copy of the standard system menu will be created as a side effect. Therefore, avoid using 0&amp; for the standard items which appear on all windows. Instead, post the <a href="https://msdn.microsoft.com/library/ms646360">WM_SYSCOMMAND</a> message directly. For example:</p>
+<pre><em>; Like "<a href="#WinMimize">WinMinimize</a> A", but also play the system sound for minimizing.</em>
+WM_SYSCOMMAND := 0x112
+SC_MINIMIZE := 0xF020
+PostMessage WM_SYSCOMMAND, SC_MINIMIZE, 0,, A</pre>
 
 <h3>Related</h3>
 <p><a href="ControlSend.htm">ControlSend</a>, <a href="PostMessage.htm">PostMessage</a></p>
