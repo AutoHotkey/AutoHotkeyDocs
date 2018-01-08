@@ -47,7 +47,7 @@ var isInsideCHM = (location.href.search(/::/) > 0) ? 1 : 0;
 var isFrameParent = (location.href.indexOf('iframe.htm') != -1);
 var isInsideFrame = (window.self !== window.top);
 var isSearchBot = navigator.userAgent.match(/googlebot|bingbot|slurp/i);
-var isPhone = (screen.width <= 600);
+var isPhone; // Needs to be set after adding meta viewport.
 var isTouch = !!("ontouchstart" in window) || !!(navigator.msMaxTouchPoints);
 var isOpera = (!!window.opr && !!opr.addons) || !!window.opera || navigator.userAgent.indexOf(' OPR/') >= 0; // Opera 8.0+
 var isFirefox = typeof InstallTrigger !== 'undefined'; // Firefox 1.0+
@@ -623,6 +623,7 @@ function ctor_structure()
   self.addHeadElements = function() { // Add designated elements into the head.
     var metaViewport = '<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">';
     document.write(metaViewport);
+    isPhone = (document.documentElement.clientWidth <= 600);
   };
   self.build = function() { // Add elements for sidebar.
     var body = '<div id="body">'
