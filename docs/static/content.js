@@ -1060,7 +1060,7 @@ function addFeatures()
 
   if (!isInsideCHM)
   {
-    var hs = content.querySelectorAll('h1, h2, h3, h4, h5, h6');
+    var hs = content.querySelectorAll('h2, h3, h4, h5, h6');
     for(var i = 0; i < hs.length; i++) {
       var h = hs[i];
       var id = h.getAttribute('id');
