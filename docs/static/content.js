@@ -795,8 +795,7 @@ function ctor_structure()
           $("#iframe").attr("src", href);
         }
         else
-          if (window.location.href != href)
-            window.location = href;
+          window.location = href;
       }
     }).on('touchmove', function() {
       touchmoved = true;
