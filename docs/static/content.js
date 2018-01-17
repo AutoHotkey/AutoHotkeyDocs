@@ -39,7 +39,8 @@ var cache = {
 
 // Set global variables:
 cache.load();
-var scriptDir = document.scripts[document.scripts.length-1].src.substr(0, document.scripts[document.scripts.length-1].src.lastIndexOf('/'));
+var scriptElement = document.scripts[document.scripts.length-1];
+var scriptDir = scriptElement.src.substr(0, scriptElement.src.lastIndexOf('/'));
 var workingDir = getWorkingDir();
 var relPath = location.href.replace(workingDir, '');
 var isInsideCHM = (location.href.search(/::/) > 0) ? 1 : 0;
@@ -47,7 +48,6 @@ var supportsHistory = (history.replaceState) && !isInsideCHM;
 var isFrameCapable = isInsideCHM || supportsHistory;
 var isInsideFrame = (window.self !== window.top);
 var isSearchBot = navigator.userAgent.match(/googlebot|bingbot|slurp/i);
-var isPhone; // Needs to be set after adding meta viewport.
 var isTouch = !!("ontouchstart" in window) || !!(navigator.msMaxTouchPoints);
 var isOpera = (!!window.opr && !!opr.addons) || !!window.opera || navigator.userAgent.indexOf(' OPR/') >= 0; // Opera 8.0+
 var isFirefox = typeof InstallTrigger !== 'undefined'; // Firefox 1.0+
@@ -61,6 +61,9 @@ var toc = new ctor_toc;
 var index = new ctor_index;
 var search = new ctor_search;
 
+scriptElement.insertAdjacentHTML('afterend', structure.metaViewport);
+var isPhone = (document.documentElement.clientWidth <= 600);
+
 (function() {
   // Exit the script if the user is a search bot. This is done because we want
   // to prevent the search bot from parsing the elements added via javascript,
@@ -71,9 +74,6 @@ var search = new ctor_search;
   // Exit the script on sites which doesn't need the sidebar:
   if (/(search|frame)\.htm/.test(location.href))
     return;
-
-  // Add designated elements into the head:
-  structure.addHeadElements();
 
   // Special treatments for pages inside a frame:
   if (isFrameCapable)
@@ -576,11 +576,7 @@ function ctor_structure()
 {
   var self = this;
   self.dataPath = scriptDir + '/source/data_translate.js';
-  self.metaViewport = '<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">';
-  self.addHeadElements = function() { // Add designated elements into the head.
-    document.write(self.metaViewport);
-    isPhone = (document.documentElement.clientWidth <= 600);
-  };
+  self.metaViewport = '<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">';
   self.template = '<div id="body">' +
   '<div id="head"><div class="h-tabs"><ul><li data-translate data-content="Content"></li><li data-translate data-content="Index"></li><li data-translate data-content="Search"></li></ul></div><div class="dragbar"></div><div class="h-tools"><div class="main"><ul><li class="sidebar" title="Hide/Show sidebar" data-translate>&#926;</li></ul></div><div class="online"><ul><li class="home" title="Home page" data-translate><a href="' + location.protocol + '//' + location.host + '">&#916;</a></li></ul><ul><li class="language" title="Change language" data-translate data-content="en"></li></ul><ul class="languages"><li class="arrow">&#9658;</li><li><a title="English" data-content="en"></a></li><li><a title="Deutsch (German)" data-content="de"></a></li><li><a title="&#x4E2D;&#x6587; (Chinese)" data-content="zh"></a></li></ul><ul><li class="version" title="Change AHK version" data-translate data-content="v1"></li></ul><ul class="versions"><li class="arrow">&#9658;</li><li><a title="AHK v1.1" data-content="v1"></a></li><li><a title="AHK v2.0" data-content="v2"></a></li></ul><ul><li class="edit" title="Edit page on GitHub" data-translate><a data-content="E"></a></li></ul></div><div class="chm"><ul><li class="back" title="Go back" data-translate>&#9668;</li><li class="forward" title="Go forward" data-translate>&#9658;</li><li class="zoom" title="Change font size" data-translate data-content="Z"></li><li class="print" title="Print current document" data-translate data-content="P"></li></ul></div></div></div>' +
   '<div id="main"><div id="left"><div class="toc"></div><div class="index"><div class="label" data-translate data-content="Type in the keyword to find:"></div><div class="input"><input type="text" /></div><div class="list"></div></div><div class="search"><div class="label" data-translate data-content="Type in the word(s) to search for:"></div><div class="input"><input type="text" /></div><div class="list"></div></div></div><div class="dragbar"></div><div id="right" tabIndex="-1"><div class="area">';
