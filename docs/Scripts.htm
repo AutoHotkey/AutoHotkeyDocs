@@ -45,7 +45,13 @@
 <p>Excluding whitespace, <code>/*</code> must appear at the start of the line, while <code>*/</code> can appear only at the start or end of a line. It is also valid to omit <code>*/</code>, in which case the remainder of the file is commented out.</p>
 <h2 id="continuation">Splitting a Long Line into a Series of Shorter Ones</h2>
 <p>Long lines can be divided up into a collection of smaller ones to improve readability and maintainability. This does not reduce the script's execution speed because such lines are merged in memory the moment the script launches.</p>
-<p id="continuation-line"><strong>Method #1</strong>: A line that starts with a comma or any other <a href="Variables.htm#Operators">expression operator</a> (except ++ and --) is automatically merged with the line directly above it. In the following example, the second line is appended to the first because it begins with a comma:</p>
+<p>There are three methods:</p>
+<ul>
+  <li><a href="#continuation-line">Continuation prefix</a>: Start a line with an expression operator to join it to the previous line.</li>
+  <li><a href="#continuation-expr">Continuation by enclosure</a>: A sub-expression enclosed in (), [] or {} can automatically span multiple lines in most cases.</li>
+  <li><a href="#continuation-section">Continuation section</a>: Mark a group of lines to be merged together, with additional options such as what text (or code) to insert between lines.</li>
+</ul>
+<p id="continuation-line"><strong>Continuation prefix</strong>: A line that starts with a comma or any other <a href="Variables.htm#Operators">expression operator</a> (except ++ and --) is automatically merged with the line directly above it. In the following example, the second line is appended to the first because it begins with a comma:</p>
 <pre>FileAppend "This is the text to append.`n"   <em>; A comment is allowed here.</em>
     <strong>,</strong> A_ProgramFiles "\SomeApplication\LogFile.txt"  <em>; Comment.</em></pre>
 <p>Similarly, the following lines would get merged into a single line because the last two start with &quot;and&quot; or &quot;or&quot;:</p>
@@ -57,7 +63,30 @@
     <strong>?</strong> false  <em>; We don't have any red products, so don't bother calling the function.</em>
     <strong>:</strong> ProductIsAvailableInColor(Product, Color)</pre>
 <p>Although the indentation used in the examples above is optional, it might improve clarity by indicating which lines belong to ones above them. Also, it is not necessary to include extra spaces for lines starting with the words &quot;AND&quot; and &quot;OR&quot;; the program does this automatically. Finally, blank lines or <a href="Language.htm#comments">comments</a> may be added between or at the end of any of the lines in the above examples.</p>
-<p id="continuation-section"><strong>Method #2</strong>: This method should be used to merge a large number of lines or when the lines are not suitable for Method #1. Although this method is especially useful for <a href="Hotstrings.htm">auto-replace hotstrings</a>, it can also be used with any <a href="Variables.htm#Expressions">expression</a>. For example:</p>
+<p id="continuation-expr"><strong>Continuation by enclosure</strong>: If a line contains an expression or function/property definition with an unclosed <code>(</code>/<code>[</code>/<code>{</code>, it is joined with subsequent lines until the number of opening and closing symbols balances out. In other words, a sub-expression enclosed in parentheses, brackets or braces can automatically span multiple lines in most cases. For example:</p>
+<pre>
+myarray := [
+  "item 1",
+  "item 2",
+]
+MsgBox(
+    "The value of item 2 is " myarray[2],
+    "Title",
+    "ok iconi"
+    )
+</pre>
+<p>Brace (<code>{</code>) at the end of a line is considered to be <a href="Block.htm#otb">one-true-brace</a> (rather than the start of an object literal) if there are no other unclosed symbols and the brace is not immediately preceded by an operator. This policy may be adjusted due to the following limitation.</p>
+<p><strong>Known limitation:</strong> When passing a multi-line object literal as a parameter of a control flow statement or function call statement, the open-brace cannot be placed at the end of the line unless it is enclosed in parentheses (or another object literal). For example:</p>
+<pre>myfn() {
+    return ({
+        key: "value"
+    })
+    <em>; Not currently supported:
+    ;return {
+    ;    key: "value"
+    ;}</em>
+}</pre>
+<p id="continuation-section"><strong>Continuation section</strong>: This method should be used to merge a large number of lines or when the lines are not suitable for the other methods. Although this method is especially useful for <a href="Hotstrings.htm">auto-replace hotstrings</a>, it can also be used with any <a href="Variables.htm#Expressions">expression</a>. For example:</p>
 <pre><em>; EXAMPLE #1:</em>
 Var := "
 (
