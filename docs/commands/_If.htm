@@ -32,9 +32,17 @@
 <pre>#If</pre>
 
 <h3>General Remarks</h3>
-<p>When the key combination which forms a hotkey is pressed, the #If expression is evaluated to determine if the hotkey should activate. The system may not respond to keyboard or mouse input until expression evaluation completes or <a href="_IfTimeout.htm">times out</a>. Sending keystrokes or mouse clicks while the expression is being evaluated (such as from a function which it calls) may cause complications and should be avoided.</p>
+<p>When the key, mouse or joystick button combination which forms a hotkey is pressed, the #If expression is evaluated to determine if the hotkey should activate.</p>
+<p class="warning"><strong>Note:</strong> Scripts should not assume that the expression is only evaluated when the key is pressed (see below).</p>
 <p>The expression may also be evaluated whenever the program needs to know whether the hotkey is active. For example, the #If expression for a custom combination like <code>a &amp; b::</code> might be evaluated when the prefix key (<code>a</code> in this example) is pressed, to determine whether it should act as a custom modifier key.</p>
-<p>For the reasons described above, the expression should be written to complete quickly and without side-effects.</p>
+<p class="warning"><strong>Note:</strong> Use of #If in an unresponsive script may cause input lag or break hotkeys (see below).</p>
+<p>There are several more caveats to the #If directive:</p>
+<ul>
+  <li>Keyboard or mouse input is typically buffered (delayed) until expression evaluation completes or <a href="_IfTimeout.htm">times out</a>.</li>
+  <li>Expression evaluation can only be performed by the script's main thread (at the OS level, not a <a href="../misc/Threads.htm">quasi-thread</a>), not directly by the keyboard/mouse hook. If the script is busy or unresponsive, such as if a FileCopy is in progress, expression evaluation is delayed and may time out.</li>
+  <li>If the <a href="_IfTimeout.htm#LowLevelHooksTimeout">system-defined timeout</a> is reached, the system may stop notifying the script of keyboard or mouse input (see #IfTimeout for details).</li>
+  <li>Sending keystrokes or mouse clicks while the expression is being evaluated (such as from a function which it calls) may cause complications and should be avoided.</li>
+</ul>
 <p><span class="ver">[AHK_L 53+]:</span> <a href="../Variables.htm#ThisHotkey">A_ThisHotkey</a> and <a href="../Variables.htm#TimeSinceThisHotkey">A_TimeSinceThisHotkey</a> are set based on the hotkey for which the current #If expression is being evaluated.</p>
 <p><span class="ver">[v1.0.95.00+]:</span> <a href="../Variables.htm#PriorHotkey">A_PriorHotkey</a> and <a href="../Variables.htm#TimeSincePriorHotkey">A_TimeSincePriorHotkey</a> temporarily contain the previous values of the corresponding "This" variables.</p>
 
