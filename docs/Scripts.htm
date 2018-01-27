@@ -78,16 +78,17 @@ MsgBox(
 <p>Continuation expressions may contain both types of <a href="Language.htm#comments">comments</a>.</p>
 <p>Continuation expressions may contain normal <a href="#continuation-section">continuation sections</a>. Therefore, as with any line containing an expression, if a line begins with a non-escaped open parenthesis (<code>(</code>), it is considered to be the start of a continuation section unless there is a closing parenthesis (<code>)</code>) on the same line.</p>
 <p>Quoted strings cannot span multiple lines using this method alone. However, see above.</p>
-<p>Brace (<code>{</code>) at the end of a line is considered to be <a href="Block.htm#otb">one-true-brace</a> (rather than the start of an object literal) if there are no other unclosed symbols and the brace is not immediately preceded by an operator. This policy may be adjusted due to the following limitation.</p>
-<p><strong>Known limitation:</strong> When passing a multi-line object literal as a parameter of a control flow statement or function call statement, the open-brace cannot be placed at the end of the line unless it is enclosed in parentheses (or another object literal). For example:</p>
+<p>Brace (<code>{</code>) at the end of a line does not cause continuation if the program determines that it should be interpreted as the beginning of a block (<a href="commands/Block.htm#otb">OTB style</a>) rather than the start of an <a href="Language.htm#object-literal">object literal</a>. Specifically (in descending order of precedence):</p>
+<ul>
+  <li>A brace is never interpreted as the beginning of a block if it is preceded by an unclosed <code>(</code>/<code>[</code>/<code>{</code>, since that would produce an invalid expression. For example, the brace in <code>If ({</code> is the start of an object literal.</li>
+  <li>An object literal cannot legally follow <code>)</code> or <code>]</code>, so if the brace follows either of those symbols (excluding whitespace), it is interpreted as the beginning of a block (such as for a function or property definition).</li>
+  <li>For <a href="Language.htm#control-flow">control flow statements</a> which require a body (and therefore support OTB), the brace can be the start of an object literal only if it is preceded by an operator, such as <code>:= {</code> or <code>for x <strong>in</strong> {</code>. In particular, the brace in <code>Loop {</code> is always block-begin, and <code>If {</code> and <code>While {</code> are always errors.</li>
+</ul>
+<p>A brace can be safely used for line continuation with any function call, expression or control flow statement which does not require a body. For example:</p>
 <pre>myfn() {
-    return ({
+    return {
         key: "value"
-    })
-    <em>; Not currently supported:
-    ;return {
-    ;    key: "value"
-    ;}</em>
+    }</em>
 }</pre>
 <p id="continuation-section"><strong>Continuation section</strong>: This method should be used to merge a large number of lines or when the lines are not suitable for the other methods. Although this method is especially useful for <a href="Hotstrings.htm">auto-replace hotstrings</a>, it can also be used with any <a href="Variables.htm#Expressions">expression</a>. For example:</p>
 <pre><em>; EXAMPLE #1:</em>
