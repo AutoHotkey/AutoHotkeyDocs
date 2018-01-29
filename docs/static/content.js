@@ -1203,6 +1203,25 @@ function addFeatures()
   div.innerHTML = 'Copyright &copy; 2003-' + new Date().getFullYear() + ' ' + location.host + ' - LIC: <a href="' + scriptDir + '/../license.htm">GNU GPLv2</a>';
   content.appendChild(div);
 
+  // --- Add back-to-top button ---
+
+  var div = document.createElement('div');
+  div.className = 'back-to-top';
+  div.title = T('Back to top');
+  content.appendChild(div);
+
+  $('#right').add(window).on('scroll', function() {
+    if ($(this).scrollTop() > 20) {
+      $('div.back-to-top').fadeIn();
+    } else {
+      $('div.back-to-top').fadeOut();
+    }
+  });
+
+  $('div.back-to-top').on('click', function() {
+    $(document.body).add(document.documentElement).add('#right').animate({scrollTop: 0}, 100);
+  });
+
   // --- Ensure setting right scroll position when traversing history ---
 
   if (supportsHistory && history.state)
