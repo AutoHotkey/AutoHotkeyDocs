@@ -19,7 +19,7 @@ var cache = {
   clickTab: 0,
   LastUsedSource: "",
   displaySidebar: true,
-  sidebarWidth: 255,
+  sidebarWidth: '18em',
   RightIsFocused: true,
   translate: {},
   toc: {data: {}, clickItem: 0, scrollPos: 0},
@@ -977,7 +977,7 @@ function ctor_structure()
     var $leftArea = $('#left');
     var $dragbar = $('.dragbar');
     var hide = {width: 0, visibility: "hidden"};
-    var show = {width: cache.sidebarWidth+"px", visibility: "visible"};
+    var show = {width: cache.sidebarWidth, visibility: "visible"};
     if (display) {
       $headTabs.css(show);
       $leftArea.css(show);
