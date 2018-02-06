@@ -51,6 +51,7 @@ var isOpera = (!!window.opr && !!opr.addons) || !!window.opera || navigator.user
 var isFirefox = typeof InstallTrigger !== 'undefined'; // Firefox 1.0+
 var isSafari = Object.prototype.toString.call(window.HTMLElement).indexOf('Constructor') > 0; // At least Safari 3+: "[object HTMLElementConstructor]"
 var isIE = /*@cc_on!@*/false || !!document.documentMode; // Internet Explorer 6-11
+var isIE8 = !-[1,]; // Internet Explorer 8 or below
 var isEdge = !isIE && !!window.StyleMedia; // Edge 20+
 var isChrome = !!window.chrome && !!window.chrome.webstore; // Chrome 1+
 var isBlink = (isChrome || isOpera) && !!window.CSS; // Blink engine detection
@@ -1137,28 +1138,34 @@ function addFeatures()
   }
 
   // --- Useful features for code boxes ---
+  
+  var pres = content.querySelectorAll("pre");
 
   // Provide select and download buttons:
-  var pres = content.querySelectorAll("pre");
   for(var i = 0; i < pres.length; i++) {
-    var pre = pres[i], $pre = $(pre);
-    var div = '<div class="codeTools">';
-    div += '<a class="selectCode" title="' + T("Select code") + '">S</a>';
-    if (pre.className !== "Syntax")
-    div += '<a class="downloadCode" title="' + T("Download code") + '">&#8595;</a>';
-    div += '</div>';
-    pre.innerHTML = div+'<div>'+pre.innerHTML+'</div>';
-    $pre // Show these buttons on hover:
+    var pre = pres[i];
+    var parent = document.createElement('pre'); parent.className = 'parent ' + pre.className; pre.className = 'origin';
+    pre.parentNode.insertBefore(parent, pre);
+    parent.appendChild(pre);
+    var buttons = document.createElement('div'); buttons.className = 'buttons';
+    parent.appendChild(buttons);
+    var sel = document.createElement('a'); sel.className = 'selectCode'; sel.title = T("Select code"); sel.innerHTML = 'S';
+    buttons.appendChild(sel);
+    if (parent.className.indexOf('Syntax') == -1) {
+      var dwn = document.createElement('a'); dwn.className = 'downloadCode'; dwn.title = T("Download code"); dwn.innerHTML = '&#8595;';
+      buttons.appendChild(dwn);
+    }
+    $(parent) // Show these buttons on hover:
     .mouseenter(function() {
-      $('div.codeTools', $(this)).fadeTo(200, 0.8);
+      $('> div.buttons', $(this)).fadeTo(200, 0.8);
     })
     .mouseleave(function() {
-      $('div.codeTools', $(this)).fadeTo(200, 0);
+      $('> div.buttons', $(this)).fadeTo(200, 0);
     });
-    $('a.selectCode', $pre) // Select the code on click:
+    $('a.selectCode', $(parent)) // Select the code on click:
     .on('click', function() {
       var doc = document
-        , text = $(this).parent().next()[0]
+        , text = $('> pre.origin', $(this).parent().parent())[0]
         , range, selection;
       if (doc.body.createTextRange) {
         range = document.body.createTextRange();
@@ -1172,9 +1179,9 @@ function addFeatures()
         selection.addRange(range);
       }
     });
-    $('a.downloadCode', $pre) // Download the code on click:
+    $('a.downloadCode', $(parent)) // Download the code on click:
     .on('click', function(e) {
-      var textToWrite = '\ufeff' + $(this).parent().next().text().replace(/\n/g, "\r\n");
+      var textToWrite = '\ufeff' + $('> pre.origin', $(this).parent().parent()).text().replace(/\n/g, "\r\n");
       var textFileAsBlob = new Blob([textToWrite], {type:'text/csv'});
       var fileNameToSaveAs = location.pathname.match(/([^\/]+)(?=\.\w+$)/)[0] + "-Script.ahk";
   
@@ -1198,6 +1205,90 @@ function addFeatures()
         downloadLink.click();
       }
     });
+  }
+
+  // Syntax highlighter:
+  if (!isIE8) {
+    if (cache.index.data[0]) {
+        addSyntaxColors(pres);
+    } else {
+      loadScript(index.dataPath, function() { cache.index.data = indexData; addSyntaxColors(pres); });
+    }
+  }
+  function addSyntaxColors(pres) {
+    
+    // Create lists of syntax elements by using index data to reduce code size:
+    var syntax = {dir: [], biv: [], bif: [], cmd: []};
+    for(var i = 0; i < cache.index.data.length; i++) {
+      var entry = cache.index.data[i][0];
+      var path = cache.index.data[i][1];
+      if (entry.indexOf(' ') != -1)
+        continue;
+      if (entry.substr(0, 2) == 'A_')
+        syntax.biv.push(entry);
+      else if (/[A-Z#]/.test(entry.substr(0, 1)))
+      {
+        if (entry.substr(entry.length - 2) == '()')
+          syntax.bif.push(entry.substr(0, entry.length - 2)); 
+        else if (path.indexOf('commands') != -1) {
+          if (entry.substr(0, 1) == '#')
+            syntax.dir.push(entry);
+          else
+            syntax.cmd.push(entry);
+        }
+      }
+    }
+
+    // Traverse pre elements:
+    for(var i = 0; i < pres.length; i++) {
+      var pre = pres[i];
+      // multi-line string (needs to be pre-processed):
+      pre.innerHTML = pre.innerHTML.replace(/(^(\s*)\([\s\S]*?^(\s*)\))/gm, '<span class="multi-str">$1</span>');
+      // Separate existing tags with attributes to avoid threading them as strings and wrap the rest ("plain texts") with tags:
+      var innerHTML = pre.innerHTML;
+      var offset = 0;
+      $(pre).children().each(function() {
+        if (this.attributes.length || this.children.length) {
+          var outerHTML = this.outerHTML;
+          var n = innerHTML.indexOf(outerHTML, offset);
+          var replacement = '</span>'+outerHTML+'<span class="pln">';
+          offset = n + replacement.length;
+          if (n !== -1)
+            innerHTML = innerHTML.substr(0, n) + replacement + innerHTML.substr(n + outerHTML.length);
+        }
+      });
+      pre.innerHTML = '<span class="pln">'+innerHTML+'</span>';
+      // Traverse plain text elements defined by above:
+      var spans = pre.querySelectorAll("span.pln");
+      for(var j = 0; j < spans.length; j++) {
+        var innerHTML = spans[j].innerHTML;
+        // strings (double and single quotes):
+        innerHTML = innerHTML.replace(/(("|').*?\2)/g, '<span class="str">$1</span>');
+        // control flow statements (special):
+        innerHTML = innerHTML.replace(/(?:(if )(\S+?)|^) (not between|between) (?:(.+?)( and )(.+?)|)$/gim, '<span class="cfs">$1</span>$2 <span class="cfs">$3</span> <span class="str">$4</span><span class="cfs">$5</span><span class="str">$6</span>');
+        innerHTML = innerHTML.replace(/(?:(if )(\S+?)|^) (not contains|contains|not in|in|is not|is) ((?:.+?)|)$/gim, '<span class="cfs">$1</span>$2 <span class="cfs">$3</span> <span class="str">$4</span>');
+        innerHTML = innerHTML.replace(/^(\s*)(?:(class )(\S+?)|^) (extends) ((?:.+?)|)$/gim, '$1<span class="cfs">$2</span>$3 <span class="cfs">$4</span> $5');
+        innerHTML = innerHTML.replace(/^(\s*)(?:(for )(.+?)|^) (in) ((?:.+?)|)$/gim, '$1<span class="cfs">$2</span>$3 <span class="cfs">$4</span> $5');
+        // control flow statements / declarations:
+        innerHTML = innerHTML.replace(/(^\s*|[,:}]\s*)(if|else if|else|loop|while|for|until|try|catch|finally|throw|goto|gosub|return|break|continue|class|static|global|local)\b/gim, '$1<span class="cfs">$2</span>');
+        // elements in parameter list:
+        innerHTML = innerHTML.replace(/(.+?)\b(ByRef)\b(?=(.+?)\))/gim, '$1<span class="cfs">$2</span>');
+        // commands:
+        innerHTML = innerHTML.replace(new RegExp('(^\\s*|[:]\\s*)('+syntax.cmd.join('|')+')\\b(?=[\\s,]|$)',"gim"), '$1<span class="cmd">$2</span>');
+        // built-in functions:
+        innerHTML = innerHTML.replace(new RegExp('\\b('+syntax.bif.join('|')+')(?=\\()',"gi"), '<span class="bif">$1</span>');
+        // built-in vars:
+        innerHTML = innerHTML.replace(new RegExp('\\b('+syntax.biv.join('|')+'|ErrorLevel|ComSpec|ProgramFiles|ClipboardAll|Clipboard|True|False)\\b',"gi"), '<span class="biv">$1</span>');
+        // directives:
+        innerHTML = innerHTML.replace(new RegExp('('+syntax.dir.join('|')+')\\b',"gi"), '<span class="dir">$1</span>');
+        // hotkeys/hotstrings:
+        innerHTML = innerHTML.replace(/^(\s*)((?:\S+?|\S+? \S+?|\S+? (&amp;|&) \S+?)::)/mg, '$1<span class="lab">$2</span>');
+        // labels:
+        innerHTML = innerHTML.replace(/^(\s*)([^\s]+?:)(?=\s|$)/mg, '$1<span class="lab">$2</span>');
+
+        spans[j].innerHTML = innerHTML;
+      }
+    }
   }
 
   // --- Add footer at the bottom of the site ---
