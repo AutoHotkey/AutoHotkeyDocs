@@ -1214,10 +1214,14 @@ function addFeatures()
   div.title = T('Back to top');
   content.appendChild(div);
 
+  var isVisible = false;
   $('#right').add(window).on('scroll', function() {
-    if ($(this).scrollTop() > 20) {
+    var scrollTop = $(this).scrollTop();
+    if (scrollTop > 20 && !isVisible) {
+      isVisible = true;
       $('div.back-to-top').fadeIn();
-    } else {
+    } else if (scrollTop < 20 && isVisible) {
+      isVisible = false;
       $('div.back-to-top').fadeOut();
     }
   });
