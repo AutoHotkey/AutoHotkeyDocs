@@ -220,6 +220,8 @@ tocData = [
       ["#MenuMaskKey","commands/_MenuMaskKey.htm"],
       ["#UseHook","commands/_UseHook.htm"],
       ["Hotkey","commands/Hotkey.htm"],
+      ["Hotstring","commands/Hotstring.htm"],
+      ["Hotstrings & auto-replace","Hotstrings.htm"],
       ["ListHotkeys","commands/ListHotkeys.htm"],
       ["Suspend","commands/Suspend.htm"]
     ]],
