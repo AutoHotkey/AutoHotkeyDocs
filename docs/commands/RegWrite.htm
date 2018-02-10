@@ -10,11 +10,38 @@
 <body>
 
 <h1>RegWrite</h1>
-
 <p>Writes a value to the registry.</p>
 
-<pre class="Syntax">RegWrite, ValueType, RootKey\SubKey [, ValueName, Value]  <em>; Requires <span class="ver">[v1.1.21+]</span></em>
-RegWrite, ValueType, RootKey, SubKey [, ValueName, Value]</pre>
+<h2 id="new">New Syntax  <span class="ver">[v1.1.21+]</span></h2>
+<pre class="Syntax">RegWrite, ValueType, KeyName [, ValueName, Value]</pre>
+
+<h3>Parameters</h3>
+<dl>
+
+  <dt>ValueType</dt>
+  <dd><p>Must be either REG_SZ, REG_EXPAND_SZ, REG_MULTI_SZ, REG_DWORD, or REG_BINARY.</p></dd>
+
+  <dt>KeyName</dt>
+  <dd><p>The full name of the registry key.</p>
+      <p>This must start with HKEY_LOCAL_MACHINE, HKEY_USERS, HKEY_CURRENT_USER, HKEY_CLASSES_ROOT, or HKEY_CURRENT_CONFIG (or the abbreviations for each of these, such as HKLM). To access a <a href="LoopReg.htm#remote">remote registry</a>, prepend the computer name and a colon (or <span class="ver">[in v1.1.21+]</span> a slash), as in this example: <code>\\workstation01:HKEY_LOCAL_MACHINE</code></p></dd>
+
+  <dt>ValueName</dt>
+  <dd><p>The name of the value that will be written to. If blank or omitted, <em>KeyName</em>'s default value will be used, which is the value displayed as &quot;(Default)&quot; by RegEdit.</p></dd>
+
+  <dt>Value</dt>
+  <dd><p>The value to be written. If omitted, it will default to an empty (blank) string, or 0, depending on <em>ValueType</em>. If the text  is long, it can be broken up into several shorter lines by means of a <a href="../Scripts.htm#continuation">continuation section</a>, which might improve readability and maintainability.</p></dd>
+
+</dl>
+
+<h3>Examples</h3>
+<pre class="NoIndent">RegWrite, REG_SZ, HKEY_LOCAL_MACHINE\SOFTWARE\TestKey, MyValueName, Test Value
+RegWrite, REG_BINARY, HKEY_CURRENT_USER\Software\TEST_APP, TEST_NAME, 01A9FF77
+RegWrite, REG_MULTI_SZ, HKEY_CURRENT_USER\Software\TEST_APP, TEST_NAME, Line1`nLine2</pre>
+
+<h2 id="old">Old Syntax</h2>
+<p class="warning"><strong>Deprecated:</strong> This syntax is not recommended for use in new scripts. Use the <a href="#new">new syntax</a> instead.</p>
+<pre class="Syntax">RegWrite, ValueType, RootKey, SubKey [, ValueName, Value]</pre>
+
 <h3>Parameters</h3>
 <dl>
 
@@ -22,26 +49,30 @@ RegWrite, ValueType, RootKey, SubKey [, ValueName, Value]</pre>
   <dd><p>Must be either REG_SZ, REG_EXPAND_SZ, REG_MULTI_SZ, REG_DWORD, or REG_BINARY.</p></dd>
 
   <dt>RootKey</dt>
-  <dd><p>Must be either HKEY_LOCAL_MACHINE, HKEY_USERS, HKEY_CURRENT_USER, HKEY_CLASSES_ROOT, or HKEY_CURRENT_CONFIG (or the abbreviations for each of these, such as HKLM). To access a remote registry, prepend the computer name and a colon (or <span class="ver">[in v1.1.21+]</span> a slash), as in this example: <code>\\workstation01:HKEY_LOCAL_MACHINE</code></p></dd>
+  <dd><p>Must be either HKEY_LOCAL_MACHINE, HKEY_USERS, HKEY_CURRENT_USER, HKEY_CLASSES_ROOT, or HKEY_CURRENT_CONFIG (or the abbreviations for each of these, such as HKLM). To access a <a href="LoopReg.htm#remote">remote registry</a>, prepend the computer name and a colon (or <span class="ver">[in v1.1.21+]</span> a slash), as in this example: <code>\\workstation01:HKEY_LOCAL_MACHINE</code></p></dd>
 
   <dt>SubKey</dt>
   <dd><p>The name of the subkey (e.g. Software\SomeApplication). If <em>SubKey</em> does not exist, it is created (along with its ancestors, if necessary). If <em>SubKey</em> is left blank, the value is written directly into <em>RootKey</em> (though some operating systems might refuse to write in HKEY_CURRENT_USER's top level).</p></dd>
   
-  <dt>RootKey\SubKey <span class="ver">[v1.1.21+]</span></dt>
-  <dd><p>If <em>RootKey</em> is followed immediately by a slash (<code>\</code>), <em>RootKey</em> and <em>SubKey</em> are merged into a single parameter.</p></dd>
-
   <dt>ValueName</dt>
-  <dd><p>The  name of the value that will be written to. If blank or omitted, <em>Subkey</em>'s default value will be used, which is the value displayed as &quot;(Default)&quot; by RegEdit.</p></dd>
+  <dd><p>The name of the value that will be written to. If blank or omitted, <em>SubKey</em>'s default value will be used, which is the value displayed as &quot;(Default)&quot; by RegEdit.</p></dd>
 
   <dt>Value</dt>
   <dd><p>The value to be written. If omitted, it will default to an empty (blank) string, or 0, depending on <em>ValueType</em>. If the text  is long, it can be broken up into several shorter lines by means of a <a href="../Scripts.htm#continuation">continuation section</a>, which might improve readability and maintainability.</p></dd>
 
 </dl>
-<h3>ErrorLevel</h3>
+
+<h3>Examples</h3>
+<pre class="NoIndent">RegWrite, REG_SZ, HKEY_LOCAL_MACHINE, SOFTWARE\TestKey, MyValueName, Test Value
+RegWrite, REG_BINARY, HKEY_CURRENT_USER, Software\TEST_APP, TEST_NAME, 01A9FF77
+RegWrite, REG_MULTI_SZ, HKEY_CURRENT_USER, Software\TEST_APP, TEST_NAME, Line1`nLine2</pre>
+
+<h2>ErrorLevel</h2>
 <p><span class="ver">[v1.1.04+]</span>: This command is able to throw an exception on failure. For more information, see <a href="Catch.htm#RuntimeErrors">Runtime Errors</a>.</p>
 <p><a href="../misc/ErrorLevel.htm">ErrorLevel</a> is set to 1 if there was a problem or 0 otherwise.</p>
 <p><a href="../Variables.htm#LastError">A_LastError</a> is set to the result of the operating system's GetLastError() function.</p>
-<h3>Remarks</h3>
+
+<h2>Remarks</h2>
 <p>If <em>ValueType</em> is REG_DWORD, <em>Value</em> should be between -2147483648 and 4294967295 (0xFFFFFFFF).</p>
 <p>When writing a REG_BINARY key, use a string of hex characters, e.g. the REG_BINARY value of 01,a9,ff,77 can be written by using the string 01A9FF77.</p>
 <p>When writing a REG_MULTI_SZ key, you must separate each component from the next with a linefeed character (`n). The last component may optionally end with a linefeed as well. No blank components are allowed. In other words, do not specify two linefeeds in a row (`n`n) because that will result in a shorter-than-expected value being written to the registry.</p>
@@ -50,17 +81,8 @@ RegWrite, ValueType, RootKey, SubKey [, ValueName, Value]</pre>
 <p>For details about how to access the registry of a remote computer, see the remarks in <a href="LoopReg.htm">registry-loop</a>.</p>
 <p>To read and write entries from the 64-bit sections of the registry in a 32-bit script or vice versa, use <a href="SetRegView.htm">SetRegView</a>.</p>
 
-<h3>Related</h3>
+<h2>Related</h2>
 <p><a href="RegDelete.htm">RegDelete</a>, <a href="RegRead.htm">RegRead</a>, <a href="LoopReg.htm">Registry-loop</a>, <a href="SetRegView.htm">SetRegView</a>, <a href="IniWrite.htm">IniWrite</a></p>
-<h3>Examples</h3>
-<pre class="NoIndent">RegWrite, REG_SZ, HKEY_LOCAL_MACHINE, SOFTWARE\TestKey, MyValueName, Test Value
-RegWrite, REG_BINARY, HKEY_CURRENT_USER, Software\TEST_APP, TEST_NAME, 01A9FF77
-RegWrite, REG_MULTI_SZ, HKEY_CURRENT_USER, Software\TEST_APP, TEST_NAME, Line1`nLine2
-
-<em>; Alternative syntax <span class="ver">[requires v1.1.21+]</span>:</em>
-RegWrite, REG_SZ, HKEY_LOCAL_MACHINE\SOFTWARE\TestKey, MyValueName, Test Value
-RegWrite, REG_BINARY, HKEY_CURRENT_USER\Software\TEST_APP, TEST_NAME, 01A9FF77
-RegWrite, REG_MULTI_SZ, HKEY_CURRENT_USER\Software\TEST_APP, TEST_NAME, Line1`nLine2</pre>
 
 </body>
 </html>

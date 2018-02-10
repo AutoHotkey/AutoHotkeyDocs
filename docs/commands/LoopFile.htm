@@ -10,43 +10,56 @@
 <body>
 
 <h1>Loop (files &amp; folders)</h1>
-
 <p>Retrieves the specified files or folders, one at a time.</p>
 
-<pre class="Syntax">Loop, Files, FilePattern [, Mode]  <em>; Requires <span class="ver">[v1.1.21+]</span> (recommended)</em></pre>
-<pre class="Syntax">Loop, FilePattern [, IncludeFolders?, Recurse?]</pre>
+<h2 id="new">New Syntax <span class="ver">[v1.1.21+]</span></h2>
+<pre class="Syntax">Loop, Files, FilePattern [, Mode]</pre>
+
 <h3>Parameters</h3>
 <dl>
 
-  <dt>Files <span class="ver">[v1.1.21+]</span></dt>
+  <dt>Files</dt>
   <dd><p>The literal word <code>Files</code> (case-insensitive). This cannot be a variable or expression.</p></dd>
 
   <dt>FilePattern</dt>
-  <dd><p>The name of a single file or folder, or a wildcard pattern such as <code>C:\Temp\*.tmp</code>. <em>FilePattern</em> is assumed to be in <a href="../Variables.htm#WorkingDir">%A_WorkingDir%</a> if an absolute path isn't specified.</p>
-    <p>Both asterisks and question marks are supported as wildcards. A match occurs when the pattern appears in either the file's long/normal name or its <a href="#LoopFileShortName">8.3 short name</a>.</p>
-    <p>If this parameter is a single file or folder (i.e. no wildcards) and <em>Recurse</em> is set to 1 or <em>Mode</em> includes <code>R</code>, more than one match will be found if the specified file name appears in more than one of the folders being searched.</p></dd>
+  <dd><p>The name of a single file or folder, or a wildcard pattern such as <code>C:\Temp\*.tmp</code>. <em>FilePattern</em> is assumed to be in <a href="../Variables.htm#WorkingDir">A_WorkingDir</a> if an absolute path isn't specified.</p>
+      <p>Both asterisks and question marks are supported as wildcards. A match occurs when the pattern appears in either the file's long/normal name or its <a href="#LoopFileShortName">8.3 short name</a>.</p>
+      <p>If this parameter is a single file or folder (i.e. no wildcards) and <em>Mode</em> includes <code>R</code>, more than one match will be found if the specified file name appears in more than one of the folders being searched.</p></dd>
 
-  <dt>Mode <span class="ver">[v1.1.21+]</span></dt>
+  <dt>Mode</dt>
   <dd><p>Zero or more of the following letters:</p>
-    <p><code>D</code>: Include directories (folders).<br>
-    <code>F</code>: Include files. If both F and D are omitted, files are included but not folders.<br>
-    <code>R</code>: Recurse into subdirectories (subfolders). If R is omitted, files and folders in subfolders are not included.</p>
-  </dd>
+      <p><code>D</code>: Include directories (folders).<br>
+      <code>F</code>: Include files. If both F and D are omitted, files are included but not folders.<br>
+      <code>R</code>: Recurse into subdirectories (subfolders). If R is omitted, files and folders in subfolders are not included.</p></dd>
+
+</dl>
+
+<h2 id="old">Old Syntax</h2>
+<p class="warning"><strong>Deprecated:</strong> This syntax is not recommended for use in new scripts. Use the <a href="#new">new syntax</a> instead.</p>
+<pre class="Syntax">Loop, FilePattern [, IncludeFolders?, Recurse?]</pre>
+
+<h3>Parameters</h3>
+<dl>
+
+  <dt>FilePattern</dt>
+  <dd><p>The name of a single file or folder, or a wildcard pattern such as <code>C:\Temp\*.tmp</code>. <em>FilePattern</em> is assumed to be in <a href="../Variables.htm#WorkingDir">%A_WorkingDir%</a> if an absolute path isn't specified.</p>
+      <p>Both asterisks and question marks are supported as wildcards. A match occurs when the pattern appears in either the file's long/normal name or its <a href="#LoopFileShortName">8.3 short name</a>.</p>
+      <p>If this parameter is a single file or folder (i.e. no wildcards) and <em>Recurse</em> is set to 1, more than one match will be found if the specified file name appears in more than one of the folders being searched.</p></dd>
 
   <dt>IncludeFolders?</dt>
   <dd><p>One of the following digits, or blank to use the default:<br>
       0 (default) Folders are not retrieved (only files).<br>
-  1 All files and folders that match the wildcard pattern are retrieved.<br>
-  2 Only folders are retrieved (no files).</p></dd>
-  
+      1 All files and folders that match the wildcard pattern are retrieved.<br>
+      2 Only folders are retrieved (no files).</p></dd>
+
   <dt>Recurse?</dt>
   <dd>One of the following digits, or blank to use the default:<br>
       0 (default) Subfolders are not recursed into.<br>
-1 Subfolders are recursed into so that files and folders contained therein are retrieved if they match <em>FilePattern</em>. All subfolders will be recursed into, not just those whose names match <em>FilePattern</em>.</dd>
+      1 Subfolders are recursed into so that files and folders contained therein are retrieved if they match <em>FilePattern</em>. All subfolders will be recursed into, not just those whose names match <em>FilePattern</em>.</dd>
 
 </dl>
 
-<h3>Special Variables Available Inside a File-Loop</h3>
+<h2>Special Variables Available Inside a File-Loop</h2>
 <p>The following variables exist within any file-loop. If an inner file-loop is enclosed by an outer file-loop, the innermost loop's file will take precedence:</p>
 <table class="info">
   <tr id="LoopFileName">
@@ -112,7 +125,8 @@
     <td>The size in Mbytes of the file currently retrieved, rounded down to the nearest integer.</td>
   </tr>
 </table>
-<h3>Remarks</h3>
+
+<h2>Remarks</h2>
 <p>A file-loop is useful when you want to operate on a collection of files and/or folders, one at a time.</p>
 <p>All matching files are retrieved, including hidden files. By contrast, OS features such as the DIR command omit hidden files by default. To avoid processing hidden, system, and/or read-only files, use something like the following inside the loop:</p>
 <pre>if A_LoopFileAttrib contains H,R,S  <em>; Skip any file that is either H (Hidden), R (Read-only), or S (System). Note: No spaces in &quot;H,R,S&quot;.</em>
@@ -127,9 +141,11 @@ Loop, Parse, FileList, `n
 <p>Files in an NTFS file system are probably always retrieved in alphabetical order. Files in other file systems are retrieved in no particular order. To ensure a particular ordering, use the <a href="Sort.htm">Sort</a> command as shown in the Examples section below.</p>
 <p>Files and folders with a complete path name longer than 259 characters are skipped over as though they do not exist. Such files are rare because normally, the operating system does not allow their creation.</p>
 <p>See <a href="Loop.htm">Loop</a> for information about <a href="Block.htm">Blocks</a>, <a href="Break.htm">Break</a>, <a href="Continue.htm">Continue</a>, and the A_Index variable (which exists in every type of loop).</p>
-<h3>Related</h3>
+
+<h2>Related</h2>
 <p><a href="Loop.htm">Loop</a>, <a href="Break.htm">Break</a>, <a href="Continue.htm">Continue</a>, <a href="Block.htm">Blocks</a>, <a href="SplitPath.htm">SplitPath</a>, <a href="FileSetAttrib.htm">FileSetAttrib</a>, <a href="FileSetTime.htm">FileSetTime</a></p>
-<h3>Examples</h3>
+
+<h2>Examples</h2>
 <pre class="NoIndent"><em>; Example #1:</em>
 Loop Files, %A_ProgramFiles%\*.txt, R  <em>; Recurse into subfolders.</em>
 {
@@ -137,7 +153,6 @@ Loop Files, %A_ProgramFiles%\*.txt, R  <em>; Recurse into subfolders.</em>
     IfMsgBox, No
         break
 }</pre>
-<p>&nbsp;</p>
 <pre class="NoIndent"><em>; Example #2: Calculate the size of a folder, including the files in all its subfolders:</em>
 SetBatchLines, -1  <em>; Make the operation run at maximum speed.</em>
 FolderSizeKB = 0
@@ -145,7 +160,6 @@ FileSelectFolder, WhichFolder  <em>; Ask the user to pick a folder.</em>
 Loop, Files, %WhichFolder%\*.*, R
     FolderSizeKB += %A_LoopFileSizeKB%
 MsgBox Size of %WhichFolder% is %FolderSizeKB% KB.</pre>
-<p>&nbsp;</p>
 <pre class="NoIndent"><em>; Example #3: Retrieve file names sorted by name (see next example to sort by date):</em>
 FileList =  <em>; Initialize to be blank.</em>
 Loop, C:\*.*
@@ -159,7 +173,6 @@ Loop, parse, FileList, `n
     IfMsgBox, No
         break
 }</pre>
-<p>&nbsp;</p>
 <pre class="NoIndent"><em>; Example #4: Retrieve file names sorted by modification date:</em>
 FileList =
 Loop, Files, %A_MyDocuments%\Photos\*.*, FD  <em>; Include Files and Directories</em>
@@ -174,7 +187,6 @@ Loop, Parse, FileList, `n
     IfMsgBox, No
         break
 }</pre>
-<p>&nbsp;</p>
 <pre class="NoIndent"><em>; Example #5: Copy only the source files that are newer than their counterparts
 ; in the destination:</em>
 CopyIfNewer:
@@ -199,7 +211,6 @@ Loop, Files, %CopySourcePattern%
     }
 }
 Return</pre>
-<p>&nbsp;</p>
 <pre class="NoIndent"><em>; Example #6: Convert filenames passed in via command-line parameters to long names,
 ; complete path, and correct uppercase/lowercase characters as stored in the file system.</em>
 Loop %0%  <em>; For each file dropped onto the script (or passed as a parameter).</em>

@@ -104,7 +104,7 @@ Loop
 	Input, I_Word, V, {enter}{escape}{space}`,
 	I_EndKey = %ErrorLevel%
 	
-	; Tooltip is hidden in these cases:
+	; ToolTip is hidden in these cases:
 	if I_EndKey in EndKey:Enter,EndKey:Escape
 	{
 		ToolTip

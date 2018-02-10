@@ -10,17 +10,45 @@
 <body>
 
 <h1>OnExit</h1>
+<p>Specifies a <a href="Gosub.htm">subroutine</a> or <a href="../Functions.htm">callback function</a> to run automatically when the script exits.</p>
 
-<p>Specifies a <a href="Gosub.htm">subroutine</a> or <a href="../Functions.htm">function</a> to run  automatically when the script exits.</p>
+<h2 id="command">OnExit</h2>
+<p class="warning"><strong>Deprecated:</strong> This command is not recommended for use in new scripts. Use the <a href="#function">OnExit</a> function instead.</p>
+<pre class="Syntax">OnExit [, Label]</pre>
 
-<pre class="Syntax">OnExit [, Label]
-OnExit(Func [, AddRemove])  <em>; Requires <span class="ver">[v1.1.20+]</span></em></pre>
 <h3>Parameters</h3>
 <dl>
 
   <dt>Label</dt>
   <dd><p>If omitted, any previously registered label is unregistered. Otherwise, specify the name of the <a href="../misc/Labels.htm">label</a> whose contents will be executed (as a new <a href="../misc/Threads.htm">thread</a>) when the script exits by any means.</p></dd>
   
+</dl>
+
+<h3>Remarks</h3>
+<p><strong>IMPORTANT:</strong> Since the specified subroutine is called instead of terminating the script, that subroutine must use the <a href="ExitApp.htm">ExitApp</a> command if termination is desired.</p>
+<p>The built-in variable <strong>A_ExitReason</strong> is blank unless the OnExit subroutine  is currently running or has been called at least once by a prior exit attempt. If not blank, it is one of the words from the <a href="#ExitReason">table below</a>.</p>
+
+<h3>Examples</h3>
+<pre class="NoIndent"><em>; After running this script, right click the tray icon and click Exit to test the OnExit subroutine.</em>
+<a href="_Persistent.htm">#Persistent</a>  <em>; Prevent the script from exiting automatically.</em>
+OnExit, ExitSub  
+return
+
+ExitSub:
+if A_ExitReason not in Logoff,Shutdown  <em>; Avoid spaces around the comma in this line.</em>
+{
+    MsgBox, 4, , Are you sure you want to exit?
+    IfMsgBox, No
+        return
+}
+ExitApp  <em>; A script with an OnExit subroutine will not terminate unless the subroutine uses ExitApp.</em></pre>
+
+<h2 id="function">OnExit() <span class="ver">[v1.1.20+]</span></h2>
+<pre class="Syntax">OnExit(Func [, AddRemove])</pre>
+
+<h3>Parameters</h3>
+<dl>
+
   <dt>Func</dt>
   <dd><p>A function name or <a href="../objects/Functor.htm">function object</a> to call when the script is exiting. The function can optionally define parameters as shown below. If an OnExit function returns a non-zero integer, the script does not exit. Otherwise, the script exits after all registered functions are called.</p>
   <pre class="Syntax">ExitFunc(<a href="#ExitReason">ExitReason</a>, <a href="ExitApp.htm">ExitCode</a>)</pre></dd>
@@ -30,21 +58,58 @@ OnExit(Func [, AddRemove])  <em>; Requires <span class="ver">[v1.1.20+]</span></
   <strong>1</strong> (the default): Call the function after any previously registered functions.<br>
   <strong>-1</strong>: Call the function before any previously registered functions.<br>
   <strong>0</strong>: Do not call the function.</p>
-  <p>If a label (subroutine) has been registered, it is always called first.</p></dd>
+  <p>If a label (subroutine) has been registered, it is always called first.</p>
+  </dd>
 
 </dl>
 
 <h3>Remarks</h3>
-<p><strong>IMPORTANT:</strong> Since the specified subroutine is called instead of terminating the script, that subroutine must use the <a href="ExitApp.htm">ExitApp</a> command if termination is desired. <span class="ver">[v1.1.20+]:</span> New scripts should use a function instead of a subroutine -- this reduces the risk of accidentally creating a script which can't be exited, and ensures that the exit code passed to Exit or ExitApp is preserved.</p>
-<p><span class="ver">[v1.1.20+]:</span> Any number of OnExit functions can be registered. If a label (subroutine) is also registered, the functions are called after the subroutine calls <a href="ExitApp.htm">ExitApp</a>. An OnExit function usually should not call ExitApp; if it does, the script terminates immediately.</p>
-<p>The OnExit subroutine is called when the script exits by any means (except when it is killed by something like &quot;End Task&quot;). It is also called whenever the <a href="_SingleInstance.htm">#SingleInstance</a> and <a href="Reload.htm">Reload</a> commands ask a previous instance to terminate.</p>
-<p>A script can detect and optionally abort a system shutdown or logoff via <code><a href="OnMessage.htm#shutdown">OnMessage(0x11, &quot;WM_QUERYENDSESSION&quot;)</a></code>.</p>
-<p>The OnExit <a href="../misc/Threads.htm">thread</a> does not obey <a href="_MaxThreads.htm">#MaxThreads</a> (it will always launch when needed). In addition, while it is running, it cannot be interrupted by any <a href="../misc/Threads.htm">thread</a>, including <a href="../Hotkeys.htm">hotkeys</a>, <a href="Menu.htm">custom menu items</a>, and <a href="SetTimer.htm">timed subroutines</a>. However, it will be interrupted (and the script will terminate) if the user chooses Exit from the tray menu or main menu, or the script is asked to terminate as a result of <a href="Reload.htm">Reload</a> or <a href="_SingleInstance.htm">#SingleInstance</a>. Because of this, the OnExit subroutine should be designed to finish quickly unless the user is aware of what it is doing.</p>
-<p>If the OnExit <a href="../misc/Threads.htm">thread</a> encounters a failure condition such as a runtime error, the script will terminate. This prevents a flawed OnExit subroutine from making a script impossible to terminate.</p>
+<p>New scripts should use a function instead of a subroutine -- this reduces the risk of accidentally creating a script which can't be exited, and ensures that the exit code passed to Exit or ExitApp is preserved.</p>
+<p>Any number of OnExit functions can be registered. If a label (subroutine) is also registered, the functions are called after the subroutine calls <a href="ExitApp.htm">ExitApp</a>. An OnExit function usually should not call ExitApp; if it does, the script terminates immediately.</p>
+
+<h3 id="Examples">Examples</h3>
+<pre class="NoIndent"><em>; After running this script, right click the tray icon and click Exit to test the OnExit callback function.</em>
+<a href="_Persistent.htm">#Persistent</a>  <em>; Prevent the script from exiting automatically.</em>
+
+<em>; Register a function to be called on exit:</em>
+OnExit("ExitFunc")
+
+<em>; Register an object to be called on exit:</em>
+OnExit(<a href="ObjBindMethod.htm">ObjBindMethod</a>(MyObject, "Exiting"))
+
+ExitFunc(ExitReason, ExitCode)
+{
+    if ExitReason not in Logoff,Shutdown
+    {
+        MsgBox, 4, , Are you sure you want to exit?
+        IfMsgBox, No
+            return 1  <em>; OnExit functions must return non-zero to prevent exit.</em>
+    }
+    <em>; Do not call ExitApp -- that would prevent other OnExit functions from being called.</em>
+}
+
+class MyObject
+{
+    Exiting()
+    {
+        MsgBox, MyObject is cleaning up prior to exiting...
+        <em>/*
+        this.SayGoodbye()
+        this.CloseNetworkConnections()
+        */</em>
+    }
+}</pre>
+
+<h2>Remarks</h2>
+<p>The OnExit subroutine or callback function is called when the script exits by any means (except when it is killed by something like &quot;End Task&quot;). It is also called whenever the <a href="_SingleInstance.htm">#SingleInstance</a> and <a href="Reload.htm">Reload</a> commands ask a previous instance to terminate.</p>
+<p>A script can detect and optionally abort a system shutdown or logoff via <code><a href="OnMessage.htm#shutdown">OnMessage</a>(0x11, &quot;WM_QUERYENDSESSION&quot;)</code>.</p>
+<p>The OnExit <a href="../misc/Threads.htm">thread</a> does not obey <a href="_MaxThreads.htm">#MaxThreads</a> (it will always launch when needed). In addition, while it is running, it cannot be interrupted by any <a href="../misc/Threads.htm">thread</a>, including <a href="../Hotkeys.htm">hotkeys</a>, <a href="Menu.htm">custom menu items</a>, and <a href="SetTimer.htm">timed subroutines</a>. However, it will be interrupted (and the script will terminate) if the user chooses Exit from the tray menu or main menu, or the script is asked to terminate as a result of <a href="Reload.htm">Reload</a> or <a href="_SingleInstance.htm">#SingleInstance</a>. Because of this, the OnExit subroutine or callback function should be designed to finish quickly unless the user is aware of what it is doing.</p>
+<p>If the OnExit <a href="../misc/Threads.htm">thread</a> encounters a failure condition such as a runtime error, the script will terminate. This prevents a flawed OnExit subroutine callback function from making a script impossible to terminate.</p>
 <p>If the OnExit <a href="../misc/Threads.htm">thread</a> was launched due to an <a href="Exit.htm">Exit</a> or <a href="ExitApp.htm">ExitApp</a> command that specified an exit code, in <span class="ver">[v1.1.19]</span> and earlier that code is ignored and no longer available. In <span class="ver">[v1.1.20+]</span> the initial exit code is used unless overridden by calling <a href="ExitApp.htm">ExitApp</a> with a new exit code.</p>
-<p>Whenever an exit attempt is made, each OnExit subroutine or function starts off fresh with the default values for settings such as <a href="SendMode.htm">SendMode</a>. These defaults can be changed in the <a href="../Scripts.htm#auto">auto-execute section</a>.</p>
-<p>The built-in variable <strong>A_ExitReason</strong> is blank unless the OnExit subroutine  is currently running or has been called at least once by a prior exit attempt. If not blank, it is one of the following words:</p>
-<table class="info" id="ExitReason">
+<p>Whenever an exit attempt is made, each OnExit subroutine or callback function starts off fresh with the default values for settings such as <a href="SendMode.htm">SendMode</a>. These defaults can be changed in the <a href="../Scripts.htm#auto">auto-execute section</a>.</p>
+
+<h2 id="ExitReason">Exit Reasons</h2>
+<table class="info">
   <tr id="logoff">
     <td>Logoff</td>
     <td>The user is logging off.</td>
@@ -79,54 +144,8 @@ OnExit(Func [, AddRemove])  <em>; Requires <span class="ver">[v1.1.20+]</span></
   </tr>
 </table>
 
-<h3>Related</h3>
+<h2>Related</h2>
 <p><a href="OnMessage.htm">OnMessage()</a>, <a href="RegisterCallback.htm">RegisterCallback()</a>, <a href="OnClipboardChange.htm">OnClipboardChange</a>, <a href="ExitApp.htm">ExitApp</a>, <a href="Shutdown.htm">Shutdown</a>, <a href="_Persistent.htm">#Persistent</a>, <a href="../misc/Threads.htm">Threads</a>, <a href="Gosub.htm">Gosub</a>, <a href="Return.htm">Return</a>, <a href="Menu.htm">Menu</a></p>
-
-<h3 id="Examples">Examples</h3>
-<p>The following examples use <a href="_Persistent.htm">#Persistent</a> to prevent the script from exiting automatically. After running the script, right click the tray icon and click <em>Exit</em> to test the OnExit subroutine or function. Then click "Yes" to terminate the script or "No" to keep it running.</p>
-<pre class="NoIndent">#Persistent
-OnExit, ExitSub
-return
-
-ExitSub:
-if A_ExitReason not in Logoff,Shutdown  <em>; Avoid spaces around the comma in this line.</em>
-{
-    MsgBox, 4, , Are you sure you want to exit?
-    IfMsgBox, No
-        return
-}
-ExitApp  <em>; A script with an OnExit subroutine will not terminate unless the subroutine uses ExitApp.</em></pre>
-&nbsp;
-<pre class="NoIndent">#Persistent
-
-<em>; Register a function to be called on exit:</em>
-OnExit("ExitFunc")
-
-<em>; Register an object to be called on exit:</em>
-OnExit(<a href="ObjBindMethod.htm">ObjBindMethod</a>(MyObject, "Exiting"))
-
-ExitFunc(ExitReason, ExitCode)
-{
-    if ExitReason not in Logoff,Shutdown
-    {
-        MsgBox, 4, , Are you sure you want to exit?
-        IfMsgBox, No
-            return 1  <em>; OnExit functions must return non-zero to prevent exit.</em>
-    }
-    <em>; Do not call ExitApp -- that would prevent other OnExit functions from being called.</em>
-}
-
-class MyObject
-{
-    Exiting()
-    {
-        MsgBox, MyObject is cleaning up prior to exiting...
-        <em>/*
-        this.SayGoodbye()
-        this.CloseNetworkConnections()
-        */</em>
-    }
-}</pre>
 
 </body>
 </html>

@@ -34,10 +34,10 @@ vol_Thick = 12   ; thickness of bar
 ; If your keyboard has multimedia buttons for Volume, you can
 ; try changing the below hotkeys to use them by specifying
 ; Volume_Up, ^Volume_Up, Volume_Down, and ^Volume_Down:
-HotKey, #Up, vol_MasterUp      ; Win+UpArrow
-HotKey, #Down, vol_MasterDown
-HotKey, +#Up, vol_WaveUp       ; Shift+Win+UpArrow
-HotKey, +#Down, vol_WaveDown
+Hotkey, #Up, vol_MasterUp      ; Win+UpArrow
+Hotkey, #Down, vol_MasterDown
+Hotkey, +#Up, vol_WaveUp       ; Shift+Win+UpArrow
+Hotkey, +#Down, vol_WaveDown
 
 
 ;___________________________________________ 
@@ -121,7 +121,7 @@ SetTimer, vol_BarOff, %vol_DisplayTime%
 return
 
 vol_BarOff:
-SetTimer, vol_BarOff, off
+SetTimer, vol_BarOff, Off
 Progress, 1:Off
 Progress, 2:Off
 return

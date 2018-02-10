@@ -49,38 +49,38 @@ Loop
 	buttons_down =
 	Loop, %joy_buttons%
 	{
-		GetKeyState, joy%a_index%, %JoystickNumber%joy%a_index%
-		if joy%a_index% = D
-			buttons_down = %buttons_down%%a_space%%a_index%
+		GetKeyState, joy%A_Index%, %JoystickNumber%joy%A_Index%
+		if joy%A_Index% = D
+			buttons_down = %buttons_down%%A_Space%%A_Index%
 	}
-	GetKeyState, joyx, %JoystickNumber%JoyX
-	axis_info = X%joyx%
-	GetKeyState, joyy, %JoystickNumber%JoyY
-	axis_info = %axis_info%%a_space%%a_space%Y%joyy%
+	GetKeyState, JoyX, %JoystickNumber%JoyX
+	axis_info = X%JoyX%
+	GetKeyState, JoyY, %JoystickNumber%JoyY
+	axis_info = %axis_info%%A_Space%%A_Space%Y%JoyY%
 	IfInString, joy_info, Z
 	{
-		GetKeyState, joyz, %JoystickNumber%JoyZ
-		axis_info = %axis_info%%a_space%%a_space%Z%joyz%
+		GetKeyState, JoyZ, %JoystickNumber%JoyZ
+		axis_info = %axis_info%%A_Space%%A_Space%Z%JoyZ%
 	}
 	IfInString, joy_info, R
 	{
-		GetKeyState, joyr, %JoystickNumber%JoyR
-		axis_info = %axis_info%%a_space%%a_space%R%joyr%
+		GetKeyState, JoyR, %JoystickNumber%JoyR
+		axis_info = %axis_info%%A_Space%%A_Space%R%JoyR%
 	}
 	IfInString, joy_info, U
 	{
-		GetKeyState, joyu, %JoystickNumber%JoyU
-		axis_info = %axis_info%%a_space%%a_space%U%joyu%
+		GetKeyState, JoyU, %JoystickNumber%JoyU
+		axis_info = %axis_info%%A_Space%%A_Space%U%JoyU%
 	}
 	IfInString, joy_info, V
 	{
-		GetKeyState, joyv, %JoystickNumber%JoyV
-		axis_info = %axis_info%%a_space%%a_space%V%joyv%
+		GetKeyState, JoyV, %JoystickNumber%JoyV
+		axis_info = %axis_info%%A_Space%%A_Space%V%JoyV%
 	}
 	IfInString, joy_info, P
 	{
 		GetKeyState, joyp, %JoystickNumber%JoyPOV
-		axis_info = %axis_info%%a_space%%a_space%POV%joyp%
+		axis_info = %axis_info%%A_Space%%A_Space%POV%joyp%
 	}
 	ToolTip, %joy_name% (#%JoystickNumber%):`n%axis_info%`nButtons Down: %buttons_down%`n`n(right-click the tray icon to exit)
 	Sleep, 100

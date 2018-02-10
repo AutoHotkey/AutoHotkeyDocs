@@ -69,5 +69,5 @@ IfWinNotExist, AutoHotkey Help
 WinActivate
 WinWaitActive
 StringReplace, C_Cmd, C_Cmd, #, {#}
-send, !n{home}+{end}%C_Cmd%{enter}
+Send, !n{home}+{end}%C_Cmd%{enter}
 return

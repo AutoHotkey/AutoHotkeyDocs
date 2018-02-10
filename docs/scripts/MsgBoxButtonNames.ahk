@@ -17,7 +17,7 @@ return
 ChangeButtonNames: 
 IfWinNotExist, Add or Delete
 	return  ; Keep waiting.
-SetTimer, ChangeButtonNames, off 
+SetTimer, ChangeButtonNames, Off 
 WinActivate 
 ControlSetText, Button1, &Add 
 ControlSetText, Button2, &Delete 

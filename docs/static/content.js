@@ -5,8 +5,6 @@ padding:"inner"+a,content:b,"":"outer"+a},function(c,d){n.fn[d]=function(d,e){va
 
 /*Search highlighting*/jQuery.fn.highlight=function(c){function e(b,c){var d=0;if(3==b.nodeType){var a=b.data.toUpperCase().indexOf(c),a=a-(b.data.substr(0,a).toUpperCase().length-b.data.substr(0,a).length);if(0<=a){d=document.createElement("span");d.className="highlight";a=b.splitText(a);a.splitText(c.length);var f=a.cloneNode(!0);d.appendChild(f);a.parentNode.replaceChild(d,a);d=1}}else if(1==b.nodeType&&b.childNodes&&!/(script|style)/i.test(b.tagName))for(a=0;a<b.childNodes.length;++a)a+=e(b.childNodes[a],c);return d} return this.length&&c&&c.length?this.each(function(){e(this,c.toUpperCase())}):this};jQuery.fn.removeHighlight=function(){return this.find("span.highlight").each(function(){this.parentNode.firstChild.nodeName;with(this.parentNode)replaceChild(this.firstChild,this),normalize()}).end()};
 
-/*For IE8*/Array.prototype.indexOf||(Array.prototype.indexOf=function(r,t){var n;if(null==this)throw new TypeError('"this" is null or not defined');var e=Object(this),i=e.length>>>0;if(0===i)return-1;var a=+t||0;if(Math.abs(a)===1/0&&(a=0),a>=i)return-1;for(n=Math.max(a>=0?a:i-Math.abs(a),0);i>n;){if(n in e&&e[n]===r)return n;n++}return-1});
-
 // --- Cached data ---
 
 // To have the data remain while navigating through the docs, it'll be stored into
@@ -21,7 +19,7 @@ var cache = {
   clickTab: 0,
   LastUsedSource: "",
   displaySidebar: true,
-  sidebarWidth: 255,
+  sidebarWidth: '18em',
   RightIsFocused: true,
   translate: {},
   toc: {data: {}, clickItem: 0, scrollPos: 0},
@@ -489,9 +487,12 @@ function ctor_search()
 
       // Assemble list of unique results:
       var ukeys = []
+      var ukeys_searchStr = '|';
       for (var i = 0; i < aro_ka.length; ++i)
-        if (ukeys.indexOf(aro_ka[i]) == -1)
+        if (ukeys_searchStr.indexOf('|'+aro_ka[i]+'|') == -1) {
           ukeys.push(aro_ka[i])
+          ukeys_searchStr += aro_ka[i]+'|';
+        }
 
       // The lower the rank the better
       // normal ranking (based on page contents):
@@ -605,9 +606,12 @@ function ctor_search()
       }
       files = files.concat(files_low)
       var unique = []
+      var unique_searchStr = '|';
       for (var i = 0; i < files.length; ++i)
-        if (unique.indexOf(files[i]) == -1)
+        if (unique_searchStr.indexOf('|'+files[i]+'|') == -1) {
           unique.push(files[i])
+          unique_searchStr += files[i]+'|'
+        }
       PartialIndex[word] = unique
       return unique
     }
@@ -973,7 +977,7 @@ function ctor_structure()
     var $leftArea = $('#left');
     var $dragbar = $('.dragbar');
     var hide = {width: 0, visibility: "hidden"};
-    var show = {width: cache.sidebarWidth+"px", visibility: "visible"};
+    var show = {width: cache.sidebarWidth, visibility: "visible"};
     if (display) {
       $headTabs.css(show);
       $leftArea.css(show);
