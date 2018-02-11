@@ -345,6 +345,7 @@ tocData = [
     ["WinExist","commands/WinExist.htm"],
     ["WinGet.. (various)","commands/WinGet.htm"],
     ["WinGetClass","commands/WinGetClass.htm"],
+    ["WinGetClientPos","commands/WinGetClientPos.htm"],
     ["WinGetPos","commands/WinGetPos.htm"],
     ["WinGetText","commands/WinGetText.htm"],
     ["WinGetTitle","commands/WinGetTitle.htm"],

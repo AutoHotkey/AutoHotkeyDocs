@@ -887,6 +887,7 @@ indexData = [
   ["window messages","misc/SendMessageList.htm"],
   ["WinExist","commands/WinExist.htm"],
   ["WinGetClass","commands/WinGetClass.htm"],
+  ["WinGetClientPos","commands/WinGetClientPos.htm"],
   ["WinGetControls","commands/WinGet.htm#Controls"],
   ["WinGetControlsHwnd","commands/WinGet.htm#ControlsHwnd"],
   ["WinGetCount","commands/WinGet.htm#Count"],
