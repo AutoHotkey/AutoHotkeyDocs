@@ -130,7 +130,7 @@ return
 
 ; This detects "double-clicks" of the alt key.
 ~Alt::
-DoubleAlt := A_PriorHotKey = "~Alt" AND A_TimeSincePriorHotkey < 400
+DoubleAlt := A_PriorHotkey = "~Alt" AND A_TimeSincePriorHotkey < 400
 Sleep 0
 KeyWait "Alt"  ; This prevents the keyboard's auto-repeat feature from interfering.
 return

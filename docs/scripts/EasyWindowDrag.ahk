@@ -5,7 +5,7 @@
 ; To activate this mode, hold down CapsLock or the middle mouse button while
 ; clicking, then drag the window to a new position.
 
-; Note: You can optionally release Capslock or the middle mouse button after
+; Note: You can optionally release CapsLock or the middle mouse button after
 ; pressing down the mouse button rather than holding it down the whole time.
 
 ~MButton & LButton::
@@ -20,12 +20,12 @@ return
 EWD_WatchMouse:
 if !GetKeyState("LButton", "P")  ; Button has been released, so drag is complete.
 {
-    SetTimer , "off"
+    SetTimer , "Off"
     return
 }
 if GetKeyState("Escape", "P")  ; Escape has been pressed, so drag is cancelled.
 {
-    SetTimer , "off"
+    SetTimer , "Off"
     WinMove EWD_OriginalPosX, EWD_OriginalPosY,,, "ahk_id " EWD_MouseWin
     return
 }

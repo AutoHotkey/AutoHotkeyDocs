@@ -101,7 +101,7 @@ Loop
     I_Word := Input("V", "{Enter}{Escape}{Space},")
     I_EndKey := ErrorLevel
     
-    ; Tooltip is hidden in these cases:
+    ; ToolTip is hidden in these cases:
     if I_EndKey = "EndKey:Enter" or I_EndKey = "EndKey:Escape"
     {
         ToolTip
