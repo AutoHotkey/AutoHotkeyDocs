@@ -945,9 +945,8 @@ function ctor_structure()
         for (var i = 0; i < keyList.length; i++)
           if (e.which == T(keyList[i]).charCodeAt(0)) {
             self.pressKey(keyList[i]);
-            break;
+            return false;
           }
-        return false;
       }
     });
   }
