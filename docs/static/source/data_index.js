@@ -53,6 +53,7 @@ indexData = [
   ["A_AhkVersion","Variables.htm#AhkVersion",1],
   ["A_AppData","Variables.htm#AppData",1],
   ["A_AppDataCommon","Variables.htm#AppDataCommon",1],
+  ["A_Args","Variables.htm#Args",1],
   ["A_AutoTrim","Variables.htm#AutoTrim",1],
   ["A_BatchLines","Variables.htm#BatchLines",1],
   ["A_CaretX","Variables.htm#Caret",1],
