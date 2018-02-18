@@ -63,15 +63,15 @@ Loop
         axis_info .= "  V" Round(GetKeyState(JoystickNumber "JoyV"))
     if InStr(joy_info, "P")
         axis_info .= "  POV" Round(GetKeyState(JoystickNumber "JoyPOV"))
-    ToolTip "
-    (Q
-      " joy_name " (#" JoystickNumber "):
+    ToolTip
+    (
+      joy_name " (#" JoystickNumber "):
       " axis_info "
       Buttons Down:
       " buttons_down "
 
-      (right-click the tray icon to exit)
-    )"
+      (right-click the tray icon to exit)"
+    )
     Sleep 100
 }
 return

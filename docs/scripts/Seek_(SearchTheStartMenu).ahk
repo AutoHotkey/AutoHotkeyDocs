@@ -116,14 +116,14 @@ if A_Args[1] ~= "^(--help|-help|/h|-h|/\?|-\?)$"
 ; Check that the mandatory environment variables exist and are valid:
 if !FileExist(A_Temp) ; Path does not exist.
 {
-  MsgBox("
-  (Q
-    This mandatory environment variable is either not defined or invalid:
+  MsgBox
+  (
+    "This mandatory environment variable is either not defined or invalid:
     
         TMP = " A_Temp "
         
-    Please fix it before running Seek.
-  )", config.ScriptTitle)
+    Please fix it before running Seek."
+  ), config.ScriptTitle
   ExitApp
 }
 
@@ -234,13 +234,13 @@ SaveFileList(config)
     Loop Read, config.SeekMyDir
     {
       if !FileExist(A_LoopReadLine)
-        MsgBox("
-        (Q
-          Processing your customised directory list...
+        MsgBox
+        (
+          "Processing your customised directory list...
           
           '" A_LoopReadLine "' does not exist and will be excluded from the scanning.
-          Please update [ " config.SeekMyDir " ].
-        )", config.ScriptTitle, 8192)
+          Please update [ " config.SeekMyDir " ]."
+        ), config.ScriptTitle, 8192
       else
         LocationArray.Push(A_LoopReadLine)
     }
@@ -334,14 +334,14 @@ OpenTarget(config, LB)
   ; Selected record does not exist (file or directory not found):
   if !FileExist(LB.Text)
   {
-    MsgBox("
-    (Q
-      " LB.Text " does not exist.
+    MsgBox
+    (
+      LB.Text " does not exist.
       
       This means that the directory cache is outdated. You may click on
       the 'Scan Start-Menu' button below to update the directory cache with your
-      latest directory listing now.
-    )", config.ScriptTitle, 8192)
+      latest directory listing now."
+    ), config.ScriptTitle, 8192
     return
   }
 
@@ -353,12 +353,12 @@ OpenTarget(config, LB)
     Run(LB.Text)
   else
   {
-    MsgBox("
-    (Q
-      " LB.Text " is neither a DIRECTORY or a FILE.
+    MsgBox
+    (
+      LB.Text " is neither a DIRECTORY or a FILE.
       
-      This shouldn't happen. Seek cannot proceed. Quitting...
-    )")
+      This shouldn't happen. Seek cannot proceed. Quitting..."
+    )
   }
   WinClose
 }
@@ -379,14 +379,14 @@ OpenFolder(config, LB)
   ; Check whether directory exists:
   if !FileExist(Path)
   {
-    MsgBox("
-    (Q
-      " Path " does not exist.
+    MsgBox
+    (
+      Path " does not exist.
       
       This means that the directory cache is outdated. You may click on
       the 'Scan Start-Menu' button below to update the directory cache with your
-      latest directory listing now.
-    )", config.ScriptTitle, 8192)
+      latest directory listing now."
+    ), config.ScriptTitle, 8192
     return
   }
 
