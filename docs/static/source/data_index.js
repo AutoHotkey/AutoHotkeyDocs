@@ -20,6 +20,7 @@ indexData = [
   ["#NoTrayIcon","commands/_NoTrayIcon.htm"],
   ["#Persistent","commands/_Persistent.htm"],
   ["#SingleInstance","commands/_SingleInstance.htm"],
+  ["#SuspendExempt","commands/_SuspendExempt.htm"],
   ["#UseHook","commands/_UseHook.htm"],
   ["#Warn","commands/_Warn.htm"],
   ["#WinActivateForce","commands/_WinActivateForce.htm"],

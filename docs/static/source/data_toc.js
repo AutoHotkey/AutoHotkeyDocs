@@ -198,6 +198,7 @@ tocData = [
       ["#MaxThreadsBuffer","commands/_MaxThreadsBuffer.htm"],
       ["#MaxThreadsPerHotkey","commands/_MaxThreadsPerHotkey.htm"],
       ["#MenuMaskKey","commands/_MenuMaskKey.htm"],
+      ["#SuspendExempt","commands/_SuspendExempt.htm"],
       ["#UseHook","commands/_UseHook.htm"],
       ["Hotkey","commands/Hotkey.htm"],
       ["Hotstring","commands/Hotstring.htm"],
