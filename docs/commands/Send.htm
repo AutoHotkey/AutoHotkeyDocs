@@ -89,6 +89,17 @@
   </tr>
 </table>
 <p class="note"><strong>Note</strong>: As capital letters are produced by sending the SHIFT key, <code>A</code> produces a different effect in some programs than <code>a</code>. For example, <code>!A</code> presses ALT+SHIFT+A and <code>!a</code> presses ALT+a. If in doubt, use lowercase.</p>
+<p id="blind"><strong>Blind mode</strong> - <code>{Blind}</code>: Blind mode gives the script more control by disabling a number of things that are normally done automatically to make things work as expected. <code>{Blind}</code> must be the first item in the string to enable Blind mode. It has the following effects:</p>
+<ul>
+  <li>Blind mode avoids releasing Alt/Control/Shift/Win if they started out in the down position. For example, the hotkey <code>+s::Send "{Blind}abc"</code> would send ABC rather than abc because the user is holding down the Shift key.</li>
+  <li>Modifier keys are restored differently to allow a Send to turn off a hotkey's modifiers even if the user is still physically holding them down. For example, <code>^space::Send "{Ctrl up}"</code> automatically pushes Ctrl back down if the user is still physically holding Ctrl, whereas <code>^space::Send "{Blind}{Ctrl up}"</code> allows Ctrl to be logically up even though it is physically down.</li>
+  <li><a href="SetStoreCapslockMode.htm">SetStoreCapsLockMode</a> is ignored; that is, the state of CapsLock is not changed.</li>
+  <li><a href="_MenuMaskKey.htm">Menu masking</a> is disabled. That is, Send omits the extra keystrokes that would otherwise be sent in order to prevent: 1) Start Menu appearance during LWin/RWin keystrokes; 2) menu bar activation during Alt keystrokes. However, Blind mode does not prevent masking performed by the keyboard hook following activation of a hook hotkey.</li>
+  <li>Send does not wait for the Windows key to be released even if the text contains an "L" keystroke. This would normally be done to prevent Send from triggering the system "lock workstation" hotkey (Win+L). See <a href="../Hotkeys.htm#win-l">Hotkeys</a> for details.</li>
+</ul>
+<p>Blind mode is used internally when <a href="../misc/Remap.htm">remapping a key</a>. For example, the remapping <code>a::b</code> would produce: 1) "b" when you type "a"; 2) uppercase "B" when you type uppercase "A"; and 3) Control-B when you type Control-A.</p>
+<p><code>{Blind}</code> is not supported by SendRaw or <a href="ControlSend.htm">ControlSendRaw</a>; use <code>{Blind}{Raw}</code> instead.</p>
+<p>Blind mode is not completely supported by <a href="#SendPlayDetail">SendPlay</a>, especially when dealing with the modifier keys (Control, Alt, Shift, and Win).</p>
 <p><br>
 <strong id="SendInput">SendInput</strong> and <strong id="SendPlay">SendPlay</strong>: SendInput and SendPlay use the same syntax as SendEvent but are generally faster and more reliable. In addition, they buffer any physical keyboard or mouse activity during the send, which prevents the user's keystrokes from being interspersed with those being sent. By default, <em>Send</em> is synonymous <em>SendPlay</em>; but it can be made a synonym for SendEvent or <a href="#SendPlayDetail">SendPlay</a> via <a href="SendMode.htm">SendMode</a>. For more details about each mode, see <a href="#SendInputDetail">SendInput</a> and <a href="#SendPlayDetail">SendPlay</a> below.</p>
 <p id="SendEvent"><strong>SendEvent</strong>: SendEvent sends keystrokes using the Windows keybd_event function (search MSDN for details). The rate at which keystrokes are sent is determined by <a href="SetKeyDelay.htm">SetKeyDelay</a>. <a href="SendMode.htm">SendMode</a> can be used to make Send synonymous with SendEvent or SendPlay.</p>
@@ -497,12 +508,9 @@
     <td>{WheelDown}, {WheelUp}, {WheelLeft}, {WheelRight}, {LButton}, {RButton}, {MButton}, {XButton1}, {XButton2}</td>
     <td>Sends a mouse button event at the cursor's current position (to have control over position and other options, use <a href="Click.htm">{Click}</a> above). The delay between mouse clicks is determined by <a href="SetMouseDelay.htm">SetMouseDelay</a>. WheelLeft/Right have no effect on operating systems older than Windows Vista.</td>
   </tr>
-  <tr id="blind">
+  <tr>
     <td><strong>{Blind}</strong></td>
-    <td><p>When {Blind} is the first item in the string, the program avoids releasing Alt/Control/Shift/Win if they started out in the down position. For example, the hotkey <code>+s::Send "{Blind}abc"</code> would send ABC rather than abc because the user is holding down the Shift key.</p>
-      <p>{Blind} also causes <a href="SetStoreCapslockMode.htm">SetStoreCapsLockMode</a> to be ignored; that is, the state of CapsLock is not changed. Finally, {Blind} omits the extra Control keystrokes that would otherwise be sent; such keystrokes prevent: 1) Start Menu appearance during LWin/RWin keystrokes; 2) menu bar activation during Alt keystrokes.</p>
-      <p>Blind-mode is used internally when <a href="../misc/Remap.htm">remapping a key</a>. For example, the remapping a::b would produce: 1) &quot;b&quot; when you type &quot;a&quot;; 2) uppercase B when you type uppercase A; and 3) Control-B when you type Control-A.</p>
-      <p>{Blind} is not supported by SendRaw and <a href="ControlSend.htm">ControlSendRaw</a>. Furthermore, it is not completely supported by <a href="#SendPlayDetail">SendPlay</a>, especially when dealing with the modifier keys (Control, Alt, Shift, and Win).</p></td>
+    <td>Enables <a href="#blind">Blind mode</a>, which gives the script more control by disabling a number of things that are normally done automatically to make things generally work as expected. The string <code>{Blind}</code> must occur at the beginning of the string.</td>
   </tr>
   <tr id="Raw">
     <td><strong>{Raw}</strong></td>
