@@ -7,6 +7,7 @@ translateData = {
   "Type in the word(s) to search for:":true,
   // header
   "Hide/Show sidebar":true,
+  "Open Settings":true,
   "Home page":true,
   "en":true,
   "Change language":true,

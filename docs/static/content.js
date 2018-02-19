@@ -5,6 +5,14 @@ loadJQuery();
 var scriptElement = document.scripts[document.scripts.length-1];
 var scriptDir = scriptElement.src.substr(0, scriptElement.src.lastIndexOf('/'));
 
+// --- User data ---
+
+var user = {
+  fontSize: 1.0,
+  clickTab: 0,
+  displaySidebar: true
+}
+
 // --- Cached data ---
 
 // To have the data remain while navigating through the docs, it'll be stored into
@@ -13,12 +21,12 @@ var scriptDir = scriptElement.src.substr(0, scriptElement.src.lastIndexOf('/'));
 
 var cache = {
   scriptDir: scriptDir,
-  fontSize: 1.0,
+  fontSize: user.fontSize,
   forceNoFrame: false,
   forceNoScript: false,
-  clickTab: 0,
+  clickTab: user.clickTab,
   LastUsedSource: "",
-  displaySidebar: true,
+  displaySidebar: user.displaySidebar,
   sidebarWidth: '18em',
   RightIsFocused: true,
   toc: {clickItem: 0, scrollPos: 0},
@@ -96,7 +104,7 @@ var isPhone = (document.documentElement.clientWidth <= 600);
       structure.addAnchorFlash();
       structure.saveCacheBeforeLeaving();
       $(document).ready(function() {
-        $('html').attr('id', 'right');
+        $('html').attr({ id: 'right', fontSize: cache.fontSize });
         if (!cache.translate)
           loadScript(structure.dataPath, function() {
             cache.translate = translateData;
@@ -155,9 +163,32 @@ var isPhone = (document.documentElement.clientWidth <= 600);
   // Add elements for sidebar:
   structure.build();
 
+  // Get user data:
+  if (!isCacheLoaded) {
+      if (isInsideCHM) {
+        var m = scriptDir.match(/mk:@MSITStore:(.*?)\\[^\\]+\.chm/i);
+        if (m[1])
+          loadScript(decodeURI(m[1]) + '\\chm_config.js', function () {
+            try {
+              $.extend(cache, overwriteProps(user, config));
+            } catch (e) {}
+          });
+      }
+      else if (window.localStorage) {
+        config = JSON.parse(window.localStorage.getItem('config'));
+        $.extend(cache, overwriteProps(user, config));
+      }
+      else if (navigator.cookieEnabled) {
+        config = document.cookie.match(/config=([^;]+)/);
+        config && (config = JSON.parse(config[1]));
+        $.extend(cache, overwriteProps(user, config));
+      }
+  }
+
   // Load current URL into frame:
   if (isFrameCapable)
     $(document).ready(function() {
+      document.getElementById('frame').contentWindow.name = JSON.stringify(cache);
       structure.openSite(scriptDir + '/../' + (getUrlParameter('frame') || relPath));
     });
 
@@ -657,7 +688,7 @@ function ctor_structure()
   self.dataPath = scriptDir + '/source/data_translate.js';
   self.metaViewport = '<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">';
   self.template = '<div id="body">' +
-  '<div id="head"><div class="h-tabs"><ul><li data-translate data-content="Content"></li><li data-translate data-content="Index"></li><li data-translate data-content="Search"></li></ul></div><div class="h-tools"><div class="main"><ul><li class="sidebar" title="Hide/Show sidebar" data-translate>&#926;</li></ul></div><div class="online"><ul><li class="home" title="Home page" data-translate><a href="' + location.protocol + '//' + location.host + '">&#916;</a></li></ul><ul><li class="language" title="Change language" data-translate data-content="en"></li><ul class="dropdown languages selected"><li><a title="English" data-content="en"></a></li><li><a title="Deutsch (German)" data-content="de"></a></li><li><a title="&#x4E2D;&#x6587; (Chinese)" data-content="zh"></a></li></ul></ul><ul><li class="version" title="Change AHK version" data-translate data-content="v1"></li><ul class="dropdown versions selected"><li><a title="AHK v1.1" data-content="v1"></a></li><li><a title="AHK v2.0" data-content="v2"></a></li></ul></ul><ul><li class="edit" title="Edit page on GitHub" data-translate><a data-content="E"></a></li></ul></div><div class="chm"><ul><li class="back" title="Go back" data-translate>&#9668;</li><li class="forward" title="Go forward" data-translate>&#9658;</li><li class="zoom" title="Change font size" data-translate data-content="Z"></li><li class="print" title="Print current document" data-translate data-content="P"></li></ul></div></div></div>' +
+  '<div id="head"><div class="h-tabs"><ul><li data-translate data-content="Content"></li><li data-translate data-content="Index"></li><li data-translate data-content="Search"></li></ul></div><div class="h-tools"><div class="main"><ul><li class="sidebar" title="Hide/Show sidebar" data-translate>&#926;</li></ul><ul><li class="settings" title="Open settings" data-translate>&#1029;</li></ul></div><div class="online"><ul><li class="home" title="Home page" data-translate><a href="' + location.protocol + '//' + location.host + '">&#916;</a></li></ul><ul><li class="language" title="Change language" data-translate data-content="en"></li><ul class="dropdown languages selected"><li><a title="English" data-content="en"></a></li><li><a title="Deutsch (German)" data-content="de"></a></li><li><a title="&#x4E2D;&#x6587; (Chinese)" data-content="zh"></a></li></ul></ul><ul><li class="version" title="Change AHK version" data-translate data-content="v1"></li><ul class="dropdown versions selected"><li><a title="AHK v1.1" data-content="v1"></a></li><li><a title="AHK v2.0" data-content="v2"></a></li></ul></ul><ul><li class="edit" title="Edit page on GitHub" data-translate><a data-content="E"></a></li></ul></div><div class="chm"><ul><li class="back" title="Go back" data-translate>&#9668;</li></ul><ul><li class="forward" title="Go forward" data-translate>&#9658;</li></ul><ul><li class="zoom" title="Change font size" data-translate data-content="Z"></li></ul><ul><li class="print" title="Print current document" data-translate data-content="P"></li></ul></div></div></div>' +
   '<div id="main"><div id="left"><div class="toc"></div><div class="index"><div class="label" data-translate data-content="Type in the keyword to find:"></div><div class="input"><input type="text" /></div><div class="list"></div></div><div class="search"><div class="label" data-translate data-content="Type in the word(s) to search for:"></div><div class="input"><input type="text" /></div><div class="list"></div></div><div class="load"><div class="lds-dual-ring"></div></div></div><div class="dragbar"></div><div id="right" tabIndex="-1">'+(isFrameCapable?'<iframe frameBorder="0" id="frame" src="">':'<div class="area">');
   self.template = isIE || isEdge ? self.template.replace(/ data-content="(.*?)">/g, '>$1') : self.template;
   self.build = function() { document.write(self.template); }; // Write HTML before DOM is loaded to prevent flickering.
@@ -694,11 +725,25 @@ function ctor_structure()
         $this.attr('data-content', T(dataContent));
     });
 
+    // --- Show/Hide selection lists on click ---
+
+    $('.h-tools > div > ul:has(.dropdown) > li').on('click', function() {
+      $this = $(this).parent();
+      $dropdown = $('> .dropdown', $this);
+      $('#head .dropdown').not($dropdown).animate({height: 'hide'}, 100);
+      $('#head div > ul').not($this).removeClass('selected');
+      $dropdown.animate({height: 'toggle'}, 100);
+      $this.toggleClass('selected');
+    });
+
     // --- Main tools (always visible) ---
 
     var $tools = $('#head div.h-tools');
     $('div.main li.sidebar', $tools).on('click', function() {
       self.displaySidebar(!cache.displaySidebar); });
+    $('div.main li.settings', $tools).on('click', function() {
+      structure.openSite(scriptDir + '/../settings.htm');
+    });
 
     // --- Online tools (only visible if help is not CHM) ---
 
@@ -747,14 +792,6 @@ function ctor_structure()
       });
     };
     self.modifyOnlineTools(relPath);
-    // Show/Hide selection lists on click:
-    $('ul', $online).on('click', function() {
-      $this = $(this);
-      $('> .dropdown', $this.siblings()).animate({height: 'hide'}, 100);
-      $this.siblings().removeClass('selected');
-      $('> .dropdown', $this).animate({height: 'toggle'}, 100);
-      $this.toggleClass('selected');
-    });
 
     // --- CHM tools (only visible if help is CHM) ---
 
@@ -1116,7 +1153,7 @@ function addFeatures()
   // --- Responsive tables (mobile) ---
 
   if (isPhone) {
-    var tables = content.querySelectorAll('table');
+    var tables = content.querySelectorAll('table.info');
     for(var i = 0; i < tables.length; i++) {
       var table = tables[i], th = {}, newTable = "";
       var id = table.getAttribute('id');
@@ -1552,6 +1589,16 @@ function getUrlParameter(sParam) {
             return sParameterName[1] === undefined ? true : sParameterName[1];
         }
     }
+}
+
+// Similar to $.extend but without adding new properties:
+function overwriteProps(a, b) {
+  for (var key in b) {
+    if (key in a) {
+      a[key] = b[key];
+    }
+  }
+  return a;
 }
 
 function loadJQuery() {
