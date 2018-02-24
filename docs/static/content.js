@@ -5,6 +5,11 @@ padding:"inner"+a,content:b,"":"outer"+a},function(c,d){n.fn[d]=function(d,e){va
 
 /*Search highlighting*/jQuery.fn.highlight=function(c){function e(b,c){var d=0;if(3==b.nodeType){var a=b.data.toUpperCase().indexOf(c),a=a-(b.data.substr(0,a).toUpperCase().length-b.data.substr(0,a).length);if(0<=a){d=document.createElement("span");d.className="highlight";a=b.splitText(a);a.splitText(c.length);var f=a.cloneNode(!0);d.appendChild(f);a.parentNode.replaceChild(d,a);d=1}}else if(1==b.nodeType&&b.childNodes&&!/(script|style)/i.test(b.tagName))for(a=0;a<b.childNodes.length;++a)a+=e(b.childNodes[a],c);return d} return this.length&&c&&c.length?this.each(function(){e(this,c.toUpperCase())}):this};jQuery.fn.removeHighlight=function(){return this.find("span.highlight").each(function(){this.parentNode.firstChild.nodeName;with(this.parentNode)replaceChild(this.firstChild,this),normalize()}).end()};
 
+// --- Get infos about this script file ---
+
+var scriptElement = document.scripts[document.scripts.length-1];
+var scriptDir = scriptElement.src.substr(0, scriptElement.src.lastIndexOf('/'));
+
 // --- Cached data ---
 
 // To have the data remain while navigating through the docs, it'll be stored into
@@ -12,8 +17,7 @@ padding:"inner"+a,content:b,"":"outer"+a},function(c,d){n.fn[d]=function(d,e){va
 // window.localStorage/sessionStorage or cookies.
 
 var cache = {
-  firstStartup: true,
-  host: location.host || /*for IE8+chm*/"",
+  scriptDir: scriptDir,
   fontSize: 1.0,
   clickTab: 0,
   LastUsedSource: "",
@@ -25,8 +29,15 @@ var cache = {
   index: {data: {}, input: "", clickItem: 0, scrollPos: 0},
   search: {index: {}, files: {}, titles: {}, data: {}, input: "", clickItem: 0, scrollPos: 0},
   load: function() {
-    if (window.name.indexOf('"host":"'+this.host+'"') != -1)
-      $.extend(this, JSON.parse(window.name));
+    try {
+      var data = JSON.parse(window.name);
+    } catch(e) {
+      return false;
+    }
+    if (data.scriptDir != scriptDir)
+      return false;
+    $.extend(this, data);
+    return true;
   },
   save: function() {
     window.name = JSON.stringify(this);
@@ -36,9 +47,7 @@ var cache = {
 // --- Main Execute Area ---
 
 // Set global variables:
-cache.load();
-var scriptElement = document.scripts[document.scripts.length-1];
-var scriptDir = scriptElement.src.substr(0, scriptElement.src.lastIndexOf('/'));
+var isCacheLoaded = cache.load();
 var workingDir = getWorkingDir();
 var relPath = location.href.replace(workingDir, '');
 var isInsideCHM = (location.href.search(/::/) > 0) ? 1 : 0;
@@ -112,8 +121,7 @@ var isPhone = (document.documentElement.clientWidth <= 600);
   structure.build();
 
   // Get the data if needed and modify the site:
-  if (cache.firstStartup) {
-    cache.firstStartup = false;
+  if (!isCacheLoaded) {
     loadScript(structure.dataPath, function() {
       cache.translate = translateData;
       structure.modify();
@@ -945,9 +953,8 @@ function ctor_structure()
         for (var i = 0; i < keyList.length; i++)
           if (e.which == T(keyList[i]).charCodeAt(0)) {
             self.pressKey(keyList[i]);
-            break;
+            return false;
           }
-        return false;
       }
     });
   }
@@ -1214,10 +1221,14 @@ function addFeatures()
   div.title = T('Back to top');
   content.appendChild(div);
 
+  var isVisible = false;
   $('#right').add(window).on('scroll', function() {
-    if ($(this).scrollTop() > 20) {
+    var scrollTop = $(this).scrollTop();
+    if (scrollTop > 20 && !isVisible) {
+      isVisible = true;
       $('div.back-to-top').fadeIn();
-    } else {
+    } else if (scrollTop < 20 && isVisible) {
+      isVisible = false;
       $('div.back-to-top').fadeOut();
     }
   });
