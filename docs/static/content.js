@@ -60,6 +60,7 @@ var isOpera = (!!window.opr && !!opr.addons) || !!window.opera || navigator.user
 var isFirefox = typeof InstallTrigger !== 'undefined'; // Firefox 1.0+
 var isSafari = Object.prototype.toString.call(window.HTMLElement).indexOf('Constructor') > 0; // At least Safari 3+: "[object HTMLElementConstructor]"
 var isIE = /*@cc_on!@*/false || !!document.documentMode; // Internet Explorer 6-11
+var isIE8 = !-[1,]; // Internet Explorer 8 or below
 var isEdge = !isIE && !!window.StyleMedia; // Edge 20+
 var isChrome = !!window.chrome && !!window.chrome.webstore; // Chrome 1+
 var isBlink = (isChrome || isOpera) && !!window.CSS; // Blink engine detection
@@ -1144,28 +1145,39 @@ function addFeatures()
   }
 
   // --- Useful features for code boxes ---
+  
+  var pres = content.querySelectorAll("pre");
 
   // Provide select and download buttons:
-  var pres = content.querySelectorAll("pre");
   for(var i = 0; i < pres.length; i++) {
-    var pre = pres[i], $pre = $(pre);
-    var div = '<div class="codeTools">';
-    div += '<a class="selectCode" title="' + T("Select code") + '">S</a>';
-    if (pre.className !== "Syntax")
-    div += '<a class="downloadCode" title="' + T("Download code") + '">&#8595;</a>';
-    div += '</div>';
-    pre.innerHTML = div+'<div>'+pre.innerHTML+'</div>';
-    $pre // Show these buttons on hover:
+    var pre = pres[i];
+    var isSyntax = (pre.className.indexOf('Syntax') != -1);
+    var parent = document.createElement('pre'); parent.className = 'parent ' + pre.className;
+    if (isSyntax || pre.className.indexOf('no-syntax-highlight') != -1)
+      pre.className = 'origin no-syntax-highlight';
+    else
+      pre.className = 'origin';
+    pre.parentNode.insertBefore(parent, pre);
+    parent.appendChild(pre);
+    var buttons = document.createElement('div'); buttons.className = 'buttons';
+    parent.appendChild(buttons);
+    var sel = document.createElement('a'); sel.className = 'selectCode'; sel.title = T("Select code"); sel.innerHTML = 'S';
+    buttons.appendChild(sel);
+    if (!isSyntax) {
+      var dwn = document.createElement('a'); dwn.className = 'downloadCode'; dwn.title = T("Download code"); dwn.innerHTML = '&#8595;';
+      buttons.appendChild(dwn);
+    }
+    $(parent) // Show these buttons on hover:
     .mouseenter(function() {
-      $('div.codeTools', $(this)).fadeTo(200, 0.8);
+      $('> div.buttons', $(this)).fadeTo(200, 0.8);
     })
     .mouseleave(function() {
-      $('div.codeTools', $(this)).fadeTo(200, 0);
+      $('> div.buttons', $(this)).fadeTo(200, 0);
     });
-    $('a.selectCode', $pre) // Select the code on click:
+    $('a.selectCode', $(parent)) // Select the code on click:
     .on('click', function() {
       var doc = document
-        , text = $(this).parent().next()[0]
+        , text = $('> pre.origin', $(this).parent().parent())[0]
         , range, selection;
       if (doc.body.createTextRange) {
         range = document.body.createTextRange();
@@ -1179,9 +1191,9 @@ function addFeatures()
         selection.addRange(range);
       }
     });
-    $('a.downloadCode', $pre) // Download the code on click:
+    $('a.downloadCode', $(parent)) // Download the code on click:
     .on('click', function(e) {
-      var textToWrite = '\ufeff' + $(this).parent().next().text().replace(/\n/g, "\r\n");
+      var textToWrite = '\ufeff' + $('> pre.origin', $(this).parent().parent()).text().replace(/\n/g, "\r\n");
       var textFileAsBlob = new Blob([textToWrite], {type:'text/csv'});
       var fileNameToSaveAs = location.pathname.match(/([^\/]+)(?=\.\w+$)/)[0] + "-Script.ahk";
   
@@ -1205,6 +1217,135 @@ function addFeatures()
         downloadLink.click();
       }
     });
+  }
+
+  // Syntax highlighting:
+  if (!isIE8) {
+    if (cache.index.data[0]) {
+        addSyntaxColors(pres);
+    } else {
+      loadScript(index.dataPath, function() { cache.index.data = indexData; addSyntaxColors(pres); });
+    }
+  }
+  function addSyntaxColors(pres) {
+    // Create lists of syntax elements by using index data to reduce code size:
+    var syntax = [[], [], [], [], [], [], []], dict = {};
+    for(var i = 0; i < cache.index.data.length; i++) {
+      var entry = cache.index.data[i][0];
+      var path = cache.index.data[i][1];
+      var type = cache.index.data[i][2];
+      if (typeof type !== 'undefined') {
+        if (type == 2 && entry.substr(entry.length - 2) == '()')
+          entry = entry.substr(0, entry.length - 2);
+        syntax[type].push(entry);
+        dict[entry.toLowerCase()] = i;
+      }
+    }
+    // Traverse pre elements:
+    for(var i = 0; i < pres.length; i++) {
+      var pre = pres[i];
+      // Skip pre.no-syntax-highlight elements:
+      if (pre.className.indexOf('no-syntax-highlight') != -1)
+        continue;
+      // multi-line string (needs to be pre-processed):
+      pre.innerHTML = pre.innerHTML.replace(/(^(\s*)\([\s\S]*?^(\s*)\))/gm, function(m, m1) { return wrap(m1,'multi-str',0); });
+      // Separate existing tags with attributes to avoid threading them as strings and wrap the rest ("plain texts") with tags:
+      var innerHTML = pre.innerHTML;
+      var offset = 0;
+      $(pre).children().each(function() {
+        if (this.attributes.length || this.children.length) {
+          var outerHTML = this.outerHTML;
+          var n = innerHTML.indexOf(outerHTML, offset);
+          var replacement = '</span>'+outerHTML+'<span class="pln">';
+          offset = n + replacement.length;
+          if (n !== -1)
+            innerHTML = innerHTML.substr(0, n) + replacement + innerHTML.substr(n + outerHTML.length);
+        }
+      });
+      pre.innerHTML = '<span class="pln">'+innerHTML+'</span>';
+      // Traverse plain text elements defined by above:
+      var spans = pre.querySelectorAll("span.pln");
+      for(var j = 0; j < spans.length; j++) {
+        var innerHTML = spans[j].innerHTML;
+        // strings (double and single quotes):
+        innerHTML = innerHTML.replace(/(("|').*?\2)\B/g, function(m, m1) { return wrap(m1, 'str', false); });
+        // methods:
+        innerHTML = innerHTML.replace(/(\.)([^~`!@#$%^&*(){}\[\];:"'<,.>?\/\\|+=-\s]+?)(?=\()/g, function(m, m1, m2) { return m1+wrap(m2, 'met', false); });
+        // legacy if:
+        innerHTML = innerHTML.replace(/(^\s*|[,:}]\s*)(else |)(if) (\S+) (not between|between|not in|in|not contains|contains|is not|is) (?:(\S+) (and) (\S+)|(.+))/gim, function(m, m1, m2, m3, m4, m5, m6, m7, m8, m9) {
+          var if_var_ = m1+m2+wrap(m3, 'cfs', 'commands/IfEqual.htm')+' '+m4+' ';
+          switch(m5) {
+            case "not between":
+            case "between":
+            return if_var_+wrap(m5,'cfs','commands/IfBetween.htm')+' '+wrap(m6,'str',0)+' '+wrap(m7,'cfs',0)+' '+wrap(m8,'str',0);
+      
+            case "not in":
+            case "in":
+            case "not contains":
+            case "contains":
+            return if_var_+wrap(m5,'cfs','commands/IfIn.htm')+' '+wrap(m9,'str',0);
+      
+            case "is not":
+            case "is":
+            return if_var_+wrap(m5,'cfs','commands/IfIs.htm')+' '+wrap(m9,'str',0);
+          };
+        });
+        // if expression:
+        innerHTML = innerHTML.replace(/(^\s*|[,:}]\s*)(else |)(if)\b/gim, function(m, m1, m2, m3) { return m1+m2+wrap(m3,'cfs','commands/IfExpression.htm'); });
+        // loops:
+        innerHTML = innerHTML.replace(/\b(loop)(\s|,\s|,)(files|parse|read|reg)\b/gim, function(m, m1, m2, m3) {
+          m3 = m3.substr(0,1).toUpperCase()+m3.substr(1).toLowerCase(); // Convert to title case.
+          var link = 'commands/Loop'+(m3.toLowerCase()=='files'?m3.substr(0,4):m3)+'.htm';
+          return wrap(m1,'cfs',link)+m2+wrap(m3,'cfs',link);
+        });
+        // class:
+        innerHTML = innerHTML.replace(/(^\s*|[,:}]\s*)(class) (\S+)(?: (extends)(?= \S+)|)/gim, function(m, m1, m2, m3, m4) {
+          var link = 'Objects.htm#Custom_Classes';
+          if (m4)
+            return m1+wrap(m2,'cfs',link)+' '+m3+' '+wrap(m4,'cfs',link);
+          else
+            return m1+wrap(m2,'cfs',link)+' '+m3;
+        });
+        // for:
+        innerHTML = innerHTML.replace(/\b(for) (\S+|\S+, \S+) (in)/gim, function(m, m1, m2, m3) {
+          var link = 'commands/For.htm';
+          return wrap(m1,'cfs',link)+' '+m2+' '+wrap(m3,'cfs',link);
+        });
+        // control flows / declarations:
+        innerHTML = innerHTML.replace(new RegExp('(^\\s*|[,:}]\\s*)('+syntax[3].join('|')+'|'+syntax[5].join('|')+')\\b','gim'), function(m, m1, m2) { return m1+wrap(m2,'cfs',true); });
+        // ByRef:
+        innerHTML = innerHTML.replace(/(.+?)\b(byref)\b(?=(.+?)\))/gim, function(m, m1, m2) { return m1+wrap(m2,'cfs','Functions.htm#ByRef'); });
+        // commands:
+        innerHTML = innerHTML.replace(new RegExp('(^\\s*|[:]\\s*)('+syntax[6].join('|')+')\\b(?=[\\s,]|$)',"gim"), function(m, m1, m2) { return m1+wrap(m2,'cmd',true); });
+        // built-in functions:
+        innerHTML = innerHTML.replace(new RegExp('\\b('+syntax[2].join('|')+')(?=\\()','gi'), function(m, m1) { return wrap(m1, 'bif', true); });
+        // built-in vars:
+        innerHTML = innerHTML.replace(new RegExp('\\b('+syntax[1].join('|')+')\\b','gi'), function(m, m1) { return wrap(m1, 'biv', true); });
+        // directives:
+        innerHTML = innerHTML.replace(new RegExp('('+syntax[0].join('|')+')\\b','gi'), function(m, m1) { return wrap(m1, 'dir', true); });
+        // hotkeys/hotstrings:
+        innerHTML = innerHTML.replace(/^(\s*)((?:\S+?|\S+? \S+?|\S+? (&amp;|&) \S+?)::)/mg, function(m, m1, m2) { return m1+wrap(m2, 'lab', false); });
+        // labels:
+        innerHTML = innerHTML.replace(/^(\s*)([^\s]+?:)(?=\s|$)/mg, function(m, m1, m2) { return m1+wrap(m2, 'lab', false); });
+
+        spans[j].innerHTML = innerHTML;
+      }
+    }
+    function wrap(match, type, isLink) {
+      var span = document.createElement('span');
+      span.className = type;
+      if (isLink) {
+        var a = document.createElement('a');
+        if (isLink == true)
+          a.href = scriptDir + '/../' + cache.index.data[dict[match.toLowerCase()]][1];
+        else
+          a.href = scriptDir + '/../' + isLink;
+        a.innerHTML = match;
+        span.appendChild(a);
+      } else
+        span.innerHTML = match;
+      return span.outerHTML;
+    }
   }
 
   // --- Add footer at the bottom of the site ---
