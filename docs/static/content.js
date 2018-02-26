@@ -1270,7 +1270,7 @@ function addFeatures()
         // strings (double and single quotes):
         innerHTML = innerHTML.replace(/(("|').*?\2)\B/g, function(m, m1) { return wrap(m1, 'str', false); });
         // methods:
-        innerHTML = innerHTML.replace(/(\.)([^~`!@#$%^&*(){}\[\];:"'<,.>?\/\\|+=-\s]+?)(?=\()/g, function(m, m1, m2) { return m1+wrap(m2, 'met', false); });
+        innerHTML = innerHTML.replace(/(\.)([^~`!@#$%^&*(){}\[\];:"'<,.>?\/\\|+=\-\s]+?)(?=\()/g, function(m, m1, m2) { return m1+wrap(m2, 'met', false); });
         // legacy if:
         innerHTML = innerHTML.replace(/(^\s*|[,:}]\s*)(else |)(if) (\S+) (not between|between|not in|in|not contains|contains|is not|is) (?:(\S+) (and) (\S+)|(.+))/gim, function(m, m1, m2, m3, m4, m5, m6, m7, m8, m9) {
           var if_var_ = m1+m2+wrap(m3, 'cfs', 'commands/IfEqual.htm')+' '+m4+' ';
