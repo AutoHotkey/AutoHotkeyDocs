@@ -9,35 +9,46 @@
 <body>
   <script type="text/javascript">
   var relPath = location.hash.substr(1) || "AutoHotkey.htm";
+  // Fallback to frame-less sidebar on error:
+  window.onerror = function() {
+    cache.forceNoFrame = true; cache.save();
+    location.href = scriptDir + "/../" + relPath;
+    return false;
+  };
   $('body').append(structure.template);
-  if (!isCacheLoaded) {
+  if (!cache.translate)
     loadScript(structure.dataPath, function() {
       cache.translate = translateData;
       addFrame();
       structure.modify();
     });
+  else {
+    addFrame();
+    structure.modify();
+  }
+  if (!cache.toc.data)
     loadScript(toc.dataPath, function() {
       cache.toc.data = tocData;
       toc.modify();
     });
+  else
+    toc.modify();
+  if (!cache.index.data)
     loadScript(index.dataPath, function() {
       cache.index.data = indexData;
       index.modify();
     });
+  else
+    index.modify();
+  if (!cache.search.index || !cache.search.files || !cache.search.titles)
     loadScript(search.dataPath, function() {
       cache.search.index = SearchIndex;
       cache.search.files = SearchFiles;
       cache.search.titles = SearchTitles;
       search.modify();
     });
-  }
-  else {
-    addFrame();
-    structure.modify();
-    toc.modify();
-    index.modify();
+  else
     search.modify();
-  }
   $(window).on('message onmessage', function(event) {
     var data = JSON.parse(event.originalEvent.data);
     switch(data[0]) {

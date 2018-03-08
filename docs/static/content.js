@@ -19,15 +19,16 @@ var scriptDir = scriptElement.src.substr(0, scriptElement.src.lastIndexOf('/'));
 var cache = {
   scriptDir: scriptDir,
   fontSize: 1.0,
+  forceNoFrame: false,
+  forceNoScript: false,
   clickTab: 0,
   LastUsedSource: "",
   displaySidebar: true,
   sidebarWidth: '18em',
   RightIsFocused: true,
-  translate: {},
-  toc: {data: {}, clickItem: 0, scrollPos: 0},
-  index: {data: {}, input: "", clickItem: 0, scrollPos: 0},
-  search: {index: {}, files: {}, titles: {}, data: {}, input: "", clickItem: 0, scrollPos: 0},
+  toc: {clickItem: 0, scrollPos: 0},
+  index: {input: "", clickItem: 0, scrollPos: 0},
+  search: {data: {}, input: "", clickItem: 0, scrollPos: 0},
   load: function() {
     try {
       var data = JSON.parse(window.name);
@@ -52,7 +53,7 @@ var workingDir = getWorkingDir();
 var relPath = location.href.replace(workingDir, '');
 var isInsideCHM = (location.href.search(/::/) > 0) ? 1 : 0;
 var supportsHistory = (history.replaceState) && !isInsideCHM;
-var isFrameCapable = isInsideCHM || supportsHistory;
+var isFrameCapable = !cache.forceNoFrame && (isInsideCHM || supportsHistory);
 var isInsideFrame = (window.self !== window.top);
 var isSearchBot = navigator.userAgent.match(/googlebot|bingbot|slurp/i);
 var isTouch = !!("ontouchstart" in window) || !!(navigator.msMaxTouchPoints);
@@ -80,7 +81,7 @@ var isPhone = (document.documentElement.clientWidth <= 600);
     return;
 
   // Exit the script on sites which doesn't need the sidebar:
-  if (/(search|frame)\.htm/.test(location.href))
+  if (/(search|frame)\.htm/.test(location.href) || cache.forceNoScript)
     return;
 
   // Special treatments for pages inside a frame:
@@ -122,34 +123,39 @@ var isPhone = (document.documentElement.clientWidth <= 600);
   structure.build();
 
   // Get the data if needed and modify the site:
-  if (!isCacheLoaded) {
+  if (!cache.translate)
     loadScript(structure.dataPath, function() {
       cache.translate = translateData;
       structure.modify();
       $(document).ready(addFeatures);
     });
+  else {
+    structure.modify();
+    $(document).ready(addFeatures);
+  }
+  if (!cache.toc.data)
     loadScript(toc.dataPath, function() {
       cache.toc.data = tocData;
       toc.modify();
     });
+  else
+    toc.modify();
+  if (!cache.index.data)
     loadScript(index.dataPath, function() {
       cache.index.data = indexData;
       index.modify();
     });
+  else
+    index.modify();
+  if (!cache.search.index || !cache.search.files || !cache.search.titles)
     loadScript(search.dataPath, function() {
       cache.search.index = SearchIndex;
       cache.search.files = SearchFiles;
       cache.search.titles = SearchTitles;
       search.modify();
     });
-  }
-  else {
-    structure.modify();
-    toc.modify();
-    index.modify();
+  else
     search.modify();
-    $(document).ready(addFeatures);
-  }
 })();
 
 // --- Constructor: Table of content ---
@@ -1221,7 +1227,7 @@ function addFeatures()
 
   // Syntax highlighting:
   if (!isIE8) {
-    if (cache.index.data[0]) {
+    if (cache.index.data) {
         addSyntaxColors(pres);
     } else {
       loadScript(index.dataPath, function() { cache.index.data = indexData; addSyntaxColors(pres); });
