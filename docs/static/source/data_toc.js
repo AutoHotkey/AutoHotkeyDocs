@@ -40,10 +40,10 @@ tocData = [
   ]],
   ["External Libraries","",
   [
+    ["CallbackCreate","commands/CallbackCreate.htm"],
     ["DllCall","commands/DllCall.htm"],
     ["NumGet","commands/NumGet.htm"],
     ["NumPut","commands/NumPut.htm"],
-    ["RegisterCallback","commands/RegisterCallback.htm"],
     ["StrPut/StrGet","commands/StrPutGet.htm"],
     ["VarSetCapacity","commands/VarSetCapacity.htm"],
     ["COM","",
