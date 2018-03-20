@@ -191,7 +191,6 @@ tocData = [
       ["#Hotstring","commands/_Hotstring.htm"],
       ["#If","commands/_If.htm"],
       ["#IfTimeOut","commands/_IfTimeout.htm"],
-      ["#IfWin[Not]Exist","commands/_IfWinActive.htm"],
       ["#InputLevel","commands/_InputLevel.htm"],
       ["#MaxHotkeysPerInterval","commands/_MaxHotkeysPerInterval.htm"],
       ["#MaxThreads","commands/_MaxThreads.htm"],
