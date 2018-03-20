@@ -164,13 +164,18 @@ MsgBox Join("`n", <b class="blue">substrings*</b>)</pre>
 <h2 id="Locals">Local and Global Variables</h2>
 <h3 id="Local">Local Variables</h3>
 <p>Local variables are specific to a single function and are visible only inside that function. Consequently, a local variable may have the same name as a global variable and both will have separate contents. Separate functions may also safely use the same variable names.</p>
-<p>All local variables which are not <a href="#static">static</a> are automatically freed (made empty) when the function returns.</p>
+<p>All local variables which are not <a href="#static">static</a> are automatically freed (made empty) when the function returns, with the exception of variables which are bound to a <a href="#closures">closure</a>.</p>
 <p>Built-in variables such as <a href="misc/Clipboard.htm">Clipboard</a>, <a href="misc/ErrorLevel.htm">ErrorLevel</a>, and <a href="Variables.htm#TimeIdle">A_TimeIdle</a> are never local (they can be accessed from anywhere), and cannot be redeclared.</p>
-<p id="AssumeLocal">Functions are <strong>assume-local</strong> by default. Variables accessed or created inside an assume-local function are local by default, with the exception of <a href="#SuperGlobal">super-global</a> variables, such as <a href="Objects.htm#Custom_Classes">classes</a>.</p>
+<p id="AssumeLocal">Functions are <strong>assume-local</strong> by default. Variables accessed or created inside an assume-local function are local by default, with the following exceptions:</p>
+<ul>
+  <li><a href="#SuperGlobal">Super-global</a> variables, including <a href="Objects.htm#Custom_Classes">classes</a>.</li>
+  <li>Inside a <a href="#nested">nested function</a>, non-dynamic local and static variables created by an enclosing function may be accessed.</li>
+</ul>
 <p>The default may also be overridden as shown below (by declaring the variable or by changing the mode of the function).</p>
 <p id="ForceLocal"><strong>Force-local mode</strong>: If the function's first line is the word "local", all variable references are assumed to be local unless they are declared as global <em>inside</em> the function. Unlike the default mode, force-local mode has the following behavior:</p>
 <ul>
   <li>Super-global variables (including classes) cannot be accessed without declaring them inside the function.</li>
+  <li>If the function is defined inside another function, the outer function's local and static variables cannot be accessed.</li>
   <li>The <em>LocalSameAsGlobal</em> <a href="commands/_Warn.htm">warning</a> is never raised for variables within a force-local function.</li>
 </ul>
 
@@ -254,16 +259,87 @@ static TotalAttempts := 0, PrevResult</pre>
     break   <em>; Nothing to search for, or a match was found.</em></pre>
 <p>As shown by the examples above, any expensive (time-consuming) functions should generally be called on the right side of an <em>AND</em> or <em>OR</em> to enhance performance. This technique can also be used to prevent a function from being called when one of its parameters would be passed a value it considers inappropriate, such as an empty string.</p>
 <p>The <a href="Variables.htm#ternary">ternary conditional operator (?:)</a> also short-circuits by not evaluating the losing branch.</p>
-<h2 id="gosub">Using Subroutines Within a Function</h2>
-<p>Although a function cannot contain <a href="#define">definitions</a> of other functions, it can contain subroutines. As with other subroutines, use <a href="commands/Gosub.htm">Gosub</a> to launch them and <a href="commands/Return.htm">Return</a> to return (in which case the Return would belong to the Gosub and not the function).</p>
+
+<h2 id="nested">Nested Functions</h2>
+<p>A <em>nested</em> function is one defined inside another function. For example:</p>
+<pre>
+outer(x) {
+    inner(y) {
+        MsgBox(y, x)
+    }
+    inner("one")
+    inner("two")
+}
+outer("title")
+</pre>
+<p>A nested function is not accessible outside of the function which immediately encloses it, but is accessible anywhere inside that function, including inside other nested functions.</p>
+<p>By default, a nested function may access non-dynamic local and static variables of any function which encloses it, but not ByRef parameters or variables which are created dynamically. <a href="#Global">Global</a> declarations in the outer function also apply to nested functions, except where overridden by <a href="#ForceLocal">force-local</a>.</p>
+<p>If a function is declared <a href="#ForceLocal">force-local</a> or <a href="#AssumeGlobal">assume-global</a>, any local or static variables created <em>outside</em> that function are not directly accessible to the function itself or any of its nested functions.</p>
+<p>Functions are <a href="#AssumeLocal">assume-local</a> by default, and this is true even for nested functions, even those inside an <a href="#AssumeStatic">assume-static</a> function. However, if the outer function is <a href="#AssumeGlobal">assume-global</a>, nested functions behave as though assume-global by default, except that they can refer to local and static variables of the outer function.</p>
+<p>A nested function which is assume-static can still refer to variables from the outer function, unless it is also <a href="#ForceLocal">force-local</a>.</p>
+<p>Dynamic variable references inside a nested function can resolve to variables from the outer function only if the nested function (or one of its own nested functions) also contains a non-dynamic reference to the variable.</p>
+<p><a href="commands/Func.htm">Func</a> can be used to retrieve a reference to a nested function, which can be called even after the outer function returns. Nested functions can also be passed by name to built-in functions such as <a href="commands/SetTimer.htm">SetTimer</a> and <a href="commands/Sort.htm">Sort</a>.</p>
+
+<h3 id="closures">Closures</h3>
+<p>A <em>closure</em> is a nested function bound to a set of <em>free variables</em>. Free variables are local variables of the outer function which are also used by nested functions. Closures allow one or more nested functions to share variables with the outer function even after the outer function returns.</p>
+<p>To create a closure, pass the name of a nested function to <a href="commands/Func.htm">Func</a>. For example:</p>
+<pre>
+make_greeter(f)
+{
+    greet(subject)  <em>; This will be a closure due to f.</em>
+    {
+        MsgBox Format(f, subject)
+    }
+    return Func("greet")  <em>; Create and return a closure.</em>
+}
+
+g := make_greeter("Hello, {}!")
+g.call(A_UserName)
+g.call("World")
+</pre>
+<p>A closure may also be created by passing the name of a nested function to a built-in function, such as <a href="commands/SetTimer.htm">SetTimer</a> or <a href="commands/Hotkey.htm">Hotkey</a>. For example:</p>
+<pre>
+app_hotkey(hotkey, app_title, app_path)
+{
+    activate()  <em>; This will be a closure due to app_title and app_path.</em>
+    {
+        if WinExist(app_title)
+            WinActivate
+        else
+            Run app_path
+    }
+    Hotkey hotkey, "activate"
+}
+<em>; Win+N activates or launches Notepad.</em>
+app_hotkey "#n", "ahk_class Notepad", "notepad.exe"
+<em>; Win+W activates or launches WordPad.</em>
+app_hotkey "#w", "ahk_class WordPadClass", "wordpad.exe"
+</pre>
+<p>If a function creates free variables (that is, if any of its local variables are referenced by nested functions), all of that function's nested functions become closures. This is because any nested function can call any other nested function or create a closure for it by name.</p>
+<p>Whenever a function name is resolved to a closure, a <em>new</em> closure is created even if one had already been created with the same set of free variables. Do not pass a closure by name to <a href="commands/SetTimer.htm">SetTimer</a>, <a href="commands/OnClipboardChange.htm">OnClipboardChange</a>, <a href="commands/OnExit.htm">OnExit</a>, <a href="commands/OnMessage.htm">OnMessage</a> or <a href="objects/GuiOnEvent.htm">Gui.OnEvent</a> if that closure needs to be later removed, since doing so requires passing the same object back. For example:</p>
+<pre>
+timertest() {
+    x := "tock!"
+    tick() {
+        MsgBox x               <em>; x causes this to become a closure.</em>
+        <em>;SetTimer t, "Delete"  ; This would cause a circular reference.</em>
+    }
+    SetTimer "tick", 1000      <em>; Creates a timer.</em>
+    SetTimer "tick", "Delete"  <em>; Fails.</em>
+    t := Func("tick")
+    SetTimer t, 1000           <em>; Creates a second timer.</em>
+    SetTimer t, "Delete"       <em>; Deletes the second timer.</em>
+}
+timertest()
+</pre>
+<p id="circular-closure">It is best not to store a reference to a closure in any of the closure's own free variables, since that creates a <a href="Objects.htm#Circular_References">circular reference</a> which must be broken before the closure can be freed, such as by clearing the variable.</p>
+
+<h3 id="gosub">Using Subroutines Within a Function</h3>
+<p>A function can also contain subroutines, which are more limited but may perform faster than nested functions. As with other subroutines, use <a href="commands/Gosub.htm">Gosub</a> to launch them and <a href="commands/Return.htm">Return</a> to return (in which case the Return would belong to the Gosub and not the function).</p>
 <p id="GosubPublic">If a function uses <a href="commands/Gosub.htm">Gosub</a> to jump to a public subroutine (one that lies outside of the function's braces), all variables outside are global and the function's own <a href="#Local">local variables</a> are not accessible until the subroutine returns. However, A_ThisFunc will still contain the name of the function.</p>
 <p>Although <a href="commands/Goto.htm">Goto</a> cannot be used to jump from inside a function to outside, it is possible for a function to <a href="commands/Gosub.htm">Gosub</a> an external/public subroutine and then do a Goto from there.</p>
 <p>Although the use of <a href="commands/Goto.htm">Goto</a> is generally discouraged, it can be used inside a function to jump to another position within the same function. This can help simplify complex functions that have many points of return, all of which need to do some clean-up prior to returning.</p>
-<p>A function may contain externally-called subroutines such as <a href="commands/SetTimer.htm">timer</a>s, and <a href="objects/Menu.htm">menu items</a>. This is generally done to encapsulate them in a separate file for use with <a href="commands/_Include.htm">#Include</a>, which prevents them from interfering with the script's <a href="Scripts.htm#auto">auto-execute section</a>. However, the following limitations apply:</p>
-<ul>
-  <li>Such subroutines should use only <a href="#static">static</a> and <a href="#Global">global</a> variables (not <a href="#Local">locals</a>) if their function is ever called normally. This is because a subroutine <a href="misc/Threads.htm">thread</a> that interrupts a function-call thread (or vice versa) would be able to change the values of local variables seen by the interrupted thread. Furthermore, any time a function returns to its caller, all of its local variables are made blank to free their memory.</li>
-  <li>When a function is entered by a subroutine <a href="misc/Threads.htm">thread</a>, any references to <a href="misc/Arrays.htm">dynamic variables</a> made by that thread are treated as <a href="#Global">globals</a> (including functions that create arrays). Similarly, <a href="misc/Labels.htm">local labels</a> cannot be referenced dynamically.</li>
-</ul>
+
 <h2 id="remarks">Return, Exit, and General Remarks</h2>
 <p>If the flow of execution within a function reaches the function's closing brace prior to encountering a <a href="commands/Return.htm">Return</a>, the function ends and returns a blank value (empty string) to its caller. A blank value is also returned whenever the function explicitly omits <a href="commands/Return.htm">Return</a>'s parameter.</p>
 <p>When a function uses <a href="commands/Exit.htm">Exit</a> to terminate the <a href="misc/Threads.htm">current thread</a>, its caller does not receive a return value at all. For example, the statement <code>Var := Add(2, 3)</code> would leave <code>Var</code> unchanged if <code>Add()</code> exits. The same thing happens if a function causes a runtime error such as <a href="commands/Run.htm">running</a> a nonexistent file (when <a href="commands/Run.htm#UseErrorLevel">UseErrorLevel</a> is not in effect).</p>
