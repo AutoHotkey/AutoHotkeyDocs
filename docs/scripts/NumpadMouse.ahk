@@ -306,20 +306,22 @@ MouseClick ButtonClick,,, 1, 0, "D"
 SetTimer "ButtonClickEnd", 10
 return
 
-ButtonClickEnd:
-if GetKeyState(Button2, "P")
-    return
+ButtonClickEnd()
+{
+    global
+    if GetKeyState(Button2, "P")
+        return
 
-SetTimer , "Off"
-MouseClick ButtonClick,,, 1, 0, "U"
-return
+    SetTimer , "Off"
+    MouseClick ButtonClick,,, 1, 0, "U"
+}
 
 ;Mouse movement support
 
 ButtonSpeedUp:
 MouseSpeed++
 ToolTip "Mouse speed: " MouseSpeed " pixels"
-SetTimer "RemoveToolTip", 1000
+SetTimer () => ToolTip(), -1000
 return
 ButtonSpeedDown:
 if MouseSpeed > 1
@@ -328,12 +330,12 @@ if MouseSpeed = 1
     ToolTip "Mouse speed: " MouseSpeed " pixel"
 else
     ToolTip "Mouse speed: " MouseSpeed " pixels"
-SetTimer "RemoveToolTip", 1000
+SetTimer () => ToolTip(), -1000
 return
 ButtonAccelerationSpeedUp:
 MouseAccelerationSpeed++
 ToolTip "Mouse acceleration speed: " MouseAccelerationSpeed " pixels"
-SetTimer "RemoveToolTip", 1000
+SetTimer () => ToolTip(), -1000
 return
 ButtonAccelerationSpeedDown:
 if MouseAccelerationSpeed > 1
@@ -342,13 +344,13 @@ if MouseAccelerationSpeed = 1
     ToolTip "Mouse acceleration speed: " MouseAccelerationSpeed " pixel"
 else
     ToolTip "Mouse acceleration speed: " MouseAccelerationSpeed " pixels"
-SetTimer "RemoveToolTip", 1000
+SetTimer () => ToolTip(), -1000
 return
 
 ButtonMaxSpeedUp:
 MouseMaxSpeed++
 ToolTip "Mouse maximum speed: " MouseMaxSpeed " pixels"
-SetTimer "RemoveToolTip", 1000
+SetTimer () => ToolTip(), -1000
 return
 ButtonMaxSpeedDown:
 if MouseMaxSpeed > 1
@@ -357,7 +359,7 @@ if MouseMaxSpeed = 1
     ToolTip "Mouse maximum speed: " MouseMaxSpeed " pixel"
 else
     ToolTip "Mouse maximum speed: " MouseMaxSpeed " pixels"
-SetTimer "RemoveToolTip", 1000
+SetTimer () => ToolTip(), -1000
 return
 
 ButtonRotationAngleUp:
@@ -367,7 +369,7 @@ if MouseRotationAnglePart >= 8
 MouseRotationAngle := MouseRotationAnglePart
 MouseRotationAngle *= 45
 ToolTip "Mouse rotation angle: " MouseRotationAngle "°"
-SetTimer "RemoveToolTip", 1000
+SetTimer () => ToolTip(), -1000
 return
 ButtonRotationAngleDown:
 MouseRotationAnglePart--
@@ -376,7 +378,7 @@ if MouseRotationAnglePart < 0
 MouseRotationAngle := MouseRotationAnglePart
 MouseRotationAngle *= 45
 ToolTip "Mouse rotation angle: " MouseRotationAngle "°"
-SetTimer "RemoveToolTip", 1000
+SetTimer () => ToolTip(), -1000
 return
 
 ButtonUp:
@@ -596,15 +598,20 @@ else if Button = "NumpadPgDn"
 SetTimer "ButtonAccelerationEnd", 10
 return
 
-ButtonAccelerationEnd:
-if GetKeyState(Button, "P")
-    Goto ButtonAccelerationStart
+ButtonAccelerationEnd()
+{
+    global
+    if GetKeyState(Button, "P")
+    {
+        Gosub ButtonAccelerationStart
+        return
+    }
 
-SetTimer , "Off"
-MouseCurrentAccelerationSpeed := 0
-MouseCurrentSpeed := MouseSpeed
-Button := 0
-return
+    SetTimer , "Off"
+    MouseCurrentAccelerationSpeed := 0
+    MouseCurrentSpeed := MouseSpeed
+    Button := 0
+}
 
 ;Mouse wheel movement support
 
@@ -616,7 +623,7 @@ if MouseWheelSpeedMultiplier <= 0
 MouseWheelSpeedReal := MouseWheelSpeed
 MouseWheelSpeedReal *= MouseWheelSpeedMultiplier
 ToolTip "Mouse wheel speed: " MouseWheelSpeedReal " lines"
-SetTimer "RemoveToolTip", 1000
+SetTimer () => ToolTip(), -1000
 return
 ButtonWheelSpeedDown:
 MouseWheelSpeedMultiplier := RegRead("HKCU\Control Panel\Desktop", "WheelScrollLines")
@@ -632,7 +639,7 @@ if MouseWheelSpeedReal = 1
     ToolTip "Mouse wheel speed: " MouseWheelSpeedReal " line"
 else
     ToolTip "Mouse wheel speed: " MouseWheelSpeedReal " lines"
-SetTimer "RemoveToolTip", 1000
+SetTimer () => ToolTip(), -1000
 return
 
 ButtonWheelAccelerationSpeedUp:
@@ -643,7 +650,7 @@ if MouseWheelSpeedMultiplier <= 0
 MouseWheelAccelerationSpeedReal := MouseWheelAccelerationSpeed
 MouseWheelAccelerationSpeedReal *= MouseWheelSpeedMultiplier
 ToolTip "Mouse wheel acceleration speed: " MouseWheelAccelerationSpeedReal " lines"
-SetTimer "RemoveToolTip", 1000
+SetTimer () => ToolTip(), -1000
 return
 ButtonWheelAccelerationSpeedDown:
 MouseWheelSpeedMultiplier := RegRead("HKCU\Control Panel\Desktop", "WheelScrollLines")
@@ -659,7 +666,7 @@ if MouseWheelAccelerationSpeedReal = 1
     ToolTip "Mouse wheel acceleration speed: " MouseWheelAccelerationSpeedReal " line"
 else
     ToolTip "Mouse wheel acceleration speed: " MouseWheelAccelerationSpeedReal " lines"
-SetTimer "RemoveToolTip", 1000
+SetTimer () => ToolTip(), -1000
 return
 
 ButtonWheelMaxSpeedUp:
@@ -670,7 +677,7 @@ if MouseWheelSpeedMultiplier <= 0
 MouseWheelMaxSpeedReal := MouseWheelMaxSpeed
 MouseWheelMaxSpeedReal *= MouseWheelSpeedMultiplier
 ToolTip "Mouse wheel maximum speed: " MouseWheelMaxSpeedReal " lines"
-SetTimer "RemoveToolTip", 1000
+SetTimer () => ToolTip(), -1000
 return
 ButtonWheelMaxSpeedDown:
 MouseWheelSpeedMultiplier := RegRead("HKCU\Control Panel\Desktop", "WheelScrollLines")
@@ -686,7 +693,7 @@ if MouseWheelMaxSpeedReal = 1
     ToolTip "Mouse wheel maximum speed: " MouseWheelMaxSpeedReal " line"
 else
     ToolTip "Mouse wheel maximum speed: " MouseWheelMaxSpeedReal " lines"
-SetTimer "RemoveToolTip", 1000
+SetTimer () => ToolTip(), -1000
 return
 
 ButtonWheelUp:
@@ -722,16 +729,16 @@ else if Button = "NumpadAdd"
 SetTimer "ButtonWheelAccelerationEnd", 100
 return
 
-ButtonWheelAccelerationEnd:
-if GetKeyState(Button, "P")
-    Goto ButtonWheelAccelerationStart
+ButtonWheelAccelerationEnd()
+{
+    global
+    if GetKeyState(Button, "P")
+    {
+        Gosub ButtonWheelAccelerationStart
+        return
+    }
 
-MouseWheelCurrentAccelerationSpeed := 0
-MouseWheelCurrentSpeed := MouseWheelSpeed
-Button := 0
-return
-
-RemoveToolTip:
-SetTimer , "Off"
-ToolTip
-return
+    MouseWheelCurrentAccelerationSpeed := 0
+    MouseWheelCurrentSpeed := MouseWheelSpeed
+    Button := 0
+}

@@ -12,13 +12,13 @@ if Result = "Yes"
     MsgBox "You chose Add."
 else
     MsgBox "You chose Delete."
-return
 
-ChangeButtonNames:
-if !WinExist("Add or Delete")
-    return  ; Keep waiting.
-SetTimer , "Off"
-WinActivate
-ControlSetText "&Add", "Button1"
-ControlSetText "&Delete", "Button2"
-return
+ChangeButtonNames()
+{
+    if !WinExist("Add or Delete")
+        return  ; Keep waiting.
+    SetTimer , "Off"
+    WinActivate
+    ControlSetText "&Add", "Button1"
+    ControlSetText "&Delete", "Button2"
+}

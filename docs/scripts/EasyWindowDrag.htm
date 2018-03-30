@@ -23,35 +23,38 @@
 
 ~MButton & LButton::
 CapsLock & LButton::
-CoordMode "Mouse"  <em>; Switch to screen/absolute coordinates.</em>
-MouseGetPos EWD_MouseStartX, EWD_MouseStartY, EWD_MouseWin
-WinGetPos EWD_OriginalPosX, EWD_OriginalPosY,,, "ahk_id " EWD_MouseWin
-if !WinGetMinMax("ahk_id " EWD_MouseWin)  <em>; Only if the window isn't maximized </em>
-    SetTimer "EWD_WatchMouse", 10 <em>; Track the mouse as the user drags it.</em>
-return
+EWD_MoveWindow()
+{
+    CoordMode "Mouse"  <em>; Switch to screen/absolute coordinates.</em>
+    MouseGetPos EWD_MouseStartX, EWD_MouseStartY, EWD_MouseWin
+    WinGetPos EWD_OriginalPosX, EWD_OriginalPosY,,, "ahk_id " EWD_MouseWin
+    if !WinGetMinMax("ahk_id " EWD_MouseWin)  <em>; Only if the window isn't maximized </em>
+        SetTimer "EWD_WatchMouse", 10 <em>; Track the mouse as the user drags it.</em>
 
-EWD_WatchMouse:
-if !GetKeyState("LButton", "P")  <em>; Button has been released, so drag is complete.</em>
-{
-    SetTimer , "Off"
-    return
+    EWD_WatchMouse()
+    {
+        if !GetKeyState("LButton", "P")  <em>; Button has been released, so drag is complete.</em>
+        {
+            SetTimer , "Off"
+            return
+        }
+        if GetKeyState("Escape", "P")  <em>; Escape has been pressed, so drag is cancelled.</em>
+        {
+            SetTimer , "Off"
+            WinMove EWD_OriginalPosX, EWD_OriginalPosY,,, "ahk_id " EWD_MouseWin
+            return
+        }
+        <em>; Otherwise, reposition the window to match the change in mouse coordinates
+        ; caused by the user having dragged the mouse:</em>
+        CoordMode "Mouse"
+        MouseGetPos EWD_MouseX, EWD_MouseY
+        WinGetPos EWD_WinX, EWD_WinY,,, "ahk_id " EWD_MouseWin
+        SetWinDelay -1   <em>; Makes the below move faster/smoother.</em>
+        WinMove EWD_WinX + EWD_MouseX - EWD_MouseStartX, EWD_WinY + EWD_MouseY - EWD_MouseStartY,,, "ahk_id " EWD_MouseWin
+        EWD_MouseStartX := EWD_MouseX  <em>; Update for the next timer-call to this subroutine.</em>
+        EWD_MouseStartY := EWD_MouseY
+    }
 }
-if GetKeyState("Escape", "P")  <em>; Escape has been pressed, so drag is cancelled.</em>
-{
-    SetTimer , "Off"
-    WinMove EWD_OriginalPosX, EWD_OriginalPosY,,, "ahk_id " EWD_MouseWin
-    return
-}
-<em>; Otherwise, reposition the window to match the change in mouse coordinates
-; caused by the user having dragged the mouse:</em>
-CoordMode "Mouse"
-MouseGetPos EWD_MouseX, EWD_MouseY
-WinGetPos EWD_WinX, EWD_WinY,,, "ahk_id " EWD_MouseWin
-SetWinDelay -1   <em>; Makes the below move faster/smoother.</em>
-WinMove EWD_WinX + EWD_MouseX - EWD_MouseStartX, EWD_WinY + EWD_MouseY - EWD_MouseStartY,,, "ahk_id " EWD_MouseWin
-EWD_MouseStartX := EWD_MouseX  <em>; Update for the next timer-call to this subroutine.</em>
-EWD_MouseStartY := EWD_MouseY
-return
 </pre>
 </body>
 </html>
