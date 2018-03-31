@@ -58,97 +58,105 @@ JoyInfo := GetKeyState(JoystickNumber "JoyInfo")
 if InStr(JoyInfo, "P")  ; Joystick has POV control, so use it as a mouse wheel.
     SetTimer "MouseWheel", WheelDelay
 
-return  ; End of auto-execute section.
-
-
-; The subroutines below do not use KeyWait because that would sometimes trap the
+; The functions below do not use KeyWait because that would sometimes trap the
 ; WatchJoystick quasi-thread beneath the wait-for-button-up thread, which would
 ; effectively prevent mouse-dragging with the joystick.
 
-ButtonLeft:
-SetMouseDelay -1  ; Makes movement smoother.
-MouseClick "Left",,, 1, 0, "D"  ; Hold down the left mouse button.
-SetTimer "WaitForLeftButtonUp", 10
-return
-
-ButtonRight:
-SetMouseDelay -1  ; Makes movement smoother.
-MouseClick "Right",,, 1, 0, "D"  ; Hold down the right mouse button.
-SetTimer "WaitForRightButtonUp", 10
-return
-
-ButtonMiddle:
-SetMouseDelay -1  ; Makes movement smoother.
-MouseClick "Middle",,, 1, 0, "D"  ; Hold down the right mouse button.
-SetTimer "WaitForMiddleButtonUp", 10
-return
-
-WaitForLeftButtonUp:
-if GetKeyState(JoystickPrefix . ButtonLeft)
-    return  ; The button is still, down, so keep waiting.
-; Otherwise, the button has been released.
-SetTimer , "Off"
-SetMouseDelay -1  ; Makes movement smoother.
-MouseClick "Left",,, 1, 0, "U"  ; Release the mouse button.
-return
-
-WaitForRightButtonUp:
-if GetKeyState(JoystickPrefix . ButtonRight)
-    return  ; The button is still, down, so keep waiting.
-; Otherwise, the button has been released.
-SetTimer , "Off"
-MouseClick "Right",,, 1, 0, "U"  ; Release the mouse button.
-return
-
-WaitForMiddleButtonUp:
-if GetKeyState(JoystickPrefix . ButtonMiddle)
-    return  ; The button is still, down, so keep waiting.
-; Otherwise, the button has been released.
-SetTimer , "Off"
-MouseClick "Middle",,, 1, 0, "U"  ; Release the mouse button.
-return
-
-WatchJoystick:
-MouseNeedsToBeMoved := false  ; Set default.
-joyx := GetKeyState(JoystickNumber "JoyX")
-joyy := GetKeyState(JoystickNumber "JoyY")
-if joyx > JoyThresholdUpper
-{
-    MouseNeedsToBeMoved := true
-    DeltaX := Round(joyx - JoyThresholdUpper)
-}
-else if joyx < JoyThresholdLower
-{
-    MouseNeedsToBeMoved := true
-    DeltaX := Round(joyx - JoyThresholdLower)
-}
-else
-    DeltaX := 0
-if joyy > JoyThresholdUpper
-{
-    MouseNeedsToBeMoved := true
-    DeltaY := Round(joyy - JoyThresholdUpper)
-}
-else if joyy < JoyThresholdLower
-{
-    MouseNeedsToBeMoved := true
-    DeltaY := Round(joyy - JoyThresholdLower)
-}
-else
-    DeltaY := 0
-if MouseNeedsToBeMoved
+ButtonLeft()
 {
     SetMouseDelay -1  ; Makes movement smoother.
-    MouseMove DeltaX * JoyMultiplier, DeltaY * JoyMultiplier * YAxisMultiplier, 0, "R"
+    MouseClick "Left",,, 1, 0, "D"  ; Hold down the left mouse button.
+    SetTimer "WaitForLeftButtonUp", 10
+    
+    WaitForLeftButtonUp()
+    {
+        if GetKeyState(A_ThisHotkey)
+            return  ; The button is still, down, so keep waiting.
+        ; Otherwise, the button has been released.
+        SetTimer , "Off"
+        SetMouseDelay -1  ; Makes movement smoother.
+        MouseClick "Left",,, 1, 0, "U"  ; Release the mouse button.
+    }
 }
-return
 
-MouseWheel:
-JoyPOV := GetKeyState(JoystickNumber "JoyPOV")
-if JoyPOV = -1  ; No angle.
-    return
-if (JoyPOV > 31500 or JoyPOV < 4500)  ; Forward
-    Send "{WheelUp}"
-else if JoyPOV >= 13500 and JoyPOV <= 22500  ; Back
-    Send "{WheelDown}"
-return
+ButtonRight()
+{
+    SetMouseDelay -1  ; Makes movement smoother.
+    MouseClick "Right",,, 1, 0, "D"  ; Hold down the right mouse button.
+    SetTimer "WaitForRightButtonUp", 10
+    
+    WaitForRightButtonUp()
+    {
+        if GetKeyState(A_ThisHotkey)
+            return  ; The button is still, down, so keep waiting.
+        ; Otherwise, the button has been released.
+        SetTimer , "Off"
+        MouseClick "Right",,, 1, 0, "U"  ; Release the mouse button.
+    }
+}
+
+ButtonMiddle()
+{
+    SetMouseDelay -1  ; Makes movement smoother.
+    MouseClick "Middle",,, 1, 0, "D"  ; Hold down the right mouse button.
+    SetTimer "WaitForMiddleButtonUp", 10
+    
+    WaitForMiddleButtonUp()
+    {
+        if GetKeyState(A_ThisHotkey)
+            return  ; The button is still, down, so keep waiting.
+        ; Otherwise, the button has been released.
+        SetTimer , "Off"
+        MouseClick "Middle",,, 1, 0, "U"  ; Release the mouse button.
+    }
+
+}
+
+WatchJoystick()
+{
+    global
+    MouseNeedsToBeMoved := false  ; Set default.
+    joyx := GetKeyState(JoystickNumber "JoyX")
+    joyy := GetKeyState(JoystickNumber "JoyY")
+    if joyx > JoyThresholdUpper
+    {
+        MouseNeedsToBeMoved := true
+        DeltaX := Round(joyx - JoyThresholdUpper)
+    }
+    else if joyx < JoyThresholdLower
+    {
+        MouseNeedsToBeMoved := true
+        DeltaX := Round(joyx - JoyThresholdLower)
+    }
+    else
+        DeltaX := 0
+    if joyy > JoyThresholdUpper
+    {
+        MouseNeedsToBeMoved := true
+        DeltaY := Round(joyy - JoyThresholdUpper)
+    }
+    else if joyy < JoyThresholdLower
+    {
+        MouseNeedsToBeMoved := true
+        DeltaY := Round(joyy - JoyThresholdLower)
+    }
+    else
+        DeltaY := 0
+    if MouseNeedsToBeMoved
+    {
+        SetMouseDelay -1  ; Makes movement smoother.
+        MouseMove DeltaX * JoyMultiplier, DeltaY * JoyMultiplier * YAxisMultiplier, 0, "R"
+    }
+}
+
+MouseWheel()
+{
+    global
+    JoyPOV := GetKeyState(JoystickNumber "JoyPOV")
+    if JoyPOV = -1  ; No angle.
+        return
+    if (JoyPOV > 31500 or JoyPOV < 4500)  ; Forward
+        Send "{WheelUp}"
+    else if JoyPOV >= 13500 and JoyPOV <= 22500  ; Back
+        Send "{WheelDown}"
+}

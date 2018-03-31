@@ -243,7 +243,7 @@ ReceiveData(wParam, lParam)
                 else
                     RepeatCount := 1
                 ToolTip "Button from WinLIRC, " ButtonName " (" RepeatCount ")"
-                SetTimer "SplashOff", -3000  ; This allows more signals to be processed while displaying the window.
+                SetTimer () => ToolTip(), -3000  ; This allows more signals to be processed while displaying the window.
             }
             PrevButtonName := ButtonName
             PrevButtonTime := A_TickCount
@@ -251,12 +251,6 @@ ReceiveData(wParam, lParam)
     }
     return 1  ; Tell the program that no further processing of this message is needed.
 }
-
-
-
-SplashOff:
-ToolTip
-return
 
 
 
