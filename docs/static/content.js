@@ -1254,7 +1254,7 @@ function addFeatures()
       if (pre.className.indexOf('no-syntax-highlight') != -1)
         continue;
       // multi-line string (needs to be pre-processed):
-      pre.innerHTML = pre.innerHTML.replace(/(^(\s*)\([\s\S]*?^(\s*)\))/gm, function(m, m1) { return wrap(m1,'multi-str',0); });
+      pre.innerHTML = pre.innerHTML.replace(/((^|("|').*?)(\s*)\([\s\S]*?^(\s*)\)\3)/gm, function(m, m1, m2) { return wrap(m1,(m2)?'multi-str':'pln multi',0); });
       // Separate existing tags with attributes to avoid threading them as strings and wrap the rest ("plain texts") with tags:
       var innerHTML = pre.innerHTML;
       var offset = 0;
@@ -1274,34 +1274,18 @@ function addFeatures()
       for(var j = 0; j < spans.length; j++) {
         var innerHTML = spans[j].innerHTML;
         // strings (double and single quotes):
-        innerHTML = innerHTML.replace(/(("|').*?\2)\B/g, function(m, m1) { return wrap(m1, 'str', false); });
+        if (spans[j].className.indexOf('multi') != -1)
+          innerHTML = innerHTML.replace(/(("|')[\s\S]*?\2)\B/g, function(m, m1) { return wrap(m1, 'str', false); });
+        else
+          innerHTML = innerHTML.replace(/(("|').*?\2)\B/g, function(m, m1) { return wrap(m1, 'str', false); });
         // methods:
         innerHTML = innerHTML.replace(/(\.)([^~`!@#$%^&*(){}\[\];:"'<,.>?\/\\|+=\-\s]+?)(?=\()/g, function(m, m1, m2) { return m1+wrap(m2, 'met', false); });
-        // legacy if:
-        innerHTML = innerHTML.replace(/(^\s*|[,:}]\s*)(else |)(if) (\S+) (not between|between|not in|in|not contains|contains|is not|is) (?:(\S+) (and) (\S+)|(.+))/gim, function(m, m1, m2, m3, m4, m5, m6, m7, m8, m9) {
-          var if_var_ = m1+m2+wrap(m3, 'cfs', 'commands/IfEqual.htm')+' '+m4+' ';
-          switch(m5) {
-            case "not between":
-            case "between":
-            return if_var_+wrap(m5,'cfs','commands/IfBetween.htm')+' '+wrap(m6,'str',0)+' '+wrap(m7,'cfs',0)+' '+wrap(m8,'str',0);
-      
-            case "not in":
-            case "in":
-            case "not contains":
-            case "contains":
-            return if_var_+wrap(m5,'cfs','commands/IfIn.htm')+' '+wrap(m9,'str',0);
-      
-            case "is not":
-            case "is":
-            return if_var_+wrap(m5,'cfs','commands/IfIs.htm')+' '+wrap(m9,'str',0);
-          };
-        });
         // if expression:
         innerHTML = innerHTML.replace(/(^\s*|[,:}]\s*)(else |)(if)\b/gim, function(m, m1, m2, m3) { return m1+m2+wrap(m3,'cfs','commands/IfExpression.htm'); });
         // loops:
         innerHTML = innerHTML.replace(/\b(loop)(\s|,\s|,)(files|parse|read|reg)\b/gim, function(m, m1, m2, m3) {
           m3 = m3.substr(0,1).toUpperCase()+m3.substr(1).toLowerCase(); // Convert to title case.
-          var link = 'commands/Loop'+(m3.toLowerCase()=='files'?m3.substr(0,4):m3)+'.htm';
+          var link = 'commands/Loop'+m3+'.htm';
           return wrap(m1,'cfs',link)+m2+wrap(m3,'cfs',link);
         });
         // class:
@@ -1321,8 +1305,8 @@ function addFeatures()
         innerHTML = innerHTML.replace(new RegExp('(^\\s*|[,:}]\\s*)('+syntax[3].join('|')+'|'+syntax[5].join('|')+')\\b','gim'), function(m, m1, m2) { return m1+wrap(m2,'cfs',true); });
         // ByRef:
         innerHTML = innerHTML.replace(/(.+?)\b(byref)\b(?=(.+?)\))/gim, function(m, m1, m2) { return m1+wrap(m2,'cfs','Functions.htm#ByRef'); });
-        // commands:
-        innerHTML = innerHTML.replace(new RegExp('(^\\s*|[:]\\s*)('+syntax[6].join('|')+')\\b(?=[\\s,]|$)',"gim"), function(m, m1, m2) { return m1+wrap(m2,'cmd',true); });
+        // command-like built-in functions:
+        innerHTML = innerHTML.replace(new RegExp('(^\\s*|[:]\\s*)('+syntax[2].join('|')+')\\b(?=[\\s](?!:)|$)',"gim"), function(m, m1, m2) { return m1+wrap(m2,'cmd',true); });
         // built-in functions:
         innerHTML = innerHTML.replace(new RegExp('\\b('+syntax[2].join('|')+')(?=\\()','gi'), function(m, m1) { return wrap(m1, 'bif', true); });
         // built-in vars:
