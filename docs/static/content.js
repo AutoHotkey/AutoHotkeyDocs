@@ -5,6 +5,11 @@ padding:"inner"+a,content:b,"":"outer"+a},function(c,d){n.fn[d]=function(d,e){va
 
 /*Search highlighting*/jQuery.fn.highlight=function(c){function e(b,c){var d=0;if(3==b.nodeType){var a=b.data.toUpperCase().indexOf(c),a=a-(b.data.substr(0,a).toUpperCase().length-b.data.substr(0,a).length);if(0<=a){d=document.createElement("span");d.className="highlight";a=b.splitText(a);a.splitText(c.length);var f=a.cloneNode(!0);d.appendChild(f);a.parentNode.replaceChild(d,a);d=1}}else if(1==b.nodeType&&b.childNodes&&!/(script|style)/i.test(b.tagName))for(a=0;a<b.childNodes.length;++a)a+=e(b.childNodes[a],c);return d} return this.length&&c&&c.length?this.each(function(){e(this,c.toUpperCase())}):this};jQuery.fn.removeHighlight=function(){return this.find("span.highlight").each(function(){this.parentNode.firstChild.nodeName;with(this.parentNode)replaceChild(this.firstChild,this),normalize()}).end()};
 
+// --- Get infos about this script file ---
+
+var scriptElement = document.scripts[document.scripts.length-1];
+var scriptDir = scriptElement.src.substr(0, scriptElement.src.lastIndexOf('/'));
+
 // --- Cached data ---
 
 // To have the data remain while navigating through the docs, it'll be stored into
@@ -12,21 +17,28 @@ padding:"inner"+a,content:b,"":"outer"+a},function(c,d){n.fn[d]=function(d,e){va
 // window.localStorage/sessionStorage or cookies.
 
 var cache = {
-  firstStartup: true,
-  host: location.host || /*for IE8+chm*/"",
+  scriptDir: scriptDir,
   fontSize: 1.0,
+  forceNoFrame: false,
+  forceNoScript: false,
   clickTab: 0,
   LastUsedSource: "",
   displaySidebar: true,
   sidebarWidth: '18em',
   RightIsFocused: true,
-  translate: {},
-  toc: {data: {}, clickItem: 0, scrollPos: 0},
-  index: {data: {}, input: "", clickItem: 0, scrollPos: 0},
-  search: {index: {}, files: {}, titles: {}, data: {}, input: "", clickItem: 0, scrollPos: 0},
+  toc: {clickItem: 0, scrollPos: 0},
+  index: {input: "", clickItem: 0, scrollPos: 0},
+  search: {data: {}, input: "", clickItem: 0, scrollPos: 0},
   load: function() {
-    if (window.name.indexOf('"host":"'+this.host+'"') != -1)
-      $.extend(this, JSON.parse(window.name));
+    try {
+      var data = JSON.parse(window.name);
+    } catch(e) {
+      return false;
+    }
+    if (data.scriptDir != scriptDir)
+      return false;
+    $.extend(this, data);
+    return true;
   },
   save: function() {
     window.name = JSON.stringify(this);
@@ -36,14 +48,12 @@ var cache = {
 // --- Main Execute Area ---
 
 // Set global variables:
-cache.load();
-var scriptElement = document.scripts[document.scripts.length-1];
-var scriptDir = scriptElement.src.substr(0, scriptElement.src.lastIndexOf('/'));
+var isCacheLoaded = cache.load();
 var workingDir = getWorkingDir();
 var relPath = location.href.replace(workingDir, '');
 var isInsideCHM = (location.href.search(/::/) > 0) ? 1 : 0;
 var supportsHistory = (history.replaceState) && !isInsideCHM;
-var isFrameCapable = isInsideCHM || supportsHistory;
+var isFrameCapable = !cache.forceNoFrame && (isInsideCHM || supportsHistory);
 var isInsideFrame = (window.self !== window.top);
 var isSearchBot = navigator.userAgent.match(/googlebot|bingbot|slurp/i);
 var isTouch = !!("ontouchstart" in window) || !!(navigator.msMaxTouchPoints);
@@ -51,6 +61,7 @@ var isOpera = (!!window.opr && !!opr.addons) || !!window.opera || navigator.user
 var isFirefox = typeof InstallTrigger !== 'undefined'; // Firefox 1.0+
 var isSafari = Object.prototype.toString.call(window.HTMLElement).indexOf('Constructor') > 0; // At least Safari 3+: "[object HTMLElementConstructor]"
 var isIE = /*@cc_on!@*/false || !!document.documentMode; // Internet Explorer 6-11
+var isIE8 = !-[1,]; // Internet Explorer 8 or below
 var isEdge = !isIE && !!window.StyleMedia; // Edge 20+
 var isChrome = !!window.chrome && !!window.chrome.webstore; // Chrome 1+
 var isBlink = (isChrome || isOpera) && !!window.CSS; // Blink engine detection
@@ -70,7 +81,7 @@ var isPhone = (document.documentElement.clientWidth <= 600);
     return;
 
   // Exit the script on sites which doesn't need the sidebar:
-  if (/(search|frame)\.htm/.test(location.href))
+  if (/(search|frame)\.htm/.test(location.href) || cache.forceNoScript)
     return;
 
   // Special treatments for pages inside a frame:
@@ -112,35 +123,39 @@ var isPhone = (document.documentElement.clientWidth <= 600);
   structure.build();
 
   // Get the data if needed and modify the site:
-  if (cache.firstStartup) {
-    cache.firstStartup = false;
+  if (!cache.translate)
     loadScript(structure.dataPath, function() {
       cache.translate = translateData;
       structure.modify();
       $(document).ready(addFeatures);
     });
+  else {
+    structure.modify();
+    $(document).ready(addFeatures);
+  }
+  if (!cache.toc.data)
     loadScript(toc.dataPath, function() {
       cache.toc.data = tocData;
       toc.modify();
     });
+  else
+    toc.modify();
+  if (!cache.index.data)
     loadScript(index.dataPath, function() {
       cache.index.data = indexData;
       index.modify();
     });
+  else
+    index.modify();
+  if (!cache.search.index || !cache.search.files || !cache.search.titles)
     loadScript(search.dataPath, function() {
       cache.search.index = SearchIndex;
       cache.search.files = SearchFiles;
       cache.search.titles = SearchTitles;
       search.modify();
     });
-  }
-  else {
-    structure.modify();
-    toc.modify();
-    index.modify();
+  else
     search.modify();
-    $(document).ready(addFeatures);
-  }
 })();
 
 // --- Constructor: Table of content ---
@@ -583,7 +598,7 @@ function ctor_structure()
   self.metaViewport = '<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">';
   self.template = '<div id="body">' +
   '<div id="head"><div class="h-tabs"><ul><li data-translate data-content="Content"></li><li data-translate data-content="Index"></li><li data-translate data-content="Search"></li></ul></div><div class="h-tools"><div class="main"><ul><li class="sidebar" title="Hide/Show sidebar" data-translate>&#926;</li></ul></div><div class="online"><ul><li class="home" title="Home page" data-translate><a href="' + location.protocol + '//' + location.host + '">&#916;</a></li></ul><ul><li class="language" title="Change language" data-translate data-content="en"></li></ul><ul class="languages"><li class="arrow">&#9658;</li><li><a title="English" data-content="en"></a></li><li><a title="Deutsch (German)" data-content="de"></a></li><li><a title="&#x4E2D;&#x6587; (Chinese)" data-content="zh"></a></li></ul><ul><li class="version" title="Change AHK version" data-translate data-content="v1"></li></ul><ul class="versions"><li class="arrow">&#9658;</li><li><a title="AHK v1.1" data-content="v1"></a></li><li><a title="AHK v2.0" data-content="v2"></a></li></ul><ul><li class="edit" title="Edit page on GitHub" data-translate><a data-content="E"></a></li></ul></div><div class="chm"><ul><li class="back" title="Go back" data-translate>&#9668;</li><li class="forward" title="Go forward" data-translate>&#9658;</li><li class="zoom" title="Change font size" data-translate data-content="Z"></li><li class="print" title="Print current document" data-translate data-content="P"></li></ul></div></div></div>' +
-  '<div id="main"><div id="left"><div class="toc"></div><div class="index"><div class="label" data-translate data-content="Type in the keyword to find:"></div><div class="input"><input type="text" /></div><div class="list"></div></div><div class="search"><div class="label" data-translate data-content="Type in the word(s) to search for:"></div><div class="input"><input type="text" /></div><div class="list"></div></div></div><div class="dragbar"></div><div id="right" tabIndex="-1"><div class="area">';
+  '<div id="main"><div id="left"><div class="toc"></div><div class="index"><div class="label" data-translate data-content="Type in the keyword to find:"></div><div class="input"><input type="text" /></div><div class="list"></div></div><div class="search"><div class="label" data-translate data-content="Type in the word(s) to search for:"></div><div class="input"><input type="text" /></div><div class="list"></div></div><div class="load"><div class="lds-dual-ring"></div></div></div><div class="dragbar"></div><div id="right" tabIndex="-1"><div class="area">';
   self.template = isIE || isEdge ? self.template.replace(/ data-content="(.*?)">/g, '>$1') : self.template;
   self.build = function() { document.write(self.template); }; // Write HTML before DOM is loaded to prevent flickering.
   self.modify = function() { // Modify elements added via build.
@@ -702,9 +717,9 @@ function ctor_structure()
     // 'Print' button:
     $('li.print', $chm).on('click', function() { window.print(); });
 
-    // --- If help is CHM, hide online tools, otherwise hide CHM tools ---
+    // --- If help is CHM, show CHM tools, else show online tools ---
 
-    (isInsideCHM) ? $online.hide() : $chm.hide();
+    (isInsideCHM) ? $chm.show() : $online.show();
 
     // --- Apply click events for sidebar tabs ---
 
@@ -945,9 +960,8 @@ function ctor_structure()
         for (var i = 0; i < keyList.length; i++)
           if (e.which == T(keyList[i]).charCodeAt(0)) {
             self.pressKey(keyList[i]);
-            break;
+            return false;
           }
-        return false;
       }
     });
   }
@@ -1137,28 +1151,39 @@ function addFeatures()
   }
 
   // --- Useful features for code boxes ---
+  
+  var pres = content.querySelectorAll("pre");
 
   // Provide select and download buttons:
-  var pres = content.querySelectorAll("pre");
   for(var i = 0; i < pres.length; i++) {
-    var pre = pres[i], $pre = $(pre);
-    var div = '<div class="codeTools">';
-    div += '<a class="selectCode" title="' + T("Select code") + '">S</a>';
-    if (pre.className !== "Syntax")
-    div += '<a class="downloadCode" title="' + T("Download code") + '">&#8595;</a>';
-    div += '</div>';
-    pre.innerHTML = div+'<div>'+pre.innerHTML+'</div>';
-    $pre // Show these buttons on hover:
+    var pre = pres[i];
+    var isSyntax = (pre.className.indexOf('Syntax') != -1);
+    var parent = document.createElement('pre'); parent.className = 'parent ' + pre.className;
+    if (isSyntax || pre.className.indexOf('no-syntax-highlight') != -1)
+      pre.className = 'origin no-syntax-highlight';
+    else
+      pre.className = 'origin';
+    pre.parentNode.insertBefore(parent, pre);
+    parent.appendChild(pre);
+    var buttons = document.createElement('div'); buttons.className = 'buttons';
+    parent.appendChild(buttons);
+    var sel = document.createElement('a'); sel.className = 'selectCode'; sel.title = T("Select code"); sel.innerHTML = 'S';
+    buttons.appendChild(sel);
+    if (!isSyntax) {
+      var dwn = document.createElement('a'); dwn.className = 'downloadCode'; dwn.title = T("Download code"); dwn.innerHTML = '&#8595;';
+      buttons.appendChild(dwn);
+    }
+    $(parent) // Show these buttons on hover:
     .mouseenter(function() {
-      $('div.codeTools', $(this)).fadeTo(200, 0.8);
+      $('> div.buttons', $(this)).fadeTo(200, 0.8);
     })
     .mouseleave(function() {
-      $('div.codeTools', $(this)).fadeTo(200, 0);
+      $('> div.buttons', $(this)).fadeTo(200, 0);
     });
-    $('a.selectCode', $pre) // Select the code on click:
+    $('a.selectCode', $(parent)) // Select the code on click:
     .on('click', function() {
       var doc = document
-        , text = $(this).parent().next()[0]
+        , text = $('> pre.origin', $(this).parent().parent())[0]
         , range, selection;
       if (doc.body.createTextRange) {
         range = document.body.createTextRange();
@@ -1172,9 +1197,9 @@ function addFeatures()
         selection.addRange(range);
       }
     });
-    $('a.downloadCode', $pre) // Download the code on click:
+    $('a.downloadCode', $(parent)) // Download the code on click:
     .on('click', function(e) {
-      var textToWrite = '\ufeff' + $(this).parent().next().text().replace(/\n/g, "\r\n");
+      var textToWrite = '\ufeff' + $('> pre.origin', $(this).parent().parent()).text().replace(/\n/g, "\r\n");
       var textFileAsBlob = new Blob([textToWrite], {type:'text/csv'});
       var fileNameToSaveAs = location.pathname.match(/([^\/]+)(?=\.\w+$)/)[0] + "-Script.ahk";
   
@@ -1200,6 +1225,119 @@ function addFeatures()
     });
   }
 
+  // Syntax highlighting:
+  if (!isIE8) {
+    if (cache.index.data) {
+        addSyntaxColors(pres);
+    } else {
+      loadScript(index.dataPath, function() { cache.index.data = indexData; addSyntaxColors(pres); });
+    }
+  }
+  function addSyntaxColors(pres) {
+    // Create lists of syntax elements by using index data to reduce code size:
+    var syntax = [[], [], [], [], [], [], []], dict = {};
+    for(var i = 0; i < cache.index.data.length; i++) {
+      var entry = cache.index.data[i][0];
+      var path = cache.index.data[i][1];
+      var type = cache.index.data[i][2];
+      if (typeof type !== 'undefined') {
+        if (type == 2 && entry.substr(entry.length - 2) == '()')
+          entry = entry.substr(0, entry.length - 2);
+        syntax[type].push(entry);
+        dict[entry.toLowerCase()] = i;
+      }
+    }
+    // Traverse pre elements:
+    for(var i = 0; i < pres.length; i++) {
+      var pre = pres[i];
+      // Skip pre.no-syntax-highlight elements:
+      if (pre.className.indexOf('no-syntax-highlight') != -1)
+        continue;
+      // multi-line string (needs to be pre-processed):
+      pre.innerHTML = pre.innerHTML.replace(/((^|("|').*?)(\s*)\([\s\S]*?^(\s*)\)\3)/gm, function(m, m1, m2) { return wrap(m1,(m2)?'multi-str':'pln multi',0); });
+      // Separate existing tags with attributes to avoid threading them as strings and wrap the rest ("plain texts") with tags:
+      var innerHTML = pre.innerHTML;
+      var offset = 0;
+      $(pre).children().each(function() {
+        if (this.attributes.length || this.children.length) {
+          var outerHTML = this.outerHTML;
+          var n = innerHTML.indexOf(outerHTML, offset);
+          var replacement = '</span>'+outerHTML+'<span class="pln">';
+          offset = n + replacement.length;
+          if (n !== -1)
+            innerHTML = innerHTML.substr(0, n) + replacement + innerHTML.substr(n + outerHTML.length);
+        }
+      });
+      pre.innerHTML = '<span class="pln">'+innerHTML+'</span>';
+      // Traverse plain text elements defined by above:
+      var spans = pre.querySelectorAll("span.pln");
+      for(var j = 0; j < spans.length; j++) {
+        var innerHTML = spans[j].innerHTML;
+        // strings (double and single quotes):
+        if (spans[j].className.indexOf('multi') != -1)
+          innerHTML = innerHTML.replace(/(("|')[\s\S]*?\2)\B/g, function(m, m1) { return wrap(m1, 'str', false); });
+        else
+          innerHTML = innerHTML.replace(/(("|').*?\2)\B/g, function(m, m1) { return wrap(m1, 'str', false); });
+        // methods:
+        innerHTML = innerHTML.replace(/(\.)([^~`!@#$%^&*(){}\[\];:"'<,.>?\/\\|+=\-\s]+?)(?=\()/g, function(m, m1, m2) { return m1+wrap(m2, 'met', false); });
+        // if expression:
+        innerHTML = innerHTML.replace(/(^\s*|[,:}]\s*)(else |)(if)\b/gim, function(m, m1, m2, m3) { return m1+m2+wrap(m3,'cfs','commands/IfExpression.htm'); });
+        // loops:
+        innerHTML = innerHTML.replace(/\b(loop)(\s|,\s|,)(files|parse|read|reg)\b/gim, function(m, m1, m2, m3) {
+          m3 = m3.substr(0,1).toUpperCase()+m3.substr(1).toLowerCase(); // Convert to title case.
+          var link = 'commands/Loop'+m3+'.htm';
+          return wrap(m1,'cfs',link)+m2+wrap(m3,'cfs',link);
+        });
+        // class:
+        innerHTML = innerHTML.replace(/(^\s*|[,:}]\s*)(class) (\S+)(?: (extends)(?= \S+)|)/gim, function(m, m1, m2, m3, m4) {
+          var link = 'Objects.htm#Custom_Classes';
+          if (m4)
+            return m1+wrap(m2,'cfs',link)+' '+m3+' '+wrap(m4,'cfs',link);
+          else
+            return m1+wrap(m2,'cfs',link)+' '+m3;
+        });
+        // for:
+        innerHTML = innerHTML.replace(/\b(for) (\S+|\S+, \S+) (in)/gim, function(m, m1, m2, m3) {
+          var link = 'commands/For.htm';
+          return wrap(m1,'cfs',link)+' '+m2+' '+wrap(m3,'cfs',link);
+        });
+        // control flows / declarations:
+        innerHTML = innerHTML.replace(new RegExp('(^\\s*|[,:}]\\s*)('+syntax[3].join('|')+'|'+syntax[5].join('|')+')\\b','gim'), function(m, m1, m2) { return m1+wrap(m2,'cfs',true); });
+        // ByRef:
+        innerHTML = innerHTML.replace(/(.+?)\b(byref)\b(?=(.+?)\))/gim, function(m, m1, m2) { return m1+wrap(m2,'cfs','Functions.htm#ByRef'); });
+        // command-like built-in functions:
+        innerHTML = innerHTML.replace(new RegExp('(^\\s*|[:]\\s*)('+syntax[2].join('|')+')\\b(?=[\\s](?!:)|$)',"gim"), function(m, m1, m2) { return m1+wrap(m2,'cmd',true); });
+        // built-in functions:
+        innerHTML = innerHTML.replace(new RegExp('\\b('+syntax[2].join('|')+')(?=\\()','gi'), function(m, m1) { return wrap(m1, 'bif', true); });
+        // built-in vars:
+        innerHTML = innerHTML.replace(new RegExp('\\b('+syntax[1].join('|')+')\\b','gi'), function(m, m1) { return wrap(m1, 'biv', true); });
+        // directives:
+        innerHTML = innerHTML.replace(new RegExp('('+syntax[0].join('|')+')\\b','gi'), function(m, m1) { return wrap(m1, 'dir', true); });
+        // hotkeys/hotstrings:
+        innerHTML = innerHTML.replace(/^(\s*)((?:\S+?|\S+? \S+?|\S+? (&amp;|&) \S+?)::)/mg, function(m, m1, m2) { return m1+wrap(m2, 'lab', false); });
+        // labels:
+        innerHTML = innerHTML.replace(/^(\s*)([^\s]+?:)(?=\s|$)/mg, function(m, m1, m2) { return m1+wrap(m2, 'lab', false); });
+
+        spans[j].innerHTML = innerHTML;
+      }
+    }
+    function wrap(match, type, isLink) {
+      var span = document.createElement('span');
+      span.className = type;
+      if (isLink) {
+        var a = document.createElement('a');
+        if (isLink == true)
+          a.href = scriptDir + '/../' + cache.index.data[dict[match.toLowerCase()]][1];
+        else
+          a.href = scriptDir + '/../' + isLink;
+        a.innerHTML = match;
+        span.appendChild(a);
+      } else
+        span.innerHTML = match;
+      return span.outerHTML;
+    }
+  }
+
   // --- Add footer at the bottom of the site ---
 
   var div = document.createElement('div');
@@ -1214,10 +1352,14 @@ function addFeatures()
   div.title = T('Back to top');
   content.appendChild(div);
 
+  var isVisible = false;
   $('#right').add(window).on('scroll', function() {
-    if ($(this).scrollTop() > 20) {
+    var scrollTop = $(this).scrollTop();
+    if (scrollTop > 20 && !isVisible) {
+      isVisible = true;
       $('div.back-to-top').fadeIn();
-    } else {
+    } else if (scrollTop < 20 && isVisible) {
+      isVisible = false;
       $('div.back-to-top').fadeOut();
     }
   });
