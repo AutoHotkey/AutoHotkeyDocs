@@ -1254,7 +1254,7 @@ function addFeatures()
       if (pre.className.indexOf('no-syntax-highlight') != -1)
         continue;
       // multi-line string (needs to be pre-processed):
-      pre.innerHTML = pre.innerHTML.replace(/((^|("|').*?)(\s*)\([\s\S]*?^(\s*)\)\3)/gm, function(m, m1, m2) { return wrap(m1,(m2)?'multi-str':'pln multi',0); });
+      pre.innerHTML = pre.innerHTML.replace(/((^|::|("|')[^"']*?$)\s*)(\([\s\S]*?^\s*\).*?\3)/gm, function(m, m1, m2, m3, m4) { return ((m2=='::')?m1:wrap(m1,'multi-str',0))+wrap(m4,(m2)?'multi-str':'pln multi',0); });
       // Separate existing tags with attributes to avoid threading them as strings and wrap the rest ("plain texts") with tags:
       var innerHTML = pre.innerHTML;
       var offset = 0;
