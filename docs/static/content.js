@@ -1329,8 +1329,10 @@ function addFeatures()
         innerHTML = innerHTML.replace(new RegExp('\\b('+syntax[1].join('|')+')\\b','gi'), function(m, m1) { return wrap(m1, 'biv', true); });
         // directives:
         innerHTML = innerHTML.replace(new RegExp('('+syntax[0].join('|')+')\\b','gi'), function(m, m1) { return wrap(m1, 'dir', true); });
-        // hotkeys/hotstrings:
-        innerHTML = innerHTML.replace(/^(\s*)((?:\S+?|\S+? \S+?|\S+? (&amp;|&) \S+?)::)/mg, function(m, m1, m2) { return m1+wrap(m2, 'lab', false); });
+        // hotstrings:
+        innerHTML = innerHTML.replace(/^(\s*)(:.*?:)(.*?)(::)(.*)/mg, function(m,m1,m2,m3,m4,m5) { return m1+wrap(m2,'lab',0)+wrap(m3,'str',0)+wrap(m4,'lab',0)+wrap(m5,'str',0); });
+        // hotkeys:
+        innerHTML = innerHTML.replace(/^(\s*)((?:\S+?|\S+? \S+?|\S+? (&amp;|&) \S+?)::)/mg, function(m,m1,m2) { return m1+wrap(m2,'lab',0); });
         // labels:
         innerHTML = innerHTML.replace(/^(\s*)([^\s]+?:)(?=\s|$)/mg, function(m, m1, m2) { return m1+wrap(m2, 'lab', false); });
 
