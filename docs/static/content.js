@@ -1260,6 +1260,8 @@ function addFeatures()
       });
       // Mark continuation sections:
       pre.innerHTML = pre.innerHTML.replace(/(^\s*\([\s\S]*?^\s*\))/gm, function(m,m1) { return wrap(m1,'str',0)});
+      // function definitions:
+      pre.innerHTML = pre.innerHTML.replace(/^(\s*?)(\S*?)(?=\(.*?\)[<\/em>\s]*{)/mg, function(m,m1,m2) { return m1+wrap(m2,'lab',0); });
       // Temporary remove elements with attributes and children to avoid interfering with syntax detection:
       $(pre).children().each(function() {
         if (this.attributes.length || this.children.length) {
