@@ -1295,9 +1295,9 @@ function addFeatures()
       innerHTML = innerHTML.replace(/(^\s*|[,:}]\s*)(else |)(if)\b/gim, function(m, m1, m2, m3) { return m1+m2+wrap(m3,'cfs','commands/IfExpression.htm'); });
       // loops:
       innerHTML = innerHTML.replace(/\b(loop)(\s|,\s|,)(files|parse|read|reg)\b/gim, function(m, m1, m2, m3) {
-        m3 = m3.substr(0,1).toUpperCase()+m3.substr(1).toLowerCase(); // Convert to title case.
-        var link = 'commands/Loop'+(m3.toLowerCase()=='files'?m3.substr(0,4):m3)+'.htm';
-        return wrap(m1,'cfs',link)+m2+wrap(m3,'cfs',link);
+        var dict = {files: 'File', parse: 'Parse', read: 'ReadFile', reg: 'Reg'};
+        var link = 'commands/Loop'+dict[m3.toLowerCase()]+'.htm';
+        return wrap(m1+m2+m3,'cfs',link);
       });
       // class:
       innerHTML = innerHTML.replace(/(^\s*|[,:}]\s*)(class) (\S+)(?: (extends)(?= \S+)|)/gim, function(m, m1, m2, m3, m4) {
