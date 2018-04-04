@@ -1,7 +1,7 @@
 <!DOCTYPE HTML>
 <html>
 <head>
-<title>Menu Object</title>
+<title>Menu/MenuBar Object</title>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <link href="../static/theme.css" rel="stylesheet" type="text/css">
@@ -9,15 +9,16 @@
 </head>
 <body>
 
-<h1>Menu Object</h1>
-<p>Used to modify and display menus. <a href="../commands/MenuCreate.htm">MenuCreate</a>, <a href="../commands/MenuFromHandle.htm">MenuFromHandle</a> and <a href="../Variables.htm#TrayMenu">A_TrayMenu</a> return an object of this type.</p>
+<h1>Menu/MenuBar Object</h1>
+<p>Used to modify and display menus or menu bars.</p>
+<p>Menu objects are used to define, modify and display popup menus. <a href="../commands/MenuCreate.htm">MenuCreate</a>, <a href="../commands/MenuFromHandle.htm">MenuFromHandle</a> and <a href="../Variables.htm#TrayMenu">A_TrayMenu</a> return an object of this type.</p>
+<p>MenuBar objects are used to define and modify menu bars for use with <a href="Gui.htm#MenuBar">Gui.MenuBar</a>. <a href="../commands/MenuFromHandle.htm">MenuFromHandle</a> returns an object of this type if given a menu bar handle.</p>
 
 <h4 id="Properties">Properties:</h4>
 <ul>
   <li><a href="#ClickCount">ClickCount</a>: Retrieves or sets the number of clicks required to activate the tray menu's default item.</li>
   <li><a href="#Default">Default</a>: Retrieves or sets the default menu item.</li>
   <li><a href="#Handle">Handle</a>: Retrieves the menu's Win32 handle.</li>
-  <li><a href="#Standard">Standard</a>: Adds or removes the standard menu items.</li>
 </ul>
 <h4 id="Methods">Methods:</h4>
 <ul>
@@ -34,6 +35,7 @@
   <li><a href="#ToggleCheck">ToggleCheck</a>: Toggles the checkmark next to a menu item.</li>
   <li><a href="#ToggleEnable">ToggleEnable</a>: Enables or disables a menu item.</li>
   <li><a href="#Uncheck">Uncheck</a>: Removes the checkmark (if there is one) from a menu item.</li>
+  <li><a href="#AddStandard">AddStandard</a>: Adds the standard <a href="../Program.htm#tray-icon">tray menu items</a>.</li>
 </ul>
 <h4>General:</h4>
 <ul>
@@ -115,14 +117,16 @@
 <p>Retrieves or sets the default menu item.</p>
 <pre class="Syntax">CurrentDefault := Menu.Default</pre>
 <dl>
-  <dt>CurrentDefault</dt><dd><p>The name of the default menu item, or an empty string if there is no default (or if the default item is one of the standard items).</p></dd>
+  <dt>CurrentDefault</dt><dd><p>The name of the default menu item, or an empty string if there is no default.</p></dd>
 </dl>
 <pre class="Syntax">Menu.Default := MenuItemName</pre>
 <dl>
   <dt>MenuItemName</dt><dd><p>The name or position of a menu item. See <a href="#MenuItemName">MenuItemName</a>.</p>
-  <p>To restore the menu to standard behavior, assign an empty string. For the tray menu: This restores the menu back to having its standard default menu item, which is OPEN for non-compiled scripts and none for <a href="../Scripts.htm#ahk2exe">compiled scripts</a> (except when the <em>MainWindow</em> option is in effect). If the OPEN menu item does not exist due to a previous use of <code><a href="#Standard">Menu.Standard</a> := false</code>, there will be no default and thus double-clicking the tray icon will have no effect. For other menus: Any existing default item is returned to a non-bold font.</p></dd>
+  <p>If <em>MenuItemName</em> is an empty string, there will be no default.</p></dd>
 </dl>
-<p>Setting the default item makes that item's font bold (setting a default item in menus other than the tray menu is currently purely cosmetic). When the user double-clicks the tray icon, its default menu item is launched. If there is no default, double-clicking has no effect.</p>
+<p>Setting the default item makes that item's font bold (setting a default item in menus other than the tray menu is currently purely cosmetic). When the user double-clicks the tray icon, its default menu item is launched (even if the item is disabled). If there is no default, double-clicking has no effect.</p>
+<p>The default item for the tray menu is initially <code>&amp;Open</code>, if present. Adding <code>&amp;Open</code> to the tray menu by calling <a href="#AddStandard">AddStandard</a> or changing <a href="../Variables.htm#AllowMainWindow">A_AllowMainWindow</a> also causes it to become the default item if there wasn't one already.</p>
+<p>If the default item is deleted, the menu is left without one.</p>
 </div>
 
 <div class="methodShort" id="Disable">
@@ -202,7 +206,7 @@
 <dl>
   <dt>X, Y</dt><dd><p>The coordinates at which to display the menu. If both X and Y are omitted, the menu is displayed at the current position of the mouse cursor. If only one of them is omitted, the mouse cursor's position will be used for it. X and Y are relative to the active window's client area by default. To override this default, use <code><a href="../commands/CoordMode.htm">CoordMode</a>, "Menu", <i>Mode</i></code> or <code>A_CoordModeMenu := <i>Mode</i></code>.</p></dd>
 </dl>
-<p>Any menu can be shown, including the tray menu but with the exception of <a href="../objects/Gui.htm#Menu">GUI menu bars</a>.</p>
+<p>Any popup menu can be shown, including submenus and the tray menu. However, an exception is thrown if <em>Menu</em> is a MenuBar object.</p>
 </div>
 
 <div class="methodShort" id="ToggleCheck">
@@ -232,46 +236,76 @@
 </dl>
 </div>
 
-<div class="methodShort" id="Standard">
-<h2>Standard</h2>
-<p>Adds or removes the standard menu items.</p>
-<pre class="Syntax">Menu.Standard := IncludeStandardItems</pre>
-<p><em>Standard</em> returns a boolean value (0 or 1) indicating whether the standard items are present in the menu. When its value is changed, the standard items are either removed from the menu or inserted at the bottom of the menu.</p>
-<p>This property can be used with the tray menu or any other menu.</p>
-<p>To put your menu items on top of the standard menu items, after adding your own menu items, set <code>A_TrayMenu.Standard := false</code> (if the standard items were already present) followed by <code>A_TrayMenu.Standard := true</code>.</p>
-<p>The standard menu items such as "Pause Script" and "Suspend Hotkeys" cannot be individually operated upon by any Menu method, and are not counted for the purpose of addressing items by position&amp;.</p>
+<div class="methodShort" id="AddStandard">
+<h2>AddStandard</h2>
+<p>Adds the standard <a href="../Program.htm#tray-icon">tray menu items</a>.</p>
+<pre class="Syntax">Menu.<span class="func">AddStandard</span>()</pre>
+<p>This method can be used with the tray menu or any other menu.</p>
+<p>The standard items are inserted after any existing items. Any standard items already in the menu are not duplicated, but any missing items are added. The table below shows the names and positions of the standard items after calling AddStandard on an empty menu:</p>
+<style>
+.fake-menu {
+  background-color: #f2f2f2;
+  border: 1px solid #cccccc;
+  color: black;
+  line-height: 1.4;
+}
+.fake-menu td {
+  padding: 0 .5em;
+}
+.fake-menu td {
+  text-align: right;
+}
+.fake-menu td:first-child {
+  text-align: left;
+}
+.fake-sep {
+  border: 1px solid #d7d7d7;
+  border-width: 1px 0 0;
+}
+</style>
+<table class="fake-menu">
+  <tr><td>&amp;Open</td><td>1</td><td>0</td></tr>
+  <tr><td>&amp;Help</td><td>2</td><td></td></tr>
+  <tr><td><div class="fake-sep"></div></td><td>3</td><td></td></tr>
+  <tr><td>&amp;Window Spy</td><td>4</td><td></td></tr>
+  <tr><td>&amp;Reload This Script</td><td>5</td><td></td></tr>
+  <tr><td>&amp;Edit This Script</td><td>6</td><td></td></tr>
+  <tr><td><div class="fake-sep"></div></td><td>7</td><td></td></tr>
+  <tr><td>&amp;Suspend Hotkeys</td><td>8</td><td>1</td></tr>
+  <tr><td>&amp;Pause Script</td><td>9</td><td>2</td></tr>
+  <tr><td>E&amp;xit</td><td>10</td><td>3</td></tr>
+</table>
+<p>Compiled scripts include only the last three by default. <code>&amp;Open</code> is included only if <a href="../Variables.htm#AllowMainWindow">A_AllowMainWindow</a> is 1 when AddStandard is called (in that case, add 1 to the positions shown in the third column). If the tray menu contains standard items, <code>&amp;Open</code> is inserted or removed whenever <a href="../Variables.htm#AllowMainWindow">A_AllowMainWindow</a> is changed. For other menus, <code>&amp;Open</code> has no effect if <a href="../Variables.htm#AllowMainWindow">A_AllowMainWindow</a> is 0.</p>
+<p>Each standard item has an internal menu item ID corresponding to the function it performs, but can otherwise be modified or deleted like any other menu item. AddStandard detects existing items by ID, not by name. If the <a href="#Add">Add</a> method is used to change the callback function associated with a standard menu item, it is assigned a new unique ID and is no longer considered to be a standard item.</p>
+<p>Adding the <code>&amp;Open</code> item to the tray menu causes it to become the default item if there wasn't one already.</p>
 </div>
 
 <div class="methodShort" id="Handle">
 <h2>Handle</h2>
 <p>Returns a handle to a <a href="#Win32_Menus">Win32 menu</a> (a handle of type <code>HMENU</code>), constructing it if necessary.</p>
 <pre class="Syntax">Menu.Handle</pre>
-<p>The returned handle is valid only until the Win32 menu is destroyed. Once the menu is destroyed, the operating system may reassign the handle value to any menus subsequently created by the script or any other program. Conditions which can cause the menu to be destroyed are listed under <a href="Menu.htm#Win32_Menus">Win32 Menus</a>.</p>
+<p>The returned handle is valid only until the Win32 menu is destroyed, which typically occurs when the Menu object is freed. Once the menu is destroyed, the operating system may reassign the handle value to any menus subsequently created by the script or any other program.</p>
 </div>
 
 <h2 id="MenuItemName">MenuItemName</h2>
 <p>The name or position of a menu item. Some common rules apply to this parameter across all sub-commands which use it:</p>
 <p>To underline one of the letters in a menu item's name, precede that letter with an ampersand (&amp;). When the menu is displayed, such an item can be selected by pressing the corresponding key on the keyboard. To display a literal ampersand, specify two consecutive ampersands as in this example: <code>"Save &amp;&amp; Exit"</code></p>
-<p>When referring to an existing menu or menu item, the name is not case sensitive but any ampersands must be included. For example: <code>"&amp;Open"</code></p>
+<p>When referring to an existing menu item, the name is not case sensitive but any ampersands must be included. For example: <code>"&amp;Open"</code></p>
 <p>The names of menu items can be up to 260 characters long.</p>
-<p>To identify an existing item by its position in the menu, write the item's position followed by an ampersand. For example, <code>"1&amp;"</code> indicates the first item. <a href="#Standard">Standard</a> menu items are not counted. If the menu contains only standard items, <code>"1&amp;"</code> refers to the next position below the standard items.</p>
+<p>To identify an existing item by its position in the menu, write the item's position followed by an ampersand. For example, <code>"1&amp;"</code> indicates the first item.</p>
 
 <h2 id="Win32_Menus">Win32 Menus</h2>
 <p>Windows provides a <a href="https://msdn.microsoft.com/en-us/library/ms646977">set of functions and notifications</a> for creating, modifying and displaying menus with standard appearance and behavior. We refer to a menu created by one of these functions as a <em>Win32 menu</em>.</p>
-<p>As items are added to a menu or modified, the name and other properties of each item are stored in the Menu object. A Win32 menu is constructed when the menu or its parent menu is attached to a GUI or shown, either for the first time or if the menu has been "destroyed" since it was last shown. Any of the following can cause this Win32 menu to be destroyed, along with any parent menus and submenus:</p>
-<ul>
-  <li>Deleting a menu.</li>
-  <li>Replacing an item's submenu with a callback or a different menu.</li>
-</ul>
+<p>As items are added to a menu or modified, the name and other properties of each item are stored in the Menu object. A Win32 menu is constructed the first time the menu or its parent menu is attached to a GUI or shown. It is destroyed automatically when the menu object is deleted (which occurs when its reference count reaches zero).</p>
 <p><a href="#Handle">Menu.Handle</a> returns a handle to a Win32 menu (a handle of type <code>HMENU</code>), constructing it if necessary.</p>
-<p>Any modifications which are made to the menu directly by Win32 functions are not reflected by the script's Menu object, so are lost when the Win32 menu is destroyed.</p>
-<p>Each menu item is assigned an ID when it is first added to the menu. Scripts cannot rely on an item receiving a particular ID, but can retrieve the ID of an item by using GetMenuItemID as shown in the example below. This ID cannot be used with the Menu object, but can be used with various <a href="https://msdn.microsoft.com/en-us/library/ms646977">Win32 functions</a>.</p>
+<p>Any modifications which are made to the menu directly by Win32 functions are not reflected by the script's Menu object, so may be lost if an item is modified by one of the built-in methods.</p>
+<p>Each menu item is assigned an ID when it is first added to the menu. Scripts cannot rely on an item receiving a particular ID, but can retrieve the ID of an item by using GetMenuItemID as shown in <a href="#Example5">example #5</a>. This ID cannot be used with the Menu object, but can be used with various <a href="https://msdn.microsoft.com/en-us/library/ms646977">Win32 functions</a>.</p>
 
 <h2 id="Remarks">Remarks</h2>
 <p>If a menu ever becomes completely empty -- such as by using <code>MyMenu.Delete()</code> -- it cannot be shown. If the tray menu becomes empty, right-clicking and double-clicking the tray icon will have no effect (in such cases it is usually better to use <a href="../commands/_NoTrayIcon.htm">#NoTrayIcon</a>).</p>
 <p>If a menu item's callback is already running and the user selects the same menu item again, a new <a href="../misc/Threads.htm">thread</a> will be created to run that same callback, interrupting the previous thread. To instead buffer such events until later, use <a href="../commands/Critical.htm">Critical</a> as the callback's first line (however, this will also buffer/defer other threads such as the press of a hotkey).</p>
 <p>Whenever a function is called via a menu item, it starts off fresh with the default values for settings such as <a href="../commands/SendMode.htm">SendMode</a>. These defaults can be changed in the <a href="../Scripts.htm#auto">auto-execute section</a>.</p>
-<p>When building a menu whose contents are not always the same, it is usually best to point all such menu items to the same function and have that function refer to its <a href="#CallbackParams">parameters</a> to determine what action to take.</p>
+<p>When building a menu whose contents are not always the same, one approach is to point all such menu items to the same function and have that function refer to its <a href="#CallbackParams">parameters</a> to determine what action to take. Alternatively, a <a href="Functor.htm">function object</a>, <a href="../Functions.htm#closures">closure</a> or <a href="../Variables.htm#fat-arrow">fat arrow function</a> can be used to bind one or more values or variables to the menu item's callback function.</p>
 
 <h2 id="Related">Related</h2>
 <p><a href="Gui.htm">GUI</a>, <a href="../misc/Threads.htm">Threads</a>, <a href="../commands/Thread.htm">Thread</a>, <a href="../commands/Critical.htm">Critical</a>, <a href="../commands/_NoTrayIcon.htm">#NoTrayIcon</a>, <a href="../commands/Gosub.htm">Gosub</a>, <a href="../Functions.htm">Functions</a>, <a href="../commands/Return.htm">Return</a>, <a href="../commands/SetTimer.htm">SetTimer</a></p>
@@ -315,11 +349,12 @@ MenuHandler(Item) {
 
 #SingleInstance
 global tray := A_TrayMenu <em>; For convenience.</em>
+tray.delete <em>; Delete the standard items.</em>
 tray.add <em>; separator</em>
 tray.add "TestToggleCheck"
 tray.add "TestToggleEnable"
 tray.add "TestDefault"
-tray.add "TestStandard"
+tray.add "TestAddStandard"
 tray.add "TestDelete"
 tray.add "TestDeleteAll"
 tray.add "TestRename"
@@ -348,9 +383,9 @@ TestDefault()
         tray.default := "TestDefault"
 }
 
-TestStandard()
+TestAddStandard()
 {
-    tray.Standard := !tray.Standard
+    tray.addStandard
 }
 
 TestDelete()
@@ -393,19 +428,15 @@ FileMenu.Add("Pause Icon", "MenuHandler")
 FileMenu.SetIcon("Script Icon", A_AhkPath, 2) <em>; 2nd icon group from the file</em>
 FileMenu.SetIcon("Suspend Icon", A_AhkPath, -206) <em>; icon with resource ID 206</em>
 FileMenu.SetIcon("Pause Icon", A_AhkPath, -207) <em>; icon with resource ID 207</em>
-MyMenuBar := MenuCreate()
+MyMenuBar := MenuBarCreate()
 MyMenuBar.Add("&amp;File", FileMenu)
 Gui := GuiCreate()
-Gui.Menu := MyMenuBar
-Gui.Add("Button",, "Exit This Example").OnEvent("Click", "Exit_Click")
+Gui.MenuBar := MyMenuBar
+Gui.Add("Button",, "Exit This Example").OnEvent("Click", () => WinClose())
 Gui.Show
 
 MenuHandler() {
     <em>; For this example, the menu items don't do anything.</em>
-}
-
-Exit_Click() {
-    WinClose
 }</pre>
 <pre class="NoIndent" id="Example5"><em>; EXAMPLE #5: Retrieving item count and ID.</em>
 

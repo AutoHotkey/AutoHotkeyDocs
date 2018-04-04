@@ -619,6 +619,8 @@ indexData = [
   ["MaxThreadsBuffer","commands/_MaxThreadsBuffer.htm"],
   ["MaxThreadsPerHotkey","commands/_MaxThreadsPerHotkey.htm"],
   ["Menu object","objects/Menu.htm"],
+  ["MenuBar object","objects/Menu.htm"],
+  ["MenuBarCreate","commands/MenuBarCreate.htm",2],
   ["MenuCreate","commands/MenuCreate.htm",2],
   ["MenuFromHandle","commands/MenuFromHandle.htm",2],
   ["Menu Bar (GUI)","objects/Gui.htm#Menu"],

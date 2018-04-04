@@ -63,14 +63,14 @@ Hotkey mwt_UnHotkey, "mwt_UnMinimize"
 OnExit("mwt_RestoreAllThenExit")
 
 if mwt_StandardMenu = true
-    Menu "Tray", "Add"
+    A_TrayMenu.Add
 else
 {
-    Menu "Tray", "NoStandard"
-    Menu "Tray", "Add", "E&xit and Unhide All", "mwt_RestoreAllThenExit"
+    A_TrayMenu.Delete
+    A_TrayMenu.Add "E&xit and Unhide All", "mwt_RestoreAllThenExit"
 }
-Menu "Tray", "Add", "&Unhide All Hidden Windows", "mwt_RestoreAll"
-Menu "Tray", "Add"  ; Another separator line to make the above more special.
+A_TrayMenu.Add "&Unhide All Hidden Windows", "mwt_RestoreAll"
+A_TrayMenu.Add  ; Another separator line to make the above more special.
 
 mwt_MaxLength := 260  ; Reduce this to restrict the width of the menu.
 
@@ -164,7 +164,7 @@ Loop mwt_MaxWindows
 ; Add the item to the array and to the menu:
 if mwt_AlreadyExists = false
 {
-    Menu "Tray", "Add", mwt_ActiveTitle, "RestoreFromTrayMenu"
+    A_TrayMenu.Add mwt_ActiveTitle, "RestoreFromTrayMenu"
     mwt_WindowCount += 1
     Loop mwt_MaxWindows  ; Search for a free slot.
     {
@@ -213,7 +213,7 @@ if mwt_WindowCount > 0
     
     ; Get the menu name of the last window minimized and remove it
     MenuToRemove := mwt_WindowTitle%mwt_WindowCount%
-    Menu "Tray", "Delete", MenuToRemove
+    A_TrayMenu.Delete MenuToRemove
     
     ; clean up our 'arrays' and decrement the window count
     mwt_WindowID%mwt_WindowCount% := ""
@@ -241,7 +241,7 @@ Loop mwt_MaxWindows
         ; Do it this way vs. DeleteAll so that the sep. line and first
         ; item are retained:
         MenuToRemove := mwt_WindowTitle%A_Index%
-        Menu "Tray", "Delete", MenuToRemove
+        A_TrayMenu.Delete MenuToRemove
         mwt_WindowID%A_Index% := ""  ; Make it blank to free up a slot.
         mwt_WindowTitle%A_Index% := ""
         mwt_WindowCount -= 1
