@@ -93,45 +93,45 @@ config.ScriptTitle := "Seek - Search the Start Menu"
 ; Display the help instructions:
 if A_Args[1] ~= "^(--help|-help|/h|-h|/\?|-\?)$"
 {
-  MsgBox("
-  (
-    Navigating the Start Menu can be a hassle, especially if you have installed
-    many programs over time. 'Seek' lets you specify a case-insensitive key
-    word/phrase that it will use to filter only the matching programs and
-    directories from the Start Menu, so that you can easily open your target
-    program from a handful of matched entries. This eliminates the drudgery of
-    searching and traversing the Start Menu.
+    MsgBox("
+    (
+        Navigating the Start Menu can be a hassle, especially if you have installed
+        many programs over time. 'Seek' lets you specify a case-insensitive key
+        word/phrase that it will use to filter only the matching programs and
+        directories from the Start Menu, so that you can easily open your target
+        program from a handful of matched entries. This eliminates the drudgery of
+        searching and traversing the Start Menu.
 
-    Options:
-      -cache  Use the cached directory-listing if available (this is the default mode
-        when no option is specified)
-      -scan  Force a directory scan to retrieve the latest directory listing
-      -scex  Scan & exit (this is useful for scheduling the potentially
-        time-consuming directory-scanning as a background job)
-      -help  Show this help
-  )", config.ScriptTitle)
-  ExitApp
+        Options:
+          -cache  Use the cached directory-listing if available (this is the default mode
+            when no option is specified)
+          -scan  Force a directory scan to retrieve the latest directory listing
+          -scex  Scan & exit (this is useful for scheduling the potentially
+            time-consuming directory-scanning as a background job)
+          -help  Show this help
+    )", config.ScriptTitle)
+    ExitApp
 }
 
 ; Check that the mandatory environment variables exist and are valid:
 if !FileExist(A_Temp) ; Path does not exist.
 {
-  MsgBox
-  (
-    "This mandatory environment variable is either not defined or invalid:
-    
-        TMP = " A_Temp "
+    MsgBox
+    (
+        "This mandatory environment variable is either not defined or invalid:
         
-    Please fix it before running Seek."
-  ), config.ScriptTitle
-  ExitApp
+            TMP = " A_Temp "
+            
+        Please fix it before running Seek."
+    ), config.ScriptTitle
+    ExitApp
 }
 
 ; Scan the Start Menu without Gui:
 if A_Args[1] = "-scex"
 {
-  SaveFileList(config)
-  return
+    SaveFileList(config)
+    return
 }
 
 ; Create the GUI window:
@@ -140,7 +140,7 @@ G := GuiCreate(, config.ScriptTitle)
 ; Add the text box for user to enter the query string:
 E_Search := G.Add("Edit", "W600")
 if config.TrackKeyPhrase
-  E_Search.Value := IniRead(config.saveFile, "LastSession", "SearchText")
+    E_Search.Value := IniRead(config.saveFile, "LastSession", "SearchText")
 
 ; Add my fav tagline:
 G.Add("Text", "X625 Y10", "What do you seek, my friend?")
@@ -183,228 +183,228 @@ G.Show("Center")
 
 ; Force re-scanning if -scan is enabled or listing cache file does not exist:
 if (A_Args[1] = "-scan" or !FileExist(config.saveFile))
-  ScanStartMenu(config, E_Search, T_Info, LB, B_1, B_2, B_3)
+    ScanStartMenu(config, E_Search, T_Info, LB, B_1, B_2, B_3)
 
 ; Retrieve an set the matching list:
 FindMatches(config, LB, B_1, B_2, E_Search)
 
 ; Retrieve the last selection from cache file and select the item:
 if config.TrackKeyPhrase
-  if (LastSelection := IniRead(config.saveFile, "LastSession", "Selection"))
-    LB.Choose(LastSelection)
+    if (LastSelection := IniRead(config.saveFile, "LastSession", "Selection"))
+        LB.Choose(LastSelection)
 
 ; Function definitions ---
 
 ; Scan the start-menu and store the directory/program listings in a cache file:
 ScanStartMenu(config, E_Search, T_Info, LB, B_1, B_2, B_3)
 {
-  ; Inform user that scanning has started:
-  T_Info.Value := "Scanning directory listing..."
+    ; Inform user that scanning has started:
+    T_Info.Value := "Scanning directory listing..."
 
-  ; Disable listbox while scanning is in progress:
-  LB.Enabled := false
-  B_1.Enabled := false
-  B_2.Enabled := false
-  B_3.Enabled := false
+    ; Disable listbox while scanning is in progress:
+    LB.Enabled := false
+    B_1.Enabled := false
+    B_2.Enabled := false
+    B_3.Enabled := false
 
-  ; Retrieve and save the start menu files:
-  SaveFileList(config)
-  
-  ; Inform user that scanning has completed:
-  T_Info.Value := "Scan completed."
-  
-  ; Enable listbox:
-  LB.Enabled := true
-  B_1.Enabled := true
-  B_2.Enabled := true
-  B_3.Enabled := true
-  
-  ; Filter for search string with the new listing:
-  FindMatches(config, LB, B_1, B_2, E_Search)
+    ; Retrieve and save the start menu files:
+    SaveFileList(config)
+    
+    ; Inform user that scanning has completed:
+    T_Info.Value := "Scan completed."
+    
+    ; Enable listbox:
+    LB.Enabled := true
+    B_1.Enabled := true
+    B_2.Enabled := true
+    B_3.Enabled := true
+    
+    ; Filter for search string with the new listing:
+    FindMatches(config, LB, B_1, B_2, E_Search)
 }
 
 ; Retrieve and save the start menu files:
 SaveFileList(config)
 {
-  ; Define the directory paths to retrieve:
-  LocationArray := [A_StartMenu, A_StartMenuCommon]
+    ; Define the directory paths to retrieve:
+    LocationArray := [A_StartMenu, A_StartMenuCommon]
 
-  ; Include additional user-defined paths for scanning:
-  if FileExist(config.SeekMyDir)
-    Loop Read, config.SeekMyDir
+    ; Include additional user-defined paths for scanning:
+    if FileExist(config.SeekMyDir)
+        Loop Read, config.SeekMyDir
+        {
+            if !FileExist(A_LoopReadLine)
+                MsgBox
+                (
+                    "Processing your customised directory list...
+                    
+                    '" A_LoopReadLine "' does not exist and will be excluded from the scanning.
+                    Please update [ " config.SeekMyDir " ]."
+                ), config.ScriptTitle, 8192
+            else
+                LocationArray.Push(A_LoopReadLine)
+        }
+
+    ; Scan directory listing by recursing each directory to retrieve the contents.
+    ; Hidden files are excluded:
+    IniDelete(config.saveFile, "LocationList")
+    For i, Location in LocationArray
     {
-      if !FileExist(A_LoopReadLine)
-        MsgBox
-        (
-          "Processing your customised directory list...
-          
-          '" A_LoopReadLine "' does not exist and will be excluded from the scanning.
-          Please update [ " config.SeekMyDir " ]."
-        ), config.ScriptTitle, 8192
-      else
-        LocationArray.Push(A_LoopReadLine)
+        ; Save space by using relative paths:
+        IniWrite(Location, config.saveFile, "LocationList", "L" i)
+        A_WorkingDir := Location
+        Loop Files, "*", config.ScanMode "R"
+            if !InStr(FileGetAttrib(A_LoopFilePath), "H") ; Exclude hidden file.
+                FileList .= "%L" i "%\" A_LoopFilePath "`n"
     }
-
-  ; Scan directory listing by recursing each directory to retrieve the contents.
-  ; Hidden files are excluded:
-  IniDelete(config.saveFile, "LocationList")
-  For i, Location in LocationArray
-  {
-    ; Save space by using relative paths:
-    IniWrite(Location, config.saveFile, "LocationList", "L" i)
-    A_WorkingDir := Location
-    Loop Files, "*", config.ScanMode "R"
-      if !InStr(FileGetAttrib(A_LoopFilePath), "H") ; Exclude hidden file.
-        FileList .= "%L" i "%\" A_LoopFilePath "`n"
-  }
-  IniDelete(config.saveFile, "FileList")
-  IniWrite(FileList, config.saveFile, "FileList")
+    IniDelete(config.saveFile, "FileList")
+    IniWrite(FileList, config.saveFile, "FileList")
 }
 
 ; Search and display all matching records in the listbox:
 FindMatches(config, LB, B_1, B_2, E_Search)
 {
-  FileArray := []
-  SearchText := E_Search.Value
-  ; Filter matching records based on user query string:
-  if SearchText
-  {
-    Loop
+    FileArray := []
+    SearchText := E_Search.Value
+    ; Filter matching records based on user query string:
+    if SearchText
     {
-      Location := IniRead(config.saveFile, "LocationList", "L" A_Index)
-      if !Location
-        break
-      L%A_Index% := Location
-    }
-    Loop Parse, IniRead(config.saveFile, "FileList"), "`n"
-    {
-      Line := A_LoopField
-      if RegExMatch(Line, "%(L\d+)%", m) ; Replace %L_n% with location paths.
-        Line := StrReplace(Line, "%" m[1] "%", %m[1]%)
-      if SearchText <> E_Search.Value
-      {
-        ; User has changed the search string.
-        ; There is no point to continue searching using the old string, so abort.
-        return
-      }
-      else
-      {
-        ; Append matching records into the list:
-        SplitPath(Line, Name)
-        MatchFound := true
-        Loop Parse, SearchText, "`s"
+        Loop
         {
-          if !InStr(Name, A_LoopField)
-          {
-            MatchFound := false
-            break
-          }
+            Location := IniRead(config.saveFile, "LocationList", "L" A_Index)
+            if !Location
+                break
+            L%A_Index% := Location
         }
-        if MatchFound
-          FileArray.Push(Line)
-      }
+        Loop Parse, IniRead(config.saveFile, "FileList"), "`n"
+        {
+            Line := A_LoopField
+            if RegExMatch(Line, "%(L\d+)%", m) ; Replace %L_n% with location paths.
+                Line := StrReplace(Line, "%" m[1] "%", %m[1]%)
+            if SearchText <> E_Search.Value
+            {
+                ; User has changed the search string.
+                ; There is no point to continue searching using the old string, so abort.
+                return
+            }
+            else
+            {
+                ; Append matching records into the list:
+                SplitPath(Line, Name)
+                MatchFound := true
+                Loop Parse, SearchText, "`s"
+                {
+                    if !InStr(Name, A_LoopField)
+                    {
+                        MatchFound := false
+                        break
+                    }
+                }
+                if MatchFound
+                    FileArray.Push(Line)
+            }
+        }
     }
-  }
 
-  ; Refresh list with search results:
-  LB.Delete(), LB.Add(FileArray)
+    ; Refresh list with search results:
+    LB.Delete(), LB.Add(FileArray)
 
-  if !FileArray.Length()
-  {
-    ; No matching record is found. Disable listbox:
-    LB.Enabled := false
-    B_1.Enabled := false
-    B_2.Enabled := false
-  }
-  else
-  {
-    ; Matching records are found. Enable listbox:
-    LB.Enabled := true
-    B_1.Enabled := true
-    B_2.Enabled := true
-    ; Select the first record if no other record has been selected:
-    if LB.Text = ""
-      LB.Choose(1, 1)
-  }
+    if !FileArray.Length()
+    {
+        ; No matching record is found. Disable listbox:
+        LB.Enabled := false
+        B_1.Enabled := false
+        B_2.Enabled := false
+    }
+    else
+    {
+        ; Matching records are found. Enable listbox:
+        LB.Enabled := true
+        B_1.Enabled := true
+        B_2.Enabled := true
+        ; Select the first record if no other record has been selected:
+        if LB.Text = ""
+            LB.Choose(1, 1)
+    }
 }
 
 ; User clicked on 'Open' button or pressed ENTER:
 OpenTarget(config, LB)
 {
-  ; Selected record does not exist (file or directory not found):
-  if !FileExist(LB.Text)
-  {
-    MsgBox
-    (
-      LB.Text " does not exist.
-      
-      This means that the directory cache is outdated. You may click on
-      the 'Scan Start-Menu' button below to update the directory cache with your
-      latest directory listing now."
-    ), config.ScriptTitle, 8192
-    return
-  }
+    ; Selected record does not exist (file or directory not found):
+    if !FileExist(LB.Text)
+    {
+        MsgBox
+        (
+            LB.Text " does not exist.
+            
+            This means that the directory cache is outdated. You may click on
+            the 'Scan Start-Menu' button below to update the directory cache with your
+            latest directory listing now."
+        ), config.ScriptTitle, 8192
+        return
+    }
 
-  ; Check whether the selected record is a file or directory:
-  fileAttrib := FileGetAttrib(LB.Text)
-  if InStr(fileAttrib, "D") ; is directory
-    OpenFolder(config, LB)
-  else if fileAttrib ; is file
-    Run(LB.Text)
-  else
-  {
-    MsgBox
-    (
-      LB.Text " is neither a DIRECTORY or a FILE.
-      
-      This shouldn't happen. Seek cannot proceed. Quitting..."
-    )
-  }
-  WinClose
+    ; Check whether the selected record is a file or directory:
+    fileAttrib := FileGetAttrib(LB.Text)
+    if InStr(fileAttrib, "D") ; is directory
+        OpenFolder(config, LB)
+    else if fileAttrib ; is file
+        Run(LB.Text)
+    else
+    {
+        MsgBox
+        (
+            LB.Text " is neither a DIRECTORY or a FILE.
+            
+            This shouldn't happen. Seek cannot proceed. Quitting..."
+        )
+    }
+    WinClose
 }
 
 ; User clicked on 'Open Directory' button:
 OpenFolder(config, LB)
 {
-  Path := LB.Text
-  ; If user selected a file-record instead of a directory-record, extract the
-  ; directory path (I'm using DriveGetStatus instead of FileGetAttrib to allow the
-  ; scenario whereby LB.Text is invalid but the directory path of LB.Text is valid):
-  if DriveGetStatus(Path) <> "Ready" ; not a directory
-  {
-    SplitPath(Path,, Dir)
-    Path := Dir
-  }
+    Path := LB.Text
+    ; If user selected a file-record instead of a directory-record, extract the
+    ; directory path (I'm using DriveGetStatus instead of FileGetAttrib to allow the
+    ; scenario whereby LB.Text is invalid but the directory path of LB.Text is valid):
+    if DriveGetStatus(Path) <> "Ready" ; not a directory
+    {
+        SplitPath(Path,, Dir)
+        Path := Dir
+    }
 
-  ; Check whether directory exists:
-  if !FileExist(Path)
-  {
-    MsgBox
-    (
-      Path " does not exist.
-      
-      This means that the directory cache is outdated. You may click on
-      the 'Scan Start-Menu' button below to update the directory cache with your
-      latest directory listing now."
-    ), config.ScriptTitle, 8192
-    return
-  }
+    ; Check whether directory exists:
+    if !FileExist(Path)
+    {
+        MsgBox
+        (
+            Path " does not exist.
+            
+            This means that the directory cache is outdated. You may click on
+            the 'Scan Start-Menu' button below to update the directory cache with your
+            latest directory listing now."
+        ), config.ScriptTitle, 8192
+        return
+    }
 
-  ; Open the directory:
-  if FileExist(config.dirExplorer)
-    Run(Format('"{1}" "{2}"', config.dirExplorer, Path)) ; Open with custom file explorer.
-  else
-    Run(Path) ; Open with default windows file explorer.
+    ; Open the directory:
+    if FileExist(config.dirExplorer)
+        Run(Format('"{1}" "{2}"', config.dirExplorer, Path)) ; Open with custom file explorer.
+    else
+        Run(Path) ; Open with default windows file explorer.
 }
 
 
 Gui_Close(config, E_Search, LB)
 {
-  ; Save the key word/phrase for next run:
-  if config.TrackKeyPhrase
-  {
-    IniWrite(E_Search.Value, config.saveFile, "LastSession", "SearchText")
-    IniWrite(LB.Text, config.saveFile, "LastSession", "Selection")
-  }
-  ExitApp
+    ; Save the key word/phrase for next run:
+    if config.TrackKeyPhrase
+    {
+        IniWrite(E_Search.Value, config.saveFile, "LastSession", "SearchText")
+        IniWrite(LB.Text, config.saveFile, "LastSession", "Selection")
+    }
+    ExitApp
 }
