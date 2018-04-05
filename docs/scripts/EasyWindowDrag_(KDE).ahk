@@ -89,13 +89,13 @@ WinGetPos KDE_WinX1, KDE_WinY1, KDE_WinW, KDE_WinH, "ahk_id " KDE_id
 ; Define the window region the mouse is currently in.
 ; The four regions are Up and Left, Up and Right, Down and Left, Down and Right.
 if (KDE_X1 < KDE_WinX1 + KDE_WinW / 2)
-   KDE_WinLeft := 1
+    KDE_WinLeft := 1
 else
-   KDE_WinLeft := -1
+    KDE_WinLeft := -1
 if (KDE_Y1 < KDE_WinY1 + KDE_WinH / 2)
-   KDE_WinUp := 1
+    KDE_WinUp := 1
 else
-   KDE_WinUp := -1
+    KDE_WinUp := -1
 Loop
 {
     if !GetKeyState("RButton", "P") ; Break if button has been released.

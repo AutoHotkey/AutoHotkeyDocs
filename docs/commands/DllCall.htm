@@ -280,37 +280,37 @@ OnExit(Func("SystemCursor").bind("Show"))  <em>; Ensure the cursor is made visib
 
 SystemCursor(cmd)  <em>; cmd = "Show|Hide|Toggle"</em>
 {
-  static vision := true, c := {}
-  static system_cursors := "32512,32513,32514,32515,32516,32642,32643,32644,32645,32646,32648,32649,32650"
-  VarSetCapacity(h_cursor, 4444, 1)
-  if (cmd = "Reload" or !c.Length())  <em>; Reload when requested or at first call.</em>
-  {
-    VarSetCapacity(AndMask, 32*4, 0xFF)
-    VarSetCapacity(XorMask, 32*4, 0)
-    For i, resID in StrSplit(system_cursors, ",")
+    static vision := true, c := {}
+    static system_cursors := "32512,32513,32514,32515,32516,32642,32643,32644,32645,32646,32648,32649,32650"
+    VarSetCapacity(h_cursor, 4444, 1)
+    if (cmd = "Reload" or !c.Length())  <em>; Reload when requested or at first call.</em>
     {
-      h_cursor := DllCall("LoadCursor", Ptr, 0, Ptr, resID)
-      <em>; System cursors:</em>
-      c[i] := {r: resID}
-      <em>; Handles of default cursors:</em>
-      c[i][1] := DllCall("CopyImage", Ptr, h_cursor, UInt, 2, Int, 0, Int, 0, UInt, 0)
-      <em>; Blank cursors:</em>
-      c[i][0] := DllCall("CreateCursor", Ptr, 0, Int, 0, Int, 0, Int, 32, Int, 32, Ptr, &AndMask, Ptr, &XorMask)
+        VarSetCapacity(AndMask, 32*4, 0xFF)
+        VarSetCapacity(XorMask, 32*4, 0)
+        For i, resID in StrSplit(system_cursors, ",")
+        {
+            h_cursor := DllCall("LoadCursor", Ptr, 0, Ptr, resID)
+            <em>; System cursors:</em>
+            c[i] := {r: resID}
+            <em>; Handles of default cursors:</em>
+            c[i][1] := DllCall("CopyImage", Ptr, h_cursor, UInt, 2, Int, 0, Int, 0, UInt, 0)
+            <em>; Blank cursors:</em>
+            c[i][0] := DllCall("CreateCursor", Ptr, 0, Int, 0, Int, 0, Int, 32, Int, 32, Ptr, &amp;AndMask, Ptr, &amp;XorMask)
+        }
     }
-  }
-  if (cmd = "Show")
-    vision := true
-  else if (cmd = "Hide")
-    vision := false
-  else if (cmd = "Toggle")
-    vision := !vision
-  else
-    return
-  For i, cursor in c
-  {
-    h_cursor := DllCall("CopyImage", Ptr, cursor[vision], UInt, 2, Int, 0, Int, 0, UInt, 0)
-    DllCall("SetSystemCursor", Ptr, h_cursor, UInt, cursor.r)
-  }
+    if (cmd = "Show")
+        vision := true
+    else if (cmd = "Hide")
+        vision := false
+    else if (cmd = "Toggle")
+        vision := !vision
+    else
+        return
+    For i, cursor in c
+    {
+        h_cursor := DllCall("CopyImage", Ptr, cursor[vision], UInt, 2, Int, 0, Int, 0, UInt, 0)
+        DllCall("SetSystemCursor", Ptr, h_cursor, UInt, cursor.r)
+    }
 }</pre>
 
 <pre class="NoIndent" id="ExStruct"><em>; Structure Example: Pass the address of a RECT structure to GetWindowRect(), which sets the structure's

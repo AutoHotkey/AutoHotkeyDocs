@@ -65,15 +65,15 @@ Hotkey(config.WaveDown, vol_WaveDown)
 
 ChangeVolume(config, G, Prefix, ComponentType := "Master")
 {
-  SoundSet(Prefix config.Step, ComponentType)
-  G.Control["Master"].Value := Round(SoundGet("Master"))
-  G.Control["Wave"].Value := Round(SoundGet("Wave"))
-  G.Show("x" config.PosX " y" config.PosY)
-  HideWindow := Func("HideWindow").bind(G)
-  SetTimer(HideWindow, -config.DisplayTime)
+    SoundSet(Prefix config.Step, ComponentType)
+    G.Control["Master"].Value := Round(SoundGet("Master"))
+    G.Control["Wave"].Value := Round(SoundGet("Wave"))
+    G.Show("x" config.PosX " y" config.PosY)
+    HideWindow := Func("HideWindow").bind(G)
+    SetTimer(HideWindow, -config.DisplayTime)
 }
 
 HideWindow(G)
 {
-  G.Hide
+    G.Hide
 }

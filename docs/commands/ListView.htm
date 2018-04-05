@@ -46,7 +46,7 @@ LV.OnEvent("DoubleClick", "LV_DoubleClick")
 
 <em>; Gather a list of file names from a folder and put them into the ListView:</em>
 Loop Files, A_MyDocuments "\*.*"
-  <a href="#Add">LV.Add</a>(, A_LoopFileName, A_LoopFileSizeKB)
+    <a href="#Add">LV.Add</a>(, A_LoopFileName, A_LoopFileSizeKB)
 
 <a href="#ModifyCol">LV.ModifyCol</a>  <em>; Auto-size each column to fit its contents.</em>
 LV.ModifyCol(2, "Integer")  <em>; For sorting purposes, indicate that column 2 is an integer.</em>
@@ -56,8 +56,8 @@ Gui.Show
 
 LV_DoubleClick(LV, RowNumber)
 {
-  RowText := <a href="#GetText">LV.GetText</a>(RowNumber)  <em>; Get the text from the row's first field.</em>
-  ToolTip("You double-clicked row number " RowNumber ". Text: '" RowText "'")
+    RowText := <a href="#GetText">LV.GetText</a>(RowNumber)  <em>; Get the text from the row's first field.</em>
+    ToolTip("You double-clicked row number " RowNumber ". Text: '" RowText "'")
 }</pre>
 <h2 id="Options">Options and Styles for the <em>Options</em> parameter</h2>
 <p><strong>Background:</strong> Specify the word Background followed immediately by a color name (see <a href="../misc/Colors.htm">color chart</a>) or RGB value (the 0x prefix is optional). Examples: <code>BackgroundSilver</code>, <code>BackgroundFFDD99</code>. If this option is not present, the ListView initially defaults to the system's default background color. Specifying <code>BackgroundDefault</code> or <code>-Background</code> applies the system's default background color (usually white). For example, a ListView can be restored to the default color via <code>LV.Opt("+BackgroundDefault")</code>.</p>
@@ -361,10 +361,10 @@ Gui.Show</pre>
 <pre>Gui.Add("Button", "Hidden Default", "OK").OnEvent("Click", "LV_Enter")
 ...
 LV_Enter() {
-  global
-  if Gui.FocusedCtrl != LV
-    return
-  MsgBox("Enter was pressed. The focused row number is " LV.GetNext(0, "Focused"))
+    global
+    if Gui.FocusedCtrl != LV
+        return
+    MsgBox("Enter was pressed. The focused row number is " LV.GetNext(0, "Focused"))
 }</pre>
 <p>In addition to navigating from row to row with the keyboard, the user may also perform incremental search by typing the first few characters of an item in the first column. This causes the selection to jump to the nearest matching row.</p>
 <p>Although any length of text can be stored in each field of a ListView, only the first 260 characters are displayed.</p>
@@ -429,157 +429,157 @@ Gui.Show
 
 LoadFolder(Gui, LV, ImageListID1, ImageListID2)
 {
-  static IconArray := []
-  Gui.Opt("+OwnDialogs")  <em>; Forces user to dismiss the following dialog before using main window.</em>
-  Folder := DirSelect(, 3, "Select a folder to read:")
-  if not Folder  <em>; The user canceled the dialog.</em>
-    return
+    static IconArray := []
+    Gui.Opt("+OwnDialogs")  <em>; Forces user to dismiss the following dialog before using main window.</em>
+    Folder := DirSelect(, 3, "Select a folder to read:")
+    if not Folder  <em>; The user canceled the dialog.</em>
+        return
 
-  <em>; Check if the last character of the folder name is a backslash, which happens for root
-  ; directories such as C:\. If it is, remove it to prevent a double-backslash later on.</em>
-  if SubStr(Folder, -1, 1) = "\"
-    Folder := SubStr(Folder, 1, -1)  <em>; Remove the trailing backslash.</em>
+    <em>; Check if the last character of the folder name is a backslash, which happens for root
+    ; directories such as C:\. If it is, remove it to prevent a double-backslash later on.</em>
+    if SubStr(Folder, -1, 1) = "\"
+        Folder := SubStr(Folder, 1, -1)  <em>; Remove the trailing backslash.</em>
 
-  <em>; Calculate buffer size required for SHFILEINFO structure.</em>
-  sfi_size := A_PtrSize + 688
-  VarSetCapacity(sfi, sfi_size)
+    <em>; Calculate buffer size required for SHFILEINFO structure.</em>
+    sfi_size := A_PtrSize + 688
+    VarSetCapacity(sfi, sfi_size)
 
-  <em>; Gather a list of file names from the selected folder and append them to the ListView:</em>
-  LV.Opt("-Redraw")  <em>; Improve performance by disabling redrawing during load.</em>
-  Loop Files, Folder &quot;\*.*&quot;
-  {
-    FileName := A_LoopFilePath  <em>; Must save it to a writable variable for use below.
-
-    ; Build a unique extension ID to avoid characters that are illegal in variable names,
-    ; such as dashes. This unique ID method also performs better because finding an item
-    ; in the array does not require search-loop.</em>
-    SplitPath(FileName,,, FileExt)  <em>; Get the file's extension.</em>
-    if FileExt ~= "^(EXE|ICO|ANI|CUR)$"
+    <em>; Gather a list of file names from the selected folder and append them to the ListView:</em>
+    LV.Opt("-Redraw")  <em>; Improve performance by disabling redrawing during load.</em>
+    Loop Files, Folder &quot;\*.*&quot;
     {
-      ExtID := FileExt  <em>; Special ID as a placeholder.</em>
-      IconNumber := 0  <em>; Flag it as not found so that these types can each have a unique icon.</em>
-    }
-    else  <em>; Some other extension/file-type, so calculate its unique ID.</em>
-    {
-      ExtID := 0  <em>; Initialize to handle extensions that are shorter than others.</em>
-      Loop(7)     <em>; Limit the extension to 7 characters so that it fits in a 64-bit value.</em>
-      {
-        ExtChar := SubStr(FileExt, A_Index, 1)
-        if not ExtChar  <em>; No more characters.</em>
-          break
-        <em>; Derive a Unique ID by assigning a different bit position to each character:</em>
-        ExtID := ExtID | (Ord(ExtChar) << (8 * (A_Index - 1)))
-      }
-      <em>; Check if this file extension already has an icon in the ImageLists. If it does,
-      ; several calls can be avoided and loading performance is greatly improved,
-      ; especially for a folder containing hundreds of files:</em>
-      IconNumber := IconArray[ExtID]
-    }
-    if not IconNumber  <em>; There is not yet any icon for this extension, so load it.</em>
-    {
-      <em>; Get the high-quality small-icon associated with this file extension:</em>
-      if not DllCall("Shell32\SHGetFileInfoW", "Str", FileName
-      , "Uint", 0, "Ptr", &amp;sfi, "UInt", sfi_size, "UInt", 0x101)  <em>; 0x101 is SHGFI_ICON+SHGFI_SMALLICON</em>
-        IconNumber := 9999999  <em>; Set it out of bounds to display a blank icon.</em>
-      else <em>; Icon successfully loaded.</em>
-      {
-        <em>; Extract the hIcon member from the structure:</em>
-        hIcon := NumGet(sfi, 0)
-        <em>; Add the HICON directly to the small-icon and large-icon lists.
-        ; Below uses +1 to convert the returned index from zero-based to one-based:</em>
-        IconNumber := DllCall("ImageList_ReplaceIcon", "Ptr", ImageListID1, "Int", -1, "Ptr", hIcon) + 1
-        DllCall("ImageList_ReplaceIcon", "Ptr", ImageListID2, "Int", -1, "Ptr", hIcon)
-        <em>; Now that it's been copied into the ImageLists, the original should be destroyed:</em>
-        DllCall("DestroyIcon", "Ptr", hIcon)
-        <em>; Cache the icon to save memory and improve loading performance:</em>
-        IconArray[ExtID] := IconNumber
-      }
-    }
+        FileName := A_LoopFilePath  <em>; Must save it to a writable variable for use below.
 
-    <em>; Create the new row in the ListView and assign it the icon number determined above:</em>
-    <a href="#Add">LV.Add</a>("Icon" . IconNumber, A_LoopFileName, A_LoopFileDir, A_LoopFileSizeKB, FileExt)
-  }
-  LV.Opt("+Redraw")  <em>; Re-enable redrawing (it was disabled above).</em>
-  LV.ModifyCol  <em>; Auto-size each column to fit its contents.</em>
-  LV.ModifyCol(3, 60) <em>; Make the Size column at little wider to reveal its header.</em>
+        ; Build a unique extension ID to avoid characters that are illegal in variable names,
+        ; such as dashes. This unique ID method also performs better because finding an item
+        ; in the array does not require search-loop.</em>
+        SplitPath(FileName,,, FileExt)  <em>; Get the file's extension.</em>
+        if FileExt ~= "^(EXE|ICO|ANI|CUR)$"
+        {
+            ExtID := FileExt  <em>; Special ID as a placeholder.</em>
+            IconNumber := 0  <em>; Flag it as not found so that these types can each have a unique icon.</em>
+        }
+        else  <em>; Some other extension/file-type, so calculate its unique ID.</em>
+        {
+            ExtID := 0  <em>; Initialize to handle extensions that are shorter than others.</em>
+            Loop(7)     <em>; Limit the extension to 7 characters so that it fits in a 64-bit value.</em>
+            {
+                ExtChar := SubStr(FileExt, A_Index, 1)
+                if not ExtChar  <em>; No more characters.</em>
+                    break
+                <em>; Derive a Unique ID by assigning a different bit position to each character:</em>
+                ExtID := ExtID | (Ord(ExtChar) << (8 * (A_Index - 1)))
+            }
+            <em>; Check if this file extension already has an icon in the ImageLists. If it does,
+            ; several calls can be avoided and loading performance is greatly improved,
+            ; especially for a folder containing hundreds of files:</em>
+            IconNumber := IconArray[ExtID]
+        }
+        if not IconNumber  <em>; There is not yet any icon for this extension, so load it.</em>
+        {
+            <em>; Get the high-quality small-icon associated with this file extension:</em>
+            if not DllCall("Shell32\SHGetFileInfoW", "Str", FileName
+            , "Uint", 0, "Ptr", &amp;sfi, "UInt", sfi_size, "UInt", 0x101)  <em>; 0x101 is SHGFI_ICON+SHGFI_SMALLICON</em>
+                IconNumber := 9999999  <em>; Set it out of bounds to display a blank icon.</em>
+            else <em>; Icon successfully loaded.</em>
+            {
+                <em>; Extract the hIcon member from the structure:</em>
+                hIcon := NumGet(sfi, 0)
+                <em>; Add the HICON directly to the small-icon and large-icon lists.
+                ; Below uses +1 to convert the returned index from zero-based to one-based:</em>
+                IconNumber := DllCall("ImageList_ReplaceIcon", "Ptr", ImageListID1, "Int", -1, "Ptr", hIcon) + 1
+                DllCall("ImageList_ReplaceIcon", "Ptr", ImageListID2, "Int", -1, "Ptr", hIcon)
+                <em>; Now that it's been copied into the ImageLists, the original should be destroyed:</em>
+                DllCall("DestroyIcon", "Ptr", hIcon)
+                <em>; Cache the icon to save memory and improve loading performance:</em>
+                IconArray[ExtID] := IconNumber
+            }
+        }
+
+        <em>; Create the new row in the ListView and assign it the icon number determined above:</em>
+        <a href="#Add">LV.Add</a>("Icon" . IconNumber, A_LoopFileName, A_LoopFileDir, A_LoopFileSizeKB, FileExt)
+    }
+    LV.Opt("+Redraw")  <em>; Re-enable redrawing (it was disabled above).</em>
+    LV.ModifyCol  <em>; Auto-size each column to fit its contents.</em>
+    LV.ModifyCol(3, 60) <em>; Make the Size column at little wider to reveal its header.</em>
 }
 
 ClearList(LV)
 {
-  <a href="#Delete">LV.Delete</a>  <em>; Clear the ListView, but keep icon cache intact for simplicity.</em>
+    <a href="#Delete">LV.Delete</a>  <em>; Clear the ListView, but keep icon cache intact for simplicity.</em>
 }
 
 SwitchView(LV)
 {
-  static IconView
-  if not IconView
-    LV.Opt("+Icon")         <em>; Switch to icon view.</em>
-  else
-    LV.Opt("+Report")       <em>; Switch back to details view.</em>
-  IconView := not IconView  <em>; Invert in preparation for next time.</em>
+    static IconView
+    if not IconView
+        LV.Opt("+Icon")         <em>; Switch to icon view.</em>
+    else
+        LV.Opt("+Report")       <em>; Switch back to details view.</em>
+    IconView := not IconView  <em>; Invert in preparation for next time.</em>
 }
 
 RunFile(LV, RowNumber, Verb := "")
 {
-  FileName := <a href="#GetText">LV.GetText</a>(RowNumber, 1) <em>; Get the text of the first field.</em>
-  FileDir := LV.GetText(RowNumber, 2)  <em>; Get the text of the second field.</em>
-  FilePath := FileDir "\" FileName
-  Verb .= Verb ? " " : ""
-  try
-    Run(Verb FilePath)
-  catch Error
-    MsgBox(Error.Extra "`n" FilePath)
+    FileName := <a href="#GetText">LV.GetText</a>(RowNumber, 1) <em>; Get the text of the first field.</em>
+    FileDir := LV.GetText(RowNumber, 2)  <em>; Get the text of the second field.</em>
+    FilePath := FileDir "\" FileName
+    Verb .= Verb ? " " : ""
+    try
+        Run(Verb FilePath)
+    catch Error
+        MsgBox(Error.Extra "`n" FilePath)
 }
 
 ShowContextMenu(LV, Item, IsRightClick, X, Y)  <em>; In response to right-click or Apps key.</em>
 {
-  <em>; Create function references for the menu events:</em>
-  ContextOpen := Func("ContextOpen").bind(LV, Item)
-  ContextProperties := Func("ContextProperties").bind(LV, Item)
-  ContextClearRows := Func("ContextClearRows").bind(LV)
+    <em>; Create function references for the menu events:</em>
+    ContextOpen := Func("ContextOpen").bind(LV, Item)
+    ContextProperties := Func("ContextProperties").bind(LV, Item)
+    ContextClearRows := Func("ContextClearRows").bind(LV)
  
-  <em>; Create the popup menu to be used as the context menu:</em>
-  ContextMenu := <a href="MenuCreate.htm">MenuCreate</a>()
-  ContextMenu.<a href="../objects/Menu.htm#Add">Add</a>("Open", ContextOpen)
-  ContextMenu.Add("Properties", ContextProperties)
-  ContextMenu.Add("Clear from ListView", ContextClearRows)
-  ContextMenu.<a href="../objects/Menu.htm#Default">Default</a> := "Open"  <em>; Make "Open" a bold font to indicate that double-click does the same thing.
-  ; Show the menu at the provided coordinates, X and Y.  These should be used
-  ; because they provide correct coordinates even if the user pressed the Apps key:</em>
-  ContextMenu.<a href="../objects/Menu.htm#Show">Show</a>(X, Y)
+    <em>; Create the popup menu to be used as the context menu:</em>
+    ContextMenu := <a href="MenuCreate.htm">MenuCreate</a>()
+    ContextMenu.<a href="../objects/Menu.htm#Add">Add</a>("Open", ContextOpen)
+    ContextMenu.Add("Properties", ContextProperties)
+    ContextMenu.Add("Clear from ListView", ContextClearRows)
+    ContextMenu.<a href="../objects/Menu.htm#Default">Default</a> := "Open"  <em>; Make "Open" a bold font to indicate that double-click does the same thing.
+    ; Show the menu at the provided coordinates, X and Y.  These should be used
+    ; because they provide correct coordinates even if the user pressed the Apps key:</em>
+    ContextMenu.<a href="../objects/Menu.htm#Show">Show</a>(X, Y)
 }
 
 ContextOpen(LV, RowNumber)  <em>; The user selected "Open" in the context menu.</em>
 {
-  RunFile(LV, RowNumber)
+    RunFile(LV, RowNumber)
 }
 
 ContextProperties(LV, RowNumber)  <em>; The user selected "Properties" in the context menu.</em>
 {
-  RunFile(LV, RowNumber, "properties")
+    RunFile(LV, RowNumber, "properties")
 }
 
 ContextClearRows(LV)  <em>; The user selected "Clear" in the context menu.</em>
 {
-  RowNumber := 0  <em>; This causes the first iteration to start the search at the top.</em>
-  Loop
-  {
-    <em>; Since deleting a row reduces the RowNumber of all other rows beneath it,
-    ; subtract 1 so that the search includes the same row number that was previously
-    ; found (in case adjacent rows are selected):</em>
-    RowNumber := LV.GetNext(RowNumber - 1)
-    if not RowNumber  <em>; The above returned zero, so there are no more selected rows.</em>
-      break
-    LV.Delete(RowNumber)  <em>; Clear the row from the ListView.</em>
-  }
+    RowNumber := 0  <em>; This causes the first iteration to start the search at the top.</em>
+    Loop
+    {
+        <em>; Since deleting a row reduces the RowNumber of all other rows beneath it,
+        ; subtract 1 so that the search includes the same row number that was previously
+        ; found (in case adjacent rows are selected):</em>
+        RowNumber := LV.GetNext(RowNumber - 1)
+        if not RowNumber  <em>; The above returned zero, so there are no more selected rows.</em>
+            break
+        LV.Delete(RowNumber)  <em>; Clear the row from the ListView.</em>
+    }
 }
 
 Gui_Size(LV, Gui, MinMax, Width, Height)  <em>; Expand/Shrink ListView in response to the user's resizing.</em>
 {
-  if MinMax = -1  <em>; The window has been minimized. No action needed.</em>
-    return
-  <em>; Otherwise, the window has been resized or maximized. Resize the ListView to match.</em>
-  LV.Move("W" Width-20 " H" Height-40)
+    if MinMax = -1  <em>; The window has been minimized. No action needed.</em>
+        return
+    <em>; Otherwise, the window has been resized or maximized. Resize the ListView to match.</em>
+    LV.Move("W" Width-20 " H" Height-40)
 }</pre>
 
 </body>

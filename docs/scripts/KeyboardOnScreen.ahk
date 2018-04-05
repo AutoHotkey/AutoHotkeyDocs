@@ -56,21 +56,21 @@ k_oL := [ [, , , , , , , , , , , , , "Backspace"]
 
 ; Traverse each key in the list of custom key names:
 For n, k_Row in k_cL
-  For i, k_CustomKeyName in k_Row
-  {
-    k_OfficialKeyName := k_oL[n][i]
-    ; Calculate object dimensions based on chosen font size:
-    opt := "h" k_FontSize * 3 " w" k_FontSize * (StrLen(k_CustomKeyName) + 2) " x+m" 
-    if i = 1
-      opt .= " y+m xm"
-    ; When a key is pressed by the user, click the corresponding button on-screen:
-    fn := Func("k_KeyPress").bind(Gui.Add("Button", opt, k_CustomKeyName))
-    ; If the key has an official key name use it:
-    if k_OfficialKeyName
-      Hotkey("~*" k_OfficialKeyName, fn)
-    else
-      Hotkey("~*" Trim(k_CustomKeyName), fn)
-  }
+    For i, k_CustomKeyName in k_Row
+    {
+        k_OfficialKeyName := k_oL[n][i]
+        ; Calculate object dimensions based on chosen font size:
+        opt := "h" k_FontSize * 3 " w" k_FontSize * (StrLen(k_CustomKeyName) + 2) " x+m" 
+        if i = 1
+            opt .= " y+m xm"
+        ; When a key is pressed by the user, click the corresponding button on-screen:
+        fn := Func("k_KeyPress").bind(Gui.Add("Button", opt, k_CustomKeyName))
+        ; If the key has an official key name use it:
+        if k_OfficialKeyName
+            Hotkey("~*" k_OfficialKeyName, fn)
+        else
+            Hotkey("~*" Trim(k_CustomKeyName), fn)
+    }
 
 ;---- Position the keyboard at the bottom of the screen (taking into account
 ; the position of the taskbar):
@@ -90,30 +90,30 @@ Gui.Show("x" k_xPos " y" k_yPos " NA")
 ;---- Function definitions:
 k_KeyPress(BtnCtrl)
 { 
-  BtnCtrl.Opt("Default") ; Highlight the last pressed key.
-  ControlClick(, "ahk_id " BtnCtrl.Hwnd,,,, "D")
-  KeyWait(SubStr(A_ThisHotkey, 3))
-  ControlClick(, "ahk_id " BtnCtrl.Hwnd,,,, "U")
+    BtnCtrl.Opt("Default") ; Highlight the last pressed key.
+    ControlClick(, "ahk_id " BtnCtrl.Hwnd,,,, "D")
+    KeyWait(SubStr(A_ThisHotkey, 3))
+    ControlClick(, "ahk_id " BtnCtrl.Hwnd,,,, "U")
 }
 
 k_ShowHide(GuiObj, HideText, ShowText)
 {
-  static isVisible := true
-  if isVisible
-  {
-    GuiObj.Hide
-    A_TrayMenu.Rename HideText, ShowText
-    isVisible := false
-  }
-  else
-  {
-    GuiObj.Show
-    A_TrayMenu.Rename ShowText, HideText
-    isVisible := true
-  }
+    static isVisible := true
+    if isVisible
+    {
+        GuiObj.Hide
+        A_TrayMenu.Rename HideText, ShowText
+        isVisible := false
+    }
+    else
+    {
+        GuiObj.Show
+        A_TrayMenu.Rename ShowText, HideText
+        isVisible := true
+    }
 }
 
 k_MenuExit()
 {
-  ExitApp
+    ExitApp
 }

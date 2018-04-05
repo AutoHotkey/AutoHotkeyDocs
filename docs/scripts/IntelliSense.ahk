@@ -157,7 +157,7 @@ Loop
 
 I_HelpHotkey:
 if !InStr(WinGetTitle("A"), I_Editor)
-  return
+    return
 
 ToolTip  ; Turn off syntax helper since there is no need for it now.
 
