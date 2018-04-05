@@ -1249,77 +1249,82 @@ function addFeatures()
     }
     // Traverse pre elements:
     for(var i = 0; i < pres.length; i++) {
-      var pre = pres[i];
+      var pre = pres[i], ems = [], els = [];
       // Skip pre.no-syntax-highlight elements:
       if (pre.className.indexOf('no-syntax-highlight') != -1)
         continue;
-      // multi-line string (needs to be pre-processed):
-      pre.innerHTML = pre.innerHTML.replace(/((^|::|("|')[^"']*?$)\s*)(\([\s\S]*?^\s*\).*?\3)/gm, function(m, m1, m2, m3, m4) { return ((m2=='::')?m1:wrap(m1,'multi-str',0))+wrap(m4,(m2)?'multi-str':'pln multi',0); });
-      // Separate existing tags with attributes to avoid threading them as strings and wrap the rest ("plain texts") with tags:
-      var innerHTML = pre.innerHTML;
-      var offset = 0;
+      // Temporary remove comments to avoid interfering with syntax detection:
+      $('em', pre).each(function() {
+        ems.push(this);
+        $(this).replaceWith('<em>');
+      });
+      // Mark continuation sections:
+      // inside a string "(...)"
+      pre.innerHTML = pre.innerHTML.replace(/('|")([<\/em>\s]*?^\s*\([\s\S]*?^\s*\).*?)\1/gm, function(m,m1,m2) { return m1+wrap(m2,'cs',0)+m1});
+      // for hotstrings ::(...)
+      pre.innerHTML = pre.innerHTML.replace(/(^\s*:.*?:.*?::)([<\/em>\s]*?^\s*\([\s\S]*?^\s*\).*?)/gm, function(m,m1,m2) { return m1+wrap(m2,'cs',0)});
+      // function definitions:
+      pre.innerHTML = pre.innerHTML.replace(/^(\s*?)(\S*?)(?=\(.*?\)[<\/em>\s]*{)/mg, function(m,m1,m2) { return m1+wrap(m2,'lab',0); });
+      // Temporary remove elements with attributes and children to avoid interfering with syntax detection:
       $(pre).children().each(function() {
         if (this.attributes.length || this.children.length) {
-          var outerHTML = this.outerHTML;
-          var n = innerHTML.indexOf(outerHTML, offset);
-          var replacement = '</span>'+outerHTML+'<span class="pln">';
-          offset = n + replacement.length;
-          if (n !== -1)
-            innerHTML = innerHTML.substr(0, n) + replacement + innerHTML.substr(n + outerHTML.length);
+          els.push(this);
+          $(this).replaceWith('<el>');
         }
       });
-      pre.innerHTML = '<span class="pln">'+innerHTML+'</span>';
-      // Traverse plain text elements defined by above:
-      var spans = pre.querySelectorAll("span.pln");
-      for(var j = 0; j < spans.length; j++) {
-        var innerHTML = spans[j].innerHTML;
-        // strings (double and single quotes):
-        if (spans[j].className.indexOf('multi') != -1)
-          innerHTML = innerHTML.replace(/(("|')[\s\S]*?\2)\B/g, function(m, m1) { return wrap(m1, 'str', false); });
+      var innerHTML = pre.innerHTML;
+      // strings:
+      innerHTML = innerHTML.replace(/(("|')[\s\S]*?\2)\B/gm, function(m, m1) { return wrap(m1, 'str', false); });
+      // methods:
+      innerHTML = innerHTML.replace(/(\.)([^~`!@#$%^&*(){}\[\];:"'<,.>?\/\\|+=\-\s]+?)(?=\()/g, function(m, m1, m2) { return m1+wrap(m2, 'met', false); });
+      // if expression:
+      innerHTML = innerHTML.replace(/(^\s*|[,:}]\s*)(else |)(if)\b/gim, function(m, m1, m2, m3) { return m1+m2+wrap(m3,'cfs','commands/IfExpression.htm'); });
+      // loops:
+      innerHTML = innerHTML.replace(/\b(loop)(\s|,\s|,)(files|parse|read|reg)\b/gim, function(m, m1, m2, m3) {
+        var dict = {files: 'Files', parse: 'Parse', read: 'Read', reg: 'Reg'};
+        var link = 'commands/Loop'+dict[m3.toLowerCase()]+'.htm';
+        return wrap(m1+m2+m3,'cfs',link);
+      });
+      // class:
+      innerHTML = innerHTML.replace(/(^\s*|[,:}]\s*)(class) (\S+)(?: (extends)(?= \S+)|)/gim, function(m, m1, m2, m3, m4) {
+        var link = 'Objects.htm#Custom_Classes';
+        if (m4)
+          return m1+wrap(m2,'cfs',link)+' '+m3+' '+wrap(m4,'cfs',link);
         else
-          innerHTML = innerHTML.replace(/(("|').*?\2)\B/g, function(m, m1) { return wrap(m1, 'str', false); });
-        // methods:
-        innerHTML = innerHTML.replace(/(\.)([^~`!@#$%^&*(){}\[\];:"'<,.>?\/\\|+=\-\s]+?)(?=\()/g, function(m, m1, m2) { return m1+wrap(m2, 'met', false); });
-        // if expression:
-        innerHTML = innerHTML.replace(/(^\s*|[,:}]\s*)(else |)(if)\b/gim, function(m, m1, m2, m3) { return m1+m2+wrap(m3,'cfs','commands/IfExpression.htm'); });
-        // loops:
-        innerHTML = innerHTML.replace(/\b(loop)(\s|,\s|,)(files|parse|read|reg)\b/gim, function(m, m1, m2, m3) {
-          m3 = m3.substr(0,1).toUpperCase()+m3.substr(1).toLowerCase(); // Convert to title case.
-          var link = 'commands/Loop'+m3+'.htm';
-          return wrap(m1,'cfs',link)+m2+wrap(m3,'cfs',link);
-        });
-        // class:
-        innerHTML = innerHTML.replace(/(^\s*|[,:}]\s*)(class) (\S+)(?: (extends)(?= \S+)|)/gim, function(m, m1, m2, m3, m4) {
-          var link = 'Objects.htm#Custom_Classes';
-          if (m4)
-            return m1+wrap(m2,'cfs',link)+' '+m3+' '+wrap(m4,'cfs',link);
-          else
-            return m1+wrap(m2,'cfs',link)+' '+m3;
-        });
-        // for:
-        innerHTML = innerHTML.replace(/\b(for) (\S+|\S+, \S+) (in)/gim, function(m, m1, m2, m3) {
-          var link = 'commands/For.htm';
-          return wrap(m1,'cfs',link)+' '+m2+' '+wrap(m3,'cfs',link);
-        });
-        // control flows / declarations:
-        innerHTML = innerHTML.replace(new RegExp('(^\\s*|[,:}]\\s*)('+syntax[3].join('|')+'|'+syntax[5].join('|')+')\\b','gim'), function(m, m1, m2) { return m1+wrap(m2,'cfs',true); });
-        // ByRef:
-        innerHTML = innerHTML.replace(/(.+?)\b(byref)\b(?=(.+?)\))/gim, function(m, m1, m2) { return m1+wrap(m2,'cfs','Functions.htm#ByRef'); });
-        // command-like built-in functions:
-        innerHTML = innerHTML.replace(new RegExp('(^\\s*|[:]\\s*)('+syntax[2].join('|')+')\\b(?=[\\s](?!:)|$)',"gim"), function(m, m1, m2) { return m1+wrap(m2,'cmd',true); });
-        // built-in functions:
-        innerHTML = innerHTML.replace(new RegExp('\\b('+syntax[2].join('|')+')(?=\\()','gi'), function(m, m1) { return wrap(m1, 'bif', true); });
-        // built-in vars:
-        innerHTML = innerHTML.replace(new RegExp('\\b('+syntax[1].join('|')+')\\b','gi'), function(m, m1) { return wrap(m1, 'biv', true); });
-        // directives:
-        innerHTML = innerHTML.replace(new RegExp('('+syntax[0].join('|')+')\\b','gi'), function(m, m1) { return wrap(m1, 'dir', true); });
-        // hotkeys/hotstrings:
-        innerHTML = innerHTML.replace(/^(\s*)((?:\S+?|\S+? \S+?|\S+? (&amp;|&) \S+?)::)/mg, function(m, m1, m2) { return m1+wrap(m2, 'lab', false); });
-        // labels:
-        innerHTML = innerHTML.replace(/^(\s*)([^\s]+?:)(?=\s|$)/mg, function(m, m1, m2) { return m1+wrap(m2, 'lab', false); });
-
-        spans[j].innerHTML = innerHTML;
-      }
+          return m1+wrap(m2,'cfs',link)+' '+m3;
+      });
+      // for:
+      innerHTML = innerHTML.replace(/\b(for) (\S+|\S+, \S+) (in)/gim, function(m, m1, m2, m3) {
+        var link = 'commands/For.htm';
+        return wrap(m1,'cfs',link)+' '+m2+' '+wrap(m3,'cfs',link);
+      });
+      // control flows / declarations:
+      innerHTML = innerHTML.replace(new RegExp('(^\\s*|[,:}]\\s*)('+syntax[3].join('|')+'|'+syntax[5].join('|')+')\\b','gim'), function(m, m1, m2) { return m1+wrap(m2,'cfs',true); });
+      // ByRef:
+      innerHTML = innerHTML.replace(/(.+?)\b(byref)\b(?=(.+?)\))/gim, function(m, m1, m2) { return m1+wrap(m2,'cfs','Functions.htm#ByRef'); });
+      // command-like built-in functions:
+      innerHTML = innerHTML.replace(new RegExp('(^\\s*|[:]\\s*)('+syntax[2].join('|')+')\\b(?=[\\s](?!:)|$)',"gim"), function(m, m1, m2) { return m1+wrap(m2,'cmd',true); });
+      // built-in functions:
+      innerHTML = innerHTML.replace(new RegExp('\\b('+syntax[2].join('|')+')(?=\\()','gi'), function(m, m1) { return wrap(m1, 'bif', true); });
+      // built-in vars:
+      innerHTML = innerHTML.replace(new RegExp('\\b('+syntax[1].join('|')+')\\b','gi'), function(m, m1) { return wrap(m1, 'biv', true); });
+      // directives:
+      innerHTML = innerHTML.replace(new RegExp('('+syntax[0].join('|')+')\\b','gi'), function(m, m1) { return wrap(m1, 'dir', true); });
+      // hotstrings:
+      innerHTML = innerHTML.replace(/^(\s*)(:.*?:)(.*?)(::)(.*)/mg, function(m,m1,m2,m3,m4,m5) { return m1+wrap(m2,'lab',0)+wrap(m3,'str',0)+wrap(m4,'lab',0)+wrap(m5,'str',0); });
+      // hotkeys:
+      innerHTML = innerHTML.replace(/^(\s*)((?:\S+?|\S+? \S+?|\S+? (&amp;|&) \S+?)::)/mg, function(m,m1,m2) { return m1+wrap(m2,'lab',0); });
+      // labels:
+      innerHTML = innerHTML.replace(/^(\s*)([^\s]+?:)(?=\s|$)/mg, function(m, m1, m2) { return m1+wrap(m2, 'lab', false); });
+      pre.innerHTML = innerHTML;
+      // Restore elements with attributes and children:
+      $('el', pre).each(function(index) {
+        this.outerHTML = els[index].outerHTML;
+      });
+      // Restore comments:
+      $('em', pre).each(function(index) {
+        this.outerHTML = ems[index].outerHTML;
+      });
     }
     function wrap(match, type, isLink) {
       var span = document.createElement('span');

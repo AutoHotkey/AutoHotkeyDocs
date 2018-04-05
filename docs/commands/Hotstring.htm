@@ -103,7 +103,77 @@ MsgBox "The previous value was: " prev_chars</pre>
 <p><a href="../Hotstrings.htm">Hotstrings</a>, <a href="_If.htm">#If</a>, <a href="_MaxThreadsPerHotkey.htm">#MaxThreadsPerHotkey</a>, <a href="Suspend.htm">Suspend</a>, <a href="../misc/Threads.htm">Threads</a>, <a href="Thread.htm">Thread</a>, <a href="Critical.htm">Critical</a></p>
 
 <h3>Examples</h3>
-<pre class="NoIndent"></pre>
+
+<h4 id="ex1">Example #1: Hotstring Helper</h4>
+<p>The following script might be useful if you are a heavy user of hotstrings. It's based on the v1 script created by Andreas Borutta. By pressing Win+H (or another hotkey of your choice), the currently selected text can be turned into a hotstring.  For example, if you have &quot;by the way&quot; selected in a word processor, pressing Win+H will prompt you for its abbreviation (e.g. btw), add the new hotstring to the script and activate it.</p>
+<pre>#h::  <em>; Win+H hotkey
+; Get the text currently selected. The clipboard is used instead of
+; ControlGetSelected because it works in a greater variety of editors
+; (namely word processors).  Save the current clipboard contents to be
+; restored later. Although this handles only plain text, it seems better
+; than nothing:</em>
+ClipboardOld := Clipboard
+Clipboard := "" <em>; Must start off blank for detection to work.</em>
+Send "^c"
+ClipWait 1
+if ErrorLevel  <em>; ClipWait timed out.</em>
+    return
+<em>; Replace CRLF and/or LF with `n for use in a "send-raw" hotstring:
+; The same is done for any other characters that might otherwise
+; be a problem in raw mode:</em>
+ClipContent := StrReplace(Clipboard, "``", "````")  <em>; Do this replacement first to avoid interfering with the others below.</em>
+ClipContent := StrReplace(ClipContent, "`r`n", "``r")  <em>; Using `r works better than `n in MS Word, etc.</em>
+ClipContent := StrReplace(ClipContent, "`n", "``r")
+ClipContent := StrReplace(ClipContent, "`t", "``t")
+ClipContent := StrReplace(ClipContent, "`;", "```;")
+Clipboard := ClipboardOld  <em>; Restore previous contents of clipboard.</em>
+ShowInputBox(":T:`::" ClipContent)
+return
+
+ShowInputBox(DefaultValue)
+{
+    <em>; This will move the InputBox's caret to a more friendly position:</em>
+    SetTimer "MoveCaret", 10
+    <em>; Show the InputBox, providing the default hotstring:</em>
+    UserInput := InputBox("
+    (
+    Type your abreviation at the indicated insertion point. You can also edit the replacement text if you wish.
+
+    Example entry: :T:btw`::by the way
+    )", "New Hotstring",, DefaultValue)
+    if ErrorLevel  <em>; The user pressed Cancel.</em>
+        return
+
+    if RegExMatch(UserInput, "(?P&lt;Label&gt;:.*?:(?P&lt;Abbreviation&gt;.*?))::(?P&lt;Replacement&gt;.*)", Hotstring)
+    {
+        if !Hotstring.Abbreviation
+            MsgText := "You didn't provide an abbreviation"
+        else if !Hotstring.Replacement
+            MsgText := "You didn't provide a replacement"
+        else
+        {
+            Hotstring Hotstring.Label, Hotstring.Replacement  <em>; Enable the hotstring now.</em>
+            FileAppend "`n" UserInput, A_ScriptFullPath  <em>; Save the hotstring for later use.</em>
+        }
+    }
+    else
+        MsgText := "The hotstring appears to be improperly formatted"
+
+    if MsgText
+    {
+        Result := MsgBox(MsgText ". Would you like to try again?",, 4)
+        if Result = "Yes"
+            ShowInputBox(DefaultValue)
+    }
+    
+    MoveCaret()
+    {
+        WinWait "New Hotstring"
+        <em>; Otherwise, move the InputBox's insertion point to where the user will type the abbreviation.</em>
+        Send "{Home}{Right 3}"
+        SetTimer , "Off"
+    }
+}</pre>
 
 </body>
 </html>
