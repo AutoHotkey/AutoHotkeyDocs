@@ -81,7 +81,7 @@ var isPhone = (document.documentElement.clientWidth <= 600);
     return;
 
   // Exit the script on sites which doesn't need the sidebar:
-  if (/(search|frame)\.htm/.test(location.href) || cache.forceNoScript)
+  if (/(search)\.htm/.test(location.href) || cache.forceNoScript)
     return;
 
   // Special treatments for pages inside a frame:
@@ -96,7 +96,13 @@ var isPhone = (document.documentElement.clientWidth <= 600);
       structure.saveSettingsBeforeLeaving();
       $(document).ready(function() {
         $('html').attr('id', 'right');
-        addFeatures();
+        if (!cache.translate)
+          loadScript(structure.dataPath, function() {
+            cache.translate = translateData;
+            addFeatures();
+          });
+        else
+          addFeatures();
       });
       $(window).on('message onmessage', function(event) {
         var data = JSON.parse(event.originalEvent.data);
@@ -114,24 +120,54 @@ var isPhone = (document.documentElement.clientWidth <= 600);
     }
     else
     {
-      location.href = scriptDir + "/../frame.htm#" + relPath;
-      return;
+      $(window).on('message onmessage', function(event) {
+        var data = JSON.parse(event.originalEvent.data);
+        switch(data[0]) {
+          case 'normalizeURL':
+          var relPath = data[1].href.replace(workingDir, '');
+          try {
+            if (history.replaceState)
+              history.replaceState(null, null, data[1].href);
+          }
+          catch(e) {
+            if (history.replaceState)
+              history.replaceState(null, null, "#" + relPath);
+          }
+          document.title = data[2];
+          toc.preSelect($('#left > div.toc'), data[1], relPath);
+          structure.modifyOnlineTools(relPath);
+          break;
+
+          case 'pressKey':
+          structure.pressKey(data[1]);
+          break;
+        }
+      });
     }
   }
 
   // Add elements for sidebar:
   structure.build();
 
+  // Load current URL into frame:
+  if (isFrameCapable) {
+    $(document).ready(function() {
+      document.getElementById('frame').contentWindow.location.href = scriptDir + '/../' + relPath;
+    });
+  }
+
   // Get the data if needed and modify the site:
   if (!cache.translate)
     loadScript(structure.dataPath, function() {
       cache.translate = translateData;
       structure.modify();
-      $(document).ready(addFeatures);
+      if (!isFrameCapable)
+        $(document).ready(addFeatures);
     });
   else {
     structure.modify();
-    $(document).ready(addFeatures);
+    if (!isFrameCapable)
+      $(document).ready(addFeatures);
   }
   if (!cache.toc.data)
     loadScript(toc.dataPath, function() {
@@ -598,7 +634,7 @@ function ctor_structure()
   self.metaViewport = '<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">';
   self.template = '<div id="body">' +
   '<div id="head"><div class="h-tabs"><ul><li data-translate data-content="Content"></li><li data-translate data-content="Index"></li><li data-translate data-content="Search"></li></ul></div><div class="h-tools"><div class="main"><ul><li class="sidebar" title="Hide/Show sidebar" data-translate>&#926;</li></ul></div><div class="online"><ul><li class="home" title="Home page" data-translate><a href="' + location.protocol + '//' + location.host + '">&#916;</a></li></ul><ul><li class="language" title="Change language" data-translate data-content="en"></li></ul><ul class="languages"><li class="arrow">&#9658;</li><li><a title="English" data-content="en"></a></li><li><a title="Deutsch (German)" data-content="de"></a></li><li><a title="&#x4E2D;&#x6587; (Chinese)" data-content="zh"></a></li></ul><ul><li class="version" title="Change AHK version" data-translate data-content="v1"></li></ul><ul class="versions"><li class="arrow">&#9658;</li><li><a title="AHK v1.1" data-content="v1"></a></li><li><a title="AHK v2.0" data-content="v2"></a></li></ul><ul><li class="edit" title="Edit page on GitHub" data-translate><a data-content="E"></a></li></ul></div><div class="chm"><ul><li class="back" title="Go back" data-translate>&#9668;</li><li class="forward" title="Go forward" data-translate>&#9658;</li><li class="zoom" title="Change font size" data-translate data-content="Z"></li><li class="print" title="Print current document" data-translate data-content="P"></li></ul></div></div></div>' +
-  '<div id="main"><div id="left"><div class="toc"></div><div class="index"><div class="label" data-translate data-content="Type in the keyword to find:"></div><div class="input"><input type="text" /></div><div class="list"></div></div><div class="search"><div class="label" data-translate data-content="Type in the word(s) to search for:"></div><div class="input"><input type="text" /></div><div class="list"></div></div><div class="load"><div class="lds-dual-ring"></div></div></div><div class="dragbar"></div><div id="right" tabIndex="-1"><div class="area">';
+  '<div id="main"><div id="left"><div class="toc"></div><div class="index"><div class="label" data-translate data-content="Type in the keyword to find:"></div><div class="input"><input type="text" /></div><div class="list"></div></div><div class="search"><div class="label" data-translate data-content="Type in the word(s) to search for:"></div><div class="input"><input type="text" /></div><div class="list"></div></div><div class="load"><div class="lds-dual-ring"></div></div></div><div class="dragbar"></div><div id="right" tabIndex="-1">'+(isFrameCapable?'<iframe frameBorder="0" id="frame" src="">':'<div class="area">');
   self.template = isIE || isEdge ? self.template.replace(/ data-content="(.*?)">/g, '>$1') : self.template;
   self.build = function() { document.write(self.template); }; // Write HTML before DOM is loaded to prevent flickering.
   self.modify = function() { // Modify elements added via build.
