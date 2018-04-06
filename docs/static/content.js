@@ -265,13 +265,27 @@ function ctor_toc()
     setTimeout( function() { self.preSelect($toc, location, relPath); }, 0);
   };
   self.preSelect = function($toc, url, relPath) { // Apply stored settings.
-    var $tocList = $('li > span', $toc);
-    var clicked = $tocList.eq(cache.toc.clickItem);
-    // Search for items which matches the address:
-    var found = $tocList.has('a[href$="/' + relPath + '"]');
-    // If not found, search for items which matches the address without anchor:
-    if (!found.length)
-      found = $tocList.has('a[href$="/' + relPath.replace(url.hash,'') + '"]');
+    var tocList = $('li > span', $toc);
+    var clicked = tocList.eq(cache.toc.clickItem);
+    var relPathNoHash = relPath.replace(url.hash,'');
+    var found = null;
+    var foundList = [];
+    var foundNoHashList = [];
+    for (var i = 0; i < tocList.length; i++) {
+      var href = tocList[i].firstChild.href;
+      if (!href)
+        continue;
+      // Search for items which matches the address:
+      if (href.indexOf(relPath, href.length - relPath.length) !== -1)
+        foundList.push($(tocList[i]));
+      // Search for items which matches the address without anchor:
+      else if (href.indexOf(relPathNoHash, href.length - relPathNoHash.length) !== -1)
+        foundNoHashList.push($(tocList[i]));
+    }
+    if (foundList.length)
+      found = $(foundList).map($.fn.toArray);
+    else if (foundNoHashList.length)
+      found = $(foundNoHashList).map($.fn.toArray);
     var el = found;
     // If the last clicked item can be found in the matches, use it instead:
     if (clicked.is(found))
@@ -279,7 +293,7 @@ function ctor_toc()
     else
       cache.toc.scrollPos = ""; // Force calculated scrolling.
     // If items are found:
-    if (el.length) {
+    if (el) {
       // Restore default state:
       $("span.selected", $toc).removeClass("selected");
       $("li.opened", $toc).toggleClass("closed opened");
