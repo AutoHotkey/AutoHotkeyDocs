@@ -89,11 +89,17 @@ var isPhone = (document.documentElement.clientWidth <= 600);
   {
     if (isInsideFrame)
     {
-      normalizeParentURL = function() { postMessageToParent('normalizeURL', [$.extend({}, window.location), document.title]); }
+      normalizeParentURL = function() {
+        postMessageToParent('normalizeURL', [$.extend({}, window.location), document.title, history.state]);
+        if (cache.toc.clickItem)
+          if (supportsHistory)
+            history.replaceState({toc_clickItem: cache.toc.clickItem}, null, null);
+        cache.toc.clickItem = 0;
+      }
       normalizeParentURL(); $(window).on('hashchange', normalizeParentURL);
       structure.addShortcuts();
       structure.addAnchorFlash();
-      structure.saveSettingsBeforeLeaving();
+      structure.saveCacheBeforeLeaving();
       $(document).ready(function() {
         $('html').attr('id', 'right');
         if (!cache.translate)
@@ -126,15 +132,20 @@ var isPhone = (document.documentElement.clientWidth <= 600);
           case 'normalizeURL':
           var relPath = data[1].href.replace(workingDir, '');
           try {
-            if (history.replaceState)
+            if (supportsHistory)
               history.replaceState(null, null, data[1].href);
           }
           catch(e) {
-            if (history.replaceState)
+            if (supportsHistory)
               history.replaceState(null, null, "#" + relPath);
           }
           document.title = data[2];
-          toc.preSelect($('#left > div.toc'), data[1], relPath);
+          if (data[3]) {
+            toc.deselect($('#left > div.toc'));
+            $('#left > div.toc li > span').eq(data[3].toc_clickItem).trigger('select');
+          }
+          else
+            toc.preSelect($('#left > div.toc'), data[1], relPath);
           structure.modifyOnlineTools(relPath);
           break;
 
@@ -241,14 +252,26 @@ function ctor_toc()
         $this.siblings("ul").slideToggle(100);
         $this.closest("li").toggleClass("closed opened");
       }
-      // Higlight item with link:
+      // Higlight and open item with link:
       if ($this.has("a").length) {
-        $("span.selected", $toc).removeClass("selected");
-        $this.addClass("selected");
+        self.deselect($toc); $this.trigger('select');
         setTimeout( function() { $('#right').focus(); }, 0);
         structure.openSite($this.children('a').attr('href'));
         return false;
       }
+    });
+
+    // Highlight the item and parents on select:
+    $tocList.on("select", function() {
+      $this = $(this);
+      // Highlight the item:
+      $this.addClass("selected");
+      // Highlight its parents:
+      $this.parent("li").has('ul').addClass('highlighted');
+      $this.parent().parents('li').addClass('highlighted');
+      // Unfold parent items:
+      $this.parents().children("ul").show();
+      $this.parents().children("ul").closest("li").removeClass('closed').addClass('opened');
     });
 
     // --- Show scrollbar on mouseover ---
@@ -294,19 +317,8 @@ function ctor_toc()
       cache.toc.scrollPos = ""; // Force calculated scrolling.
     // If items are found:
     if (el) {
-      // Restore default state:
-      $("span.selected", $toc).removeClass("selected");
-      $("li.opened", $toc).toggleClass("closed opened");
-      $(".highlighted", $toc).removeClass("highlighted");
-      $("li > ul", $toc).hide();
-      // Select the items:
-      el.addClass("selected");
-      // Expand their parent items:
-      el.parents().children("ul").show();
-      el.parents().children("ul").closest("li").removeClass('closed').addClass('opened');
-      // Highlight their parent items:
-      el.parent("li").has('ul').addClass('highlighted');
-      el.parent().parents('li').addClass('highlighted');
+      // Highlight items and parents:
+      self.deselect($toc); el.trigger('select');
       // Scroll to the last match:
       if (cache.toc.scrollPos !== "" || cache.toc.scrollPos !== 0)
         $toc.scrollTop(cache.toc.scrollPos);
@@ -315,6 +327,10 @@ function ctor_toc()
         $toc.scrollTop($toc.scrollTop()+100);
       }
     }
+  }
+  self.deselect = function($toc) { // Deselect all items.
+    $("span.selected", $toc).removeClass("selected");
+    $(".highlighted", $toc).removeClass("highlighted");
   }
 }
 
@@ -659,12 +675,12 @@ function ctor_structure()
 
     // --- Add events ---
 
-    self.saveSettingsBeforeLeaving();
+    self.saveCacheBeforeLeaving();
     self.setKeyboardFocus();
     self.addShortcuts();
     self.addAnchorFlash();
     if (supportsHistory) {
-      self.saveScrollPosBeforeLeaving();
+      self.saveSiteStateBeforeLeaving();
       self.scrollToPosOnHashChange();
       self.saveScrollPosOnScroll();
     }
@@ -962,17 +978,20 @@ function ctor_structure()
       .eq(pos).css("visibility", "inherit")
       .find('input').focus();
   };
-  // Save settings before leaving site:
-  self.saveSettingsBeforeLeaving = function() {
+  // Save cache before leaving site:
+  self.saveCacheBeforeLeaving = function() {
     $(window).on('beforeunload', function() {
       cache.RightIsFocused = $(document.activeElement).closest('#right, #left > div.toc').length;
       cache.save();
     });
   }
-  // Save scroll pos before leaving site:
-  self.saveScrollPosBeforeLeaving = function() {
+  // Save site state before leaving site:
+  self.saveSiteStateBeforeLeaving = function() {
     $(window).on('beforeunload', function() {
-      history.replaceState({scrollTop:$('#right')[0].scrollTop}, null, null);
+      var state = {
+        scrollTop: $('#right')[0].scrollTop
+      }
+      history.replaceState($.extend(history.state, state), null, null);
     });
   }
   // Set keyboard focus at the right place after loading site:
@@ -1064,7 +1083,7 @@ function ctor_structure()
   // Open new site:
   self.openSite = function(url) {
     if (isFrameCapable) {
-      postMessageToFrame('updateCache', [{LastUsedSource: cache.LastUsedSource, search: {input: cache.search.input}}]);
+      postMessageToFrame('updateCache', [{LastUsedSource: cache.LastUsedSource, search: {input: cache.search.input}, toc: {clickItem: cache.toc.clickItem}}]);
       postMessageToFrame('changeURL', [url]);
       if (isPhone)
         setTimeout(function() { self.displaySidebar(false); }, 200);
