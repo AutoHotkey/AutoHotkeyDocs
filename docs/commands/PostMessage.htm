@@ -24,7 +24,9 @@
 
   <dt>wParam, lParam</dt>
   <dd><p>The message parameters. If omitted, each parameter defaults to 0.</p>
-    <p>Each parameter can be a pure integer or a string. If it is a string, the address of the string is sent (even if it is a numeric string). If it is a variable reference such as <code>myBuf</code> and that variable contains a string (or is empty), the variable's length is updated afterward in case the target window modified it.</p></dd>
+    <p>Each parameter must be an <a href="../Concepts.htm#numbers">integer</a>. For messages which require a pointer to a string, use the <a href="../Variables.htm#amp">address operator</a>. If the string contained by a variable is changed by passing the variable's address to SendMessage, the variable's length must be updated afterward by calling <a href="VarSetCapacity.htm#neg1">VarSetCapacity(MyVar, -1)</a>.</p>
+    <p>If AutoHotkey or the target window is 32-bit, only the parameter's low 32 bits are used; that is, values are truncated if outside the range -2147483648 to 2147483647 (-0x80000000 to 0x7FFFFFFF) for signed values, or 0 to 4294967295 (0xFFFFFFFF) for unsigned values. If AutoHotkey and the target window are both 64-bit, any integer value <a href="../Concepts.htm#pure-numbers">supported by AutoHotkey</a> can be used.</p>
+  </dd>
 
   <dt>Control</dt>
   <dd><p>If this parameter is blank or omitted, the message will be sent directly to the target window rather than one of its controls. Otherwise, this parameter can be either ClassNN (the classname and instance number of the control) or the control's text, both of which can be determined via Window Spy. When using text, the matching behavior is determined by <a href="SetTitleMatchMode.htm">SetTitleMatchMode</a>.</p>
@@ -62,11 +64,10 @@
 <h3>Remarks</h3>
 <p>These functions should be used with caution because sending a message to the wrong window (or sending an invalid message) might cause unexpected behavior or even crash the target application. This is because most applications are not designed to expect certain types of messages from external sources.</p>
 <p>PostMessage places the message in the message queue associated with the target window. It does not wait for acknowledgement or reply. By contrast, SendMessage waits for the target window to process the message, up until the timeout period expires.</p>
-<p>The <em>wParam</em> and <em>lParam</em> parameters should usually be pure integers. If AutoHotkey or the target window is 32-bit, only the low 32 bits are used; that is, the value should be between -2147483648 and 4294967295 (0xFFFFFFFF). If AutoHotkey and the target window are both 64-bit, any integer value <a href="../Variables.htm#cap">supported by AutoHotkey</a> can be used. As with all integer values in AutoHotkey, a prefix of 0x indicates a hex value. For example, 0xFF is equivalent to 255.</p>
-<p>If <em>wParam</em> or <em>lParam</em> is a string or variable containing a string (even an empty or numeric string), the address of the string or variable is sent. For example:</p>
+<p>String parameters must be passed by <a href="../Variables.htm#amp">address</a>. For example:</p>
 <pre>Run "Notepad"
 WinWait "Untitled - Notepad"
-SendMessage 0xC, 0, <strong>&quot;New Notepad Title&quot;</strong>  <em>; 0XC is WM_SETTEXT</em></pre>
+SendMessage 0xC, 0, <strong>&amp;&quot;New Notepad Title&quot;</strong>  <em>; 0XC is WM_SETTEXT</em></pre>
 <p>To send a message to all windows in the system, including those that are hidden or disabled, specify <code>ahk_id 0xFFFF</code> for <em>WinTitle</em> (0xFFFF is HWND_BROADCAST). This technique should be used only for messages intended to be broadcast, such as the following example:</p>
 <pre>SendMessage 0x1A,,,, "ahk_id 0xFFFF"  <em>; 0x1A is WM_SETTINGCHANGE</em></pre>
 <p>To have a script receive a message, use <a href="OnMessage.htm">OnMessage</a>.</p>
