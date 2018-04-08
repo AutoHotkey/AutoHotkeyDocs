@@ -133,7 +133,7 @@ var isPhone = (document.documentElement.clientWidth <= 600);
           }
           catch(e) {
             if (supportsHistory)
-              history.replaceState(null, null, "?frame=" + relPath);
+              history.replaceState(null, null, "?frame=" + encodeURI(relPath).replace(/#/g, '%23'));
           }
           document.title = data[2];
           if (data[3]) {
@@ -149,6 +149,10 @@ var isPhone = (document.documentElement.clientWidth <= 600);
           structure.pressKey(data[1]);
           break;
         }
+      });
+
+      $(window).on('hashchange', function() {
+        structure.openSite(location.href);
       });
     }
   }
