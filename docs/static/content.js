@@ -315,7 +315,7 @@ function ctor_toc()
       // Highlight items and parents:
       self.deselect($toc); el.trigger('select');
       // Scroll to the last match:
-      if (cache.toc.scrollPos !== "" || cache.toc.scrollPos !== 0)
+      if (cache.toc.scrollPos != "" || cache.toc.scrollPos != 0)
         $toc.scrollTop(cache.toc.scrollPos);
       if (!isScrolledIntoView(el, $toc)) {
         el[el.length-1].scrollIntoView(false);
