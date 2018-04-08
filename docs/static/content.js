@@ -113,10 +113,6 @@ var isPhone = (document.documentElement.clientWidth <= 600);
       $(window).on('message onmessage', function(event) {
         var data = JSON.parse(event.originalEvent.data);
         switch(data[0]) {
-          case 'changeURL':
-          window.location.href = data[1];
-          break;
-          
           case 'updateCache':
           $.extend(cache, data[1]);
           break;
@@ -137,7 +133,7 @@ var isPhone = (document.documentElement.clientWidth <= 600);
           }
           catch(e) {
             if (supportsHistory)
-              history.replaceState(null, null, "#" + relPath);
+              history.replaceState(null, null, "?frame=" + relPath);
           }
           document.title = data[2];
           if (data[3]) {
@@ -161,11 +157,10 @@ var isPhone = (document.documentElement.clientWidth <= 600);
   structure.build();
 
   // Load current URL into frame:
-  if (isFrameCapable) {
+  if (isFrameCapable)
     $(document).ready(function() {
-      document.getElementById('frame').contentWindow.location.href = scriptDir + '/../' + relPath;
+      structure.openSite(scriptDir + '/../' + (getUrlParameter('frame') || relPath));
     });
-  }
 
   // Get the data if needed and modify the site:
   if (!cache.translate)
@@ -1084,7 +1079,7 @@ function ctor_structure()
   self.openSite = function(url) {
     if (isFrameCapable) {
       postMessageToFrame('updateCache', [{LastUsedSource: cache.LastUsedSource, search: {input: cache.search.input}, toc: {clickItem: cache.toc.clickItem}}]);
-      postMessageToFrame('changeURL', [url]);
+      document.getElementById('frame').contentWindow.location.href = url;
       if (isPhone)
         setTimeout(function() { self.displaySidebar(false); }, 200);
     }
@@ -1538,3 +1533,18 @@ function postMessageToFrame(id, param) {
   param.unshift(id);
   document.getElementById('frame').contentWindow.postMessage(JSON.stringify(param), '*');
 }
+
+// https://stackoverflow.com/a/21903119
+function getUrlParameter(sParam) {
+    var sParameterName, i;
+    var sPageURL = decodeURIComponent(window.location.search.substring(1));
+    var sURLVariables = sPageURL.split('&');
+    for (i = 0; i < sURLVariables.length; i++) {
+        sParameterName = sURLVariables[i].split('=');
+
+        if (sParameterName[0] === sParam) {
+            return sParameterName[1] === undefined ? true : sParameterName[1];
+        }
+    }
+}
+
