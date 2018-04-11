@@ -81,7 +81,7 @@ var isPhone = (document.documentElement.clientWidth <= 600);
     return;
 
   // Exit the script on sites which doesn't need the sidebar:
-  if (/(search|frame)\.htm/.test(location.href) || cache.forceNoScript)
+  if (/(search)\.htm/.test(location.href) || cache.forceNoScript)
     return;
 
   // Special treatments for pages inside a frame:
@@ -89,22 +89,30 @@ var isPhone = (document.documentElement.clientWidth <= 600);
   {
     if (isInsideFrame)
     {
-      normalizeParentURL = function() { postMessageToParent('normalizeURL', [$.extend({}, window.location), document.title]); }
+      normalizeParentURL = function() {
+        postMessageToParent('normalizeURL', [$.extend({}, window.location), document.title, history.state]);
+        if (cache.toc.clickItem)
+          if (supportsHistory)
+            history.replaceState({toc_clickItem: cache.toc.clickItem}, null, null);
+        cache.toc.clickItem = 0;
+      }
       normalizeParentURL(); $(window).on('hashchange', normalizeParentURL);
       structure.addShortcuts();
       structure.addAnchorFlash();
-      structure.saveSettingsBeforeLeaving();
+      structure.saveCacheBeforeLeaving();
       $(document).ready(function() {
         $('html').attr('id', 'right');
-        addFeatures();
+        if (!cache.translate)
+          loadScript(structure.dataPath, function() {
+            cache.translate = translateData;
+            addFeatures();
+          });
+        else
+          addFeatures();
       });
       $(window).on('message onmessage', function(event) {
         var data = JSON.parse(event.originalEvent.data);
         switch(data[0]) {
-          case 'changeURL':
-          window.location.href = data[1];
-          break;
-          
           case 'updateCache':
           $.extend(cache, data[1]);
           break;
@@ -114,24 +122,62 @@ var isPhone = (document.documentElement.clientWidth <= 600);
     }
     else
     {
-      location.href = scriptDir + "/../frame.htm#" + relPath;
-      return;
+      $(window).on('message onmessage', function(event) {
+        var data = JSON.parse(event.originalEvent.data);
+        switch(data[0]) {
+          case 'normalizeURL':
+          var relPath = data[1].href.replace(workingDir, '');
+          try {
+            if (supportsHistory)
+              history.replaceState(null, null, data[1].href);
+          }
+          catch(e) {
+            if (supportsHistory)
+              history.replaceState(null, null, "?frame=" + encodeURI(relPath).replace(/#/g, '%23'));
+          }
+          document.title = data[2];
+          if (data[3]) {
+            toc.deselect($('#left > div.toc'));
+            $('#left > div.toc li > span').eq(data[3].toc_clickItem).trigger('select');
+          }
+          else
+            toc.preSelect($('#left > div.toc'), data[1], relPath);
+          structure.modifyOnlineTools(relPath);
+          break;
+
+          case 'pressKey':
+          structure.pressKey(data[1]);
+          break;
+        }
+      });
+
+      $(window).on('hashchange', function() {
+        structure.openSite(location.href);
+      });
     }
   }
 
   // Add elements for sidebar:
   structure.build();
 
+  // Load current URL into frame:
+  if (isFrameCapable)
+    $(document).ready(function() {
+      structure.openSite(scriptDir + '/../' + (getUrlParameter('frame') || relPath));
+    });
+
   // Get the data if needed and modify the site:
   if (!cache.translate)
     loadScript(structure.dataPath, function() {
       cache.translate = translateData;
       structure.modify();
-      $(document).ready(addFeatures);
+      if (!isFrameCapable)
+        $(document).ready(addFeatures);
     });
   else {
     structure.modify();
-    $(document).ready(addFeatures);
+    if (!isFrameCapable)
+      $(document).ready(addFeatures);
   }
   if (!cache.toc.data)
     loadScript(toc.dataPath, function() {
@@ -205,14 +251,26 @@ function ctor_toc()
         $this.siblings("ul").slideToggle(100);
         $this.closest("li").toggleClass("closed opened");
       }
-      // Higlight item with link:
+      // Higlight and open item with link:
       if ($this.has("a").length) {
-        $("span.selected", $toc).removeClass("selected");
-        $this.addClass("selected");
+        self.deselect($toc); $this.trigger('select');
         setTimeout( function() { $('#right').focus(); }, 0);
         structure.openSite($this.children('a').attr('href'));
         return false;
       }
+    });
+
+    // Highlight the item and parents on select:
+    $tocList.on("select", function() {
+      $this = $(this);
+      // Highlight the item:
+      $this.addClass("selected");
+      // Highlight its parents:
+      $this.parent("li").has('ul').addClass('highlighted');
+      $this.parent().parents('li').addClass('highlighted');
+      // Unfold parent items:
+      $this.parents().children("ul").show();
+      $this.parents().children("ul").closest("li").removeClass('closed').addClass('opened');
     });
 
     // --- Show scrollbar on mouseover ---
@@ -229,13 +287,27 @@ function ctor_toc()
     setTimeout( function() { self.preSelect($toc, location, relPath); }, 0);
   };
   self.preSelect = function($toc, url, relPath) { // Apply stored settings.
-    var $tocList = $('li > span', $toc);
-    var clicked = $tocList.eq(cache.toc.clickItem);
-    // Search for items which matches the address:
-    var found = $tocList.has('a[href$="/' + relPath + '"]');
-    // If not found, search for items which matches the address without anchor:
-    if (!found.length)
-      found = $tocList.has('a[href$="/' + relPath.replace(url.hash,'') + '"]');
+    var tocList = $('li > span', $toc);
+    var clicked = tocList.eq(cache.toc.clickItem);
+    var relPathNoHash = relPath.replace(url.hash,'');
+    var found = null;
+    var foundList = [];
+    var foundNoHashList = [];
+    for (var i = 0; i < tocList.length; i++) {
+      var href = tocList[i].firstChild.href;
+      if (!href)
+        continue;
+      // Search for items which matches the address:
+      if (href.indexOf(relPath, href.length - relPath.length) !== -1)
+        foundList.push($(tocList[i]));
+      // Search for items which matches the address without anchor:
+      else if (href.indexOf(relPathNoHash, href.length - relPathNoHash.length) !== -1)
+        foundNoHashList.push($(tocList[i]));
+    }
+    if (foundList.length)
+      found = $(foundList).map($.fn.toArray);
+    else if (foundNoHashList.length)
+      found = $(foundNoHashList).map($.fn.toArray);
     var el = found;
     // If the last clicked item can be found in the matches, use it instead:
     if (clicked.is(found))
@@ -243,28 +315,21 @@ function ctor_toc()
     else
       cache.toc.scrollPos = ""; // Force calculated scrolling.
     // If items are found:
-    if (el.length) {
-      // Restore default state:
-      $("span.selected", $toc).removeClass("selected");
-      $("li.opened", $toc).toggleClass("closed opened");
-      $(".highlighted", $toc).removeClass("highlighted");
-      $("li > ul", $toc).hide();
-      // Select the items:
-      el.addClass("selected");
-      // Expand their parent items:
-      el.parents().children("ul").show();
-      el.parents().children("ul").closest("li").removeClass('closed').addClass('opened');
-      // Highlight their parent items:
-      el.parent("li").has('ul').addClass('highlighted');
-      el.parent().parents('li').addClass('highlighted');
+    if (el) {
+      // Highlight items and parents:
+      self.deselect($toc); el.trigger('select');
       // Scroll to the last match:
-      if (cache.toc.scrollPos !== "" || cache.toc.scrollPos !== 0)
+      if (cache.toc.scrollPos != "" || cache.toc.scrollPos != 0)
         $toc.scrollTop(cache.toc.scrollPos);
       if (!isScrolledIntoView(el, $toc)) {
         el[el.length-1].scrollIntoView(false);
         $toc.scrollTop($toc.scrollTop()+100);
       }
     }
+  }
+  self.deselect = function($toc) { // Deselect all items.
+    $("span.selected", $toc).removeClass("selected");
+    $(".highlighted", $toc).removeClass("highlighted");
   }
 }
 
@@ -598,7 +663,7 @@ function ctor_structure()
   self.metaViewport = '<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">';
   self.template = '<div id="body">' +
   '<div id="head"><div class="h-tabs"><ul><li data-translate data-content="Content"></li><li data-translate data-content="Index"></li><li data-translate data-content="Search"></li></ul></div><div class="h-tools"><div class="main"><ul><li class="sidebar" title="Hide/Show sidebar" data-translate>&#926;</li></ul></div><div class="online"><ul><li class="home" title="Home page" data-translate><a href="' + location.protocol + '//' + location.host + '">&#916;</a></li></ul><ul><li class="language" title="Change language" data-translate data-content="en"></li></ul><ul class="languages"><li class="arrow">&#9658;</li><li><a title="English" data-content="en"></a></li><li><a title="Deutsch (German)" data-content="de"></a></li><li><a title="&#x4E2D;&#x6587; (Chinese)" data-content="zh"></a></li></ul><ul><li class="version" title="Change AHK version" data-translate data-content="v1"></li></ul><ul class="versions"><li class="arrow">&#9658;</li><li><a title="AHK v1.1" data-content="v1"></a></li><li><a title="AHK v2.0" data-content="v2"></a></li></ul><ul><li class="edit" title="Edit page on GitHub" data-translate><a data-content="E"></a></li></ul></div><div class="chm"><ul><li class="back" title="Go back" data-translate>&#9668;</li><li class="forward" title="Go forward" data-translate>&#9658;</li><li class="zoom" title="Change font size" data-translate data-content="Z"></li><li class="print" title="Print current document" data-translate data-content="P"></li></ul></div></div></div>' +
-  '<div id="main"><div id="left"><div class="toc"></div><div class="index"><div class="label" data-translate data-content="Type in the keyword to find:"></div><div class="input"><input type="text" /></div><div class="list"></div></div><div class="search"><div class="label" data-translate data-content="Type in the word(s) to search for:"></div><div class="input"><input type="text" /></div><div class="list"></div></div><div class="load"><div class="lds-dual-ring"></div></div></div><div class="dragbar"></div><div id="right" tabIndex="-1"><div class="area">';
+  '<div id="main"><div id="left"><div class="toc"></div><div class="index"><div class="label" data-translate data-content="Type in the keyword to find:"></div><div class="input"><input type="text" /></div><div class="list"></div></div><div class="search"><div class="label" data-translate data-content="Type in the word(s) to search for:"></div><div class="input"><input type="text" /></div><div class="list"></div></div><div class="load"><div class="lds-dual-ring"></div></div></div><div class="dragbar"></div><div id="right" tabIndex="-1">'+(isFrameCapable?'<iframe frameBorder="0" id="frame" src="">':'<div class="area">');
   self.template = isIE || isEdge ? self.template.replace(/ data-content="(.*?)">/g, '>$1') : self.template;
   self.build = function() { document.write(self.template); }; // Write HTML before DOM is loaded to prevent flickering.
   self.modify = function() { // Modify elements added via build.
@@ -609,12 +674,12 @@ function ctor_structure()
 
     // --- Add events ---
 
-    self.saveSettingsBeforeLeaving();
+    self.saveCacheBeforeLeaving();
     self.setKeyboardFocus();
     self.addShortcuts();
     self.addAnchorFlash();
     if (supportsHistory) {
-      self.saveScrollPosBeforeLeaving();
+      self.saveSiteStateBeforeLeaving();
       self.scrollToPosOnHashChange();
       self.saveScrollPosOnScroll();
     }
@@ -912,17 +977,20 @@ function ctor_structure()
       .eq(pos).css("visibility", "inherit")
       .find('input').focus();
   };
-  // Save settings before leaving site:
-  self.saveSettingsBeforeLeaving = function() {
+  // Save cache before leaving site:
+  self.saveCacheBeforeLeaving = function() {
     $(window).on('beforeunload', function() {
       cache.RightIsFocused = $(document.activeElement).closest('#right, #left > div.toc').length;
       cache.save();
     });
   }
-  // Save scroll pos before leaving site:
-  self.saveScrollPosBeforeLeaving = function() {
+  // Save site state before leaving site:
+  self.saveSiteStateBeforeLeaving = function() {
     $(window).on('beforeunload', function() {
-      history.replaceState({scrollTop:$('#right')[0].scrollTop}, null, null);
+      var state = {
+        scrollTop: $('#right')[0].scrollTop
+      }
+      history.replaceState($.extend(history.state, state), null, null);
     });
   }
   // Set keyboard focus at the right place after loading site:
@@ -1014,8 +1082,8 @@ function ctor_structure()
   // Open new site:
   self.openSite = function(url) {
     if (isFrameCapable) {
-      postMessageToFrame('updateCache', [{LastUsedSource: cache.LastUsedSource, search: {input: cache.search.input}}]);
-      postMessageToFrame('changeURL', [url]);
+      postMessageToFrame('updateCache', [{LastUsedSource: cache.LastUsedSource, search: {input: cache.search.input}, toc: {clickItem: cache.toc.clickItem}}]);
+      document.getElementById('frame').contentWindow.location.href = url;
       if (isPhone)
         setTimeout(function() { self.displaySidebar(false); }, 200);
     }
@@ -1469,3 +1537,18 @@ function postMessageToFrame(id, param) {
   param.unshift(id);
   document.getElementById('frame').contentWindow.postMessage(JSON.stringify(param), '*');
 }
+
+// https://stackoverflow.com/a/21903119
+function getUrlParameter(sParam) {
+    var sParameterName, i;
+    var sPageURL = decodeURIComponent(window.location.search.substring(1));
+    var sURLVariables = sPageURL.split('&');
+    for (i = 0; i < sURLVariables.length; i++) {
+        sParameterName = sURLVariables[i].split('=');
+
+        if (sParameterName[0] === sParam) {
+            return sParameterName[1] === undefined ? true : sParameterName[1];
+        }
+    }
+}
+
