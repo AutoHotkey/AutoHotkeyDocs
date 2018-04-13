@@ -1302,7 +1302,17 @@ function addFeatures()
     }
   }
   function addSyntaxColors(pres) {
-    // Create lists of syntax elements by using index data to reduce code size:
+    // Create lists of syntax elements by using index data to reduce code size.
+    // An index entry counts as syntax element, if its third field is one of the following digits:
+    /* 
+        0 - directive
+        1 - built-in var
+        2 - built-in function
+        3 - control flow statement
+        4 - operator
+        5 - declaration
+        6 - command
+    */
     var syntax = [[], [], [], [], [], [], []], dict = {};
     for(var i = 0; i < cache.index.data.length; i++) {
       var entry = cache.index.data[i][0];
