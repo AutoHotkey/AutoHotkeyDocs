@@ -131,11 +131,11 @@ var isPhone = (document.documentElement.clientWidth <= 600);
           case 'normalizeURL':
           var relPath = data[1].href.replace(workingDir, '');
           try {
-            if (supportsHistory)
+            if (history.replaceState)
               history.replaceState(null, null, data[1].href);
           }
           catch(e) {
-            if (supportsHistory)
+            if (history.replaceState)
               history.replaceState(null, null, "?frame=" + encodeURI(relPath).replace(/#/g, '%23'));
           }
           document.title = data[2];
