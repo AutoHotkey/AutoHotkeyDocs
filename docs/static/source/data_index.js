@@ -223,6 +223,7 @@ indexData = [
   ["AutoTrim","commands/AutoTrim.htm",6],
   ["balloon tip","commands/TrayTip.htm"],
   ["base (Objects)","Objects.htm#Custom_Objects"],
+  ["base property (Object)","objects/Object.htm#Base"],
   ["beep the PC speaker","commands/SoundBeep.htm"],
   ["between (check if var between two values)","commands/IfBetween.htm"],
   ["Bind method (Func object)","objects/Func.htm#Bind"],
