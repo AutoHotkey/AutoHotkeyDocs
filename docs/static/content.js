@@ -1035,7 +1035,8 @@ function ctor_structure()
   // Scroll to right position:
   self.scrollToPosOnHashChange = function() {
     $(window).on('hashchange', function() {
-      document.getElementById('right').scrollTop = history.state.scrollTop;
+      if (history.state)
+        document.getElementById('right').scrollTop = history.state.scrollTop;
     });
   }
   // Save scroll position of the right pane on scroll:
