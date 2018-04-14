@@ -809,7 +809,7 @@ function ctor_structure()
       postMessageToFrame('updateCache', [{fontSize: cache.fontSize}]);
     });
     // 'Print' button:
-    $('li.print', $chm).on('click', function() { window.print(); });
+    $('li.print', $chm).on('click', function() { window.parent.document.getElementById('frame').contentWindow.document.execCommand('print', false, null); });
 
     // --- If help is CHM, show CHM tools, else show online tools ---
 
