@@ -656,6 +656,7 @@ indexData = [
   ["ObjSetCapacity()","objects/Object.htm#SetCapacity",2],
   ["OnClipboardChange:","commands/OnClipboardChange.htm"],
   ["OnClipboardChange()","commands/OnClipboardChange.htm",2],
+  ["OnError()","commands/OnError.htm",2],
   ["OnExit","commands/OnExit.htm",6],
   ["OnExit()","commands/OnExit.htm",2],
   ["OnMessage()","commands/OnMessage.htm",2],
