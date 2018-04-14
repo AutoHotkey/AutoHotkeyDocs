@@ -701,9 +701,10 @@ function ctor_structure()
     // --- Add events ---
 
     self.saveCacheBeforeLeaving();
-    self.setKeyboardFocus();
     self.addShortcuts();
     self.addAnchorFlash();
+    if (!isFrameCapable)
+      self.setKeyboardFocus();
     if (supportsHistory) {
       self.saveSiteStateBeforeLeaving();
       self.scrollToPosOnHashChange();
