@@ -139,13 +139,15 @@ var isPhone = (document.documentElement.clientWidth <= 600);
               history.replaceState(null, null, "?frame=" + encodeURI(relPath).replace(/#/g, '%23'));
           }
           document.title = data[2];
-          if (data[3]) {
+          structure.modifyOnlineTools(relPath);
+          if ($('#left > div.toc li > span.selected a').attr('href') == data[1].href)
+            break;
+          else if (data[3]) {
             toc.deselect($('#left > div.toc'));
             $('#left > div.toc li > span').eq(data[3].toc_clickItem).trigger('select');
           }
           else
             toc.preSelect($('#left > div.toc'), data[1], relPath);
-          structure.modifyOnlineTools(relPath);
           break;
 
           case 'pressKey':
