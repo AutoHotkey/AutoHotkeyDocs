@@ -92,6 +92,7 @@ var isPhone = (document.documentElement.clientWidth <= 600);
   {
     if (isInsideFrame)
     {
+      $('head').append('<style>body {font-size:' + cache.fontSize + 'em}</style>');
       normalizeParentURL = function() {
         postMessageToParent('normalizeURL', [$.extend({}, window.location), document.title, history.state]);
         if (cache.toc.clickItem)
@@ -104,7 +105,7 @@ var isPhone = (document.documentElement.clientWidth <= 600);
       structure.addAnchorFlash();
       structure.saveCacheBeforeLeaving();
       $(document).ready(function() {
-        $('html').attr({ id: 'right', fontSize: cache.fontSize });
+        $('html').attr({ id: 'right'});
         if (!cache.translate)
           loadScript(structure.dataPath, function() {
             cache.translate = translateData;
@@ -186,6 +187,9 @@ var isPhone = (document.documentElement.clientWidth <= 600);
         $.extend(cache, overwriteProps(user, config));
       }
   }
+
+  // Set initial font size:
+  $('head').append('<style>#right .area {font-size:' + cache.fontSize + 'em}</style>');
 
   // Load current URL into frame:
   if (isFrameCapable)
@@ -1139,10 +1143,6 @@ function ctor_structure()
 function addFeatures()
 {
   var content = document.querySelectorAll('#right .area, #right body')[0];
-
-  // --- Set initial font size (for CHM's zoom tool) ---
-
-  content.style.fontSize = cache.fontSize + 'em';
 
   // --- Highlight search words with jQuery Highlight plugin ---
 
