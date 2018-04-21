@@ -455,13 +455,13 @@ Gui.Add("Text",, "First name:")
 Gui.Add("Text",, "Last name:")
 Gui.Add("Edit", "vFirstName ym")  <em>; The ym option starts a new column of controls.</em>
 Gui.Add("Edit", "vLastName")
-Gui.Add("Button", "default", "OK").OnEvent("Click", Func("Gui_Close").bind(Gui))
-Gui.OnEvent("Close", "Gui_Close")
+Gui.Add("Button", "default", "OK").OnEvent("Click", () => ProcessUserInput(Gui))
+Gui.OnEvent("Close", "ProcessUserInput")
 Gui.Show()
 
-Gui_Close(Gui)
+ProcessUserInput(this)
 {
-    Saved := Gui.Submit()  <em>; Save the contents of named controls into an object.</em>
+    Saved := this.Submit()  <em>; Save the contents of named controls into an object.</em>
     MsgBox("You entered '" Saved.FirstName " " Saved.LastName "'.")
 }</pre>
 
@@ -477,14 +477,14 @@ Tab.UseTab(3)
 Gui.Add("Edit", "vMyEdit r5")  <em>; r5 means 5 rows tall.</em>
 Tab.UseTab()  <em>; i.e. subsequently-added controls will not belong to the tab control.</em>
 Btn := Gui.Add("Button", "default xm", "OK")  <em>; xm puts it at the bottom left corner.</em>
-Btn.OnEvent("Click", Func("Gui_Close").bind(Gui))
-Gui.OnEvent("Close", "Gui_Close")
-Gui.OnEvent("Escape", "Gui_Close")
+Btn.OnEvent("Click", () => ProcessUserInput(Gui))
+Gui.OnEvent("Close", "ProcessUserInput")
+Gui.OnEvent("Escape", "ProcessUserInput")
 Gui.Show()
 
-Gui_Close(Gui)
+ProcessUserInput(this)
 {
-    Saved := Gui.Submit()  <em>; Save the contents of named controls into an object.</em>
+    Saved := this.Submit()  <em>; Save the contents of named controls into an object.</em>
     MsgBox("You entered:`n" Saved.MyCheckbox "`n" Saved.MyRadio "`n" Saved.MyEdit)
 }</pre>
 
@@ -492,22 +492,22 @@ Gui_Close(Gui)
 
 Gui := GuiCreate()
 Gui.Add("Text",, "Pick a file to launch from the list below.")
-fn := Func("LaunchFile").bind(Gui)
-LB := Gui.Add("ListBox", "w640 r10 vFile"), LB.OnEvent("DoubleClick", fn)
+LB := Gui.Add("ListBox", "w640 r10 vFile")
+LB.OnEvent("DoubleClick", "LaunchFile")
 Loop Files, "C:\*.*"  <em>; Change this folder and wildcard pattern to suit your preferences.</em>
     LB.Add(A_LoopFilePath)
-Gui.Add("Button", "Default", "OK").OnEvent("Click", fn)
+Gui.Add("Button", "Default", "OK").OnEvent("Click", "LaunchFile")
 Gui.Show()
 
-LaunchFile(Gui)
+LaunchFile(this)
 {
-    Saved := Gui.Submit()
+    Saved := this.Gui.Submit()
     if MsgBox("Would you like to launch the file or document below?`n`n" Saved.File,, 4) = "No"
         return
-    try <em>; Otherwise, try to launch it:</em>
-        Run(Saved.File)
-    catch Error
-        MsgBox(Error.Extra)
+    <em>; Otherwise, try to launch it:</em>
+    Run(Saved.File,, "UseErrorLevel")
+    if (ErrorLevel = "ERROR")
+        MsgBox("Could not launch the specified file. Perhaps it is not associated with anything.")
 }</pre>
 
 <pre class="NoIndent" id="ExToolTip"><em>; Example: Display context-senstive help (via ToolTip) whenever the user moves the mouse over a particular control:</em>
@@ -554,7 +554,7 @@ Gui.SetFont("s32")  <em>; Set a large font size (32-point).</em>
 CoordText := Gui.Add("Text", "cLime", "XXXXX YYYYY")  <em>; XX &amp; YY serve to auto-size the window.
 ; Make all pixels of this color transparent and make the text itself translucent (150):</em>
 WinSetTransColor(Gui.BackColor " 150")
-SetTimer(Func("UpdateOSD").bind(CoordText), 200)
+SetTimer(() => UpdateOSD(CoordText), 200)
 UpdateOSD(CoordText)  <em>; Make the first update immediate rather than waiting for the timer.</em>
 Gui.Show("x0 y400 NoActivate")  <em>; NoActivate avoids deactivating the currently active window.</em>
 
@@ -570,16 +570,18 @@ Gui := GuiCreate()
 Gui.BackColor := "White"
 Gui.Add("Picture", "x0 y0 h350 w450", A_WinDir "\Web\Wallpaper\Windows\img0.jpg")
 MyBtn := Gui.Add("Button", "Default xp+20 yp+250", "Start the Bar Moving")
-MyProgress := Gui.Add("Progress", "w416")
-MyText := Gui.Add("Text", "wp")  <em>; wp means "use width of previous".</em>
-MyBtn.OnEvent("Click", Func("MoveBar").bind(MyProgress, MyText))
+MyBtn.OnEvent("Click", "MoveBar")
+Gui.Add("Progress", "w416 vMyProgress")
+Gui.Add("Text", "wp vMyText")  <em>; wp means "use width of previous".</em>
 Gui.Show()
 
-MoveBar(ProgressCtrl, TextCtrl)
+MoveBar(this)
 {
+    ProgressCtrl := this.Gui.Control["MyProgress"]
+    TextCtrl := this.Gui.Control["MyText"]
     Loop Files, A_WinDir "\*.*"
     {
-        if A_Index > 100
+        if (A_Index > 100)
             break
         ProgressCtrl.Value := A_Index
         TextCtrl.Value := A_LoopFileName
@@ -592,14 +594,17 @@ MoveBar(ProgressCtrl, TextCtrl)
 
 Gui := GuiCreate("+Resize")
 MyBtn := Gui.Add("Button", "default", "&amp;Load New Image")
-MyRadio := Gui.Add("Radio", "ym+5 x+10 checked", "Load &amp;actual size")
+MyBtn.OnEvent("Click", "LoadNewImage")
+Gui.Add("Radio", "ym+5 x+10 checked vMyRadio", "Load &amp;actual size")
 Gui.Add("Radio", "ym+5 x+10", "Load to &amp;fit screen")
-MyPic := Gui.Add("Pic", "xm vPic")
-MyBtn.OnEvent("Click", Func("LoadNewImage").bind(Gui, MyRadio, MyPic))
+Gui.Add("Pic", "xm vMyPic")
 Gui.Show()
 
-LoadNewImage(Gui, RadioCtrl, PicCtrl)
+LoadNewImage(this)
 {
+    Gui := this.Gui
+    RadioCtrl := Gui.Control["MyRadio"]
+    PicCtrl := Gui.Control["MyPic"]
     File := FileSelect(,, "Select an image:", "Images (*.gif; *.jpg; *.bmp; *.png; *.tif; *.ico; *.cur; *.ani; *.exe; *.dll)")
     if File = ""
         return

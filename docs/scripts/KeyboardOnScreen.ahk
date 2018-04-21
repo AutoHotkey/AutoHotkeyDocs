@@ -34,42 +34,53 @@ Gui.MarginY := 0, Gui.MarginX := 0
 
 ;---- Alter the tray icon menu:
 A_TrayMenu.Delete
-A_TrayMenu.Add k_MenuItemHide, Func("k_ShowHide").bind(Gui, k_MenuItemHide, k_MenuItemShow)
-A_TrayMenu.Add "&Exit", "k_MenuExit"
+A_TrayMenu.Add k_MenuItemHide, () => k_ShowHide(Gui, k_MenuItemHide, k_MenuItemShow)
+A_TrayMenu.Add "&Exit", () => ExitApp()
 A_TrayMenu.Default := k_MenuItemHide
 
 ;---- Add a button for each key:
 
-; The keyboard layout you see:
-k_cL := [ ["``", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "-", "=", "Back "]
-        , ["Tab", "Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P", "[", "]", "\  "]
-        , ["Caps", "A", "S", "D", "F", "G", "H", "J", "K", "L", ";", "'", "Enter"]
-        , ["Shift", "Z", "X", "C", "V", "B", "N", "M", ",", ".", "/", "Shift  "]
-        , ["Ctrl", "Win", "Alt", "Space ", "Alt", "Win", "Menu", "Ctrl"] ]
+; The keyboard layout:
+k_Layout := [
+    ["``", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "-", "=", "Backspace:3"],
+    ["Tab:3", "Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P", "[", "]", "\"],
+    ["CapsLock:3", "A", "S", "D", "F", "G", "H", "J", "K", "L", ";", "'", "Enter:2"],
+    ["LShift:3", "Z", "X", "C", "V", "B", "N", "M", ",", ".", "/", "Shift:3"],
+    ["LCtrl:2", "LWin:2", "LAlt:2", "Space:2", "RAlt:2", "RWin:2", "AppsKey:2", "RCtrl:2"]
+]
 
-; AutoHotkey's official key names for the keys above (leave empty if identical):
-k_oL := [ [, , , , , , , , , , , , , "Backspace"]
-        , []
-        , ["CapsLock"]
-        , ["LShift", , , , , , , , , , , "RShift"]
-        , ["LCtrl", "LWin", "LAlt", , "RAlt", "RWin", "AppsKey", "RCtrl"] ]
-
-; Traverse each key in the list of custom key names:
-For n, k_Row in k_cL
-    For i, k_CustomKeyName in k_Row
+; Traverse the keys of the keyboard layout:
+for n, k_Row in k_Layout
+    for i, k_Key in k_Row
     {
-        k_OfficialKeyName := k_oL[n][i]
-        ; Calculate object dimensions based on chosen font size:
-        opt := "h" k_FontSize * 3 " w" k_FontSize * (StrLen(k_CustomKeyName) + 2) " x+m" 
-        if i = 1
-            opt .= " y+m xm"
-        ; When a key is pressed by the user, click the corresponding button on-screen:
-        fn := Func("k_KeyPress").bind(Gui.Add("Button", opt, k_CustomKeyName))
-        ; If the key has an official key name use it:
-        if k_OfficialKeyName
-            Hotkey("~*" k_OfficialKeyName, fn)
+        k_KeyWidthMultiplier := 1
+        ; Get custom key width multiplier:
+        if RegExMatch(k_Key, "(.+):(\d)", m)
+        {
+            k_Key := m[1]
+            k_KeyWidthMultiplier := m[2]
+        }
+        ; Get localized key name:
+        k_KeyNameText := GetKeyNameText(k_Key, 0, 1)
+        ; Windows key names start with left or right so replace it:
+        if (k_Key = "LWin" || k_Key = "RWin")
+            k_KeyNameText := "Win"
+         ; Truncate the key name:
+        if (StrLen(k_Key) > 1)
+            k_KeyNameText := Trim(SubStr(k_KeyNameText, 1, 5))
         else
-            Hotkey("~*" Trim(k_CustomKeyName), fn)
+            k_KeyNameText := k_Key
+        ; Convert to uppercase:
+        k_KeyNameText := StrUpper(k_KeyNameText)
+        ; Calculate object dimensions based on chosen font size:
+        k_KeyHeight := k_FontSize * 3
+        opt := "h" k_KeyHeight " w" k_KeyHeight * k_KeyWidthMultiplier " -Wrap x+m" 
+        if (i = 1)
+            opt .= " y+m xm"
+        ; Add the button:
+        Btn := Gui.Add("Button", opt, k_KeyNameText)
+        ; When a key is pressed by the user, click the corresponding button on-screen:
+        Hotkey("~*" k_Key, Func("k_KeyPress").bind(Btn))
     }
 
 ;---- Position the keyboard at the bottom of the screen (taking into account
@@ -113,7 +124,10 @@ k_ShowHide(GuiObj, HideText, ShowText)
     }
 }
 
-k_MenuExit()
+GetKeyNameText(Key, Extended := false, DoNotCare := false)
 {
-    ExitApp
+   Params := (GetKeySC(Key) << 16) | (Extended << 24) | (DoNotCare << 25)
+   VarSetCapacity(KeyNameText, 64, 0)
+   DllCall("User32.dll\GetKeyNameText", "Int", Params, "Str", KeyNameText, "Int", 32)
+   return KeyNameText
 }

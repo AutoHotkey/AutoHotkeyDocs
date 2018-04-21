@@ -52,7 +52,7 @@ Specify which program to use when opening a directory. If the program cannot
 be found or is not specified (i.e. variable is unassigned or assigned
 a null value), the default Explorer will be used.
 */
-config := {dirExplorer: "E:\utl\xplorer2_lite\xplorer2.exe"}
+global config := {dirExplorer: "E:\utl\xplorer2_lite\xplorer2.exe"}
 
 /*
 User's customised list of additional directories to be included in the
@@ -91,7 +91,7 @@ config.ScanMode := "FD"
 config.ScriptTitle := "Seek - Search the Start Menu"
 
 ; Display the help instructions:
-if A_Args[1] ~= "^(--help|-help|/h|-h|/\?|-\?)$"
+if (A_Args[1] ~= "^(--help|-help|/h|-h|/\?|-\?)$")
 {
     MsgBox("
     (
@@ -128,9 +128,9 @@ if !FileExist(A_Temp) ; Path does not exist.
 }
 
 ; Scan the Start Menu without Gui:
-if A_Args[1] = "-scex"
+if (A_Args[1] = "-scex")
 {
-    SaveFileList(config)
+    SaveFileList()
     return
 }
 
@@ -138,93 +138,84 @@ if A_Args[1] = "-scex"
 G := GuiCreate(, config.ScriptTitle)
 
 ; Add the text box for user to enter the query string:
-E_Search := G.Add("Edit", "W600")
+G.Add("Edit", "W600 vE_Search").OnEvent("Change", "FindMatches")
 if config.TrackKeyPhrase
-    E_Search.Value := IniRead(config.saveFile, "LastSession", "SearchText")
+    G.Control["E_Search"].Value := IniRead(config.saveFile, "LastSession", "SearchText")
 
 ; Add my fav tagline:
 G.Add("Text", "X625 Y10", "What do you seek, my friend?")
 
 ; Add the status bar for providing feedback to user:
-T_Info := G.Add("Text", "X10 Y31 R1 W764")
+G.Add("Text", "X10 Y31 R1 W764 vT_Info")
 
 ; Add the selection listbox for displaying search results:
-LB := G.Add("ListBox", "X10 Y53 R28 W764 HScroll Disabled")
+G.Add("ListBox", "X10 Y53 R28 W764 HScroll Disabled vLB").OnEvent("DoubleClick", "OpenTarget")
 
 ; Add these buttons, but disable them for now:
-B_1 := G.Add("Button", "Default X10 Y446 Disabled", "Open")
-B_2 := G.Add("Button", "X59 Y446 Disabled", "Open Directory")
-B_3 := G.Add("Button", "X340 Y446", "Scan Start-Menu")
+G.Add("Button", "Default X10 Y446 Disabled vB1", "Open").OnEvent("Click", "OpenTarget")
+G.Add("Button", "X59 Y446 Disabled vB2", "Open Directory").OnEvent("Click", "OpenFolder")
+G.Add("Button", "X340 Y446 vB3", "Scan Start-Menu").OnEvent("Click", "ScanStartMenu")
 
 ; Add the Exit button:
-B_4 := G.Add("Button", "X743 Y446", "Exit")
-
-; Create function references for event callbacks:
-FindMatches := Func("FindMatches").bind(config, LB, B_1, B_2)
-OpenTarget := Func("OpenTarget").bind(config, LB)
-OpenFolder := Func("OpenFolder").bind(config, LB)
-ScanStartMenu := Func("ScanStartMenu").bind(config, E_Search, T_Info, LB, B_1, B_2, B_3)
-Gui_Close := Func("Gui_Close").bind(config, E_Search, LB)
-
-; Add control events:
-E_Search.OnEvent("Change", FindMatches)
-LB.OnEvent("DoubleClick", OpenTarget)
-B_1.OnEvent("Click", OpenTarget)
-B_2.OnEvent("Click", OpenFolder)
-B_3.OnEvent("Click", ScanStartMenu)
-B_4.OnEvent("Click", Gui_Close)
+G.Add("Button", "X743 Y446", "Exit").OnEvent("Click", () => Gui_Close(G))
 
 ; Add window events:
-G.OnEvent("Close", Gui_Close)
-G.OnEvent("Escape", Gui_Close)
+G.OnEvent("Close", "Gui_Close")
+G.OnEvent("Escape", "Gui_Close")
 
 ; Pop-up the query window:
 G.Show("Center")
 
 ; Force re-scanning if -scan is enabled or listing cache file does not exist:
 if (A_Args[1] = "-scan" or !FileExist(config.saveFile))
-    ScanStartMenu(config, E_Search, T_Info, LB, B_1, B_2, B_3)
+    ScanStartMenu(G.Control["LB"])
 
 ; Retrieve an set the matching list:
-FindMatches(config, LB, B_1, B_2, E_Search)
+FindMatches(G.Control["LB"])
 
 ; Retrieve the last selection from cache file and select the item:
 if config.TrackKeyPhrase
     if (LastSelection := IniRead(config.saveFile, "LastSession", "Selection"))
-        LB.Choose(LastSelection)
+        G.Control["LB"].Choose(LastSelection)
 
 ; Function definitions ---
 
 ; Scan the start-menu and store the directory/program listings in a cache file:
-ScanStartMenu(config, E_Search, T_Info, LB, B_1, B_2, B_3)
+ScanStartMenu(this)
 {
+    T_Info := this.Gui.Control["T_Info"]
+    LB := this.Gui.Control["LB"]
+    B1 := this.Gui.Control["B1"]
+    B2 := this.Gui.Control["B2"]
+    B3 := this.Gui.Control["B3"]
+
     ; Inform user that scanning has started:
     T_Info.Value := "Scanning directory listing..."
 
     ; Disable listbox while scanning is in progress:
     LB.Enabled := false
-    B_1.Enabled := false
-    B_2.Enabled := false
-    B_3.Enabled := false
+    B1.Enabled := false
+    B2.Enabled := false
+    B3.Enabled := false
 
     ; Retrieve and save the start menu files:
-    SaveFileList(config)
+    SaveFileList()
     
     ; Inform user that scanning has completed:
     T_Info.Value := "Scan completed."
     
     ; Enable listbox:
     LB.Enabled := true
-    B_1.Enabled := true
-    B_2.Enabled := true
-    B_3.Enabled := true
+    B1.Enabled := true
+    B2.Enabled := true
+    B3.Enabled := true
     
     ; Filter for search string with the new listing:
-    FindMatches(config, LB, B_1, B_2, E_Search)
+    FindMatches(this)
 }
 
 ; Retrieve and save the start menu files:
-SaveFileList(config)
+SaveFileList()
 {
     ; Define the directory paths to retrieve:
     LocationArray := [A_StartMenu, A_StartMenuCommon]
@@ -262,9 +253,13 @@ SaveFileList(config)
 }
 
 ; Search and display all matching records in the listbox:
-FindMatches(config, LB, B_1, B_2, E_Search)
+FindMatches(this)
 {
     FileArray := []
+    E_Search := this.Gui.Control["E_Search"]
+    LB := this.Gui.Control["LB"]
+    B1 := this.Gui.Control["B1"]
+    B2 := this.Gui.Control["B2"]
     SearchText := E_Search.Value
     ; Filter matching records based on user query string:
     if SearchText
@@ -281,7 +276,7 @@ FindMatches(config, LB, B_1, B_2, E_Search)
             Line := A_LoopField
             if RegExMatch(Line, "%(L\d+)%", m) ; Replace %L_n% with location paths.
                 Line := StrReplace(Line, "%" m[1] "%", %m[1]%)
-            if SearchText <> E_Search.Value
+            if (SearchText <> E_Search.Value)
             {
                 ; User has changed the search string.
                 ; There is no point to continue searching using the old string, so abort.
@@ -313,24 +308,25 @@ FindMatches(config, LB, B_1, B_2, E_Search)
     {
         ; No matching record is found. Disable listbox:
         LB.Enabled := false
-        B_1.Enabled := false
-        B_2.Enabled := false
+        B1.Enabled := false
+        B2.Enabled := false
     }
     else
     {
         ; Matching records are found. Enable listbox:
         LB.Enabled := true
-        B_1.Enabled := true
-        B_2.Enabled := true
+        B1.Enabled := true
+        B2.Enabled := true
         ; Select the first record if no other record has been selected:
-        if LB.Text = ""
+        if (LB.Text = "")
             LB.Choose(1, 1)
     }
 }
 
 ; User clicked on 'Open' button or pressed ENTER:
-OpenTarget(config, LB)
+OpenTarget(this)
 {
+    LB := this.Gui.Control["LB"]
     ; Selected record does not exist (file or directory not found):
     if !FileExist(LB.Text)
     {
@@ -348,7 +344,7 @@ OpenTarget(config, LB)
     ; Check whether the selected record is a file or directory:
     fileAttrib := FileGetAttrib(LB.Text)
     if InStr(fileAttrib, "D") ; is directory
-        OpenFolder(config, LB)
+        OpenFolder(this)
     else if fileAttrib ; is file
         Run(LB.Text)
     else
@@ -364,13 +360,13 @@ OpenTarget(config, LB)
 }
 
 ; User clicked on 'Open Directory' button:
-OpenFolder(config, LB)
+OpenFolder(this)
 {
-    Path := LB.Text
+    Path := this.Gui.Control["LB"].Text
     ; If user selected a file-record instead of a directory-record, extract the
     ; directory path (I'm using DriveGetStatus instead of FileGetAttrib to allow the
     ; scenario whereby LB.Text is invalid but the directory path of LB.Text is valid):
-    if DriveGetStatus(Path) <> "Ready" ; not a directory
+    if (DriveGetStatus(Path) <> "Ready") ; not a directory
     {
         SplitPath(Path,, Dir)
         Path := Dir
@@ -398,13 +394,13 @@ OpenFolder(config, LB)
 }
 
 
-Gui_Close(config, E_Search, LB)
+Gui_Close(this)
 {
     ; Save the key word/phrase for next run:
     if config.TrackKeyPhrase
     {
-        IniWrite(E_Search.Value, config.saveFile, "LastSession", "SearchText")
-        IniWrite(LB.Text, config.saveFile, "LastSession", "Selection")
+        IniWrite(this.Control["E_Search"].Value, config.saveFile, "LastSession", "SearchText")
+        IniWrite(this.Control["LB"].Text, config.saveFile, "LastSession", "Selection")
     }
     ExitApp
 }

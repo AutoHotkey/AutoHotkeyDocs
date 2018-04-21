@@ -520,39 +520,37 @@ Gui.Add("Custom", "ClassScintilla")  <em>; Adds a <a href="http://scintilla.org/
 <p><strong>Events</strong>: Since the meaning of each notification code depends on the control which sent it, <a href="../objects/GuiOnEvent.htm">OnEvent</a> is not supported for Custom controls. However, if the control sends notifications in the form of a WM_NOTIFY or WM_COMMAND message, the script can use <a href="../objects/GuiOnNotify.htm">OnNotify</a> or <a href="../objects/GuiOnCommand.htm">OnCommand</a> to detect them.</p>
 <p>Here is an example that shows how to add and use an <a href="http://msdn.microsoft.com/en-us/library/windows/desktop/bb761374.aspx">IP address control</a>:</p>
 <pre>Gui := GuiCreate()
-
-<em>; Add and set up the IP address control:</em>
-IP := Gui.Add("Custom", "ClassSysIPAddress32 r1 w150")
-IPCtrlSetAddress(IP.Hwnd, A_IPAddress1)
-IPText := Gui.Add("Text", "wp")
-IPField := Gui.Add("Text", "wp y+m")
-IP.OnCommand(0x300, Func("IP_EditChange").bind(IPText))  <em>; EN_CHANGE = 0x300</em>
-IP.OnNotify(-860, Func("IP_FieldChange").bind(IPField))  <em>; IPN_FIELDCHANGED = -860</em>
-fn := Func("OK_Click").bind(Gui, IP)
-Gui.Add("Button", "Default", "OK").OnEvent("Click", fn)
+IP := Gui.Add("Custom", "ClassSysIPAddress32 r1 w150 vIP")
+IP.OnCommand(0x300, "IP_EditChange")  <em>; 0x300 = EN_CHANGE</em>
+IP.OnNotify(-860, "IP_FieldChange")  <em>; -860 = IPN_FIELDCHANGED</em> 
+Gui.Add("Text", "wp vIPText")
+Gui.Add("Text", "wp y+m vIPField")
+Gui.Add("Button", "Default", "OK").OnEvent("Click", "OK_Click")
 Gui.Show()
 
-OK_Click(Gui, IP)
+IPCtrlSetAddress(IP.Hwnd, A_IPAddress1)
+
+OK_Click(this)
 {
-    Gui.Hide()
-    MsgBox("You chose " IPCtrlGetAddress(IP.Hwnd))
+    this.Gui.Hide()
+    MsgBox("You chose " IPCtrlGetAddress(this.Gui.Control["IP"].Hwnd))
     ExitApp()
 }
 
-IP_EditChange(IPText, IP)
+IP_EditChange(this)
 {
-    IPText.Text := "New text: " IP.Text
+    this.Gui.Control["IPText"].Text := "New text: " this.Gui.Control["IP"].Text
 }
 
-IP_FieldChange(IPField, IP, nmipaddress)
+IP_FieldChange(this, NMIPAddress)
 {
-    <em>; Extract info from the NMIPADDRESS structure.</em>
-    iField := NumGet(nmipaddress + 3*A_PtrSize + 0, "int")
-    iValue := NumGet(nmipaddress + 3*A_PtrSize + 4, "int")
-    if iValue &gt;= 0
-        IPField.Text := "Field #" iField " modified: " iValue
+    <em>; Extract info from the NMIPAddress structure.</em>
+    iField := NumGet(NMIPAddress + 3*A_PtrSize + 0, "int")
+    iValue := NumGet(NMIPAddress + 3*A_PtrSize + 4, "int")
+    if (iValue &gt;= 0)
+        this.Gui.Control["IPField"].Text := "Field #" iField " modified: " iValue
     else
-        IPField.Text := "Field #" iField " left empty"
+        this.Gui.Control["IPField"].Text := "Field #" iField " left empty"
 }
 
 IPCtrlSetAddress(hControl, IPAddress)
@@ -574,7 +572,9 @@ IPCtrlGetAddress(hControl)
 
     VarSetCapacity(AddrWord, 4)
     SendMessage(IPM_GETADDRESS, 0, &amp;AddrWord,, "ahk_id " hControl)
-    return NumGet(AddrWord, 3, "UChar") "." NumGet(AddrWord, 2, "UChar") "." NumGet(AddrWord, 1, "UChar") "." NumGet(AddrWord, 0, "UChar")
+    Loop 4
+        IPPart%A_Index% := NumGet(AddrWord, 4 - A_Index, "UChar")
+    return IPPart1 "." IPPart2 "." IPPart3 "." IPPart4
 }</pre>
 
 <h2>Related Pages</h2>

@@ -267,23 +267,23 @@ ImageListID := <a href="ListView.htm#IL_Create">IL_Create</a>(5)
 Loop 5 
     <a href="ListView.htm#IL_Add">IL_Add</a>(ImageListID, "shell32.dll", A_Index)
 <em>; Create a TreeView and a ListView side-by-side to behave like Windows Explorer:</em>
-TV := <a href="#GuiAdd">Gui.Add</a>("TreeView", "r20 w" TreeViewWidth " <a href="#ImageList">ImageList</a>" ImageListID)
-LV := Gui.Add("ListView", "r20 w" ListViewWidth " x+10", "Name|Modified")
+TV := <a href="#GuiAdd">Gui.Add</a>("TreeView", "r20 w" TreeViewWidth " <a href="#ImageList">ImageList</a>" ImageListID " vTV")
+LV := Gui.Add("ListView", "r20 w" ListViewWidth " x+10 vLV", "Name|Modified")
 
 <em>; Create a Status Bar to give info about the number of files and their total size:</em>
-SB := Gui.Add("<a href="GuiControls.htm#StatusBar">StatusBar</a>")
+SB := Gui.Add("<a href="GuiControls.htm#StatusBar">StatusBar</a>", "vSB")
 <a href="GuiControls.htm#SB_SetParts">SB.SetParts</a>(60, 85)  <em>; Create three parts in the bar (the third part fills all the remaining width).</em>
 
 <em>; Add folders and their subfolders to the tree. Display the status in case loading takes a long time:</em>
-M := GuiCreate("ToolWindow -SysMenu", &quot;Loading the tree...&quot;), M.Show()
+M := GuiCreate("ToolWindow -SysMenu", "Loading the tree..."), M.Show()
 DirList := AddSubFoldersToTree(TV, TreeRoot, {})
 M.Hide()
 
 <em>; Call TV_ItemSelect whenever a new item is selected:</em>
-TV.OnEvent("ItemSelect", Func("TV_ItemSelect").bind(DirList, SB, LV))
+TV.OnEvent("ItemSelect", Func("TV_ItemSelect").bind(DirList))
 
 <em>; Call Gui_Size whenever the window is resized:</em>
-Gui.OnEvent("Size", Func("Gui_Size").bind(TV, LV))
+Gui.OnEvent("Size", "Gui_Size")
 
 <em>; Set the ListView's column widths (this is optional):</em>
 Col2Width := 70  <em>; Narrow to reveal only the YYYYMMDD part.</em>
@@ -307,9 +307,10 @@ AddSubFoldersToTree(TV, Folder, DirList, ParentItemID := 0)
     return DirList
 }
 
-TV_ItemSelect(DirList, SB, LV, TV, Item)  <em>; This function is called when a new item is selected.</em>
+TV_ItemSelect(DirList, TV, Item)  <em>; This function is called when a new item is selected.</em>
 {
     <em>; Put the files into the ListView:</em>
+    LV := TV.Gui.Control["LV"]
     LV.Delete  <em>; Clear all rows.</em>
     LV.Opt("-Redraw")  <em>; Improve performance by disabling redrawing during load.</em>
     TotalSize := 0  <em>; Init prior to loop below.</em>
@@ -321,18 +322,19 @@ TV_ItemSelect(DirList, SB, LV, TV, Item)  <em>; This function is called when a n
     LV.Opt("+Redraw")
 
     <em>; Update the three parts of the status bar to show info about the currently selected folder:</em>
+    SB := TV.Gui.Control["SB"]
     <a href="GuiControls.htm#SB_SetText">SB.SetText</a>(LV.GetCount " files", 1)
     SB.SetText(Round(TotalSize / 1024, 1) " KB", 2)
     SB.SetText(DirList[Item], 3)
 }
 
-Gui_Size(TV, LV, Gui, MinMax, Width, Height)  <em>; Expand/Shrink ListView and TreeView in response to the user's resizing.</em>
+Gui_Size(this, MinMax, Width, Height)  <em>; Expand/Shrink ListView and TreeView in response to the user's resizing.</em>
 {
     if MinMax = -1  <em>; The window has been minimized.  No action needed.</em>
         return
     <em>; Otherwise, the window has been resized or maximized. Resize the controls to match.</em>
-    TV.Move("H" Height - 30)  <em>; -30 for StatusBar and margins.</em>
-    LV.Move("H" Height - 30 " W" Width - TV.Pos.W - 30)
+    this.Control["TV"].Move("H" Height - 30)  <em>; -30 for StatusBar and margins.</em>
+    this.Control["LV"].Move("H" Height - 30 " W" Width - this.Control["TV"].Pos.W - 30)
 }</pre>
 
 </body>
