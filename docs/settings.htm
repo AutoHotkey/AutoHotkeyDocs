@@ -1,0 +1,208 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+  <title>Help Settings</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <link href="static/theme.css" rel="stylesheet" type="text/css" />
+  <script src="static/content.js" type="text/javascript"></script>
+  <style>
+    table {
+      width: 100%
+    }
+
+    td:first-child {
+      width: 50%
+    }
+
+    select {
+      width: 100%;
+      height: 2em;
+      font-size: inherit
+    }
+
+    select>option {
+      font-size: inherit
+    }
+
+    button {
+      line-height: 1.75em;
+      font-size: inherit
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Help Settings</h1>
+  <p>Specify the settings the help should be started with by default. These settings are permanent; this is, they apply for all current and future visits to this help.</p>
+  <table>
+    <tr>
+      <td>
+        <label for="fontSize">Content font size:</label>
+      </td>
+      <td>
+        <select id="fontSize" size="1">
+          <option value="0.6">Very small</option>
+          <option value="0.8">Small</option>
+          <option value="1" selected>Medium (default)</option>
+          <option value="1.2">Large</option>
+          <option value="1.4">Very large</option>
+        </select>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <label for="clickTab">Selected tab:</label>
+      </td>
+      <td>
+        <select id="clickTab" size="1">
+          <option value="0" selected>Content (default)</option>
+          <option value="1">Index</option>
+          <option value="2">Search</option>
+        </select>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <label for="displaySidebar">Sidebar visibility:</label>
+      </td>
+      <td>
+        <select id="displaySidebar" size="1">
+          <option value="0">Hidden</option>
+          <option value="1" selected>Visible (default)</option>
+        </select>
+      </td>
+    </tr>
+  </table>
+  <div class="note" id="activex" style="display: none">
+    <p>
+      <strong>Note:</strong> If you press the following button, ActiveX is used to create a config file named 'chm_config.js' in the same directory as the CHM file, with the following content:</p>
+    <pre class="NoIndent no-syntax-highlight" id="config-stringified"></pre>
+  </div>
+  <table>
+    <tr>
+      <td>&nbsp;</td>
+      <td style="text-align: right">
+        <button id="save-settings" disabled>Save settings</button>
+      </td>
+    </tr>
+  </table>
+  <p id="permission-denied" style="display: none">Permission denied. Run the CHM file as administrator or create the config file manually.</p>
+
+  <script>
+    var config = {};
+    var selects = document.getElementsByTagName('select');
+    var btn = document.getElementById("save-settings");
+    var pre = document.getElementById("config-stringified");
+    // Get default values:
+    if (!user) {
+      var user = {};
+      for (var i = 0; i < selects.length; i++)
+        user[selects[i].id] = Number(selects[i].value);
+    }
+    // Set default stringified config:
+    pre.innerText = 'config = ' + JSON.stringify(user, null, 2);
+
+    // Get saved values:
+    if (location.href.search(/::/) > 0) {
+      var configPath = decodeURI(window.location.href.match(/mk:@MSITStore:(.*?)\\[^\\]+\.chm/i)[1] + '\\chm_config.js');
+      loadScript(configPath, setSelectValues); setSelectEvents();
+      document.getElementById("activex").style.display = 'block';
+      btn.onclick = saveToFile;
+    }
+    else if (window.localStorage) {
+      config = JSON.parse(window.localStorage.getItem('config'));
+      setSelectValues(); setSelectEvents();
+      btn.onclick = saveToLocalStorage;
+    }
+    else if (navigator.cookieEnabled) {
+      var result = document.cookie.match(/config=([^;]+)/);
+      result && (config = JSON.parse(result[1]));
+      setSelectValues(); setSelectEvents();
+      btn.onclick = saveToCookie;
+    }
+
+    function setSelectValues() {
+      // Overwrite default values:
+      for (var key in config)
+        if (key in user)
+          user[key] = config[key];
+      // Set select values on load:
+      document.onreadystatechange = function() {
+        var state = document.readyState;
+        if (state == 'complete') {
+          for (var i = 0; i < selects.length; i++) {
+            var select = selects[i];
+            if (user[select.id] !== undefined)
+              select.value = Number(user[select.id]);
+            else
+              select.disabled = true;
+          };
+          pre.innerText = 'config = ' + JSON.stringify(user, null, 2);
+        }
+      }
+    }
+
+    function setSelectEvents() {
+      for (var i = 0; i < selects.length; i++) {
+        var select = selects[i];
+        selects[i].onchange = function() {
+          btn.disabled = false;
+          user[this.id] = Number(this.value);
+          pre.innerText = 'config = ' + JSON.stringify(user, null, 2);
+        };
+      };
+    }
+
+    function saveToFile() {
+      btn.disabled = true;
+      var content = 'config = ' + JSON.stringify(user, null, 2);
+      pre.innerText = content;
+      try {
+        var fso = new ActiveXObject("Scripting.FileSystemObject");
+        var a = fso.OpenTextFile(decodeURI(configPath), 2, true);
+        a.WriteLine(content.replace(/\n/g, '\r\n'));
+        a.Close();
+      }
+      catch (err) {
+        if (err.number = -2146828218)
+          alert(err.message + '\n\n' + document.getElementById("permission-denied").innerText);
+        else
+          alert(err.message + ' (' + err.number + ')');
+      }
+    }
+
+    function saveToLocalStorage() {
+      btn.disabled = true;
+      window.localStorage.setItem('config', JSON.stringify(user));
+    }
+
+    function saveToCookie() {
+      btn.disabled = true;
+      document.cookie = ['config', '=', JSON.stringify(user), '; expires=.', new Date(new Date().getTime() + 60 * 60 * 1000 * 24 * 365).toGMTString(), '; path=/;'].join('');
+    }
+
+    function loadScript(url, callback) {
+      var script = document.createElement("script")
+      script.type = "text/javascript";
+      if (script.readyState) {  // IE
+        script.onreadystatechange = function() {
+          if (script.readyState == "loaded" ||
+            script.readyState == "complete") {
+            script.onreadystatechange = null;
+            callback();
+          }
+        };
+      } else {  // Others
+        script.onload = function() {
+          callback();
+        };
+      }
+      script.src = url;
+      document.getElementsByTagName("head")[0].appendChild(script);
+    }
+  </script>
+</body>
+
+</html>
