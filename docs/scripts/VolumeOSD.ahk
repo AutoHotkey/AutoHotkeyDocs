@@ -8,7 +8,7 @@ wave volume. Both volumes are displayed as different color bar graphs.
 ; --- User Settings ---
 
 ; The percentage by which to raise or lower the volume each time:
-config := {Step: 4}
+global config := {Step: 4}
 
 ; How long to display the volume level bar graphs:
 config.DisplayTime := 2000
@@ -49,31 +49,19 @@ opt := "w" config.Width " h" config.Thick " background" config.CW
 G.Add("Progress", opt " vMaster c" config.CBM)
 G.Add("Progress", opt " vWave c" config.CBW)
 
-; Create function references for the hotkeys:
-vol_MasterUp := Func("ChangeVolume").bind(config, G, "+")
-vol_MasterDown := Func("ChangeVolume").bind(config, G, "-")
-vol_WaveUp := Func("ChangeVolume").bind(config, G, "+", "Wave")
-vol_WaveDown := Func("ChangeVolume").bind(config, G, "-", "Wave")
-
 ; Register hotkeys:
-Hotkey(config.MasterUp, vol_MasterUp)
-Hotkey(config.MasterDown, vol_MasterDown)
-Hotkey(config.WaveUp, vol_WaveUp)
-Hotkey(config.WaveDown, vol_WaveDown)
+Hotkey config.MasterUp,   () => ChangeVolume(G, "+")
+Hotkey config.MasterDown, () => ChangeVolume(G, "-")
+Hotkey config.WaveUp,     () => ChangeVolume(G, "+", "Wave")
+Hotkey config.WaveDown,   () => ChangeVolume(G, "-", "Wave")
 
 ; --- Function Definitions ---
 
-ChangeVolume(config, G, Prefix, ComponentType := "Master")
+ChangeVolume(G, Prefix, ComponentType := "Master")
 {
     SoundSet(Prefix config.Step, ComponentType)
     G.Control["Master"].Value := Round(SoundGet("Master"))
     G.Control["Wave"].Value := Round(SoundGet("Wave"))
     G.Show("x" config.PosX " y" config.PosY)
-    HideWindow := Func("HideWindow").bind(G)
-    SetTimer(HideWindow, -config.DisplayTime)
-}
-
-HideWindow(G)
-{
-    G.Hide
+    SetTimer () => G.Hide(), -config.DisplayTime
 }

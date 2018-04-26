@@ -394,43 +394,40 @@ LV.<a href="#ModifyCol">ModifyCol</a>  <em>; There are no parameters in this mod
 Gui := GuiCreate("+Resize")  <em>; Allow the user to maximize or drag-resize the window.</em>
 
 <em>; Create some buttons:</em>
-B_1 := Gui.Add("Button", "Default", "Load a folder")
-B_2 := Gui.Add("Button", "x+20", "Clear List")
-B_3 := Gui.Add("Button", "x+20", "Switch View")
+B1 := Gui.Add("Button", "Default", "Load a folder")
+B2 := Gui.Add("Button", "x+20", "Clear List")
+B3 := Gui.Add("Button", "x+20", "Switch View")
 
 <em>; Create the ListView and its columns:</em>
-LV := <a href="#GuiAdd">Gui.Add</a>("ListView", "xm r20 w700", "Name|In Folder|Size (KB)|Type")
+LV := <a href="#GuiAdd">Gui.Add</a>("ListView", "xm r20 w700 vLV", "Name|In Folder|Size (KB)|Type")
 <a href="#ModifyCol">LV.ModifyCol</a>(3, "Integer")  <em>; For sorting, indicate that the Size column is an integer.</em>
-
-<em>; Apply ListView events:</em>
-LV.OnEvent("<a href="../objects/GuiOnEvent.htm#DoubleClick">DoubleClick</a>", "RunFile")
-LV.OnEvent("<a href="../objects/GuiOnEvent.htm#Ctrl-ContextMenu">ContextMenu</a>", "ShowContextMenu")
 
 <em>; Create an ImageList so that the ListView can display some icons:</em>
 ImageListID1 := <a href="#IL_Create">IL_Create</a>(10)
 ImageListID2 := IL_Create(10, 10, true)  <em>; A list of large icons to go with the small ones.</em>
 
 <em>; Attach the ImageLists to the ListView so that it can later display the icons:</em>
-LV.<a href="#SetImageList">SetImageList</a>(ImageListID1)
+<a href="#SetImageList">LV.SetImageList</a>(ImageListID1)
 LV.SetImageList(ImageListID2)
 
 <em>; Apply control events:</em>
-LV.OnEvent("DoubleClick", "RunFile")
-LV.OnEvent("ContextMenu", "ShowContextMenu")
-B_1.OnEvent("Click", Func("LoadFolder").bind(Gui, LV, ImageListID1, ImageListID2))
-B_2.OnEvent("Click", Func("ClearList").bind(LV))
-B_3.OnEvent("Click", Func("SwitchView").bind(LV))
+LV.OnEvent("<a href="../objects/GuiOnEvent.htm#DoubleClick">DoubleClick</a>", "RunFile")
+LV.OnEvent("<a href="../objects/GuiOnEvent.htm#Ctrl-ContextMenu">ContextMenu</a>", "ShowContextMenu")
+B1.OnEvent("Click", Func("LoadFolder").bind(ImageListID1, ImageListID2))
+B2.OnEvent("Click", () => <a href="#Delete">LV.Delete</a>())
+B3.OnEvent("Click", "SwitchView")
 
 <em>; Apply window events:</em>
-Gui.OnEvent("Size", Func("Gui_Size").bind(LV))
+Gui.OnEvent("Size", "Gui_Size")
 
 <em>; Display the window:</em>
-Gui.Show
+Gui.Show()
 
-LoadFolder(Gui, LV, ImageListID1, ImageListID2)
+LoadFolder(ImageListID1, ImageListID2, this)
 {
     static IconArray := []
-    Gui.Opt("+OwnDialogs")  <em>; Forces user to dismiss the following dialog before using main window.</em>
+    LV := this.Gui.Control["LV"]
+    this.Gui.Opt("+OwnDialogs")  <em>; Forces user to dismiss the following dialog before using main window.</em>
     Folder := DirSelect(, 3, "Select a folder to read:")
     if not Folder  <em>; The user canceled the dialog.</em>
         return
@@ -446,11 +443,11 @@ LoadFolder(Gui, LV, ImageListID1, ImageListID2)
 
     <em>; Gather a list of file names from the selected folder and append them to the ListView:</em>
     LV.Opt("-Redraw")  <em>; Improve performance by disabling redrawing during load.</em>
-    Loop Files, Folder &quot;\*.*&quot;
+    Loop Files, Folder "\*.*"
     {
-        FileName := A_LoopFilePath  <em>; Must save it to a writable variable for use below.
+        FileName := A_LoopFilePath  <em>; Must save it to a writable variable for use below.</em>
 
-        ; Build a unique extension ID to avoid characters that are illegal in variable names,
+        <em>; Build a unique extension ID to avoid characters that are illegal in variable names,
         ; such as dashes. This unique ID method also performs better because finding an item
         ; in the array does not require search-loop.</em>
         SplitPath(FileName,,, FileExt)  <em>; Get the file's extension.</em>
@@ -462,13 +459,13 @@ LoadFolder(Gui, LV, ImageListID1, ImageListID2)
         else  <em>; Some other extension/file-type, so calculate its unique ID.</em>
         {
             ExtID := 0  <em>; Initialize to handle extensions that are shorter than others.</em>
-            Loop(7)     <em>; Limit the extension to 7 characters so that it fits in a 64-bit value.</em>
+            Loop 7     <em>; Limit the extension to 7 characters so that it fits in a 64-bit value.</em>
             {
                 ExtChar := SubStr(FileExt, A_Index, 1)
                 if not ExtChar  <em>; No more characters.</em>
                     break
                 <em>; Derive a Unique ID by assigning a different bit position to each character:</em>
-                ExtID := ExtID | (Ord(ExtChar) << (8 * (A_Index - 1)))
+                ExtID := ExtID | (Ord(ExtChar) &lt;&lt; (8 * (A_Index - 1)))
             }
             <em>; Check if this file extension already has an icon in the ImageLists. If it does,
             ; several calls can be avoided and loading performance is greatly improved,
@@ -500,86 +497,76 @@ LoadFolder(Gui, LV, ImageListID1, ImageListID2)
         <a href="#Add">LV.Add</a>("Icon" . IconNumber, A_LoopFileName, A_LoopFileDir, A_LoopFileSizeKB, FileExt)
     }
     LV.Opt("+Redraw")  <em>; Re-enable redrawing (it was disabled above).</em>
-    LV.ModifyCol  <em>; Auto-size each column to fit its contents.</em>
-    LV.ModifyCol(3, 60) <em>; Make the Size column at little wider to reveal its header.</em>
+    LV.ModifyCol()  <em>; Auto-size each column to fit its contents.</em>
+    LV.ModifyCol(3, 60)  <em>; Make the Size column at little wider to reveal its header.</em>
 }
 
-ClearList(LV)
-{
-    <a href="#Delete">LV.Delete</a>  <em>; Clear the ListView, but keep icon cache intact for simplicity.</em>
-}
-
-SwitchView(LV)
+SwitchView(this)
 {
     static IconView
+    LV := this.Gui.Control["LV"]
     if not IconView
-        LV.Opt("+Icon")         <em>; Switch to icon view.</em>
+        LV.Opt("+Icon")        <em>; Switch to icon view.</em>
     else
-        LV.Opt("+Report")       <em>; Switch back to details view.</em>
-    IconView := not IconView  <em>; Invert in preparation for next time.</em>
+        LV.Opt("+Report")      <em>; Switch back to details view.</em>
+    IconView := not IconView   <em>; Invert in preparation for next time.</em>
 }
 
-RunFile(LV, RowNumber, Verb := "")
+RunFile(LV, RowNumber)
 {
     FileName := <a href="#GetText">LV.GetText</a>(RowNumber, 1) <em>; Get the text of the first field.</em>
     FileDir := LV.GetText(RowNumber, 2)  <em>; Get the text of the second field.</em>
-    FilePath := FileDir "\" FileName
-    Verb .= Verb ? " " : ""
-    try
-        Run(Verb FilePath)
-    catch Error
-        MsgBox(Error.Extra "`n" FilePath)
+    Run(FileDir "\" FileName,, "UseErrorLevel")
+    if ErrorLevel
+        MsgBox("Could not open " FileDir "\" FileName ".")
 }
 
 ShowContextMenu(LV, Item, IsRightClick, X, Y)  <em>; In response to right-click or Apps key.</em>
 {
-    <em>; Create function references for the menu events:</em>
-    ContextOpen := Func("ContextOpen").bind(LV, Item)
-    ContextProperties := Func("ContextProperties").bind(LV, Item)
-    ContextClearRows := Func("ContextClearRows").bind(LV)
- 
     <em>; Create the popup menu to be used as the context menu:</em>
-    ContextMenu := <a href="MenuCreate.htm">MenuCreate</a>()
-    ContextMenu.<a href="../objects/Menu.htm#Add">Add</a>("Open", ContextOpen)
-    ContextMenu.Add("Properties", ContextProperties)
-    ContextMenu.Add("Clear from ListView", ContextClearRows)
-    ContextMenu.<a href="../objects/Menu.htm#Default">Default</a> := "Open"  <em>; Make "Open" a bold font to indicate that double-click does the same thing.
+    static ContextMenu := <a href="MenuCreate.htm">MenuCreate</a>()
+    <a href="../objects/Menu.htm#Add">ContextMenu.Add</a>("Open", "OpenOrProperties")
+    ContextMenu.Add("Properties", "OpenOrProperties")
+    ContextMenu.Add("Clear from ListView", "ClearRows")
+    <a href="../objects/Menu.htm#Default">ContextMenu.Default</a> := "Open"  <em>; Make "Open" a bold font to indicate that double-click does the same thing.
     ; Show the menu at the provided coordinates, X and Y.  These should be used
     ; because they provide correct coordinates even if the user pressed the Apps key:</em>
-    ContextMenu.<a href="../objects/Menu.htm#Show">Show</a>(X, Y)
-}
+    <a href="../objects/Menu.htm#Show">ContextMenu.Show</a>(X, Y)
 
-ContextOpen(LV, RowNumber)  <em>; The user selected "Open" in the context menu.</em>
-{
-    RunFile(LV, RowNumber)
-}
-
-ContextProperties(LV, RowNumber)  <em>; The user selected "Properties" in the context menu.</em>
-{
-    RunFile(LV, RowNumber, "properties")
-}
-
-ContextClearRows(LV)  <em>; The user selected "Clear" in the context menu.</em>
-{
-    RowNumber := 0  <em>; This causes the first iteration to start the search at the top.</em>
-    Loop
+    OpenOrProperties(ItemName)  <em>; The user selected "Open" or "Properties" in the context menu.</em>
     {
-        <em>; Since deleting a row reduces the RowNumber of all other rows beneath it,
-        ; subtract 1 so that the search includes the same row number that was previously
-        ; found (in case adjacent rows are selected):</em>
-        RowNumber := LV.GetNext(RowNumber - 1)
-        if not RowNumber  <em>; The above returned zero, so there are no more selected rows.</em>
-            break
-        LV.Delete(RowNumber)  <em>; Clear the row from the ListView.</em>
+        FileName := LV.GetText(Item, 1) <em>; Get the text of the first field.</em>
+        FileDir := LV.GetText(Item, 2)  <em>; Get the text of the second field.</em>
+        if (ItemName = "Open")  <em>; User selected "Open" from the context menu.</em>
+            Run(FileDir "\" FileName,, "UseErrorLevel")
+        else
+            Run("properties " FileDir "\" FileName,, "UseErrorLevel")
+        if ErrorLevel
+            MsgBox("Could not perform requested action on " FileDir "\" FileName ".")
+    }
+
+    ClearRows()  <em>; The user selected "Clear" in the context menu.</em>
+    {
+        RowNumber := 0  <em>; This causes the first iteration to start the search at the top.</em>
+        Loop
+        {
+            <em>; Since deleting a row reduces the RowNumber of all other rows beneath it,
+            ; subtract 1 so that the search includes the same row number that was previously
+            ; found (in case adjacent rows are selected):</em>
+            RowNumber := LV.GetNext(RowNumber - 1)
+            if not RowNumber  <em>; The above returned zero, so there are no more selected rows.</em>
+                break
+            LV.Delete(RowNumber)  <em>; Clear the row from the ListView.</em>
+        }
     }
 }
 
-Gui_Size(LV, Gui, MinMax, Width, Height)  <em>; Expand/Shrink ListView in response to the user's resizing.</em>
+Gui_Size(this, MinMax, Width, Height)  <em>; Expand/Shrink ListView in response to the user's resizing.</em>
 {
     if MinMax = -1  <em>; The window has been minimized. No action needed.</em>
         return
     <em>; Otherwise, the window has been resized or maximized. Resize the ListView to match.</em>
-    LV.Move("W" Width-20 " H" Height-40)
+    this.Control["LV"].Move("W" Width - 20 " H" Height - 40)
 }</pre>
 
 </body>

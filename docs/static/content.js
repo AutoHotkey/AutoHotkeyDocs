@@ -1264,7 +1264,7 @@ function addFeatures()
       // for hotstrings ::(...)
       pre.innerHTML = pre.innerHTML.replace(/(^\s*:.*?:.*?::)([<\/em>\s]*?^\s*\([\s\S]*?^\s*\).*?)/gm, function(m,m1,m2) { return m1+wrap(m2,'cs',0)});
       // function definitions:
-      pre.innerHTML = pre.innerHTML.replace(/^(\s*?)(\S*?)(?=\(.*?\)[<\/em>\s]*{)/mg, function(m,m1,m2) { return m1+wrap(m2,'lab',0); });
+      pre.innerHTML = pre.innerHTML.replace(/^(\s*?)(\S*?)(?=\(.*?\)[<\/em>\s]*{)/mg, function(m,m1,m2) { return (syntax[3].indexOf(m2) == -1) ? m1+wrap(m2,'lab',0) : m; });
       // Temporary remove elements with attributes and children to avoid interfering with syntax detection:
       $(pre).children().each(function() {
         if (this.attributes.length || this.children.length) {

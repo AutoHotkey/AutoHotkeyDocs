@@ -47,42 +47,53 @@ Gui.MarginY := 0, Gui.MarginX := 0
 
 <em>;---- Alter the tray icon menu:</em>
 A_TrayMenu.Delete
-A_TrayMenu.Add k_MenuItemHide, Func("k_ShowHide").bind(Gui, k_MenuItemHide, k_MenuItemShow)
-A_TrayMenu.Add "&amp;Exit", "k_MenuExit"
+A_TrayMenu.Add k_MenuItemHide, () => k_ShowHide(Gui, k_MenuItemHide, k_MenuItemShow)
+A_TrayMenu.Add "&amp;Exit", () => ExitApp()
 A_TrayMenu.Default := k_MenuItemHide
 
 <em>;---- Add a button for each key:</em>
 
-<em>; The keyboard layout you see:</em>
-k_cL := [ ["``", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "-", "=", "Back "]
-        , ["Tab", "Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P", "[", "]", "\  "]
-        , ["Caps", "A", "S", "D", "F", "G", "H", "J", "K", "L", ";", "'", "Enter"]
-        , ["Shift", "Z", "X", "C", "V", "B", "N", "M", ",", ".", "/", "Shift  "]
-        , ["Ctrl", "Win", "Alt", "Space ", "Alt", "Win", "Menu", "Ctrl"] ]
+<em>; The keyboard layout:</em>
+k_Layout := [
+    ["``", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "-", "=", "Backspace:3"],
+    ["Tab:3", "Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P", "[", "]", "\"],
+    ["CapsLock:3", "A", "S", "D", "F", "G", "H", "J", "K", "L", ";", "'", "Enter:2"],
+    ["LShift:3", "Z", "X", "C", "V", "B", "N", "M", ",", ".", "/", "Shift:3"],
+    ["LCtrl:2", "LWin:2", "LAlt:2", "Space:2", "RAlt:2", "RWin:2", "AppsKey:2", "RCtrl:2"]
+]
 
-<em>; AutoHotkey's official key names for the keys above (leave empty if identical):</em>
-k_oL := [ [, , , , , , , , , , , , , "Backspace"]
-        , []
-        , ["CapsLock"]
-        , ["LShift", , , , , , , , , , , "RShift"]
-        , ["LCtrl", "LWin", "LAlt", , "RAlt", "RWin", "AppsKey", "RCtrl"] ]
-
-<em>; Traverse each key in the list of custom key names:</em>
-For n, k_Row in k_cL
-    For i, k_CustomKeyName in k_Row
+<em>; Traverse the keys of the keyboard layout:</em>
+for n, k_Row in k_Layout
+    for i, k_Key in k_Row
     {
-        k_OfficialKeyName := k_oL[n][i]
-        <em>; Calculate object dimensions based on chosen font size:</em>
-        opt := "h" k_FontSize * 3 " w" k_FontSize * (StrLen(k_CustomKeyName) + 2) " x+m" 
-        if i = 1
-            opt .= " y+m xm"
-        <em>; When a key is pressed by the user, click the corresponding button on-screen:</em>
-        fn := Func("k_KeyPress").bind(Gui.Add("Button", opt, k_CustomKeyName))
-        <em>; If the key has an official key name use it:</em>
-        if k_OfficialKeyName
-            Hotkey("~*" k_OfficialKeyName, fn)
+        k_KeyWidthMultiplier := 1
+        <em>; Get custom key width multiplier:</em>
+        if RegExMatch(k_Key, "(.+):(\d)", m)
+        {
+            k_Key := m[1]
+            k_KeyWidthMultiplier := m[2]
+        }
+        <em>; Get localized key name:</em>
+        k_KeyNameText := GetKeyNameText(k_Key, 0, 1)
+        <em>; Windows key names start with left or right so replace it:</em>
+        if (k_Key = "LWin" || k_Key = "RWin")
+            k_KeyNameText := "Win"
+         <em>; Truncate the key name:</em>
+        if (StrLen(k_Key) > 1)
+            k_KeyNameText := Trim(SubStr(k_KeyNameText, 1, 5))
         else
-            Hotkey("~*" Trim(k_CustomKeyName), fn)
+            k_KeyNameText := k_Key
+        <em>; Convert to uppercase:</em>
+        k_KeyNameText := StrUpper(k_KeyNameText)
+        <em>; Calculate object dimensions based on chosen font size:</em>
+        k_KeyHeight := k_FontSize * 3
+        opt := "h" k_KeyHeight " w" k_KeyHeight * k_KeyWidthMultiplier " -Wrap x+m" 
+        if (i = 1)
+            opt .= " y+m xm"
+        <em>; Add the button:</em>
+        Btn := Gui.Add("Button", opt, k_KeyNameText)
+        <em>; When a key is pressed by the user, click the corresponding button on-screen:</em>
+        Hotkey("~*" k_Key, Func("k_KeyPress").bind(Btn))
     }
 
 <em>;---- Position the keyboard at the bottom of the screen (taking into account
@@ -126,10 +137,12 @@ k_ShowHide(GuiObj, HideText, ShowText)
     }
 }
 
-k_MenuExit()
+GetKeyNameText(Key, Extended := false, DoNotCare := false)
 {
-    ExitApp
-}
-</pre>
+   Params := (GetKeySC(Key) &lt;&lt; 16) | (Extended &lt;&lt; 24) | (DoNotCare &lt;&lt; 25)
+   VarSetCapacity(KeyNameText, 64, 0)
+   DllCall("User32.dll\GetKeyNameText", "Int", Params, "Str", KeyNameText, "Int", 32)
+   return KeyNameText
+}</pre>
 </body>
 </html>
