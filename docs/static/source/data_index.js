@@ -1,15 +1,3 @@
-/*
-indexData[x][0] -> keyword
-indexData[x][1] -> path
-indexData[x][2] -> (optional) type of keyword:
-0 - directive
-1 - built-in var
-2 - built-in function
-3 - control flow statement
-4 - operator
-5 - declaration
-*/
-
 indexData = [
   ["#ClipboardTimeout","commands/_ClipboardTimeout.htm",0],
   ["#ErrorStdOut","commands/_ErrorStdOut.htm",0],
