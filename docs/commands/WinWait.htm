@@ -26,7 +26,7 @@ exists.</p>
   <dd><p>If present, this parameter must be a substring from a single text element of the target window (as revealed by the included Window Spy utility). Hidden text elements are detected if <a href="DetectHiddenText.htm">DetectHiddenText</a> is ON.</p></dd>
 
   <dt>Seconds</dt>
-  <dd><p>How many seconds to wait before timing out and setting <a href="../misc/ErrorLevel.htm">ErrorLevel</a> to 1. Leave blank to wait indefinitely.  Specifying 0 is the same as specifying 0.5.</p></dd>
+  <dd><p>How many seconds to wait before timing out and returning 0. Leave blank to wait indefinitely.  Specifying 0 is the same as specifying 0.5.</p></dd>
 
   <dt>ExcludeTitle</dt>
   <dd><p>Windows whose titles include this value will not be considered.</p></dd>
@@ -36,10 +36,11 @@ exists.</p>
 
 </dl>
 
-<h3>ErrorLevel</h3>
-<p><a href="../misc/ErrorLevel.htm">ErrorLevel</a> is set to 1 if the function timed out or 0 otherwise.</p>
+<h3>Return Value</h3>
+<p>The return value is the HWND (unique ID) of a matching window if one was found, or 0 if the function timed out.</p>
+
 <h3>Remarks</h3>
-<p>If a matching window comes into existence, the function will not wait for <em>Seconds</em> to expire. Instead, it will immediately set <a href="../misc/ErrorLevel.htm">ErrorLevel</a> to 0, update  the <a href="../misc/WinTitle.htm#LastFoundWindow">Last Found Window</a>, and the script will continue executing.</p>
+<p>If a matching window comes into existence, the function will not wait for <em>Seconds</em> to expire. Instead, it will update the <a href="../misc/WinTitle.htm#LastFoundWindow">Last Found Window</a> and return, allowing the script to continue execution.</p>
 <p>While the function is in a waiting state, new <a href="../misc/Threads.htm">threads</a> can be launched via <a href="../Hotkeys.htm">hotkey</a>, <a href="../objects/Menu.htm">custom menu item</a>, or <a href="SetTimer.htm">timer</a>.</p>
 <p>If another <a href="../misc/Threads.htm">thread</a> changes the contents of any variable(s) that were used for this function's parameters, the function will not see the change -- it will continue to use the title and text that were originally present in the variables when the function first started waiting.</p>
 <p>Window titles and text are case sensitive. Hidden windows are not detected unless <a href="DetectHiddenWindows.htm">DetectHiddenWindows</a> has been turned on.</p>
@@ -47,14 +48,10 @@ exists.</p>
 <p><a href="WinWaitActive.htm">WinWaitActive</a>, <a href="WinWaitClose.htm">WinWaitClose</a>, <a href="WinExist.htm">WinExist</a>, <a href="WinActive.htm">WinActive</a>, <a href="Process.htm">Process</a>, <a href="SetTitleMatchMode.htm">SetTitleMatchMode</a>, <a href="DetectHiddenWindows.htm">DetectHiddenWindows</a></p>
 <h3>Example</h3>
 <pre class="NoIndent">Run "notepad.exe"
-WinWait "Untitled - Notepad", , 3
-if ErrorLevel
-{
-    MsgBox "WinWait timed out."
-    return
-}
+if WinWait("Untitled - Notepad", , 3)
+    WinMinimize  <em>; Minimize the window found by WinWait.</em>
 else
-    WinMinimize  <em>; Minimize the window found by WinWait.</em></pre>
-
+    MsgBox "WinWait timed out."
+</pre>
 </body>
 </html>
