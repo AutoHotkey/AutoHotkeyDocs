@@ -65,7 +65,7 @@ MsgBox(1.00)  <em>; Shows 1.0</em></pre>
 
 <h2 id="Operators">Operators in Expressions</h2>
 <p class="note">See <a href="Language.htm#operators">Operators</a> for general information about operators.</p>
-<p>Except where noted below, any blank value (empty string) or non-numeric value involved in a math operation is <strong>not</strong> assumed to be zero. Instead, it is treated as an error, which causes that part of the expression to evaluate to an empty string. For example, if the variable X is blank, the expression X+1 yields a blank value rather than 1.</p>
+<p>Except where noted below, any blank value (empty string) or non-numeric value involved in a math operation is <strong>not</strong> assumed to be zero. Instead, an exception is thrown. If <a href="commands/Try.htm">Try</a> is not used, the unhandled exception causes an error dialog by default.</p>
 
 <h3 id="operators">Expression Operators (in descending precedence order)</h3>
 <table class="info">
@@ -94,14 +94,14 @@ MsgBox(1.00)  <em>; Shows 1.0</em></pre>
     <td style="text-align:center"><strong>++<br>
     --</strong></td>
     <td>
-      <p><strong>Pre- and post-increment/decrement</strong>. Adds or subtracts 1 from a variable. The operator may appear either before or after the variable's name. If it appears <em>before</em> the name, the operation is performed immediately and its result is used by the next operation. For example, <code>Var := ++X</code> increments X immediately and then assigns its value to <em>Var</em>. Conversely, if the operator appears <em>after</em> the variable's name, the operation is performed <em>after</em> the variable is used by the next operation. For example, <code>Var := X++</code> increments X only after assigning the current value of X to <em>Var</em>. Due to backward compatibility, the operators ++ and -- treat blank variables as zero, but only when they are alone on a line; for example, <code>y:=1, ++x</code> and <code>MsgBox ++x</code> both produce a blank result when x is blank.</p>
+      <p><strong>Pre- and post-increment/decrement</strong>. Adds or subtracts 1 from a variable. The operator may appear either before or after the variable's name. If it appears <em>before</em> the name, the operation is performed immediately and its result is used by the next operation. For example, <code>Var := ++X</code> increments X immediately and then assigns its value to <em>Var</em>. Conversely, if the operator appears <em>after</em> the variable's name, the operation is performed <em>after</em> the variable is used by the next operation. For example, <code>Var := X++</code> increments X only after assigning the current value of X to <em>Var</em>.</p>
     </td>
   </tr>
   <tr id="pow">
     <td style="text-align:center"><strong>**</strong></td>
     <td>
       <p><strong>Power</strong>. Both the base and the exponent may contain a decimal point. If the exponent is negative, the result  will be formatted as a floating point number even if the base and exponent are both integers. Since ** is of higher precedence than unary minus, <code>-2**2</code> is evaluated like <code>-(2**2)</code> and so yields -4. Thus, to raise a literal negative number to a power, enclose it in parentheses such as <code>(-2)**2</code>.</p>
-      <p class="note"><strong>Note</strong>: A negative base combined with a fractional exponent such as <code>(-2)**0.5</code> is not supported; it will yield an empty string. But both <code>(-2)**2</code> and <code>(-2)**2.0</code> are supported.</p>
+      <p class="note"><strong>Note</strong>: A negative base combined with a fractional exponent such as <code>(-2)**0.5</code> is not supported; attempting it will cause an exception to be thrown. But both <code>(-2)**2</code> and <code>(-2)**2.0</code> are supported.</p>
     </td>
   </tr>
   <tr id="unary">
@@ -111,7 +111,7 @@ MsgBox(1.00)  <em>; Shows 1.0</em></pre>
     &amp;</strong></td>
     <td>
       <p><strong>Unary minus (-)</strong>: Inverts the sign of its operand.</p>
-      <p><strong>Unary plus (+)</strong>: <code>+N</code> is equivalent to <code>-(-N)</code>. This has no effect when applied to a pure number, but can be used to convert numeric strings to pure numbers. As with other math operators, the result is a blank value (empty string) if the operand is not a number or numeric string.</p>
+      <p><strong>Unary plus (+)</strong>: <code>+N</code> is equivalent to <code>-(-N)</code>. This has no effect when applied to a pure number, but can be used to convert numeric strings to pure numbers.</p>
       <p><strong>Logical-not (!)</strong>: If the operand is blank or 0, the result of applying logical-not is 1, which means &quot;true&quot;. Otherwise, the result is 0 (false). For example: <code>!x or !(y and z)</code>. Note: The word NOT is synonymous with <strong>!</strong> except that <strong>!</strong> has a higher precedence. Consecutive unary operators such as <code><strong>!!</strong>Var</code> are allowed because they are evaluated in right-to-left order.</p>
       <p><strong>Bitwise-not (~)</strong>: This inverts each bit of its operand. If the operand is a floating point value, it is truncated to an integer prior to the calculation. As 64-bit signed integers are used, a positive input value will always give a negative result and vice versa. For example, <code>~0xf0f</code> evaluates to -0xf10 (-3856), which is binary equivalent to 0xfffffffffffff0f0. If an unsigned 32-bit value is intended, the result can be truncated with <code><i>result</i> &amp; 0xffffffff</code>.</p>
       <p id="amp"><strong>Address (&amp;)</strong>: <code>&amp;MyVar</code> retrieves the address of <em>MyVar</em>'s contents in memory, where <em>MyVar</em> is a user-created variable. <em>MyVar</em>'s contents can be a string, a 64-bit integer, a 64-bit floating-point number, or an object. This is typically used with <a href="commands/DllCall.htm#struct">DllCall structures</a>.</p>
@@ -132,7 +132,7 @@ MsgBox(1.00)  <em>; Shows 1.0</em></pre>
       <p id="divide"><strong>True divide (/)</strong>: True division yields a floating point result even when both inputs are integers. For example, <code>3/2</code> yields 1.5 rather than 1, and <code>4/2</code> yields 2.0 rather than 2.</p>
       <p id="FloorDivide"><strong>Floor divide (//)</strong>: The double-slash operator uses high-performance integer division if the two inputs are integers. For example, <code>5//3</code> is 1 and <code>5//-3</code> is -1. If either of the inputs is in floating point format, floating point division is performed and the result is truncated to the nearest integer to the left. For example, <code>5//3.0</code> is 1.0 and <code>5.0//-3</code> is -2.0. Although the result of this floating point division is an integer, it is stored in floating point format so that anything else that uses it will see it as such. For modulo, see <a href="commands/Math.htm#Mod">Mod</a>.</p>
     <p>The <a href="#AssignOp">*=</a> and <a href="#AssignOp">/=</a> operators are a shorthand way to multiply or divide the value in a variable by another value. For example, <code>Var*=2</code> produces the same result as <code>Var:=Var*2</code> (though the former performs better).</p>
-    <p>Division by zero yields a blank result (empty string).</p></td>
+    <p>Division by zero causes an exception to be thrown.</p></td>
   </tr>
   <tr id="AddSub">
     <td style="text-align:center"><strong>+<br>
