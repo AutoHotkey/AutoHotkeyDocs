@@ -84,7 +84,7 @@ ScanFiles()
     
     Loop Files, "*.htm", "R"
     {
-        if A_LoopFilePath ~= "i)^(scripts|search)\\"
+        if A_LoopFilePath ~= "i)^(scripts\\|settings\.htm)"
         {
             D("skipping " A_LoopFilePath)
             continue
