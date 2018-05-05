@@ -21,13 +21,11 @@ Clipboard := ""
 ; Use the highlighted word if there is one (since sometimes the user might
 ; intentionally highlight something that isn't a function):
 Send "^c"
-ClipWait 0.1
-if ErrorLevel
+if !ClipWait(0.1)
 {
     ; Get the entire line because editors treat cursor navigation keys differently:
     Send "{home}+{end}^c"
-    ClipWait 0.2
-    if ErrorLevel  ; Rare, so no error is reported.
+    if !ClipWait(0.2)  ; Rare, so no error is reported.
     {
         Clipboard := C_ClipboardPrev
         return

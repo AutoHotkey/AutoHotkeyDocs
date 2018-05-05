@@ -43,25 +43,30 @@ config.WaveDown := "+#Down"
 #SingleInstance
 
 ; Create the Progress window:
-G := GuiCreate("+ToolWindow -Caption -Border +Disabled")
+global G := GuiCreate("+ToolWindow -Caption -Border +Disabled")
 G.MarginX := 0, G.MarginY := 0
 opt := "w" config.Width " h" config.Thick " background" config.CW
 G.Add("Progress", opt " vMaster c" config.CBM)
 G.Add("Progress", opt " vWave c" config.CBW)
 
 ; Register hotkeys:
-Hotkey config.MasterUp,   () => ChangeVolume(G, "+")
-Hotkey config.MasterDown, () => ChangeVolume(G, "-")
-Hotkey config.WaveUp,     () => ChangeVolume(G, "+", "Wave")
-Hotkey config.WaveDown,   () => ChangeVolume(G, "-", "Wave")
+Hotkey config.MasterUp,   () => ChangeVolume("+")
+Hotkey config.MasterDown, () => ChangeVolume("-")
+Hotkey config.WaveUp,     () => ChangeVolume("+", "Wave")
+Hotkey config.WaveDown,   () => ChangeVolume("-", "Wave")
 
 ; --- Function Definitions ---
 
-ChangeVolume(G, Prefix, ComponentType := "Master")
+ChangeVolume(Prefix, ComponentType := "Master")
 {
     SoundSet(Prefix config.Step, ComponentType)
     G.Control["Master"].Value := Round(SoundGet("Master"))
     G.Control["Wave"].Value := Round(SoundGet("Wave"))
     G.Show("x" config.PosX " y" config.PosY)
-    SetTimer () => G.Hide(), -config.DisplayTime
+    SetTimer "HideWindow", -config.DisplayTime
+}
+
+HideWindow()
+{
+    G.Hide()
 }

@@ -87,8 +87,7 @@ if mwt_WindowCount >= mwt_MaxWindows
 ; Set the "last found window" to simplify and help performance.
 ; Since in certain cases it is possible for there to be no active window,
 ; a timeout has been added:
-WinWait "A",, 2
-if ErrorLevel <> 0  ; It timed out, so do nothing.
+if !WinWait("A",, 2)  ; It timed out, so do nothing.
     return
 
 ; Otherwise, the "last found window" has been set and can now be used:
