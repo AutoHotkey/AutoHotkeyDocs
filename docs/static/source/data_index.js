@@ -613,7 +613,6 @@ indexData = [
   ["MenuBarCreate","commands/MenuBarCreate.htm",2],
   ["MenuCreate","commands/MenuCreate.htm",2],
   ["MenuFromHandle","commands/MenuFromHandle.htm",2],
-  ["Menu Bar (GUI)","objects/Gui.htm#Menu"],
   ["Menu Icon","objects/Menu.htm#SetIcon"],
   ["MenuSelect","commands/MenuSelect.htm",2],
   ["message list (WM_*)","misc/SendMessageList.htm"],
