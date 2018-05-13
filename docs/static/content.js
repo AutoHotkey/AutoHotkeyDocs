@@ -1204,6 +1204,9 @@ function addFeatures()
         // If anchor exist already, use unique anchor, else use anchor:
         id = (document.getElementById(text)) ? (text + '_' + i) : text;
         h.setAttribute('id', id);
+        // Jump to the head line if the user hasn't scrolled the page yet:
+        if(id == location.hash.substr(1) && !$("html, body").scrollTop())
+          h.scrollIntoView();
       }
       var headLink = '<a class="headLink" href="#' + id + '">';
       var innerHTML = h.innerHTML;
