@@ -8,6 +8,7 @@ translateData = {
   // header
   "Hide/Show sidebar":true,
   "Open Settings":true,
+  "Change to dark/light theme":true,
   "Home page":true,
   "en":true,
   "Change language":true,

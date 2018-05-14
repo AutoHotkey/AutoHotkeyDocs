@@ -10,7 +10,8 @@ var scriptDir = scriptElement.src.substr(0, scriptElement.src.lastIndexOf('/'));
 var user = {
   fontSize: 1.0,
   clickTab: 0,
-  displaySidebar: true
+  displaySidebar: true,
+  colorTheme: 0
 }
 
 // --- Cached data ---
@@ -20,6 +21,7 @@ var user = {
 // window.localStorage/sessionStorage or cookies.
 
 var cache = {
+  colorTheme: user.colorTheme,
   scriptDir: scriptDir,
   fontSize: user.fontSize,
   forceNoFrame: false,
@@ -174,22 +176,32 @@ var isPhone = (document.documentElement.clientWidth <= 600);
           loadScript(decodeURI(m[1]) + '\\chm_config.js', function () {
             try {
               $.extend(cache, overwriteProps(user, config));
+              setInitialSettings();
             } catch (e) {}
           });
       }
       else if (window.localStorage) {
         config = JSON.parse(window.localStorage.getItem('config'));
         $.extend(cache, overwriteProps(user, config));
+        setInitialSettings();
       }
       else if (navigator.cookieEnabled) {
         config = document.cookie.match(/config=([^;]+)/);
         config && (config = JSON.parse(config[1]));
         $.extend(cache, overwriteProps(user, config));
+        setInitialSettings();
       }
   }
+  else
+    setInitialSettings();
 
-  // Set initial font size:
-  $('head').append('<style>#right .area {font-size:' + cache.fontSize + 'em}</style>');
+  function setInitialSettings() {
+    // font size
+    $('head').append('<style>#right .area {font-size:' + cache.fontSize + 'em}</style>');
+    // color theme
+    if(cache.colorTheme)
+      structure.changeTheme();
+  }
 
   // Load current URL into frame:
   if (isFrameCapable)
@@ -694,7 +706,7 @@ function ctor_structure()
   self.dataPath = scriptDir + '/source/data_translate.js';
   self.metaViewport = '<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">';
   self.template = '<div id="body">' +
-  '<div id="head"><div class="h-tabs"><ul><li data-translate data-content="Content"></li><li data-translate data-content="Index"></li><li data-translate data-content="Search"></li></ul></div><div class="h-tools"><div class="main"><ul><li class="sidebar" title="Hide/Show sidebar" data-translate>&#926;</li></ul><ul><li class="settings" title="Open settings" data-translate>&#1029;</li></ul></div><div class="online"><ul><li class="home" title="Home page" data-translate><a href="' + location.protocol + '//' + location.host + '">&#916;</a></li></ul><ul><li class="language" title="Change language" data-translate data-content="en"></li><ul class="dropdown languages selected"><li><a title="English" data-content="en"></a></li><li><a title="Deutsch (German)" data-content="de"></a></li><li><a title="&#x4E2D;&#x6587; (Chinese)" data-content="zh"></a></li></ul></ul><ul><li class="version" title="Change AHK version" data-translate data-content="v1"></li><ul class="dropdown versions selected"><li><a title="AHK v1.1" data-content="v1"></a></li><li><a title="AHK v2.0" data-content="v2"></a></li></ul></ul><ul><li class="edit" title="Edit page on GitHub" data-translate><a data-content="E"></a></li></ul></div><div class="chm"><ul><li class="back" title="Go back" data-translate>&#9668;</li></ul><ul><li class="forward" title="Go forward" data-translate>&#9658;</li></ul><ul><li class="zoom" title="Change font size" data-translate data-content="Z"></li></ul><ul><li class="print" title="Print current document" data-translate data-content="P"></li></ul></div></div></div>' +
+  '<div id="head"><div class="h-tabs"><ul><li data-translate data-content="Content"></li><li data-translate data-content="Index"></li><li data-translate data-content="Search"></li></ul></div><div class="h-tools"><div class="main"><ul><li class="sidebar" title="Hide/Show sidebar" data-translate>&#926;</li></ul><ul><li class="settings" title="Open settings" data-translate>&#1029;</li></ul><ul><li class="color" title="Change to dark/light theme" data-translate>C</li></ul></div><div class="online"><ul><li class="home" title="Home page" data-translate><a href="' + location.protocol + '//' + location.host + '">&#916;</a></li></ul><ul><li class="language" title="Change language" data-translate data-content="en"></li><ul class="dropdown languages selected"><li><a title="English" data-content="en"></a></li><li><a title="Deutsch (German)" data-content="de"></a></li><li><a title="&#x4E2D;&#x6587; (Chinese)" data-content="zh"></a></li></ul></ul><ul><li class="version" title="Change AHK version" data-translate data-content="v1"></li><ul class="dropdown versions selected"><li><a title="AHK v1.1" data-content="v1"></a></li><li><a title="AHK v2.0" data-content="v2"></a></li></ul></ul><ul><li class="edit" title="Edit page on GitHub" data-translate><a data-content="E"></a></li></ul></div><div class="chm"><ul><li class="back" title="Go back" data-translate>&#9668;</li></ul><ul><li class="forward" title="Go forward" data-translate>&#9658;</li></ul><ul><li class="zoom" title="Change font size" data-translate data-content="Z"></li></ul><ul><li class="print" title="Print current document" data-translate data-content="P"></li></ul></div></div></div>' +
   '<div id="main"><div id="left"><div class="toc"></div><div class="index"><div class="label" data-translate data-content="Type in the keyword to find:"></div><div class="input"><input type="text" /></div><div class="list"></div></div><div class="search"><div class="label" data-translate data-content="Type in the word(s) to search for:"></div><div class="input"><input type="text" /></div><div class="list"></div></div><div class="load"><div class="lds-dual-ring"></div></div></div><div class="dragbar"></div><div id="right" tabIndex="-1">'+(isFrameCapable?'<iframe frameBorder="0" id="frame" src="">':'<div class="area">');
   self.template = isIE || isEdge ? self.template.replace(/ data-content="(.*?)">/g, '>$1') : self.template;
   self.build = function() { document.write(self.template); }; // Write HTML before DOM is loaded to prevent flickering.
@@ -751,6 +763,7 @@ function ctor_structure()
     $('div.main li.settings', $tools).on('click', function() {
       structure.openSite(scriptDir + '/../settings.htm');
     });
+    $('div.main li.color', $tools).on('click', self.changeTheme);
 
     // --- Online tools (only visible if help is not CHM) ---
 
@@ -1136,6 +1149,28 @@ function ctor_structure()
       window.location = url;
     }
   }
+
+  self.changeTheme = function() {
+    if($('#dark-theme').length) {
+      cache.colorTheme = 0;
+      $('#dark-theme').remove();
+      return;
+    }
+    cache.colorTheme = 1;
+    var style = document.createElement('style');
+    style.type = 'text/css';
+    style.id = 'dark-theme';
+    if(isIE) {
+      var css = ':before { content:""; position:fixed; top:50%; left:50%; z-index:9999; width:0; height:0; outline:2999px solid invert }';
+      if(isIE8)
+        style.styleSheet.cssText = '#head' + css + '\n#head { z-index:1000 }';
+      else
+        style.innerHTML = '#body' + css;
+    }
+    else
+      style.innerHTML = '#body { filter:invert(90%); }\nhtml { background:#191919 }';
+    $('head').append(style);
+  };
 }
 
 // --- Modify elements provided by the HTML site ---
