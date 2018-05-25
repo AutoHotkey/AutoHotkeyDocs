@@ -138,6 +138,7 @@ tocData = [
       ["Loop (read file contents)","commands/LoopReadFile.htm"],
       ["Loop (registry)","commands/LoopReg.htm"]
     ]],
+    ["OnError","commands/OnError.htm"],
     ["OnExit","commands/OnExit.htm"],
     ["Pause","commands/Pause.htm"],
     ["Reload","commands/Reload.htm"],
