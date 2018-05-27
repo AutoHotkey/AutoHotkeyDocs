@@ -744,7 +744,7 @@ function ctor_structure()
   self.dataPath = scriptDir + '/source/data_translate.js';
   self.metaViewport = '<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">';
   self.template = '<div id="body">' +
-  '<div id="head"><div class="h-tabs"><ul><li data-translate data-content="Content"></li><li data-translate data-content="Index"></li><li data-translate data-content="Search"></li></ul></div><div class="h-tools"><ul><li class="sidebar" title="Hide/Show sidebar" data-translate>&#926;</li></ul><div class="online"><ul><li class="home" title="Home page" data-translate><a href="' + location.protocol + '//' + location.host + '">&#916;</a></li></ul><ul><li class="language" title="Change language" data-translate data-content="en"></li><ul class="dropdown languages selected"><li><a title="English" data-content="en"></a></li><li><a title="Deutsch (German)" data-content="de"></a></li><li><a title="&#x4E2D;&#x6587; (Chinese)" data-content="zh"></a></li></ul></ul><ul><li class="version" title="Change AHK version" data-translate data-content="v1"></li><ul class="dropdown versions selected"><li><a title="AHK v1.1" data-content="v1"></a></li><li><a title="AHK v2.0" data-content="v2"></a></li></ul></ul><ul><li class="edit" title="Edit page on GitHub" data-translate><a data-content="E"></a></li></ul></div><div class="chm"><ul><li class="back" title="Go back" data-translate>&#9668;</li></ul><ul><li class="forward" title="Go forward" data-translate>&#9658;</li></ul><ul><li class="zoom" title="Change font size" data-translate data-content="Z"></li></ul><ul><li class="print" title="Print current document" data-translate data-content="P"></li></ul></div><div class="main"><ul><li class="color" title="Change to dark/light theme" data-translate>C</li></ul><ul><li class="settings" title="Open settings" data-translate>&#1029;</li></ul></div></div></div>' +
+  '<div id="head"><div class="h-tabs"><ul><li data-translate data-content="Content"></li><li data-translate data-content="Index"></li><li data-translate data-content="Search"></li></ul></div><div class="h-tools"><ul><li class="sidebar" title="Hide/Show sidebar" data-translate>&#926;</li></ul><div class="online"><ul><li class="home" title="Home page" data-translate><a href="' + location.protocol + '//' + location.host + '">&#916;</a></li></ul><ul><li class="language" title="Change language" data-translate data-content="en"></li><ul class="dropdown languages selected"><li><a title="English" data-content="en"></a></li><li><a title="Deutsch (German)" data-content="de"></a></li><li><a title="&#x4E2D;&#x6587; (Chinese)" data-content="zh"></a></li></ul></ul><ul><li class="version" title="Change AHK version" data-translate data-content="v1"></li><ul class="dropdown versions selected"><li><a title="AHK v1.1" data-content="v1"></a></li><li><a title="AHK v2.0" data-content="v2"></a></li></ul></ul><ul><li class="edit" title="Edit page on GitHub" data-translate=2><a data-content="E"></a></li></ul></div><div class="chm"><ul><li class="back" title="Go back" data-translate=2>&#9668;</li></ul><ul><li class="forward" title="Go forward" data-translate=2>&#9658;</li></ul><ul><li class="zoom" title="Change font size" data-translate=2 data-content="Z"></li></ul><ul><li class="print" title="Print current document" data-translate=2 data-content="P"></li></ul></div><div class="main"><ul><li class="color" title="Change to dark/light theme" data-translate=2 data-content="C"></li></ul><ul><li class="settings" title="Open settings" data-translate=2>&#1029;</li></ul></div></div></div>' +
   '<div id="main"><div id="left"><div class="toc"></div><div class="index"><div class="label" data-translate data-content="Type in the keyword to find:"></div><div class="input"><input type="text" /></div><div class="list"></div></div><div class="search"><div class="label" data-translate data-content="Type in the word(s) to search for:"></div><div class="input"><input type="text" /></div><div class="checkbox"><input type="checkbox" id="highlightWords"><label for="highlightWords" data-translate>Highlight the words</label></div><div class="list"></div></div><div class="load"><div class="lds-dual-ring"></div></div></div><div class="dragbar"></div><div id="right" tabIndex="-1">'+(isFrameCapable?'<iframe frameBorder="0" id="frame" src="">':'<div class="area">');
   self.template = isIE || isEdge ? self.template.replace(/ data-content="(.*?)">/g, '>$1') : self.template;
   self.build = function() { document.write(self.template); }; // Write HTML before DOM is loaded to prevent flickering.
@@ -767,19 +767,24 @@ function ctor_structure()
       self.saveScrollPosOnScroll();
     }
 
-    // --- Translate elements with data-translate attribute ---
+    // --- Translate elements with data-translate attribute (value 1 for content only, 2 for tooltip only) ---
 
     $('*[data-translate]', $('#head').add($('#left'))).each(function() {
       var $this = $(this);
-      var text = $this.text();
-      var tooltip = $this.attr('title');
-      var dataContent = $this.attr('data-content');
-      if (typeof text != '')
-        $this.text(T(text));
-      if (typeof tooltip !== 'undefined')
-        $this.attr('title', T(tooltip));
-      if (typeof dataContent !== 'undefined')
-        $this.attr('data-content', T(dataContent));
+      var elContent = $this.text();
+      var attrTitleValue = $this.attr('title');
+      var attrDataContentValue = $this.attr('data-content');
+      var attrDataTranslateValue = $this.attr('data-translate');
+      if(!attrDataTranslateValue || attrDataTranslateValue == 1)
+      {
+        if(typeof elContent != '')
+          $this.text(T(elContent));
+        if(typeof attrDataContentValue !== 'undefined')
+          $this.attr('data-content', T(attrDataContentValue));
+      }
+      if(!attrDataTranslateValue || attrDataTranslateValue == 2)
+        if(typeof attrTitleValue !== 'undefined')
+          $this.attr('title', T(attrTitleValue));
     });
 
     // --- Show/Hide selection lists on click ---
