@@ -744,7 +744,7 @@ function ctor_structure()
   self.dataPath = scriptDir + '/source/data_translate.js';
   self.metaViewport = '<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">';
   self.template = '<div id="body">' +
-  '<div id="head"><div class="h-tabs"><ul><li data-translate data-content="Content"></li><li data-translate data-content="Index"></li><li data-translate data-content="Search"></li></ul></div><div class="h-tools"><ul><li class="sidebar" title="Hide/Show sidebar" data-translate>&#926;</li></ul><div class="online"><ul><li class="home" title="Home page" data-translate><a href="' + location.protocol + '//' + location.host + '">&#916;</a></li></ul><ul><li class="language" title="Change language" data-translate data-content="en"></li><ul class="dropdown languages selected"><li><a title="English" data-content="en"></a></li><li><a title="Deutsch (German)" data-content="de"></a></li><li><a title="&#x4E2D;&#x6587; (Chinese)" data-content="zh"></a></li></ul></ul><ul><li class="version" title="Change AHK version" data-translate data-content="v1"></li><ul class="dropdown versions selected"><li><a title="AHK v1.1" data-content="v1"></a></li><li><a title="AHK v2.0" data-content="v2"></a></li></ul></ul><ul><li class="edit" title="Edit page on GitHub" data-translate=2><a data-content="E"></a></li></ul></div><div class="chm"><ul><li class="back" title="Go back" data-translate=2>&#9668;</li></ul><ul><li class="forward" title="Go forward" data-translate=2>&#9658;</li></ul><ul><li class="zoom" title="Change font size" data-translate=2 data-content="Z"></li></ul><ul><li class="print" title="Print current document" data-translate=2 data-content="P"></li></ul></div><div class="main"><ul><li class="color" title="Change to dark/light theme" data-translate=2 data-content="C"></li></ul><ul><li class="settings" title="Open settings" data-translate=2>&#1029;</li></ul></div></div></div>' +
+  '<div id="head"><div class="h-area"><div class="h-tabs"><ul><li data-translate data-content="Content"></li><li data-translate data-content="Index"></li><li data-translate data-content="Search"></li></ul></div><div class="h-tools sidebar"><ul><li class="sidebar" title="Hide/Show sidebar" data-translate>&#926;</li></ul></div><div class="h-tools online"><ul><li class="home" title="Home page" data-translate><a href="' + location.protocol + '//' + location.host + '">&#916;</a></li><li class="language" title="Change language" data-translate data-content="en"><ul class="dropdown languages selected"><li><a title="English" data-content="en"></a></li><li><a title="Deutsch (German)" data-content="de"></a></li><li><a title="&#x4E2D;&#x6587; (Chinese)" data-content="zh"></a></li></ul></li><li class="version" title="Change AHK version" data-translate data-content="v1"><ul class="dropdown versions selected"><li><a title="AHK v1.1" data-content="v1"></a></li><li><a title="AHK v2.0" data-content="v2"></a></li></ul></li><li class="edit" title="Edit page on GitHub" data-translate=2><a data-content="E"></a></li></ul></div><div class="h-tools chm"><ul><li class="back" title="Go back" data-translate=2>&#9668;</li><li class="forward" title="Go forward" data-translate=2>&#9658;</li><li class="zoom" title="Change font size" data-translate=2 data-content="Z"></li><li class="print" title="Print current document" data-translate=2 data-content="P"></li></ul></div><div class="h-tools main visible"><ul><li class="color" title="Change to dark/light theme" data-translate=2 data-content="C"></li><li class="settings" title="Open settings" data-translate=2>&#1029;</li></ul></div></div></div>' +
   '<div id="main"><div id="left"><div class="toc"></div><div class="index"><div class="label" data-translate data-content="Type in the keyword to find:"></div><div class="input"><input type="text" /></div><div class="list"></div></div><div class="search"><div class="label" data-translate data-content="Type in the word(s) to search for:"></div><div class="input"><input type="text" /></div><div class="checkbox"><input type="checkbox" id="highlightWords"><label for="highlightWords" data-translate>Highlight the words</label></div><div class="list"></div></div><div class="load"><div class="lds-dual-ring"></div></div></div><div class="dragbar"></div><div id="right" tabIndex="-1">'+(isFrameCapable?'<iframe frameBorder="0" id="frame" src="">':'<div class="area">');
   self.template = isIE || isEdge ? self.template.replace(/ data-content="(.*?)">/g, '>$1') : self.template;
   self.build = function() { document.write(self.template); }; // Write HTML before DOM is loaded to prevent flickering.
@@ -789,28 +789,30 @@ function ctor_structure()
 
     // --- Show/Hide selection lists on click ---
 
-    $('.h-tools > div > ul:has(.dropdown) > li').on('click', function() {
-      $this = $(this).parent();
+    $('#head .h-tools li:has(.dropdown)').on('click', function() {
+      $this = $(this);
       $dropdown = $('> .dropdown', $this);
-      $('#head .dropdown').not($dropdown).animate({height: 'hide'}, 100);
-      $('#head div > ul').not($this).removeClass('selected');
+      $('#head .h-tools .dropdown').not($dropdown).animate({height: 'hide'}, 100);
+      $('#head .h-tools li').not($this).removeClass('selected');
       $dropdown.animate({height: 'toggle'}, 100);
       $this.toggleClass('selected');
     });
 
     // --- Main tools (always visible) ---
 
-    var $tools = $('#head div.h-tools');
-    $('li.sidebar', $tools).on('click', function() {
+    var $main = $('#head .h-tools.sidebar').add('#head .h-tools.main');
+    // console.log($tools);
+    
+    $('li.sidebar', $main).on('click', function() {
       self.displaySidebar(!cache.displaySidebar); });
-    $('div.main li.settings', $tools).on('click', function() {
+    $('li.settings', $main).on('click', function() {
       structure.openSite(scriptDir + '/../settings.htm');
     });
-    $('div.main li.color', $tools).on('click', self.changeTheme);
+    $('li.color', $main).on('click', self.changeTheme);
 
     // --- Online tools (only visible if help is not CHM) ---
 
-    var $online = $('div.online', $tools);
+    var $online = $('#head .h-tools.online');
     // Set language code and version:
     var lang = T("en"), ver = T("v1");
     // language links. Keys are based on ISO 639-1 language name standard:
@@ -848,7 +850,7 @@ function ctor_structure()
         // Don't use relPath here due file differences between the versions:
         a.attr('href', thisLink);
       });
-
+      // 'Edit page on GitHub' button:
       $("li.edit > a").attr({
         href: T("https://github.com/Lexikos/AutoHotkey_L-Docs/edit/master/docs/") + relPath,
         target: "_blank"
@@ -858,7 +860,7 @@ function ctor_structure()
 
     // --- CHM tools (only visible if help is CHM) ---
 
-    var $chm = $('div.chm', $tools);
+    var $chm = $('#head .h-tools.chm');
     // 'Go back' button:
     $('li.back', $chm).on('click', function() { history.back(); });
     // 'Go forward' button:
@@ -875,7 +877,7 @@ function ctor_structure()
 
     // --- If help is CHM, show CHM tools, else show online tools ---
 
-    (isInsideCHM) ? $chm.show() : $online.show();
+    (isInsideCHM) ? $chm.show().addClass('visible') : $online.show().addClass('visible');
 
     // --- Apply click events for sidebar tabs ---
 
@@ -1061,6 +1063,7 @@ function ctor_structure()
     var $headTabs = $('#head div.h-tabs');
     var $leftArea = $('#left');
     var $dragbar = $('.dragbar');
+    var $hTools = $('#head div.h-tools.visible');
     var hide = {width: 0, visibility: "hidden"};
     var show = {width: cache.sidebarWidth, visibility: "visible"};
     if (display) {
@@ -1068,11 +1071,15 @@ function ctor_structure()
       $leftArea.css(show);
       $dragbar.show().css('left', cache.sidebarWidth);
       $('.input input', $leftArea).focus();
+      if(isPhone)
+        $hTools.hide();
     }
     else {
       $headTabs.css(hide);
       $leftArea.css(hide);
       $dragbar.hide();
+      if(isPhone)
+        $hTools.show();
     }
     $leftArea.focus();
   };
