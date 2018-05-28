@@ -333,8 +333,8 @@ function ctor_toc()
       $this.parent("li").has('ul').addClass('highlighted');
       $this.parent().parents('li').addClass('highlighted');
       // Unfold parent items:
-      $this.parents().children("ul").show();
-      $this.parents().children("ul").closest("li").removeClass('closed').addClass('opened');
+      $this.parents("ul").show();
+      $this.parents("ul").closest("li").removeClass('closed').addClass('opened');
     });
 
     // --- Show scrollbar on mouseover ---
