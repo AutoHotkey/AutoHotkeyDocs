@@ -11,7 +11,8 @@
 
 <h1>Object</h1>
 
-<p>AutoHotkey's basic object datatype is an associative array with features which allow its behaviour to be <a href="../Objects.htm#Custom_Objects">customized</a>.  By default, all objects created by <code>{}</code>, <code>[]</code>, <code>Object()</code> and <code>Array()</code> support the following methods and functions:</p>
+<p>AutoHotkey's basic object datatype is an associative array with features which allow its behaviour to be <a href="../Objects.htm#Custom_Objects">customized</a>.  By default, all objects created by <code>{}</code>, <code>[]</code>, <code>Object()</code> and <code>Array()</code> support the following:</p>
+<h4>Methods:</h4>
 <ul>
   <li><a href="#InsertAt">InsertAt</a> / <a href="#RemoveAt">RemoveAt</a></li>
   <li><a href="#Push">Push</a> / <a href="#Pop">Pop</a></li>
@@ -22,7 +23,17 @@
 	<li><a href="#NewEnum">_NewEnum</a></li>
 	<li><a href="#HasKey">HasKey</a></li>
 	<li><a href="#Clone">Clone</a></li>
-  <li><a href="#RawSet">ObjRawSet</a> (function)</li>
+</ul>
+<h4>Properties:</h4>
+<ul>
+	<li><a href="#Base">Base</a></li>
+</ul>
+<h4>Functions:</h4>
+<ul>
+	<li><a href="#RawGet">ObjRawGet</a></li>
+	<li><a href="#RawSet">ObjRawSet</a></li>
+	<li><a href="#GetBase">ObjGetBase</a></li>
+	<li><a href="#SetBase">ObjSetBase</a></li>
 </ul>
 <p>Each method also has an equivalent function, which can be used to bypass any <a href="../Objects.htm#Custom_Objects">custom behaviour</a> implemented by the object -- it is recommended that these functions only be used for that purpose.  To call one, prefix the method name with "Obj" (but for _NewEnum, omit the underscore) and pass the target object as the first parameter.  For example:</p>
 <pre>array := [1, 2, 3]
@@ -151,20 +162,33 @@ MsgBox {-10: 0, 10: 0}.Length()  <em>; 10</em>
 MsgBox {-10: 0, -1: 0}.Length()  <em>;  0</em>
 </pre></div>
 
+<div class="methodShort" id="Count"><h2>Count</h2>
+<pre class="Syntax">Count := Object.<span class="func">Count</span>()</pre>
+<p>Returns the number of key-value pairs present in the object.</p>
+<pre>
+MsgBox % {A: 1, Z: 26}.Count()    <em>;  2</em>
+MsgBox % ["A", "B", "C"].Count()  <em>;  3</em>
+MsgBox % ["A",    , "C"].Count()  <em>;  2</em>
+</pre>
+</div>
+
 <div class="methodShort" id="SetCapacity"><h2>SetCapacity</h2>
 <p>Adjusts the capacity of an object or one of its fields.</p>
 <pre class="Syntax">Object.<span class="func">SetCapacity</span>(MaxItems)
 Object.<span class="func">SetCapacity</span>(Key, ByteSize)</pre>
 <dl>
   <dt>MaxItems</dt>
-  <dd><p>The maximum number of key-value pairs the object should be able to contain before it must be automatically expanded.  If less than the current number of key-value pairs, that number is used instead, and any unused space is freed.</p></dd>
-  <dt>Key</dt>
-  <dd><p>Any valid key.</p></dd>
-  <dt>ByteSize</dt>
-  <dd><p>The new size in bytes of the field's string buffer, excluding the null-terminator.  If the field does not exist, it is created.  If <i>ByteSize</i> is zero, the buffer is freed but the empty field is not removed.  If <i>ByteSize</i> is less than the current size, excess data is truncated; otherwise all existing data is preserved.</p></dd>
-  <dt>Return Value</dt>
-  <dd><p>The new capacity. An exception is thrown on failure.</p></dd>
-</dl></div>
+<dl>
+	<dt>MaxItems</dt>
+	<dd><p>The maximum number of key-value pairs the object should be able to contain before it must be automatically expanded.  If less than the current number of key-value pairs, that number is used instead, and any unused space is freed.</p></dd>
+	<dt>Key</dt>
+	<dd><p>Any valid key.</p></dd>
+	<dt>ByteSize</dt>
+	<dd><p>The new size in bytes of the field's string buffer, excluding the null-terminator.  If the field does not exist, it is created.  If <i>ByteSize</i> is zero, the buffer is freed but the empty field is not removed.  If <i>ByteSize</i> is less than the current size, excess data is truncated; otherwise all existing data is preserved.</p></dd>
+	<dt><strong>Returns</strong></dt>
+	<dd><p>The new capacity. An exception is thrown on failure.</p></dd>
+</dl>
+</div>
 
 <div class="methodShort" id="GetCapacity"><h2>GetCapacity</h2>
 <pre class="Syntax">MaxItems := Object.<span class="func">GetCapacity</span>()
@@ -188,11 +212,45 @@ ByteSize := Object.<span class="func">GetCapacity</span>(Key)</pre>
 <pre class="Syntax">Clone := Object.<span class="func">Clone</span>()</pre>
 <p>Returns a shallow copy of the object.</p></div>
 
+<div class="methodShort" id="Base"><h2>Base</h2>
+<p>Retrieves or sets the object's <a href="../Objects.htm#Custom_Objects">base object</a>.</p>
+<pre class="Syntax">BaseObject := Object.Base</pre>
+<pre class="Syntax">Object.Base := BaseObject</pre>
+<p><em>BaseObject</em> must be an object or an empty string.</p>
+<p>Properties and methods defined by a base object are accessible only while that base object is in use. Therefore, changing <em>Object</em>'s base also changes the set of available properties and methods.</p>
+<p>See also: <a href="#GetBase">ObjGetBase</a>, <a href="#SetBase">ObjSetBase</a></p>
+</div>
+
+<div class="methodShort" id="RawGet"><h2>ObjRawGet</h2>
+<p>Retrieves the value associated with a given key within <em>Object</em>.</p>
+<pre class="Syntax">Value := <span class="func">ObjRawGet</span>(Object, Key)</pre>
+<p>If <em>Object</em> does not contain <em>Key</em>, the return value is an empty string. No <a href="../Objects.htm#Meta_Functions">meta-functions</a> or <a href="../Objects.htm#Custom_Classes_property">property functions</a> are called. The content of <em>Object</em>'s base objects are not considered, and since <a href="#Base">base</a> itself is a property and not a key-value pair <a href="../Objects.htm#base-key">by default</a>, it is typically not returned.</p>
+<p>An exception is thrown if <em>Object</em> is of an incorrect type.</p>
+</div>
+
 <div class="methodShort" id="RawSet"><h2>ObjRawSet</h2>
 <p>Stores or overwrites a key-value pair in the object.</p>
 <pre class="Syntax"><span class="func">ObjRawSet</span> Object, Key, Value</pre>
-<p>This function is provided to allow scripts to bypass the __Set <a href="../Objects.htm#Meta_Functions">meta-function</a>. If that isn't required, a normal assignment should be used instead. For example: <code>Object[Key] := Value</code></p>
-<p>Since the purpose is to bypass meta-functions, this is a function only, not a method. Calling a built-in method generally causes the __Call meta-function to be called.</p></div>
+<p>This function is provided to allow scripts to bypass the __Set <a href="../Objects.htm#Meta_Functions">meta-function</a> and <a href="../Objects.htm#Custom_Classes_property">properties</a>. If that isn't required, a normal assignment should be used instead. For example: <code>Object[Key] := Value</code></p>
+<p>Since the purpose is to bypass meta-functions, this is a function only, not a method. Calling a built-in method generally causes the __Call meta-function to be called.</p>
+<p>An exception is thrown if <em>Object</em> is of an incorrect type.</p>
+</div>
+
+<div class="methodShort" id="GetBase"><h2>ObjGetBase</h2>
+<p>Returns the object's <a href="../Objects.htm#Custom_Objects">base object</a>.</p>
+<pre class="Syntax">BaseObject := <span class="func">ObjGetBase</span>(Object)</pre>
+<p>No <a href="../Objects.htm#Meta_Functions">meta-functions</a> are called. The object's base is returned even if the key "base" has been stored in the object (such as with <a href="#RawSet">ObjRawSet</a> or <a href="#SetCapacity">SetCapacity</a>). An empty string is returned if the object has no base.</p>
+<p>An exception is thrown if <em>Object</em> is of an incorrect type.</p>
+<p>See also: <a href="#Base">Base property</a></p>
+</div>
+
+<div class="methodShort" id="SetBase"><h2>ObjSetBase</h2>
+<p>Sets the object's <a href="../Objects.htm#Custom_Objects">base object</a>.</p>
+<pre class="Syntax"><span class="func">ObjSetBase</span>(Object, BaseObject)</pre>
+<p>No <a href="../Objects.htm#Meta_Functions">meta-functions</a> are called. The object's base is set even if the key "base" has been stored in the object (such as with <a href="#RawSet">ObjRawSet</a> or <a href="#SetCapacity">SetCapacity</a>). An empty string is returned if the object has no base.</p>
+<p>An exception is thrown if <em>Object</em> is of an incorrect type or if <em>BaseObject</em> is not an object or empty string.</p>
+<p>See also: <a href="#Base">Base property</a></p>
+</div>
 
 </body>
 </html>

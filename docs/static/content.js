@@ -10,7 +10,8 @@ var scriptDir = scriptElement.src.substr(0, scriptElement.src.lastIndexOf('/'));
 var user = {
   fontSize: 1.0,
   clickTab: 0,
-  displaySidebar: true
+  displaySidebar: true,
+  colorTheme: 0
 }
 
 // --- Cached data ---
@@ -20,18 +21,25 @@ var user = {
 // window.localStorage/sessionStorage or cookies.
 
 var cache = {
+  colorTheme: user.colorTheme,
   scriptDir: scriptDir,
   fontSize: user.fontSize,
   forceNoFrame: false,
   forceNoScript: false,
   clickTab: user.clickTab,
-  LastUsedSource: "",
   displaySidebar: user.displaySidebar,
   sidebarWidth: '18em',
   RightIsFocused: true,
-  toc: {clickItem: 0, scrollPos: 0},
-  index: {input: "", clickItem: 0, scrollPos: 0},
-  search: {data: {}, input: "", clickItem: 0, scrollPos: 0},
+  toc_clickItem: 0,
+  toc_scrollPos: 0,
+  index_input: "",
+  index_clickItem: 0,
+  index_scrollPos: 0,
+  search_data: {},
+  search_highlightWords: false,
+  search_input: "",
+  search_clickItem: 0,
+  search_scrollPos: 0,
   load: function() {
     try {
       var data = JSON.parse(window.name);
@@ -45,6 +53,13 @@ var cache = {
   },
   save: function() {
     window.name = JSON.stringify(this);
+  },
+  set: function(prop, value) {
+    this[prop] = value;
+    try {
+      postMessageToFrame('updateCache', [prop, value])
+    } catch(e) {}
+    return value;
   }
 };
 
@@ -95,10 +110,10 @@ var isPhone = (document.documentElement.clientWidth <= 600);
       $('head').append('<style>body {font-size:' + cache.fontSize + 'em}</style>');
       normalizeParentURL = function() {
         postMessageToParent('normalizeURL', [$.extend({}, window.location), document.title, history.state]);
-        if (cache.toc.clickItem)
+        if (cache.toc_clickItem)
           if (supportsHistory)
-            history.replaceState({toc_clickItem: cache.toc.clickItem}, null, null);
-        cache.toc.clickItem = 0;
+            history.replaceState({toc_clickItem: cache.toc_clickItem}, null, null);
+        cache.set('toc_clickItem', 0);
       }
       normalizeParentURL(); $(window).on('hashchange', normalizeParentURL);
       structure.addShortcuts();
@@ -108,7 +123,7 @@ var isPhone = (document.documentElement.clientWidth <= 600);
         $('html').attr({ id: 'right'});
         if (!cache.translate)
           loadScript(structure.dataPath, function() {
-            cache.translate = translateData;
+            cache.set('translate', translateData);
             addFeatures();
           });
         else
@@ -118,7 +133,14 @@ var isPhone = (document.documentElement.clientWidth <= 600);
         var data = JSON.parse(event.originalEvent.data);
         switch(data[0]) {
           case 'updateCache':
-          $.extend(cache, data[1]);
+          if(typeof data[1] === 'object')
+            $.extend(cache, data[1]);
+          else
+            cache[data[1]] = data[2];
+          break;
+
+          case 'highlightWords':
+          search.highlightWords(data[1]);
           break;
         }
       });
@@ -174,22 +196,32 @@ var isPhone = (document.documentElement.clientWidth <= 600);
           loadScript(decodeURI(m[1]) + '\\chm_config.js', function () {
             try {
               $.extend(cache, overwriteProps(user, config));
+              setInitialSettings();
             } catch (e) {}
           });
       }
       else if (window.localStorage) {
         config = JSON.parse(window.localStorage.getItem('config'));
         $.extend(cache, overwriteProps(user, config));
+        setInitialSettings();
       }
       else if (navigator.cookieEnabled) {
         config = document.cookie.match(/config=([^;]+)/);
         config && (config = JSON.parse(config[1]));
         $.extend(cache, overwriteProps(user, config));
+        setInitialSettings();
       }
   }
+  else
+    setInitialSettings();
 
-  // Set initial font size:
-  $('head').append('<style>#right .area {font-size:' + cache.fontSize + 'em}</style>');
+  function setInitialSettings() {
+    // font size
+    $('head').append('<style>#right .area {font-size:' + cache.fontSize + 'em}</style>');
+    // color theme
+    if(cache.colorTheme)
+      structure.changeTheme();
+  }
 
   // Load current URL into frame:
   if (isFrameCapable)
@@ -201,7 +233,7 @@ var isPhone = (document.documentElement.clientWidth <= 600);
   // Get the data if needed and modify the site:
   if (!cache.translate)
     loadScript(structure.dataPath, function() {
-      cache.translate = translateData;
+      cache.set('translate', translateData);
       structure.modify();
       if (!isFrameCapable)
         $(document).ready(addFeatures);
@@ -211,25 +243,25 @@ var isPhone = (document.documentElement.clientWidth <= 600);
     if (!isFrameCapable)
       $(document).ready(addFeatures);
   }
-  if (!cache.toc.data)
+  if (!cache.toc_data)
     loadScript(toc.dataPath, function() {
-      cache.toc.data = tocData;
+      cache.set('toc_data', tocData);
       toc.modify();
     });
   else
     toc.modify();
-  if (!cache.index.data)
+  if (!cache.index_data)
     loadScript(index.dataPath, function() {
-      cache.index.data = indexData;
+      cache.set('index_data', indexData);
       index.modify();
     });
   else
     index.modify();
-  if (!cache.search.index || !cache.search.files || !cache.search.titles)
+  if (!cache.search_index || !cache.search_files || !cache.search_titles)
     loadScript(search.dataPath, function() {
-      cache.search.index = SearchIndex;
-      cache.search.files = SearchFiles;
-      cache.search.titles = SearchTitles;
+      cache.set('search_index', SearchIndex);
+      cache.set('search_files', SearchFiles);
+      cache.set('search_titles', SearchTitles);
       search.modify();
     });
   else
@@ -265,7 +297,7 @@ function ctor_toc()
   };
   // --- Modify the elements of the TOC tab ---
   self.modify = function() {
-    $toc = $('#left div.toc').html(self.create(cache.toc.data));
+    $toc = $('#left div.toc').html(self.create(cache.toc_data));
     $tocList = $('li > span', $toc);
     // --- Fold items with subitems ---
 
@@ -276,8 +308,8 @@ function ctor_toc()
     // Select the item on click:
     $tocList.on("click", function() {
       $this = $(this);
-      cache.toc.clickItem = $tocList.index(this);
-      cache.toc.scrollPos = $toc.scrollTop();
+      cache.set('toc_clickItem', $tocList.index(this));
+      cache.set('toc_scrollPos', $toc.scrollTop());
       // Fold/unfold item with subitems:
       if ($this.parent().has("ul").length) {
         $this.siblings("ul").slideToggle(100);
@@ -301,8 +333,8 @@ function ctor_toc()
       $this.parent("li").has('ul').addClass('highlighted');
       $this.parent().parents('li').addClass('highlighted');
       // Unfold parent items:
-      $this.parents().children("ul").show();
-      $this.parents().children("ul").closest("li").removeClass('closed').addClass('opened');
+      $this.parents("ul").show();
+      $this.parents("ul").closest("li").removeClass('closed').addClass('opened');
     });
 
     // --- Show scrollbar on mouseover ---
@@ -320,7 +352,7 @@ function ctor_toc()
   };
   self.preSelect = function($toc, url, relPath) { // Apply stored settings.
     var tocList = $('li > span', $toc);
-    var clicked = tocList.eq(cache.toc.clickItem);
+    var clicked = tocList.eq(cache.toc_clickItem);
     var relPathNoHash = relPath.replace(url.hash,'');
     var found = null;
     var foundList = [];
@@ -345,14 +377,14 @@ function ctor_toc()
     if (clicked.is(found))
       el = clicked;
     else
-      cache.toc.scrollPos = ""; // Force calculated scrolling.
+      cache.set('toc_scrollPos', ""); // Force calculated scrolling.
     // If items are found:
     if (el) {
       // Highlight items and parents:
       self.deselect($toc); el.trigger('select');
       // Scroll to the last match:
-      if (cache.toc.scrollPos != "" || cache.toc.scrollPos != 0)
-        $toc.scrollTop(cache.toc.scrollPos);
+      if (cache.toc_scrollPos != "" || cache.toc_scrollPos != 0)
+        $toc.scrollTop(cache.toc_scrollPos);
       if (!isScrolledIntoView(el, $toc)) {
         el[el.length-1].scrollIntoView(false);
         $toc.scrollTop($toc.scrollTop()+100);
@@ -383,15 +415,15 @@ function ctor_index()
   };
   self.modify = function() { // Modify the elements of the index tab.
     var $index = $('#left div.index');
-    var $indexInput = $('input', $index);
-    var $indexList = $('div.list', $index).html(self.create(cache.index.data));
+    var $indexInput = $('.input input', $index);
+    var $indexList = $('div.list', $index).html(self.create(cache.index_data));
 
     // --- Hook up events ---
 
     // Select closest index entry and show color indicator on input:
     $indexInput.on('keyup', function() { // keyup instead of input due IE8.
       var $this = $(this);
-      var input = cache.index.input = $this.val().toLowerCase();
+      var input = cache.set('index_input', $this.val().toLowerCase());
       // if no input, remove color indicator and return:
       if (!input) {
         $this.removeAttr('class');
@@ -430,9 +462,9 @@ function ctor_index()
     return match;
   };
   self.preSelect = function($indexList, $indexInput) { // Apply stored settings.
-    var clicked = $indexList.children().eq(cache.index.clickItem);
-    $indexInput.val(cache.index.input);
-    $indexList.scrollTop(cache.index.scrollPos);
+    var clicked = $indexList.children().eq(cache.index_clickItem);
+    $indexInput.val(cache.index_input);
+    $indexList.scrollTop(cache.index_scrollPos);
     clicked.click();
   };
 }
@@ -446,14 +478,15 @@ function ctor_search()
   self.modify = function() { // Modify the elements of the search tab.
     var $search = $('#left div.search');
     var $searchList = $('div.list', $search);
-    var $searchInput = $('input', $search);
+    var $searchInput = $('.input input', $search);
+    var $searchCheckBox = $('.checkbox input', $search);
 
     // --- Hook up events ---
 
     // Refresh the search list and show color indicator on input:
     $searchInput.on('keyup', function() { // keyup instead of input due IE8.
       var $this = $(this);
-      var input = cache.search.input = $this.val();
+      var input = cache.set('search_input', $this.val());
       // if no input, empty the search list, remove color indicator and return:
       if (!input) {
         $searchList.empty();
@@ -461,26 +494,27 @@ function ctor_search()
         return;
       }
       // Otherwise fill the search list:
-      cache.search.data = self.create(input);
-      $searchList.html(cache.search.data);
+      cache.set('search_data', self.create(input));
+      $searchList.html(cache.search_data);
       // Select the first item and add color indicator:
       var searchListChildren = $searchList.children();
       if (searchListChildren.length) {
         searchListChildren.first().click();
-        cache.search.clickItem = 0;
+        cache.set('search_clickItem', 0);
         $this.attr('class', 'match'); // 'items found'
       }
       else
         $this.attr('class', 'mismatch'); // 'items not found'
     });
-    self.preSelect($searchList, $searchInput);
-    setTimeout( function() { self.preSelect($searchList, $searchInput); }, 0);
+    self.preSelect($searchList, $searchInput, $searchCheckBox);
+    setTimeout( function() { self.preSelect($searchList, $searchInput, $searchCheckBox); }, 0);
   };
-  self.preSelect = function($searchList, $searchInput) { // Apply stored settings.
-    $searchInput.val(cache.search.input);
-    $searchList.html(cache.search.data);
-    $searchList.scrollTop(cache.search.scrollPos);
-    $searchList.children().eq(cache.search.clickItem).click();
+  self.preSelect = function($searchList, $searchInput, $searchCheckBox) { // Apply stored settings.
+    $searchInput.val(cache.search_input);
+    $searchList.html(cache.search_data);
+    $searchList.scrollTop(cache.search_scrollPos);
+    $searchList.children().eq(cache.search_clickItem).click();
+    $searchCheckBox.prop('checked', cache.search_highlightWords);
   };
   self.convertToArray = function(SearchText) { // Convert text to array.
     // Normalize whitespace:
@@ -489,6 +523,22 @@ function ctor_search()
       return '';
     else
       return SearchText.split(' ');
+  }
+  self.highlightWords = function(words) {
+    var content = $(isInsideFrame ? 'body' : '#right .area');
+    if(words)
+    {
+      var qry = self.convertToArray(words);
+      for (var i = 0; i < qry.length; i++) {
+        content.highlight(qry[i]);
+      }
+      // Scroll to first match:
+      var firstMatch = $('span.highlight:first', content);
+      if(firstMatch.length)
+        firstMatch[0].scrollIntoView(isIE8 ? true : {block: 'center'});
+    }
+    else
+      content.removeHighlight();
   }
   self.create = function(qry) { // Create search list.
     var PartialIndex = {};
@@ -524,7 +574,7 @@ function ctor_search()
         if (!file_has_all_words(w[i], qry, 1))
           continue // Skip files which don't have all the words.
         c++
-        var f = cache.search.files[w[i]]
+        var f = cache.search_files[w[i]]
         // data.files excludes '.htm' to save space, so add it back:
         if (f.indexOf('#') != -1)
           f = f.replace('#', '.htm#')
@@ -532,7 +582,7 @@ function ctor_search()
           f = f + '.htm'
         // var ret_i = { u: location.href.replace(/\/docs\/.*/, "/docs/" + f),
         var ret_i = { u: f,
-              t: (cache.search.titles[w[i]] || f) }
+              t: (cache.search_titles[w[i]] || f) }
         ret.push(ret_i)
       }
       return ret
@@ -648,10 +698,10 @@ function ctor_search()
     function index_whole(word) {
       // Return a word from the index, decoding the list of files
       // if it hasn't been decoded already:
-      var files = cache.search.index[word]
+      var files = cache.search_index[word]
       if (typeof(files) == "string") {
         files = decode_numbers(files)
-        cache.search.index[word] = files
+        cache.search_index[word] = files
       }
       return files
     }
@@ -667,7 +717,7 @@ function ctor_search()
       // and cache the result.
       files = []
       var files_low = []
-      for (iw in cache.search.index) {
+      for (iw in cache.search_index) {
         var p = iw.indexOf(word)
         if (p != -1)
           files.push.apply(p == 0 ? files : files_low, index_whole(iw))
@@ -694,8 +744,8 @@ function ctor_structure()
   self.dataPath = scriptDir + '/source/data_translate.js';
   self.metaViewport = '<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">';
   self.template = '<div id="body">' +
-  '<div id="head"><div class="h-tabs"><ul><li data-translate data-content="Content"></li><li data-translate data-content="Index"></li><li data-translate data-content="Search"></li></ul></div><div class="h-tools"><div class="main"><ul><li class="sidebar" title="Hide/Show sidebar" data-translate>&#926;</li></ul><ul><li class="settings" title="Open settings" data-translate>&#1029;</li></ul></div><div class="online"><ul><li class="home" title="Home page" data-translate><a href="' + location.protocol + '//' + location.host + '">&#916;</a></li></ul><ul><li class="language" title="Change language" data-translate data-content="en"></li><ul class="dropdown languages selected"><li><a title="English" data-content="en"></a></li><li><a title="Deutsch (German)" data-content="de"></a></li><li><a title="&#x4E2D;&#x6587; (Chinese)" data-content="zh"></a></li></ul></ul><ul><li class="version" title="Change AHK version" data-translate data-content="v1"></li><ul class="dropdown versions selected"><li><a title="AHK v1.1" data-content="v1"></a></li><li><a title="AHK v2.0" data-content="v2"></a></li></ul></ul><ul><li class="edit" title="Edit page on GitHub" data-translate><a data-content="E"></a></li></ul></div><div class="chm"><ul><li class="back" title="Go back" data-translate>&#9668;</li></ul><ul><li class="forward" title="Go forward" data-translate>&#9658;</li></ul><ul><li class="zoom" title="Change font size" data-translate data-content="Z"></li></ul><ul><li class="print" title="Print current document" data-translate data-content="P"></li></ul></div></div></div>' +
-  '<div id="main"><div id="left"><div class="toc"></div><div class="index"><div class="label" data-translate data-content="Type in the keyword to find:"></div><div class="input"><input type="text" /></div><div class="list"></div></div><div class="search"><div class="label" data-translate data-content="Type in the word(s) to search for:"></div><div class="input"><input type="text" /></div><div class="list"></div></div><div class="load"><div class="lds-dual-ring"></div></div></div><div class="dragbar"></div><div id="right" tabIndex="-1">'+(isFrameCapable?'<iframe frameBorder="0" id="frame" src="">':'<div class="area">');
+  '<div id="head"><div class="h-area"><div class="h-tabs"><ul><li data-translate data-content="Content"></li><li data-translate data-content="Index"></li><li data-translate data-content="Search"></li></ul></div><div class="h-tools sidebar"><ul><li class="sidebar" title="Hide/Show sidebar" data-translate>&#926;</li></ul></div><div class="h-tools online"><ul><li class="home" title="Home page" data-translate><a href="' + location.protocol + '//' + location.host + '">&#916;</a></li><li class="language" title="Change language" data-translate data-content="en"><ul class="dropdown languages selected"><li><a title="English" data-content="en"></a></li><li><a title="Deutsch (German)" data-content="de"></a></li><li><a title="&#x4E2D;&#x6587; (Chinese)" data-content="zh"></a></li></ul></li><li class="version" title="Change AHK version" data-translate data-content="v1"><ul class="dropdown versions selected"><li><a title="AHK v1.1" data-content="v1"></a></li><li><a title="AHK v2.0" data-content="v2"></a></li></ul></li><li class="edit" title="Edit page on GitHub" data-translate=2><a data-content="E"></a></li></ul></div><div class="h-tools chm"><ul><li class="back" title="Go back" data-translate=2>&#9668;</li><li class="forward" title="Go forward" data-translate=2>&#9658;</li><li class="zoom" title="Change font size" data-translate=2 data-content="Z"></li><li class="print" title="Print current document" data-translate=2 data-content="P"></li></ul></div><div class="h-tools main visible"><ul><li class="color" title="Change to dark/light theme" data-translate=2 data-content="C"></li><li class="settings" title="Open settings" data-translate=2>&#1029;</li></ul></div></div></div>' +
+  '<div id="main"><div id="left"><div class="toc"></div><div class="index"><div class="label" data-translate data-content="Type in the keyword to find:"></div><div class="input"><input type="text" /></div><div class="list"></div></div><div class="search"><div class="label" data-translate data-content="Type in the word(s) to search for:"></div><div class="input"><input type="text" /></div><div class="checkbox"><input type="checkbox" id="highlightWords"><label for="highlightWords" data-translate>Highlight the words</label></div><div class="list"></div></div><div class="load"><div class="lds-dual-ring"></div></div></div><div class="dragbar"></div><div id="right" tabIndex="-1">'+(isFrameCapable?'<iframe frameBorder="0" id="frame" src="">':'<div class="area">');
   self.template = isIE || isEdge ? self.template.replace(/ data-content="(.*?)">/g, '>$1') : self.template;
   self.build = function() { document.write(self.template); }; // Write HTML before DOM is loaded to prevent flickering.
   self.modify = function() { // Modify elements added via build.
@@ -717,44 +767,52 @@ function ctor_structure()
       self.saveScrollPosOnScroll();
     }
 
-    // --- Translate elements with data-translate attribute ---
+    // --- Translate elements with data-translate attribute (value 1 for content only, 2 for tooltip only) ---
 
     $('*[data-translate]', $('#head').add($('#left'))).each(function() {
       var $this = $(this);
-      var text = $this.text();
-      var tooltip = $this.attr('title');
-      var dataContent = $this.attr('data-content');
-      if (typeof text != '')
-        $this.text(T(text));
-      if (typeof tooltip !== 'undefined')
-        $this.attr('title', T(tooltip));
-      if (typeof dataContent !== 'undefined')
-        $this.attr('data-content', T(dataContent));
+      var elContent = $this.text();
+      var attrTitleValue = $this.attr('title');
+      var attrDataContentValue = $this.attr('data-content');
+      var attrDataTranslateValue = $this.attr('data-translate');
+      if(!attrDataTranslateValue || attrDataTranslateValue == 1)
+      {
+        if(typeof elContent != '')
+          $this.text(T(elContent));
+        if(typeof attrDataContentValue !== 'undefined')
+          $this.attr('data-content', T(attrDataContentValue));
+      }
+      if(!attrDataTranslateValue || attrDataTranslateValue == 2)
+        if(typeof attrTitleValue !== 'undefined')
+          $this.attr('title', T(attrTitleValue));
     });
 
     // --- Show/Hide selection lists on click ---
 
-    $('.h-tools > div > ul:has(.dropdown) > li').on('click', function() {
-      $this = $(this).parent();
+    $('#head .h-tools li:has(.dropdown)').on('click', function() {
+      $this = $(this);
       $dropdown = $('> .dropdown', $this);
-      $('#head .dropdown').not($dropdown).animate({height: 'hide'}, 100);
-      $('#head div > ul').not($this).removeClass('selected');
+      $('#head .h-tools .dropdown').not($dropdown).animate({height: 'hide'}, 100);
+      $('#head .h-tools li').not($this).removeClass('selected');
       $dropdown.animate({height: 'toggle'}, 100);
       $this.toggleClass('selected');
     });
 
     // --- Main tools (always visible) ---
 
-    var $tools = $('#head div.h-tools');
-    $('div.main li.sidebar', $tools).on('click', function() {
+    var $main = $('#head .h-tools.sidebar').add('#head .h-tools.main');
+    // console.log($tools);
+    
+    $('li.sidebar', $main).on('click', function() {
       self.displaySidebar(!cache.displaySidebar); });
-    $('div.main li.settings', $tools).on('click', function() {
+    $('li.settings', $main).on('click', function() {
       structure.openSite(scriptDir + '/../settings.htm');
     });
+    $('li.color', $main).on('click', self.changeTheme);
 
     // --- Online tools (only visible if help is not CHM) ---
 
-    var $online = $('div.online', $tools);
+    var $online = $('#head .h-tools.online');
     // Set language code and version:
     var lang = T("en"), ver = T("v1");
     // language links. Keys are based on ISO 639-1 language name standard:
@@ -792,7 +850,7 @@ function ctor_structure()
         // Don't use relPath here due file differences between the versions:
         a.attr('href', thisLink);
       });
-
+      // 'Edit page on GitHub' button:
       $("li.edit > a").attr({
         href: T("https://github.com/Lexikos/AutoHotkey_L-Docs/edit/master/docs/") + relPath,
         target: "_blank"
@@ -802,25 +860,24 @@ function ctor_structure()
 
     // --- CHM tools (only visible if help is CHM) ---
 
-    var $chm = $('div.chm', $tools);
+    var $chm = $('#head .h-tools.chm');
     // 'Go back' button:
     $('li.back', $chm).on('click', function() { history.back(); });
     // 'Go forward' button:
     $('li.forward', $chm).on('click', function() { history.forward(); });
     // 'Zoom' button:
     $('li.zoom', $chm).on('click', function() {
-      cache.fontSize += 0.2;
+      cache.set('fontSize', cache.fontSize + 0.2);
       if (cache.fontSize > 1.4)
-        cache.fontSize = 0.6;
+        cache.set('fontSize', 0.6);
       $('#frame').contents().find('body').css('font-size', cache.fontSize + 'em');
-      postMessageToFrame('updateCache', [{fontSize: cache.fontSize}]);
     });
     // 'Print' button:
     $('li.print', $chm).on('click', function() { window.parent.document.getElementById('frame').contentWindow.document.execCommand('print', false, null); });
 
     // --- If help is CHM, show CHM tools, else show online tools ---
 
-    (isInsideCHM) ? $chm.show() : $online.show();
+    (isInsideCHM) ? $chm.show().addClass('visible') : $online.show().addClass('visible');
 
     // --- Apply click events for sidebar tabs ---
 
@@ -829,16 +886,16 @@ function ctor_structure()
       $tab.eq(i).on('click', function(e) { self.showTab($(this).index()); });
     }
 
-    // --- Apply Edit and ListBox events ---
+    // --- Apply control events ---
 
-    var Edit = $('#left input');
+    var Edit = $('#left .input input');
     var ListBox = $('#left div.list');
 
     // Store current scrollbar position on scroll:
     ListBox.on('scroll', function() {
       var $this = $(this);
       var $parent = $this.parent();
-      cache[$parent.attr('class')].scrollPos = $this.scrollTop();
+      cache.set($parent.attr('class') + '_scrollPos', $this.scrollTop());
     });
     // Select the item on click and scroll to it:
     ListBox.on('click', '> a', function() {
@@ -867,8 +924,7 @@ function ctor_structure()
         var $grandparent = $parent.parent();
         // Store the item's index relative to its parent:
         var className = $grandparent.attr('class');
-        cache[className].clickItem = $this.index();
-        cache.LastUsedSource = className;
+        cache.set(className + '_clickItem', $this.index());
         self.openSite($this.attr('href'));
       }
     }).on('touchmove', function() {
@@ -914,7 +970,7 @@ function ctor_structure()
         break;
 
         default:
-        $('input', $ListBox.parent().parent()).focus().select(); // Redirect other keys to Edit
+        $('.input input', $ListBox.parent().parent()).focus().select(); // Redirect other keys to Edit
         return;
       }
       return false; // Prevent the default action (scroll / move caret).
@@ -951,6 +1007,26 @@ function ctor_structure()
       return false; // Prevent the default action (scroll / move caret).
     });
 
+    // Highlight search words on check:
+    $('#left .checkbox input#highlightWords').on('change', function() {
+      if(this.checked)
+      {
+        cache.set('search_highlightWords', true);
+        if(isFrameCapable)
+          postMessageToFrame('highlightWords', [cache.search_input]);
+        else
+          search.highlightWords(cache.search_input);
+      }
+      else
+      {
+        cache.set('search_highlightWords', false);
+        if(isFrameCapable)
+          postMessageToFrame('highlightWords', []);
+        else
+          search.highlightWords('');
+      }
+    });
+
     // --- Apply stored values ---
 
     self.showTab(cache.clickTab);
@@ -971,7 +1047,7 @@ function ctor_structure()
     $(document).mouseup(function(e) {
       if (dragging) 
       {
-        cache.sidebarWidth = e.pageX+2;
+        cache.set('sidebarWidth', e.pageX+2);
         $('#left').add('#head div.h-tabs').width(cache.sidebarWidth);
         $('div.dragbar').css('left', cache.sidebarWidth);
         $('#frame').fadeIn();
@@ -983,40 +1059,45 @@ function ctor_structure()
   };
   // Display or hide the sidebar:
   self.displaySidebar = function(display) {
-    cache.displaySidebar = display;
+    cache.set('displaySidebar', display);
     var $headTabs = $('#head div.h-tabs');
     var $leftArea = $('#left');
     var $dragbar = $('.dragbar');
+    var $hTools = $('#head div.h-tools.visible');
     var hide = {width: 0, visibility: "hidden"};
     var show = {width: cache.sidebarWidth, visibility: "visible"};
     if (display) {
       $headTabs.css(show);
       $leftArea.css(show);
       $dragbar.show().css('left', cache.sidebarWidth);
-      $('input', $leftArea).focus();
+      $('.input input', $leftArea).focus();
+      if(isPhone)
+        $hTools.hide();
     }
     else {
       $headTabs.css(hide);
       $leftArea.css(hide);
       $dragbar.hide();
+      if(isPhone)
+        $hTools.show();
     }
     $leftArea.focus();
   };
   // Show the specified tab:
   self.showTab = function(pos) {
-    cache.clickTab = pos;
+    cache.set('clickTab', pos);
     var $t = $('#head div.h-tabs li');
     var $s = $('#left > div');
     $t.removeClass('selected')
       .eq(pos).addClass('selected');
     $s.css("visibility", "hidden")
       .eq(pos).css("visibility", "inherit")
-      .find('input').focus();
+      .find('.input input').focus();
   };
   // Save cache before leaving site:
   self.saveCacheBeforeLeaving = function() {
     $(window).on('beforeunload', function() {
-      cache.RightIsFocused = $(document.activeElement).closest('#right, #left > div.toc').length;
+      cache.set('RightIsFocused', $(document.activeElement).closest('#right, #left > div.toc').length);
       cache.save();
     });
   }
@@ -1035,7 +1116,7 @@ function ctor_structure()
       if (cache.RightIsFocused)
         $('#frame').length ? $('#frame')[0].contentWindow.focus() : $('#right').focus();
       else
-        $('#left').find('input').focus();
+        $('#left').find('.input input').focus();
     });
   }
   // Scroll to right position:
@@ -1119,14 +1200,13 @@ function ctor_structure()
   // Open new site:
   self.openSite = function(url) {
     if (isFrameCapable) {
-      postMessageToFrame('updateCache', [{LastUsedSource: cache.LastUsedSource, search: {input: cache.search.input}, toc: {clickItem: cache.toc.clickItem}}]);
       document.getElementById('frame').contentWindow.location.href = url;
       if (isPhone)
         setTimeout(function() { self.displaySidebar(false); }, 200);
     }
     else {
       if (isPhone) {
-        cache.displaySidebar = false;
+        cache.set('displaySidebar', false);
         setTimeout(function() {
           self.displaySidebar(false);
           if (location.hash)
@@ -1136,6 +1216,28 @@ function ctor_structure()
       window.location = url;
     }
   }
+
+  self.changeTheme = function() {
+    if($('#dark-theme').length) {
+      cache.set('colorTheme', 0);
+      $('#dark-theme').remove();
+      return;
+    }
+    cache.set('colorTheme', 1);
+    var style = document.createElement('style');
+    style.type = 'text/css';
+    style.id = 'dark-theme';
+    if(isIE) {
+      var css = ':before { content:""; position:fixed; top:50%; left:50%; z-index:9999; width:0; height:0; outline:2999px solid invert }';
+      if(isIE8)
+        style.styleSheet.cssText = '#head' + css + '\n#head { z-index:1000 }';
+      else
+        style.innerHTML = '#body' + css;
+    }
+    else
+      style.innerHTML = '#body { filter:invert(90%); }\nhtml { background:#191919 }';
+    $('head').append(style);
+  };
 }
 
 // --- Modify elements provided by the HTML site ---
@@ -1143,16 +1245,6 @@ function ctor_structure()
 function addFeatures()
 {
   var content = document.querySelectorAll('#right .area, #right body')[0];
-
-  // --- Highlight search words with jQuery Highlight plugin ---
-
-  if (cache.LastUsedSource == "search") {
-    cache.LastUsedSource = "";
-    var qry = search.convertToArray(cache.search.input);
-    for (var i = 0; i < qry.length; i++) {
-      $(content).highlight(qry[i]);
-    }
-  }
 
   // --- Responsive tables (mobile) ---
 
@@ -1204,6 +1296,9 @@ function addFeatures()
         // If anchor exist already, use unique anchor, else use anchor:
         id = (document.getElementById(text)) ? (text + '_' + i) : text;
         h.setAttribute('id', id);
+        // Jump to the head line if the user hasn't scrolled the page yet:
+        if(id == location.hash.substr(1) && !$("html, body").scrollTop())
+          h.scrollIntoView();
       }
       var headLink = '<a class="headLink" href="#' + id + '">';
       var innerHTML = h.innerHTML;
@@ -1328,10 +1423,10 @@ function addFeatures()
 
   // Syntax highlighting:
   if (!isIE8) {
-    if (cache.index.data) {
+    if (cache.index_data) {
         addSyntaxColors(pres);
     } else {
-      loadScript(index.dataPath, function() { cache.index.data = indexData; addSyntaxColors(pres); });
+      loadScript(index.dataPath, function() { cache.set('index_data', indexData); addSyntaxColors(pres); });
     }
   }
   function addSyntaxColors(pres) {
@@ -1347,10 +1442,10 @@ function addFeatures()
         6 - command
     */
     var syntax = [[], [], [], [], [], [], []], dict = {};
-    for(var i = 0; i < cache.index.data.length; i++) {
-      var entry = cache.index.data[i][0];
-      var path = cache.index.data[i][1];
-      var type = cache.index.data[i][2];
+    for(var i = 0; i < cache.index_data.length; i++) {
+      var entry = cache.index_data[i][0];
+      var path = cache.index_data[i][1];
+      var type = cache.index_data[i][2];
       if (typeof type !== 'undefined') {
         if (type == 2 && entry.substr(entry.length - 2) == '()')
           entry = entry.substr(0, entry.length - 2);
@@ -1443,7 +1538,7 @@ function addFeatures()
       if (isLink) {
         var a = document.createElement('a');
         if (isLink == true)
-          a.href = scriptDir + '/../' + cache.index.data[dict[match.toLowerCase()]][1];
+          a.href = scriptDir + '/../' + cache.index_data[dict[match.toLowerCase()]][1];
         else
           a.href = scriptDir + '/../' + isLink;
         a.innerHTML = match;
@@ -1488,6 +1583,11 @@ function addFeatures()
 
   if (supportsHistory && history.state)
     document.getElementById('right').scrollTop = history.state.scrollTop;
+
+  // --- Highlight search words with jQuery Highlight plugin ---
+
+  if (cache.search_highlightWords && cache.clickTab == 2)
+    search.highlightWords(cache.search_input);
 }
 
 // --- Get the working directory of the site ---

@@ -5,9 +5,9 @@ translateData = {
   "Type in the keyword to find:":true,
   "Search":true,
   "Type in the word(s) to search for:":true,
+  "Highlight the words":true,
   // header
   "Hide/Show sidebar":true,
-  "Open Settings":true,
   "Home page":true,
   "en":true,
   "Change language":true,
@@ -19,6 +19,8 @@ translateData = {
   "Go forward":true,
   "Change font size":true,
   "Print current document":true,
+  "Open Settings":true,
+  "Change to dark/light theme":true,
   // ALT+... shortcuts (needs uppercase)
   "C":true,
   "N":true,
