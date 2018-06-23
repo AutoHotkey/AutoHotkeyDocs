@@ -1287,7 +1287,7 @@ function addFeatures()
     for(var i = 0; i < hs.length; i++) {
       var h = hs[i];
       var id = h.getAttribute('id');
-      h.className = "headLine"; // Apply extra CSS.
+      h.className = h.className + " headLine"; // Apply extra CSS.
       if(!id) // If head line doesn't have anchor...
       {
         var text = h.textContent || h.innerText;
