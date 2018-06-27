@@ -1,0 +1,76 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<title>WinGetControls</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<link href="../static/theme.css" rel="stylesheet" type="text/css" />
+<script src="../static/content.js" type="text/javascript"></script>
+</head>
+<body>
+
+<h1>WinGetControls</h1>
+
+<p>Returns the control names for all controls in the specified window.</p>
+
+<pre class="Syntax">Controls := <span class="func">WinGetControls</span>(<span class="optional">WinTitle, WinText, ExcludeTitle, ExcludeText</span>)</pre>
+
+<h3>Parameters</h3>
+<dl>
+    <dt>WinTitle</dt>
+    <dd>A window title or other criteria identifying the target window. See <a href="../misc/WinTitle.htm">WinTitle</a>.</dd>
+    <dt>WinText</dt>
+    <dd>If present, this parameter must be a substring from a single text element of the target window (as revealed by the included Window Spy utility). Hidden text elements are detected if <a href="DetectHiddenText.htm">DetectHiddenText</a> is ON.</dd>
+    <dt>ExcludeTitle</dt>
+    <dd>Windows whose titles include this value will not be considered.</dd>
+    <dt>ExcludeText</dt>
+    <dd>Windows whose text include this value will not be considered.</dd>
+</dl>
+
+<h3>Return Value</h3>
+<p>This function returns an <a href="../Objects.htm#Usage_Simple_Arrays">array</a> containing the control names for all controls in the specified window. Each name of a control consists of its class name followed immediately by its sequence number (ClassNN), as shown by Window Spy. If there is no matching window, an empty string is returned.</p>
+<p>For example, if the return value is assigned to a variable named <code>Controls</code> and two controls are present, <code>Controls[1]</code> contains the name of the first control, <code>Controls[2]</code> contains the name of the second control, and <code>Controls.<a href="../objects/Object.htm#Count">Count</a>()</code> returns the number 2.</p>
+<p>Controls are sorted according to their Z-order, which is usually the same order as the navigation order via <kbd>Tab</kbd> key if the window supports tabbing.</p>
+
+<h3>Remarks</h3>
+<p>The ID of the window or control under the mouse cursor can be retrieved with <a href="MouseGetPos.htm">MouseGetPos</a>.</p>
+<p>Window titles and text are case sensitive. Hidden windows are not detected unless <a href="DetectHiddenWindows.htm">DetectHiddenWindows</a> has been turned on.</p>
+
+<h3>Related</h3>
+<p><a href="WinGetControlsHwnd.htm">WinGetControlsHwnd</a>, <a href="Win.htm">Win functions</a>, <a href="Control.htm">Control functions</a></p>
+
+<h3>Examples</h3>
+
+<h4 id="ex1">Example #1</h4>
+<p>Extract the individual control names from the active window's control list:</p>
+<pre class="NoIndent">for n, ctrl in WinGetControls("A")
+{
+    Result := MsgBox("Control #" n " is '" ctrl "'. Continue?",, 4)
+    if (Result = "No")
+        break
+}</pre>
+
+<h4 id="ex2">Example #2</h4>
+<p>Display in real time the active window's control list:</p>
+<pre class="NoIndent">SetTimer "WatchActiveWindow", 200
+
+WatchActiveWindow() {
+    ControlList := ""
+    Controls := WinGetControls("A")
+    if !Controls {
+        ToolTip "No visible window is active."
+        return
+    }
+    if !Controls.Count() {
+        ToolTip "The active window has no controls."
+        return
+    }
+    Loop Controls.Count()
+        ControlList .= Controls[A_Index] . "`n"
+    ToolTip ControlList
+}</pre>
+
+
+
+</body>
+</html>
