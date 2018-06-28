@@ -267,9 +267,13 @@ tocData = [
     ["GuiControl Object","objects/GuiControl.htm"],
     ["RegExMatch Object","commands/RegExMatch.htm#MatchObject"],
   ]],
-  ["Process","",
+  ["Process","commands/Process.htm",
   [
-    ["Process","commands/Process.htm"],
+    ["ProcessClose","commands/ProcessClose.htm"],
+    ["ProcessExist","commands/ProcessExist.htm"],
+    ["ProcessSetPriority","commands/ProcessSetPriority.htm"],
+    ["ProcessWait","commands/ProcessWait.htm"],
+    ["ProcessWaitClose","commands/ProcessWaitClose.htm"],
     ["Run[Wait]","commands/Run.htm"],
     ["RunAs","commands/RunAs.htm"],
     ["Shutdown","commands/Shutdown.htm"]
