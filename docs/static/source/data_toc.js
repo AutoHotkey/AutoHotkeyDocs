@@ -186,6 +186,14 @@ tocData = [
     ["Sin/Cos/Tan","commands/Math.htm#Sin"],
     ["ASin/ACos/ATan","commands/Math.htm#ASin"]
   ]],
+  ["Monitor","commands/Monitor.htm",
+  [
+    ["MonitorGet","commands/MonitorGet.htm"],
+    ["MonitorGetCount","commands/MonitorGetCount.htm"],
+    ["MonitorGetName","commands/MonitorGetName.htm"],
+    ["MonitorGetPrimary","commands/MonitorGetPrimary.htm"],
+    ["MonitorGetWorkArea","commands/MonitorGetWorkArea.htm"]
+  ]],
   ["Mouse and Keyboard","",
   [
     ["Hotkeys and Hotstrings","Hotkeys.htm",
@@ -286,10 +294,9 @@ tocData = [
     ["RegWrite","commands/RegWrite.htm"],
     ["SetRegView","commands/SetRegView.htm"]
   ]],
-  ["Screen and Monitor","",
+  ["Screen","",
   [
     ["ImageSearch","commands/ImageSearch.htm"],
-    ["MonitorGet","commands/MonitorGet.htm"],
     ["PixelGetColor","commands/PixelGetColor.htm"],
     ["PixelSearch","commands/PixelSearch.htm"]
   ]],
