@@ -30,6 +30,22 @@ tocData = [
   ["Script Showcase","scripts/index.htm"],
   ["Script Compatibility","Compat.htm"],
   ["Function Index","commands/index.htm"],
+  ["Drive", "commands/Drive.htm",
+  [
+    ["DriveEject", "commands/DriveEject.htm"],
+    ["DriveGetCapacity", "commands/DriveGetCapacity.htm"],
+    ["DriveGetFileSystem", "commands/DriveGetFileSystem.htm"],
+    ["DriveGetLabel", "commands/DriveGetLabel.htm"],
+    ["DriveGetList", "commands/DriveGetList.htm"],
+    ["DriveGetSerial", "commands/DriveGetSerial.htm"],
+    ["DriveGetSpaceFree", "commands/DriveGetSpaceFree.htm"],
+    ["DriveGetStatus", "commands/DriveGetStatus.htm"],
+    ["DriveGetStatusCD", "commands/DriveGetStatusCD.htm"],
+    ["DriveLock", "commands/DriveLock.htm"],
+    ["DriveSetLabel", "commands/DriveSetLabel.htm"],
+    ["DriveUnlock", "commands/DriveUnlock.htm"],
+    ["DriveGetType", "commands/DriveGetType.htm"]
+  ]],
   ["Environment","",
   [
     ["ClipWait","commands/ClipWait.htm"],
@@ -62,10 +78,8 @@ tocData = [
       ["ObjAddRef / ObjRelease","commands/ObjAddRef.htm"]
     ]]
   ]],
-  ["File, Directory and Disk","",
+  ["File and Directory","",
   [
-    ["Drive..","commands/Drive.htm"],
-    ["DriveGet..","commands/DriveGet.htm"],
     ["DirCopy","commands/DirCopy.htm"],
     ["DirCreate","commands/DirCreate.htm"],
     ["DirDelete","commands/DirDelete.htm"],
