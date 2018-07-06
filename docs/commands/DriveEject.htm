@@ -1,0 +1,76 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<title>DriveEject</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<link href="../static/theme.css" rel="stylesheet" type="text/css" />
+<script src="../static/content.js" type="text/javascript"></script>
+</head>
+<body>
+
+<h1>DriveEject</h1>
+
+<p>Ejects or retracts the tray of the specified CD/DVD drive.</p>
+
+<pre class="Syntax"><span class="func">DriveEject</span> <span class="optional">, Drive, Retract := false</span></pre>
+
+<h3>Parameters</h3>
+<dl>
+    <dt>Drive</dt>
+    <dd>The drive letter followed by a colon and an optional backslash (might also work on UNC paths and mapped drives). If omitted, the default CD/DVD drive will be used.</dd>
+    <dt>Retract</dt>
+    <dd>Specify <em>true</em> to retract/close the tray. Specify <em>false</em> or omit this parameter to eject/open the tray.</dd>
+</dl>
+
+<h3>Return Value</h3>
+<p>This function returns 1 (true) to indicate success or 0 (false) to indicate failure.</p>
+
+<h3>ErrorLevel</h3>
+<p><a href="../misc/ErrorLevel.htm">ErrorLevel</a> is set to 1 if there was a problem or 0 otherwise. If the tray is already in the correct state (open or closed), <a href="../misc/ErrorLevel.htm">ErrorLevel</a> is set to 0.</p>
+
+<h3>Remarks</h3>
+<p>This function waits for the ejection or retraction to complete before allowing the script to continue.</p>
+<p>This function will probably not work on a network drive or non-CD/DVD drive. If it fails in such cases or for any other reason, <a href="../misc/ErrorLevel.htm">ErrorLevel</a> is set to 1. To eject other types of media or devices, see the <a href="#ex2">DllCall example</a> at the bottom of this page.</p>
+<p>It may be possible to detect the previous tray state by measuring the time the function takes to complete. For example, the following hotkey toggles the tray to the opposite state (open or closed):</p>
+<pre>#c::
+DriveEject()
+<em>; If the function completed quickly, the tray was probably already ejected.
+; In that case, retract it:</em>
+if (A_TimeSinceThisHotkey &lt; 1000)  <em>; Adjust this time if needed.</em>
+    DriveEject(, true)
+return</pre>
+
+<h3>Related</h3>
+<p><a href="DriveGetStatusCD.htm">DriveGetStatusCD</a>, <a href="Drive.htm">Drive functions</a></p>
+
+<h3>Examples</h3>
+
+<h4 id="ex1">Example #1</h4>
+<p>Retracts (closes) the tray of the default CD/DVD drive:</p>
+<pre class="NoIndent">DriveEject(, true)</pre>
+
+<h4 id="ex2">Example #2</h4>
+<p>This is an alternate ejection method that also works on types of media/devices other than CD/DVD. Update the first line below to match the desired drive letter (you can ignore all the other lines below):</p>
+<pre class="NoIndent">DriveLetter := "I:"  <em>; Set this to the drive letter you wish to eject.</em>
+
+hVolume := DllCall("CreateFile"
+    , Str, "\\.\" . DriveLetter
+    , UInt, 0x80000000 | 0x40000000  <em>; GENERIC_READ | GENERIC_WRITE</em>
+    , UInt, 0x1 | 0x2  <em>; FILE_SHARE_READ | FILE_SHARE_WRITE</em>
+    , UInt, 0
+    , UInt, 0x3  <em>; OPEN_EXISTING</em>
+    , UInt, 0, UInt, 0)
+if (hVolume &lt;&gt; -1)
+{
+    DllCall("DeviceIoControl"
+        , UInt, hVolume
+        , UInt, 0x2D4808   <em>; IOCTL_STORAGE_EJECT_MEDIA</em>
+        , UInt, 0, UInt, 0, UInt, 0, UInt, 0
+        , UIntP, dwBytesReturned  <em>; Unused.</em>
+        , UInt, 0)
+    DllCall("CloseHandle", UInt, hVolume)
+}</pre>
+
+</body>
+</html>

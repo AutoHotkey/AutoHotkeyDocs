@@ -1,0 +1,88 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<title>ProcessSetPriority</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<link href="../static/theme.css" rel="stylesheet" type="text/css" />
+<script src="../static/content.js" type="text/javascript"></script>
+</head>
+<body>
+
+<h1>ProcessSetPriority</h1>
+
+<p>Changes the priority level of the first matching process.</p>
+
+<pre class="Syntax"><span class="func">ProcessSetPriority</span> Level <span class="optional">, PIDOrName</span></pre>
+
+<h3>Parameters</h3>
+<dl>
+    <dt>Level</dt>
+    <dd>
+        <p>Specify one of the following words or letters:</p>
+        <ul>
+            <li>Low (or L)</li>
+            <li>BelowNormal (or B)</li>
+            <li>Normal (or N)</li>
+            <li>AboveNormal (or A)</li>
+            <li>High (or H)</li>
+            <li>Realtime (or R)</li>
+        </ul>
+        <p>Note that any process not designed to run at Realtime priority might reduce system stability if set to that level.</p>
+    </dd>
+    <dt>PIDOrName</dt>
+    <dd>
+        <p>If blank or omitted, the script's own process is used. Otherwise, specify either a number (the PID) or a process name:</p>
+        <p><strong>PID:</strong> The Process ID, which is a number that uniquely identifies one specific process (this number is valid only during the lifetime of that process). The PID of a newly launched process can be determined via the <a href="Run.htm">Run</a> function. Similarly, the PID of a window can be determined with <a href="WinGetPID.htm">WinGetPID</a>. <a href="ProcessExist.htm">ProcessExist</a> can also be used to discover a PID.</p>
+        <p><strong>Name:</strong> The name of a process is usually the same as its executable (without path), e.g. notepad.exe or winword.exe. Since a name might match multiple running processes, only the first process will be operated upon. The name is not case sensitive.</p>
+    </dd>
+</dl>
+
+<h3>Return Value</h3>
+<p>This function returns an integer representing the <a href="../misc/WinTitle.htm#ahk_pid">Process ID (PID)</a> of the specified process. If a matching process is not found or cannot be manipulated, zero is returned.</p>
+
+<h3>Remarks</h3>
+<p>The current priority level of a process can be seen in the Windows Task Manager.</p>
+
+<h3>Related</h3>
+<p><a href="Run.htm">Run</a>, <a href="Process.htm">Process functions</a>, <a href="Win.htm">Win functions</a></p>
+
+<h3>Examples</h3>
+
+<h4 id="ex1">Example #1</h4>
+<p>Launches Notepad, sets its priority to "High" and shows its current PID:</p>
+<pre class="NoIndent">Run "notepad.exe", , , NewPID
+ProcessSetPriority "High", NewPID
+MsgBox "The newly launched Notepad's PID is " NewPID</pre>
+
+<h4 id="ex2">Example #2</h4>
+<p>A hotkey to change the priority of the active window's process:</p>
+<pre class="NoIndent">#z:: <em>; Win+Z hotkey</em>
+Gui := GuiCreate(, "Set Priority")
+Gui.Add("Text",, "
+(
+    Press ESCAPE to cancel, or double-click a new
+    priority level for the following window:
+)")
+Gui.Add("Text", "wp", WinGetTitle("A"))
+LB := Gui.Add("ListBox", "r5 vLB", "Normal||High|Low|BelowNormal|AboveNormal")
+SetPriority := Func("SetPriority").bind(WinGetPID("A"))
+LB.OnEvent("DoubleClick", SetPriority)
+Gui.Add("Button", "default", "OK").OnEvent("Click", SetPriority)
+Gui.OnEvent("Escape", () =&gt; Gui.Destroy())
+Gui.OnEvent("Close", () =&gt; Gui.Destroy())
+Gui.Show()
+return
+
+SetPriority(this, PID)
+{
+    LB := this.Gui.Control["LB"]
+    if ProcessSetPriority(LB.Text, PID)
+        MsgBox "Success: Its priority was changed to '" LB.Text "'."
+    else
+        MsgBox "Error: Its priority could not be changed to '" LB.Text "'."
+    WinClose()
+}</pre>
+
+</body>
+</html>
