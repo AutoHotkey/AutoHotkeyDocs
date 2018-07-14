@@ -1290,15 +1290,22 @@ function addFeatures()
       h.className = h.className + " headLine"; // Apply extra CSS.
       if(!id) // If head line doesn't have anchor...
       {
-        var text = h.textContent || h.innerText;
-        var text = text.replace(/\s/g, '_'); // replace spaces with _
-        var text = text.replace(/[():.,;'#\[\]\/{}&="|?!]/g, ''); // remove special chars
-        // If anchor exist already, use unique anchor, else use anchor:
-        id = (document.getElementById(text)) ? (text + '_' + i) : text;
-        h.setAttribute('id', id);
-        // Jump to the head line if the user hasn't scrolled the page yet:
-        if(id == location.hash.substr(1) && !$("html, body").scrollTop())
-          h.scrollIntoView();
+        // As first child, try to use the id of its parent such as .methodShort:
+        if (h.parentNode != content && h.parentNode.getAttribute('id') && !$(h).prev().length)
+          id = h.parentNode.getAttribute('id');
+        // Otherwise, generate an id:
+        else
+        {
+          var text = h.textContent || h.innerText;
+          var text = text.replace(/\s/g, '_'); // replace spaces with _
+          var text = text.replace(/[():.,;'#\[\]\/{}&="|?!]/g, ''); // remove special chars
+          // If anchor exist already, use unique anchor, else use anchor:
+          id = (document.getElementById(text)) ? (text + '_' + i) : text;
+          h.setAttribute('id', id);
+          // Jump to the head line if the user hasn't scrolled the page yet:
+          if(id == location.hash.substr(1) && !$("html, body").scrollTop())
+            h.scrollIntoView();
+        }
       }
       var headLink = '<a class="headLink" href="#' + id + '">';
       var innerHTML = h.innerHTML;
