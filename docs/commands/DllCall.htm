@@ -1,7 +1,8 @@
 <!DOCTYPE HTML>
-<html>
+<html lang="en">
 <head>
-<title>DllCall</title>
+<title>DllCall - Syntax &amp; Usage | AutoHotkey</title>
+<meta name="description" content="The DllCall function calls a function inside a DLL, such as a standard Windows API function." />
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <link href="../static/theme.css" rel="stylesheet" type="text/css" />
@@ -14,7 +15,7 @@
 <p>Calls a function inside a DLL, such as a standard Windows API function.</p>
 
 <pre class="Syntax">Result := <span class="func">DllCall</span>("<span class="optional">DllFile\</span>Function" <span class="optional">, Type1, Arg1, Type2, Arg2, "Cdecl ReturnType"</span>)</pre>
-<h3>Parameters</h3>
+<h2>Parameters</h2>
 <dl>
 
   <dt>Result</dt>
@@ -38,7 +39,7 @@
 
 </dl>
 
-<h3 id="types">Types of Arguments and Return Values</h3>
+<h2 id="types">Types of Arguments and Return Values</h2>
 <table class="info">
 <tr id="str">
 <td>Str</td>
@@ -117,7 +118,7 @@ DllCall("DeleteFile", Ptr, &amp;filename) <em>; Omit the quote marks around Ptr.
 </table>
 <p class="note"><strong>Note</strong>: When specifying an argument type or return type that does not contain a space or asterisk, the quotes around it may be omitted. For example, <code>Str</code> can be used in place of <code>&quot;Str&quot;</code> and <code>CDecl</code> in place of <code>&quot;CDecl&quot;</code>. In addition, the letter P may be used in place of asterisk to allow the quotes to be omitted there as well. For example: <code>UIntP</code>.</p>
 
-<h3 id="error">Errors</h3>
+<h2 id="error">Errors</h2>
 <p>DllCall throws an <a href="Catch.htm#RuntimeErrors">exception</a> under any of the following conditions:</p>
 <ul>
   <li>The <em>[DllFile\]Function</em> parameter is a floating point number. A string or positive integer is required.</li>
@@ -128,11 +129,11 @@ DllCall("DeleteFile", Ptr, &amp;filename) <em>; Omit the quote marks around Ptr.
   <li>The function was called but was passed too many or too few arguments. <code>Exception.Extra</code> contains the number of bytes by which the argument list was incorrect. If it is positive, too many arguments (or arguments that were too large) were passed, or the call requires <a href="#cdecl">CDecl</a>. If it is negative, too few arguments were passed. This situation should be corrected to ensure reliable operation of the function. The presence of this error may also indicate that an exception occurred. Note that due to the x64 calling convention, 64-bit builds never raise this error.</li>
 </ul>
 
-<h3 id="except">Exceptions and A_LastError</h3>
+<h2 id="except">Exceptions and A_LastError</h2>
 <p>In spite of the built-in exception handling, it is still possible to crash a script with DllCall. This can happen when a function does not directly generate an exception but yields something inappropriate, such as a bad pointer or a string that is not terminated. This might not be the function's fault if the script passed it an unsuitable value such as a bad pointer or a <a href="#str">&quot;str&quot;</a> with insufficient capacity. A script can also crash when it specifies an inappropriate argument type or return type, such as claiming that an ordinary integer yielded by a function is an <a href="#asterisk">asterisk variable</a> or <a href="#str">str</a>.</p>
 <p>The built-in variable <a href="../Variables.htm#LastError">A_LastError</a> contains the result of the operating system's GetLastError() function.</p>
 
-<h3 id="load">Performance</h3>
+<h2 id="load">Performance</h2>
 <p>When making repeated calls to a DLL, performance can be dramatically improved by loading it explicitly (<em>this is not necessary for a <a href="#std">standard DLL</a> such as User32 because it is always resident</em>). This practice avoids the need for DllCall to internally call LoadLibrary and FreeLibrary each time. For example:</p>
 <pre>hModule := DllCall(&quot;<strong>LoadLibrary</strong>&quot;, &quot;Str&quot;, &quot;MyFunctions.dll&quot;, &quot;Ptr&quot;)  <em>; Avoids the need for DllCall in the loop to load the library.</em>
 Loop Files, "C:\My Documents\*.*", "R"
@@ -146,7 +147,7 @@ Loop 500
 <p>If DllCall's first parameter is a literal string such as <code>"MulDiv"</code> and the DLL containing the function is ordinarily loaded before the script starts, the string is automatically resolved to a function address. This built-in optimization is more effective than the example shown above.</p>
 <p>Finally, when passing a string-variable to a function that will not change the length of the string, performance is improved by passing the variable <a href="../Variables.htm#amp">by address</a> (e.g. &amp;MyVar) rather than as a &quot;<a href="#str">str</a>&quot; (especially when the string is very long). The following example converts a string to uppercase: <code>DllCall(&quot;CharUpper&quot;, <strong>Ptr</strong>, <strong>&amp;</strong>MyVar, Ptr)</code>.</p>
 
-<h3 id="struct">Structures and Arrays</h3>
+<h2 id="struct">Structures and Arrays</h2>
 <p>A structure is a collection of <em>members</em> (fields) stored adjacently in memory. Most members tend to be integers.</p>
 <p>Functions that accept the address of a structure (or a memory-block array) can be called by storing the structure's raw binary data in a normal variable. The following steps are generally used:</p>
 <p>1) Call <code><a href="VarSetCapacity.htm">VarSetCapacity</a>(MyStruct, 123, 0)</code> to ensure that the target variable is large enough to hold the structure's data. Replace 123 with a number that is at least as large as the size of the structure. Specifying zero as the last parameter is optional; it initializes all members to be binary zero, which is typically used to avoid calling NumPut as often in the next step.</p>
@@ -154,7 +155,7 @@ Loop 500
 <p>3) Call the target function, passing the <a href="../Variables.htm#amp">address</a> of <em>MyStruct</em> as a UInt or Ptr argument. For example, <code>DllCall(&quot;MyDll\MyFunc&quot;, Ptr, <strong>&amp;</strong>MyStruct)</code>. The function will examine and/or change some of the members.</p>
 <p>4) Use <code>MyInteger := <a href="NumGet.htm">NumGet</a>(MyStruct, 4, "UInt")</code> to retrieve any desired integers from the structure. Replace <code>4</code> with the offset of the target member in the structure. The first member is always at offset 0. The second member is at offset 0 plus the size of the first member (typically 4). Members beyond the second are at the offset of the previous member plus the size of the previous member. Most members -- such as DWORD, Int, and <a href="#Int">other types of 32-bit integers</a> -- are 4 bytes in size. Replace <code>"UInt"</code> with the appropriate type or omit it if the member is a pointer or handle.</p>
 <p>See <a href="#ExStruct">Structure Examples</a> for actual usages.</p>
-<h3 id="limits">Known Limitations</h3>
+<h2 id="limits">Known Limitations</h2>
 <p>When a <a href="../Variables.htm#amp">variable's address</a> (e.g. <code>&amp;MyVar</code>) is passed to a function and that function alters the length of the variable's contents, subsequent uses of the variable may behave incorrectly. To fix this, do one of the following: 1) Pass MyVar as a <a href="#str">&quot;Str&quot;</a> argument rather than as a Ptr/address; 2) Call <code><a href="VarSetCapacity.htm#neg1">VarSetCapacity</a>(MyVar, -1)</code> to update the variable's internally-stored length after calling DllCall.</p>
 <p>Any binary zero stored in a variable by a function hides all data to the right of the zero; that is, such data cannot be accessed or changed by most built-in functions. However, such data can be manipulated by the <a href="../Variables.htm#amp">address operator</a> and <a href="NumPut.htm">NumPut</a>/<a href="NumGet.htm">NumGet</a>, as well as DllCall itself.</p>
 <p>A function that returns the address of one of the strings that was passed into it might return an identical string in a different memory address than expected. For example calling <code>CharLower(CharUpper(MyVar))</code> in a programming language would convert <em>MyVar</em>'s contents to lowercase. But when the same is done with DllCall, <em>MyVar</em> would be uppercase after the following call because CharLower would have operated on a different/temporary string whose contents were identical to <em>MyVar</em>:</p>
@@ -162,15 +163,15 @@ Loop 500
 result := DllCall(&quot;CharLower&quot;, <strong><u>str</u></strong>, DllCall(&quot;CharUpper&quot;, Str, MyVar, <strong><u>Str</u></strong>), Str)</pre>
 <p>To work around this, change the two underlined &quot;Str&quot; values above to Ptr. This interprets CharUpper's return value as a pure address that will get passed as an integer to CharLower.</p>
 <p>Certain limitations may be encountered when dealing with strings. For details, see <a href="../Compat.htm#DllCall">Script Compatibility</a>.</p>
-<h3 id="COM">Component Object Model (COM)</h3>
+<h2 id="COM">Component Object Model (COM)</h2>
 <p>COM objects which are accessible to VBScript and similar languages are typically also accessible to AutoHotkey via <a href="ComObjCreate.htm">ComObjCreate</a>, <a href="ComObjGet.htm">ComObjGet</a> or <a href="ComObjActive.htm">ComObjActive</a> and the built-in <a href="../Objects.htm#Usage_Objects">object syntax</a>.</p>
 <p>COM objects which don't support <a href="http://msdn.microsoft.com/en-us/library/ms221608.aspx">IDispatch</a> can be used with DllCall by retrieving the address of a function from the virtual function table of the object's interface. For more details, see <a href="#ExTaskbar">the example</a> further below.</p>
 <p>Much of the .NET Framework is also accessible via COM and DllCall. See <a href="http://www.autohotkey.com/forum/topic26191.html">.NET Framework Interop</a>.
 </p>
 
-<h3>Related</h3>
+<h2>Related</h2>
 <p><a href="../Compat.htm#DllCall">Script Compatibility</a>, <a href="PostMessage.htm">PostMessage</a>, <a href="OnMessage.htm">OnMessage</a>, <a href="CallbackCreate.htm">CallbackCreate</a>, <a href="Run.htm">Run</a>, <a href="VarSetCapacity.htm">VarSetCapacity</a>, <a href="../Functions.htm">Functions</a>, <a href="SysGet.htm">SysGet</a>, <a href="http://msdn.microsoft.com/library/">MSDN Library</a></p>
-<h3>Examples</h3>
+<h2>Examples</h2>
 <pre class="NoIndent"><em>; Example: Calls the Windows API function &quot;MessageBox&quot; and report which button the user presses.</em>
 
 WhichButton := DllCall(&quot;MessageBox&quot;, &quot;Int&quot;, &quot;0&quot;, &quot;Str&quot;, &quot;Press Yes or No&quot;, &quot;Str&quot;, &quot;Title of box&quot;, &quot;Int&quot;, 4)
