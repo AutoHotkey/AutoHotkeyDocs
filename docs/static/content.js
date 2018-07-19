@@ -421,7 +421,7 @@ function ctor_index()
     // --- Hook up events ---
 
     // Select closest index entry and show color indicator on input:
-    $indexInput.on('keyup', function() { // keyup instead of input due IE8.
+    $indexInput.on('keyup input', function(e) {
       var $this = $(this);
       var input = cache.set('index_input', $this.val().toLowerCase());
       // if no input, remove color indicator and return:
@@ -429,6 +429,9 @@ function ctor_index()
         $this.removeAttr('class');
         return;
       }
+      // Skip subsequent lines if no keyup event to prevent double execution:
+      if (e.type != "keyup")
+        return;
       // Otherwise find the first item which matches the input value:
       var indexListChildren = $indexList.children();
       var match = self.findMatch(indexListChildren, input);
@@ -484,7 +487,7 @@ function ctor_search()
     // --- Hook up events ---
 
     // Refresh the search list and show color indicator on input:
-    $searchInput.on('keyup', function() { // keyup instead of input due IE8.
+    $searchInput.on('keyup input', function(e) {
       var $this = $(this);
       var input = cache.set('search_input', $this.val());
       // if no input, empty the search list, remove color indicator and return:
@@ -493,6 +496,9 @@ function ctor_search()
         $this.removeAttr('class');
         return;
       }
+      // Skip subsequent lines if no keyup event to prevent double execution:
+      if (e.type != "keyup")
+        return;
       // Otherwise fill the search list:
       cache.set('search_data', self.create(input));
       $searchList.html(cache.search_data);
@@ -745,7 +751,7 @@ function ctor_structure()
   self.metaViewport = '<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">';
   self.template = '<div id="body">' +
   '<div id="head"><div class="h-area"><div class="h-tabs"><ul><li data-translate data-content="Content"></li><li data-translate data-content="Index"></li><li data-translate data-content="Search"></li></ul></div><div class="h-tools sidebar"><ul><li class="sidebar" title="Hide/Show sidebar" data-translate>&#926;</li></ul></div><div class="h-tools online"><ul><li class="home" title="Home page" data-translate><a href="' + location.protocol + '//' + location.host + '">&#916;</a></li><li class="language" title="Change language" data-translate data-content="en"><ul class="dropdown languages selected"><li><a title="English" data-content="en"></a></li><li><a title="Deutsch (German)" data-content="de"></a></li><li><a title="&#x4E2D;&#x6587; (Chinese)" data-content="zh"></a></li></ul></li><li class="version" title="Change AHK version" data-translate data-content="v1"><ul class="dropdown versions selected"><li><a title="AHK v1.1" data-content="v1"></a></li><li><a title="AHK v2.0" data-content="v2"></a></li></ul></li><li class="edit" title="Edit page on GitHub" data-translate=2><a data-content="E"></a></li></ul></div><div class="h-tools chm"><ul><li class="back" title="Go back" data-translate=2>&#9668;</li><li class="forward" title="Go forward" data-translate=2>&#9658;</li><li class="zoom" title="Change font size" data-translate=2 data-content="Z"></li><li class="print" title="Print current document" data-translate=2 data-content="P"></li></ul></div><div class="h-tools main visible"><ul><li class="color" title="Change to dark/light theme" data-translate=2 data-content="C"></li><li class="settings" title="Open settings" data-translate=2>&#1029;</li></ul></div></div></div>' +
-  '<div id="main"><div id="left"><div class="toc"></div><div class="index"><div class="input"><input type="text" placeholder="Search" data-translate=2 /></div><div class="list"></div></div><div class="search"><div class="input"><input type="text" placeholder="Search" data-translate=2 /></div><div class="checkbox"><input type="checkbox" id="highlightWords"><label for="highlightWords" data-translate>Highlight the words</label></div><div class="list"></div></div><div class="load"><div class="lds-dual-ring"></div></div></div><div class="dragbar"></div><div id="right" tabIndex="-1">'+(isFrameCapable?'<iframe frameBorder="0" id="frame" src="">':'<div class="area">');
+  '<div id="main"><div id="left"><div class="toc"></div><div class="index"><div class="input"><input type="search" placeholder="Search" data-translate=2 /></div><div class="list"></div></div><div class="search"><div class="input"><input type="search" placeholder="Search" data-translate=2 /></div><div class="checkbox"><input type="checkbox" id="highlightWords"><label for="highlightWords" data-translate>Highlight the words</label></div><div class="list"></div></div><div class="load"><div class="lds-dual-ring"></div></div></div><div class="dragbar"></div><div id="right" tabIndex="-1">'+(isFrameCapable?'<iframe frameBorder="0" id="frame" src="">':'<div class="area">');
   self.template = isIE || isEdge ? self.template.replace(/ data-content="(.*?)">/g, '>$1') : self.template;
   self.build = function() { document.write(self.template); }; // Write HTML before DOM is loaded to prevent flickering.
   self.modify = function() { // Modify elements added via build.
