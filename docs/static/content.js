@@ -745,7 +745,7 @@ function ctor_structure()
   self.metaViewport = '<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">';
   self.template = '<div id="body">' +
   '<div id="head"><div class="h-area"><div class="h-tabs"><ul><li data-translate data-content="Content"></li><li data-translate data-content="Index"></li><li data-translate data-content="Search"></li></ul></div><div class="h-tools sidebar"><ul><li class="sidebar" title="Hide/Show sidebar" data-translate>&#926;</li></ul></div><div class="h-tools online"><ul><li class="home" title="Home page" data-translate><a href="' + location.protocol + '//' + location.host + '">&#916;</a></li><li class="language" title="Change language" data-translate data-content="en"><ul class="dropdown languages selected"><li><a title="English" data-content="en"></a></li><li><a title="Deutsch (German)" data-content="de"></a></li><li><a title="&#x4E2D;&#x6587; (Chinese)" data-content="zh"></a></li></ul></li><li class="version" title="Change AHK version" data-translate data-content="v1"><ul class="dropdown versions selected"><li><a title="AHK v1.1" data-content="v1"></a></li><li><a title="AHK v2.0" data-content="v2"></a></li></ul></li><li class="edit" title="Edit page on GitHub" data-translate=2><a data-content="E"></a></li></ul></div><div class="h-tools chm"><ul><li class="back" title="Go back" data-translate=2>&#9668;</li><li class="forward" title="Go forward" data-translate=2>&#9658;</li><li class="zoom" title="Change font size" data-translate=2 data-content="Z"></li><li class="print" title="Print current document" data-translate=2 data-content="P"></li></ul></div><div class="h-tools main visible"><ul><li class="color" title="Change to dark/light theme" data-translate=2 data-content="C"></li><li class="settings" title="Open settings" data-translate=2>&#1029;</li></ul></div></div></div>' +
-  '<div id="main"><div id="left"><div class="toc"></div><div class="index"><div class="input"><input type="text" placeholder="Search" /></div><div class="list"></div></div><div class="search"><div class="input"><input type="text" placeholder="Search" /></div><div class="checkbox"><input type="checkbox" id="highlightWords"><label for="highlightWords" data-translate>Highlight the words</label></div><div class="list"></div></div><div class="load"><div class="lds-dual-ring"></div></div></div><div class="dragbar"></div><div id="right" tabIndex="-1">'+(isFrameCapable?'<iframe frameBorder="0" id="frame" src="">':'<div class="area">');
+  '<div id="main"><div id="left"><div class="toc"></div><div class="index"><div class="input"><input type="text" placeholder="Search" data-translate=2 /></div><div class="list"></div></div><div class="search"><div class="input"><input type="text" placeholder="Search" data-translate=2 /></div><div class="checkbox"><input type="checkbox" id="highlightWords"><label for="highlightWords" data-translate>Highlight the words</label></div><div class="list"></div></div><div class="load"><div class="lds-dual-ring"></div></div></div><div class="dragbar"></div><div id="right" tabIndex="-1">'+(isFrameCapable?'<iframe frameBorder="0" id="frame" src="">':'<div class="area">');
   self.template = isIE || isEdge ? self.template.replace(/ data-content="(.*?)">/g, '>$1') : self.template;
   self.build = function() { document.write(self.template); }; // Write HTML before DOM is loaded to prevent flickering.
   self.modify = function() { // Modify elements added via build.
@@ -767,12 +767,13 @@ function ctor_structure()
       self.saveScrollPosOnScroll();
     }
 
-    // --- Translate elements with data-translate attribute (value 1 for content only, 2 for tooltip only) ---
+    // --- Translate elements with data-translate attribute (value 1 for content only, 2 for attributes only) ---
 
     $('*[data-translate]', $('#head').add($('#left'))).each(function() {
       var $this = $(this);
       var elContent = $this.text();
       var attrTitleValue = $this.attr('title');
+      var attrPlaceholder = $this.attr('placeholder');
       var attrDataContentValue = $this.attr('data-content');
       var attrDataTranslateValue = $this.attr('data-translate');
       if(!attrDataTranslateValue || attrDataTranslateValue == 1)
@@ -783,8 +784,12 @@ function ctor_structure()
           $this.attr('data-content', T(attrDataContentValue));
       }
       if(!attrDataTranslateValue || attrDataTranslateValue == 2)
+      {
         if(typeof attrTitleValue !== 'undefined')
           $this.attr('title', T(attrTitleValue));
+        if (typeof attrPlaceholder !== 'undefined')
+          $this.attr('placeholder', T(attrPlaceholder));
+      }
     });
 
     // --- Show/Hide selection lists on click ---
