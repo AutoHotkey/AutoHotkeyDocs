@@ -2,9 +2,7 @@ translateData = {
   // sidebar
   "Content":true,
   "Index":true,
-  "Type in the keyword to find:":true,
   "Search":true,
-  "Type in the word(s) to search for:":true,
   "Highlight the words":true,
   // header
   "Hide/Show sidebar":true,
