@@ -2,6 +2,14 @@ translateData = {
   // sidebar
   "Content":true,
   "Index":true,
+  "Filter":true,
+  "Directives":true,
+  "Built-in Variables":true,
+  "Built-in Functions":true,
+  "Control Flow Statements":true,
+  "Declarations":true,
+  "Operators":true,
+  "Commands":true,
   "Search":true,
   "Highlight the words":true,
   // header

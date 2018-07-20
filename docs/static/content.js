@@ -32,6 +32,7 @@ var cache = {
   RightIsFocused: true,
   toc_clickItem: 0,
   toc_scrollPos: 0,
+  index_filter:-1,
   index_input: "",
   index_clickItem: 0,
   index_scrollPos: 0,
@@ -403,22 +404,37 @@ function ctor_index()
 {
   var self = this;
   self.dataPath = scriptDir + '/source/data_index.js';
-  self.create = function(input) { // Create and add the index links.
+  self.create = function(input, filter) { // Create and add the index links.
     var output = '';
     input.sort(function(a, b) {
       var textA = a[0].toLowerCase(), textB = b[0].toLowerCase()
       return textA.localeCompare(textB);
     });
     for (var i = 0, len = input.length; i < len; i++)
+    {
+      if (filter != -1 && input[i][2] != filter)
+        continue;
       output += '<a href="' + workingDir + input[i][1] + '" tabindex="-1"' + (isIE || isEdge ? '>' + input[i][0] : ' data-content="' + input[i][0] + '">') + '</a>';
+    }
     return output;
   };
   self.modify = function() { // Modify the elements of the index tab.
     var $index = $('#left div.index');
+    var $indexSelect = $('.select select', $index);
     var $indexInput = $('.input input', $index);
-    var $indexList = $('div.list', $index).html(self.create(cache.index_data));
+    var $indexList = $('div.list', $index);
 
     // --- Hook up events ---
+
+    // Filter list on change:
+    $indexSelect.on('change', function(e) {
+      cache.set('index_filter', this.value);
+      if(this.value == -1)
+        $(this).addClass('empty');
+      else
+        $(this).removeClass('empty');
+      $indexList.html(self.create(cache.index_data, this.value))
+    });
 
     // Select closest index entry and show color indicator on input:
     $indexInput.on('keyup input', function(e) {
@@ -447,6 +463,7 @@ function ctor_index()
       else
         $this.attr('class', 'mismatch'); // 'items not found'
     });
+    $indexSelect.val(cache.index_filter).trigger('change');
     self.preSelect($indexList, $indexInput);
     setTimeout( function() { self.preSelect($indexList, $indexInput); }, 0);
   };
@@ -751,7 +768,7 @@ function ctor_structure()
   self.metaViewport = '<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">';
   self.template = '<div id="body">' +
   '<div id="head"><div class="h-area"><div class="h-tabs"><ul><li data-translate data-content="Content"></li><li data-translate data-content="Index"></li><li data-translate data-content="Search"></li></ul></div><div class="h-tools sidebar"><ul><li class="sidebar" title="Hide/Show sidebar" data-translate>&#926;</li></ul></div><div class="h-tools online"><ul><li class="home" title="Home page" data-translate><a href="' + location.protocol + '//' + location.host + '">&#916;</a></li><li class="language" title="Change language" data-translate data-content="en"><ul class="dropdown languages selected"><li><a title="English" data-content="en"></a></li><li><a title="Deutsch (German)" data-content="de"></a></li><li><a title="&#x4E2D;&#x6587; (Chinese)" data-content="zh"></a></li></ul></li><li class="version" title="Change AHK version" data-translate data-content="v1"><ul class="dropdown versions selected"><li><a title="AHK v1.1" data-content="v1"></a></li><li><a title="AHK v2.0" data-content="v2"></a></li></ul></li><li class="edit" title="Edit page on GitHub" data-translate=2><a data-content="E"></a></li></ul></div><div class="h-tools chm"><ul><li class="back" title="Go back" data-translate=2>&#9668;</li><li class="forward" title="Go forward" data-translate=2>&#9658;</li><li class="zoom" title="Change font size" data-translate=2 data-content="Z"></li><li class="print" title="Print current document" data-translate=2 data-content="P"></li></ul></div><div class="h-tools main visible"><ul><li class="color" title="Change to dark/light theme" data-translate=2 data-content="C"></li><li class="settings" title="Open settings" data-translate=2>&#1029;</li></ul></div></div></div>' +
-  '<div id="main"><div id="left"><div class="toc"></div><div class="index"><div class="input"><input type="search" placeholder="Search" data-translate=2 /></div><div class="list"></div></div><div class="search"><div class="input"><input type="search" placeholder="Search" data-translate=2 /></div><div class="checkbox"><input type="checkbox" id="highlightWords"><label for="highlightWords" data-translate>Highlight the words</label></div><div class="list"></div></div><div class="load"><div class="lds-dual-ring"></div></div></div><div class="dragbar"></div><div id="right" tabIndex="-1">'+(isFrameCapable?'<iframe frameBorder="0" id="frame" src="">':'<div class="area">');
+  '<div id="main"><div id="left"><div class="toc"></div><div class="index"><div class="input"><input type="search" placeholder="Search" data-translate=2 /></div><div class="select"><select size="1" class="empty"><option value="-1" class="empty" selected data-translate>Filter</option><option value="0" data-translate>Directives</option><option value="1" data-translate>Built-in Variables</option><option value="2" data-translate>Built-in Functions</option><option value="3" data-translate>Control Flow Statements</option><option value="4" data-translate>Operators</option><option value="5" data-translate>Declarations</option><option value="6" data-translate>Commands</option></select></div><div class="list"></div></div><div class="search"><div class="input"><input type="search" placeholder="Search" data-translate=2 /></div><div class="checkbox"><input type="checkbox" id="highlightWords"><label for="highlightWords" data-translate>Highlight the words</label></div><div class="list"></div></div><div class="load"><div class="lds-dual-ring"></div></div></div><div class="dragbar"></div><div id="right" tabIndex="-1">'+(isFrameCapable?'<iframe frameBorder="0" id="frame" src="">':'<div class="area">');
   self.template = isIE || isEdge ? self.template.replace(/ data-content="(.*?)">/g, '>$1') : self.template;
   self.build = function() { document.write(self.template); }; // Write HTML before DOM is loaded to prevent flickering.
   self.modify = function() { // Modify elements added via build.
