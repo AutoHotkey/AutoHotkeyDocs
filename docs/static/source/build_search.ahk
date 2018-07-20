@@ -203,11 +203,19 @@ ScanFile(filename)
     href := StrReplace(filename, "\", "/")
     file_index := files.Push(href)
     files_map[href] := file_index
-    
-    titles[file_index] := doc.title
-    if titles_map[doc.title]
-        throw Exception("Duplicate title: " doc.title "`n  " files[file_index] "`n  " files[titles_map[doc.title]])
-    titles_map[doc.title] := file_index
+
+    h1 := ""
+    try h1 := doc.getElementsByTagName("h1")[0] ; Use h1 instead of doc.title to avoid suffixes such as "| AutoHotkey".
+    if not h1 {
+        D("skipping file with no h1: " filename)
+        return
+    }
+    h1.innerHTML := RegExReplace(h1.innerHTML, '<span.*?</span>') ; Remove heading notes or version annotations.
+    h1 := Trim(h1.innerText)
+    titles[file_index] := h1
+    if titles_map[h1]
+        throw Exception("Duplicate title: " h1 "`n  " files[file_index] "`n  " files[titles_map[h1]])
+    titles_map[h1] := file_index
     
     SplitPath filename, name
     FileDelete "test\" name

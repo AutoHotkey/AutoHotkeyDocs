@@ -1,7 +1,8 @@
 <!DOCTYPE HTML>
-<html>
+<html lang="en">
 <head>
-<title>OnMessage</title>
+<title>OnMessage - Syntax &amp; Usage | AutoHotkey v2</title>
+<meta name="description" content="The OnMessage function specifies a function or function object to call automatically when the script receives the specified message." />
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <link href="../static/theme.css" rel="stylesheet" type="text/css" />
@@ -14,7 +15,7 @@
 <p>Specifies a <a href="../Functions.htm">function</a> or <a href="../objects/Functor.htm">function object</a> to call automatically when the script receives the specified message.</p>
 
 <pre class="Syntax"><span class="func">OnMessage</span> MsgNumber <span class="optional">, Function, MaxThreads</span></pre>
-<h3>Parameters</h3>
+<h2>Parameters</h2>
 <dl>
 
   <dt>MsgNumber</dt>
@@ -30,7 +31,7 @@
 
 </dl>
 
-<h3 id="Usage">Usage</h3>
+<h2 id="Usage">Usage</h2>
 
 <p>Any number of functions or <a href="../objects/Functor.htm">function objects</a> can monitor a given <em>MsgNumber</em>.</p>
 <p>Either of these two lines registers a function object to be called <strong>after</strong> any previously registered functions:</p>
@@ -41,14 +42,14 @@
 <p>To unregister a function object, specify 0 for <em>MaxThreads</em>:</p>
 <pre class="Syntax"><span class="func">OnMessage</span> MsgNumber, Function, 0</pre>
 
-<h3 id="Failure">Failure</h3>
+<h2 id="Failure">Failure</h2>
 <p>An exception is thrown if <em>Function</em>:</p>
 <ol>
   <li>is not an object or the name of a user-defined function; or</li>
   <li>is known to require more than four parameters.</li>
 </ol>
 
-<h3>The Function's Parameters</h3>
+<h2>The Function's Parameters</h2>
 <p>A <a href="../Functions.htm">function</a> assigned to monitor one or more messages can accept up to four parameters:</p>
 <pre>MyMessageMonitor(wParam, lParam, msg, hwnd)
 {
@@ -64,18 +65,18 @@ Parameter #4: The HWND (unique ID) of the window or control to which the message
     wParam := -(~wParam) - 1</pre>
 <p>You can omit one or more parameters from the end of the list if the corresponding information is not needed. For example, a function defined as <code>MyMsgMonitor(wParam, lParam)</code> would receive only the first two parameters, and one defined as <code>MyMsgMonitor()</code> would receive none of them.</p>
 
-<h3>Additional Information Available to the Function</h3>
+<h2>Additional Information Available to the Function</h2>
 <p>In addition to the parameters received above, the function may also consult the built-in variable <a href="../Variables.htm#EventInfo">A_EventInfo</a>, which contains 0 if the message was sent via SendMessage. If sent via PostMessage, it contains the <a href="../Variables.htm#TickCount">tick-count time</a> the message was posted.</p>
 <p>A monitor function's <a href="../misc/WinTitle.htm#LastFoundWindow">last found window</a> starts off as the parent window to which the message was sent (even if it was sent to a control). If the window is hidden but not a GUI window (such as the script's main window), turn on <a href="DetectHiddenWindows.htm">DetectHiddenWindows</a> before using it. For example:</p>
 <pre>DetectHiddenWindows True
 MsgParentWindow := WinExist()  <em>; This stores the unique ID of the window to which the message was sent.</em></pre>
 
-<h3>What the Function Should <em>Return</em></h3>
+<h2>What the Function Should <em>Return</em></h2>
 <p>If a monitor function uses <a href="Return.htm">Return</a> without any parameters, or it specifies a blank value such as &quot;&quot; (or it never uses Return at all), the incoming message goes on to be processed normally when the function finishes. The same thing happens if the function <a href="Exit.htm">Exits</a> or causes a runtime error such as <a href="Run.htm">running</a> a nonexistent file. By contrast, returning an integer causes it to be sent immediately as a reply; that is, the program does not process the message any further. For example, a function monitoring WM_LBUTTONDOWN (0x201) may return an integer to prevent the target window from being notified that a mouse click has occurred. In many cases (such as a message arriving via <a href="PostMessage.htm">PostMessage</a>), it does not matter which integer is returned; but if in doubt, 0 is usually safest.</p>
 <p>The range of valid return values depends on whether the exe running the script is 32-bit or 64-bit. Non-empty return values must be between -2<sup>31</sup> and 2<sup>32</sup>-1 for 32-bit scripts (<code><a href="../Variables.htm#PtrSize">A_PtrSize</a> = 4</code>) and between -2<sup>63</sup> and 2<sup>63</sup>-1 for 64-bit scripts (<code><a href="../Variables.htm#PtrSize">A_PtrSize</a> = 8</code>).</p>
 <p>If there are multiple functions monitoring a given message number, they are called one by one until one returns a non-empty value.</p>
 
-<h3 id="Remarks">General Remarks</h3>
+<h2 id="Remarks">General Remarks</h2>
 <p>Unlike a normal function-call, the arrival of a monitored message calls the function as a new <a href="../misc/Threads.htm">thread</a>. Because of this, the function starts off fresh with the default values for settings such as <a href="SendMode.htm">SendMode</a> and <a href="DetectHiddenWindows.htm">DetectHiddenWindows</a>. These defaults can be changed in the <a href="../Scripts.htm#auto">auto-execute section</a>.</p>
 <p>Messages sent to a control (rather than being posted) are not monitored because the system routes them directly to the control behind the scenes. This is seldom an issue for system-generated messages because most of them are posted.</p>
 <p>Any script with active message monitors is automatically <a href="../Scripts.htm#persistent">persistent</a>, which means that it will not exit until <a href="ExitApp.htm">ExitApp</a> is used.</p>
@@ -86,9 +87,9 @@ MsgParentWindow := WinExist()  <em>; This stores the unique ID of the window to 
 <p>Caution should be used when monitoring system messages (those below 0x400). For example, if a monitor function does not finish quickly, the response to the message might take longer than the system expects, which might cause side-effects. Unwanted behavior may also occur if a monitor function returns an integer to suppress further processing of a message, but the system expected different processing or a different response.</p>
 <p>When the script is displaying a system dialog such as <a href="MsgBox.htm">MsgBox</a>, any message posted to a control is not monitored. For example, if the script is displaying a MsgBox and the user clicks a button in a GUI window, the WM_LBUTTONDOWN message is sent directly to the button without calling the monitor function.</p>
 <p>Although an external program may post messages directly to a script's thread via PostThreadMessage() or other API call, this is not recommended because the messages would be lost if the script is displaying a system window such as a <a href="MsgBox.htm">MsgBox</a>. Instead, it is usually best to post or send the messages to the script's main window or one of its GUI windows.</p>
-<h3>Related</h3>
+<h2>Related</h2>
 <p><a href="CallbackCreate.htm">CallbackCreate</a>, <a href="OnExit.htm">OnExit</a>, <a href="OnClipboardChange.htm">OnClipboardChange</a>, <a href="PostMessage.htm">Post/SendMessage</a>, <a href="../Functions.htm">Functions</a>, <a href="../misc/SendMessageList.htm">List of Windows Messages</a>, <a href="../misc/Threads.htm">Threads</a>, <a href="Critical.htm">Critical</a>, <a href="DllCall.htm">DllCall</a></p>
-<h3>Examples</h3>
+<h2>Examples</h2>
 <pre class="NoIndent"><em>; Example: The following is a working script that monitors mouse clicks in a GUI window.
 ; Related topic: <a href="../objects/GuiOnEvent.htm#ContextMenu">ContextMenu</a> event</em>
 
