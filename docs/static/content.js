@@ -829,8 +829,6 @@ function ctor_structure()
     // --- Main tools (always visible) ---
 
     var $main = $('#head .h-tools.sidebar').add('#head .h-tools.main');
-    // console.log($tools);
-    
     $('li.sidebar', $main).on('click', function() {
       self.displaySidebar(!cache.displaySidebar); });
     $('li.settings', $main).on('click', function() {
@@ -1476,112 +1474,289 @@ function addFeatures()
         5 - declaration
         6 - command
     */
-    var syntax = [[], [], [], [], [], [], []], dict = {};
-    for(var i = 0; i < cache.index_data.length; i++) {
-      var entry = cache.index_data[i][0];
-      var path = cache.index_data[i][1];
-      var type = cache.index_data[i][2];
+    var syntax = [], dict = {}, entry = '', type = '';
+    for (var i = cache.index_data.length - 1; i >= 0; i--) {
+      entry = cache.index_data[i][0];
+      type = cache.index_data[i][2];
+      syntax[type] = syntax[type] || [];
       if (typeof type !== 'undefined') {
-        if (type == 2 && entry.substr(entry.length - 2) == '()')
+        if (entry.substr(entry.length - 2) == '()')
           entry = entry.substr(0, entry.length - 2);
-        syntax[type].push(entry);
+        if (entry.indexOf(' ... ') != -1) {
+          part = entry.split(' ... ');
+          for (k in part) {
+            syntax[type][k] = syntax[type][k] || [];
+            if (syntax[type][k].indexOf(part[k]) == -1)
+              syntax[type][k].push(part[k]);
+          }
+        }
+        else
+          (syntax[type].single = syntax[type].single || []).push(entry);
         dict[entry.toLowerCase()] = i;
+        if (entry.indexOf(', ') != -1) {
+          entry = entry.toLowerCase().replace(', ', ' ');
+          syntax[type].single.push(entry);
+          dict[entry] = i;
+        }
       }
     }
     // Traverse pre elements:
-    for(var i = 0; i < pres.length; i++) {
-      var pre = pres[i], ems = [], els = [];
+    for (var i = 0; i < pres.length; i++) {
+      var pre = pres[i], els = [];
+      els.order = [];
       // Skip pre.no-syntax-highlight elements:
       if (pre.className.indexOf('no-syntax-highlight') != -1)
         continue;
-      // Temporary remove comments to avoid interfering with syntax detection:
-      $('em', pre).each(function() {
-        ems.push(this);
-        $(this).replaceWith('<em>');
-      });
-      // Mark continuation sections:
-      pre.innerHTML = pre.innerHTML.replace(/(^\s*\([\s\S]*?^\s*\))/gm, function(m,m1) { return wrap(m1,'str',0)});
-      // function definitions:
-      pre.innerHTML = pre.innerHTML.replace(/^(\s*?)(\S*?)(?=\(.*?\)[<\/em>\s]*{)/mg, function(m,m1,m2) { return m1+wrap(m2,'lab',0); });
-      // Temporary remove elements with attributes and children to avoid interfering with syntax detection:
+      // Temporary remove elements which interfering with syntax detection:
+      els.order.push('em'); els.em = [];
+      els.order.push('various'); els.various = [];
       $(pre).children().each(function() {
-        if (this.attributes.length || this.children.length) {
-          els.push(this);
-          $(this).replaceWith('<el>');
+        if (this.tagName == 'EM') {
+          els.em.push(this.outerHTML);
+          $(this).replaceWith('<em>');
+        }
+        else if (this.href && this.getAttribute("href").substring(0, 4) != "http")
+          $(this).replaceWith(this.innerText);
+        else if (this.attributes.length || this.children.length) {
+          els.various.push(this.outerHTML);
+          $(this).replaceWith('<various>');
         }
       });
+      // Store pre content into a variable to improve performance:
       var innerHTML = pre.innerHTML;
+      // continuation sections:
+      els.order.push('cont'); els.cont = [];
+      innerHTML = innerHTML.replace(/(^\s*\([\s\S]*?^\s*\))/gm, function(_, SECTION) {
+        out = wrap(SECTION, 'str', false);
+        els.cont.push(out);
+        return '<cont></cont>';
+      });
+      // function definitions:
+      els.order.push('fun'); els.fun = [];
+      innerHTML = innerHTML.replace(/^(\s*?)(\S*?)(?=\(.*?\)[<\/em>\s]*{)/mg, function(_, PRE, DEFINITION) {
+        out = PRE + wrap(DEFINITION, 'fun', false);
+        els.fun.push(out);
+        return '<fun></fun>';
+      });
       // strings:
-      innerHTML = innerHTML.replace(/((")[\s\S]*?\2)\B/gm, function(m, m1) { return wrap(m1, 'str', false); });
+      els.order.push('str'); els.str = [];
+      innerHTML = innerHTML.replace(/((")[\s\S]*?\2)\B/gm, function(_, STRING) {
+        out = wrap(STRING, 'str', false);
+        els.str.push(out);
+        return '<str></str>';
+      });
+      // numeric values:
+      els.order.push('num'); els.num = [];
+      innerHTML = innerHTML.replace(/\b((0(x|X)[0-9a-fA-F]*)|(([0-9]+\.?[0-9]*)|(\.[0-9]+))((e|E)(\+|-)?[0-9]+)?)\b/gm, function(_, NUMBER) {
+        out = wrap(NUMBER, 'num', false);
+        els.num.push(out);
+        return '<num></num>';
+      });
+      // legacy if-statements:
+      els.order.push('compare'); els.compare = [];
+      innerHTML = innerHTML.replace(/\b(if\s*)([^\s(]+)(\s*)(&gt;=|&gt;|&lt;&gt;|&lt;=|&lt;|!=|=)(.*?)(?=<em><\/em>|$)/gim, function(_, IF, VAR, WS, OP, VALUE) {
+        out = VALUE.match(/^\s*<num><\/num>\s*$/) ? wrap(VALUE, 'num', false) : wrap(VALUE, 'str', false);
+        els.compare.push(out);
+        return IF + VAR + WS + OP + '<compare></compare>';
+      });
+      // legacy assignments:
+      els.order.push('assign'); els.assign = [];
+      innerHTML = innerHTML.replace(/^(\s*[^\s(:!*/&^+\-<>|~.]+)(\s*)=(.*?)(?=<em><\/em>|$)/gim, function(_, VAR, WS, VALUE) {
+        out = VALUE.match(/^\s*<num><\/num>\s*$/) ? wrap(VALUE, 'num', false) : wrap(VALUE, 'str', false);
+        els.assign.push(out);
+        return VAR + WS + '=' + '<assign></assign>';
+      });
       // methods:
-      innerHTML = innerHTML.replace(/(\.)([^~`!@#$%^&*(){}\[\];:"'<,.>?\/\\|+=\-\s]+?)(?=\()/g, function(m, m1, m2) { return m1+wrap(m2, 'met', false); });
-      // legacy if:
-      innerHTML = innerHTML.replace(/(^\s*|[,:}]\s*)(else |)(if) (\S+) (not between|between|not in|in|not contains|contains|is not|is) (?:(\S+) (and) (\S+)|(.+))/gim, function(m, m1, m2, m3, m4, m5, m6, m7, m8, m9) {
-        var if_var_ = m1+m2+wrap(m3, 'cfs', 'commands/IfEqual.htm')+' '+m4+' ';
-        switch(m5) {
-          case "not between":
-          case "between":
-          return if_var_+wrap(m5,'cfs','commands/IfBetween.htm')+' '+wrap(m6,'str',0)+' '+wrap(m7,'cfs',0)+' '+wrap(m8,'str',0);
-    
-          case "not in":
-          case "in":
-          case "not contains":
-          case "contains":
-          return if_var_+wrap(m5,'cfs','commands/IfIn.htm')+' '+wrap(m9,'str',0);
-    
-          case "is not":
-          case "is":
-          return if_var_+wrap(m5,'cfs','commands/IfIs.htm')+' '+wrap(m9,'str',0);
-        };
+      els.order.push('met'); els.met = [];
+      innerHTML = innerHTML.replace(/(\.)([^~`!@#$%^&*(){}\[\];:"'<,.>?\/\\|+=\-\s]+?)(?=\()/g, function(_, PRE, METHOD) {
+        out = PRE + wrap(METHOD, 'met', false);
+        els.met.push(out);
+        return '<met></met>';
       });
-      // if expression:
-      innerHTML = innerHTML.replace(/(^\s*|[,:}]\s*)(else |)(if)\b/gim, function(m, m1, m2, m3) { return m1+m2+wrap(m3,'cfs','commands/IfExpression.htm'); });
-      // loops:
-      innerHTML = innerHTML.replace(/\b(loop)(\s|,\s|,)(files|parse|read|reg)\b/gim, function(m, m1, m2, m3) {
-        var dict = {files: 'File', parse: 'Parse', read: 'ReadFile', reg: 'Reg'};
-        var link = 'commands/Loop'+dict[m3.toLowerCase()]+'.htm';
-        return wrap(m1+m2+m3,'cfs',link);
-      });
-      // class:
-      innerHTML = innerHTML.replace(/(^\s*|[,:}]\s*)(class) (\S+)(?: (extends)(?= \S+)|)/gim, function(m, m1, m2, m3, m4) {
-        var link = 'Objects.htm#Custom_Classes';
-        if (m4)
-          return m1+wrap(m2,'cfs',link)+' '+m3+' '+wrap(m4,'cfs',link);
+      // declarations:
+      els.order.push('dec'); els.dec = [];
+      innerHTML = innerHTML.replace(new RegExp('(^\\s*)((' + syntax[5][0].join('|') + ') (\\S+) (' + syntax[5][1].join('|') + ') (\\S+)|(?:' + syntax[5].single.join('|') + ')\\b)', 'gim'), function(_, PRE, DEC, CLASS, INPUT1, EXTENDS, INPUT2) {
+        if (CLASS) {
+          var dec = cache.index_data[dict[(CLASS + ' ... ' + EXTENDS).toLowerCase()]];
+          if (dec)
+            out = PRE + wrap(CLASS, 'dec', dec[1]) + ' ' + INPUT1 + ' ' + wrap(EXTENDS, 'dec', dec[1]) + ' ' + INPUT2;
+          else
+            out = m;
+        }
         else
-          return m1+wrap(m2,'cfs',link)+' '+m3;
+          out = PRE + wrap(DEC, 'dec', true);
+        els.dec.push(out);
+        return '<dec></dec>';
       });
-      // for:
-      innerHTML = innerHTML.replace(/\b(for) (\S+|\S+, \S+) (in)/gim, function(m, m1, m2, m3) {
-        var link = 'commands/For.htm';
-        return wrap(m1,'cfs',link)+' '+m2+' '+wrap(m3,'cfs',link);
-      });
-      // control flows / declarations:
-      innerHTML = innerHTML.replace(new RegExp('(^\\s*|[,:}]\\s*)('+syntax[3].join('|')+'|'+syntax[5].join('|')+')\\b','gim'), function(m, m1, m2) { return m1+wrap(m2,'cfs',true); });
       // ByRef:
-      innerHTML = innerHTML.replace(/(.+?)\b(byref)\b(?=(.+?)\))/gim, function(m, m1, m2) { return m1+wrap(m2,'cfs','Functions.htm#ByRef'); });
+      els.order.push('byref'); els.byref = [];
+      innerHTML = innerHTML.replace(/(.+?)\b(byref)\b(?=(.+?)\))/gim, function(_, PRE, BYREF) {
+        out = PRE + wrap(BYREF, 'cfs', 'Functions.htm#ByRef');
+        els.byref.push(out);
+        return '<byref></byref>';
+      });
       // built-in vars:
-      innerHTML = innerHTML.replace(new RegExp('\\b('+syntax[1].join('|')+')\\b','gi'), function(m, m1) { return wrap(m1, 'biv', true); });
-      // commands:
-      innerHTML = innerHTML.replace(new RegExp('(^\\s*|[:]\\s*)('+syntax[6].join('|')+')\\b(?=[\\s,]|$)',"gim"), function(m, m1, m2) { return m1+wrap(m2,'cmd',true); });
+      els.order.push('biv'); els.biv = [];
+      innerHTML = innerHTML.replace(new RegExp('\\b(' + syntax[1].single.join('|') + ')\\b', 'gi'), function(_, BIV) {
+        out = wrap(BIV, 'biv', true);
+        els.biv.push(out);
+        return '<biv></biv>';
+      });
       // built-in functions:
-      innerHTML = innerHTML.replace(new RegExp('\\b('+syntax[2].join('|')+')(?=\\()','gi'), function(m, m1) { return wrap(m1, 'bif', true); });
+      els.order.push('bif'); els.bif = [];
+      innerHTML = innerHTML.replace(new RegExp('\\b(' + syntax[2].single.join('|').replace('()', '') + ')(?=\\()', 'gi'), function(_, BIF) {
+        out = wrap(BIF, 'bif', true);
+        els.bif.push(out);
+        return '<bif></bif>';
+      });
       // directives:
-      innerHTML = innerHTML.replace(new RegExp('('+syntax[0].join('|')+')\\b','gi'), function(m, m1) { return wrap(m1, 'dir', true); });
+      els.order.push('dir'); els.dir = [];
+      innerHTML = innerHTML.replace(new RegExp('(' + syntax[0].single.join('|') + ')\\b($|[\\s,])(.*?)(?=<em></em>|$)', 'gim'), function(_, DIR, SEP, PARAMS) {
+        // Get type of every parameter:
+        var types = cache.index_data[dict[DIR.toLowerCase()]][3];
+        // Temporary exclude (...), {...} and [...]:
+        sub = [];
+        PARAMS = PARAMS.replace(/[({\[].*[\]})]/g, function(c) {
+          sub.push(c);
+          return '<sub></sub>';
+        });
+        // Split params:
+        PARAMS = PARAMS.split(',');
+        // Detect smart comma handling:
+        if (PARAMS.length > types.length) // For the last param of any directive.
+          PARAMS.push(PARAMS.splice(types.length - 1).join(','));
+        // Iterate params and recompose them:
+        for (n in PARAMS) {
+          if (PARAMS[n].match(/^\s*%\s/)) // Skip forced expression parameter:
+            continue;
+          if (types[n] == 'S') // string
+            PARAMS[n] = PARAMS[n].match(/^\s*<num><\/num>\s*$/) ? wrap(PARAMS[n], 'num', false) : wrap(PARAMS[n], 'str', false);
+        }
+        PARAMS = PARAMS.join(',');
+        // Restore (...), {...} and [...] previously excluded:
+        for (n in sub) {
+          PARAMS = PARAMS.replace('<sub></sub>', sub[n])
+        }
+        out = wrap(DIR, 'dir', true) + SEP + PARAMS;
+        els.dir.push(out);
+        return '<dir></dir>';
+      });
+      // commands:
+      els.order.push('cmd'); els.cmd = [];
+      innerHTML = innerHTML.replace(new RegExp('\\b(' + syntax[6].single.join('|') + ')\\b($|[\\s,])(.*?)(?=<em></em>|$)', "gim"), function(_, CMD, SEP, PARAMS) {
+        // Get type of every parameter:
+        var types = cache.index_data[dict[CMD.toLowerCase()]][3];
+        // Temporary exclude (...), {...} and [...]:
+        sub = [];
+        PARAMS = PARAMS.replace(/[({\[].*[\]})]/g, function(c) {
+          sub.push(c);
+          return '<sub></sub>'
+        });
+        // Split params:
+        PARAMS = PARAMS.split(',');
+        // Detect smart comma handling:
+        if (PARAMS.length > types.length) // For the last param of any command.
+          PARAMS.push(PARAMS.splice(types.length - 1).join(','));
+
+        if (CMD.toLowerCase() == "msgbox") // For MsgBox.
+        {
+          if (PARAMS[0] && !PARAMS[0].match(/^\s*<num><\/num>\s*$/)) // 1-parameter mode
+            PARAMS.push(PARAMS.splice(0).join(','));
+          if (PARAMS[3] && !PARAMS[3].match(/^\s*<num><\/num>\s*$/)) // 3-parameter mode
+            PARAMS.push(PARAMS.splice(2).join(','));
+        }
+        // Iterate params and recompose them:
+        for (n in PARAMS) {
+          if (PARAMS[n].match(/^\s*%\s/)) // Skip forced expression parameter:
+            continue;
+          if (types[n] == 'S') // string
+            PARAMS[n] = PARAMS[n].match(/^\s*<num><\/num>\s*$/) ? wrap(PARAMS[n], 'num', false) : wrap(PARAMS[n], 'str', false);
+        }
+        PARAMS = PARAMS.join(',');
+        // Restore (...), {...} and [...] previously excluded:
+        for (n in sub) {
+          PARAMS = PARAMS.replace('<sub></sub>', sub[n])
+        }
+        out = wrap(CMD, 'cmd', true) + SEP + PARAMS;
+        els.cmd.push(out);
+        return '<cmd></cmd>';
+      });
+      // control flow statements:
+      els.order.push('cfs'); els.cfs = [];
+      innerHTML = innerHTML.replace(new RegExp('\\b(' + syntax[3][0].join('|') + ') (\\S+|\\S+, \\S+) (' + syntax[3][1].join('|') + ') ((.+) (' + syntax[3][2].join('|') + ') (.+?)|.+?)(?=<em></em>|$|{)|\\b(' + syntax[3].single.join('|') + ')\\b($|[\\s,])(.*?)(?=<em></em>|$|{|\\b(' + syntax[3].single.join('|') + ')\\b)', 'gim'), function(ASIS, IF, INPUT, BETWEEN, VAL, VAL1, AND, VAL2, CFS, SEP, PARAMS) {
+        if (IF) {
+          if (VAL1) {
+            var cfs = cache.index_data[dict[(IF + ' ... ' + BETWEEN + ' ... ' + AND).toLowerCase()]];
+            if (cfs)
+              out = wrap(IF, 'cfs', cfs[1]) + ' ' + INPUT + ' ' + wrap(BETWEEN, 'cfs', cfs[1]) + ' ' + (VAL1.match(/^\s*<num><\/num>\s*$/) ? wrap(VAL1, 'num', false) : wrap(VAL1, 'str', false)) + ' ' + wrap(AND, 'cfs', cfs[1]) + ' ' + (VAL2.match(/^\s*<num><\/num>\s*$/) ? wrap(VAL2, 'num', false) : wrap(VAL2, 'str', false));
+            else
+              out = ASIS;
+          }
+          else if (INPUT) {
+            var cfs = cache.index_data[dict[(IF + ' ... ' + BETWEEN).toLowerCase()]];
+            if (cfs)
+              out = wrap(IF, 'cfs', cfs[1]) + ' ' + INPUT + ' ' + wrap(BETWEEN, 'cfs', cfs[1]) + ' ' + ((cfs[3][1] == "S") ? (VAL.match(/^\s*<num><\/num>\s*$/) ? wrap(VAL, 'num', false) : wrap(VAL, 'str', false)) : VAL);
+            else
+              out = ASIS;
+          }
+        }
+        else {
+          // Get type of every parameter:
+          var types = cache.index_data[dict[CFS.toLowerCase()]][3];
+          // Temporary exclude (...), {...} and [...]:
+          sub = [];
+          PARAMS = PARAMS.replace(/[({\[].*[\]})]/g, function(c) {
+            sub.push(c);
+            return '<sub></sub>'
+          });
+          // Split params:
+          PARAMS = PARAMS.split(',');
+          // Iterate params and recompose them:
+          for (n in PARAMS) {
+            if (PARAMS[n].match(/^\s*%\s/)) // Skip forced expression parameter:
+              continue;
+            if (types[n] == 'S') // string
+              PARAMS[n] = PARAMS[n].match(/^\s*<num><\/num>\s*$/) ? wrap(PARAMS[n], 'num', false) : wrap(PARAMS[n], 'str', false);
+          }
+          PARAMS = PARAMS.join(',');
+          // Restore (...), {...} and [...] previously excluded:
+          for (n in sub) {
+            PARAMS = PARAMS.replace('<sub></sub>', sub[n])
+          }
+          out = wrap(CFS, 'cfs', true) + SEP + PARAMS;
+        }
+        els.cfs.push(out);
+        return '<cfs></cfs>';
+      });
       // hotstrings:
-      innerHTML = innerHTML.replace(/^(\s*)(:.*?:)(.*?)(::)(.*)/mg, function(m,m1,m2,m3,m4,m5) { return m1+wrap(m2,'lab',0)+wrap(m3,'str',0)+wrap(m4,'lab',0)+wrap(m5,'str',0); });
+      els.order.push('hotstr'); els.hotstr = [];
+      innerHTML = innerHTML.replace(/^(\s*)(:.*?:)(.*?)(::)(.*)/mg, function(_, PRE, HOTSTR1, ABBR, HOTSTR2, REPL) {
+        out = PRE + wrap(HOTSTR1, 'lab', false) + wrap(ABBR, 'str', false) + wrap(HOTSTR2, 'lab', false) + wrap(REPL, 'str', false);
+        els.hotstr.push(out);
+        return '<hotstr></hotstr>';
+      });
       // hotkeys:
-      innerHTML = innerHTML.replace(/^(\s*)((([#!^+*~$]|&lt;|&gt;)*(.|&.+;|\w+)( up)?|~?(.|&.+;|\w+) &amp; ~?(.|&.+;|\w+)( up)?)::)/gim, function(m,m1,m2) { return m1+wrap(m2,'lab',0); });
+      els.order.push('hotkey'); els.hotkey = [];
+      innerHTML = innerHTML.replace(/^(\s*)((([#!^+*~$]|&lt;|&gt;)*(.|&.+;|\w+)( up)?|~?(.|&.+;|\w+) &amp; ~?(.|&.+;|\w+)( up)?)::)/gim, function(_, PRE, HOTKEY) {
+        out = PRE + wrap(HOTKEY, 'lab', false);
+        els.hotkey.push(out);
+        return '<hotkey></hotkey>';
+      });
       // labels:
-      innerHTML = innerHTML.replace(/^(\s*)([^\s]+?:)(?=\s|$)/mg, function(m, m1, m2) { return m1+wrap(m2, 'lab', false); });
+      els.order.push('lab'); els.lab = [];
+      innerHTML = innerHTML.replace(/^(\s*)([^\s]+?:)(?=\s|$)/mg, function(_, PRE, LABEL) {
+        out = PRE + wrap(LABEL, 'lab', false);
+        els.lab.push(out);
+        return '<lab></lab>';
+      });
+      // Release changes:
       pre.innerHTML = innerHTML;
-      // Restore elements with attributes and children:
-      $('el', pre).each(function(index) {
-        this.outerHTML = els[index].outerHTML;
-      });
-      // Restore comments:
-      $('em', pre).each(function(index) {
-        this.outerHTML = ems[index].outerHTML;
-      });
+      // Restore elements:
+      for (var k = els.order.length - 1; k >= 0; k--) {
+        $(els.order[k], pre).each(function(index) {
+          this.outerHTML = els[els.order[k]][index];
+        });
+      }
     }
     function wrap(match, type, isLink) {
       var span = document.createElement('span');
