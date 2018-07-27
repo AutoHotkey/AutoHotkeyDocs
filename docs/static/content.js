@@ -1381,11 +1381,13 @@ function addFeatures()
 
   // --- Useful features for code boxes ---
   
-  var pres = content.querySelectorAll("pre");
+  var pres = content.querySelectorAll("pre, code");
 
   // Provide select and download buttons:
   for(var i = 0; i < pres.length; i++) {
     var pre = pres[i];
+    if (pre.tagName == 'CODE')
+      continue;
     var isSyntax = (pre.className.indexOf('Syntax') != -1);
     var parent = document.createElement('pre'); parent.className = 'parent ' + pre.className;
     if (isSyntax || pre.className.indexOf('no-syntax-highlight') != -1)
@@ -1508,8 +1510,8 @@ function addFeatures()
       if (pre.className.indexOf('no-syntax-highlight') != -1)
         continue;
       // Temporary remove elements which interfering with syntax detection:
-      els.order.push('em'); els.em = [];
       els.order.push('various'); els.various = [];
+      els.order.push('em'); els.em = [];
       $(pre).children().each(function() {
         if (this.tagName == 'EM') {
           els.em.push(this.outerHTML);
@@ -1551,20 +1553,6 @@ function addFeatures()
         out = wrap(NUMBER, 'num', false);
         els.num.push(out);
         return '<num></num>';
-      });
-      // legacy if-statements:
-      els.order.push('compare'); els.compare = [];
-      innerHTML = innerHTML.replace(/\b(if\s*)([^\s(]+)(\s*)(&gt;=|&gt;|&lt;&gt;|&lt;=|&lt;|!=|=)(.*?)(?=<em><\/em>|$)/gim, function(_, IF, VAR, WS, OP, VALUE) {
-        out = VALUE.match(/^\s*<num><\/num>\s*$/) ? wrap(VALUE, 'num', false) : wrap(VALUE, 'str', false);
-        els.compare.push(out);
-        return IF + VAR + WS + OP + '<compare></compare>';
-      });
-      // legacy assignments:
-      els.order.push('assign'); els.assign = [];
-      innerHTML = innerHTML.replace(/^(\s*[^\s(:!*/&^+\-<>|~.]+)(\s*)=(.*?)(?=<em><\/em>|$)/gim, function(_, VAR, WS, VALUE) {
-        out = VALUE.match(/^\s*<num><\/num>\s*$/) ? wrap(VALUE, 'num', false) : wrap(VALUE, 'str', false);
-        els.assign.push(out);
-        return VAR + WS + '=' + '<assign></assign>';
       });
       // methods:
       els.order.push('met'); els.met = [];
@@ -1630,7 +1618,7 @@ function addFeatures()
           if (PARAMS[n].match(/^\s*%\s/)) // Skip forced expression parameter:
             continue;
           if (types[n] == 'S') // string
-            PARAMS[n] = PARAMS[n].match(/^\s*<num><\/num>\s*$/) ? wrap(PARAMS[n], 'num', false) : wrap(PARAMS[n], 'str', false);
+            PARAMS[n] = PARAMS[n].match(/^\s*<num><\/num>\s*$/) ? PARAMS[n] : wrap(PARAMS[n], 'str', false);
         }
         PARAMS = PARAMS.join(',');
         // Restore (...), {...} and [...] previously excluded:
@@ -1670,7 +1658,7 @@ function addFeatures()
           if (PARAMS[n].match(/^\s*%\s/)) // Skip forced expression parameter:
             continue;
           if (types[n] == 'S') // string
-            PARAMS[n] = PARAMS[n].match(/^\s*<num><\/num>\s*$/) ? wrap(PARAMS[n], 'num', false) : wrap(PARAMS[n], 'str', false);
+            PARAMS[n] = PARAMS[n].match(/^\s*<num><\/num>\s*$/) ? PARAMS[n] : wrap(PARAMS[n], 'str', false);
         }
         PARAMS = PARAMS.join(',');
         // Restore (...), {...} and [...] previously excluded:
@@ -1683,26 +1671,35 @@ function addFeatures()
       });
       // control flow statements:
       els.order.push('cfs'); els.cfs = [];
-      innerHTML = innerHTML.replace(new RegExp('\\b(' + syntax[3][0].join('|') + ') (\\S+|\\S+, \\S+) (' + syntax[3][1].join('|') + ') ((.+) (' + syntax[3][2].join('|') + ') (.+?)|.+?)(?=<em></em>|$|{)|\\b(' + syntax[3].single.join('|') + ')\\b($|[\\s,])(.*?)(?=<em></em>|$|{|\\b(' + syntax[3].single.join('|') + ')\\b)', 'gim'), function(ASIS, IF, INPUT, BETWEEN, VAL, VAL1, AND, VAL2, CFS, SEP, PARAMS) {
+      innerHTML = innerHTML.replace(new RegExp('\\b(' + syntax[3][0].join('|') + ') (\\S+|\\S+, \\S+) (' + syntax[3][1].join('|') + ') ((.+) (' + syntax[3][2].join('|') + ') (.+?)|.+?)(?=<em></em>|$|{)|\\b(' + syntax[3].single.join('|') + ')\\b($|[\\s,(])(.*?)(?=<em></em>|$|{|\\b(' + syntax[3].single.join('|') + ')\\b)', 'gim'), function(ASIS, IF, INPUT, BETWEEN, VAL, VAL1, AND, VAL2, CFS, SEP, PARAMS) {
         if (IF) {
           if (VAL1) {
             var cfs = cache.index_data[dict[(IF + ' ... ' + BETWEEN + ' ... ' + AND).toLowerCase()]];
             if (cfs)
-              out = wrap(IF, 'cfs', cfs[1]) + ' ' + INPUT + ' ' + wrap(BETWEEN, 'cfs', cfs[1]) + ' ' + (VAL1.match(/^\s*<num><\/num>\s*$/) ? wrap(VAL1, 'num', false) : wrap(VAL1, 'str', false)) + ' ' + wrap(AND, 'cfs', cfs[1]) + ' ' + (VAL2.match(/^\s*<num><\/num>\s*$/) ? wrap(VAL2, 'num', false) : wrap(VAL2, 'str', false));
+              out = wrap(IF, 'cfs', cfs[1]) + ' ' + INPUT + ' ' + wrap(BETWEEN, 'cfs', cfs[1]) + ' ' + (VAL1.match(/^\s*<num><\/num>\s*$/) ? VAL1 : wrap(VAL1, 'str', false)) + ' ' + wrap(AND, 'cfs', cfs[1]) + ' ' + (VAL2.match(/^\s*<num><\/num>\s*$/) ? VAL2 : wrap(VAL2, 'str', false));
             else
               out = ASIS;
           }
           else if (INPUT) {
             var cfs = cache.index_data[dict[(IF + ' ... ' + BETWEEN).toLowerCase()]];
             if (cfs)
-              out = wrap(IF, 'cfs', cfs[1]) + ' ' + INPUT + ' ' + wrap(BETWEEN, 'cfs', cfs[1]) + ' ' + ((cfs[3][1] == "S") ? (VAL.match(/^\s*<num><\/num>\s*$/) ? wrap(VAL, 'num', false) : wrap(VAL, 'str', false)) : VAL);
+              out = wrap(IF, 'cfs', cfs[1]) + ' ' + INPUT + ' ' + wrap(BETWEEN, 'cfs', cfs[1]) + ' ' + ((cfs[3][1] == "S") ? (VAL.match(/^\s*<num><\/num>\s*$/) ? VAL : wrap(VAL, 'str', false)) : VAL);
             else
               out = ASIS;
           }
         }
         else {
+          var cfs = CFS.toLowerCase();
           // Get type of every parameter:
-          var types = cache.index_data[dict[CFS.toLowerCase()]][3];
+          var types = cache.index_data[dict[cfs]][3];
+          // legacy if-statement:
+          if (cfs == 'if')
+            if (m = PARAMS.match(/^([^.(:]+?)(&gt;=|&gt;|&lt;&gt;|&lt;=|&lt;|!=|=)(.*)$/)) {
+              var VAR = m[1], OP = m[2], VAL = m[3];
+              out = wrap(CFS, 'cfs', 'commands/IfEqual.htm') + SEP + VAR + OP + (VAL.match(/^\s*<num><\/num>\s*$/) ? VAL : wrap(VAL, 'str', false));
+              els.cfs.push(out);
+              return '<cfs></cfs>';
+            }
           // Temporary exclude (...), {...} and [...]:
           sub = [];
           PARAMS = PARAMS.replace(/[({\[].*[\]})]/g, function(c) {
@@ -1716,7 +1713,7 @@ function addFeatures()
             if (PARAMS[n].match(/^\s*%\s/)) // Skip forced expression parameter:
               continue;
             if (types[n] == 'S') // string
-              PARAMS[n] = PARAMS[n].match(/^\s*<num><\/num>\s*$/) ? wrap(PARAMS[n], 'num', false) : wrap(PARAMS[n], 'str', false);
+              PARAMS[n] = PARAMS[n].match(/^\s*<num><\/num>\s*$/) ? PARAMS[n] : wrap(PARAMS[n], 'str', false);
           }
           PARAMS = PARAMS.join(',');
           // Restore (...), {...} and [...] previously excluded:
@@ -1737,17 +1734,24 @@ function addFeatures()
       });
       // hotkeys:
       els.order.push('hotkey'); els.hotkey = [];
-      innerHTML = innerHTML.replace(/^(\s*)((([#!^+*~$]|&lt;|&gt;)*(.|&.+;|\w+)( up)?|~?(.|&.+;|\w+) &amp; ~?(.|&.+;|\w+)( up)?)::)/gim, function(_, PRE, HOTKEY) {
+      innerHTML = innerHTML.replace(/^(\s*)((([#!^+*~$]|&lt;|&gt;)*(\S+)( up)?|~?(\S+) &amp; ~?(\S+)( up)?)::)/gim, function(_, PRE, HOTKEY) {
         out = PRE + wrap(HOTKEY, 'lab', false);
         els.hotkey.push(out);
         return '<hotkey></hotkey>';
       });
       // labels:
       els.order.push('lab'); els.lab = [];
-      innerHTML = innerHTML.replace(/^(\s*)([^\s]+?:)(?=\s|$)/mg, function(_, PRE, LABEL) {
+      innerHTML = innerHTML.replace(/^(\s*)([^\s{(]+?:)(?=\s|$)/mg, function(_, PRE, LABEL) {
         out = PRE + wrap(LABEL, 'lab', false);
         els.lab.push(out);
         return '<lab></lab>';
+      });
+      // legacy assignments:
+      els.order.push('assign'); els.assign = [];
+      innerHTML = innerHTML.replace(/^(\s*[^(\s,]*?\s*[^:!*\/&^+\-|~.])=(.*?)(?=<em><\/em>|$)/gim, function(_, VAR, VAL) {
+        out = VAR + '=' + (VAL.match(/^\s*<num><\/num>\s*$/) ? VAL : wrap(VAL, 'str', false));
+        els.assign.push(out);
+        return '<assign></assign>';
       });
       // Release changes:
       pre.innerHTML = innerHTML;
