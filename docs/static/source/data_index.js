@@ -367,7 +367,7 @@ indexData = [
   ["DirCopy","commands/DirCopy.htm",2],
   ["DirCreate","commands/DirCreate.htm",2],
   ["DirDelete","commands/DirDelete.htm",2],
-  ["DirExist","commands/FileExist.htm",2],
+  ["DirExist","commands/DirExist.htm",2],
   ["DirMove","commands/DirMove.htm",2],
   ["DirSelect","commands/DirSelect.htm",2],
   ["disk space","commands/DriveGetSpaceFree.htm"],

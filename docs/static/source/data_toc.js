@@ -83,7 +83,7 @@ tocData = [
     ["DirCopy","commands/DirCopy.htm"],
     ["DirCreate","commands/DirCreate.htm"],
     ["DirDelete","commands/DirDelete.htm"],
-    ["DirExist","commands/FileExist.htm"],
+    ["DirExist","commands/DirExist.htm"],
     ["DirMove","commands/DirMove.htm"],
     ["DirSelect","commands/DirSelect.htm"],
     ["FileAppend","commands/FileAppend.htm"],

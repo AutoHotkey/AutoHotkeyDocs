@@ -114,7 +114,7 @@ if (A_Args[1] ~= "^(--help|-help|/h|-h|/\?|-\?)$")
 }
 
 ; Check that the mandatory environment variables exist and are valid:
-if !FileExist(A_Temp) ; Path does not exist.
+if !DirExist(A_Temp) ; Path does not exist.
 {
     MsgBox
     (
@@ -224,7 +224,7 @@ SaveFileList()
     if FileExist(config.SeekMyDir)
         Loop Read, config.SeekMyDir
         {
-            if !FileExist(A_LoopReadLine)
+            if !DirExist(A_LoopReadLine)
                 MsgBox
                 (
                     "Processing your customised directory list...
@@ -373,7 +373,7 @@ OpenFolder(this)
     }
 
     ; Check whether directory exists:
-    if !FileExist(Path)
+    if !DirExist(Path)
     {
         MsgBox
         (
