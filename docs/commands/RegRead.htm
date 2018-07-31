@@ -14,13 +14,10 @@
 
 <p>Reads a value from the registry.</p>
 
-<pre class="Syntax">OutputVar := <span class="func">RegRead</span>(<span class="optional">KeyName, ValueName</span>)
+<pre class="Syntax">Value := <span class="func">RegRead</span>(<span class="optional">KeyName, ValueName</span>)
 </pre>
 <h2>Parameters</h2>
 <dl>
-
-  <dt>OutputVar</dt>
-  <dd><p>The name of the variable in which to store the retrieved value. If the value cannot be retrieved, the variable is made blank and <a href="../misc/ErrorLevel.htm">ErrorLevel</a> is set to 1.</p></dd>
 
   <dt>KeyName</dt>
   <dd><p>The full name of the registry key.</p>
@@ -28,9 +25,13 @@
   <p><em>KeyName</em> can be omitted only if a <a href="LoopReg.htm">registry loop</a> is running, in which case it defaults to the key of the current loop item. If the item is a subkey, the full name of that subkey is used by default. If the item is a value, <em>ValueName</em> defaults to the name of that value, but can be overridden.</p></dd>
 
   <dt>ValueName</dt>
-  <dd><p>The name of the value to retrieve. If blank or omitted, the key's default value will be retrieved (except as noted above). The default value is displayed as "(Default)" by RegEdit. If there is no default value (that is, if RegEdit displays "value not set"), <em>OutputVar</em> is made blank and ErrorLevel is set to 1.</p></dd>
+  <dd><p>The name of the value to retrieve. If blank or omitted, the key's default value will be retrieved (except as noted above). The default value is displayed as "(Default)" by RegEdit. If there is no default value (that is, if RegEdit displays "value not set"), an empty string is returned and ErrorLevel is set to 1.</p></dd>
 
 </dl>
+
+<h2>Return Value</h2>
+<p>This function returns a value of the specified registry key. If the value cannot be retrieved, an empty string is returned and <a href="../misc/ErrorLevel.htm">ErrorLevel</a> is set to 1.</p>
+
 <h2>ErrorLevel</h2>
 <p><a href="../misc/ErrorLevel.htm">ErrorLevel</a> is set to 1 if there was a problem (such as a nonexistent key or value) or 0 otherwise.</p>
 <p><a href="../Variables.htm#LastError">A_LastError</a> is set to the result of the operating system's GetLastError() function.</p>
@@ -38,7 +39,7 @@
 <p>Currently only the following value types are supported: REG_SZ, REG_EXPAND_SZ, REG_MULTI_SZ, REG_DWORD, and REG_BINARY.</p>
 <p>REG_DWORD values are always expressed as positive decimal numbers.</p>
 <p>When reading a REG_BINARY key the result is a string of hex characters. For example, the REG_BINARY value of 01,a9,ff,77 will be read as the string 01A9FF77.</p>
-<p>When reading a REG_MULTI_SZ key, each of the components ends in a linefeed character (`n). If there are no components, <em>OutputVar</em> will be made blank. See <a href="FileSelect.htm">FileSelect</a> for an example of how to extract the individual components from <em>OutputVar</em>.</p>
+<p>When reading a REG_MULTI_SZ key, each of the components ends in a linefeed character (`n). If there are no components, an empty string is returned. See <a href="FileSelect.htm">FileSelect</a> for an example of how to extract the individual components from the return value.</p>
 <p>To retrieve and operate upon multiple registry keys or values, consider using a <a href="LoopReg.htm">registry-loop</a>.</p>
 <p>For details about how to access the registry of a remote computer, see the remarks in <a href="LoopReg.htm#remote">registry-loop</a>.</p>
 <p>To read and write entries from the 64-bit sections of the registry in a 32-bit script or vice versa, use <a href="SetRegView.htm">SetRegView</a>.</p>
@@ -52,12 +53,12 @@
 ; directory is returned if the OS is 64-bit and the script is not.</em>
 <a href="SetRegView.htm">SetRegView</a> 64
 
-OutputVar := RegRead("HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion", "ProgramFilesDir")
-MsgBox "Program files are in: " OutputVar
+ProgramFilesDir := RegRead("HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion", "ProgramFilesDir")
+MsgBox "Program files are in: " ProgramFilesDir
 
 <em>; Another way to retrieve the path of the Program Files directory:</em>
-OutputVar := EnvGet(<a href="../Variables.htm#Is64bitOS">A_Is64bitOS</a> ? "ProgramW6432" : "ProgramFiles")
-MsgBox "Program files are in: " OutputVar
+ProgramFilesDir := EnvGet(<a href="../Variables.htm#Is64bitOS">A_Is64bitOS</a> ? "ProgramW6432" : "ProgramFiles")
+MsgBox "Program files are in: " ProgramFilesDir
 </pre>
 <pre class="NoIndent"><em>; The following example retrieves the TYPE of a registry value (e.g. REG_SZ or REG_DWORD).</em>
 MsgBox RegKeyType(&quot;HKCU&quot;, &quot;Environment&quot;, &quot;TEMP&quot;)
