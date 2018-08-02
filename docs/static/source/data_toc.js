@@ -384,7 +384,8 @@ tocData = [
       ["ControlShow","commands/ControlShow.htm"],
       ["ControlShowDropDown","commands/ControlShowDropDown.htm"],
       ["MenuSelect","commands/MenuSelect.htm"],
-      ["PostMessage/SendMessage","commands/PostMessage.htm"],
+      ["PostMessage","commands/PostMessage.htm"],
+      ["SendMessage","commands/SendMessage.htm"],
       ["SetControlDelay","commands/SetControlDelay.htm"]
     ]],
     ["Window Groups","",
