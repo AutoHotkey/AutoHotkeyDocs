@@ -876,6 +876,13 @@ function ctor_structure()
         // Don't use relPath here due file differences between the versions:
         a.attr('href', thisLink);
       });
+      // Hide dropdown list on click with left or middle mouse button:
+      $langList.add($verList).off('mouseup').on('mouseup', function(e) {
+        if (e.which == 1 || e.which == 2) {
+          $dropdown.animate({height: 'hide'}, 100);
+          $this.removeClass('selected');
+        }
+      });
       // 'Edit page on GitHub' button:
       $("li.edit > a").attr({
         href: T("https://github.com/Lexikos/AutoHotkey_L-Docs/edit/master/docs/") + relPath,
