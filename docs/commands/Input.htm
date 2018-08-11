@@ -19,12 +19,6 @@
 <h2>Parameters</h2>
 <dl>
 
-  <dt>Text (return value)</dt>
-  <dd><p>The text entered by the user (by default, artificial input is also captured).</p>
-      <p>The text consists of characters produced by keystrokes according to the active window's keyboard layout/language. Consequently, keystrokes that do not produce characters (such as <kbd>PageUp</kbd> and <kbd>Home</kbd>) are not stored (though they can be recognized via the <em>EndKeys</em> parameter below).</p>
-      <p class="warning"><strong>Note:</strong> The <kbd>Escape</kbd> key is translated to the ASCII ESC character, <code>Chr(27)</code>. This can be avoided by including <code>{Esc}</code> in <em>EndKeys</em>, in which case pressing <kbd>Escape</kbd> will terminate Input.</p>
-      <p>Whitespace characters such as <kbd>Tab</kbd> (`t) are stored literally. <kbd>Enter</kbd> is stored as linefeed (`n).</p></dd>
-
   <dt>Options</dt>
   <dd><p><u>A string of zero or more of the following letters (in any order, with optional spaces in between):</u></p>
       <p><strong>B</strong>: <kbd>Backspace</kbd> is ignored. Normally, pressing <kbd>Backspace</kbd> during an Input will remove the most recently pressed character from the end of the string. Note: If the input text is visible (such as in an editor) and the arrow keys or other means are used to navigate within it, <kbd>Backspace</kbd> will still remove the last character rather than the one behind the caret (insertion point).</p>
@@ -33,19 +27,19 @@
       <p><strong>L</strong>: Length limit (e.g. <code>L5</code>). The maximum allowed length of the input. When the text reaches this length, the Input will be terminated and <a href="../misc/ErrorLevel.htm">ErrorLevel</a> will be set to the word Max unless the text matches one of the <em>MatchList</em> phrases, in which case <a href="../misc/ErrorLevel.htm">ErrorLevel</a> is set to the word Match. If unspecified, the length limit is 16383, which is also the absolute maximum.</p>
       <p><strong>M</strong>: Modified keystrokes such as <kbd>Control</kbd>+<kbd>A</kbd> through <kbd>Control</kbd>+<kbd>Z</kbd> are recognized and transcribed if they correspond to real ASCII characters. Consider this example, which recognizes <kbd>Control</kbd>+<kbd>C</kbd>:</p>
       <pre>CtrlC := Chr(3) <em>; Store the character for Ctrl-C in the CtrlC var.</em>
-OutputVar := Input("L1 M")
-if (OutputVar = CtrlC)
+Text := Input("L1 M")
+if (Text = CtrlC)
     MsgBox "You pressed Control-C."
 ExitApp</pre>
       <p class="note"><strong>Note</strong>: The characters <kbd>Ctrl</kbd>+<kbd>A</kbd> through <kbd>Ctrl</kbd>+<kbd>Z</kbd> correspond to <a href="Chr.htm">Chr(1)</a> through <a href="Chr.htm">Chr(26)</a>. Also, the <strong>M</strong> option might cause some keyboard shortcuts such as <kbd>Ctrl</kbd>+<kbd>&larr;</kbd> to misbehave while an Input is in progress.</p>
-      <p><strong>T</strong>: Timeout (e.g. <code>T3</code>). The number of seconds to wait before terminating the Input and setting <a href="../misc/ErrorLevel.htm">ErrorLevel</a> to the word Timeout. If the Input times out, <em>OutputVar</em> will be set to whatever text the user had time to enter. This value can be a floating point number such as <code>2.5</code>.</p>
+      <p><strong>T</strong>: Timeout (e.g. <code>T3</code>). The number of seconds to wait before terminating the Input and setting <a href="../misc/ErrorLevel.htm">ErrorLevel</a> to the word Timeout. If the Input function times out, it will return whatever text the user had time to enter. This value can be a floating point number such as <code>2.5</code>.</p>
       <p id="vis"><strong>V</strong>: Visible. Normally, the user's input is blocked (hidden from the system). Use this option to have the user's keystrokes sent to the active window.</p>
       <p id="asterisk"><strong>*</strong>: Wildcard (find anywhere). Normally, what the user types must exactly match one of the <em>MatchList</em> phrases  for a match to occur. Use this option to find a match more often by searching the entire length of the input text.</p>
       <p id="E"><strong>E</strong>: Handle single-character end keys by character code instead of by keycode. This provides more consistent results if the active window's keyboard layout is different to the script's keyboard layout. It also prevents key combinations which don't actually produce the given end characters from ending input; for example, if <code>@</code> is an end key, on the US layout <kbd>Shift</kbd>+<kbd>2</kbd> will trigger it but <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>2</kbd> will not (if the E option is used). If the <strong>C</strong> option is also used, the end character is case-sensitive.</p>
       </dd>
 
   <dt>EndKeys</dt>
-  <dd><p>A list of zero or more keys, any one of which terminates the Input when pressed (the <em>EndKey</em> itself is not written to <em>OutputVar</em>). When an Input is terminated this way, <a href="../misc/ErrorLevel.htm">ErrorLevel</a> is set to the word EndKey followed by a colon and the name of the <em>EndKey</em>. Examples: <code>EndKey:.</code>, <code>EndKey:Escape</code>.</p>
+  <dd><p>A list of zero or more keys, any one of which terminates the Input when pressed (the <em>EndKey</em> itself is omitted from the return value). When an Input is terminated this way, <a href="../misc/ErrorLevel.htm">ErrorLevel</a> is set to the word EndKey followed by a colon and the name of the <em>EndKey</em>. Examples: <code>EndKey:.</code>, <code>EndKey:Escape</code>.</p>
       <p>The <em>EndKey</em> list uses a format similar to the <a href="Send.htm">Send</a> function. For example, specifying <code>{Enter}.{Esc}</code> would cause either <kbd>Enter</kbd>, <kbd>.</kbd>, or <kbd>Escape</kbd> to terminate the Input. To use the braces themselves as end keys, specify <code>{{}</code> and/or <code>{}}</code>.</p>
       <p>To use <kbd>Control</kbd>, <kbd>Alt</kbd>, or <kbd>Shift</kbd> as end-keys, specify the left and/or right version of the key, not the neutral version. For example, specify <code>{LControl}{RControl}</code> rather than <code>{Control}</code>.</p>
       <p>Although modified keys such as <kbd>Alt</kbd>+<kbd>C</kbd> (!c) are not supported, certain characters that require the <kbd>Shift</kbd> key to be held down -- namely punctuation marks such as <code>?!:@&amp;{}</code> -- are supported. Other characters are supported with the <strong>E</strong> option described above. When the <strong>E</strong> and <strong>M</strong> options are both used, <kbd>Control</kbd>+<kbd>A</kbd> through <kbd>Control</kbd>+<kbd>Z</kbd> are supported by including the corresponding ASCII control characters in <em>EndKeys</em>.</p>
@@ -59,6 +53,13 @@ ExitApp</pre>
     </dd>
 
 </dl>
+
+<h2>Return Value</h2>
+<p>Type: <a href="../Concepts.htm#strings">String</a></p>
+<p>This function returns the text entered by the user (by default, artificial input is also captured).</p>
+<p>The text consists of characters produced by keystrokes according to the active window's keyboard layout/language. Consequently, keystrokes that do not produce characters (such as <kbd>PageUp</kbd> and <kbd>Home</kbd>) are not returned (though they can be recognized via the <em>EndKeys</em> parameter below).</p>
+<p class="warning"><strong>Note:</strong> The <kbd>Escape</kbd> key is translated to the ASCII ESC character, <code>Chr(27)</code>. This can be avoided by including <code>{Esc}</code> in <em>EndKeys</em>, in which case pressing <kbd>Escape</kbd> will terminate Input.</p>
+<p>Whitespace characters such as <kbd>Tab</kbd> (`t) are returned literally. <kbd>Enter</kbd> is returned as linefeed (`n).</p>
 
 <h2>ErrorLevel</h2>
 <table class="info">
@@ -86,7 +87,7 @@ ExitApp</pre>
     <td>EndKey:<em>Name</em></td>
     <td>
       <p>One of the <em>EndKeys</em> was pressed to terminate the Input. In this case, <a href="../misc/ErrorLevel.htm">ErrorLevel</a> contains the word EndKey followed by a colon and the name of the terminating key without braces, e.g. <code>EndKey:Enter</code>, <code>EndKey:Escape</code>, etc.</p>
-      <p>Note that <em>Name</em> is the "normalized" name of the key regardless of how it was written in <em>EndKeys</em>. For example, <code>{Esc}</code> and <code>{vk1B}</code> both produce <code>EndKey:Escape</code>. <a href="GetKey.htm">GetKeyName</a> can be used to retrieve the normalized name.</p>
+      <p>Note that <em>Name</em> is the "normalized" name of the key regardless of how it was written in <em>EndKeys</em>. For example, <code>{Esc}</code> and <code>{vk1B}</code> both produce <code>EndKey:Escape</code>. <a href="GetKeyName.htm">GetKeyName</a> can be used to retrieve the normalized name.</p>
       <p>If the <a href="#E">E option</a> was used, <em>Name</em> is the actual character which was typed (if applicable). Otherwise, the key name is determined according to the script's active keyboard layout. Single-character key names without the E option are usually lower-case, since the shift state is ignored.</p>
     </td>
   </tr>

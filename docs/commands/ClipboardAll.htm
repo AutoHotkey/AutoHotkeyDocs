@@ -1,0 +1,69 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+<title>ClipboardAll - Syntax &amp; Usage | AutoHotkey v2</title>
+<meta name="description" content="The ClipboardAll function creates an object containing everything on the clipboard (such as pictures and formatting)." />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<link href="../static/theme.css" rel="stylesheet" type="text/css" />
+<script src="../static/content.js" type="text/javascript"></script>
+</head>
+<body>
+
+<h1>ClipboardAll</h1>
+
+<p>Creates an object containing everything on the clipboard (such as pictures and formatting).</p>
+<pre class="Syntax">ClipSaved := <span class="func">ClipboardAll</span>(<span class="optional">Data, Size</span>)</pre>
+
+<h2>Parameters</h2>
+<p>Omit both parameters to retrieve the current contents of the clipboard. Otherwise, specify one or both parameters to create an object containing the given binary clipboard data.</p>
+<dl>
+  <dt>Data</dt>
+  <dd><p>A string containing binary data, or a pure integer which is the address of the binary data. The data must be in a specific format, so typically originates from a previous call to ClipboardAll. See <a href="#ex2">example #2</a> below.</p></dd>
+  <dt>Size</dt>
+  <dd><p>The number of bytes of data to use. This is optional when <em>Data</em> is a string.</p></dd>
+</dl>
+
+<h2 id="clipboardall-object">Return Value</h2>
+<p>Type: <a href="../Concepts.htm#objects">Object</a></p>
+<p>This function returns a <a href="../Concepts.htm#references-to-objects">reference</a> to a ClipboardAll object, which has three properties:</p>
+<ul>
+  <li id="Data"><strong>Data:</strong> A string containing raw binary data which represents the clipboard contents. This is typically passed to <a href="FileAppend.htm">FileAppend</a> or <a href="../objects/File.htm#RawWrite">File.RawWrite</a> to write it to file.</li>
+  <li id="Ptr"><strong>Ptr:</strong> The address of the data contained by the object. This address is valid until the object is freed.</li>
+  <li id="Size"><strong>Size:</strong> The size, in bytes, of the raw binary data.</li>
+</ul>
+
+<h2>Remarks</h2>
+<p>The built-in variable <a href="../misc/Clipboard.htm">Clipboard</a> reflects the current contents of the Windows clipboard expressed as plain text.</p>
+<p>The <em>ClipboardAll</em> function is most commonly used to save the clipboard's contents so that the script can temporarily use the clipboard for an operation. When the operation is completed, the script restores the original clipboard contents as shown in <a href="#ex1">example #1</a> and <a href="#ex2">example #2</a>.</p>
+<p>If <em>ClipboardAll</em> cannot retrieve one or more of the data objects (formats) on the clipboard, they will be omitted but all the remaining objects will be stored.</p>
+<p>A variable containing clipboard data can be copied to another variable as in this example: <code>ClipSaved2 := ClipSaved</code>.</p>
+<p><a href="ClipWait.htm">ClipWait</a> may be used to detect when the clipboard contains data (optionally including non-text data).</p>
+<p>Binary data returned by the <a href="#Data">Data</a> property internally consists of a four-byte format type, followed by a four-byte data-block size, followed by the data-block for that format. If the clipboard contained more than one format (which is almost always the case), these three items are repeated until all the formats are included. The data ends with a four-byte format type of 0.</p>
+<p>Known limitation: Using <em>ClipboardAll</em> while cells from Microsoft Excel are on the clipboard may cause Excel to display a &quot;no printers&quot; dialog.</p>
+
+<h2>Related</h2>
+<p><a href="../misc/Clipboard.htm">Clipboard</a>, <a href="ClipWait.htm">ClipWait</a>, <a href="OnClipboardChange.htm">OnClipboardChange</a>, <a href="_ClipboardTimeout.htm">#ClipboardTimeout</a></p>
+
+<h2>Examples</h2>
+
+<h3 id="ex1">Example #1</h3>
+<p>Saves and restores everything on the clipboard using a variable:</p>
+<pre class="NoIndent">ClipSaved := ClipboardAll()   <em>; Save the entire clipboard to a variable of your choice.
+; ... here make temporary use of the clipboard, such as for quickly pasting large amounts of text ...</em>
+Clipboard := ClipSaved   <em>; Restore the original clipboard. Note the use of <i>Clipboard</i> (not <i>ClipboardAll</i>).</em>
+ClipSaved := ""  <em>; Free the memory in case the clipboard was very large.</em></pre>
+
+<h3 id="ex2">Example #2</h3>
+<p>Saves and restores everything on the clipboard using a file:</p>
+<pre class="NoIndent"><em>; Option 1: Delete any existing file and then use FileAppend in "RAW" mode.</em>
+<a href="FileDelete.htm">FileDelete</a> "C:\Company Logo.clip"
+<a href="FileAppend.htm">FileAppend</a> ClipboardAll().Data, "C:\Company Logo.clip", "RAW" <em>; The file extension does not matter.</em>
+
+<em>; Option 2: Use FileOpen in overwrite mode and File.RawWrite.</em>
+<a href="FileOpen.htm">FileOpen</a>("C:\Company Logo.clip", "w").<a href="../objects/File.htm#RawWrite">RawWrite</a>(ClipboardAll().Data)</pre>
+<p>To later load the file back onto the clipboard (or into a variable), follow this example:</p>
+<pre class="NoIndent">Clipboard := ClipboardAll(<a href="FileRead.htm">FileRead</a>("C:\Company Logo.clip", "RAW"))</pre>
+
+</body>
+</html>

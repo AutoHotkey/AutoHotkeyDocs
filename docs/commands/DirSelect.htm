@@ -14,13 +14,9 @@
 
 <p>Displays a standard dialog  that allows the user to select a folder.</p>
 
-<pre class="Syntax">OutputVar := <span class="func">DirSelect</span>(<span class="optional">StartingFolder, Options, Prompt</span>)</pre>
+<pre class="Syntax">SelectedFolder := <span class="func">DirSelect</span>(<span class="optional">StartingFolder, Options, Prompt</span>)</pre>
 <h2>Parameters</h2>
 <dl>
-
-  <dt>OutputVar</dt>
-  <dd><p>The name of the variable in which to store the user's selected folder. This will be made blank if the user cancels the dialog (i.e. does not wish to select a folder). If the user selects a root directory (such as C:\), <em>OutputVar</em> will contain a trailing backslash. If this is undesirable, remove it as follows:</p>
-      <pre>Folder := RegExReplace(DirSelect(), "\\$")  <em>; Removes the trailing backslash, if present.</em></pre></dd>
 
   <dt>StartingFolder</dt>
   <dd><p>If blank or omitted, the dialog's initial selection will be the user's My Documents folder (or possibly My Computer). A <a href="../misc/CLSID-List.htm">CLSID folder</a> such as <code>"::{20d04fe0-3aea-1069-a2d8-08002b30309d}"</code> (i.e. My Computer) may be specified start navigation at a specific special folder.</p>
@@ -36,12 +32,17 @@
       <p><strong>1</strong> (default): A button is provided that allows the user to create new folders.</p>
       <p><strong>Add 2</strong> to the above number to  provide an edit field that allows the user to type the name of a folder. For example, a value of 3 for this parameter provides both an edit field and a &quot;make new folder&quot; button.</p>
       <p id="NewDialog"><strong>Add 4</strong> to the above number to omit the BIF_NEWDIALOGSTYLE property. Adding 4 ensures that DirSelect will work properly even in a Preinstallation Environment like WinPE or BartPE. However, this prevents the appearance of a &quot;make new folder&quot; button, at least on Windows XP.</p>
-      <p>If the user types an invalid folder name in the edit field, <em>OutputVar</em> will be set to the folder selected in the navigation tree rather than what the user entered, at least on Windows XP.</p></dd>
+      <p>If the user types an invalid folder name in the edit field, <em>SelectedFolder</em> will be set to the folder selected in the navigation tree rather than what the user entered, at least on Windows XP.</p></dd>
 
   <dt>Prompt</dt>
   <dd><p>Text displayed in the window to instruct the user what to do. If omitted or blank, it will default to <code>"Select Folder - " <a href="../Variables.htm#ScriptName">A_ScriptName</a></code> (i.e. the name of the current script).</p></dd>
 
 </dl>
+
+<h2>Return Value</h2>
+<p>Type: <a href="../Concepts.htm#strings">String</a></p>
+<p>This function returns the full path and name of the folder chosen by the user. If the user cancels the dialog (i.e. does not wish to select a folder), an empty string is returned. If the user selects a root directory (such as C:\), the return value will contain a trailing backslash. If this is undesirable, remove it as follows:</p>
+<pre>Folder := RegExReplace(DirSelect(), "\\$")  <em>; Removes the trailing backslash, if present.</em></pre>
 
 <h2>ErrorLevel</h2>
 <p><a href="../misc/ErrorLevel.htm">ErrorLevel</a> is set to 1 if the user dismissed the dialog without selecting a folder (such as by pressing the Cancel button). It is also set to 1 if the system refused to show the dialog (rare). Otherwise, it is set to 0.</p>
@@ -49,20 +50,20 @@
 <p>A GUI window may display a modal folder-selection dialog by means of the <a href="../objects/Gui.htm#OwnDialogs">+OwnDialogs</a> option. A modal dialog prevents the user from interacting with the GUI window until the dialog is dismissed.</p>
 <p>Known limitation: A <a href="SetTimer.htm">timer</a> that launches during the display of a DirSelect dialog will postpone the effect of the user's clicks inside the dialog until after the timer finishes. To work around this, avoid using timers whose subroutines take a long time to finish, or disable all timers during the dialog:</p>
 <pre><a href="Thread.htm">Thread</a> "NoTimers"
-OutputVar := DirSelect(,, 3)
+SelectedFolder := DirSelect(,, 3)
 Thread "NoTimers", false</pre>
 <h2>Related</h2>
 <p><a href="FileSelect.htm">FileSelect</a>, <a href="MsgBox.htm">MsgBox</a>, <a href="InputBox.htm">InputBox</a>, <a href="ToolTip.htm">ToolTip</a>, <a href="../objects/Gui.htm">GUI</a>, <a href="../misc/CLSID-List.htm">CLSID List</a>, <a href="DirCopy.htm">DirCopy</a>, <a href="DirMove.htm">DirMove</a>, <a href="SplitPath.htm">SplitPath</a></p>
 <p>Also, the operating system offers standard dialog boxes that prompt the user to pick a font, color, or icon. These dialogs can be displayed via <a href="DllCall.htm">DllCall</a> as demonstrated at <a href="http://www.autohotkey.com/forum/topic17230.html">www.autohotkey.com/forum/topic17230.html</a>.</p>
 <h2>Example</h2>
-<pre class="NoIndent">OutputVar := DirSelect(, 3)
-if OutputVar = ""
+<pre class="NoIndent">SelectedFolder := DirSelect(, 3)
+if SelectedFolder = ""
     MsgBox "You didn't select a folder."
 else
-    MsgBox "You selected folder '" OutputVar "'."
+    MsgBox "You selected folder '" SelectedFolder "'."
 
 <em>; <a href="../misc/CLSID-List.htm">CLSID</a> Example:</em>
-OutputVar := DirSelect("::{20d04fe0-3aea-1069-a2d8-08002b30309d}")  <em>; My Computer.</em></pre>
+SelectedFolder := DirSelect("::{20d04fe0-3aea-1069-a2d8-08002b30309d}")  <em>; My Computer.</em></pre>
 
 </body>
 </html>
