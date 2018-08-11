@@ -39,7 +39,7 @@ MyVar := &quot;&quot;</pre>
 <pre><a href="commands/MsgBox.htm">MsgBox</a> The value in the variable named Var is %Var%.
 CopyOfVar = %Var%</pre>
 <p>By contrast, the expression method omits the percent signs around variable names, but encloses <a href="Language.htm#strings">literal strings</a> in quotes. Thus, the following are the expression equivalents of the previous examples:</p>
-<pre>MsgBox <strong>%</strong> &quot;The value in the variable named Var is &quot; . Var . &quot;.&quot;  <em>; A period is used to concatenate (join) two strings.</em>
+<pre>MsgBox % &quot;The value in the variable named Var is &quot; . Var . &quot;.&quot;  <em>; A period is used to concatenate (join) two strings.</em>
 CopyOfVar := Var</pre>
 <p>In the MsgBox line above, <a href="Language.htm#-expression">a percent sign and a space</a> is used to change the parameter from legacy to expression mode. This is necessary because the legacy method is used by default by all commands, except where otherwise documented.</p>
 <p><strong>Comparing variables</strong>: Please read the expressions section below for important notes about the different kinds of comparisons, especially  about when to use parentheses.</p>
@@ -66,12 +66,12 @@ ContinueSearch := true</pre>
 <p><strong>Integers and floating point</strong>: Within an expression, numbers are considered to be floating point if they contain a decimal point; otherwise, they are integers. For most operators -- such as addition and multiplication -- if either of the inputs is a floating point number, the result will also be a floating point number.</p>
 <p>Within expressions and non-expressions alike, integers may be written in either hexadecimal or decimal format. Hexadecimal numbers all start with the prefix 0x. For example, <code>Sleep 0xFF</code> is equivalent to <code>Sleep 255</code>. <span class="ver">[v1.0.46.11+]</span>: Floating point numbers written in scientific notation are recognized; but only if they contain a decimal point (e.g. <code>1<strong>.</strong>0e4</code> and <code>-2<strong>.</strong>1E-4</code>).</p>
 <p id="percent-space"><strong>Force an expression</strong>: An expression can be used in a parameter that does not directly support it (except OutputVar parameters) by preceding the expression with a percent sign and a space or tab. In <span class="ver">[v1.1.21+]</span>, this prefix can be used in the InputVar parameters of all commands except the traditional IF commands (use <a href="commands/IfExpression.htm">If (expression)</a> instead). This technique is often used to access <a href="misc/Arrays.htm">arrays</a>. For example:</p>
-<pre><a href="commands/FileAppend.htm">FileAppend</a>, <strong>%</strong> MyArray[i], My File.txt
-<a href="commands/FileAppend.htm">FileAppend</a>, <strong>%</strong> MyPseudoArray%i%, My File.txt
-<a href="commands/MsgBox.htm">MsgBox</a> <strong>%</strong> &quot;The variable MyVar contains &quot; . MyVar . &quot;.&quot;
-<a href="commands/Loop.htm">Loop</a> <strong>%</strong> Iterations + 1
-<a href="commands/WinSet.htm">WinSet</a>, Transparent, <strong>%</strong> X + 100
-<a href="commands/Control.htm">Control</a>, Choose, <strong>%</strong> CurrentSelection - 1</pre>
+<pre><a href="commands/FileAppend.htm">FileAppend</a>, % MyArray[i], My File.txt
+<a href="commands/FileAppend.htm">FileAppend</a>, % MyPseudoArray%i%, My File.txt
+<a href="commands/MsgBox.htm">MsgBox</a> % &quot;The variable MyVar contains &quot; . MyVar . &quot;.&quot;
+<a href="commands/Loop.htm">Loop</a> % Iterations + 1
+<a href="commands/WinSet.htm">WinSet</a>, Transparent, % X + 100
+<a href="commands/Control.htm">Control</a>, Choose, % CurrentSelection - 1</pre>
 
 <h2 id="Operators">Operators in Expressions</h2>
 <p class="note">See <a href="Language.htm#operators">Operators</a> for general information about operators.</p>
@@ -118,7 +118,7 @@ ContinueSearch := true</pre>
       <p id="amp"><strong>Address (&amp;)</strong>: <code>&amp;MyVar</code> retrieves the address of <em>MyVar</em>'s contents in memory, which is typically used with <a href="commands/DllCall.htm#struct">DllCall structures</a>. <code>&amp;MyVar</code> also disables the caching of binary numbers in that variable, which can slow down its performance if it is ever used for math or numeric comparisons. Caching is re-enabled for a variable whenever its address changes (e.g. via <a href="commands/VarSetCapacity.htm">VarSetCapacity()</a>).</p>
       <p><strong>Dereference (*)</strong>: <code>*Expression</code> assumes that <code>Expression</code> resolves to a numeric memory address; it retrieves the byte at that address as a number between 0 and 255 (0 is always retrieved if the address is 0; but any other invalid address must be avoided because it might crash the script). However, <a href="commands/NumGet.htm">NumGet()</a> generally performs much better when retrieving binary numbers.</p></td>
   </tr>
-  <tr>
+  <tr id="MulDiv">
     <td style="text-align:center"><strong>*<br>
     /<br>
     //
@@ -129,7 +129,7 @@ ContinueSearch := true</pre>
     <p>The <a href="commands/EnvMult.htm">*=</a> and <a href="commands/EnvDiv.htm">/=</a> operators are a shorthand way to multiply or divide the value in a variable by another value. For example, <code>Var*=2</code> produces the same result as <code>Var:=Var*2</code> (though the former performs better).</p>
     <p>Division by zero yields a blank result (empty string).</p></td>
   </tr>
-  <tr>
+  <tr id="AddSub">
     <td style="text-align:center"><strong>+<br>
     -</strong></td>
     <td><p><strong>Add (+)</strong> and <strong>subtract (-)</strong>. On a related note, the <a href="commands/EnvAdd.htm"><strong>+=</strong></a> and <a href="commands/EnvSub.htm"><strong>-=</strong></a> operators are a shorthand way to increment or decrement a variable. For example, <code>Var+=2</code> produces the same result as <code>Var:=Var+2</code> (though the former performs better). Similarly, a variable can be increased or decreased by 1 by using <a href="#IncDec">Var++, Var--, ++Var, or --Var</a>.</p>
@@ -173,16 +173,16 @@ ContinueSearch := true</pre>
       <p class="note"><strong>Note</strong>: A quoted literal string such as &quot;55&quot; is always considered non-numeric in this context.</p>
     </td>
   </tr>
-  <tr>
+  <tr id="not">
     <td style="text-align:center"><strong>NOT</strong></td>
     <td><strong>Logical-NOT</strong>. Except for its lower precedence, this is the same as the <strong>!</strong> operator. For example, <code>not (x = 3 or y = 3)</code> is the same as <code><strong>!</strong>(x = 3 or y = 3)</code>.</td>
   </tr>
-  <tr>
+  <tr id="and">
     <td style="text-align:center"><strong>AND<br>
     &amp;&amp;</strong></td>
     <td>Both of these are <strong>logical-AND</strong>. For example: <code>x &gt; 3 and x &lt; 10</code>. To enhance performance, <a href="Functions.htm#ShortCircuit">short-circuit evaluation</a> is applied. Also, a line that begins with AND/OR/&amp;&amp;/|| (or any other operator) is automatically <a href="Scripts.htm#continuation">appended to</a> the line above it.</td>
   </tr>
-  <tr>
+  <tr id="or">
     <td style="text-align:center"><strong>OR<br>
     ||</strong></td>
     <td>Both of these are <strong>logical-OR</strong>. For example: <code>x &lt;= 3 or x &gt;= 10</code>.  To enhance performance, <a href="Functions.htm#ShortCircuit">short-circuit evaluation</a> is applied.</td>
