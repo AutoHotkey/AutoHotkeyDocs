@@ -729,7 +729,7 @@ indexData = [
   ["Process functions","commands/Process.htm"],
   ["ProcessClose","commands/ProcessClose.htm",2],
   ["ProcessExist","commands/ProcessExist.htm",2],
-  ["ProcessSetPriority","commands/ProcessPriority.htm",2],
+  ["ProcessSetPriority","commands/ProcessSetPriority.htm",2],
   ["ProcessWait","commands/ProcessWait.htm",2],
   ["ProcessWaitClose","commands/ProcessWaitClose.htm",2],
   ["Progress controls (GUI)","commands/GuiControls.htm#Progress"],
