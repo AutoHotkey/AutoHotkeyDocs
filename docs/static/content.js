@@ -1481,7 +1481,6 @@ function addFeatures()
         3 - control flow statement
         4 - operator
         5 - declaration
-        6 - command
     */
     var syntax = [], dict = {}, entry = '', type = '';
     for (var i = cache.index_data.length - 1; i >= 0; i--) {
@@ -1489,8 +1488,6 @@ function addFeatures()
       type = cache.index_data[i][2];
       syntax[type] = syntax[type] || [];
       if (typeof type !== 'undefined') {
-        if (entry.substr(entry.length - 2) == '()')
-          entry = entry.substr(0, entry.length - 2);
         if (entry.indexOf(' ... ') != -1) {
           part = entry.split(' ... ');
           for (k in part) {
@@ -1502,11 +1499,6 @@ function addFeatures()
         else
           (syntax[type].single = syntax[type].single || []).push(entry);
         dict[entry.toLowerCase()] = i;
-        if (entry.indexOf(', ') != -1) {
-          entry = entry.toLowerCase().replace(', ', ' ');
-          syntax[type].single.push(entry);
-          dict[entry] = i;
-        }
       }
     }
     // Traverse pre elements:
@@ -1533,12 +1525,19 @@ function addFeatures()
       });
       // Store pre content into a variable to improve performance:
       var innerHTML = pre.innerHTML;
-      // continuation sections:
-      els.order.push('cont'); els.cont = [];
-      innerHTML = innerHTML.replace(/(^\s*\([\s\S]*?^\s*\))/gm, function(_, SECTION) {
+      // continuation section inside a string "(...)"
+      els.order.push('cont1'); els.cont1 = [];
+      innerHTML = innerHTML.replace(/('|")([<\/em>\s]*?^\s*\([\s\S]*?^\s*\).*?)\1/gm, function(_, QUOTE, SECTION) {
         out = wrap(SECTION, 'str', false);
-        els.cont.push(out);
-        return '<cont></cont>';
+        els.cont1.push(out);
+        return QUOTE + '<cont1></cont1>' + QUOTE;
+      });
+      // continuation section for hotstrings ::(...)
+      els.order.push('cont2'); els.cont2 = [];
+      innerHTML = innerHTML.replace(/(^\s*:.*?:.*?::)([<\/em>\s]*?^\s*\([\s\S]*?^\s*\).*?)/gm, function(_, PRE, SECTION) {
+        out = wrap(SECTION, 'str', false);
+        els.cont2.push(out);
+        return PRE + '<cont2></cont2>';
       });
       // function definitions:
       els.order.push('fun'); els.fun = [];
@@ -1549,7 +1548,7 @@ function addFeatures()
       });
       // strings:
       els.order.push('str'); els.str = [];
-      innerHTML = innerHTML.replace(/((")[\s\S]*?\2)\B/gm, function(_, STRING) {
+      innerHTML = innerHTML.replace(/(("|')[\s\S]*?\2)\B/gm, function(_, STRING) {
         out = wrap(STRING, 'str', false);
         els.str.push(out);
         return '<str></str>';
@@ -1597,18 +1596,18 @@ function addFeatures()
         els.biv.push(out);
         return '<biv></biv>';
       });
-      // built-in functions:
-      els.order.push('bif'); els.bif = [];
-      innerHTML = innerHTML.replace(new RegExp('\\b(' + syntax[2].single.join('|').replace('()', '') + ')(?=\\()', 'gi'), function(_, BIF) {
-        out = wrap(BIF, 'bif', true);
-        els.bif.push(out);
-        return '<bif></bif>';
-      });
       // directives:
       els.order.push('dir'); els.dir = [];
       innerHTML = innerHTML.replace(new RegExp('(' + syntax[0].single.join('|') + ')\\b($|[\\s,])(.*?)(?=<em></em>|$)', 'gim'), function(_, DIR, SEP, PARAMS) {
         // Get type of every parameter:
         var types = cache.index_data[dict[DIR.toLowerCase()]][3];
+        // Skip param processing if first param is an expression:
+        if (types[0] == 'E')
+        {
+          out = wrap(DIR, 'dir', true);
+          els.dir.push(out);
+          return '<dir></dir>' + SEP + PARAMS;
+        }
         // Temporary exclude (...), {...} and [...]:
         sub = [];
         PARAMS = PARAMS.replace(/[({\[].*[\]})]/g, function(c) {
@@ -1636,58 +1635,18 @@ function addFeatures()
         els.dir.push(out);
         return '<dir></dir>';
       });
-      // commands:
-      els.order.push('cmd'); els.cmd = [];
-      innerHTML = innerHTML.replace(new RegExp('\\b(' + syntax[6].single.join('|') + ')\\b($|[\\s,])(.*?)(?=<em></em>|$)', "gim"), function(_, CMD, SEP, PARAMS) {
-        // Get type of every parameter:
-        var types = cache.index_data[dict[CMD.toLowerCase()]][3];
-        // Temporary exclude (...), {...} and [...]:
-        sub = [];
-        PARAMS = PARAMS.replace(/[({\[].*[\]})]/g, function(c) {
-          sub.push(c);
-          return '<sub></sub>'
-        });
-        // Split params:
-        PARAMS = PARAMS.split(',');
-        // Detect smart comma handling:
-        if (PARAMS.length > types.length) // For the last param of any command.
-          PARAMS.push(PARAMS.splice(types.length - 1).join(','));
-
-        if (CMD.toLowerCase() == "msgbox") // For MsgBox.
-        {
-          if (PARAMS[0] && !PARAMS[0].match(/^\s*<num><\/num>\s*$/)) // 1-parameter mode
-            PARAMS.push(PARAMS.splice(0).join(','));
-          if (PARAMS[3] && !PARAMS[3].match(/^\s*<num><\/num>\s*$/)) // 3-parameter mode
-            PARAMS.push(PARAMS.splice(2).join(','));
-        }
-        // Iterate params and recompose them:
-        for (n in PARAMS) {
-          if (PARAMS[n].match(/^\s*%\s/)) // Skip forced expression parameter:
-            continue;
-          if (types[n] == 'S') // string
-            PARAMS[n] = PARAMS[n].match(/^\s*<num><\/num>\s*$/) ? PARAMS[n] : wrap(PARAMS[n], 'str', false);
-        }
-        PARAMS = PARAMS.join(',');
-        // Restore (...), {...} and [...] previously excluded:
-        for (n in sub) {
-          PARAMS = PARAMS.replace('<sub></sub>', sub[n])
-        }
-        out = wrap(CMD, 'cmd', true) + SEP + PARAMS;
-        els.cmd.push(out);
-        return '<cmd></cmd>';
+      // built-in functions:
+      els.order.push('bif'); els.bif = [];
+      innerHTML = innerHTML.replace(new RegExp('\\b(' + syntax[2].single.join('|') + ')\\b(?=$|[\\s(])', 'gi'), function(_, BIF) {
+        out = wrap(BIF, 'bif', true);
+        els.bif.push(out);
+        return '<bif></bif>';
       });
       // control flow statements:
       els.order.push('cfs'); els.cfs = [];
-      innerHTML = innerHTML.replace(new RegExp('\\b(' + syntax[3][0].join('|') + ') (\\S+|\\S+, \\S+) (' + syntax[3][1].join('|') + ') ((.+) (' + syntax[3][2].join('|') + ') (.+?)|.+?)(?=<em></em>|$|{)|\\b(' + syntax[3].single.join('|') + ')\\b($|[\\s,(])(.*?)(?=<em></em>|$|{|\\b(' + syntax[3].single.join('|') + ')\\b)', 'gim'), function(ASIS, IF, INPUT, BETWEEN, VAL, VAL1, AND, VAL2, CFS, SEP, PARAMS) {
+      innerHTML = innerHTML.replace(new RegExp('\\b(' + syntax[3][0].join('|') + ') (\\S+|\\S+, \\S+) (' + syntax[3][1].join('|') + ') (.+?)(?=<em></em>|$|{)|\\b(' + syntax[3].single.join('|') + ')\\b($|[\\s,(])(.*?)(?=<em></em>|$|{|\\b(' + syntax[3].single.join('|') + ')\\b)', 'gim'), function(ASIS, IF, INPUT, BETWEEN, VAL, CFS, SEP, PARAMS) {
         if (IF) {
-          if (VAL1) {
-            var cfs = cache.index_data[dict[(IF + ' ... ' + BETWEEN + ' ... ' + AND).toLowerCase()]];
-            if (cfs)
-              out = wrap(IF, 'cfs', cfs[1]) + ' ' + INPUT + ' ' + wrap(BETWEEN, 'cfs', cfs[1]) + ' ' + (VAL1.match(/^\s*<num><\/num>\s*$/) ? VAL1 : wrap(VAL1, 'str', false)) + ' ' + wrap(AND, 'cfs', cfs[1]) + ' ' + (VAL2.match(/^\s*<num><\/num>\s*$/) ? VAL2 : wrap(VAL2, 'str', false));
-            else
-              out = ASIS;
-          }
-          else if (INPUT) {
+          if (INPUT) {
             var cfs = cache.index_data[dict[(IF + ' ... ' + BETWEEN).toLowerCase()]];
             if (cfs)
               out = wrap(IF, 'cfs', cfs[1]) + ' ' + INPUT + ' ' + wrap(BETWEEN, 'cfs', cfs[1]) + ' ' + ((cfs[3][1] == "S") ? (VAL.match(/^\s*<num><\/num>\s*$/) ? VAL : wrap(VAL, 'str', false)) : VAL);
@@ -1697,16 +1656,16 @@ function addFeatures()
         }
         else {
           var cfs = CFS.toLowerCase();
+          // Skip param processing if the statement uses parentheses:
+          console.log(SEP);
+          
+          if (SEP == '(') {
+            out = wrap(CFS, 'cfs', true);
+            els.cfs.push(out);
+            return '<cfs></cfs>' + SEP + PARAMS;
+          }
           // Get type of every parameter:
           var types = cache.index_data[dict[cfs]][3];
-          // legacy if-statement:
-          if (cfs == 'if')
-            if (m = PARAMS.match(/^([^.(:]+?)(&gt;=|&gt;|&lt;&gt;|&lt;=|&lt;|!=|=)(.*)$/)) {
-              var VAR = m[1], OP = m[2], VAL = m[3];
-              out = wrap(CFS, 'cfs', 'commands/IfEqual.htm') + SEP + VAR + OP + (VAL.match(/^\s*<num><\/num>\s*$/) ? VAL : wrap(VAL, 'str', false));
-              els.cfs.push(out);
-              return '<cfs></cfs>';
-            }
           // Temporary exclude (...), {...} and [...]:
           sub = [];
           PARAMS = PARAMS.replace(/[({\[].*[\]})]/g, function(c) {
@@ -1752,13 +1711,6 @@ function addFeatures()
         out = PRE + wrap(LABEL, 'lab', false);
         els.lab.push(out);
         return '<lab></lab>';
-      });
-      // legacy assignments:
-      els.order.push('assign'); els.assign = [];
-      innerHTML = innerHTML.replace(/^(\s*[^(\s,]*?\s*[^:!*\/&^+\-|~.])=(.*?)(?=<em><\/em>|$)/gim, function(_, VAR, VAL) {
-        out = VAR + '=' + (VAL.match(/^\s*<num><\/num>\s*$/) ? VAL : wrap(VAL, 'str', false));
-        els.assign.push(out);
-        return '<assign></assign>';
       });
       // Release changes:
       pre.innerHTML = innerHTML;
