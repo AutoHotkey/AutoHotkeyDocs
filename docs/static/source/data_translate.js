@@ -9,7 +9,6 @@ translateData = {
   "Control Flow Statements":true,
   "Declarations":true,
   "Operators":true,
-  "Commands":true,
   "Search":true,
   "Highlight the words":true,
   // header
