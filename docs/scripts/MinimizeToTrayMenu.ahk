@@ -232,7 +232,7 @@ mwt_RestoreAllThenExit()
 mwt_RestoreAll:
 Loop mwt_MaxWindows
 {
-    if mwt_WindowID%A_Index% <> ""
+    if mwt_WindowID%A_Index% != ""
     {
         IDToRestore := mwt_WindowID%A_Index%
         WinShow "ahk_id " IDToRestore

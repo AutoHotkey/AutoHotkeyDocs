@@ -276,7 +276,7 @@ FindMatches(this)
             Line := A_LoopField
             if RegExMatch(Line, "%(L\d+)%", m) ; Replace %L_n% with location paths.
                 Line := StrReplace(Line, "%" m[1] "%", %m[1]%)
-            if (SearchText <> E_Search.Value)
+            if (SearchText != E_Search.Value)
             {
                 ; User has changed the search string.
                 ; There is no point to continue searching using the old string, so abort.
@@ -366,7 +366,7 @@ OpenFolder(this)
     ; If user selected a file-record instead of a directory-record, extract the
     ; directory path (I'm using DriveGetStatus instead of FileGetAttrib to allow the
     ; scenario whereby LB.Text is invalid but the directory path of LB.Text is valid):
-    if (DriveGetStatus(Path) <> "Ready") ; not a directory
+    if (DriveGetStatus(Path) != "Ready") ; not a directory
     {
         SplitPath(Path,, Dir)
         Path := Dir
