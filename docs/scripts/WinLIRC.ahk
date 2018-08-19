@@ -213,7 +213,7 @@ ReceiveData(wParam, lParam)
         WinsockError := DllCall("Ws2_32\WSAGetLastError")
         if WinsockError = 10035  ; WSAEWOULDBLOCK, which means "no more data to be read".
             return 1
-        if WinsockError <> 10054 ; WSAECONNRESET, which happens when WinLIRC closes via system shutdown/logoff.
+        if WinsockError != 10054 ; WSAECONNRESET, which happens when WinLIRC closes via system shutdown/logoff.
             ; Since it's an unexpected error, report it.  Also exit to avoid infinite loop.
             MsgBox "recv() indicated Winsock error " WinsockError
         ExitApp  ; The OnExit routine will call WSACleanup() for us.

@@ -389,7 +389,7 @@ ButtonUpLeft:
 ButtonUpRight:
 ButtonDownLeft:
 ButtonDownRight:
-if Button <> 0
+if Button != 0
 {
     if !InStr(A_ThisHotkey, Button)
     {
@@ -699,9 +699,9 @@ return
 ButtonWheelUp:
 ButtonWheelDown:
 
-if Button <> 0
+if Button != 0
 {
-    if Button <> A_ThisHotkey
+    if Button != A_ThisHotkey
     {
         MouseWheelCurrentAccelerationSpeed := 0
         MouseWheelCurrentSpeed := MouseWheelSpeed

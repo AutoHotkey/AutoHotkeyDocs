@@ -66,7 +66,7 @@ f_Paths := []
 f_Menu := MenuCreate()
 Loop Read, f_FavoritesFile
 {
-    if f_FileExt <> "Exe"
+    if f_FileExt != "Exe"
     {
         ; Since the menu items are being read directly from this
         ; script, skip over all lines until the starting line is

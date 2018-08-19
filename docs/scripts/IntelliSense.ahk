@@ -30,11 +30,11 @@ I_Icon := ""
 SetKeyDelay 0
 #SingleInstance
 
-if I_HelpHotkey <> ""
+if I_HelpHotkey != ""
     Hotkey I_HelpHotkey, "I_HelpHotkey"
 
 ; Change tray icon (if one was specified in the configuration section above):
-if I_Icon <> ""
+if I_Icon != ""
     if FileExist(I_Icon)
         Menu "Tray", "Icon", I_Icon
 
