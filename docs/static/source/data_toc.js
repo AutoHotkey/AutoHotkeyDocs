@@ -289,7 +289,7 @@ tocData = [
     ["Function Objects","objects/Functor.htm"],
     ["Gui Object","objects/Gui.htm"],
     ["GuiControl Object","objects/GuiControl.htm"],
-    ["RegExMatch Object","commands/RegExMatch.htm#MatchObject"],
+    ["RegExMatch Object","commands/RegExMatch.htm#MatchObject"]
   ]],
   ["Process","commands/Process.htm",
   [
@@ -321,7 +321,7 @@ tocData = [
     ["SoundBeep","commands/SoundBeep.htm"],
     ["SoundGet","commands/SoundGet.htm"],
     ["SoundPlay","commands/SoundPlay.htm"],
-    ["SoundSet","commands/SoundSet.htm"],
+    ["SoundSet","commands/SoundSet.htm"]
   ]],
   ["String","",
   [
