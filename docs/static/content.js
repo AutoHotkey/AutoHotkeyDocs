@@ -1,4 +1,5 @@
 loadJQuery();
+loadIE8Polyfill();
 
 // --- Get infos about this script file ---
 
@@ -628,12 +629,9 @@ function ctor_search()
 
       // Assemble list of unique results:
       var ukeys = []
-      var ukeys_searchStr = '|';
       for (var i = 0; i < aro_ka.length; ++i)
-        if (ukeys_searchStr.indexOf('|'+aro_ka[i]+'|') == -1) {
+        if (ukeys.indexOf(aro_ka[i]) == -1)
           ukeys.push(aro_ka[i])
-          ukeys_searchStr += aro_ka[i]+'|';
-        }
 
       // The lower the rank the better
       // normal ranking (based on page contents):
@@ -747,12 +745,9 @@ function ctor_search()
       }
       files = files.concat(files_low)
       var unique = []
-      var unique_searchStr = '|';
       for (var i = 0; i < files.length; ++i)
-        if (unique_searchStr.indexOf('|'+files[i]+'|') == -1) {
+        if (unique.indexOf(files[i]) == -1)
           unique.push(files[i])
-          unique_searchStr += files[i]+'|'
-        }
       PartialIndex[word] = unique
       return unique
     }
@@ -1935,4 +1930,17 @@ marginLeft:0},function(){return a.getBoundingClientRect().left}):0))+"px":void 0
 padding:"inner"+a,content:b,"":"outer"+a},function(c,d){n.fn[d]=function(d,e){var f=arguments.length&&(c||"boolean"!=typeof d),g=c||(d===!0||e===!0?"margin":"border");return Y(this,function(b,c,d){var e;return n.isWindow(b)?b.document.documentElement["client"+a]:9===b.nodeType?(e=b.documentElement,Math.max(b.body["scroll"+a],e["scroll"+a],b.body["offset"+a],e["offset"+a],e["client"+a])):void 0===d?n.css(b,c,g):n.style(b,c,d,g)},b,f?d:void 0,f,null)}})}),n.fn.extend({bind:function(a,b,c){return this.on(a,null,b,c)},unbind:function(a,b){return this.off(a,null,b)},delegate:function(a,b,c,d){return this.on(b,a,c,d)},undelegate:function(a,b,c){return 1===arguments.length?this.off(a,"**"):this.off(b,a||"**",c)}}),n.fn.size=function(){return this.length},n.fn.andSelf=n.fn.addBack,"function"==typeof define&&define.amd&&define("jquery",[],function(){return n});var nc=a.jQuery,oc=a.$;return n.noConflict=function(b){return a.$===n&&(a.$=oc),b&&a.jQuery===n&&(a.jQuery=nc),n},b||(a.jQuery=a.$=n),n});
 
 /*Search highlighting*/jQuery.fn.highlight=function(c){function e(b,c){var d=0;if(3==b.nodeType){var a=b.data.toUpperCase().indexOf(c),a=a-(b.data.substr(0,a).toUpperCase().length-b.data.substr(0,a).length);if(0<=a){d=document.createElement("span");d.className="highlight";a=b.splitText(a);a.splitText(c.length);var f=a.cloneNode(!0);d.appendChild(f);a.parentNode.replaceChild(d,a);d=1}}else if(1==b.nodeType&&b.childNodes&&!/(script|style)/i.test(b.tagName))for(a=0;a<b.childNodes.length;++a)a+=e(b.childNodes[a],c);return d} return this.length&&c&&c.length?this.each(function(){e(this,c.toUpperCase())}):this};jQuery.fn.removeHighlight=function(){return this.find("span.highlight").each(function(){this.parentNode.firstChild.nodeName;with(this.parentNode)replaceChild(this.firstChild,this),normalize()}).end()};
+}
+
+function loadIE8Polyfill() {
+  if (!Array.prototype.indexOf) {
+    Array.prototype.indexOf = function(searchElement, fromIndex) {
+      // Use string search instead of looping the array to avoid long-running-script warning:
+      var str = ',' + this.toString() + ',';
+      if (str.indexOf(',' + searchElement + ',') !== -1)
+        return 0;
+      else
+        return -1;
+    };
+  }
 }
