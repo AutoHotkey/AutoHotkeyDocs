@@ -360,6 +360,7 @@ tocData = [
       ["ControlFocus","commands/ControlFocus.htm"],
       ["ControlGetChecked","commands/ControlGetChecked.htm"],
       ["ControlGetChoice","commands/ControlGetChoice.htm"],
+      ["ControlGetClassNN","commands/ControlGetClassNN.htm"],
       ["ControlGetCurrentCol","commands/ControlGetCurrentCol.htm"],
       ["ControlGetCurrentLine","commands/ControlGetCurrentLine.htm"],
       ["ControlGetEnabled","commands/ControlGetEnabled.htm"],
