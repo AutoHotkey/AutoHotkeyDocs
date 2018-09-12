@@ -21,8 +21,7 @@
   <dt>OutputVarX/Y</dt>
   <dd>
     <p>Type: <a href="../Concepts.htm#variables">Variable</a></p>
-    <p>The names of the variables in which to store the X and Y coordinates of the first pixel that matches <em>ColorID</em> (if no match is found, the variables are made blank). Coordinates are relative to the active window unless <a href="CoordMode.htm">CoordMode</a> was used to change that.</p>
-    <p>Either or both of these parameters may be left blank, in which case ErrorLevel (see below) can be used to determine whether a match was found.</p>
+    <p>The variables in which to store the X and Y coordinates of the first pixel that matches <em>ColorID</em> (if no match is found, the variables are made blank). Coordinates are relative to the active window unless <a href="CoordMode.htm">CoordMode</a> was used to change that.</p>
   </dd>
 
   <dt>X1, Y1</dt>
@@ -39,8 +38,8 @@
 
   <dt>ColorID</dt>
   <dd>
-    <p>Type: <a href="../Concepts.htm#strings">String</a></p>
-    <p>The decimal or hexadecimal color ID to search for, in red-green-blue (RGB) format. For example: <code>0x9d6346</code>. Color IDs can be determined using Window Spy (accessible from the tray menu) or via <a href="PixelGetColor.htm">PixelGetColor</a>.</p>
+    <p>Type: <a href="../Concepts.htm#numbers">Integer</a></p>
+    <p>The color ID to search for. This is typically expressed as a hexadecimal number in red-green-blue (RGB) format. For example: <code>0x9d6346</code>. Color IDs can be determined using Window Spy (accessible from the tray menu) or via <a href="PixelGetColor.htm">PixelGetColor</a>.</p>
   </dd>
 
   <dt>Variation</dt>
@@ -53,24 +52,31 @@
   <dd>
       <p>Type: <a href="../Concepts.htm#strings">String</a></p>
       <p>This parameter contains a string of options. Currently it can only have one value (if not empty):</p>
-      <p id="fast"><strong>Fast</strong>: Uses a faster searching method that in most cases dramatically reduces the amount of CPU time used by the search. Although color depths as low as 8-bit (256-color) are supported, the fast mode performs much better in 24-bit or 32-bit color. If the screen's color depth is 16-bit or lower, the <em>Variation</em> parameter might behave slightly differently in fast mode than it does in slow mode. Finally, the fast mode searches the screen row by row (top down) instead of column by column. Therefore, it might find a different pixel than that of the slow mode if there is more than one matching pixel.</p>
+      <p id="slow"><strong>Slow</strong>: Uses a slower searching method that in most cases dramatically increases the amount of CPU time used by the search. If the screen's color depth is 16-bit or lower, the <em>Variation</em> parameter might behave slightly differently in fast mode than it does in slow mode. Finally, the fast mode searches the screen row by row (top down) whereas the slow mode searches column by column. Therefore, slow mode might find a different pixel than fast mode if there is more than one matching pixel.</p>
   </dd>
 
 </dl>
 
-<h2>ErrorLevel</h2>
-<p><a href="../misc/ErrorLevel.htm">ErrorLevel</a> is set to 0 if the color was found in the specified region, 1 if it was not found, or 2 if there was a problem that prevented the function from conducting the search.</p>
+<h2>Return Value</h2>
+<p>Type: <a href="../Concepts.htm#boolean">Integer (boolean)</a></p>
+<p>This function returns 1 (true) if the color was found in the specified region, or 0 (false) if it was not found.</p>
+
+<h2>Error Handling</h2>
+<p>An exception is thrown if there was a problem that prevented the function from conducting the search.</p>
+
 <h2>Remarks</h2>
 <p>The region to be searched must be visible; in other words, it is not possible to  search a region of a window hidden behind another window. By contrast, pixels beneath the mouse cursor can usually be detected. The exception to this is cursors in games, which in most cases will hide any pixels beneath them.</p>
+<p>Although color depths as low as 8-bit (256-color) are supported, the fast mode performs much better in 24-bit or 32-bit color.</p>
 <p>Slow mode only: By default, the search starts at the upper-left pixel of the region and checks all pixels vertically beneath it for a match. If no match is found there, the search continues to the right, column by column, until it finds a matching pixel. The default left-to-right search order can be inverted by swapping <em>X1</em> and <em>X2</em> in the parameter list. In other words, if <em>X1</em> is greater than <em>X2</em>, the search will be conducted from right to left, starting at column <em>X1</em>. Similarly, if <em>Y1</em> is greater than <em>Y2</em>, each column of pixels to be searched starting at the bottom rather than the top. Finally, if the region to be searched is large and the search is repeated with high frequency, it may consume a lot of CPU time. To alleviate this, keep the size of the area to a minimum.</p>
 <h2>Related</h2>
 <p><a href="PixelGetColor.htm">PixelGetColor</a>, <a href="ImageSearch.htm">ImageSearch</a>, <a href="CoordMode.htm">CoordMode</a>, <a href="MouseGetPos.htm">MouseGetPos</a></p>
 <h2>Example</h2>
-<pre class="NoIndent">PixelSearch Px, Py, 200, 200, 300, 300, 0x9d6346, 3, "Fast"
-if ErrorLevel
-    MsgBox "That color was not found in the specified region."
+<pre class="NoIndent">
+if PixelSearch(Px, Py, 200, 200, 300, 300, 0x9d6346, 3)
+    MsgBox "A color within 3 shades of variation was found at X" Px " Y" Py
 else
-    MsgBox "A color within 3 shades of variation was found at X" Px " Y" Py</pre>
+    MsgBox "That color was not found in the specified region."
+</pre>
 
 </body>
 </html>
