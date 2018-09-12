@@ -53,7 +53,8 @@ tocData = [
     ["EnvGet","commands/EnvGet.htm"],
     ["EnvSet","commands/EnvSet.htm"],
     ["OnClipboardChange","commands/OnClipboardChange.htm"],
-    ["SysGet","commands/SysGet.htm"]
+    ["SysGet","commands/SysGet.htm"],
+    ["SysGetIPAddresses","commands/SysGetIPAddresses.htm"],
   ]],
   ["External Libraries","",
   [
