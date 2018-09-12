@@ -1530,6 +1530,13 @@ function addFeatures()
       });
       // Store pre content into a variable to improve performance:
       var innerHTML = pre.innerHTML;
+      // escape sequences:
+      els.order.push('esc'); els.esc = [];
+      innerHTML = innerHTML.replace(/`./gm, function(SEQUENCE) {
+        out = wrap(SEQUENCE, 'esc', false);
+        els.esc.push(out);
+        return '<esc></esc>';
+      });
       // continuation sections:
       els.order.push('cont'); els.cont = [];
       innerHTML = innerHTML.replace(/(^\s*\([\s\S]*?^\s*\))/gm, function(_, SECTION) {
