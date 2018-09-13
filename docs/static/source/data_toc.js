@@ -306,6 +306,7 @@ tocData = [
   [
     ["Loop Reg","commands/LoopReg.htm"],
     ["RegDelete","commands/RegDelete.htm"],
+    ["RegDeleteKey","commands/RegDeleteKey.htm"],
     ["RegRead","commands/RegRead.htm"],
     ["RegWrite","commands/RegWrite.htm"],
     ["SetRegView","commands/SetRegView.htm"]

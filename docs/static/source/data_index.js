@@ -751,7 +751,7 @@ indexData = [
   ["REG_MULTI_SZ","commands/RegRead.htm"],
   ["REG_SZ","commands/RegRead.htm"],
   ["RegDelete","commands/RegDelete.htm",2],
-  ["RegDeleteKey","commands/RegDelete.htm",2],
+  ["RegDeleteKey","commands/RegDeleteKey.htm",2],
   ["RegEx: Quick Reference","misc/RegEx-QuickRef.htm"],
   ["RegEx: Callouts","misc/RegExCallout.htm"],
   ["RegEx: SetTitleMatchMode RegEx","commands/SetTitleMatchMode.htm#RegEx"],
