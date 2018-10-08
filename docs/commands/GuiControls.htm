@@ -188,8 +188,8 @@ MyBtn.OnEvent("Click", "MyBtn_Click")  <em>; Call MyBtn_Click when clicked.</em>
 <pre>Gui := GuiCreate()
 DDL := Gui.Add("DDL", "vcbx w200", "One||Two")
 <em>; CB_SETITEMHEIGHT = 0x153</em>
-PostMessage(0x153, -1, 50,, "ahk_id " DDL.Hwnd)  <em>; Set height of selection field.</em>
-PostMessage(0x153, 0, 50,, "ahk_id " DDL.Hwnd)  <em>; Set height of list items.</em>
+PostMessage(0x153, -1, 50, DDL)  <em>; Set height of selection field.</em>
+PostMessage(0x153, 0, 50, DDL)  <em>; Set height of list items.</em>
 Gui.Show("h70")</pre>
 <p>The separator between fields may be changed to something other than pipe (|). For example <code>Gui.Opt("+<a href="../objects/Gui.htm#Delimiter">Delimiter</a>`n")</code> would change it to linefeed and <code>Gui.Opt("+DelimiterTab")</code> would change it to tab (`t).</p>
 
@@ -617,12 +617,12 @@ Gui.Add("Text", "wp y+m vIPField")
 Gui.Add("Button", "Default", "OK").OnEvent("Click", "OK_Click")
 Gui.Show()
 
-IPCtrlSetAddress(IP.Hwnd, SysGetIPAddresses()[1])
+IPCtrlSetAddress(IP, SysGetIPAddresses()[1])
 
 OK_Click(this)
 {
     this.Gui.Hide()
-    MsgBox("You chose " IPCtrlGetAddress(this.Gui.Control["IP"].Hwnd))
+    MsgBox("You chose " IPCtrlGetAddress(this.Gui.Control["IP"]))
     ExitApp()
 }
 
@@ -642,7 +642,7 @@ IP_FieldChange(this, NMIPAddress)
         this.Gui.Control["IPField"].Text := "Field #" iField " left empty"
 }
 
-IPCtrlSetAddress(hControl, IPAddress)
+IPCtrlSetAddress(GuiCtrl, IPAddress)
 {
     static WM_USER := 0x400
     static IPM_SETADDRESS := WM_USER + 101
@@ -651,16 +651,16 @@ IPCtrlSetAddress(hControl, IPAddress)
     IPAddrWord := 0
     Loop Parse IPAddress, "."
         IPAddrWord := (IPAddrWord * 256) + A_LoopField
-    SendMessage(IPM_SETADDRESS, 0, IPAddrWord,, "ahk_id " hControl)
+    SendMessage(IPM_SETADDRESS, 0, IPAddrWord, GuiCtrl)
 }
 
-IPCtrlGetAddress(hControl)
+IPCtrlGetAddress(GuiCtrl)
 {
     static WM_USER := 0x400
     static IPM_GETADDRESS := WM_USER + 102
 
     VarSetCapacity(AddrWord, 4)
-    SendMessage(IPM_GETADDRESS, 0, &amp;AddrWord,, "ahk_id " hControl)
+    SendMessage(IPM_GETADDRESS, 0, &amp;AddrWord, GuiCtrl)
     Loop 4
         IPPart%A_Index% := NumGet(AddrWord, 4 - A_Index, "UChar")
     return IPPart1 "." IPPart2 "." IPPart3 "." IPPart4
