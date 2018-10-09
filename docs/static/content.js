@@ -486,8 +486,13 @@ function ctor_index()
   self.preSelect = function($indexList, $indexInput) { // Apply stored settings.
     var clicked = $indexList.children().eq(cache.index_clickItem);
     $indexInput.val(cache.index_input);
-    $indexList.scrollTop(cache.index_scrollPos);
-    clicked.click();
+    if (cache.index_scrollPos == null)
+      $indexInput.trigger('keyup');
+    else
+    {
+      $indexList.scrollTop(cache.index_scrollPos);
+      clicked.click();
+    }
   };
 }
 
@@ -537,10 +542,15 @@ function ctor_search()
   };
   self.preSelect = function($searchList, $searchInput, $searchCheckBox) { // Apply stored settings.
     $searchInput.val(cache.search_input);
-    $searchList.html(cache.search_data);
-    structure.addEventsForListBoxItems($searchList.children());
-    $searchList.scrollTop(cache.search_scrollPos);
-    $searchList.children().eq(cache.search_clickItem).click();
+    if (cache.search_scrollPos == null)
+      $searchInput.trigger('keyup');
+    else
+    {
+      $searchList.html(cache.search_data);
+      structure.addEventsForListBoxItems($searchList.children());
+      $searchList.scrollTop(cache.search_scrollPos);
+      $searchList.children().eq(cache.search_clickItem).click();
+    }
     $searchCheckBox.prop('checked', cache.search_highlightWords);
   };
   self.convertToArray = function(SearchText) { // Convert text to array.
