@@ -941,50 +941,6 @@ function ctor_structure()
       cache.set($parent.attr('class') + '_scrollPos', $this.scrollTop());
     });
 
-    self.addEventsForListBoxItems = function(items) {
-      // Select the item on click and scroll to it:
-      items.on('click', function() {
-        var $this = $(this);
-        var $parent = $this.parent();
-        // Scroll the item into view:
-        if (!isScrolledIntoView($this, $parent)) {
-          var half = ($parent.height() + $parent.offset().top) / 2;
-          if ($this.offset().top > half)
-            $this[0].scrollIntoView(false); // Move down
-          else
-            $this[0].scrollIntoView(); // Move up
-        }
-        // Select the item:
-        $this.siblings('a.selected').removeClass('selected').attr('tabindex', -1);
-        $this.addClass('selected').attr('tabindex', 0);
-        return false;
-      });
-      // Open the link on double-click or touch (for mobile) and store its index
-      // relative to its parent:
-      var touchmoved;
-      items.on('dblclick touchend', function() {
-        if (touchmoved != true) {
-          var $this = $(this);
-          var $parent = $this.parent();
-          var $grandparent = $parent.parent();
-          // Store the item's index relative to its parent:
-          var className = $grandparent.attr('class');
-          cache.set(className + '_clickItem', $this.index());
-          self.openSite($this.attr('href'));
-        }
-      }).on('touchmove', function() {
-        touchmoved = true;
-      }).on('touchstart', function() {
-        touchmoved = false;
-      });
-      // Show tooltip on mouseover if a item exceeds the length of its parent:
-      items.on('mouseenter', function() {
-        var $this = $(this);
-        if (this.offsetWidth < this.scrollWidth && !$this.attr('title')) {
-          $this.attr('title', isIE || isEdge ? $this.text() : $this.attr('data-content'));
-        }
-      });
-    }
     // Provide ListBox functionality and interaction with the Edit on keypress:
     function processKeys($ListBox, keyCode) {
       var $clicked = $ListBox.find('a.selected');
@@ -1262,7 +1218,7 @@ function ctor_structure()
       window.location = url;
     }
   }
-
+  // Invert colors of the website:
   self.changeTheme = function() {
     if($('#dark-theme').length) {
       cache.set('colorTheme', 0);
@@ -1284,6 +1240,51 @@ function ctor_structure()
       style.innerHTML = '#body { filter:invert(90%); }\nhtml { background:#191919 }';
     $('head').append(style);
   };
+  // Add events for ListBox items such as double-click:
+  self.addEventsForListBoxItems = function(items) {
+    // Select the item on click and scroll to it:
+    items.on('click', function() {
+      var $this = $(this);
+      var $parent = $this.parent();
+      // Scroll the item into view:
+      if (!isScrolledIntoView($this, $parent)) {
+        var half = ($parent.height() + $parent.offset().top) / 2;
+        if ($this.offset().top > half)
+          $this[0].scrollIntoView(false); // Move down
+        else
+          $this[0].scrollIntoView(); // Move up
+      }
+      // Select the item:
+      $this.siblings('a.selected').removeClass('selected').attr('tabindex', -1);
+      $this.addClass('selected').attr('tabindex', 0);
+      return false;
+    });
+    // Open the link on double-click or touch (for mobile) and store its index
+    // relative to its parent:
+    var touchmoved;
+    items.on('dblclick touchend', function() {
+      if (touchmoved != true) {
+        var $this = $(this);
+        var $parent = $this.parent();
+        var $grandparent = $parent.parent();
+        // Store the item's index relative to its parent:
+        var className = $grandparent.attr('class');
+        cache.set(className + '_clickItem', $this.index());
+        self.openSite($this.attr('href'));
+      }
+    }).on('touchmove', function() {
+      touchmoved = true;
+    }).on('touchstart', function() {
+      touchmoved = false;
+    });
+    // Show tooltip on mouseover if a item exceeds the length of its parent:
+    items.on('mouseenter', function() {
+      var $this = $(this);
+      if (this.offsetWidth < this.scrollWidth && !$this.attr('title')) {
+        $this.attr('title', isIE || isEdge ? $this.text() : $this.attr('data-content'));
+      }
+    });
+  }
 }
 
 // --- Modify elements provided by the HTML site ---
