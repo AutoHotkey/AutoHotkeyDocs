@@ -1411,8 +1411,8 @@ function addFeatures()
       continue;
     var isSyntax = (pre.className.indexOf('Syntax') != -1);
     var parent = document.createElement('pre'); parent.className = 'parent ' + pre.className;
-    if (isSyntax || pre.className.indexOf('no-syntax-highlight') != -1)
-      pre.className = 'origin no-syntax-highlight';
+    if (isSyntax || pre.className.indexOf('no-highlight') != -1)
+      pre.className = 'origin no-highlight';
     else
       pre.className = 'origin';
     pre.parentNode.insertBefore(parent, pre);
@@ -1527,8 +1527,8 @@ function addFeatures()
     for (var i = 0; i < pres.length; i++) {
       var pre = pres[i], els = [];
       els.order = [];
-      // Skip pre.no-syntax-highlight elements:
-      if (pre.className.indexOf('no-syntax-highlight') != -1)
+      // Skip pre.no-highlight elements:
+      if (pre.className.indexOf('no-highlight') != -1)
         continue;
       // Temporary remove elements which interfering with syntax detection:
       els.order.push('various'); els.various = [];
