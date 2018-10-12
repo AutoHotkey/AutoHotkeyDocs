@@ -1410,8 +1410,9 @@ function addFeatures()
     if (pre.tagName == 'CODE')
       continue;
     var isSyntax = (pre.className.indexOf('Syntax') != -1);
+    var isNoHighlight = (pre.className.indexOf('no-highlight') != -1);
     var parent = document.createElement('pre'); parent.className = 'parent ' + pre.className;
-    if (isSyntax || pre.className.indexOf('no-highlight') != -1)
+    if (isSyntax || isNoHighlight)
       pre.className = 'origin no-highlight';
     else
       pre.className = 'origin';
@@ -1421,7 +1422,7 @@ function addFeatures()
     parent.appendChild(buttons);
     var sel = document.createElement('a'); sel.className = 'selectCode'; sel.title = T("Select code"); sel.innerHTML = 'S';
     buttons.appendChild(sel);
-    if (!isSyntax) {
+    if (!isSyntax && !isNoHighlight) {
       var dwn = document.createElement('a'); dwn.className = 'downloadCode'; dwn.title = T("Download code"); dwn.innerHTML = '&#8595;';
       buttons.appendChild(dwn);
     }
