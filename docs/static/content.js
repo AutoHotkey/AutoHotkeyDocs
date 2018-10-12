@@ -486,8 +486,13 @@ function ctor_index()
   self.preSelect = function($indexList, $indexInput) { // Apply stored settings.
     var clicked = $indexList.children().eq(cache.index_clickItem);
     $indexInput.val(cache.index_input);
-    $indexList.scrollTop(cache.index_scrollPos);
-    clicked.click();
+    if (cache.index_scrollPos == null)
+      $indexInput.trigger('keyup');
+    else
+    {
+      $indexList.scrollTop(cache.index_scrollPos);
+      clicked.click();
+    }
   };
 }
 
@@ -537,10 +542,15 @@ function ctor_search()
   };
   self.preSelect = function($searchList, $searchInput, $searchCheckBox) { // Apply stored settings.
     $searchInput.val(cache.search_input);
-    $searchList.html(cache.search_data);
-    structure.addEventsForListBoxItems($searchList.children());
-    $searchList.scrollTop(cache.search_scrollPos);
-    $searchList.children().eq(cache.search_clickItem).click();
+    if (cache.search_scrollPos == null)
+      $searchInput.trigger('keyup');
+    else
+    {
+      $searchList.html(cache.search_data);
+      structure.addEventsForListBoxItems($searchList.children());
+      $searchList.scrollTop(cache.search_scrollPos);
+      $searchList.children().eq(cache.search_clickItem).click();
+    }
     $searchCheckBox.prop('checked', cache.search_highlightWords);
   };
   self.convertToArray = function(SearchText) { // Convert text to array.
@@ -931,50 +941,6 @@ function ctor_structure()
       cache.set($parent.attr('class') + '_scrollPos', $this.scrollTop());
     });
 
-    self.addEventsForListBoxItems = function(items) {
-      // Select the item on click and scroll to it:
-      items.on('click', function() {
-        var $this = $(this);
-        var $parent = $this.parent();
-        // Scroll the item into view:
-        if (!isScrolledIntoView($this, $parent)) {
-          var half = ($parent.height() + $parent.offset().top) / 2;
-          if ($this.offset().top > half)
-            $this[0].scrollIntoView(false); // Move down
-          else
-            $this[0].scrollIntoView(); // Move up
-        }
-        // Select the item:
-        $this.siblings('a.selected').removeClass('selected').attr('tabindex', -1);
-        $this.addClass('selected').attr('tabindex', 0);
-        return false;
-      });
-      // Open the link on double-click or touch (for mobile) and store its index
-      // relative to its parent:
-      var touchmoved;
-      items.on('dblclick touchend', function() {
-        if (touchmoved != true) {
-          var $this = $(this);
-          var $parent = $this.parent();
-          var $grandparent = $parent.parent();
-          // Store the item's index relative to its parent:
-          var className = $grandparent.attr('class');
-          cache.set(className + '_clickItem', $this.index());
-          self.openSite($this.attr('href'));
-        }
-      }).on('touchmove', function() {
-        touchmoved = true;
-      }).on('touchstart', function() {
-        touchmoved = false;
-      });
-      // Show tooltip on mouseover if a item exceeds the length of its parent:
-      items.on('mouseenter', function() {
-        var $this = $(this);
-        if (this.offsetWidth < this.scrollWidth && !$this.attr('title')) {
-          $this.attr('title', isIE || isEdge ? $this.text() : $this.attr('data-content'));
-        }
-      });
-    }
     // Provide ListBox functionality and interaction with the Edit on keypress:
     function processKeys($ListBox, keyCode) {
       var $clicked = $ListBox.find('a.selected');
@@ -1252,7 +1218,7 @@ function ctor_structure()
       window.location = url;
     }
   }
-
+  // Invert colors of the website:
   self.changeTheme = function() {
     if($('#dark-theme').length) {
       cache.set('colorTheme', 0);
@@ -1274,6 +1240,51 @@ function ctor_structure()
       style.innerHTML = '#body { filter:invert(90%); }\nhtml { background:#191919 }';
     $('head').append(style);
   };
+  // Add events for ListBox items such as double-click:
+  self.addEventsForListBoxItems = function(items) {
+    // Select the item on click and scroll to it:
+    items.on('click', function() {
+      var $this = $(this);
+      var $parent = $this.parent();
+      // Scroll the item into view:
+      if (!isScrolledIntoView($this, $parent)) {
+        var half = ($parent.height() + $parent.offset().top) / 2;
+        if ($this.offset().top > half)
+          $this[0].scrollIntoView(false); // Move down
+        else
+          $this[0].scrollIntoView(); // Move up
+      }
+      // Select the item:
+      $this.siblings('a.selected').removeClass('selected').attr('tabindex', -1);
+      $this.addClass('selected').attr('tabindex', 0);
+      return false;
+    });
+    // Open the link on double-click or touch (for mobile) and store its index
+    // relative to its parent:
+    var touchmoved;
+    items.on('dblclick touchend', function() {
+      if (touchmoved != true) {
+        var $this = $(this);
+        var $parent = $this.parent();
+        var $grandparent = $parent.parent();
+        // Store the item's index relative to its parent:
+        var className = $grandparent.attr('class');
+        cache.set(className + '_clickItem', $this.index());
+        self.openSite($this.attr('href'));
+      }
+    }).on('touchmove', function() {
+      touchmoved = true;
+    }).on('touchstart', function() {
+      touchmoved = false;
+    });
+    // Show tooltip on mouseover if a item exceeds the length of its parent:
+    items.on('mouseenter', function() {
+      var $this = $(this);
+      if (this.offsetWidth < this.scrollWidth && !$this.attr('title')) {
+        $this.attr('title', isIE || isEdge ? $this.text() : $this.attr('data-content'));
+      }
+    });
+  }
 }
 
 // --- Modify elements provided by the HTML site ---
@@ -1399,9 +1410,10 @@ function addFeatures()
     if (pre.tagName == 'CODE')
       continue;
     var isSyntax = (pre.className.indexOf('Syntax') != -1);
+    var isNoHighlight = (pre.className.indexOf('no-highlight') != -1);
     var parent = document.createElement('pre'); parent.className = 'parent ' + pre.className;
-    if (isSyntax || pre.className.indexOf('no-syntax-highlight') != -1)
-      pre.className = 'origin no-syntax-highlight';
+    if (isSyntax || isNoHighlight)
+      pre.className = 'origin no-highlight';
     else
       pre.className = 'origin';
     pre.parentNode.insertBefore(parent, pre);
@@ -1410,7 +1422,7 @@ function addFeatures()
     parent.appendChild(buttons);
     var sel = document.createElement('a'); sel.className = 'selectCode'; sel.title = T("Select code"); sel.innerHTML = 'S';
     buttons.appendChild(sel);
-    if (!isSyntax) {
+    if (!isSyntax && !isNoHighlight) {
       var dwn = document.createElement('a'); dwn.className = 'downloadCode'; dwn.title = T("Download code"); dwn.innerHTML = '&#8595;';
       buttons.appendChild(dwn);
     }
@@ -1516,8 +1528,8 @@ function addFeatures()
     for (var i = 0; i < pres.length; i++) {
       var pre = pres[i], els = [];
       els.order = [];
-      // Skip pre.no-syntax-highlight elements:
-      if (pre.className.indexOf('no-syntax-highlight') != -1)
+      // Skip pre.no-highlight elements:
+      if (pre.className.indexOf('no-highlight') != -1)
         continue;
       // Temporary remove elements which interfering with syntax detection:
       els.order.push('various'); els.various = [];
