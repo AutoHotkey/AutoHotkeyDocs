@@ -308,7 +308,7 @@ function ctor_toc()
     // --- Hook up events ---
 
     // Select the item on click:
-    $tocList.on("click", function() {
+    registerEvent($toc, 'click', 'li > span', function() {
       $this = $(this);
       cache.set('toc_clickItem', $tocList.index(this));
       cache.set('toc_scrollPos', $toc.scrollTop());
@@ -327,7 +327,7 @@ function ctor_toc()
     });
 
     // Highlight the item and parents on select:
-    $tocList.on("select", function() {
+    registerEvent($toc, 'select', 'li > span', function() {
       $this = $(this);
       // Highlight the item:
       $this.addClass("selected");
@@ -435,7 +435,7 @@ function ctor_index()
       else
         $(this).removeClass('empty');
       $indexList.html(self.create(cache.index_data, this.value));
-      structure.addEventsForListBoxItems($indexList.children());
+      structure.addEventsForListBoxItems($indexList);
     });
 
     // Select closest index entry and show color indicator on input:
@@ -526,7 +526,7 @@ function ctor_search()
       // Otherwise fill the search list:
       cache.set('search_data', self.create(input));
       $searchList.html(cache.search_data);
-      structure.addEventsForListBoxItems($searchList.children());
+      structure.addEventsForListBoxItems($searchList);
       // Select the first item and add color indicator:
       var searchListChildren = $searchList.children();
       if (searchListChildren.length) {
@@ -547,7 +547,7 @@ function ctor_search()
     else
     {
       $searchList.html(cache.search_data);
-      structure.addEventsForListBoxItems($searchList.children());
+      structure.addEventsForListBoxItems($searchList);
       $searchList.scrollTop(cache.search_scrollPos);
       $searchList.children().eq(cache.search_clickItem).click();
     }
@@ -924,10 +924,9 @@ function ctor_structure()
 
     // --- Apply click events for sidebar tabs ---
 
-    var $tab = $('#head div.h-tabs li');
-    for (var i = 0; i < $tab.length; i++) {
-      $tab.eq(i).on('click', function(e) { self.showTab($(this).index()); });
-    }
+    registerEvent($('#head div.h-tabs'), 'click', 'li', function() {
+      self.showTab($(this).index());
+    });
 
     // --- Apply control events ---
 
@@ -1241,9 +1240,9 @@ function ctor_structure()
     $('head').append(style);
   };
   // Add events for ListBox items such as double-click:
-  self.addEventsForListBoxItems = function(items) {
+  self.addEventsForListBoxItems = function(ListBox) {
     // Select the item on click and scroll to it:
-    items.on('click', function() {
+    registerEvent(ListBox, 'click', '> a', function() {
       var $this = $(this);
       var $parent = $this.parent();
       // Scroll the item into view:
@@ -1262,7 +1261,7 @@ function ctor_structure()
     // Open the link on double-click or touch (for mobile) and store its index
     // relative to its parent:
     var touchmoved;
-    items.on('dblclick touchend', function() {
+    registerEvent(ListBox, 'dblclick touchend', '> a', function() {
       if (touchmoved != true) {
         var $this = $(this);
         var $parent = $this.parent();
@@ -1272,13 +1271,15 @@ function ctor_structure()
         cache.set(className + '_clickItem', $this.index());
         self.openSite($this.attr('href'));
       }
-    }).on('touchmove', function() {
+    });
+    registerEvent(ListBox, 'touchmove', '> a', function() {
       touchmoved = true;
-    }).on('touchstart', function() {
+    });
+    registerEvent(ListBox, 'touchstart', '> a', function() {
       touchmoved = false;
     });
     // Show tooltip on mouseover if a item exceeds the length of its parent:
-    items.on('mouseenter', function() {
+    registerEvent(ListBox, 'mouseenter', '> a', function() {
       var $this = $(this);
       if (this.offsetWidth < this.scrollWidth && !$this.attr('title')) {
         $this.attr('title', isIE || isEdge ? $this.text() : $this.attr('data-content'));
@@ -1946,6 +1947,15 @@ function overwriteProps(a, b) {
     }
   }
   return a;
+}
+
+// Prevent event delegation on IE8/Edge to bypass performance issues
+// but results in longer initial load time for this browsers:
+function registerEvent(el, events, children, func) {
+  if (isIE8 || isEdge)
+    el.find(children).on(events, func);
+  else
+    el.on(events, children, func);
 }
 
 function loadJQuery() {
