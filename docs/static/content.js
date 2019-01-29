@@ -1082,7 +1082,6 @@ function ctor_structure()
       if(isPhone)
         $hTools.show();
     }
-    $leftArea.focus();
   };
   // Show the specified tab:
   self.showTab = function(pos) {
@@ -1950,7 +1949,7 @@ function overwriteProps(a, b) {
 }
 
 // Prevent event delegation on IE8/Edge to bypass performance issues
-// but results in longer initial load time for this browsers:
+// but results in longer initial load time for these browsers:
 function registerEvent(el, events, children, func) {
   if (isIE8 || isEdge)
     el.find(children).on(events, func);
