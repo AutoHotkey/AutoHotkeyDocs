@@ -282,9 +282,9 @@ function ctor_toc()
     for(var i = 0; i < input.length; i++) {
       var li = input[i][0];
       if (input[i][1] != '')
-        li = '<a href="' + workingDir + input[i][1] + '"' + (isIE ? '>' + li : ' data-content="' + li + '">') + '</a>';
+        li = '<a href="' + workingDir + input[i][1] + '"' + (isIE8 ? '>' + li : ' data-content="' + li + '">') + '</a>';
       else
-        li = '<span' + (isIE ? '>' + li : ' data-content="' + li + '">') + '</span>';
+        li = '<span' + (isIE8 ? '>' + li : ' data-content="' + li + '">') + '</span>';
       li = '<span>' + li + '</span>';
       if(input[i][2] != undefined && input[i][2].length > 0) {
         output += '<li class ="closed" title="' + input[i][0] + '">' + li;
@@ -415,7 +415,7 @@ function ctor_index()
     {
       if (filter != -1 && input[i][2] != filter)
         continue;
-      output += '<a href="' + workingDir + input[i][1] + '" tabindex="-1"' + (isIE ? '>' + input[i][0] : ' data-content="' + input[i][0] + '">') + '</a>';
+      output += '<a href="' + workingDir + input[i][1] + '" tabindex="-1"' + (isIE8 ? '>' + input[i][0] : ' data-content="' + input[i][0] + '">') + '</a>';
     }
     return output;
   };
@@ -474,7 +474,7 @@ function ctor_index()
     if (!input)
       return match;
     for (var i = 0; i < indexListChildren.length; i++) {
-      var text = isIE ? indexListChildren[i].innerText : indexListChildren[i].getAttribute('data-content');
+      var text = isIE8 ? indexListChildren[i].innerText : indexListChildren[i].getAttribute('data-content');
       var listitem = text.substr(0, input.length).toLowerCase();
       if (listitem == input) {
         match = indexListChildren.eq(i);
@@ -777,7 +777,7 @@ function ctor_structure()
   self.template = '<div id="body">' +
   '<div id="head"><div class="h-area"><div class="h-tabs"><ul><li data-translate data-content="Content"></li><li data-translate data-content="Index"></li><li data-translate data-content="Search"></li></ul></div><div class="h-tools sidebar"><ul><li class="sidebar" title="Hide/Show sidebar" data-translate>&#926;</li></ul></div><div class="h-tools online"><ul><li class="home" title="Home page" data-translate><a href="' + location.protocol + '//' + location.host + '">&#916;</a></li><li class="language" title="Change language"><span data-translate data-content="en"></span><ul class="dropdown languages selected"><li><a title="English" data-content="en"></a></li><li><a title="Deutsch (German)" data-content="de"></a></li><li><a title="&#x4E2D;&#x6587; (Chinese)" data-content="zh"></a></li></ul></li><li class="version" title="Change AHK version"><span data-translate data-content="v1"></span><ul class="dropdown versions selected"><li><a title="AHK v1.1" data-content="v1"></a></li><li><a title="AHK v2.0" data-content="v2"></a></li></ul></li><li class="edit" title="Edit page on GitHub" data-translate=2><a data-content="E"></a></li></ul></div><div class="h-tools chm"><ul><li class="back" title="Go back" data-translate=2>&#9668;</li><li class="forward" title="Go forward" data-translate=2>&#9658;</li><li class="zoom" title="Change font size" data-translate=2 data-content="Z"></li><li class="print" title="Print current document" data-translate=2 data-content="P"></li></ul></div><div class="h-tools main visible"><ul><li class="color" title="Change to dark/light theme" data-translate=2 data-content="C"></li><li class="settings" title="Open settings" data-translate=2>&#1029;</li></ul></div></div></div>' +
   '<div id="main"><div id="left"><div class="toc"></div><div class="index"><div class="input"><input type="search" placeholder="Search" data-translate=2 /></div><div class="select"><select size="1" class="empty"><option value="-1" class="empty" selected data-translate>Filter</option><option value="0" data-translate>Directives</option><option value="1" data-translate>Built-in Variables</option><option value="2" data-translate>Built-in Functions</option><option value="3" data-translate>Control Flow Statements</option><option value="4" data-translate>Operators</option><option value="5" data-translate>Declarations</option><option value="6" data-translate>Commands</option></select></div><div class="list"></div></div><div class="search"><div class="input"><input type="search" placeholder="Search" data-translate=2 /></div><div class="checkbox"><input type="checkbox" id="highlightWords"><label for="highlightWords" data-translate>Highlight the words</label></div><div class="list"></div></div><div class="load"><div class="lds-dual-ring"></div></div></div><div class="dragbar"></div><div id="right" tabIndex="-1">'+(isFrameCapable?'<iframe frameBorder="0" id="frame" src="">':'<div class="area">');
-  self.template = isIE ? self.template.replace(/ data-content="(.*?)">/g, '>$1') : self.template;
+  self.template = isIE8 ? self.template.replace(/ data-content="(.*?)">/g, '>$1') : self.template;
   self.build = function() { document.write(self.template); }; // Write HTML before DOM is loaded to prevent flickering.
   self.modify = function() { // Modify elements added via build.
 
@@ -863,12 +863,12 @@ function ctor_structure()
       // Bug - IE/Edge doesn't turn off list-style if element is hidden:
       $langList.add($verList).css("list-style", "none");
       // Hide currently selected language and version in the selection lists:
-      $(isIE ? 'a:contains(' + lang + ')' : 'a[data-content=' + lang + ']', $langList).parent().hide();
-      $(isIE ? 'a:contains(' + ver + ')' : 'a[data-content=' + ver + ']', $verList).parent().hide();
+      $(isIE8 ? 'a:contains(' + lang + ')' : 'a[data-content=' + lang + ']', $langList).parent().hide();
+      $(isIE8 ? 'a:contains(' + ver + ')' : 'a[data-content=' + ver + ']', $verList).parent().hide();
       // Add the language links:
       $langList.find('li').each( function() {
         var a = $(this).find('a');
-        var thisLink = link[ver][isIE ? a.text() : a.attr('data-content')];
+        var thisLink = link[ver][isIE8 ? a.text() : a.attr('data-content')];
         if (thisLink == null)
           $(this).hide(); // Hide language button
         else
@@ -877,7 +877,7 @@ function ctor_structure()
       // Add the version links:
       $verList.find('li').each( function() {
         var a = $(this).find('a');
-        var ver = isIE ? a.text() : a.attr('data-content');
+        var ver = isIE8 ? a.text() : a.attr('data-content');
         var thisLink = link[ver][lang];
         // Fallback to default docs:
         thisLink = (thisLink == null) ? link[ver]['en'] : thisLink;
@@ -1281,7 +1281,7 @@ function ctor_structure()
     registerEvent(ListBox, 'mouseenter', '> a', function() {
       var $this = $(this);
       if (this.offsetWidth < this.scrollWidth && !$this.attr('title')) {
-        $this.attr('title', isIE ? $this.text() : $this.attr('data-content'));
+        $this.attr('title', isIE8 ? $this.text() : $this.attr('data-content'));
       }
     });
   }
