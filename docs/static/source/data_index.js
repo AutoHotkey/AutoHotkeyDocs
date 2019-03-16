@@ -927,7 +927,7 @@ indexData = [
   ["Win functions","commands/Win.htm"],
   ["WinActivate","commands/WinActivate.htm",2],
   ["WinActivateBottom","commands/WinActivateBottom.htm",2],
-  ["WinActivateForce","commands/_WinActivateForce.htm",2],
+  ["WinActivateForce","commands/_WinActivateForce.htm"],
   ["WinActive","commands/WinActive.htm",2],
   ["Winamp automation","misc/Winamp.htm"],
   ["WinClose","commands/WinClose.htm",2],

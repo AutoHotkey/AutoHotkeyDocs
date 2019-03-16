@@ -1679,8 +1679,6 @@ function addFeatures()
         else {
           var cfs = CFS.toLowerCase();
           // Skip param processing if the statement uses parentheses:
-          console.log(SEP);
-          
           if (SEP == '(') {
             out = wrap(CFS, 'cfs', true);
             els.cfs.push(out);
