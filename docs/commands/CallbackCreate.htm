@@ -85,7 +85,7 @@ wParam := wParam &lt;&lt; 32 &gt;&gt; 32</pre>
 <p id="Indirect"><strong>Receiving parameters by address:</strong> If the <code>&amp;</code> option is used, the function receives the <i>address</i> of the first callback parameter. For example:</p>
 <pre>
 callback := CallbackCreate("TheFunc", "F&amp;", 3)  <em>; Parameter list size must be specified for 32-bit.</em>
-DllCall(callback, float, 10.5, int64, 42)
+DllCall(callback, &quot;float&quot;, 10.5, &quot;int64&quot;, 42)
 TheFunc(params) {
     MsgBox <a href="NumGet.htm">NumGet</a>(params+0, "float") ", " NumGet(params+A_PtrSize, "int64")
 }</pre>
@@ -117,7 +117,7 @@ if not EnumAddress  <em>; Fast-mode is okay because it will be called only from 
 DetectHiddenWindows True  <em>; Due to fast-mode, this setting will go into effect for the callback too.</em>
 
 <em>; Pass control to EnumWindows(), which calls the callback repeatedly:</em>
-DllCall(&quot;EnumWindows&quot;, Ptr, EnumAddress, Ptr, 0)
+DllCall(&quot;EnumWindows&quot;, &quot;Ptr&quot;, EnumAddress, &quot;Ptr&quot;, 0)
 MsgBox Output  <em>; Display the information accumulated by the callback.</em>
     
 EnumWindowsProc(hwnd, lParam)
@@ -134,7 +134,7 @@ EnumWindowsProc(hwnd, lParam)
 ; color of a text control is changed to a custom color.</em>
 
 TextBackgroundColor := 0xFFBBBB  <em>; A custom color in BGR format.</em>
-TextBackgroundBrush := DllCall(&quot;CreateSolidBrush&quot;, UInt, TextBackgroundColor)
+TextBackgroundBrush := DllCall(&quot;CreateSolidBrush&quot;, &quot;UInt&quot;, TextBackgroundColor)
 
 Gui := GuiCreate()
 Text := Gui.Add("Text",, "Here is some text that is given`na custom background color.")
@@ -143,8 +143,8 @@ Text := Gui.Add("Text",, "Here is some text that is given`na custom background c
 SetWindowLong := A_PtrSize=8 ? "SetWindowLongPtr" : "SetWindowLong"
 
 WindowProcNew := <strong>CallbackCreate</strong>("WindowProc")  <em>; Avoid fast-mode for subclassing.</em>
-WindowProcOld := DllCall(SetWindowLong, Ptr, Gui.Hwnd, Int, -4  <em>; -4 is GWL_WNDPROC</em>
-    , Ptr, WindowProcNew, Ptr) <em>; Return value must be set to Ptr or UPtr vs. Int.</em>
+WindowProcOld := DllCall(SetWindowLong, &quot;Ptr&quot;, Gui.Hwnd, &quot;Int&quot;, -4  <em>; -4 is GWL_WNDPROC</em>
+    , &quot;Ptr&quot;, WindowProcNew, &quot;Ptr&quot;) <em>; Return value must be set to &quot;Ptr&quot; or &quot;UPtr&quot; vs. &quot;Int&quot;.</em>
 
 Gui.Show
 
@@ -154,11 +154,11 @@ WindowProc(hwnd, uMsg, wParam, lParam)
     global Text, TextBackgroundColor, TextBackgroundBrush, WindowProcOld
     if (uMsg = 0x138 &amp;&amp; lParam = Text.Hwnd)  <em>; 0x138 is WM_CTLCOLORSTATIC.</em>
     {
-        DllCall(&quot;SetBkColor&quot;, Ptr, wParam, UInt, TextBackgroundColor)
+        DllCall(&quot;SetBkColor&quot;, &quot;Ptr&quot;, wParam, &quot;UInt&quot;, TextBackgroundColor)
         return TextBackgroundBrush  <em>; Return the HBRUSH to notify the OS that we altered the HDC.</em>
     }
     <em>; Otherwise (since above didn't return), pass all unhandled events to the original WindowProc.</em>
-    return DllCall(&quot;CallWindowProc&quot;, Ptr, WindowProcOld, Ptr, hwnd, UInt, uMsg, Ptr, wParam, Ptr, lParam)
+    return DllCall(&quot;CallWindowProc&quot;, &quot;Ptr&quot;, WindowProcOld, &quot;Ptr&quot;, hwnd, &quot;UInt&quot;, uMsg, &quot;Ptr&quot;, wParam, &quot;Ptr&quot;, lParam)
 }</pre>
 
 </body>
