@@ -153,7 +153,7 @@ OnMessage(NotificationMsg, "ReceiveData")
 ; This avoids the need to poll the connection and thus cuts down on resource usage.</em>
 FD_READ := 1     <em>; Received when data is available to be read.</em>
 FD_CLOSE := 32   <em>; Received when connection has been closed.</em>
-if DllCall("Ws2_32\WSAAsyncSelect", UInt, socket, UInt, ScriptMainWindowId, UInt, NotificationMsg, Int, FD_READ|FD_CLOSE)
+if DllCall("Ws2_32\WSAAsyncSelect", &quot;UInt&quot;, socket, &quot;UInt&quot;, ScriptMainWindowId, &quot;UInt&quot;, NotificationMsg, &quot;Int&quot;, FD_READ|FD_CLOSE)
 {
     MsgBox "WSAAsyncSelect() indicated Winsock error " DllCall("Ws2_32\WSAGetLastError")
     ExitApp
@@ -167,7 +167,7 @@ ConnectToAddress(IPAddress, Port)
 ; Returns -1 (INVALID_SOCKET) upon failure or the socket ID upon success.</em>
 {
     VarSetCapacity(wsaData, 400)
-    result := DllCall("Ws2_32\WSAStartup", UShort, 0x0002, UInt, &amp;wsaData) <em>; Request Winsock 2.0 (0x0002)</em>
+    result := DllCall("Ws2_32\WSAStartup", &quot;UShort&quot;, 0x0002, &quot;UInt&quot;, &amp;wsaData) <em>; Request Winsock 2.0 (0x0002)</em>
     <em>; Since WSAStartup() will likely be the first Winsock function called by this script,</em>
     <em>; check ErrorLevel to see if the OS has Winsock 2.0 available:</em>
     if ErrorLevel
@@ -184,7 +184,7 @@ ConnectToAddress(IPAddress, Port)
     AF_INET := 2
     SOCK_STREAM := 1
     IPPROTO_TCP := 6
-    socket := DllCall("Ws2_32\socket", Int, AF_INET, Int, SOCK_STREAM, Int, IPPROTO_TCP)
+    socket := DllCall("Ws2_32\socket", &quot;Int&quot;, AF_INET, &quot;Int&quot;, SOCK_STREAM, &quot;Int&quot;, IPPROTO_TCP)
     if socket = -1
     {
         MsgBox "socket() indicated Winsock error " DllCall("Ws2_32\WSAGetLastError")
@@ -195,11 +195,11 @@ ConnectToAddress(IPAddress, Port)
     SizeOfSocketAddress := 16
     VarSetCapacity(SocketAddress, SizeOfSocketAddress)
     InsertInteger(2, SocketAddress, 0, AF_INET)   <em>; sin_family</em>
-    InsertInteger(DllCall("Ws2_32\htons", UShort, Port), SocketAddress, 2, 2)   <em>; sin_port</em>
-    InsertInteger(DllCall("Ws2_32\inet_addr", AStr, IPAddress), SocketAddress, 4, 4)   <em>; sin_addr.s_addr</em>
+    InsertInteger(DllCall("Ws2_32\htons", &quot;UShort&quot;, Port), SocketAddress, 2, 2)   <em>; sin_port</em>
+    InsertInteger(DllCall("Ws2_32\inet_addr", &quot;AStr&quot;, IPAddress), SocketAddress, 4, 4)   <em>; sin_addr.s_addr</em>
 
     <em>; Attempt connection:</em>
-    if DllCall("Ws2_32\connect", UInt, socket, UInt, &amp;SocketAddress, Int, SizeOfSocketAddress)
+    if DllCall("Ws2_32\connect", &quot;UInt&quot;, socket, &quot;UInt&quot;, &amp;SocketAddress, &quot;Int&quot;, SizeOfSocketAddress)
     {
         MsgBox "connect() indicated Winsock error " DllCall("Ws2_32\WSAGetLastError") ". Is WinLIRC running?"
         return -1
@@ -219,7 +219,7 @@ ReceiveData(wParam, lParam)
     ReceivedDataSize := 4096  <em>; Large in case a lot of data gets buffered due to delay in processing previous data.</em>
 
     VarSetCapacity(ReceivedData, ReceivedDataSize, 0)  <em>; 0 for last param terminates string for use with recv().</em>
-    ReceivedDataLength := DllCall("Ws2_32\recv", UInt, socket, Str, ReceivedData, Int, ReceivedDataSize, Int, 0)
+    ReceivedDataLength := DllCall("Ws2_32\recv", &quot;UInt&quot;, socket, &quot;Str&quot;, ReceivedData, &quot;Int&quot;, ReceivedDataSize, &quot;Int&quot;, 0)
     if ReceivedDataLength = 0  <em>; The connection was gracefully closed, probably due to exiting WinLIRC.</em>
         ExitApp  <em>; The OnExit routine will call WSACleanup() for us.</em>
     if ReceivedDataLength = -1
@@ -273,7 +273,7 @@ InsertInteger(pInteger, ByRef pDest, pOffset := 0, pSize := 4)
 ; only pSize number of bytes starting at pOffset are altered in it.</em>
 {
     Loop pSize  <em>; Copy each byte in the integer into the structure as raw binary data.</em>
-        DllCall("RtlFillMemory", UInt, &amp;pDest + pOffset + A_Index-1, UInt, 1, UChar, pInteger &gt;&gt; 8*(A_Index-1) &amp; 0xFF)
+        DllCall("RtlFillMemory", &quot;UInt&quot;, &amp;pDest + pOffset + A_Index-1, &quot;UInt&quot;, 1, &quot;UChar&quot;, pInteger &gt;&gt; 8*(A_Index-1) &amp; 0xFF)
 }
 
 
