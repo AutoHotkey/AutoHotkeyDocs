@@ -282,9 +282,9 @@ function ctor_toc()
     for(var i = 0; i < input.length; i++) {
       var li = input[i][0];
       if (input[i][1] != '')
-        li = '<a href="' + workingDir + input[i][1] + '"' + (isIE || isEdge ? '>' + li : ' data-content="' + li + '">') + '</a>';
+        li = '<a href="' + workingDir + input[i][1] + '"' + (isIE8 ? '>' + li : ' data-content="' + li + '">') + '</a>';
       else
-        li = '<span' + (isIE || isEdge ? '>' + li : ' data-content="' + li + '">') + '</span>';
+        li = '<span' + (isIE8 ? '>' + li : ' data-content="' + li + '">') + '</span>';
       li = '<span>' + li + '</span>';
       if(input[i][2] != undefined && input[i][2].length > 0) {
         output += '<li class ="closed" title="' + input[i][0] + '">' + li;
@@ -308,7 +308,7 @@ function ctor_toc()
     // --- Hook up events ---
 
     // Select the item on click:
-    $tocList.on("click", function() {
+    registerEvent($toc, 'click', 'li > span', function() {
       $this = $(this);
       cache.set('toc_clickItem', $tocList.index(this));
       cache.set('toc_scrollPos', $toc.scrollTop());
@@ -327,7 +327,7 @@ function ctor_toc()
     });
 
     // Highlight the item and parents on select:
-    $tocList.on("select", function() {
+    registerEvent($toc, 'select', 'li > span', function() {
       $this = $(this);
       // Highlight the item:
       $this.addClass("selected");
@@ -415,7 +415,7 @@ function ctor_index()
     {
       if (filter != -1 && input[i][2] != filter)
         continue;
-      output += '<a href="' + workingDir + input[i][1] + '" tabindex="-1"' + (isIE || isEdge ? '>' + input[i][0] : ' data-content="' + input[i][0] + '">') + '</a>';
+      output += '<a href="' + workingDir + input[i][1] + '" tabindex="-1"' + (isIE8 ? '>' + input[i][0] : ' data-content="' + input[i][0] + '">') + '</a>';
     }
     return output;
   };
@@ -435,7 +435,7 @@ function ctor_index()
       else
         $(this).removeClass('empty');
       $indexList.html(self.create(cache.index_data, this.value));
-      structure.addEventsForListBoxItems($indexList.children());
+      structure.addEventsForListBoxItems($indexList);
     });
 
     // Select closest index entry and show color indicator on input:
@@ -474,7 +474,7 @@ function ctor_index()
     if (!input)
       return match;
     for (var i = 0; i < indexListChildren.length; i++) {
-      var text = isIE || isEdge ? indexListChildren[i].innerText : indexListChildren[i].getAttribute('data-content');
+      var text = isIE8 ? indexListChildren[i].innerText : indexListChildren[i].getAttribute('data-content');
       var listitem = text.substr(0, input.length).toLowerCase();
       if (listitem == input) {
         match = indexListChildren.eq(i);
@@ -526,7 +526,7 @@ function ctor_search()
       // Otherwise fill the search list:
       cache.set('search_data', self.create(input));
       $searchList.html(cache.search_data);
-      structure.addEventsForListBoxItems($searchList.children());
+      structure.addEventsForListBoxItems($searchList);
       // Select the first item and add color indicator:
       var searchListChildren = $searchList.children();
       if (searchListChildren.length) {
@@ -547,7 +547,7 @@ function ctor_search()
     else
     {
       $searchList.html(cache.search_data);
-      structure.addEventsForListBoxItems($searchList.children());
+      structure.addEventsForListBoxItems($searchList);
       $searchList.scrollTop(cache.search_scrollPos);
       $searchList.children().eq(cache.search_clickItem).click();
     }
@@ -777,7 +777,7 @@ function ctor_structure()
   self.template = '<div id="body">' +
   '<div id="head"><div class="h-area"><div class="h-tabs"><ul><li data-translate data-content="Content"></li><li data-translate data-content="Index"></li><li data-translate data-content="Search"></li></ul></div><div class="h-tools sidebar"><ul><li class="sidebar" title="Hide/Show sidebar" data-translate>&#926;</li></ul></div><div class="h-tools online"><ul><li class="home" title="Home page" data-translate><a href="' + location.protocol + '//' + location.host + '">&#916;</a></li><li class="language" title="Change language"><span data-translate data-content="en"></span><ul class="dropdown languages selected"><li><a title="English" data-content="en"></a></li><li><a title="Deutsch (German)" data-content="de"></a></li><li><a title="&#x4E2D;&#x6587; (Chinese)" data-content="zh"></a></li></ul></li><li class="version" title="Change AHK version"><span data-translate data-content="v1"></span><ul class="dropdown versions selected"><li><a title="AHK v1.1" data-content="v1"></a></li><li><a title="AHK v2.0" data-content="v2"></a></li></ul></li><li class="edit" title="Edit page on GitHub" data-translate=2><a data-content="E"></a></li></ul></div><div class="h-tools chm"><ul><li class="back" title="Go back" data-translate=2>&#9668;</li><li class="forward" title="Go forward" data-translate=2>&#9658;</li><li class="zoom" title="Change font size" data-translate=2 data-content="Z"></li><li class="print" title="Print current document" data-translate=2 data-content="P"></li></ul></div><div class="h-tools main visible"><ul><li class="color" title="Change to dark/light theme" data-translate=2 data-content="C"></li><li class="settings" title="Open settings" data-translate=2>&#1029;</li></ul></div></div></div>' +
   '<div id="main"><div id="left"><div class="toc"></div><div class="index"><div class="input"><input type="search" placeholder="Search" data-translate=2 /></div><div class="select"><select size="1" class="empty"><option value="-1" class="empty" selected data-translate>Filter</option><option value="0" data-translate>Directives</option><option value="1" data-translate>Built-in Variables</option><option value="2" data-translate>Built-in Functions</option><option value="3" data-translate>Control Flow Statements</option><option value="4" data-translate>Operators</option><option value="5" data-translate>Declarations</option></select></div><div class="list"></div></div><div class="search"><div class="input"><input type="search" placeholder="Search" data-translate=2 /></div><div class="checkbox"><input type="checkbox" id="highlightWords"><label for="highlightWords" data-translate>Highlight the words</label></div><div class="list"></div></div><div class="load"><div class="lds-dual-ring"></div></div></div><div class="dragbar"></div><div id="right" tabIndex="-1">'+(isFrameCapable?'<iframe frameBorder="0" id="frame" src="">':'<div class="area">');
-  self.template = isIE || isEdge ? self.template.replace(/ data-content="(.*?)">/g, '>$1') : self.template;
+  self.template = isIE8 ? self.template.replace(/ data-content="(.*?)">/g, '>$1') : self.template;
   self.build = function() { document.write(self.template); }; // Write HTML before DOM is loaded to prevent flickering.
   self.modify = function() { // Modify elements added via build.
 
@@ -863,12 +863,12 @@ function ctor_structure()
       // Bug - IE/Edge doesn't turn off list-style if element is hidden:
       $langList.add($verList).css("list-style", "none");
       // Hide currently selected language and version in the selection lists:
-      $(isIE || isEdge ? 'a:contains(' + lang + ')' : 'a[data-content=' + lang + ']', $langList).parent().hide();
-      $(isIE || isEdge ? 'a:contains(' + ver + ')' : 'a[data-content=' + ver + ']', $verList).parent().hide();
+      $(isIE8 ? 'a:contains(' + lang + ')' : 'a[data-content=' + lang + ']', $langList).parent().hide();
+      $(isIE8 ? 'a:contains(' + ver + ')' : 'a[data-content=' + ver + ']', $verList).parent().hide();
       // Add the language links:
       $langList.find('li').each( function() {
         var a = $(this).find('a');
-        var thisLink = link[ver][isIE || isEdge ? a.text() : a.attr('data-content')];
+        var thisLink = link[ver][isIE8 ? a.text() : a.attr('data-content')];
         if (thisLink == null)
           $(this).hide(); // Hide language button
         else
@@ -877,7 +877,7 @@ function ctor_structure()
       // Add the version links:
       $verList.find('li').each( function() {
         var a = $(this).find('a');
-        var ver = isIE || isEdge ? a.text() : a.attr('data-content');
+        var ver = isIE8 ? a.text() : a.attr('data-content');
         var thisLink = link[ver][lang];
         // Fallback to default docs:
         thisLink = (thisLink == null) ? link[ver]['en'] : thisLink;
@@ -924,10 +924,9 @@ function ctor_structure()
 
     // --- Apply click events for sidebar tabs ---
 
-    var $tab = $('#head div.h-tabs li');
-    for (var i = 0; i < $tab.length; i++) {
-      $tab.eq(i).on('click', function(e) { self.showTab($(this).index()); });
-    }
+    registerEvent($('#head div.h-tabs'), 'click', 'li', function() {
+      self.showTab($(this).index());
+    });
 
     // --- Apply control events ---
 
@@ -1083,7 +1082,6 @@ function ctor_structure()
       if(isPhone)
         $hTools.show();
     }
-    $leftArea.focus();
   };
   // Show the specified tab:
   self.showTab = function(pos) {
@@ -1241,9 +1239,9 @@ function ctor_structure()
     $('head').append(style);
   };
   // Add events for ListBox items such as double-click:
-  self.addEventsForListBoxItems = function(items) {
+  self.addEventsForListBoxItems = function(ListBox) {
     // Select the item on click and scroll to it:
-    items.on('click', function() {
+    registerEvent(ListBox, 'click', '> a', function() {
       var $this = $(this);
       var $parent = $this.parent();
       // Scroll the item into view:
@@ -1262,7 +1260,7 @@ function ctor_structure()
     // Open the link on double-click or touch (for mobile) and store its index
     // relative to its parent:
     var touchmoved;
-    items.on('dblclick touchend', function() {
+    registerEvent(ListBox, 'dblclick touchend', '> a', function() {
       if (touchmoved != true) {
         var $this = $(this);
         var $parent = $this.parent();
@@ -1272,16 +1270,18 @@ function ctor_structure()
         cache.set(className + '_clickItem', $this.index());
         self.openSite($this.attr('href'));
       }
-    }).on('touchmove', function() {
+    });
+    registerEvent(ListBox, 'touchmove', '> a', function() {
       touchmoved = true;
-    }).on('touchstart', function() {
+    });
+    registerEvent(ListBox, 'touchstart', '> a', function() {
       touchmoved = false;
     });
     // Show tooltip on mouseover if a item exceeds the length of its parent:
-    items.on('mouseenter', function() {
+    registerEvent(ListBox, 'mouseenter', '> a', function() {
       var $this = $(this);
       if (this.offsetWidth < this.scrollWidth && !$this.attr('title')) {
-        $this.attr('title', isIE || isEdge ? $this.text() : $this.attr('data-content'));
+        $this.attr('title', isIE8 ? $this.text() : $this.attr('data-content'));
       }
     });
   }
@@ -1877,13 +1877,13 @@ function postMessageToFrame(id, param) {
 // https://stackoverflow.com/a/21903119
 function getUrlParameter(sParam) {
     var sParameterName, i;
-    var sPageURL = decodeURIComponent(window.location.search.substring(1));
+    var sPageURL = window.location.search.substring(1);
     var sURLVariables = sPageURL.split('&');
     for (i = 0; i < sURLVariables.length; i++) {
         sParameterName = sURLVariables[i].split('=');
 
         if (sParameterName[0] === sParam) {
-            return sParameterName[1] === undefined ? true : sParameterName[1];
+            return sParameterName[1] === undefined ? true : decodeURIComponent(sParameterName[1]);
         }
     }
 }
@@ -1896,6 +1896,15 @@ function overwriteProps(a, b) {
     }
   }
   return a;
+}
+
+// Prevent event delegation on IE8/Edge to bypass performance issues
+// but results in longer initial load time for these browsers:
+function registerEvent(el, events, children, func) {
+  if (isIE8 || isEdge)
+    el.find(children).on(events, func);
+  else
+    el.on(events, children, func);
 }
 
 function loadJQuery() {

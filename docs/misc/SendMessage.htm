@@ -52,7 +52,25 @@ Requirements: Winspector Spy (<a href="http://www.softpedia.com/get/Security/Sec
 <a href="../commands/PostMessage.htm">PostMessage</a> 0x111, 32808, 0, , "Windows Media Player"</pre>
 <pre><em>;suspend the hotkeys of a running AHK script</em>
 DetectHiddenWindows True
-<a href="../commands/PostMessage.htm">PostMessage</a> 0x111, 65305,,, "MyScript.ahk - AutoHotkey" <em>; Use 65306 to Pause vs. Suspend.</em></pre>
+<em>; Use 65306 to Pause and 65303 to Reload instead of Suspend. (see <a href="../FAQ.htm#close">FAQ</a>)</em>
+<a href="../commands/PostMessage.htm">PostMessage</a> 0x111, 65305,,, "MyScript.ahk - AutoHotkey"
+</pre>
+<pre><em>; Press CapsLock and Numpad2 to reload all AutoHotkey scripts</em>
+CapsLock & Numpad2::
+ReloadAllAhkScripts() {
+    DetectHiddenWindows True
+    allAhkExe := WinGetList("ahk_class AutoHotkey")
+    Loop allAhkExe.Count() {
+        hwnd := allAhkExe[A_Index]
+        if (hwnd = A_ScriptHwnd)  ; ignore the current window for reloading
+        {
+            continue
+        }
+        PostMessage 0x111, 65303,,, "ahk_id" . hwnd
+    }
+    Reload
+}
+</pre>
 <p>This above was for PostMessage. <a href="../commands/SendMessage.htm">SendMessage</a> works the same way but additionally waits for a return value, which can be used for things such as getting the currently playing track in Winamp (see <a href="Winamp.htm">Automating Winamp</a> for an example).</p>
 <p>Here are some more notes:</p>
 <ul>
