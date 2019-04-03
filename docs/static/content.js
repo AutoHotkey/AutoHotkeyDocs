@@ -111,7 +111,7 @@ var isPhone = (document.documentElement.clientWidth <= 600);
     {
       $('head').append('<style>body {font-size:' + cache.fontSize + 'em}</style>');
       normalizeParentURL = function() {
-        postMessageToParent('normalizeURL', [$.extend({}, window.location), document.title, history.state]);
+        postMessageToParent('normalizeURL', [$.extend({}, window.location), document.title, supportsHistory ? history.state : null]);
         if (cache.toc_clickItem)
           if (supportsHistory)
             history.replaceState({toc_clickItem: cache.toc_clickItem}, null, null);
