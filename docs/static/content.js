@@ -83,7 +83,7 @@ var isSafari = Object.prototype.toString.call(window.HTMLElement).indexOf('Const
 var isIE = /*@cc_on!@*/false || !!document.documentMode; // Internet Explorer 6-11
 var isIE8 = !-[1,]; // Internet Explorer 8 or below
 var isEdge = !isIE && !!window.StyleMedia; // Edge 20+
-var isChrome = !!window.chrome && !!window.chrome.webstore; // Chrome 1+
+var isChrome = !!window.chrome && (!!window.chrome.webstore || !!window.chrome.csi); // Chrome 1+
 var isBlink = (isChrome || isOpera) && !!window.CSS; // Blink engine detection
 var structure = new ctor_structure;
 var toc = new ctor_toc;
@@ -111,7 +111,7 @@ var isPhone = (document.documentElement.clientWidth <= 600);
     {
       $('head').append('<style>body {font-size:' + cache.fontSize + 'em}</style>');
       normalizeParentURL = function() {
-        postMessageToParent('normalizeURL', [$.extend({}, window.location), document.title, history.state]);
+        postMessageToParent('normalizeURL', [$.extend({}, window.location), document.title, supportsHistory ? history.state : null]);
         if (cache.toc_clickItem)
           if (supportsHistory)
             history.replaceState({toc_clickItem: cache.toc_clickItem}, null, null);
@@ -164,7 +164,8 @@ var isPhone = (document.documentElement.clientWidth <= 600);
               history.replaceState(null, null, "?frame=" + encodeURI(relPath).replace(/#/g, '%23'));
           }
           document.title = data[2];
-          structure.modifyOnlineTools(relPath);
+          if (structure.modifyOnlineTools)
+            structure.modifyOnlineTools(relPath);
           if ($('#left > div.toc li > span.selected a').attr('href') == data[1].href)
             break;
           else if (data[3]) {
