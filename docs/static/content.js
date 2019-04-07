@@ -321,8 +321,8 @@ function ctor_toc()
       // Higlight and open item with link:
       if ($this.has("a").length) {
         self.deselect($toc); $this.trigger('select');
-        setTimeout( function() { $('#right').focus(); }, 0);
         structure.openSite($this.children('a').attr('href'));
+        structure.focusContent();
         return false;
       }
     });
@@ -1112,11 +1112,22 @@ function ctor_structure()
       history.replaceState($.extend(history.state, state), null, null);
     });
   }
+  // Focus content:
+  self.focusContent = function() {
+    if (isFrameCapable) {
+      if (isIE || isEdge)
+        $(document.getElementById('frame').contentWindow).focus();
+      else
+        $('#frame').get(0).focus();
+    }
+    else
+      $('#right').focus();
+  }
   // Set keyboard focus at the right place after loading site:
   self.setKeyboardFocus = function() {
     $(window).on('load', function() {
-      if (cache.RightIsFocused)
-        $('#frame').length ? $('#frame')[0].contentWindow.focus() : $('#right').focus();
+      if (cache.RightIsFocused && !cache.clickTab)
+        self.focusContent();
       else
         $('#left').find('.input input').focus();
     });
@@ -1175,12 +1186,8 @@ function ctor_structure()
         case "F6": // Move focus between left and right area
         if ($(document.activeElement).closest('#right').length)
           $('#left > div').eq(cache.clickTab).children().find(':input, [tabindex="0"]').eq(0).focus();
-        else {
-          if (isFrameCapable)
-            isIE || isEdge ? $('#frame').get(0).contentWindow.focus() : $('#frame').get(0).focus();
-          else
-            $('#right').focus();
-        }
+        else
+          structure.focusContent();
         break;
       }
     }
