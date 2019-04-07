@@ -1093,6 +1093,7 @@ function ctor_structure()
       .eq(pos).addClass('selected');
     $s.css("visibility", "hidden")
       .eq(pos).css("visibility", "inherit")
+      .focus() // To make internal hotkeys work on startup.
       .find('.input input').focus();
   };
   // Save cache before leaving site:
