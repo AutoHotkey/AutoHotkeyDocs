@@ -351,7 +351,8 @@ function ctor_toc()
       });
     }
     self.preSelect($toc, location, relPath);
-    setTimeout( function() { self.preSelect($toc, location, relPath); }, 0);
+    if (!isFrameCapable)
+      setTimeout( function() { self.preSelect($toc, location, relPath); }, 0);
   };
   self.preSelect = function($toc, url, relPath) { // Apply stored settings.
     var tocList = $toc.find('li > span');
@@ -468,7 +469,8 @@ function ctor_index()
     });
     $indexSelect.val(cache.index_filter).trigger('change');
     self.preSelect($indexList, $indexInput);
-    setTimeout( function() { self.preSelect($indexList, $indexInput); }, 0);
+    if (!isFrameCapable)
+      setTimeout( function() { self.preSelect($indexList, $indexInput); }, 0);
   };
   self.findMatch = function(indexListChildren, input) {
     var match = {};
@@ -539,7 +541,8 @@ function ctor_search()
         $this.attr('class', 'mismatch'); // 'items not found'
     });
     self.preSelect($searchList, $searchInput, $searchCheckBox);
-    setTimeout( function() { self.preSelect($searchList, $searchInput, $searchCheckBox); }, 0);
+    if (!isFrameCapable)
+      setTimeout( function() { self.preSelect($searchList, $searchInput, $searchCheckBox); }, 0);
   };
   self.preSelect = function($searchList, $searchInput, $searchCheckBox) { // Apply stored settings.
     $searchInput.val(cache.search_input);
