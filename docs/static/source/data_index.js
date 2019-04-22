@@ -582,6 +582,7 @@ indexData = [
   ["IniWrite","commands/IniWrite.htm",6,"SSSS"],
   ["Input","commands/Input.htm",6,"OSSS"],
   ["InputBox","commands/InputBox.htm",6,"OSSSEEEESES"],
+  ["InputHook","commands/InputHook.htm",2],
   ["Insert method (Object)","objects/Object.htm#Insert"],
   ["InsertAt method (Object)","objects/Object.htm#InsertAt"],
   ["InsertInteger -> NumPut()","commands/NumPut.htm"],
