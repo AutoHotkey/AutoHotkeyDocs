@@ -106,7 +106,7 @@ DllCall("DeleteFile", Ptr, &amp;filename) <em>; Omit the quote marks around Ptr.
     <p>For parameters of type UInt64, large unsigned values may be passed as strings. For all smaller integer types without the * or P suffix, or when passing pure 64-bit integers to the function, signed vs. unsigned makes no difference due to the use of two's complement to represent signed integers. However, using the U prefix for values intended to be unsigned may improve clarity.</p></td>
 </tr>
 </table>
-<p class="note"><strong>Note</strong>: When specifying an argument type or return type that does not contain a space or asterisk, the quotes around it may be omitted. For example, <code>Str</code> can be used in place of <code>&quot;Str&quot;</code> and <code>CDecl</code> in place of <code>&quot;CDecl&quot;</code>. In addition, the letter P may be used in place of asterisk to allow the quotes to be omitted there as well. For example: <code>UIntP</code>.</p>
+<p class="warning"><strong>Deprecated</strong>: When specifying an argument type or return type that does not contain a space or asterisk, the quotes around it may be omitted. For example, <code>Str</code> can be used in place of <code>&quot;Str&quot;</code> and <code>CDecl</code> in place of <code>&quot;CDecl&quot;</code>. This is not recommended for use in new scripts.</p>
 
 <h2 id="error">ErrorLevel</h2>
 <p><span class="ver">[v1.1.04+]</span>: This function is able to throw an exception on failure. For more information, see <a href="Catch.htm#RuntimeErrors">Runtime Errors</a>.</p>
@@ -131,19 +131,19 @@ Loop, C:\My Documents\*.*, , 1
 DllCall(&quot;<strong>FreeLibrary</strong>&quot;, &quot;Ptr&quot;, hModule)  <em>; To conserve memory, the DLL may be unloaded after using it.</em></pre>
 <p><span class="ver">[v1.0.46.08+]</span>: Even faster performance can be achieved by looking up the function's address beforehand. For example:</p>
 <pre><em>; In the following example, if the DLL isn't yet loaded, use LoadLibrary in place of GetModuleHandle.</em>
-<strong>MulDivProc</strong> := DllCall(&quot;GetProcAddress&quot;, Ptr, DllCall(&quot;GetModuleHandle&quot;, Str, &quot;<strong>kernel32</strong>&quot;, &quot;Ptr&quot;), AStr, &quot;<strong>MulDiv</strong>&quot;, &quot;Ptr&quot;)
+<strong>MulDivProc</strong> := DllCall(&quot;GetProcAddress&quot;, &quot;Ptr&quot;, DllCall(&quot;GetModuleHandle&quot;, &quot;Str&quot;, &quot;<strong>kernel32</strong>&quot;, &quot;Ptr&quot;), &quot;AStr&quot;, &quot;<strong>MulDiv</strong>&quot;, &quot;Ptr&quot;)
 Loop 500
-    DllCall(<strong>MulDivProc</strong>, Int, 3, Int, 4, Int, 3)</pre>
+    DllCall(<strong>MulDivProc</strong>, &quot;Int&quot;, 3, &quot;Int&quot;, 4, &quot;Int&quot;, 3)</pre>
 <p><span class="ver">[AHK_L 31+]:</span> If DllCall's first parameter is a literal string such as <code>"MulDiv"</code> and the DLL containing the function is ordinarily loaded before the script starts, the string is automatically resolved to a function address. This built-in optimization is more effective than the example shown above.</p>
 <p>Also, adding the line <a href="_NoEnv.htm">#NoEnv</a> anywhere in the script improves DllCall's performance when unquoted parameter types are used (e.g. Int vs. &quot;Int&quot;).</p>
-<p>Finally, when passing a string-variable to a function that will not change the length of the string, performance is improved by passing the variable <a href="../Variables.htm#amp">by address</a> (e.g. &amp;MyVar) rather than as a &quot;<a href="#str">str</a>&quot; (especially when the string is very long). The following example converts a string to uppercase: <code>DllCall(&quot;CharUpper&quot;, <strong>Ptr</strong>, <strong>&amp;</strong>MyVar, Ptr)</code>.</p>
+<p>Finally, when passing a string-variable to a function that will not change the length of the string, performance is improved by passing the variable <a href="../Variables.htm#amp">by address</a> (e.g. &amp;MyVar) rather than as a &quot;<a href="#str">str</a>&quot; (especially when the string is very long). The following example converts a string to uppercase: <code>DllCall(&quot;CharUpper&quot;, &quot;<strong>Ptr</strong>&quot;, <strong>&amp;</strong>MyVar, &quot;Ptr&quot;)</code>.</p>
 
 <h2 id="struct">Structures and Arrays</h2>
 <p>A structure is a collection of <em>members</em> (fields) stored adjacently in memory. Most members tend to be integers.</p>
 <p>Functions that accept the address of a structure (or a memory-block array) can be called by storing the structure's raw binary data in a normal variable. The following steps are generally used:</p>
 <p>1) Call <code><a href="VarSetCapacity.htm">VarSetCapacity</a>(MyStruct, 123, 0)</code> to ensure that the target variable is large enough to hold the structure's data. Replace 123 with a number that is at least as large as the size of the structure. Specifying zero as the last parameter is optional; it initializes all members to be binary zero, which is typically used to avoid calling NumPut() as often in the next step.</p>
 <p>2) If the target function uses the values initially in the structure, call <code><a href="NumPut.htm">NumPut</a>(123, MyStruct, 4, "UInt")</code> to initialize any members that should be non-zero. Replace <code>123</code> with the integer to be put into the target member (or specify <code>&amp;Var</code> to store the <a href="../Variables.htm#amp">address</a> of a variable). Replace <code>4</code> with the offset of the target member (see step #4 for description of &quot;offset&quot;). Replace <code>"UInt"</code> with the appropriate type or omit it if the member is a pointer or handle.</p>
-<p>3) Call the target function, passing the <a href="../Variables.htm#amp">address</a> of <em>MyStruct</em> as a UInt (or Ptr in <span class="ver">[AHK_L 42+]</span>) argument. For example, <code>DllCall(&quot;MyDll\MyFunc&quot;, Ptr, <strong>&amp;</strong>MyStruct)</code>. The function will examine and/or change some of the members.</p>
+<p>3) Call the target function, passing the <a href="../Variables.htm#amp">address</a> of <em>MyStruct</em> as a UInt (or Ptr in <span class="ver">[AHK_L 42+]</span>) argument. For example, <code>DllCall(&quot;MyDll\MyFunc&quot;, &quot;Ptr&quot;, <strong>&amp;</strong>MyStruct)</code>. The function will examine and/or change some of the members.</p>
 <p>4) Use <code>MyInteger := <a href="NumGet.htm">NumGet</a>(MyStruct, 4, "UInt")</code> to retrieve any desired integers from the structure. Replace <code>4</code> with the offset of the target member in the structure. The first member is always at offset 0. The second member is at offset 0 plus the size of the first member (typically 4). Members beyond the second are at the offset of the previous member plus the size of the previous member. Most members -- such as DWORD, Int, and <a href="#Int">other types of 32-bit integers</a> -- are 4 bytes in size. Replace <code>"UInt"</code> with the appropriate type or omit it if the member is a pointer or handle.</p>
 <p>See <a href="#ExStruct">Structure Examples</a> for actual usages.</p>
 <h2 id="limits">Known Limitations</h2>
@@ -151,7 +151,7 @@ Loop 500
 <p>Any binary zero stored in a variable by a function hides all data to the right of the zero; that is, such data cannot be accessed or changed by most commands and functions. However, such data can be manipulated by the <a href="../Variables.htm#amp">address operator</a> and <a href="NumPut.htm">NumPut</a>/<a href="NumGet.htm">NumGet</a>, as well as DllCall itself.</p>
 <p>A function that returns the address of one of the strings that was passed into it might return an identical string in a different memory address than expected. For example calling <code>CharLower(CharUpper(MyVar))</code> in a programming language would convert <em>MyVar</em>'s contents to lowercase. But when the same is done with DllCall(), <em>MyVar</em> would be uppercase after the following call because CharLower would have operated on a different/temporary string whose contents were identical to <em>MyVar</em>:</p>
 <pre>MyVar = ABC
-result := DllCall(&quot;CharLower&quot;, <strong><u>str</u></strong>, DllCall(&quot;CharUpper&quot;, Str, MyVar, <strong><u>Str</u></strong>), Str)</pre>
+result := DllCall(&quot;CharLower&quot;, &quot;<strong><u>str</u></strong>&quot;, DllCall(&quot;CharUpper&quot;, &quot;Str&quot;, MyVar, &quot;<strong><u>Str</u></strong>&quot;), &quot;Str&quot;)</pre>
 <p>To work around this, change the two underlined &quot;Str&quot; values above to Ptr. This interprets CharUpper's return value as a pure address that will get passed as an integer to CharLower.</p>
 <p>Certain limitations may be encountered when dealing with strings. For details, see <a href="../Compat.htm#DllCall">Script Compatibility</a>.</p>
 <h2 id="COM">Component Object Model (COM)</h2>
@@ -170,7 +170,7 @@ MsgBox You pressed button #%WhichButton%.</pre>
 
 <pre class="NoIndent"><em>; Example: Changes the desktop wallpaper to the specified bitmap (.bmp) file.</em>
 
-DllCall(&quot;SystemParametersInfo&quot;, UInt, 0x14, UInt, 0, Str, A_WinDir <strong>.</strong> &quot;\winnt.bmp&quot;, UInt, 2)</pre>
+DllCall(&quot;SystemParametersInfo&quot;, &quot;UInt&quot;, 0x14, &quot;UInt&quot;, 0, &quot;Str&quot;, A_WinDir <strong>.</strong> &quot;\winnt.bmp&quot;, &quot;UInt&quot;, 2)</pre>
 
 <pre class="NoIndent"><em>; Example: Calls the API function &quot;IsWindowVisible&quot; to find out if a Notepad window is visible.</em>
 
@@ -203,13 +203,13 @@ F1::
 SPI_GETMOUSESPEED = 0x70
 SPI_SETMOUSESPEED = 0x71
 <em>; Retrieve the current speed so that it can be restored later:</em>
-<strong>DllCall</strong>(&quot;SystemParametersInfo&quot;, UInt, SPI_GETMOUSESPEED, UInt, 0, UIntP, OrigMouseSpeed, UInt, 0)
+<strong>DllCall</strong>(&quot;SystemParametersInfo&quot;, &quot;UInt&quot;, SPI_GETMOUSESPEED, &quot;UInt&quot;, 0, &quot;UIntP&quot;, OrigMouseSpeed, &quot;UInt&quot;, 0)
 <em>; Now set the mouse to the slower speed specified in the next-to-last parameter (the range is 1-20, 10 is default):</em>
-<strong>DllCall</strong>(&quot;SystemParametersInfo&quot;, UInt, SPI_SETMOUSESPEED, UInt, 0, Ptr, <strong>3</strong>, UInt, 0)
+<strong>DllCall</strong>(&quot;SystemParametersInfo&quot;, &quot;UInt&quot;, SPI_SETMOUSESPEED, &quot;UInt&quot;, 0, &quot;Ptr&quot;, <strong>3</strong>, &quot;UInt&quot;, 0)
 KeyWait F1  <em>; This prevents keyboard auto-repeat from doing the DllCall repeatedly.</em>
 return
 
-F1 up::<strong>DllCall</strong>(&quot;SystemParametersInfo&quot;, UInt, 0x71, UInt, 0, Ptr, OrigMouseSpeed, UInt, 0)  <em>; Restore the original speed.</em></pre>
+F1 up::<strong>DllCall</strong>(&quot;SystemParametersInfo&quot;, &quot;UInt&quot;, 0x71, &quot;UInt&quot;, 0, &quot;Ptr&quot;, OrigMouseSpeed, &quot;UInt&quot;, 0)  <em>; Restore the original speed.</em></pre>
 
 <pre class="NoIndent" id="GetChildHWND"><em>; Example: When passed a window's Unique ID and the text or ClassNN of one of its controls,
 ; the following function returns the HWND (unique ID) of that control.
@@ -245,22 +245,22 @@ if FileName =
     return
 GENERIC_WRITE = 0x40000000  <em>; Open the file for writing rather than reading.</em>
 CREATE_ALWAYS = 2  <em>; Create new file (overwriting any existing file).</em>
-hFile := <strong>DllCall</strong>(&quot;CreateFile&quot;, Str, FileName, UInt, GENERIC_WRITE, UInt, 0, Ptr, 0, UInt, CREATE_ALWAYS, UInt, 0, Ptr, 0, Ptr)
+hFile := <strong>DllCall</strong>(&quot;CreateFile&quot;, &quot;Str&quot;, FileName, &quot;UInt&quot;, GENERIC_WRITE, &quot;UInt&quot;, 0, &quot;Ptr&quot;, 0, &quot;UInt&quot;, CREATE_ALWAYS, &quot;UInt&quot;, 0, &quot;Ptr&quot;, 0, &quot;Ptr&quot;)
 if not hFile
 {
     MsgBox Can't open &quot;%FileName%&quot; for writing.
     return
 }
 TestString = This is a test string.`r`n  <em>; When writing a file this way, use `r`n rather than `n to start a new line.</em>
-<strong>DllCall</strong>(&quot;WriteFile&quot;, Ptr, hFile, Str, TestString, UInt, StrLen(TestString), UIntP, BytesActuallyWritten, Ptr, 0)
-<strong>DllCall</strong>(&quot;CloseHandle&quot;, Ptr, hFile)  <em>; Close the file.</em>
+<strong>DllCall</strong>(&quot;WriteFile&quot;, &quot;Ptr&quot;, hFile, &quot;Str&quot;, TestString, &quot;UInt&quot;, StrLen(TestString), &quot;UIntP&quot;, BytesActuallyWritten, &quot;Ptr&quot;, 0)
+<strong>DllCall</strong>(&quot;CloseHandle&quot;, &quot;Ptr&quot;, hFile)  <em>; Close the file.</em>
 
 <em>; Now that the file was written, read its contents back into memory.</em>
 GENERIC_READ = 0x80000000  <em>; Open the file for reading rather than writing.</em>
 OPEN_EXISTING = 3  <em>; This mode indicates that the file to be opened must already exist.</em>
 FILE_SHARE_READ = 0x1 <em>; This and the next are whether other processes can open the file while we have it open.</em>
 FILE_SHARE_WRITE = 0x2
-hFile := <strong>DllCall</strong>(&quot;CreateFile&quot;, Str, FileName, UInt, GENERIC_READ, UInt, FILE_SHARE_READ|FILE_SHARE_WRITE, Ptr, 0, UInt, OPEN_EXISTING, UInt, 0, Ptr, 0)
+hFile := <strong>DllCall</strong>(&quot;CreateFile&quot;, &quot;Str&quot;, FileName, &quot;UInt&quot;, GENERIC_READ, &quot;UInt&quot;, FILE_SHARE_READ|FILE_SHARE_WRITE, &quot;Ptr&quot;, 0, &quot;UInt&quot;, OPEN_EXISTING, &quot;UInt&quot;, 0, &quot;Ptr&quot;, 0)
 if not hFile
 {
     MsgBox Can't open &quot;%FileName%&quot; for reading.
@@ -268,8 +268,8 @@ if not hFile
 }
 <em>; Make the variable empty for testing purposes, but ensure it retains sufficient capacity:</em>
 BytesToRead := VarSetCapacity(TestString, StrLen(TestString))
-<strong>DllCall</strong>(&quot;ReadFile&quot;, Ptr, hFile, Str, TestString, UInt, BytesToRead, UIntP, BytesActuallyRead, Ptr, 0)
-<strong>DllCall</strong>(&quot;CloseHandle&quot;, Ptr, hFile)  <em>; Close the file.</em>
+<strong>DllCall</strong>(&quot;ReadFile&quot;, &quot;Ptr&quot;, hFile, &quot;Str&quot;, TestString, &quot;UInt&quot;, BytesToRead, &quot;UIntP&quot;, BytesActuallyRead, &quot;Ptr&quot;, 0)
+<strong>DllCall</strong>(&quot;CloseHandle&quot;, &quot;Ptr&quot;, hFile)  <em>; Close the file.</em>
 MsgBox The following string was read from the file: %TestString%</pre>
 
 <pre class="NoIndent" id="HideCursor"><em>; Example: Hides the mouse cursor when you press Win+C. To later show the cursor, press Win+C again.
@@ -324,7 +324,7 @@ SystemCursor(OnOff=1)   <em>; INIT = &quot;I&quot;,&quot;Init&quot;; OFF = 0,&qu
 Run Notepad
 WinWait Untitled - Notepad  <em>; This also sets the &quot;<a href="../misc/WinTitle.htm#LastFoundWindow">last found window</a>&quot; for use with WinExist() below.</em>
 VarSetCapacity(Rect, 16)  <em>; A RECT is a struct consisting of four 32-bit integers (i.e. 4*4=16).</em>
-<strong>DllCall</strong>(&quot;GetWindowRect&quot;, Ptr, WinExist(), Ptr, &amp;Rect)  <em>; WinExist() returns an HWND.</em>
+<strong>DllCall</strong>(&quot;GetWindowRect&quot;, &quot;Ptr&quot;, WinExist(), &quot;Ptr&quot;, &amp;Rect)  <em>; WinExist() returns an HWND.</em>
 MsgBox % &quot;Left &quot; . <a href="NumGet.htm">NumGet</a>(Rect, 0, "Int") . &quot; Top &quot; . NumGet(Rect, 4, "Int")
     . &quot; Right &quot; . NumGet(Rect, 8, "Int") . &quot; Bottom &quot; . NumGet(Rect, 12, "Int")</pre>
 
@@ -370,7 +370,7 @@ SetSystemTime(YYYYMMDDHHMISS)
     StringMid, Int, YYYYMMDDHHMISS, 13, 2 <em>; SS (second)</em>
     NumPut(Int, SystemTime, 12, &quot;UShort&quot;)
 
-    return <strong>DllCall</strong>(&quot;SetSystemTime&quot;, Ptr, &amp;SystemTime)
+    return <strong>DllCall</strong>(&quot;SetSystemTime&quot;, &quot;Ptr&quot;, &amp;SystemTime)
 }</pre>
 
 <pre class="NoIndent"><em>/* <strong>More Structure Examples:</strong>
