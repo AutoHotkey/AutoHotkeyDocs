@@ -139,7 +139,7 @@ OnMessage(NotificationMsg, "ReceiveData")
 ; This avoids the need to poll the connection and thus cuts down on resource usage.
 FD_READ := 1     ; Received when data is available to be read.
 FD_CLOSE := 32   ; Received when connection has been closed.
-if DllCall("Ws2_32\WSAAsyncSelect", UInt, socket, UInt, ScriptMainWindowId, UInt, NotificationMsg, Int, FD_READ|FD_CLOSE)
+if DllCall("Ws2_32\WSAAsyncSelect", "UInt", socket, "UInt", ScriptMainWindowId, "UInt", NotificationMsg, "Int", FD_READ|FD_CLOSE)
 {
     MsgBox "WSAAsyncSelect() indicated Winsock error " DllCall("Ws2_32\WSAGetLastError")
     ExitApp
@@ -153,7 +153,7 @@ ConnectToAddress(IPAddress, Port)
 ; Returns -1 (INVALID_SOCKET) upon failure or the socket ID upon success.
 {
     VarSetCapacity(wsaData, 400)
-    result := DllCall("Ws2_32\WSAStartup", UShort, 0x0002, UInt, &wsaData) ; Request Winsock 2.0 (0x0002)
+    result := DllCall("Ws2_32\WSAStartup", "UShort", 0x0002, "UInt", &wsaData) ; Request Winsock 2.0 (0x0002)
     ; Since WSAStartup() will likely be the first Winsock function called by this script,
     ; check ErrorLevel to see if the OS has Winsock 2.0 available:
     if ErrorLevel
@@ -170,7 +170,7 @@ ConnectToAddress(IPAddress, Port)
     AF_INET := 2
     SOCK_STREAM := 1
     IPPROTO_TCP := 6
-    socket := DllCall("Ws2_32\socket", Int, AF_INET, Int, SOCK_STREAM, Int, IPPROTO_TCP)
+    socket := DllCall("Ws2_32\socket", "Int", AF_INET, "Int", SOCK_STREAM, "Int", IPPROTO_TCP)
     if socket = -1
     {
         MsgBox "socket() indicated Winsock error " DllCall("Ws2_32\WSAGetLastError")
@@ -181,11 +181,11 @@ ConnectToAddress(IPAddress, Port)
     SizeOfSocketAddress := 16
     VarSetCapacity(SocketAddress, SizeOfSocketAddress)
     InsertInteger(2, SocketAddress, 0, AF_INET)   ; sin_family
-    InsertInteger(DllCall("Ws2_32\htons", UShort, Port), SocketAddress, 2, 2)   ; sin_port
-    InsertInteger(DllCall("Ws2_32\inet_addr", AStr, IPAddress), SocketAddress, 4, 4)   ; sin_addr.s_addr
+    InsertInteger(DllCall("Ws2_32\htons", "UShort", Port), SocketAddress, 2, 2)   ; sin_port
+    InsertInteger(DllCall("Ws2_32\inet_addr", "AStr", IPAddress), SocketAddress, 4, 4)   ; sin_addr.s_addr
 
     ; Attempt connection:
-    if DllCall("Ws2_32\connect", UInt, socket, UInt, &SocketAddress, Int, SizeOfSocketAddress)
+    if DllCall("Ws2_32\connect", "UInt", socket, "UInt", &SocketAddress, "Int", SizeOfSocketAddress)
     {
         MsgBox "connect() indicated Winsock error " DllCall("Ws2_32\WSAGetLastError") ". Is WinLIRC running?"
         return -1
@@ -205,7 +205,7 @@ ReceiveData(wParam, lParam)
     ReceivedDataSize := 4096  ; Large in case a lot of data gets buffered due to delay in processing previous data.
 
     VarSetCapacity(ReceivedData, ReceivedDataSize, 0)  ; 0 for last param terminates string for use with recv().
-    ReceivedDataLength := DllCall("Ws2_32\recv", UInt, socket, Str, ReceivedData, Int, ReceivedDataSize, Int, 0)
+    ReceivedDataLength := DllCall("Ws2_32\recv", "UInt", socket, "Str", ReceivedData, "Int", ReceivedDataSize, "Int", 0)
     if ReceivedDataLength = 0  ; The connection was gracefully closed, probably due to exiting WinLIRC.
         ExitApp  ; The OnExit routine will call WSACleanup() for us.
     if ReceivedDataLength = -1
@@ -259,7 +259,7 @@ InsertInteger(pInteger, ByRef pDest, pOffset := 0, pSize := 4)
 ; only pSize number of bytes starting at pOffset are altered in it.
 {
     Loop pSize  ; Copy each byte in the integer into the structure as raw binary data.
-        DllCall("RtlFillMemory", UInt, &pDest + pOffset + A_Index-1, UInt, 1, UChar, pInteger >> 8*(A_Index-1) & 0xFF)
+        DllCall("RtlFillMemory", "UInt", &pDest + pOffset + A_Index-1, "UInt", 1, "UChar", pInteger >> 8*(A_Index-1) & 0xFF)
 }
 
 
