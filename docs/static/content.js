@@ -71,6 +71,7 @@ var cache = {
 var isCacheLoaded = cache.load();
 var workingDir = getWorkingDir();
 var relPath = location.href.replace(workingDir, '');
+var equivPath = $('meta[name|="ahk:equiv"]').prop('content');
 var isInsideCHM = (location.href.search(/::/) > 0) ? 1 : 0;
 var supportsHistory = (history.replaceState) && !isInsideCHM;
 var isFrameCapable = !cache.forceNoFrame && (isInsideCHM || supportsHistory);
@@ -83,7 +84,7 @@ var isSafari = Object.prototype.toString.call(window.HTMLElement).indexOf('Const
 var isIE = /*@cc_on!@*/false || !!document.documentMode; // Internet Explorer 6-11
 var isIE8 = !-[1,]; // Internet Explorer 8 or below
 var isEdge = !isIE && !!window.StyleMedia; // Edge 20+
-var isChrome = !!window.chrome && !!window.chrome.webstore; // Chrome 1+
+var isChrome = !!window.chrome && (!!window.chrome.webstore || !!window.chrome.csi); // Chrome 1+
 var isBlink = (isChrome || isOpera) && !!window.CSS; // Blink engine detection
 var structure = new ctor_structure;
 var toc = new ctor_toc;
@@ -111,7 +112,7 @@ var isPhone = (document.documentElement.clientWidth <= 600);
     {
       $('head').append('<style>body {font-size:' + cache.fontSize + 'em}</style>');
       normalizeParentURL = function() {
-        postMessageToParent('normalizeURL', [$.extend({}, window.location), document.title, history.state]);
+        postMessageToParent('normalizeURL', [$.extend({}, window.location), document.title, supportsHistory ? history.state : null, equivPath]);
         if (cache.toc_clickItem)
           if (supportsHistory)
             history.replaceState({toc_clickItem: cache.toc_clickItem}, null, null);
@@ -164,7 +165,8 @@ var isPhone = (document.documentElement.clientWidth <= 600);
               history.replaceState(null, null, "?frame=" + encodeURI(relPath).replace(/#/g, '%23'));
           }
           document.title = data[2];
-          structure.modifyOnlineTools(relPath);
+          if (structure.modifyOnlineTools)
+            structure.modifyOnlineTools(relPath, data[4]);
           if ($('#left > div.toc li > span.selected a').attr('href') == data[1].href)
             break;
           else if (data[3]) {
@@ -320,8 +322,8 @@ function ctor_toc()
       // Higlight and open item with link:
       if ($this.has("a").length) {
         self.deselect($toc); $this.trigger('select');
-        setTimeout( function() { $('#right').focus(); }, 0);
         structure.openSite($this.children('a').attr('href'));
+        structure.focusContent();
         return false;
       }
     });
@@ -350,7 +352,8 @@ function ctor_toc()
       });
     }
     self.preSelect($toc, location, relPath);
-    setTimeout( function() { self.preSelect($toc, location, relPath); }, 0);
+    if (!isFrameCapable)
+      setTimeout( function() { self.preSelect($toc, location, relPath); }, 0);
   };
   self.preSelect = function($toc, url, relPath) { // Apply stored settings.
     var tocList = $toc.find('li > span');
@@ -467,7 +470,8 @@ function ctor_index()
     });
     $indexSelect.val(cache.index_filter).trigger('change');
     self.preSelect($indexList, $indexInput);
-    setTimeout( function() { self.preSelect($indexList, $indexInput); }, 0);
+    if (!isFrameCapable)
+      setTimeout( function() { self.preSelect($indexList, $indexInput); }, 0);
   };
   self.findMatch = function(indexListChildren, input) {
     var match = {};
@@ -538,7 +542,8 @@ function ctor_search()
         $this.attr('class', 'mismatch'); // 'items not found'
     });
     self.preSelect($searchList, $searchInput, $searchCheckBox);
-    setTimeout( function() { self.preSelect($searchList, $searchInput, $searchCheckBox); }, 0);
+    if (!isFrameCapable)
+      setTimeout( function() { self.preSelect($searchList, $searchInput, $searchCheckBox); }, 0);
   };
   self.preSelect = function($searchList, $searchInput, $searchCheckBox) { // Apply stored settings.
     $searchInput.val(cache.search_input);
@@ -859,7 +864,7 @@ function ctor_structure()
     var $langList = $online.find('ul.languages')
     var $verList = $online.find('ul.versions')
 
-    self.modifyOnlineTools = function(relPath) {
+    self.modifyOnlineTools = function(relPath, equivPath) {
       // Bug - IE/Edge doesn't turn off list-style if element is hidden:
       $langList.add($verList).css("list-style", "none");
       // Hide currently selected language and version in the selection lists:
@@ -881,8 +886,7 @@ function ctor_structure()
         var thisLink = link[ver][lang];
         // Fallback to default docs:
         thisLink = (thisLink == null) ? link[ver]['en'] : thisLink;
-        // Don't use relPath here due file differences between the versions:
-        a.attr('href', thisLink);
+        a.attr('href', thisLink + (equivPath || relPath));
       });
       // Hide dropdown list on click with left or middle mouse button:
       $langList.add($verList).off('mouseup').on('mouseup', function(e) {
@@ -899,7 +903,7 @@ function ctor_structure()
         target: "_blank"
       });
     };
-    self.modifyOnlineTools(relPath);
+    self.modifyOnlineTools(relPath, equivPath);
 
     // --- CHM tools (only visible if help is CHM) ---
 
@@ -1092,6 +1096,7 @@ function ctor_structure()
       .eq(pos).addClass('selected');
     $s.css("visibility", "hidden")
       .eq(pos).css("visibility", "inherit")
+      .focus() // To make internal hotkeys work on startup.
       .find('.input input').focus();
   };
   // Save cache before leaving site:
@@ -1110,11 +1115,22 @@ function ctor_structure()
       history.replaceState($.extend(history.state, state), null, null);
     });
   }
+  // Focus content:
+  self.focusContent = function() {
+    if (isFrameCapable) {
+      if (isIE || isEdge)
+        $(document.getElementById('frame').contentWindow).focus();
+      else
+        $('#frame').get(0).focus();
+    }
+    else
+      $('#right').focus();
+  }
   // Set keyboard focus at the right place after loading site:
   self.setKeyboardFocus = function() {
     $(window).on('load', function() {
-      if (cache.RightIsFocused)
-        $('#frame').length ? $('#frame')[0].contentWindow.focus() : $('#right').focus();
+      if (cache.RightIsFocused && !cache.clickTab)
+        self.focusContent();
       else
         $('#left').find('.input input').focus();
     });
@@ -1173,12 +1189,8 @@ function ctor_structure()
         case "F6": // Move focus between left and right area
         if ($(document.activeElement).closest('#right').length)
           $('#left > div').eq(cache.clickTab).children().find(':input, [tabindex="0"]').eq(0).focus();
-        else {
-          if (isFrameCapable)
-            isIE || isEdge ? $('#frame').get(0).contentWindow.focus() : $('#frame').get(0).focus();
-          else
-            $('#right').focus();
-        }
+        else
+          structure.focusContent();
         break;
       }
     }
