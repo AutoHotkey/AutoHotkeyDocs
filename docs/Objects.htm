@@ -16,6 +16,8 @@ ul.list_of_p li { margin: 1em 0; }
 
 <h1>Objects</h1>
 
+<p class="warning"><strong>Note:</strong> AutoHotkey v2.0-alpha is undergoing a paradigm shift. This version of the documentation pertains to v2.0-a101.</p>
+
 <p>An <i>object</i> in AutoHotkey is an abstract datatype which provides three basic functions:</p>
 <ul>
   <li>GET a value.</li>
@@ -77,8 +79,10 @@ MyArray := Array(Item1, Item2, ..., ItemN)</pre>
 <a href="commands/For.htm">For</a> index, value in MyArray
     MsgBox "Item " index " is '" value "'"
 </pre>
+<p class="warning"><strong>Note:</strong> A future alpha release will change <code>[]</code>, <code>Array()</code> and variadic functions to create a dedicated array type with restricted capabilities. See <a href="https://www.autohotkey.com/boards/viewtopic.php?f=37&t=57591">Objects (forum topic)</a> for details.</p>
 
 <span id="Arrays"></span><h3 id="Usage_Associative_Arrays">Associative Arrays</h3>
+<p class="warning"><strong>Note:</strong> The following details apply to v2.0-a101 and may not be applicable to future alpha releases. See <a href="https://www.autohotkey.com/boards/viewtopic.php?f=37&t=57591">Objects (forum topic)</a> for details.</p>
 <p>An associative array is an object which contains a collection of unique keys and a collection of values, where each key is associated with one value. Keys can be strings, integers or objects, while values can be of any type. An associative array can be created as follows:</p>
 <pre>MyArray := {KeyA: ValueA, KeyB: ValueB, ..., KeyZ: ValueZ}
 MyArray := Object("KeyA", ValueA, "KeyB", ValueB, ..., "KeyZ", ValueZ)</pre>
@@ -94,25 +98,26 @@ MyArray := Object("KeyA", ValueA, "KeyB", ValueB, ..., "KeyZ", ValueZ)</pre>
 <a href="commands/For.htm">For</a> key, value in MyArray
     MsgBox key ' = ' value</pre>
 <p>Associative arrays can be sparsely populated - that is, <code>{1:"a",1000:"b"}</code> contains only two key-value pairs, not 1000.</p>
-<p id="same_thing">Currently, simple arrays and associative arrays are the same thing. However, treating <code>[]</code> as a simple linear array helps to keep its role clear, and improves the chance of your script working with a future version of AutoHotkey, which might differentiate between simple arrays and associative arrays.</p>
 
 <h3 id="Usage_Objects">Objects</h3>
-<p>For all types of objects, the notation <code>Object.LiteralKey</code> can be used to access a property, array element or method, where <em>LiteralKey</em> is an identifier or integer and <em>Object</em> is any expression. Identifiers are unquoted strings which may consist of alphanumeric characters, underscore and non-ASCII characters. For example, <code>match.Pos</code> is equivalent to <code>match["Pos"]</code> while <code>arr.1</code> is equivalent to <code>arr[1]</code>. There must be no space after the dot.</p>
+<p>An object can have <em>properties</em>, <em>methods</em> and <em>items</em> (such as array elements). Items are accessed using <code>[]</code> as shown in the previous sections. Properties and methods are usually accessed by writing a dot followed by an identifier (just a <a href="Concepts.htm#names">name</a>).</p>
+<p class="warning"><strong>Note:</strong> Currently properties and methods are defined as associative array elements, and as such, the syntax can usually be used interchangebly. However, this will be changed in a future alpha release. It is important to use the syntax appropriate to the situation.</p>
 <p><strong>Examples:</strong></p>
-<p>Retrieve a property:</p>
+<p>Retrieve or set a property literally named <em>Property</em>:</p>
 <pre>Value := Object.Property</pre>
-<p>Set a property:</p>
 <pre>Object.Property := Value</pre>
-<p>Call a method:</p>
+<p>Retrieve or set a property where the name is determined by evaluating an expression or variable:</p>
+<pre>Value := Object.%Expression%</pre>
+<pre>Object.%Expression% := Value</pre>
+<p>Call a method literally named <em>Method</em>:</p>
 <pre>ReturnValue := Object.Method(Parameters)</pre>
-<p>Call a method with a computed method name:</p>
-<pre>ReturnValue := Object[MethodName](Parameters)</pre>
+<p>Call a method where the name is determined by evaluating an expression or variable:</p>
+<pre>ReturnValue := Object.%Expression%(Parameters)</pre>
+<p class="warning"><strong>Note:</strong> <code>Object[Expression](Parameters)</code> can also be used, but will cease to work in a future release.</p>
 <p>Some properties of COM objects and user-defined objects can accept parameters:</p>
 <pre>Value := Object.Property[Parameters]
 Object.Property[Parameters] := Value</pre>
 <p><strong>Related:</strong> <a href="objects/Object.htm">Object</a>, <a href="objects/File.htm">File Object</a>, <a href="objects/Func.htm">Func Object</a>, <a href="commands/ComObjCreate.htm">COM object</a></p>
-<p><b>Known limitation:</b></p>
-<ul><li>Currently <code><span class="dull">x</span>.y[z]<span class="dull">()</span></code> is treated as <code><span class="dull">x</span>["y", z]<span class="dull">()</span></code>, which is not supported. As a workaround, <code><span class="red">(</span><span class="dull">x.y</span><span class="red">)</span>[z]()</code> evaluates <code>x.y</code> first, then uses the result as the target of the method call. Note that <code>x.y[z].Call()</code> does not have this limitation since it is evaluated the same as <code>(x.y[z]).Call()</code>.</li></ul>
 
 <h3 id="Usage_Freeing_Objects">Freeing Objects</h3>
 <p>Scripts do not free objects explicitly. When the last reference to an object is released, the object is freed automatically. A reference stored in a variable is released automatically when that variable is assigned some other value. For example:</p>
@@ -134,19 +139,24 @@ x := "", y := ""             <em>; Without the above line, this would not free t
 
 <h3 id="Usage_Remarks">Remarks</h3>
 
-<h4>Syntax</h4>
-<p>All types of objects support both array syntax (brackets) and object syntax (dots).</p>
-<p>Additionally, object references can themselves be used in expressions:</p>
+<h4>Objects as Values</h4>
+<p>Object references can themselves be used in expressions:</p>
 <ul>
   <li>When an object reference is compared with some other value using <code>=</code>, <code>==</code>, <code>!=</code> or <code>!==</code>, they are considered equal only if both values are references to the same object.</li>
   <li>Objects are always considered <i>true</i> when a boolean value is required, such as in <code>if obj</code>, <code>!obj</code> or <code>obj ? x : y</code>.</li>
   <li>An object's address can be retrieved using the <code>&amp;</code>address-of operator. This uniquely identifies the object from the point of its creation to the moment its last reference is <a href="#Refs">released</a>.</li>
 </ul>
 <p>If an object is used in any context where an object is not expected, it is typically treated as an empty string. For example, <code>MsgBox(myObject)</code> shows an empty MsgBox. Do not rely on this behaviour as it may change. In some cases an exception may be thrown, such as for <code>myObject + 1</code> or <code>Round(myObject)</code>.</p>
+
+<h4>Syntax</h4>
 <p id="cassign">Compound assignments such as <code>x.y += 1</code> and <code>--arr[1]</code> are supported.</p>
-<p>Parameters can be omitted when getting or setting properties. For example, <code>x[,2]</code>. Scripts can utilize this by defining default values for parameters in <a href="#Custom_Classes_property">properties</a> and <a href="#Meta_Functions">meta-functions</a>. The method name can also be completely omitted, as in <code>x[](a)</code>. Scripts can utilize this by defining a default value for the __Call <a href="#Meta_Functions">meta-function</a>'s first parameter, since it is not otherise supplied with a value. If the property or method name is omitted when invoking a COM object, its "default member" is invoked.</p>
+<p>Parameters can be omitted when getting or setting properties. For example, <code>x.y[,2]</code> or <code>x[,2]</code>. Scripts can utilize this by defining default values for parameters in <a href="#Custom_Classes_property">properties</a> and <a href="#Meta_Functions">meta-functions</a>.</p>
+<p>The method name can also be completely omitted, as in <code>x[](a)</code>. This can be utilized by defining a default value for the __Call <a href="#Meta_Functions">meta-function</a>'s first parameter.</p>
+<p class="warning"><strong>Note:</strong> The use of brackets to replace the method name with an expression will not be supported in future alpha releases. To call a function object <em>x</em>, use <code>x.Call()</code> or <code>%x%()</code>.</p>
+<p>If the property or method name is omitted when invoking a COM object, its "default member" is invoked.</p>
 
 <h4>Keys</h4>
+<p class="warning"><strong>Note:</strong> The following details apply to v2.0-a101 and may not be applicable to future alpha releases. See <a href="https://www.autohotkey.com/boards/viewtopic.php?f=37&t=57591">Objects (forum topic)</a> for details.</p>
 <p>Objects created with <code>[]</code>, <code>{}</code> or the <code>new</code> operator allow the use of strings, integers and objects as keys, with the following caveats:</p>
 <p>The key's value is preserved, but its <em>type identity</em> is not. That is, integers may be stored as strings or vice versa, so long as the value remains the same (including the formatting of numeric strings). Specifically:</p>
 <ul>
@@ -172,6 +182,7 @@ RetVal := MyFuncRef.<a href="objects/Func.htm#Call">Call</a>(<i>Params</i>)
 <p>For details about additional properties of function references, see <a href="objects/Func.htm">Func Object</a>.</p>
 
 <span id="JaggedArrays"></span><h3 id="Usage_Arrays_of_Arrays">Arrays of Arrays</h3>
+<p class="warning"><strong>Note:</strong> The following details apply to v2.0-a101. Future alpha releases may not have built-in support for multi-dimensional arrays. See <a href="https://www.autohotkey.com/boards/viewtopic.php?f=37&t=57591">Objects (forum topic)</a> for details.</p>
 <p>AutoHotkey supports "multi-dimensional" arrays by transparently storing arrays inside other arrays. For example, a table could be represented as an array of rows, where each row is itself an array of columns. In that case, the content of column <code>y</code> of row <code>x</code> can be set using either of the methods below:</p>
 <pre>table[x][y] := content  <em>; A</em>
 table[x, y] := content  <em>; B</em></pre>
@@ -213,6 +224,7 @@ SecondFunc(param) {
 }</pre>
 
 <h2 id="Custom_Objects">Custom Objects</h2>
+<p class="warning"><strong>Note:</strong> The following details apply to v2.0-a101 and may not be 100% applicable to future alpha releases. See <a href="https://www.autohotkey.com/boards/viewtopic.php?f=37&t=57591">Objects (forum topic)</a> for details.</p>
 <p>Objects created by the script do not need to have any predefined structure. Instead, each object can inherit properties and methods from its <code>base</code> object (otherwise known as a "prototype" or "class"). Properties and methods can also be added to (or removed from) an object at any time, and those changes will affect any and all derived objects. For more complex or specialized situations, a base object can override the standard behaviour of any objects derived from it by defining <a href="#Meta_Functions"><i>meta-functions</i></a>.</p>
 <p><em>Base</em> objects are just ordinary objects, and are typically created one of two ways:</p>
 <pre>class baseObject {
@@ -339,6 +351,39 @@ Method()
 <p>Attempting to <em>call</em> a property, as in <code>obj.Property()</code>, will have the same effect as if the property did not exist.</p>
 <p>Internally, <em>get</em> and <em>set</em> are two separate methods, so cannot share variables (except by storing them in <code>this</code>).</p>
 <p><a href="#Meta_Functions">Meta-functions</a> provide a broader way of controlling access to properties and methods of an object, but are more complicated and error-prone.</p>
+
+<h3 id="__Item">__Item Property</h3>
+<p>The __Item property is invoked when the indexing operator (array syntax) is used with the object. For example:</p>
+<pre>class Env {
+    __Item[name] {
+        get {
+            return EnvGet(name)
+        }
+        set {
+            return EnvSet(name, value)
+        }
+    }
+}
+
+Env["PATH"] .= ";" A_ScriptDir  <em>; Only affects this script and child processes.</em>
+MsgBox Env["PATH"]</pre>
+<p>For objects of type <a href="objects/Object.htm">Object</a>, <code>__Item</code> is effectively a default property name (if such a property has been defined). In effect:</p>
+<ul>
+  <li><code><i>object</i>[<i>params</i>]</code> is equivalent to <code><i>object</i>.__Item[<i>params</i>]</code> when there are parameters.</li>
+  <li><code><i>object</i>[]</code> is equivalent to <code><i>object</i>.__Item</code>.</li>
+</ul>
+<p class="note"><strong>Note:</strong> When an explicit property name is combined with empty brackets, as in <code>obj.prop[]</code>, it is handled as two separate operations: first retrieve <code>obj.prop</code>, then invoke the default property of the result. This is part of the language syntax, so is not dependent on the object.</p>
+<p>For example:</p>
+<pre>
+obj := {}
+obj[] := {}              <em>; Equivalent to obj.__Item := {}</em>
+obj["Count"] := "Data"  
+obj["Delete"] := "Data" 
+MsgBox obj.Count()       <em>; 1 (just obj.__Item)</em>
+MsgBox obj.Count = ""    <em>; 1 (true)</em>
+obj.Count := 0          
+MsgBox obj.Count()       <em>; Fail (0 cannot be called)</em>
+</pre>
 
 <h3 id="Custom_NewDelete">Construction and Destruction</h3>
 <p>Whenever a derived object is created with the <code>new</code> keyword, the <code>__New</code> method defined by its base object is called. This method can accept parameters, initialize the object and override the result of the <code>new</code> operator by returning a value. When an object is destroyed, <code>__Delete</code> is called. For example:</p>
