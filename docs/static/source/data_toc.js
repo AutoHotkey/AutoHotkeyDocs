@@ -290,6 +290,7 @@ tocData = [
     ["Function Objects","objects/Functor.htm"],
     ["Gui Object","objects/Gui.htm"],
     ["GuiControl Object","objects/GuiControl.htm"],
+    ["Menu/MenuBar object","objects/Menu.htm"],
     ["RegExMatch Object","commands/RegExMatch.htm#MatchObject"]
   ]],
   ["Process","commands/Process.htm",
