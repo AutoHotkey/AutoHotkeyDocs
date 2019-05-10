@@ -284,15 +284,14 @@ other.test()</pre>
             return <i>value of property</i>
         }
         <span class="dec">set</span> {
-            <i>store </i><span class="biv">value</span><i> or perform other action</i>
-            return <span class="biv">value</span>
+            <i>Store or otherwise handle</i> <span class="biv">value</span>
         }
     }
     
     ShortProperty[]
     {
         <span class="dec">get</span> => <i>Expression which calculates property value</i>
-        <span class="dec">set</span> => <i>Expression which stores and returns</i> <span class="biv">value</span>
+        <span class="dec">set</span> => <i>Expression which stores or otherwise handles</i> <span class="biv">value</span>
     }
     
     ShorterProperty[] => <i>Expression which calculates property value</i>
@@ -350,16 +349,16 @@ Method()
 <pre>Property[]  <em>; Brackets are optional</em>
 {
     <span class="dec">get</span> {
-        return <i>Expression which calculates property value</i>
+        return <i>property value</i>
     }
     <span class="dec">set</span> {
-        return <i>Expression which stores and returns</i> <span class="biv">value</span>
+        <i>Store or otherwise handle</i> <span class="biv">value</span>
     }
 }
 </pre>
 <p><em>Property</em> is simply the name of the property, which will be used to invoke it. For example, <code>obj.Property</code> would call <em>get</em> while <code>obj.Property := value</code> would call <em>set</em>. Within <em>get</em> or <em>set</em>, <code>this</code> refers to the object being invoked. Within <em>set</em>, <code>value</code> contains the value being assigned.</p>
 <p>Parameters can be passed by enclosing them in square brackets to the right of the property name, both when defining the property and when calling it. Aside from using square brackets, parameters of properties are defined the same way as parameters of methods - optional, ByRef and variadic parameters are supported.</p>
-<p>The return value of <em>get</em> or <em>set</em> becomes the result of the sub-expression which invoked the property. For example, <code>val := obj.Property := 42</code> stores the return value of <em>set</em> in <code>val</code>.</p>
+<p>The return value of <em>set</em> is ignored. For example, <code>val := obj.Property := 42</code> always assigns <code>val := 42</code> regardless of what the property does, unless it throws an exception or exits the thread.</p>
 <p>Each class can define one or both halves of a property. If a class overrides a property, it can use <code><a href="#Custom_Classes_base">base.Property</a></code> to access the property defined by its base class. If <em>get</em> or <em>set</em> is not defined, it can be handled by a base class. If <em>set</em> is not defined and is not handled by a meta-function or base class, assigning a value stores it in the object, effectively disabling the property.</p>
 <p>Attempting to <em>call</em> a property, as in <code>obj.Property()</code>, will have the same effect as if the property did not exist.</p>
 <p>Internally, <em>get</em> and <em>set</em> are two separate methods, so cannot share variables (except by storing them in <code>this</code>).</p>
@@ -370,7 +369,7 @@ Method()
 <pre>ShortProperty[]
 {
     <span class="dec">get</span> => <i>Expression which calculates property value</i>
-    <span class="dec">set</span> => <i>Expression which stores and returns</i> <span class="biv">value</span>
+    <span class="dec">set</span> => <i>Expression which stores or otherwise handles</i> <span class="biv">value</span>
 }</pre>
 <p>When defining only a getter, the braces and <code>get</code> can be omitted:</p>
 <pre>ShorterProperty[] => <i>Expression which calculates property value</i></pre>
@@ -448,12 +447,11 @@ class <i>ClassName</i> {
 <p>Meta-functions define what happens when a key is requested but not found within the target object. For example, if <code>obj.key</code> has not been assigned a value, it invokes the <i>__Get</i> meta-function. Similarly, <code>obj.key := value</code> invokes <i>__Set</i> and <code>obj.key()</code> invokes <i>__Call</i>. These meta-functions (or methods) would need to be defined in <code>obj.base</code>, <code>obj.base.base</code> or such.</p>
 <p>When the script gets, sets or calls a key which does not exist within the target object, the base object is invoked as follows:</p>
 <ul class="list_of_p">
-  <li>If this base object defines the appropriate meta-function, call it.  If the meta-function explicitly <code>return</code>s, use the return value as the result of the operation (whatever caused the meta-function to be called) and return control to the script. Otherwise, continue as described below.
-    <p><i>Set</i>: If the meta-function handled an assignment, it should return the value which was assigned. This allows assignments to be chained, as in <code>a.x := b.y := z</code>. The return value may differ from the original value of <code>z</code> (for instance, if restrictions are imposed on which values can be assigned).</p></li>
+  <li>If this base object defines the appropriate meta-function, call it.  If the meta-function explicitly <code>return</code>s, return control to the script (or whoever invoked the object). Otherwise, continue as described below.
+    <p><i>Set</i>: Property assignments always return the value being assigned, so the return value of __Set is ignored (but an explicit <code>return</code> may still be required).</p></li>
   <li>Search for a matching key in the base object's own fields.</li>
   <li>If a key corresponding to a property is found and it implements <em>get</em> or <em>set</em> (as appropriate), invoke the property and return. If this is a method call, invoke <em>get</em>.</li>
-  <li>If no key was found, recursively invoke this base object's own base (apply each of these steps to it, starting at the top of this list). If we're not finished yet, search this base object for a matching key again in case one was added by a meta-function.
-    <p>Due to backward-compatibility, this step is performed for <em>set</em> operations even if a key was found (unless it defines a property which implements <em>set</em>).</p></li>
+  <li>If no key was found, recursively invoke this base object's own base (apply each of these steps to it, starting at the top of this list). If we're not finished yet, search this base object for a matching key again in case one was added by a meta-function.</li>
   <li>If multiple parameters were given for <i>get</i> or <i>set</i> and a key was found, check its value. If that value is an object, handle the remaining parameters by invoking it, and do nothing further.</li>
   <li>If a key was found, stop searching and do the following:<br>
     <i>Get</i>: Return the value.<br>
@@ -515,8 +513,7 @@ class Color
             ; Calculate and store the new RGB value.</em>
             this.RGB := (aValue &lt;&lt; shift) | (this.RGB &amp; ~(0xff &lt;&lt; shift))
 
-            <em>; 'Return' must be used to indicate a new key-value pair should not be created.
-            ; This also defines what will be stored in the 'x' in 'x := clr[name] := val':</em>
+            <em>; 'Return' must be used to indicate a new key-value pair should not be created.</em>
             return aValue
         }
         <em>; <span class="red">NOTE:</span> Using 'return' here would break this.stored_RGB and this.RGB.</em>
@@ -657,7 +654,7 @@ Default__Warn(nonobj, p1:="", p2:="", p3:="", p4:="")
 {
     ListLines
     MsgBox "A non-object value was improperly invoked.`n`nSpecifically: " nonobj
-    return "" <em>; Override the default behaviour by returning a value.</em>
+    return "" <em>; Override the default behaviour by explicitly returning.</em>
 }</pre>
 
 <h2 id="Implementation">Implementation</h2>
