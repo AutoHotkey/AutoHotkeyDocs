@@ -58,6 +58,8 @@ tocData = [
   ]],
   ["External Libraries","",
   [
+    ["Buffer Object","objects/Buffer.htm"],
+    ["BufferAlloc","commands/BufferAlloc.htm"],
     ["CallbackCreate","commands/CallbackCreate.htm"],
     ["DllCall","commands/DllCall.htm"],
     ["NumGet","commands/NumGet.htm"],
@@ -283,6 +285,7 @@ tocData = [
   ["Object Types","",
   [
     ["Object","objects/Object.htm"],
+    ["Buffer Object","objects/Buffer.htm"],
     ["Enumerator Object","objects/Enumerator.htm"],
     ["Exception Object","commands/Throw.htm#Exception"],
     ["File Object","objects/File.htm"],

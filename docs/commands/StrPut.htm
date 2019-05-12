@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <title>StrPut - Syntax &amp; Usage | AutoHotkey v2</title>
-<meta name="description" content="The StrPut function copies a string to a memory address, optionally converting it to a given code page." />
+<meta name="description" content="The StrPut function copies a string to a memory address or buffer, optionally converting it to a given code page." />
 <meta name="ahk:equiv-v1" content="commands/StrPutGet.htm" />
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -13,10 +13,10 @@
 
 <h1>StrPut</h1>
 
-<p>Copies a string to a memory address, optionally converting it to a given code page.</p>
+<p>Copies a string to a memory address or buffer, optionally converting it to a given code page.</p>
 
 <pre class="Syntax"><span class="func">StrPut</span> String <span class="optional">, Encoding := <i>None</i></span> 
-<span class="func">StrPut</span> String, Address <span class="optional">, Length</span> <span class="optional">, Encoding := <i>None</i></span> 
+<span class="func">StrPut</span> String, Target <span class="optional">, Length</span> <span class="optional">, Encoding := <i>None</i></span>
 </pre>
 <h2>Parameters</h2>
 <dl>
@@ -28,10 +28,12 @@
     <p><em>String</em> is assumed to be in the <a href="../Concepts.htm#string-encoding">native encoding</a>.</p>
   </dd>
 
-  <dt>Address</dt>
+  <dt>Target</dt>
   <dd>
-    <p>Type: <a href="../Concepts.htm#numbers">Integer</a></p>
-    <p>The address at which the string will be written.</p>
+    <p>Type: <a href="../Concepts.htm#objects">Object</a> or <a href="../Concepts.htm#numbers">Integer</a></p>
+    <p>A <a href="../objects/Buffer.htm">Buffer</a>-like object or memory address to which the string will be written.</p>
+    <p>Any object which implements <a href="../objects/Buffer.htm#Ptr">Ptr</a> and <a href="../objects/Buffer.htm#Size">Size</a> properties may be used, but this function is optimized for the native <a href="../objects/Buffer.htm">Buffer</a> object. Passing an object with these properties ensures that the function does not write memory to an invalid location; that could cause crashes or other unpredictable behaviour.</p>
+    <p class="warning"><strong>Note:</strong> If conversion between code pages is necessary, the required buffer size may differ from the size of the source string. For such cases, call StrPut with two parameters to calculate the required size.</p>
   </dd>
 
   <dt>Length</dt>
@@ -39,6 +41,8 @@
     <p>Type: <a href="../Concepts.htm#numbers">Integer</a></p>
     <p>The maximum number of characters to write, including the null-terminator if required.</p>
     <p>If <em>Length</em> is zero or less than the projected length after conversion (or the length of the source string if conversion is not required), an exception is thrown.</p>
+    <p class="warning"><strong>Note:</strong> Specifying the length of <em>String</em> or a substring may be unsafe when <em>Encoding</em> is specified, as conversion may increase the length of the string.</p>
+    <p class="warning"><strong>Note:</strong> <em>Length</em> is measured in characters, whereas buffer sizes are usually measured in bytes, as is StrPut's return value. To specify the buffer size in bytes, use a <a href="../objects/Buffer.htm">Buffer</a>-like object in the <em>Target</em> parameter.</p>
   </dd>
 
   <dt>Encoding</dt>
@@ -51,33 +55,40 @@
 
 <h2>Return Value</h2>
 <p>Type: <a href="../Concepts.htm#numbers">Integer</a></p>
-<p>This function returns the number of characters written. If no <i>Address</i> was given, it returns the required buffer size in characters. If <em>Length</em> is exactly the length of the converted string, the string is not null-terminated; otherwise the returned count includes the null-terminator.</p>
+<p>This function returns the number of bytes written. If no <i>Address</i> was given, it returns the required buffer size in bytes. If <em>Length</em> is exactly the length of the converted string, the string is not null-terminated; otherwise the returned size includes the null-terminator.</p>
 
 <h2>Error Handling</h2>
 <p>An <a href="Catch.htm#RuntimeErrors">exception</a> is thrown if invalid parameters are detected, or if the conversion cannot be performed.</p>
 
 <h2>Remarks</h2>
-<p>Note that the <i>String</i> parameter is always in the <a href="../Concepts.htm#string-encoding">native encoding</a> of the current executable, whereas <i>Encoding</i> specifies the encoding of the string written to the given <i>Address</i>. If no <em>Encoding</em> is specified, the string is simply measured or copied without any conversion taking place.</p>
-<p>If conversion between code pages is necessary, the required buffer size may differ from the size of the source string.</p>
+<p>Note that the <i>String</i> parameter is always assumed to use the <a href="../Concepts.htm#string-encoding">native encoding</a> of the current executable, whereas <i>Encoding</i> specifies the encoding of the string written to the given <i>Address</i>. If no <em>Encoding</em> is specified, the string is simply measured or copied without any conversion taking place.</p>
 <p>Either <em>Length</em> or <em>Encoding</em> may be specified directly after <em>Address</em>, but in those cases <em>Encoding</em> must be non-numeric:</p>
 <pre>
 StrPut str, address, "cp0"  <em>; Code page 0, unspecified buffer size</em>
 StrPut str, address, n, 0   <em>; Maximum n chars, code page 0</em>
-StrPut str, address, 0      <em>; Unsupported</em></pre>
+StrPut str, address, 0      <em>; Unsupported (maximum 0 chars)</em></pre>
 
 <h2>Related</h2>
-<p><a href="../Concepts.htm#string-encoding">String Encoding</a>, <a href="StrGet.htm">StrGet</a>, <a href="../Compat.htm">Script Compatibility</a>, <a href="FileEncoding.htm">FileEncoding</a>, <a href="VarSetCapacity.htm">VarSetCapacity</a></p>
+<p><a href="../Concepts.htm#string-encoding">String Encoding</a>, <a href="StrGet.htm">StrGet</a>, <a href="../Compat.htm">Script Compatibility</a>, <a href="FileEncoding.htm">FileEncoding</a>, <a href="DllCall.htm">DllCall</a>, <a href="BufferAlloc.htm">BufferAlloc</a>, <a href="../objects/Buffer.htm">Buffer object</a>, <a href="VarSetCapacity.htm">VarSetCapacity</a></p>
 
-<h2>Examples</h2>
+<h2 id="ex1">Examples</h2>
+<p>StrPut may be called once to calculate the required buffer size for a string in a particular encoding, then again to encode and write the string into the buffer.  The process can be simplified by adding one of these functions to your <a href="../Functions.htm#lib">library</a>:</p>
+<pre class="NoIndent"><em>; Returns a <a href="../objects/Buffer.htm">Buffer</a> object containing the string.</em>
+StrBuf(string, encoding)
+{
+    <em>; Calculate required size and allocate a buffer.</em>
+    buf := BufferAlloc(StrPut(string, encoding))
+    <em>; Copy or convert the string.</em>
+    StrPut(string, buf, encoding)
+    return buf
+}
 
-<h3 id="ex1">Example #1</h3>
-<p>StrPut may be called once to calculate the required buffer size for a string in a particular encoding, then again to encode and write the string into the buffer.  If you frequently use variables with StrPut, consider adding this function to your <a href="../Functions.htm#lib">library</a>:</p>
-<pre class="NoIndent">StrPutVar(string, ByRef var, encoding)
+<em>; Stores the encoded string in a variable and returns a byte count.
+; Note: Buffer objects are recommended over variables.</em>
+StrPutVar(string, ByRef var, encoding)
 {
     <em>; Ensure capacity.</em>
-    VarSetCapacity( var, StrPut(string, encoding)
-        <em>; StrPut returns char count, but VarSetCapacity needs bytes.</em>
-        * ((encoding="utf-16"||encoding="cp1200") ? 2 : 1) )
+    VarSetCapacity(var, StrPut(string, encoding))
     <em>; Copy or convert the string.</em>
     return StrPut(string, &amp;var, encoding)
 }</pre>

@@ -12,10 +12,22 @@
 
 <h1>NumPut</h1>
 <p>Stores a number in binary format at the specified address+offset.</p>
-<pre class="Syntax"><span class="func">NumPut</span> Number, VarOrAddress <span class="optional">, Offset := 0</span><span class="optional">, Type := "UPtr"</span></pre>
+<pre class="Syntax"><span class="func">NumPut</span> Type, Number, <span class="optional">Type2, Number2, ...</span> Target <span class="optional">, Offset := 0</span></pre>
+<p class="warning"><strong>Deprecated:</strong> The syntax below is being considered for removal in favour of the above syntax.</p>
+<pre class="Syntax"><span class="func">NumPut</span> Number, Target <span class="optional">, Offset := 0</span><span class="optional">, Type := "UPtr"</span></pre>
 
 <h2>Parameters</h2>
 <dl>
+
+  <dt>Type</dt>
+  <dd>
+      <p>Type: <a href="../Concepts.htm#strings">String</a></p>
+      <p>One of the following strings (defaults to UPtr if omitted):<br>
+    UInt, UInt64, Int, Int64, Short, UShort, Char, UChar, Double, Float, Ptr or UPtr</p>
+      <p>For all integer types, or when passing pure integers, signed vs. unsigned does not affect the result due to the use of two's complement to represent signed integers.</p>
+      <p>These type names must be enclosed in quotes when used as literal strings.</p>
+      <p>For details see <a href="DllCall.htm#types">DllCall Types</a>.</p>
+    </dd>
 
   <dt>Number</dt>
   <dd>
@@ -23,41 +35,35 @@
     <p>The number to store.</p>
   </dd>
 
-  <dt>VarOrAddress</dt>
+  <dt>Target</dt>
   <dd>
-    <p>Type: <a href="../Concepts.htm#variables">Variable</a> or <a href="../Concepts.htm#numbers">Integer</a></p>
-		<p>A memory address or variable. If <em>VarOrAddress</em> is a variable such as <code>MyVar</code> and it contains a string (not a pure number), the address of the variable's string buffer is used. This is usually equivalent to passing <code>&amp;MyVar</code>, but omitting the "&amp;" performs better and ensures that the target address + offset is <a href="VarSetCapacity.htm">valid</a>. If the variable contains a pure number, that number is assumed to be an address.</p>
+    <p>Type: <a href="../objects/Buffer.htm">Object</a>, <a href="../Concepts.htm#numbers">Integer</a> or <a href="../Concepts.htm#variables">Variable</a></p>
+		<p>A <a href="../objects/Buffer.htm">Buffer</a>-like object, memory address or variable reference.</p>
+    <p>Any object which implements <a href="../objects/Buffer.htm#Ptr">Ptr</a> and <a href="../objects/Buffer.htm#Size">Size</a> properties may be used, but this function is optimized for the native <a href="../objects/Buffer.htm">Buffer</a> object. Passing an object with these properties ensures that the function does not write to an invalid memory location (doing so could cause crashes or other unpredictable behaviour).</p>
+    <p class="warning"><strong>Deprecated:</strong> If <em>Target</em> is a variable such as <code>MyVar</code> and it contains a string (not a pure number), the address and size of the variable's string buffer is used. Passing a variable containing a string may be treated as an error in a future release. <a href="../objects/Buffer.htm">Buffer</a> objects should be used for structs and other binary data.</p>
+    <p>If the variable contains a pure number, that number is assumed to be an address.</p>
 	</dd>
 
   <dt>Offset</dt>
   <dd>
     <p>Type: <a href="../Concepts.htm#numbers">Integer</a></p>
-    <p>An offset - in bytes - which is added to <em>VarOrAddress</em> to determine the target address.</p>
+    <p>An offset - in bytes - which is added to <em>Target</em> to determine the target address.</p>
   </dd>
-
-  <dt>Type</dt>
-  <dd>
-      <p>Type: <a href="../Concepts.htm#strings">String</a></p>
-      <p>One of the following strings (defaults to UPtr if omitted):<br>
-    UInt, UInt64, Int, Int64, Short, UShort, Char, UChar, Double, Float, Ptr or UPtr</p>
-    <p>UInt64 is supported by allowing large unsigned values to be passed as strings. For all other integer types, or when passing pure integers, signed vs. unsigned does not affect the result due to the use of two's complement to represent signed integers.</p>
-      <p>Unlike DllCall, these must be enclosed in quotes when used as literal strings.</p>
-      <p>For details see <a href="DllCall.htm#types">DllCall Types</a>.</p>
-    </dd>
 
 </dl>
 
 <h2>Return Value</h2>
 <p>Type: <a href="../Concepts.htm#numbers">Integer</a></p>
-<p>This function returns the address to the right of the item just written. This is often used when writing a sequence of numbers of different types, such as in a structure for use with <a href="DllCall.htm">DllCall</a>.</p>
+<p>This function returns the address to the right of the last item written. This is often used when writing a sequence of numbers of different types, such as in a structure for use with <a href="DllCall.htm">DllCall</a>. However, in some cases it may be simpler and more efficient to use the multiple-parameter mode as described below.</p>
 
 <h2>General Remarks</h2>
-<p>If an integer is too large to fit in the specified <em>Type</em>, its most significant bytes are ignored; e.g. <code>NumPut(257, var, 0, &quot;Char&quot;)</code> would store the number 1.</p>
-<p>If only three parameters are present, the third parameter can be either <em>Offset</em> or <em>Type</em>. For example, <code>NumPut(x, var, "int")</code> is valid.</p>
-<p>An exception may be thrown if the target address is invalid. However, some invalid addresses cannot be detected as such and may cause unpredictable behaviour.</p>
+<p>A sequence of numbers can be written by repeating <em>Type</em> and <em>Number</em> any number of times after the first <em>Number</em>. Each number is written at the next byte after the previous number, with no padding. When creating a structure for use with <a href="DllCall.htm">DllCall</a>, be aware that some fields may need explicit padding added due to data alignment requirements.</p>
+<p>If an integer is too large to fit in the specified <em>Type</em>, its most significant bytes are ignored; e.g. <code>NumPut(257, buf, 0, &quot;Char&quot;)</code> would store the number 1.</p>
+<p>An exception may be thrown if the target address is invalid. However, some invalid addresses cannot be detected as such and may cause unpredictable behaviour. Passing a <a href="../objects/Buffer.htm">Buffer</a> object instead of an address ensures that the target address can always be validated.</p>
+<p class="warning"><strong>Deprecated:</strong> If only three parameters are present and <em>Number</em> is the first parameter, the third parameter can be either <em>Offset</em> or <em>Type</em>. For example, <code>NumPut(x, buf, "int")</code> is valid.</p>
 
 <h2>Related</h2>
-<p><a href="NumGet.htm">NumGet</a>, <a href="DllCall.htm">DllCall</a>, <a href="VarSetCapacity.htm">VarSetCapacity</a></p>
+<p><a href="NumGet.htm">NumGet</a>, <a href="DllCall.htm">DllCall</a>, <a href="BufferAlloc.htm">BufferAlloc</a>, <a href="../objects/Buffer.htm">Buffer object</a>, <a href="VarSetCapacity.htm">VarSetCapacity</a></p>
 
 
 </body>

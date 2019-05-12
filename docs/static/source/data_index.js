@@ -247,6 +247,8 @@ indexData = [
   ["blocks (lines enclosed in braces)","commands/Block.htm"],
   ["BoundFunc object","objects/Functor.htm#BoundFunc"],
   ["Break","commands/Break.htm",3,"S"],
+  ["Buffer object","objects/Buffer.htm"],
+  ["BufferAlloc","commands/BufferAlloc.htm",2],
   ["buffering","commands/_MaxThreadsBuffer.htm"],
   ["built-in functions","Functions.htm#BuiltIn"],
   ["built-in variables","Variables.htm#BuiltIn"],

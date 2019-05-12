@@ -103,11 +103,9 @@ str := StrGet(&amp;buf, "cp0")  <em>; Retrieve ANSI string from buffer.</em>
 <tr id="ptr">
   <td>Ptr</td>
   <td><p>A <a href="../Variables.htm#PtrSize">pointer-sized</a> integer, equivalent to Int or Int64 depending on whether the exe running the script is 32-bit or 64-bit. <i>Ptr</i> should be used for pointers to arrays or structures (such as RECT* or LPPOINT) and almost all handles (such as HWND, HBRUSH or HBITMAP). If the parameter is a pointer to a single numeric value such as LPDWORD or int*, generally the * or P suffix should be used instead of &quot;Ptr&quot;.</p>
+  <p>If an object is passed to a Ptr parameter, the value of the object's <code>Ptr</code> property is used. If no such property exists, an exception is thrown. Typically the object would be a <a href="../objects/Buffer.htm">Buffer</a> object created by <a href="BufferAlloc.htm">BufferAlloc</a>.</p>
   <p><i>Ptr</i> can also be used with the * or P suffix; it should be used with functions that output a pointer via LPVOID* or similar.</p>
   <p><i>UPtr</i> is also valid, but is only unsigned in 32-bit builds as AutoHotkey does not support unsigned 64-bit integers.</p>
-  <p>If compatibility with older versions of AutoHotkey is required, use a variable type as shown below:</p>
-  <pre>Ptr := A_PtrSize ? "Ptr" : "UInt" <em>; If A_PtrSize is not defined, use UInt instead.</em>
-DllCall("DeleteFile", Ptr, &amp;filename) <em>; Omit the quote marks around Ptr.</em></pre>
   <p class="note"><strong>Note</strong>: To pass a <strong>NULL</strong> handle or pointer, pass the integer 0.</p></td>
 </tr>
 <tr id="asterisk">
@@ -132,7 +130,8 @@ DllCall("DeleteFile", Ptr, &amp;filename) <em>; Omit the quote marks around Ptr.
 <p>DllCall throws an <a href="Catch.htm#RuntimeErrors">exception</a> under any of the following conditions:</p>
 <ul>
   <li>The <em>[DllFile\]Function</em> parameter is a floating point number. A string or positive integer is required.</li>
-  <li>The <a href="#types">return type</a> or one of the specified <a href="#types">arg types</a> is invalid. This error can also be caused by passing an <a href="../Variables.htm#Expressions">expression</a> that evaluates to a number to a string (<a href="#str">str</a>) argument.</li>
+  <li>The <a href="#types">return type</a> or one of the specified <a href="#types">arg types</a> is invalid.</li>
+  <li>An argument was passed a value of an unexpected type. For instance, an <a href="../Variables.htm#Expressions">expression</a> that evaluates to a number was passed to a string (<a href="#str">str</a>) argument, or an object was passed to an argument <em>not</em> of type <a href="#ptr">Ptr</a>.</li>
   <li>The specified <em>DllFile</em> could not be accessed or loaded. If no explicit path was specified for <em>DllFile</em>, the file must exist in the system's PATH or <a href="../Variables.htm#WorkingDir">A_WorkingDir</a>. This error might also occur if the user lacks permission to access the file, or if AutoHotkey is 32-bit and the DLL is 64-bit or vice versa.</li>
   <li>The specified function could not be found inside the DLL.</li>
   <li>The function was called but it aborted with a fatal exception. <code>Exception.Extra</code> contains the exception code. For example, 0xC0000005 means &quot;access violation&quot;. In such cases, the thread is aborted (if <a href="Try.htm">try</a> is not used), but any <a href="#asterisk">asterisk variables</a> are still updated. An example of a fatal exception is dereferencing an invalid pointer such as NULL (0). Since a <a href="#cdecl">Cdecl</a> function never produces the error described in the next paragraph, it may generate an exception when too few arguments are passed to it.</li>
@@ -180,7 +179,8 @@ result := DllCall(&quot;CharLower&quot;, &quot;<strong><u>Str</u></strong>&quot;
 </p>
 
 <h2>Related</h2>
-<p><a href="../Compat.htm#DllCall">Script Compatibility</a>, <a href="PostMessage.htm">PostMessage</a>, <a href="OnMessage.htm">OnMessage</a>, <a href="CallbackCreate.htm">CallbackCreate</a>, <a href="Run.htm">Run</a>, <a href="VarSetCapacity.htm">VarSetCapacity</a>, <a href="../Functions.htm">Functions</a>, <a href="SysGet.htm">SysGet</a>, <a href="http://msdn.microsoft.com/library/">MSDN Library</a></p>
+<p><a href="../Compat.htm#DllCall">Script Compatibility</a>, <a href="BufferAlloc.htm">BufferAlloc</a>, <a href="../objects/Buffer.htm">Buffer object</a>, <a href="PostMessage.htm">PostMessage</a>, <a href="OnMessage.htm">OnMessage</a>, <a href="CallbackCreate.htm">CallbackCreate</a>, <a href="Run.htm">Run</a>, <a href="VarSetCapacity.htm">VarSetCapacity</a>, <a href="../Functions.htm">Functions</a>, <a href="SysGet.htm">SysGet</a>, <a href="http://msdn.microsoft.com/library/">MSDN Library</a></p>
+
 <h2>Examples</h2>
 <pre class="NoIndent"><em>; Example: Calls the Windows API function &quot;MessageBox&quot; and report which button the user presses.</em>
 
