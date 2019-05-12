@@ -222,13 +222,13 @@ F1::
 SPI_GETMOUSESPEED := 0x70
 SPI_SETMOUSESPEED := 0x71
 <em>; Retrieve the current speed so that it can be restored later:</em>
-<strong>DllCall</strong>(&quot;SystemParametersInfo&quot;, &quot;UInt&quot;, SPI_GETMOUSESPEED, &quot;UInt&quot;, 0, &quot;UIntP&quot;, OrigMouseSpeed, &quot;UInt&quot;, 0)
+DllCall(&quot;SystemParametersInfo&quot;, &quot;UInt&quot;, SPI_GETMOUSESPEED, &quot;UInt&quot;, 0, &quot;UIntP&quot;, OrigMouseSpeed, &quot;UInt&quot;, 0)
 <em>; Now set the mouse to the slower speed specified in the next-to-last parameter (the range is 1-20, 10 is default):</em>
-<strong>DllCall</strong>(&quot;SystemParametersInfo&quot;, &quot;UInt&quot;, SPI_SETMOUSESPEED, &quot;UInt&quot;, 0, &quot;Ptr&quot;, <strong>3</strong>, &quot;UInt&quot;, 0)
+DllCall(&quot;SystemParametersInfo&quot;, &quot;UInt&quot;, SPI_SETMOUSESPEED, &quot;UInt&quot;, 0, &quot;Ptr&quot;, <strong>3</strong>, &quot;UInt&quot;, 0)
 KeyWait "F1"  <em>; This prevents keyboard auto-repeat from doing the DllCall repeatedly.</em>
 return
 
-F1 up::<strong>DllCall</strong>(&quot;SystemParametersInfo&quot;, &quot;UInt&quot;, 0x71, &quot;UInt&quot;, 0, &quot;Ptr&quot;, OrigMouseSpeed, &quot;UInt&quot;, 0)  <em>; Restore the original speed.</em></pre>
+F1 up::DllCall(&quot;SystemParametersInfo&quot;, &quot;UInt&quot;, 0x71, &quot;UInt&quot;, 0, &quot;Ptr&quot;, OrigMouseSpeed, &quot;UInt&quot;, 0)  <em>; Restore the original speed.</em></pre>
 
 <pre class="NoIndent"><em>; Example: Monitors the focused control and displays the position of its vertical scroll bar
 ; (with real-time updates).</em>
@@ -241,7 +241,7 @@ WatchScrollBar()
     if !FocusedHwnd  <em>; No focused control.</em>
         return
     <em>; Display the vertical or horizontal scroll bar's position in a ToolTip:</em>
-    ToolTip(<strong>DllCall</strong>("GetScrollPos", "Ptr", FocusedHwnd, "Int", 1))  <em>;  Last parameter is 1 for SB_VERT, 0 for SB_HORZ.</em>
+    ToolTip DllCall("GetScrollPos", "Ptr", FocusedHwnd, "Int", 1)  <em>;  Last parameter is 1 for SB_VERT, 0 for SB_HORZ.</em>
 }</pre>
 
 <pre class="NoIndent" id="file"><em>; Example: This is a working script that writes some text to a file then reads it back into memory.
@@ -253,22 +253,22 @@ if FileName = ""
     return
 GENERIC_WRITE := 0x40000000  <em>; Open the file for writing rather than reading.</em>
 CREATE_ALWAYS := 2  <em>; Create new file (overwriting any existing file).</em>
-hFile := <strong>DllCall</strong>(&quot;CreateFile&quot;, &quot;Str&quot;, FileName, &quot;UInt&quot;, GENERIC_WRITE, &quot;UInt&quot;, 0, &quot;Ptr&quot;, 0, &quot;UInt&quot;, CREATE_ALWAYS, &quot;UInt&quot;, 0, &quot;Ptr&quot;, 0, &quot;Ptr&quot;)
+hFile := DllCall(&quot;CreateFile&quot;, &quot;Str&quot;, FileName, &quot;UInt&quot;, GENERIC_WRITE, &quot;UInt&quot;, 0, &quot;Ptr&quot;, 0, &quot;UInt&quot;, CREATE_ALWAYS, &quot;UInt&quot;, 0, &quot;Ptr&quot;, 0, &quot;Ptr&quot;)
 if !hFile
 {
     MsgBox "Can't open '" FileName "' for writing."
     return
 }
 TestString := "This is a test string.`r`n"  <em>; When writing a file this way, use `r`n rather than `n to start a new line.</em>
-<strong>DllCall</strong>(&quot;WriteFile&quot;, &quot;Ptr&quot;, hFile, &quot;Str&quot;, TestString, &quot;UInt&quot;, StrLen(TestString), &quot;UIntP&quot;, BytesActuallyWritten, &quot;Ptr&quot;, 0)
-<strong>DllCall</strong>(&quot;CloseHandle&quot;, &quot;Ptr&quot;, hFile)  <em>; Close the file.</em>
+DllCall(&quot;WriteFile&quot;, &quot;Ptr&quot;, hFile, &quot;Str&quot;, TestString, &quot;UInt&quot;, StrLen(TestString), &quot;UIntP&quot;, BytesActuallyWritten, &quot;Ptr&quot;, 0)
+DllCall(&quot;CloseHandle&quot;, &quot;Ptr&quot;, hFile)  <em>; Close the file.</em>
 
 <em>; Now that the file was written, read its contents back into memory.</em>
 GENERIC_READ := 0x80000000  <em>; Open the file for reading rather than writing.</em>
 OPEN_EXISTING := 3  <em>; This mode indicates that the file to be opened must already exist.</em>
 FILE_SHARE_READ := 0x1 <em>; This and the next are whether other processes can open the file while we have it open.</em>
 FILE_SHARE_WRITE := 0x2
-hFile := <strong>DllCall</strong>(&quot;CreateFile&quot;, &quot;Str&quot;, FileName, &quot;UInt&quot;, GENERIC_READ, &quot;UInt&quot;, FILE_SHARE_READ|FILE_SHARE_WRITE, &quot;Ptr&quot;, 0, &quot;UInt&quot;, OPEN_EXISTING, &quot;UInt&quot;, 0, &quot;Ptr&quot;, 0)
+hFile := DllCall(&quot;CreateFile&quot;, &quot;Str&quot;, FileName, &quot;UInt&quot;, GENERIC_READ, &quot;UInt&quot;, FILE_SHARE_READ|FILE_SHARE_WRITE, &quot;Ptr&quot;, 0, &quot;UInt&quot;, OPEN_EXISTING, &quot;UInt&quot;, 0, &quot;Ptr&quot;, 0)
 if !hFile
 {
     MsgBox "Can't open '" FileName "' for reading."
@@ -276,8 +276,8 @@ if !hFile
 }
 <em>; Make the variable empty for testing purposes, but ensure it retains sufficient capacity:</em>
 BytesToRead := VarSetCapacity(TestString, StrLen(TestString))
-<strong>DllCall</strong>(&quot;ReadFile&quot;, &quot;Ptr&quot;, hFile, &quot;Str&quot;, TestString, &quot;UInt&quot;, BytesToRead, &quot;UIntP&quot;, BytesActuallyRead, &quot;Ptr&quot;, 0)
-<strong>DllCall</strong>(&quot;CloseHandle&quot;, &quot;Ptr&quot;, hFile)  <em>; Close the file.</em>
+DllCall(&quot;ReadFile&quot;, &quot;Ptr&quot;, hFile, &quot;Str&quot;, TestString, &quot;UInt&quot;, BytesToRead, &quot;UIntP&quot;, BytesActuallyRead, &quot;Ptr&quot;, 0)
+DllCall(&quot;CloseHandle&quot;, &quot;Ptr&quot;, hFile)  <em>; Close the file.</em>
 MsgBox "The following string was read from the file: " TestString</pre>
 
 <pre class="NoIndent" id="HideCursor"><em>; Example: Hides the mouse cursor when you press Win+C. To later show the cursor, press Win+C again.</em>
@@ -327,7 +327,7 @@ SystemCursor(cmd)  <em>; cmd = "Show|Hide|Toggle"</em>
 Run "Notepad"
 WinWait "Untitled - Notepad"  <em>; This also sets the &quot;<a href="../misc/WinTitle.htm#LastFoundWindow">last found window</a>&quot; for use with WinExist below.</em>
 VarSetCapacity(Rect, 16)  <em>; A RECT is a struct consisting of four 32-bit integers (i.e. 4*4=16).</em>
-<strong>DllCall</strong>(&quot;GetWindowRect&quot;, &quot;Ptr&quot;, WinExist(), &quot;Ptr&quot;, &amp;Rect)  <em>; WinExist returns an HWND.</em>
+DllCall(&quot;GetWindowRect&quot;, &quot;Ptr&quot;, WinExist(), &quot;Ptr&quot;, &amp;Rect)  <em>; WinExist returns an HWND.</em>
 L := NumGet(Rect, 0, "Int"), T := NumGet(Rect, 4, "Int")
 R := NumGet(Rect, 8, "Int"), B := NumGet(Rect, 12, "Int")
 MsgBox Format("Left {1} Top {2} Right {3} Bottom {4}", L, T, R, B)</pre>
@@ -338,11 +338,11 @@ MsgBox Format("Left {1} Top {2} Right {3} Bottom {4}", L, T, R, B)</pre>
 VarSetCapacity(Rect, 16, 0)  <em>; Set capacity to hold four 4-byte integers and initialize them all to zero.</em>
 <a href="NumPut.htm">NumPut</a>(A_ScreenWidth//2, Rect, 8, "Int")  <em>; The third integer in the structure is &quot;rect.right&quot;.</em>
 NumPut(A_ScreenHeight//2, Rect, 12, "Int") <em>; The fourth integer in the structure is &quot;rect.bottom&quot;.</em>
-hDC := <strong>DllCall</strong>(&quot;GetDC&quot;, "Ptr", 0, "Ptr")  <em>; Pass zero to get the desktop's device context.</em>
-hBrush := <strong>DllCall</strong>(&quot;CreateSolidBrush&quot;, "UInt", 0x0000FF, "Ptr")  <em>; Create a red brush (0x0000FF is in BGR format).</em>
-<strong>DllCall</strong>(&quot;FillRect&quot;, "Ptr", hDC, "Ptr", &amp;Rect, "Ptr", hBrush)  <em>; Fill the specified rectangle using the brush above.</em>
-<strong>DllCall</strong>(&quot;ReleaseDC&quot;, "Ptr", 0, "Ptr", hDC)  <em>; Clean-up.</em>
-<strong>DllCall</strong>(&quot;DeleteObject&quot;, "Ptr", hBrush)  <em>; Clean-up.</em></pre>
+hDC := DllCall(&quot;GetDC&quot;, "Ptr", 0, "Ptr")  <em>; Pass zero to get the desktop's device context.</em>
+hBrush := DllCall(&quot;CreateSolidBrush&quot;, "UInt", 0x0000FF, "Ptr")  <em>; Create a red brush (0x0000FF is in BGR format).</em>
+DllCall(&quot;FillRect&quot;, "Ptr", hDC, "Ptr", &amp;Rect, "Ptr", hBrush)  <em>; Fill the specified rectangle using the brush above.</em>
+DllCall(&quot;ReleaseDC&quot;, "Ptr", 0, "Ptr", hDC)  <em>; Clean-up.</em>
+DllCall(&quot;DeleteObject&quot;, "Ptr", hBrush)  <em>; Clean-up.</em></pre>
 
 <pre class="NoIndent"><em>; Structure Example: Change the system's clock to the specified date and time. Use caution when
 ; changing to a date in the future as it may cause scheduled tasks to run prematurely!</em>
@@ -374,7 +374,7 @@ SetSystemTime(YYYYMMDDHHMISS)
     Int := SubStr(YYYYMMDDHHMISS, 13, 2) <em>; SS (second)</em>
     NumPut(Int, SystemTime, 12, &quot;UShort&quot;)
 
-    return <strong>DllCall</strong>(&quot;SetSystemTime&quot;, &quot;Ptr&quot;, &amp;SystemTime)
+    return DllCall(&quot;SetSystemTime&quot;, &quot;Ptr&quot;, &amp;SystemTime)
 }</pre>
 
 <pre class="NoIndent"><em>/* <strong>More Structure Examples:</strong>
