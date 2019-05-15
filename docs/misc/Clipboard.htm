@@ -21,14 +21,14 @@
 }</pre>
 <p>To arrange the filenames in alphabetical order, use the <a href="../commands/Sort.htm">Sort</a> command. To write the filenames on the clipboard to a file, use <code><a href="../commands/FileAppend.htm">FileAppend</a>, %clipboard%`r`n, C:\My File.txt</code>. To change how long the script will keep trying to open the clipboard -- such as when it is in use by another application -- use <a href="../commands/_ClipboardTimeout.htm">#ClipboardTimeout</a>.</p>
 <strong>Basic examples:</strong>
-<pre>clipboard = my text   <em>; Give the clipboard entirely new contents.</em>
-clipboard =   <em>; Empty the clipboard.</em>
-clipboard = %clipboard%   <em>; Convert any copied files, HTML, or other formatted text to plain text.</em>
-clipboard = %clipboard% Text to append.   <em>; Append some text to the clipboard.</em>
+<pre>clipboard := "my text"   <em>; Give the clipboard entirely new contents.</em>
+clipboard := ""   <em>; Empty the clipboard.</em>
+clipboard := clipboard   <em>; Convert any copied files, HTML, or other formatted text to plain text.</em>
+clipboard := clipboard " Text to append."   <em>; Append some text to the clipboard.</em>
 StringReplace, clipboard, clipboard, ABC, DEF, All   <em>; Replace all occurrences of ABC with DEF (also converts the clipboard to plain text).</em></pre>
 
 <p><strong>Using ClipWait to improve script reliability:</strong></p>
-<pre>clipboard =  <em>; Start off empty to allow ClipWait to detect when the text has arrived.</em>
+<pre>clipboard := ""  <em>; Start off empty to allow ClipWait to detect when the text has arrived.</em>
 Send ^c
 <a href="../commands/ClipWait.htm">ClipWait</a>  <em>; Wait for the clipboard to contain text.</em>
 MsgBox Control-C copied the following contents to the clipboard:`n`n%clipboard%</pre>
@@ -37,7 +37,7 @@ MsgBox Control-C copied the following contents to the clipboard:`n`n%clipboard%<
 <pre>ClipSaved := ClipboardAll   <em>; Save the entire clipboard to a variable of your choice.
 ; ... here make temporary use of the clipboard, such as for pasting Unicode text via <a href="../commands/Transform.htm#Unicode">Transform Unicode</a> ...</em>
 Clipboard := ClipSaved   <em>; Restore the original clipboard. Note the use of <i>Clipboard</i> (not <i>ClipboardAll</i>).</em>
-ClipSaved =   <em>; Free the memory in case the clipboard was very large.</em></pre>
+ClipSaved := ""   <em>; Free the memory in case the clipboard was very large.</em></pre>
 <p><em>ClipboardAll</em> may also be saved to a file (in this mode, FileAppend always overwrites any existing file):</p>
 <pre><a href="../commands/FileAppend.htm">FileAppend</a>, %ClipboardAll%, C:\Company Logo.clip <em>; The file extension does not matter.</em></pre>
 <p>To later load the file back onto the clipboard (or into a variable), follow this example:</p>
@@ -48,9 +48,9 @@ ClipSaved =   <em>; Free the memory in case the clipboard was very large.</em></
 <p>If <em>ClipboardAll</em> cannot retrieve one or more of the data objects (formats) on the clipboard, they will be omitted but all the remaining objects will be stored.</p>
 <p>A variable containing clipboard data can be copied to another variable as in this example: <code>ClipSaved2 := ClipSaved</code>.</p>
 <p><a href="../commands/ClipWait.htm">ClipWait</a> may be used to detect when the clipboard contains data (optionally including non-text data).</p>
-<p><a href="../commands/StringLen.htm">StrLen / StringLen</a> may be used to discover the total size of a variable to which <em>ClipboardAll</em> has been assigned. However, to get the size in bytes on Unicode versions of AutoHotkey, the length must be multiplied by 2. <a href="../Variables.htm#IsUnicode">A_IsUnicode</a> can be used to support ANSI and Unicode versions, as in this example: <code>size := StrLen(ClipSaved) * (A_IsUnicode ? 2 : 1)</code>.</p>
-<p>Variables to which <em>ClipboardAll</em> has been assigned can be compared to each other (but not directly to <em>ClipboardAll</em>) by means of the &lt;&gt; and = operators. In the following example, the length of each variable is checked first. If that is not enough to make the determination, the contents are compared to break the tie:</p>
-<pre>if ClipSaved1 &lt;&gt; %ClipSaved2%   <em>; This <u>must</u> be an old-style IF statement, not an expression.</em>
+<p><a href="../commands/StringLen.htm">StrLen() / StringLen</a> may be used to discover the total size of a variable to which <em>ClipboardAll</em> has been assigned. However, to get the size in bytes on Unicode versions of AutoHotkey, the length must be multiplied by 2. <a href="../Variables.htm#IsUnicode">A_IsUnicode</a> can be used to support ANSI and Unicode versions, as in this example: <code>size := StrLen(ClipSaved) * (A_IsUnicode ? 2 : 1)</code>.</p>
+<p>Variables to which <em>ClipboardAll</em> has been assigned can be compared to each other (but not directly to <em>ClipboardAll</em>) by means of the != and = operators. In the following example, the length of each variable is checked first. If that is not enough to make the determination, the contents are compared to break the tie:</p>
+<pre>if (ClipSaved1 != ClipSaved2)   <em>; This <u>must</u> be an old-style IF statement, not an expression.</em>
     MsgBox The two saved clipboards are different.</pre>
 <p>Saving <em>ClipboardAll</em> to a variable is not restricted by the memory limit set by <a href="../commands/_MaxMem.htm">#MaxMem</a>.</p>
 <p>A saved clipboard file internally consists of a four-byte format type, followed by a four-byte data-block size, followed by the data-block for that format. If the clipboard contained more than one format (which is almost always the case), these three items are repeated until all the formats are included. The file ends with a four-byte format type of 0.</p>

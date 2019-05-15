@@ -87,7 +87,7 @@
     <td><p>The 8.3 short path and name of the file/folder currently retrieved. For example: C:\MYDOCU~1\ADDRES~1.txt. If <em>FilePattern</em> contains a relative path rather than an absolute path, the path here will also be relative.</p>
       <p>To retrieve the complete 8.3 path and name for a single file or folder, specify its name for <em>FilePattern</em> as in this example:</p>
 <pre>Loop, C:\My Documents\Address List.txt
-    ShortPathName = %A_LoopFileShortPath%</pre>
+    ShortPathName := A_LoopFileShortPath</pre>
         <p class="note"><strong>Note</strong>: This variable will be <strong>blank</strong> if the file does not have a short name, which can happen on systems where NtfsDisable8dot3NameCreation has been set in the registry. It will also be blank if <em>FilePattern</em> contains a relative path and the body of the loop uses <a href="SetWorkingDir.htm">SetWorkingDir</a> to switch away from the working directory in effect for the loop itself.</p></td>
   </tr>
   <tr id="LoopFileShortName">
@@ -135,9 +135,9 @@
     continue  <em>; Skip this file and move on to the next one.</em></pre>
 <p>To retrieve files' relative paths instead of absolute paths during a recursive search, use <a href="SetWorkingDir.htm">SetWorkingDir</a> to change to the base folder prior to the loop, and then omit the path from the Loop (e.g. <code>Loop, *.*, 0, 1</code>). That will cause <a href="#LoopFileFullPath">A_LoopFileFullPath</a> to contain the file's path relative to the base folder.</p>
 <p>A file-loop can disrupt itself if it creates or renames files or folders within its own purview. For example, if it renames files via <a href="FileMove.htm">FileMove</a> or other means, each such file might be found twice: once as its old name and again as its new name. To work around this, rename the files only after creating a list of them. For example:</p>
-<pre>FileList =
+<pre>FileList := ""
 Loop, Files, *.jpg
-    FileList = %FileList%%A_LoopFileName%`n
+    FileList .= A_LoopFileName "`n"
 Loop, Parse, FileList, `n
     FileMove, %A_LoopField%, renamed_%A_LoopField%</pre>
 <p>Files in an NTFS file system are probably always retrieved in alphabetical order. Files in other file systems are retrieved in no particular order. To ensure a particular ordering, use the <a href="Sort.htm">Sort</a> command as shown in the Examples section below.</p>
@@ -157,32 +157,32 @@ Loop Files, %A_ProgramFiles%\*.txt, R  <em>; Recurse into subfolders.</em>
 }</pre>
 <pre class="NoIndent"><em>; Example #2: Calculate the size of a folder, including the files in all its subfolders:</em>
 SetBatchLines, -1  <em>; Make the operation run at maximum speed.</em>
-FolderSizeKB = 0
+FolderSizeKB := 0
 FileSelectFolder, WhichFolder  <em>; Ask the user to pick a folder.</em>
 Loop, Files, %WhichFolder%\*.*, R
-    FolderSizeKB += %A_LoopFileSizeKB%
+    FolderSizeKB += A_LoopFileSizeKB
 MsgBox Size of %WhichFolder% is %FolderSizeKB% KB.</pre>
 <pre class="NoIndent"><em>; Example #3: Retrieve file names sorted by name (see next example to sort by date):</em>
-FileList =  <em>; Initialize to be blank.</em>
+FileList := ""  <em>; Initialize to be blank.</em>
 Loop, C:\*.*
-    FileList = %FileList%%A_LoopFileName%`n
+    FileList .= A_LoopFileName "`n"
 Sort, FileList, R  <em>; The R option sorts in reverse order. See <a href="Sort.htm">Sort</a> for other options.</em>
 Loop, parse, FileList, `n
 {
-    if A_LoopField =  <em>; Ignore the blank item at the end of the list.</em>
+    if (A_LoopField = "")  <em>; Ignore the blank item at the end of the list.</em>
         continue
     MsgBox, 4,, File number %A_Index% is %A_LoopField%.  Continue?
     IfMsgBox, No
         break
 }</pre>
 <pre class="NoIndent"><em>; Example #4: Retrieve file names sorted by modification date:</em>
-FileList =
+FileList := ""
 Loop, Files, %A_MyDocuments%\Photos\*.*, FD  <em>; Include Files and Directories</em>
-    FileList = %FileList%%A_LoopFileTimeModified%`t%A_LoopFileName%`n
+    FileList .= A_LoopFileTimeModified "`t" A_LoopFileName "`n"
 Sort, FileList  <em>; Sort by date.</em>
 Loop, Parse, FileList, `n
 {
-    if A_LoopField =  <em>; Omit the last linefeed (blank item) at the end of the list.</em>
+    if (A_LoopField = "")  <em>; Omit the last linefeed (blank item) at the end of the list.</em>
         continue
     StringSplit, FileItem, A_LoopField, %A_Tab%  <em>; Split into two parts at the tab char.</em>
     MsgBox, 4,, The next file (modified at %FileItem1%) is:`n%FileItem2%`n`nContinue?
@@ -195,17 +195,17 @@ CopyIfNewer:
 <em>; Caller has set the variables CopySourcePattern and CopyDest for us.</em>
 Loop, Files, %CopySourcePattern%
 {
-    copy_it = n
-    IfNotExist, %CopyDest%\%A_LoopFileName%  <em>; Always copy if target file doesn't yet exist.</em>
-        copy_it = y
+    copy_it := false
+    if not FileExist(CopyDest "\" A_LoopFileName)  <em>; Always copy if target file doesn't yet exist.</em>
+        copy_it := true
     else
     {
         FileGetTime, time, %CopyDest%\%A_LoopFileName%
         EnvSub, time, %A_LoopFileTimeModified%, seconds  <em>; Subtract the source file's time from the destination's.</em>
-        if time &lt; 0  <em>; Source file is newer than destination file.</em>
-            copy_it = y
+        if (time &lt; 0)  <em>; Source file is newer than destination file.</em>
+            copy_it := true
     }
-    if copy_it = y
+    if copy_it
     {
         FileCopy, %A_LoopFileFullPath%, %CopyDest%\%A_LoopFileName%, 1   <em>; Copy with overwrite=yes</em>
         if ErrorLevel
@@ -219,7 +219,7 @@ Loop %0%  <em>; For each file dropped onto the script (or passed as a parameter)
 {
     GivenPath := %A_Index%  <em>; Retrieve the next command line parameter.</em>
     Loop %GivenPath%, 1
-        LongPath = %A_LoopFileLongPath%
+        LongPath := A_LoopFileLongPath
     MsgBox The case-corrected long path name of file`n%GivenPath%`nis:`n%LongPath%
 }</pre>
 

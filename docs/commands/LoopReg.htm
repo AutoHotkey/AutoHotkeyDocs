@@ -120,13 +120,13 @@ Loop, HKEY_CURRENT_USER, Software\Microsoft\Internet Explorer\TypedURLs
 <pre class="NoIndent"><em>; Example: A working test script:</em>
 Loop, Reg, HKEY_CURRENT_USER\Software\Microsoft\Windows, KVR
 {
-    if A_LoopRegType = key
-        value =
+    if (A_LoopRegType = "key")
+        value := ""
     else
     {
         RegRead, value
         if ErrorLevel
-            value = *error*
+            value := "*error*"
     }
     MsgBox, 4, , %A_LoopRegName% = %value% (%A_LoopRegType%)`n`nContinue?
     IfMsgBox, NO, break
@@ -134,28 +134,28 @@ Loop, Reg, HKEY_CURRENT_USER\Software\Microsoft\Windows, KVR
 <pre class="NoIndent"><em>; Example: A working example to recursively search the entire
 ; registry for particular value(s).</em>
 SetBatchLines -1  <em>; Makes searching occur at maximum speed.</em>
-RegSearchTarget = Notepad  <em>; Tell the subroutine what to search for.</em>
+RegSearchTarget := "Notepad"  <em>; Tell the subroutine what to search for.</em>
 Gosub, RegSearch
 return
 
 RegSearch:
-ContinueRegSearch = y
+ContinueRegSearch := true
 Loop, Reg, HKEY_LOCAL_MACHINE, KVR
 {
     Gosub, CheckThisRegItem
-    if ContinueRegSearch = n <em>; It told us to stop.</em>
+    if not ContinueRegSearch <em>; It told us to stop.</em>
         return
 }
 Loop, Reg, HKEY_USERS, KVR
 {
     Gosub, CheckThisRegItem
-    if ContinueRegSearch = n <em>; It told us to stop.</em>
+    if not ContinueRegSearch <em>; It told us to stop.</em>
         return
 }
 Loop, Reg, HKEY_CURRENT_CONFIG, KVR
 {
     Gosub, CheckThisRegItem
-    if ContinueRegSearch = n <em>; It told us to stop.</em>
+    if not ContinueRegSearch <em>; It told us to stop.</em>
         return
 }
 <em>; Note: I believe HKEY_CURRENT_USER does not need to be searched if HKEY_USERS
@@ -164,16 +164,16 @@ Loop, Reg, HKEY_CURRENT_CONFIG, KVR
 return
 
 CheckThisRegItem:
-if A_LoopRegType = KEY  <em>; Remove these two lines if you want to check key names too.</em>
+if (A_LoopRegType = "KEY")  <em>; Remove these two lines if you want to check key names too.</em>
     return
 RegRead, RegValue
 if ErrorLevel
     return
-IfInString, RegValue, %RegSearchTarget%
+if InStr(RegValue, RegSearchTarget)
 {
     MsgBox, 4, , The following match was found:`n%A_LoopRegKey%\%A_LoopRegSubKey%\%A_LoopRegName%`nValue = %RegValue%`n`nContinue?
     IfMsgBox, No
-        ContinueRegSearch = n  <em>; Tell our caller to stop searching.</em>
+        ContinueRegSearch := false  <em>; Tell our caller to stop searching.</em>
 }
 return</pre>
 
