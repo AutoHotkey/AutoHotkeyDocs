@@ -62,7 +62,8 @@
 
 Loop, read, C:\Docs\Address List.txt, C:\Docs\Family Addresses.txt
 {
-    IfInString, A_LoopReadLine, family, FileAppend, %A_LoopReadLine%`n
+    if InStr(A_LoopReadLine, "family")
+        FileAppend, %A_LoopReadLine%`n
 }</pre>
 <pre class="NoIndent"><em>; Example #2: Retrieve the last line from a text file.</em>
 Loop, read, C:\Log File.txt
@@ -70,23 +71,23 @@ Loop, read, C:\Log File.txt
 <pre class="NoIndent"><em>; Example #3: A working script that attempts to extract all FTP and HTTP
 ; URLs from a text or HTML file:</em>
 FileSelectFile, SourceFile, 3,, Pick a text or HTML file to analyze.
-if SourceFile =
+if (SourceFile = "")
     return  <em>; This will exit in this case.</em>
 
 SplitPath, SourceFile,, SourceFilePath,, SourceFileNoExt
-DestFile = %SourceFilePath%\%SourceFileNoExt% Extracted Links.txt
+DestFile := SourceFilePath "\" SourceFileNoExt " Extracted Links.txt"
 
-IfExist, %DestFile%
+if FileExist(DestFile)
 {
     MsgBox, 4,, Overwrite the existing links file? Press No to append to it.`n`nFILE: %DestFile%
     IfMsgBox, Yes
         FileDelete, %DestFile%
 }
 
-LinkCount = 0
+LinkCount := 0
 Loop, read, %SourceFile%, %DestFile%
 {
-    URLSearchString = %A_LoopReadLine%
+    URLSearchString := A_LoopReadLine
     Gosub, URLSearch
 }
 MsgBox %LinkCount% links were found and written to &quot;%DestFile%&quot;.
@@ -95,39 +96,39 @@ return
 
 URLSearch:
 <em>; It's done this particular way because some URLs have other URLs embedded inside them:</em>
-StringGetPos, URLStart1, URLSearchString, http://
-StringGetPos, URLStart2, URLSearchString, ftp://
-StringGetPos, URLStart3, URLSearchString, www.
+URLStart1 := InStr(URLSearchString, "http://")
+URLStart2 := InStr(URLSearchString, "ftp://")
+URLStart3 := InStr(URLSearchString, "www.")
 
 <em>; Find the left-most starting position:</em>
-URLStart = %URLStart1%  <em>; Set starting default.</em>
+URLStart := URLStart1  <em>; Set starting default.</em>
 Loop
 {
     <em>; It helps performance (at least in a script with many variables) to resolve</em>
     <em>; &quot;URLStart%A_Index%&quot; only once:</em>
     ArrayElement := URLStart%A_Index%
-    if ArrayElement =  <em>; End of the <a href="../misc/Arrays.htm#pseudo">pseudo-array</a> has been reached.</em>
+    if (ArrayElement = "")  <em>; End of the <a href="../misc/Arrays.htm#pseudo">pseudo-array</a> has been reached.</em>
         break
-    if ArrayElement = -1  <em>; This element is disqualified.</em>
+    if (ArrayElement = 0)  <em>; This element is disqualified.</em>
         continue
-    if URLStart = -1
-        URLStart = %ArrayElement%
+    if (URLStart = 0)
+        URLStart := ArrayElement
     else <em>; URLStart has a valid position in it, so compare it with ArrayElement.</em>
     {
-        if ArrayElement &lt;&gt; -1
-            if ArrayElement &lt; %URLStart%
-                URLStart = %ArrayElement%
+        if (ArrayElement != 0)
+            if (ArrayElement &lt; URLStart)
+                URLStart := ArrayElement
     }
 }
 
-if URLStart = -1  <em>; No URLs exist in URLSearchString.</em>
+if (URLStart = 0)  <em>; No URLs exist in URLSearchString.</em>
     return
 
 <em>; Otherwise, extract this URL:</em>
-StringTrimLeft, URL, URLSearchString, %URLStart%  <em>; Omit the beginning/irrelevant part.</em>
+URL := SubStr(URLSearchString, URLStart)  <em>; Omit the beginning/irrelevant part.</em>
 Loop, parse, URL, %A_Tab%%A_Space%&lt;&gt;  <em>; Find the first space, tab, or angle (if any).</em>
 {
-    URL = %A_LoopField%
+    URL := A_LoopField
     break  <em>; i.e. perform only one loop iteration to fetch the first &quot;field&quot;.</em>
 }
 <em>; If the above loop had zero iterations because there were no ending characters found,
@@ -141,9 +142,9 @@ FileAppend, %URLCleansed%`n
 LinkCount += 1
 
 <em>; See if there are any other URLs in this line:</em>
-StringLen, CharactersToOmit, URL
-CharactersToOmit += %URLStart%
-StringTrimLeft, URLSearchString, URLSearchString, %CharactersToOmit%
+CharactersToOmit := StrLen(URL)
+CharactersToOmit += URLStart
+URLSearchString := SubStr(URLSearchString, CharactersToOmit)
 Gosub, URLSearch  <em>; Recursive call to self.</em>
 return</pre>
 

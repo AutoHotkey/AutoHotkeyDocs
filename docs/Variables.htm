@@ -48,11 +48,11 @@ CopyOfVar := Var</pre>
 <p class="note">See <a href="Language.htm#expressions">Expressions</a> for a structured overview and further explanation.</p>
 <p>Expressions are used to perform one or more operations upon a series of variables, literal strings, and/or literal numbers.</p>
 <p>Variable names in an expression are not enclosed in percent signs (except for <a href="misc/Arrays.htm#pseudo">pseudo-arrays</a> and other <a href="#ref">double references</a>). Consequently, literal strings must be enclosed in double quotes to distinguish them from variables. For example:</p>
-<pre>if (CurrentSetting &gt; 100 or FoundColor &lt;&gt; &quot;Blue&quot;)
+<pre>if (CurrentSetting &gt; 100 or FoundColor != &quot;Blue&quot;)
     MsgBox The setting is too high or the wrong color is present.</pre>
 <p>In the example above, &quot;Blue&quot; appears in quotes because it is a literal string. To include an <em>actual</em> quote-character inside a literal string, specify two consecutive quotes as shown twice in this example: <code>&quot;She said, <span class="red">&quot;&quot;</span>An apple a day.<span class="red">&quot;&quot;</span>&quot;</code>.</p>
 <p class="warning"><strong>Note</strong>: There are several types of <a href="Language.htm#if-statement">If Statement</a> which look like expressions but are not.</p>
-<p><strong>Empty strings</strong>: To specify an empty string in an expression, use an empty pair of quotes. For example, the statement <code>if (MyVar &lt;&gt; &quot;&quot;)</code> would be true if <em>MyVar</em> is not blank. However, in a <a href="commands/IfEqual.htm">traditional-if</a>,  a pair of empty quotes is treated literally. For example, the statement <code>if MyVar = &quot;&quot;</code> is true only if <em>MyVar</em> contains an actual pair of quotes. Thus, to check if a variable is blank with a traditional-if, use = or &lt;&gt; with nothing on the right side as in this example: <code>if Var =</code>.</p>
+<p><strong>Empty strings</strong>: To specify an empty string in an expression, use an empty pair of quotes. For example, the statement <code>if (MyVar != &quot;&quot;)</code> would be true if <em>MyVar</em> is not blank. However, in a <a href="commands/IfEqual.htm">traditional-if</a>,  a pair of empty quotes is treated literally. For example, the statement <code>if MyVar = &quot;&quot;</code> is true only if <em>MyVar</em> contains an actual pair of quotes. Thus, to check if a variable is blank with a traditional-if, use = or != with nothing on the right side as in this example: <code>if Var =</code>.</p>
 <p>On a related note, any invalid expression such as <code>(x +* 3)</code> yields an empty string.</p>
 <p><strong>Storing the result of an expression</strong>: To assign a result to a variable, use the <a href="commands/SetExpression.htm">:= operator</a>. For example:</p>
 <pre>NetPrice := Price * (1 - Discount/100)</pre>
@@ -126,13 +126,13 @@ ContinueSearch := true</pre>
     <td><p><strong>Multiply (*)</strong>: The result is an integer if both inputs are integers; otherwise, it is a floating point number.</p>
       <p id="divide"><strong>True divide (/)</strong>: Unlike <a href="commands/EnvDiv.htm">EnvDiv</a>, true division yields a floating point result even when both inputs are integers. For example, <code>3/2</code> yields 1.5 rather than 1, and <code>4/2</code> yields 2.0 rather than 2.</p>
       <p id="FloorDivide"><strong>Floor divide (//)</strong>: The double-slash operator uses high-performance integer division if the two inputs are integers. For example, <code>5//3</code> is 1 and <code>5//-3</code> is -1. If either of the inputs is in floating point format, floating point division is performed and the result is truncated to the nearest integer to the left. For example, <code>5//3.0</code> is 1.0 and <code>5.0//-3</code> is -2.0. Although the result of this floating point division is an integer, it is stored in floating point format so that anything else that uses it will see it as such. For modulo, see <a href="commands/Math.htm#Mod">mod()</a>.</p>
-    <p>The <a href="commands/EnvMult.htm">*=</a> and <a href="commands/EnvDiv.htm">/=</a> operators are a shorthand way to multiply or divide the value in a variable by another value. For example, <code>Var*=2</code> produces the same result as <code>Var:=Var*2</code> (though the former performs better).</p>
+    <p>The <a href="#AssignOp">*= and /= operators</a> are a shorthand way to multiply or divide the value in a variable by another value. For example, <code>Var*=2</code> produces the same result as <code>Var:=Var*2</code> (though the former performs better).</p>
     <p>Division by zero yields a blank result (empty string).</p></td>
   </tr>
   <tr id="AddSub">
     <td style="text-align:center"><strong>+<br>
     -</strong></td>
-    <td><p><strong>Add (+)</strong> and <strong>subtract (-)</strong>. On a related note, the <a href="commands/EnvAdd.htm"><strong>+=</strong></a> and <a href="commands/EnvSub.htm"><strong>-=</strong></a> operators are a shorthand way to increment or decrement a variable. For example, <code>Var+=2</code> produces the same result as <code>Var:=Var+2</code> (though the former performs better). Similarly, a variable can be increased or decreased by 1 by using <a href="#IncDec">Var++, Var--, ++Var, or --Var</a>.</p>
+    <td><p><strong>Add (+)</strong> and <strong>subtract (-)</strong>. On a related note, the <a href="#AssignOp">+= and -= operators</a> are a shorthand way to increment or decrement a variable. For example, <code>Var+=2</code> produces the same result as <code>Var:=Var+2</code> (though the former performs better). Similarly, a variable can be increased or decreased by 1 by using <a href="#IncDec">Var++, Var--, ++Var, or --Var</a>.</p>
     </td>
   </tr>
   <tr id="bitwise">
@@ -404,7 +404,7 @@ ContinueSearch := true</pre>
   </tr>
   <tr id="YWeek">
     <td>A_YWeek</td>
-    <td>Current year and week number (e.g. 200453) according to ISO 8601. To separate the year from the week, use <code><a href="commands/StringLeft.htm">StringLeft</a>, Year, A_YWeek, 4</code> and <code><a href="commands/StringLeft.htm">StringRight</a>, Week, A_YWeek, 2</code>. Precise definition of A_YWeek: If the week containing January 1st has four or more days in the new year, it is considered week 1. Otherwise, it is the last week of the previous year, and the next week is week 1.</td>
+    <td>Current year and week number (e.g. 200453) according to ISO 8601. To separate the year from the week, use <code>Year := <a href="commands/SubStr.htm">SubStr</a>(A_YWeek, 1, 4)</code> and <code>Week := <a href="commands/SubStr.htm">SubStr</a>(A_YWeek, -1)</code>. Precise definition of A_YWeek: If the week containing January 1st has four or more days in the new year, it is considered week 1. Otherwise, it is the last week of the previous year, and the next week is week 1.</td>
   </tr>
   <tr id="Hour">
     <td>A_Hour</td>

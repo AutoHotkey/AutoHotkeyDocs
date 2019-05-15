@@ -222,7 +222,7 @@ Loop % LV_GetCount(&quot;Column&quot;)
 <p>Returns the row number of the next selected, checked, or focused row.</p>
 <pre class="Syntax"><span class="func">LV_GetNext</span>(<span class="optional">StartingRowNumber, RowType</span>)</pre>
 <p>If none is found, zero is returned. If <em>StartingRowNumber</em> is omitted or less than 1, the search begins at the top of the list. Otherwise, the search begins at the row after <em>StartingRowNumber</em>. If <em>RowType</em> is omitted, the function searches for the next selected/highlighted row. Otherwise, specify &quot;C&quot; or &quot;Checked&quot; to find the next checked row; or &quot;F&quot; or &quot;Focused&quot; to find the focused row (there is never more than one focused row in the entire list, and sometimes there is none at all). The following example reports all selected rows in the ListView:</p>
-<pre>RowNumber = 0  <em>; This causes the first loop iteration to start the search at the top of the list.</em>
+<pre>RowNumber := 0  <em>; This causes the first loop iteration to start the search at the top of the list.</em>
 Loop
 {
     RowNumber := LV_GetNext(RowNumber)  <em>; Resume the search at the row after that found by the previous iteration.</em>
@@ -264,7 +264,7 @@ IsChecked := (ErrorLevel &gt;&gt; 12) - 1  <em>; This sets IsChecked to true if 
 <p><strong>Normal</strong>: The user has left-clicked a row. The variable A_EventInfo contains the focused row number.</p>
 <p><strong>RightClick</strong>: The user has right-clicked a row. The variable A_EventInfo contains the focused row number. In most cases, it is best not to display a menu in response to this. Instead, use the <a href="Gui.htm#GuiContextMenu">GuiContextMenu label</a> because it also recognizes the Apps key. For example:</p>
 <pre>GuiContextMenu:  <em>; Launched in response to a right-click or press of the Apps key.</em>
-if (A_GuiControl &lt;&gt; "MyListView")  <em>; This check is optional. It displays the menu only for clicks inside the ListView.</em>
+if (A_GuiControl != "MyListView")  <em>; This check is optional. It displays the menu only for clicks inside the ListView.</em>
     return
 <em>; Show the menu at the provided coordinates, A_GuiX and A_GuiY. These should be used
 ; because they provide correct coordinates even if the user pressed the Apps key:</em>
@@ -323,7 +323,7 @@ ExitApp</pre>
 ...
 ButtonOK:
 GuiControlGet, FocusedControl, FocusV
-if (FocusedControl &lt;&gt; "MyListView")
+if (FocusedControl != "MyListView")
     return
 MsgBox % &quot;Enter was pressed. The focused row number is &quot; . LV_GetNext(0, &quot;Focused&quot;)
 return</pre>
@@ -392,9 +392,9 @@ if not Folder  <em>; The user canceled the dialog.</em>
 
 <em>; Check if the last character of the folder name is a backslash, which happens for root
 ; directories such as C:\. If it is, remove it to prevent a double-backslash later on.</em>
-StringRight, LastChar, Folder, 1
+LastChar := SubStr(Folder, 0)
 if (LastChar = "\")
-    StringTrimRight, Folder, Folder, 1  <em>; Remove the trailing backslash.</em>
+    Folder := SubStr(Folder, 1, -1)  <em>; Remove the trailing backslash.</em>
 
 <em>; Calculate buffer size required for SHFILEINFO structure.</em>
 sfi_size := A_PtrSize + 8 + (A_IsUnicode ? 680 : 340)
@@ -420,7 +420,7 @@ Loop %Folder%\*.*
         ExtID := 0  <em>; Initialize to handle extensions that are shorter than others.</em>
         Loop 7     <em>; Limit the extension to 7 characters so that it fits in a 64-bit value.</em>
         {
-            StringMid, ExtChar, FileExt, A_Index, 1
+            ExtChar := SubStr(FileExt, A_Index, 1)
             if not ExtChar  <em>; No more characters.</em>
                 break
             <em>; Derive a Unique ID by assigning a different bit position to each character:</em>
@@ -485,7 +485,7 @@ if (A_GuiEvent = "DoubleClick")  <em>; There are many other possible values the 
 return
 
 <a href="Gui.htm#GuiContextMenu">GuiContextMenu</a>:  <em>; Launched in response to a right-click or press of the Apps key.</em>
-if (A_GuiControl &lt;&gt; "MyListView")  <em>; Display the menu only for clicks inside the ListView.</em>
+if (A_GuiControl != "MyListView")  <em>; Display the menu only for clicks inside the ListView.</em>
     return
 <em>; Show the menu at the provided coordinates, A_GuiX and A_GuiY. These should be used
 ; because they provide correct coordinates even if the user pressed the Apps key:</em>
@@ -500,7 +500,7 @@ if not FocusedRowNumber  <em>; No row is focused.</em>
     return
 LV_GetText(FileName, FocusedRowNumber, 1) <em>; Get the text of the first field.</em>
 LV_GetText(FileDir, FocusedRowNumber, 2)  <em>; Get the text of the second field.</em>
-IfInString A_ThisMenuItem, Open  <em>; User selected &quot;Open&quot; from the context menu.</em>
+if InStr(A_ThisMenuItem, "Open")  <em>; User selected &quot;Open&quot; from the context menu.</em>
     Run %FileDir%\%FileName%,, UseErrorLevel
 else  <em>; User selected &quot;Properties&quot; from the context menu.</em>
     Run Properties &quot;%FileDir%\%FileName%&quot;,, UseErrorLevel

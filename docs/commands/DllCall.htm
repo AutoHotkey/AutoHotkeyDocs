@@ -150,8 +150,8 @@ Loop 500
 <p>When a <a href="../Variables.htm#amp">variable's address</a> (e.g. <code>&amp;MyVar</code>) is passed to a function and that function alters the length of the variable's contents, subsequent uses of the variable may behave incorrectly. To fix this, do one of the following: 1) Pass <em>MyVar</em> as a <a href="#str">&quot;Str&quot;</a> argument rather than as a Ptr/address; 2) <span class="ver">[v1.0.44.03+]</span>: Call <code><a href="VarSetCapacity.htm#neg1">VarSetCapacity</a>(MyVar, -1)</code> to update the variable's internally-stored length after calling DllCall.</p>
 <p>Any binary zero stored in a variable by a function hides all data to the right of the zero; that is, such data cannot be accessed or changed by most commands and functions. However, such data can be manipulated by the <a href="../Variables.htm#amp">address operator</a> and <a href="NumPut.htm">NumPut</a>/<a href="NumGet.htm">NumGet</a>, as well as DllCall itself.</p>
 <p>A function that returns the address of one of the strings that was passed into it might return an identical string in a different memory address than expected. For example calling <code>CharLower(CharUpper(MyVar))</code> in a programming language would convert <em>MyVar</em>'s contents to lowercase. But when the same is done with DllCall(), <em>MyVar</em> would be uppercase after the following call because CharLower would have operated on a different/temporary string whose contents were identical to <em>MyVar</em>:</p>
-<pre>MyVar = ABC
-result := DllCall(&quot;CharLower&quot;, &quot;<strong><u>str</u></strong>&quot;, DllCall(&quot;CharUpper&quot;, &quot;Str&quot;, MyVar, &quot;<strong><u>Str</u></strong>&quot;), &quot;Str&quot;)</pre>
+<pre>MyVar := "ABC"
+result := DllCall(&quot;CharLower&quot;, &quot;<strong><u>Str</u></strong>&quot;, DllCall(&quot;CharUpper&quot;, &quot;Str&quot;, MyVar, &quot;<strong><u>Str</u></strong>&quot;), &quot;Str&quot;)</pre>
 <p>To work around this, change the two underlined &quot;Str&quot; values above to Ptr. This interprets CharUpper's return value as a pure address that will get passed as an integer to CharLower.</p>
 <p>Certain limitations may be encountered when dealing with strings. For details, see <a href="../Compat.htm#DllCall">Script Compatibility</a>.</p>
 <h2 id="COM">Component Object Model (COM)</h2>
@@ -200,8 +200,8 @@ MsgBox % &quot;Elapsed QPC time is &quot; . (CounterAfter - CounterBefore) / fre
 ; Hold down the F1 key to slow down the cursor. Release it to return to original speed.</em>
 
 F1::
-SPI_GETMOUSESPEED = 0x70
-SPI_SETMOUSESPEED = 0x71
+SPI_GETMOUSESPEED := 0x70
+SPI_SETMOUSESPEED := 0x71
 <em>; Retrieve the current speed so that it can be restored later:</em>
 DllCall(&quot;SystemParametersInfo&quot;, &quot;UInt&quot;, SPI_GETMOUSESPEED, &quot;UInt&quot;, 0, &quot;UIntP&quot;, OrigMouseSpeed, &quot;UInt&quot;, 0)
 <em>; Now set the mouse to the slower speed specified in the next-to-last parameter (the range is 1-20, 10 is default):</em>
@@ -241,25 +241,25 @@ return</pre>
 ; <span class="ver">[AHK_L 42+]</span>: <a href="FileOpen.htm#writeread">The same can be achieved</a> using <a href="FileOpen.htm">FileOpen</a>.</em>
 
 FileSelectFile, FileName, S16,, Create a new file:
-if FileName =
+if (FileName = "")
     return
-GENERIC_WRITE = 0x40000000  <em>; Open the file for writing rather than reading.</em>
-CREATE_ALWAYS = 2  <em>; Create new file (overwriting any existing file).</em>
+GENERIC_WRITE := 0x40000000  <em>; Open the file for writing rather than reading.</em>
+CREATE_ALWAYS := 2  <em>; Create new file (overwriting any existing file).</em>
 hFile := DllCall(&quot;CreateFile&quot;, &quot;Str&quot;, FileName, &quot;UInt&quot;, GENERIC_WRITE, &quot;UInt&quot;, 0, &quot;Ptr&quot;, 0, &quot;UInt&quot;, CREATE_ALWAYS, &quot;UInt&quot;, 0, &quot;Ptr&quot;, 0, &quot;Ptr&quot;)
 if not hFile
 {
     MsgBox Can't open &quot;%FileName%&quot; for writing.
     return
 }
-TestString = This is a test string.`r`n  <em>; When writing a file this way, use `r`n rather than `n to start a new line.</em>
+TestString := This is a test string.`r`n  <em>; When writing a file this way, use `r`n rather than `n to start a new line.</em>
 DllCall(&quot;WriteFile&quot;, &quot;Ptr&quot;, hFile, &quot;Str&quot;, TestString, &quot;UInt&quot;, StrLen(TestString), &quot;UIntP&quot;, BytesActuallyWritten, &quot;Ptr&quot;, 0)
 DllCall(&quot;CloseHandle&quot;, &quot;Ptr&quot;, hFile)  <em>; Close the file.</em>
 
 <em>; Now that the file was written, read its contents back into memory.</em>
-GENERIC_READ = 0x80000000  <em>; Open the file for reading rather than writing.</em>
-OPEN_EXISTING = 3  <em>; This mode indicates that the file to be opened must already exist.</em>
-FILE_SHARE_READ = 0x1 <em>; This and the next are whether other processes can open the file while we have it open.</em>
-FILE_SHARE_WRITE = 0x2
+GENERIC_READ := 0x80000000  <em>; Open the file for reading rather than writing.</em>
+OPEN_EXISTING := 3  <em>; This mode indicates that the file to be opened must already exist.</em>
+FILE_SHARE_READ := 0x1 <em>; This and the next are whether other processes can open the file while we have it open.</em>
+FILE_SHARE_WRITE := 0x2
 hFile := DllCall(&quot;CreateFile&quot;, &quot;Str&quot;, FileName, &quot;UInt&quot;, GENERIC_READ, &quot;UInt&quot;, FILE_SHARE_READ|FILE_SHARE_WRITE, &quot;Ptr&quot;, 0, &quot;UInt&quot;, OPEN_EXISTING, &quot;UInt&quot;, 0, &quot;Ptr&quot;, 0)
 if not hFile
 {
@@ -292,11 +292,11 @@ SystemCursor(OnOff=1)   <em>; INIT = &quot;I&quot;,&quot;Init&quot;; OFF = 0,&qu
         , h1,h2,h3,h4,h5,h6,h7,h8,h9,h10,h11,h12,h13   <em>; handles of default cursors</em>
     if (OnOff = &quot;Init&quot; or OnOff = &quot;I&quot; or $ = &quot;&quot;)       <em>; init when requested or at first call</em>
     {
-        $ = h                                          <em>; active default cursors</em>
+        $ := "h"                                       <em>; active default cursors</em>
         VarSetCapacity( h_cursor,4444, 1 )
         VarSetCapacity( AndMask, 32*4, 0xFF )
         VarSetCapacity( XorMask, 32*4, 0 )
-        system_cursors = 32512,32513,32514,32515,32516,32642,32643,32644,32645,32646,32648,32649,32650
+        system_cursors := "32512,32513,32514,32515,32516,32642,32643,32644,32645,32646,32648,32649,32650"
         StringSplit c, system_cursors, `,
         Loop %c0%
         {
@@ -307,9 +307,9 @@ SystemCursor(OnOff=1)   <em>; INIT = &quot;I&quot;,&quot;Init&quot;; OFF = 0,&qu
         }
     }
     if (OnOff = 0 or OnOff = &quot;Off&quot; or $ = &quot;h&quot; and (OnOff &lt; 0 or OnOff = &quot;Toggle&quot; or OnOff = &quot;T&quot;))
-        $ = b  <em>; use blank cursors</em>
+        $ := "b"  <em>; use blank cursors</em>
     else
-        $ = h  <em>; use the saved cursors</em>
+        $ := "h"  <em>; use the saved cursors</em>
 
     Loop %c0%
     {
@@ -357,17 +357,17 @@ SetSystemTime(YYYYMMDDHHMISS)
 
     VarSetCapacity(SystemTime, 16, 0)  <em>; This struct consists of 8 UShorts (i.e. 8*2=16).</em>
 
-    StringLeft, Int, YYYYMMDDHHMISS, 4    <em>; YYYY (year)</em>
+    Int := SubStr(YYYYMMDDHHMISS, 1, 4)  <em>; YYYY (year)</em>
     <a href="NumPut.htm">NumPut</a>(Int, SystemTime, 0, &quot;UShort&quot;)
-    StringMid, Int, YYYYMMDDHHMISS, 5, 2  <em>; MM (month of year, 1-12)</em>
+    Int := SubStr(YYYYMMDDHHMISS, 5, 2)  <em>; MM (month of year, 1-12)</em>
     NumPut(Int, SystemTime, 2, &quot;UShort&quot;)
-    StringMid, Int, YYYYMMDDHHMISS, 7, 2  <em>; DD (day of month)</em>
+    Int := SubStr(YYYYMMDDHHMISS, 7, 2)  <em>; DD (day of month)</em>
     NumPut(Int, SystemTime, 6, &quot;UShort&quot;)
-    StringMid, Int, YYYYMMDDHHMISS, 9, 2  <em>; HH (hour in 24-hour time)</em>
+    Int := SubStr(YYYYMMDDHHMISS, 9, 2)  <em>; HH (hour in 24-hour time)</em>
     NumPut(Int, SystemTime, 8, &quot;UShort&quot;)
-    StringMid, Int, YYYYMMDDHHMISS, 11, 2 <em>; MI (minute)</em>
+    Int := SubStr(YYYYMMDDHHMISS, 11, 2) <em>; MI (minute)</em>
     NumPut(Int, SystemTime, 10, &quot;UShort&quot;)
-    StringMid, Int, YYYYMMDDHHMISS, 13, 2 <em>; SS (second)</em>
+    Int := SubStr(YYYYMMDDHHMISS, 13, 2) <em>; SS (second)</em>
     NumPut(Int, SystemTime, 12, &quot;UShort&quot;)
 
     return DllCall(&quot;SetSystemTime&quot;, &quot;Ptr&quot;, &amp;SystemTime)
