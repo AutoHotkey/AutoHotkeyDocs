@@ -849,6 +849,7 @@ indexData = [
   ["StatusBar.SetText","commands/GuiControls.htm#SB_SetText"],
   ["StatusBarGetText","commands/StatusBarGetText.htm",2],
   ["StatusBarWait","commands/StatusBarWait.htm",2],
+  ["StrCompare","commands/StrCompare.htm",2],
   ["StrGet","commands/StrGet.htm",2],
   ["String","commands/String.htm",2],
   ["string (search for)","commands/InStr.htm"],
