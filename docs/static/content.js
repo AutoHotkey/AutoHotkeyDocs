@@ -855,7 +855,7 @@ function ctor_structure()
     // Set language code and version:
     var lang = T("en"), ver = T("v1");
     // language links. Keys are based on ISO 639-1 language name standard:
-    var link = { 'v1': { 'en': 'https://autohotkey.com/docs/',
+    var link = { 'v1': { 'en': 'https://www.autohotkey.com/docs/',
                          'de': 'https://ahkde.github.io/docs/',
                          'zh': 'https://wyagd001.github.io/zh-cn/docs/' },
                  'v2': { 'en': 'https://lexikos.github.io/v2/docs/',
