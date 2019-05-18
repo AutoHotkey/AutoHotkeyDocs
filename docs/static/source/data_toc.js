@@ -341,6 +341,7 @@ tocData = [
     ["RegExMatch","commands/RegExMatch.htm"],
     ["RegExReplace","commands/RegExReplace.htm"],
     ["Sort","commands/Sort.htm"],
+    ["StrCompare","commands/StrCompare.htm"],
     ["String","commands/String.htm"],
     ["StringCaseSense","commands/StringCaseSense.htm"],
     ["StrLower/StrUpper","commands/StrLower.htm"],
