@@ -50,7 +50,7 @@
 <p>If a matching process is successfully terminated, <a href="../misc/ErrorLevel.htm">ErrorLevel</a> is set to its former Process ID (PID). Otherwise (there was no matching process or there was a problem terminating it), it is set to 0. Since the process will be abruptly terminated -- possibly interrupting its work at a critical point or resulting in the loss of unsaved data in its windows (if it has any) -- this method should be used only if a process cannot be closed by using <a href="WinClose.htm">WinClose</a> on one of its windows.</p>
 
 <h3 id="List">List</h3>
-<p>Although this sub-command is not yet supported, <a href="#ex4">example #4</a> demonstrates how to retrieve a list of processes via <a href="DllCall.htm">DllCall()</a>.</p>
+<p>Although this sub-command is not yet supported, <a href="#ListEx">example #4</a> demonstrates how to retrieve a list of processes via <a href="DllCall.htm">DllCall()</a>.</p>
 
 <h3 id="Priority">Priority</h3>
 <p>Changes the priority level of the first matching process.</p>
@@ -79,15 +79,16 @@
 
 <h2>Examples</h2>
 
-<h3 id="ex1">Example #1</h3>
-<p>Launches Notepad, sets its priority to "High" and shows its current PID:</p>
-<pre class="NoIndent">Run notepad.exe,,, NewPID
+<div class="ex" id="ExBasic">
+<p><a href="#ExBasic">#1</a>: Launches Notepad, sets its priority to "High" and shows its current PID:</p>
+<pre>Run notepad.exe,,, NewPID
 Process, Priority, %NewPID%, High
 MsgBox The newly launched Notepad's PID is %NewPID%.</pre>
+</div>
 
-<h3 id="ex2">Example #2</h3>
-<p>Waits up to 5.5 seconds for Notepad to appear. If Notepad appears within this number of seconds, its priority is set to "Low" and the script's own priority is set to "High". After that, Notepad will be closed and a message box will be shown if it did not close within 5 seconds:</p>
-<pre class="NoIndent">Process, Wait, notepad.exe, 5.5
+<div class="ex" id="ExAdvanced">
+<p><a href="#ExAdvanced">#2</a>: Waits up to 5.5 seconds for Notepad to appear. If Notepad appears within this number of seconds, its priority is set to "Low" and the script's own priority is set to "High". After that, Notepad will be closed and a message box will be shown if it did not close within 5 seconds:</p>
+<pre>Process, Wait, notepad.exe, 5.5
 NewPID := ErrorLevel  <em>; Save the value immediately since ErrorLevel is often changed.</em>
 if not NewPID
 {
@@ -102,10 +103,11 @@ WinClose Untitled - Notepad
 Process, WaitClose, %NewPID%, 5
 if ErrorLevel <em>; The PID still exists.</em>
     MsgBox The process did not close within 5 seconds.</pre>
+</div>
 
-<h3 id="ex3">Example #3</h3>
-<p>A hotkey to change the priority of the active window's process:</p>
-<pre class="NoIndent">#z:: <em>; Win+Z hotkey</em>
+<div class="ex" id="ExHotkey">
+<p><a href="#ExHotkey">#3</a>: A hotkey to change the priority of the active window's process:</p>
+<pre>#z:: <em>; Win+Z hotkey</em>
 WinGet, active_pid, PID, A
 WinGetTitle, active_title, A
 Gui, 5:Add, Text,, Press ESCAPE to cancel, or double-click a new`npriority level for the following window:`n%active_title%
@@ -132,10 +134,11 @@ if ErrorLevel
 else
     MsgBox Error: Its priority could not be changed to &quot;%MyListBox%&quot;.
 return</pre>
+</div>
 
-<h3 id="ex4">Example #4</h3>
-<p>Retrieves a list of running processes via <a href="DllCall.htm">DllCall()</a> then shows them in a message box:</p>
-<pre id="ListEx" class="NoIndent">d := "  |  "  <em>; string separator</em>
+<div class="ex" id="ListEx">
+<p><a href="#ListEx">#4</a>: Retrieves a list of running processes via <a href="DllCall.htm">DllCall()</a> then shows them in a message box:</p>
+<pre>d := "  |  "  <em>; string separator</em>
 s := 4096  <em>; size of buffers and arrays (4 KB)</em>
 
 Process, Exist  <em>; Sets ErrorLevel to the PID of this running script.</em>
@@ -177,15 +180,17 @@ Loop, % r // 4  <em>; Parse array for identifiers as DWORDs (32 bits):</em>
 DllCall("FreeLibrary", "Ptr", hModule)  <em>; Unload the library to free memory.</em>
 <em>;Sort, l, C  ; Uncomment this line to sort the list alphabetically.</em>
 MsgBox, 0, %c% Processes, %l%</pre>
+</div>
 
-<h3 id="ex5">Example #5</h3>
-<p>Retrieves a list of running processes via COM:</p>
-<pre id="ListCom" class="NoIndent">Gui, Add, ListView, x2 y0 w400 h500, Process Name|Command Line
+<div class="ex" id="ListCom">
+<p><a href="#ListCom">#5</a>: Retrieves a list of running processes via COM:</p>
+<pre>Gui, Add, ListView, x2 y0 w400 h500, Process Name|Command Line
 for process in ComObjGet("winmgmts:").ExecQuery("Select * from Win32_Process")
     LV_Add("", process.Name, process.CommandLine)
 Gui, Show,, Process List
 
 <em>; Win32_Process: <a href="http://msdn.microsoft.com/en-us/library/aa394372.aspx">http://msdn.microsoft.com/en-us/library/aa394372.aspx</a></em></pre>
+</div>
 
 </body>
 </html>
