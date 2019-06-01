@@ -1464,9 +1464,10 @@ function addFeatures()
     });
     $(parent).find('div.buttons > a.downloadCode') // Download the code on click:
     .on('click', function(e) {
-      var textToWrite = '\ufeff' + $(this).parent().siblings('pre.origin').text().replace(/\n/g, "\r\n");
+      var pre = $(this).parent().siblings('pre.origin');
+      var textToWrite = '\ufeff' + pre.text().replace(/\n/g, "\r\n");
       var textFileAsBlob = new Blob([textToWrite], {type:'text/csv'});
-      var fileNameToSaveAs = location.pathname.match(/([^\/]+)(?=\.\w+$)/)[0] + "-Script.ahk";
+      var fileNameToSaveAs = pre.attr("filename") || location.pathname.match(/([^\/]+)(?=\.\w+$)/)[0] + "-Script.ahk";
   
       var downloadLink = document.createElement("a");
       downloadLink.download = fileNameToSaveAs;
