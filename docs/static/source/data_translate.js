@@ -1,7 +1,9 @@
 translateData = {
   // sidebar
-  "Content":true,
-  "Index":true,
+  "C̲ontent":true,
+  "Shortcut: ALT+C":true,
+  "In̲dex":true,
+  "Shortcut: ALT+N":true,
   "Filter":true,
   "Directives":true,
   "Built-in Variables":true,
@@ -10,6 +12,8 @@ translateData = {
   "Declarations":true,
   "Operators":true,
   "Commands":true,
+  "S̲earch":true,
+  "Shortcut: ALT+S":true,
   "Search":true,
   "Highlight the words":true,
   // header
