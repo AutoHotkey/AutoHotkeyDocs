@@ -145,6 +145,10 @@ var isPhone = (document.documentElement.clientWidth <= 600);
           case 'highlightWords':
           search.highlightWords(data[1]);
           break;
+
+          case 'scrollToMatch':
+          search.scrollToMatch(data[1]);
+          break;
         }
       });
       return;
@@ -574,13 +578,29 @@ function ctor_search()
       for (var i = 0; i < qry.length; i++) {
         content.highlight(qry[i]);
       }
-      // Scroll to first match:
-      var firstMatch = content.find('span.highlight:first');
-      if(firstMatch.length)
-        firstMatch[0].scrollIntoView(isIE8 ? true : {block: 'center'});
+      self.scrollToMatch(); // Scroll to first match.
     }
     else
       content.removeHighlight();
+  }
+  self.scrollToMatch = function(direction) {
+    var matches = $(isInsideFrame ? 'body' : '#right .area').find('span.highlight');
+    if (!matches.length)
+      return;
+    var currMatch = matches.filter('.current');
+    if (currMatch.length)
+    {
+      index = matches.index(currMatch) + (direction == 'next' ? 1 : -1);
+      if (index > matches.length - 1)
+        index = 0;
+      else if (index < 0)
+        index = matches.length - 1;
+      currMatch.removeClass('current');
+    }
+    else
+      index = 0;
+    matches.eq(index).addClass('current');
+    matches.eq(index)[0].scrollIntoView(isIE8 ? true : {block: 'center'});
   }
   self.create = function(qry) { // Create search list.
     var PartialIndex = {};
@@ -781,7 +801,7 @@ function ctor_structure()
   self.metaViewport = '<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">';
   self.template = '<div id="body">' +
   '<div id="head"><div class="h-area"><div class="h-tabs"><ul><li data-translate title="Shortcut: ALT+C" data-content="C̲ontent"></li><li data-translate title="Shortcut: ALT+N" data-content="In̲dex"></li><li data-translate title="Shortcut: ALT+S" data-content="S̲earch"></li></ul></div><div class="h-tools sidebar"><ul><li class="sidebar" title="Hide/Show sidebar" data-translate>&#926;</li></ul></div><div class="h-tools online"><ul><li class="home" title="Home page" data-translate><a href="' + location.protocol + '//' + location.host + '">&#916;</a></li><li class="language" title="Change language"><span data-translate data-content="en"></span><ul class="dropdown languages selected"><li><a title="English" data-content="en"></a></li><li><a title="Deutsch (German)" data-content="de"></a></li><li><a title="&#x4E2D;&#x6587; (Chinese)" data-content="zh"></a></li></ul></li><li class="version" title="Change AHK version"><span data-translate data-content="v1"></span><ul class="dropdown versions selected"><li><a title="AHK v1.1" data-content="v1"></a></li><li><a title="AHK v2.0" data-content="v2"></a></li></ul></li><li class="edit" title="Edit page on GitHub" data-translate=2><a data-content="E"></a></li></ul></div><div class="h-tools chm"><ul><li class="back" title="Go back" data-translate=2>&#9668;</li><li class="forward" title="Go forward" data-translate=2>&#9658;</li><li class="zoom" title="Change font size" data-translate=2 data-content="Z"></li><li class="print" title="Print current document" data-translate=2 data-content="P"></li></ul></div><div class="h-tools main visible"><ul><li class="color" title="Change to dark/light theme" data-translate=2 data-content="C"></li><li class="settings" title="Open settings" data-translate=2>&#1029;</li></ul></div></div></div>' +
-  '<div id="main"><div id="left"><div class="toc"></div><div class="index"><div class="input"><input type="search" placeholder="Search" data-translate=2 /></div><div class="select"><select size="1" class="empty"><option value="-1" class="empty" selected data-translate>Filter</option><option value="0" data-translate>Directives</option><option value="1" data-translate>Built-in Variables</option><option value="2" data-translate>Built-in Functions</option><option value="3" data-translate>Control Flow Statements</option><option value="4" data-translate>Operators</option><option value="5" data-translate>Declarations</option><option value="6" data-translate>Commands</option></select></div><div class="list"></div></div><div class="search"><div class="input"><input type="search" placeholder="Search" data-translate=2 /></div><div class="checkbox"><input type="checkbox" id="highlightWords"><label for="highlightWords" data-translate>Highlight the words</label></div><div class="list"></div></div><div class="load"><div class="lds-dual-ring"></div></div></div><div class="dragbar"></div><div id="right" tabIndex="-1">'+(isFrameCapable?'<iframe frameBorder="0" id="frame" src="">':'<div class="area">');
+  '<div id="main"><div id="left"><div class="toc"></div><div class="index"><div class="input"><input type="search" placeholder="Search" data-translate=2 /></div><div class="select"><select size="1" class="empty"><option value="-1" class="empty" selected data-translate>Filter</option><option value="0" data-translate>Directives</option><option value="1" data-translate>Built-in Variables</option><option value="2" data-translate>Built-in Functions</option><option value="3" data-translate>Control Flow Statements</option><option value="4" data-translate>Operators</option><option value="5" data-translate>Declarations</option><option value="6" data-translate>Commands</option></select></div><div class="list"></div></div><div class="search"><div class="input"><input type="search" placeholder="Search" data-translate=2 /></div><div class="checkbox"><input type="checkbox" id="highlightWords"><label for="highlightWords" data-translate>Highlight keywords</label><div class="updown" title="Go to previous/next occurrence" data-translate><div class="up"><div class="triangle-up"></div></div><div class="down"><div class="triangle-down"></div></div></div></div><div class="list"></div></div><div class="load"><div class="lds-dual-ring"></div></div></div><div class="dragbar"></div><div id="right" tabIndex="-1">'+(isFrameCapable?'<iframe frameBorder="0" id="frame" src="">':'<div class="area">');
   self.template = isIE8 ? self.template.replace(/ data-content="(.*?)">/g, '>$1') : self.template;
   self.build = function() { document.write(self.template); }; // Write HTML before DOM is loaded to prevent flickering.
   self.modify = function() { // Modify elements added via build.
@@ -1030,6 +1050,20 @@ function ctor_structure()
         else
           search.highlightWords('');
       }
+    });
+
+    $('#left .checkbox .up').on('click', function() {
+      if (isFrameCapable)
+        postMessageToFrame('scrollToMatch', ['prev']);
+      else
+        search.scrollToMatch('prev');
+    });
+
+    $('#left .checkbox .down').on('click', function() {
+      if (isFrameCapable)
+        postMessageToFrame('scrollToMatch', ['next']);
+      else
+        search.scrollToMatch('next');
     });
 
     // --- Apply stored values ---
