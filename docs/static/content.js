@@ -1723,7 +1723,7 @@ function addFeatures()
         });
         // commands:
         els.order.push('cmd'); els.cmd = [];
-        innerHTML = innerHTML.replace(new RegExp('\\b(' + syntax[6].single.join('|') + ')\\b($|[\\s,])(.*?)(?=<em></em>|$)', "gim"), function(_, CMD, SEP, PARAMS) {
+        innerHTML = innerHTML.replace(new RegExp('\\b(' + syntax[6].single.join('|') + ')\\b($|[\\s,])(.*?$(?:(?:\\s*?(,|<cont>).*?$))*)', "gim"), function(_, CMD, SEP, PARAMS) {
           // Get type of every parameter:
           var types = cache.index_data[dict[CMD.toLowerCase()]][3];
           // Temporary exclude (...), {...} and [...]:
@@ -1740,17 +1740,18 @@ function addFeatures()
 
           if (CMD.toLowerCase() == "msgbox") // For MsgBox.
           {
-            if (PARAMS[0] && !PARAMS[0].match(/^\s*<num><\/num>\s*$/)) // 1-parameter mode
+            if (PARAMS[0] && !PARAMS[0].match(/^\s*<num><\/num>/)) // 1-parameter mode
               PARAMS.push(PARAMS.splice(0).join(','));
-            if (PARAMS[3] && !PARAMS[3].match(/^\s*<num><\/num>\s*$/)) // 3-parameter mode
+            if (PARAMS[3] && !PARAMS[3].match(/^\s*<num><\/num>/)) // 3-parameter mode
               PARAMS.push(PARAMS.splice(2).join(','));
           }
           // Iterate params and recompose them:
           for (n in PARAMS) {
-            if (PARAMS[n].match(/^\s*%\s/)) // Skip forced expression parameter:
+            p = /([\s\S]*?)(\s*<em><\/em>[\s\S]*|)$/.exec(PARAMS[n]);
+            if (p[1].match(/^\s*%\s/)) // Skip forced expression parameter:
               continue;
             if (types[n] == 'S') // string
-              PARAMS[n] = PARAMS[n].match(/^\s*<num><\/num>\s*$/) ? PARAMS[n] : wrap(PARAMS[n], 'str', false);
+              PARAMS[n] = (p[1].match(/^\s*<num><\/num>\s*$/) ? p[1] : wrap(p[1], 'str', false)) + p[2];
           }
           PARAMS = PARAMS.join(',');
           // Restore (...), {...} and [...] previously excluded:
