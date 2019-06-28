@@ -34,8 +34,8 @@ Gui.MarginY := 0, Gui.MarginX := 0
 
 ;---- Alter the tray icon menu:
 A_TrayMenu.Delete
-A_TrayMenu.Add k_MenuItemHide, () => k_ShowHide(Gui, k_MenuItemHide, k_MenuItemShow)
-A_TrayMenu.Add "&Exit", () => ExitApp()
+A_TrayMenu.Add k_MenuItemHide, (*) => k_ShowHide(Gui, k_MenuItemHide, k_MenuItemShow)
+A_TrayMenu.Add "&Exit", (*) => ExitApp()
 A_TrayMenu.Default := k_MenuItemHide
 
 ;---- Add a button for each key:

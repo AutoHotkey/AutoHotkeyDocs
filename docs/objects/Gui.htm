@@ -333,10 +333,10 @@ Gui.Opt("+Owner")  <em>; Make the GUI owned by <a href="../Variables.htm#ScriptH
 <pre class="Syntax">Bar := Gui.MenuBar</pre>
 <p><em>Bar</em> is a <a href="Menu.htm">MenuBar object</a> created by the <a href="../commands/MenuBarCreate.htm">MenuBarCreate</a> function. For example:</p>
 <pre>FileMenu := MenuCreate()
-FileMenu.Add "&amp;Open`tCtrl+O", () =&gt; FileSelect()  <em>; See remarks below about Ctrl+O.</em>
-FileMenu.Add "E&amp;xit", () =&gt; ExitApp()
+FileMenu.Add "&amp;Open`tCtrl+O", (*) =&gt; FileSelect()  <em>; See remarks below about Ctrl+O.</em>
+FileMenu.Add "E&amp;xit", (*) =&gt; ExitApp()
 HelpMenu := MenuCreate()
-HelpMenu.Add "&amp;About", () =&gt; MsgBox("Not implemented")
+HelpMenu.Add "&amp;About", (*) =&gt; MsgBox("Not implemented")
 Menus := MenuBarCreate()
 Menus.Add "&amp;File", FileMenu  <em>; Attach the two submenus that were created above.</em>
 Menus.Add "&amp;Help", HelpMenu
@@ -474,11 +474,11 @@ Gui.Add("Text",, "First name:")
 Gui.Add("Text",, "Last name:")
 Gui.Add("Edit", "vFirstName ym")  <em>; The ym option starts a new column of controls.</em>
 Gui.Add("Edit", "vLastName")
-Gui.Add("Button", "default", "OK").OnEvent("Click", () =&gt; ProcessUserInput(Gui))
+Gui.Add("Button", "default", "OK").OnEvent("Click", (*) =&gt; ProcessUserInput(Gui))
 Gui.OnEvent("Close", "ProcessUserInput")
 Gui.Show()
 
-ProcessUserInput(this)
+ProcessUserInput(this, *)
 {
     Saved := this.Submit()  <em>; Save the contents of named controls into an object.</em>
     MsgBox("You entered '" Saved.FirstName " " Saved.LastName "'.")
@@ -496,12 +496,12 @@ Tab.UseTab(3)
 Gui.Add("Edit", "vMyEdit r5")  <em>; r5 means 5 rows tall.</em>
 Tab.UseTab()  <em>; i.e. subsequently-added controls will not belong to the tab control.</em>
 Btn := Gui.Add("Button", "default xm", "OK")  <em>; xm puts it at the bottom left corner.</em>
-Btn.OnEvent("Click", () =&gt; ProcessUserInput(Gui))
+Btn.OnEvent("Click", (*) =&gt; ProcessUserInput(Gui))
 Gui.OnEvent("Close", "ProcessUserInput")
 Gui.OnEvent("Escape", "ProcessUserInput")
 Gui.Show()
 
-ProcessUserInput(this)
+ProcessUserInput(this, *)
 {
     Saved := this.Submit()  <em>; Save the contents of named controls into an object.</em>
     MsgBox("You entered:`n" Saved.MyCheckbox "`n" Saved.MyRadio "`n" Saved.MyEdit)
@@ -518,7 +518,7 @@ Loop Files, "C:\*.*"  <em>; Change this folder and wildcard pattern to suit your
 Gui.Add("Button", "Default", "OK").OnEvent("Click", "LaunchFile")
 Gui.Show()
 
-LaunchFile(this)
+LaunchFile(this, *)
 {
     Saved := this.Gui.Submit()
     if MsgBox("Would you like to launch the file or document below?`n`n" Saved.File,, 4) = "No"
@@ -537,7 +537,7 @@ Gui.Add("Edit", "v<strong>MyEdit</strong>")
 Gui.Add("DropDownList", "v<strong>MyDDL</strong>", "Red|Green|Blue")
 <strong>MyDDL</strong>_TT := "Choose a color from the drop-down list."
 Gui.Add("Checkbox", "vMyCheckBox", "This control has no tooltip.")
-Gui.OnEvent("Close", "Gui_Close")
+Gui.OnEvent("Close", (*) =&gt; ExitApp())
 Gui.Show()
 <a href="../commands/OnMessage.htm">OnMessage</a>(0x200, "WM_MOUSEMOVE")
 
@@ -557,11 +557,6 @@ WM_MOUSEMOVE(wParam, lParam, msg, Hwnd)
         }
         PrevHwnd := Hwnd
     }
-}
-
-Gui_Close()
-{
-    ExitApp()
 }</pre>
 
 <pre class="NoIndent" id="OSD"><em>; Example: On-screen display (OSD) via transparent window:</em>
@@ -594,7 +589,7 @@ Gui.Add("Progress", "w416 vMyProgress")
 Gui.Add("Text", "wp vMyText")  <em>; wp means "use width of previous".</em>
 Gui.Show()
 
-MoveBar(this)
+MoveBar(this, *)
 {
     ProgressCtrl := this.Gui.Control["MyProgress"]
     TextCtrl := this.Gui.Control["MyText"]
@@ -619,7 +614,7 @@ Gui.Add("Radio", "ym+5 x+10", "Load to &amp;fit screen")
 Gui.Add("Pic", "xm vMyPic")
 Gui.Show()
 
-LoadNewImage(this)
+LoadNewImage(this, *)
 {
     Gui := this.Gui
     RadioCtrl := Gui.Control["MyRadio"]
@@ -679,14 +674,14 @@ Gui.OnEvent("Size", "Gui_Size")
 MenuFileNew()  <em>; Apply default settings.</em>
 Gui.Show()  <em>; Display the window.</em>
 
-MenuFileNew()
+MenuFileNew(*)
 {
     MainEdit.Value := ""  <em>; Clear the Edit control.</em>
     FileMenu.Disable("3&amp;")  <em>; Gray out &amp;Save.</em>
     Gui.Title := "Untitled"
 }
 
-MenuFileOpen()
+MenuFileOpen(*)
 {
     Gui.Opt("+OwnDialogs")  <em>; Force the user to dismiss the FileSelect dialog before returning to the main window.</em>
     SelectedFileName := FileSelect(3,, "Open File", "Text Documents (*.txt)")
@@ -695,12 +690,12 @@ MenuFileOpen()
     CurrentFileName := readContent(SelectedFileName)
 }
 
-MenuFileSave()
+MenuFileSave(*)
 {
     saveContent(CurrentFileName)
 }
 
-MenuFileSaveAs()
+MenuFileSaveAs(*)
 {
     Gui.Opt("+OwnDialogs")  <em>; Force the user to dismiss the FileSelect dialog before returning to the main window.</em>
     SelectedFileName := FileSelect("S16",, "Save File", "Text Documents (*.txt)")
@@ -709,12 +704,12 @@ MenuFileSaveAs()
     CurrentFileName := saveContent(SelectedFileName)
 }
 
-MenuFileExit()  <em>; User chose "Exit" from the File menu.</em>
+MenuFileExit(*)  <em>; User chose "Exit" from the File menu.</em>
 {
     WinClose()
 }
 
-MenuHelpAbout()
+MenuHelpAbout(*)
 {
     About := GuiCreate("+owner" Gui.Hwnd)  <em>; Make the main window the owner of the "about box".</em>
     Gui.Opt("+Disabled")  <em>; Disable main window.</em>
@@ -756,13 +751,13 @@ saveContent(FileName)
     return FileName
 }
 
-About_Close()
+About_Close(*)
 {
     Gui.Opt("-Disabled")  <em>; Re-enable the main window (must be done prior to the next step).</em>
     About.Destroy()  <em>; Destroy the about box.</em>
 }
 
-Gui_DropFiles(Gui, FileArray)  <em>; Support drag &amp; drop.</em>
+Gui_DropFiles(Gui, Ctrl, FileArray, *)  <em>; Support drag &amp; drop.</em>
 {
     CurrentFileName := readContent(FileArray[1])  <em>; Read the first file only (in case there's more than one).</em>
 }
