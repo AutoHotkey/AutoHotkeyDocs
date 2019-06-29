@@ -99,10 +99,9 @@ MsgParentWindow := WinExist()  <em>; This stores the unique ID of the window to 
 <h2>Related</h2>
 <p><a href="CallbackCreate.htm">CallbackCreate</a>, <a href="OnExit.htm">OnExit</a>, <a href="OnClipboardChange.htm">OnClipboardChange</a>, <a href="PostMessage.htm">PostMessage</a>, <a href="SendMessage.htm">SendMessage</a>, <a href="../Functions.htm">Functions</a>, <a href="../misc/SendMessageList.htm">List of Windows Messages</a>, <a href="../misc/Threads.htm">Threads</a>, <a href="Critical.htm">Critical</a>, <a href="DllCall.htm">DllCall</a></p>
 <h2>Examples</h2>
-<pre class="NoIndent"><em>; Example: The following is a working script that monitors mouse clicks in a GUI window.
-; Related topic: <a href="../objects/GuiOnEvent.htm#ContextMenu">ContextMenu</a> event</em>
-
-Gui := GuiCreate(, "Example Window")
+<div class="ex" id="ExLButtonDown">
+<p><a href="#ExLButtonDown">#1</a>: The following is a working script that monitors mouse clicks in a GUI window. Related topic: <a href="../objects/GuiOnEvent.htm#ContextMenu">ContextMenu</a> event</p>
+<pre>Gui := GuiCreate(, "Example Window")
 Gui.Add("Text",, "Click anywhere in this window.")
 Gui.Add("Edit", "w200")
 Gui.OnEvent("Close", (*) =&gt; ExitApp())
@@ -122,12 +121,11 @@ WM_LBUTTONDOWN(wParam, lParam, msg, hwnd)
     }
     ToolTip "You left-clicked in Gui window '" Gui.Title "' at client coordinates " X "x" Y "." Control
 }</pre>
+</div>
 
-<pre class="NoIndent" id="shutdown"><em>; Example: The following script detects system shutdown/logoff and allows you to abort it (this is
-; reported NOT to work on Windows Vista and later).
-; Related topic: <a href="OnExit.htm">OnExit</a></em>
-
-<em>; The following DllCall is optional: it tells the OS to shut down this script <i>first</i> (prior to all other applications).</em>
+<div class="ex" id="shutdown">
+<p><a href="#shutdown">#2</a>: The following script detects system shutdown/logoff and allows you to abort it (this is reported NOT to work on Windows Vista and later). Related topic: <a href="OnExit.htm">OnExit</a></p>
+<pre><em>; The following DllCall is optional: it tells the OS to shut down this script <i>first</i> (prior to all other applications).</em>
 DllCall &quot;kernel32.dll\SetProcessShutdownParameters&quot;, &quot;UInt&quot;, 0x4FF, &quot;UInt&quot;, 0
 OnMessage 0x11, &quot;WM_QUERYENDSESSION&quot;
 return
@@ -143,11 +141,11 @@ WM_QUERYENDSESSION(wParam, lParam)
     <em>; Tell the OS to allow the shutdown/logoff to continue only if the user clicked Yes.</em>
     return Result = "Yes"
 }</pre>
+</div>
 
-<pre class="NoIndent"><em>; Example: Have a script receive a custom message and up to two numbers from some other script or program
-; (to send strings rather than numbers, see the example after this one).</em>
-
-OnMessage 0x5555, &quot;MsgMonitor&quot;
+<div class="ex" id="ExCustom">
+<p><a href="#ExCustom">#3</a>: Have a script receive a custom message and up to two numbers from some other script or program (to send strings rather than numbers, see the example after this one).</p>
+<pre>OnMessage 0x5555, &quot;MsgMonitor&quot;
 OnMessage 0x5556, &quot;MsgMonitor&quot;
 
 MsgMonitor(wParam, lParam, msg)
@@ -163,13 +161,12 @@ DetectHiddenWindows True
 if WinExist(&quot;Name of Receiving Script.ahk ahk_class AutoHotkey&quot;)
     PostMessage 0x5555, 11, 22  <em>; The message is sent  to the &quot;<a href="../misc/WinTitle.htm#LastFoundWindow">last found window</a>&quot; due to WinExist above.</em>
 DetectHiddenWindows False  <em>; Must not be turned off until after PostMessage.</em></pre>
+</div>
 
-<pre class="NoIndent" id="SendString"><em>; Example: Send a string of any length from one script to another.  This is a working example.
-; To use it, save and run both of the following scripts then press Win+Space to show an
-; InputBox that will prompt you to type in a string.</em>
-
-<em>; Save the following script as &quot;<strong>Receiver.ahk</strong>&quot; then launch it:</em>
-#SingleInstance
+<div class="ex" id="SendString">
+<p><a href="#SendString">#4</a>: Send a string of any length from one script to another.  This is a working example. To use it, save and run both of the following scripts then press <kbd>Win</kbd>+<kbd>Space</kbd> to show an InputBox that will prompt you to type in a string.</p>
+<p>Save the following script as <strong>Receiver.ahk</strong> then launch it:</p>
+<pre filename="Receiver.ahk">#SingleInstance
 OnMessage 0x4a, &quot;Receive_WM_COPYDATA&quot;  <em>; 0x4a is WM_COPYDATA</em>
 return
 
@@ -180,10 +177,9 @@ Receive_WM_COPYDATA(wParam, lParam)
     <em>; Show it with ToolTip vs. MsgBox so we can return in a timely fashion:</em>
     ToolTip A_ScriptName "`nReceived the following string:`n" CopyOfData
     return true  <em>; Returning 1 (true) is the traditional way to acknowledge this message.</em>
-}
-
-<em>; Save the following script as &quot;<strong>Sender.ahk</strong>&quot; then launch it.  After that, press the Win+Space hotkey.</em>
-TargetScriptTitle := "Receiver.ahk ahk_class AutoHotkey"
+}</pre>
+<p>Save the following script as <strong>Sender.ahk</strong> then launch it. After that, press the <kbd>Win</kbd>+<kbd>Space</kbd> hotkey.</p>
+<pre filename="Sender.ahk">TargetScriptTitle := "Receiver.ahk ahk_class AutoHotkey"
 
 #space::  <em>; Win+Space hotkey. Press it to show an InputBox for entry of a message string.</em>
 StringToSend := InputBox("Enter some text to Send:", "Send text via WM_COPYDATA")
@@ -216,9 +212,9 @@ Send_WM_COPYDATA(ByRef StringToSend, ByRef TargetScriptTitle)  <em>; ByRef saves
     SetTitleMatchMode Prev_TitleMatchMode         <em>; Same.</em>
     return RetValue  <em>; Return SendMessage's reply back to our caller.</em>
 }</pre>
+</div>
 
-<pre class="NoIndent"><em>; Example: See the <a href="../scripts/WinLIRC.htm">WinLIRC client script</a> for a demonstration of how to use OnMessage to receive
-; notification when data has arrived on a network connection.</em></pre>
+<p>See the <a href="../scripts/WinLIRC.htm">WinLIRC client script</a> for a demonstration of how to use OnMessage to receive a notification when data has arrived on a network connection.</p>
 
 </body>
 </html>
