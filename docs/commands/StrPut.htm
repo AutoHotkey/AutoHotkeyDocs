@@ -1,0 +1,87 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+<title>StrPut - Syntax &amp; Usage | AutoHotkey</title>
+<meta name="description" content="The StrPut function copies a string to a memory address, optionally converting it to a given code page." />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<link href="../static/theme.css" rel="stylesheet" type="text/css" />
+<script src="../static/content.js" type="text/javascript"></script>
+</head>
+<body>
+
+<h1>StrPut <span class="ver">[AHK_L 46+]</span></h1>
+
+<p>Copies a string to a memory address, optionally converting it to a given code page.</p>
+
+<pre class="Syntax">
+<span class="func">StrPut</span>(String <span class="optional">, Encoding := <i>None</i></span>)
+<span class="func">StrPut</span>(String, Address <span class="optional">, Length</span> <span class="optional">, Encoding := <i>None</i></span>)
+</pre>
+<h2>Parameters</h2>
+<dl>
+
+  <dt>String</dt>
+  <dd>
+    <p>Any string. If a number is given, it is automatically converted to a string.</p>
+    <p><em>String</em> is assumed to be in the <a href="../Concepts.htm#string-encoding">native encoding</a>.</p>
+  </dd>
+
+  <dt>Target</dt>
+  <dd>
+    <p>The memory address to which the string will be written.</p>
+    <p class="warning"><strong>Note:</strong> If conversion between code pages is necessary, the required buffer size may differ from the size of the source string. For such cases, call StrPut with two parameters to calculate the required size.</p>
+  </dd>
+
+  <dt>Length</dt>
+  <dd>
+    <p>The maximum number of characters to write, including the null-terminator if required.</p>
+    <p>If <em>Length</em> is zero or less than the projected length after conversion (or the length of the source string if conversion is not required), zero characters are written.</p>
+    <p class="warning"><strong>Note:</strong> Specifying the length of <em>String</em> or a substring may be unsafe when <em>Encoding</em> is specified, as conversion may increase the length of the string.</p>
+    <p class="warning"><strong>Note:</strong> <em>Length</em> is measured in characters, whereas buffer sizes are usually measured in bytes, as is StrPut's return value.</p>
+  </dd>
+
+  <dt>Encoding</dt>
+  <dd>
+    <p>The target encoding; for example, <code>"UTF-8"</code>, <code>"UTF-16"</code> or <code>"CP936"</code>. If <em>Target</em> and <em>Length</em> are specified, numeric identifiers do not need to be prefixed with "CP". Specify an empty string or <code>"CP0"</code> to use the system default ANSI code page.</p>
+  </dd>
+
+</dl>
+
+<h2>Return Value</h2>
+<p>This function returns the number of bytes written. If no <i>Target</i> was given, it returns the required buffer size in bytes. If <em>Length</em> is exactly the length of the converted string, the string is not null-terminated; otherwise the returned size includes the null-terminator.</p>
+
+<h2>Error Handling</h2>
+<p>An empty string is returned if invalid parameters are detected, or if the conversion cannot be performed. If the final number of characters would exceed <em>Length</em>, the return value is zero.</p>
+
+<h2>Remarks</h2>
+<p>Note that the <i>String</i> parameter is always assumed to use the <a href="../Concepts.htm#string-encoding">native encoding</a> of the current executable, whereas <i>Encoding</i> specifies the encoding of the string written to the given <i>Target</i>. If no <em>Encoding</em> is specified, the string is simply measured or copied without any conversion taking place.</p>
+
+
+<h2>Related</h2>
+<p><a href="../Concepts.htm#string-encoding">String Encoding</a>, <a href="StrGet.htm">StrGet</a>, <a href="../Compat.htm">Script Compatibility</a>, <a href="FileEncoding.htm">FileEncoding</a>, <a href="DllCall.htm">DllCall</a>, <a href="VarSetCapacity.htm">VarSetCapacity</a></p>
+
+<h2>Examples</h2>
+<div class="ex" id="ExNumEnc">
+<p><a href="#ExNumEnc">#1</a>: Either <em>Length</em> or <em>Encoding</em> may be specified directly after <em>Target</em>, but in those cases <em>Encoding</em> must be non-numeric:</p>
+<pre>
+StrPut(str, address, "cp0")  <em>; Code page 0, unspecified buffer size</em>
+StrPut(str, address, n, 0)   <em>; Maximum n chars, code page 0</em>
+StrPut(str, address, 0)      <em>; Unsupported (maximum 0 chars)</em>
+</pre>
+</div>
+<div class="ex" id="ExEncoding">
+<p><a href="#ExEncoding">#2</a>: StrPut may be called once to calculate the required buffer size for a string in a particular encoding, then again to encode and write the string into the buffer.  The process can be simplified by adding this function to your <a href="../Functions.htm#lib">library</a>:</p>
+<pre>StrPutVar(string, ByRef var, encoding)
+{
+    <em>; Ensure capacity.</em>
+    VarSetCapacity( var, StrPut(string, encoding)
+        <em>; StrPut returns char count, but VarSetCapacity needs bytes.</em>
+        * ((encoding="utf-16"||encoding="cp1200") ? 2 : 1) )
+    <em>; Copy or convert the string.</em>
+    return StrPut(string, &amp;var, encoding)
+}</pre>
+</div>
+
+</body>
+</html>
