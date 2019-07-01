@@ -134,7 +134,7 @@ tocData = [
     ["For-loop","commands/For.htm"],
     ["Gosub","commands/Gosub.htm"],
     ["Goto","commands/Goto.htm"],
-    ["If (expression)","commands/IfExpression.htm"],
+    ["If","commands/If.htm"],
     ["Loop","commands/Loop.htm",
     [
       ["Loop","commands/Loop.htm"],

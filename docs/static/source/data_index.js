@@ -536,7 +536,7 @@ indexData = [
   ["HWND (of a window)","misc/WinTitle.htm#ahk_id"],
   ["icon, changing","commands/TraySetIcon.htm"],
   ["ID number for a window","commands/WinExist.htm"],
-  ["If","commands/IfExpression.htm",3,"E"],
+  ["If","commands/If.htm",3,"E"],
   ["IL_Add","commands/ListView.htm#IL_Add",2],
   ["IL_Create","commands/ListView.htm#IL_Create",2],
   ["IL_Destroy","commands/ListView.htm#IL_Destroy",2],
