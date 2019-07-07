@@ -157,7 +157,7 @@ G.Add("Button", "X59 Y446 Disabled vB2", "Open Directory").OnEvent("Click", "Ope
 G.Add("Button", "X340 Y446 vB3", "Scan Start-Menu").OnEvent("Click", "ScanStartMenu")
 
 ; Add the Exit button:
-G.Add("Button", "X743 Y446", "Exit").OnEvent("Click", () => Gui_Close(G))
+G.Add("Button", "X743 Y446", "Exit").OnEvent("Click", (*) => Gui_Close(G))
 
 ; Add window events:
 G.OnEvent("Close", "Gui_Close")
@@ -181,7 +181,7 @@ if config.TrackKeyPhrase
 ; Function definitions ---
 
 ; Scan the start-menu and store the directory/program listings in a cache file:
-ScanStartMenu(this)
+ScanStartMenu(this, *)
 {
     T_Info := this.Gui.Control["T_Info"]
     LB := this.Gui.Control["LB"]
@@ -253,7 +253,7 @@ SaveFileList()
 }
 
 ; Search and display all matching records in the listbox:
-FindMatches(this)
+FindMatches(this, *)
 {
     FileArray := []
     E_Search := this.Gui.Control["E_Search"]
@@ -319,12 +319,12 @@ FindMatches(this)
         B2.Enabled := true
         ; Select the first record if no other record has been selected:
         if (LB.Text = "")
-            LB.Choose(1, 1)
+            LB.Choose(1)
     }
 }
 
 ; User clicked on 'Open' button or pressed ENTER:
-OpenTarget(this)
+OpenTarget(this, *)
 {
     LB := this.Gui.Control["LB"]
     ; Selected record does not exist (file or directory not found):
@@ -360,7 +360,7 @@ OpenTarget(this)
 }
 
 ; User clicked on 'Open Directory' button:
-OpenFolder(this)
+OpenFolder(this, *)
 {
     Path := this.Gui.Control["LB"].Text
     ; If user selected a file-record instead of a directory-record, extract the

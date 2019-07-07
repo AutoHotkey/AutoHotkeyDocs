@@ -62,6 +62,7 @@ else  ; Read the menu items directly from this script file.
 
 ;----Read the configuration file.
 f_AtStartingPos := false
+f_MenuItemCount := 0
 f_Paths := []
 f_Menu := MenuCreate()
 Loop Read, f_FavoritesFile
@@ -99,7 +100,7 @@ return  ;----End of auto-execute section.
 
 
 ;----Open the selected favorite
-f_OpenFavorite(ItemName, ItemPos)
+f_OpenFavorite(ItemName, ItemPos, *)
 {
     global
     

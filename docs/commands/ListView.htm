@@ -444,7 +444,7 @@ Gui.Show</pre>
 <p id="Enter">To detect when the user has pressed <kbd>Enter</kbd> while a ListView has focus, use a <a href="GuiControls.htm#DefaultButton">default button</a> (which can be hidden if desired). For example:</p>
 <pre>Gui.Add("Button", "Hidden Default", "OK").OnEvent("Click", "LV_Enter")
 ...
-LV_Enter() {
+LV_Enter(*) {
     global
     if Gui.FocusedCtrl != LV
         return
@@ -462,18 +462,20 @@ LV_Enter() {
 <p><a href="TreeView.htm">TreeView</a>, <a href="GuiControls.htm">Other Control Types</a>, <a href="GuiCreate.htm">GuiCreate</a>, <a href="../objects/GuiOnEvent.htm#ContextMenu">ContextMenu event</a>, <a href="../objects/GuiControl.htm">Gui object</a>, <a href="../objects/GuiControl.htm">GuiControl object</a>, <a href="../misc/Styles.htm#ListView">ListView styles table</a></p>
 <h2 id="Examples">Examples</h2>
 
-<h3 id="ex1">Example #1: Miscellaneous</h3>
-<pre class="NoIndent"><em>; Select or de-select all rows by specifying 0 as the row number:</em>
+<div class="ex" id="ExBasic">
+<p><a href="#ExBasic">#1</a></p>
+<pre><em>; Select or de-select all rows by specifying 0 as the row number:</em>
 LV.<a href="#Modify">Modify</a>(0, &quot;Select&quot;)   <em>; Select all.</em>
 LV.Modify(0, &quot;-Select&quot;)  <em>; De-select all.</em>
 LV.Modify(0, &quot;-Check&quot;)  <em>; Uncheck all the <a href="#Checked">checkboxes</a>.</em>
 
 <em>; Auto-size all columns to fit their contents:</em>
 LV.<a href="#ModifyCol">ModifyCol</a>  <em>; There are no parameters in this mode.</em></pre>
+</div>
 
-<h3 id="ex2">Example #2</h3>
-<p>The following is a working script that is more elaborate than the one near the top of this page. It displays the files in a folder chosen by the user, with each file assigned the icon associated with its type. The user can double-click a file, or right-click one or more files to display a context menu:</p>
-<pre class="NoIndent"><em>; Create a GUI window:</em>
+<div class="ex" id="ExAdvanced">
+<p><a href="#ExAdvanced">#2</a>: The following is a working script that is more elaborate than the one near the top of this page. It displays the files in a folder chosen by the user, with each file assigned the icon associated with its type. The user can double-click a file, or right-click one or more files to display a context menu:</p>
+<pre><em>; Create a GUI window:</em>
 Gui := GuiCreate("+Resize")  <em>; Allow the user to maximize or drag-resize the window.</em>
 
 <em>; Create some buttons:</em>
@@ -497,7 +499,7 @@ LV.SetImageList(ImageListID2)
 LV.OnEvent("<a href="../objects/GuiOnEvent.htm#DoubleClick">DoubleClick</a>", "RunFile")
 LV.OnEvent("<a href="../objects/GuiOnEvent.htm#Ctrl-ContextMenu">ContextMenu</a>", "ShowContextMenu")
 B1.OnEvent("Click", Func("LoadFolder").bind(ImageListID1, ImageListID2))
-B2.OnEvent("Click", () =&gt; <a href="#Delete">LV.Delete</a>())
+B2.OnEvent("Click", (*) =&gt; <a href="#Delete">LV.Delete</a>())
 B3.OnEvent("Click", "SwitchView")
 
 <em>; Apply window events:</em>
@@ -506,7 +508,7 @@ Gui.OnEvent("Size", "Gui_Size")
 <em>; Display the window:</em>
 Gui.Show()
 
-LoadFolder(ImageListID1, ImageListID2, this)
+LoadFolder(ImageListID1, ImageListID2, this, *)
 {
     static IconArray := []
     LV := this.Gui.Control["LV"]
@@ -584,7 +586,7 @@ LoadFolder(ImageListID1, ImageListID2, this)
     LV.ModifyCol(3, 60)  <em>; Make the Size column at little wider to reveal its header.</em>
 }
 
-SwitchView(this)
+SwitchView(this, *)
 {
     static IconView
     LV := this.Gui.Control["LV"]
@@ -616,7 +618,7 @@ ShowContextMenu(LV, Item, IsRightClick, X, Y)  <em>; In response to right-click 
     ; because they provide correct coordinates even if the user pressed the Apps key:</em>
     <a href="../objects/Menu.htm#Show">ContextMenu.Show</a>(X, Y)
 
-    OpenOrProperties(ItemName)  <em>; The user selected "Open" or "Properties" in the context menu.</em>
+    OpenOrProperties(ItemName, *)  <em>; The user selected "Open" or "Properties" in the context menu.</em>
     {
         FileName := LV.GetText(Item, 1) <em>; Get the text of the first field.</em>
         FileDir := LV.GetText(Item, 2)  <em>; Get the text of the second field.</em>
@@ -628,7 +630,7 @@ ShowContextMenu(LV, Item, IsRightClick, X, Y)  <em>; In response to right-click 
             MsgBox("Could not perform requested action on " FileDir "\" FileName ".")
     }
 
-    ClearRows()  <em>; The user selected "Clear" in the context menu.</em>
+    ClearRows(*)  <em>; The user selected "Clear" in the context menu.</em>
     {
         RowNumber := 0  <em>; This causes the first iteration to start the search at the top.</em>
         Loop
@@ -652,5 +654,6 @@ Gui_Size(this, MinMax, Width, Height)  <em>; Expand/Shrink ListView in response 
     this.Control["LV"].Move("W" Width - 20 " H" Height - 40)
 }</pre>
 
+</div>
 </body>
 </html>

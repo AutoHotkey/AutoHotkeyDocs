@@ -145,6 +145,10 @@ var isPhone = (document.documentElement.clientWidth <= 600);
           case 'highlightWords':
           search.highlightWords(data[1]);
           break;
+
+          case 'scrollToMatch':
+          search.scrollToMatch(data[1]);
+          break;
         }
       });
       return;
@@ -574,13 +578,29 @@ function ctor_search()
       for (var i = 0; i < qry.length; i++) {
         content.highlight(qry[i]);
       }
-      // Scroll to first match:
-      var firstMatch = content.find('span.highlight:first');
-      if(firstMatch.length)
-        firstMatch[0].scrollIntoView(isIE8 ? true : {block: 'center'});
+      self.scrollToMatch(); // Scroll to first match.
     }
     else
       content.removeHighlight();
+  }
+  self.scrollToMatch = function(direction) {
+    var matches = $(isInsideFrame ? 'body' : '#right .area').find('span.highlight');
+    if (!matches.length)
+      return;
+    var currMatch = matches.filter('.current');
+    if (currMatch.length)
+    {
+      index = matches.index(currMatch) + (direction == 'next' ? 1 : -1);
+      if (index > matches.length - 1)
+        index = 0;
+      else if (index < 0)
+        index = matches.length - 1;
+      currMatch.removeClass('current');
+    }
+    else
+      index = 0;
+    matches.eq(index).addClass('current');
+    matches.eq(index)[0].scrollIntoView(isIE8 ? true : {block: 'center'});
   }
   self.create = function(qry) { // Create search list.
     var PartialIndex = {};
@@ -780,8 +800,8 @@ function ctor_structure()
   self.dataPath = scriptDir + '/source/data_translate.js';
   self.metaViewport = '<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">';
   self.template = '<div id="body">' +
-  '<div id="head"><div class="h-area"><div class="h-tabs"><ul><li data-translate data-content="Content"></li><li data-translate data-content="Index"></li><li data-translate data-content="Search"></li></ul></div><div class="h-tools sidebar"><ul><li class="sidebar" title="Hide/Show sidebar" data-translate>&#926;</li></ul></div><div class="h-tools online"><ul><li class="home" title="Home page" data-translate><a href="' + location.protocol + '//' + location.host + '">&#916;</a></li><li class="language" title="Change language"><span data-translate data-content="en"></span><ul class="dropdown languages selected"><li><a title="English" data-content="en"></a></li><li><a title="Deutsch (German)" data-content="de"></a></li><li><a title="&#x4E2D;&#x6587; (Chinese)" data-content="zh"></a></li></ul></li><li class="version" title="Change AHK version"><span data-translate data-content="v1"></span><ul class="dropdown versions selected"><li><a title="AHK v1.1" data-content="v1"></a></li><li><a title="AHK v2.0" data-content="v2"></a></li></ul></li><li class="edit" title="Edit page on GitHub" data-translate=2><a data-content="E"></a></li></ul></div><div class="h-tools chm"><ul><li class="back" title="Go back" data-translate=2>&#9668;</li><li class="forward" title="Go forward" data-translate=2>&#9658;</li><li class="zoom" title="Change font size" data-translate=2 data-content="Z"></li><li class="print" title="Print current document" data-translate=2 data-content="P"></li></ul></div><div class="h-tools main visible"><ul><li class="color" title="Change to dark/light theme" data-translate=2 data-content="C"></li><li class="settings" title="Open settings" data-translate=2>&#1029;</li></ul></div></div></div>' +
-  '<div id="main"><div id="left"><div class="toc"></div><div class="index"><div class="input"><input type="search" placeholder="Search" data-translate=2 /></div><div class="select"><select size="1" class="empty"><option value="-1" class="empty" selected data-translate>Filter</option><option value="0" data-translate>Directives</option><option value="1" data-translate>Built-in Variables</option><option value="2" data-translate>Built-in Functions</option><option value="3" data-translate>Control Flow Statements</option><option value="4" data-translate>Operators</option><option value="5" data-translate>Declarations</option></select></div><div class="list"></div></div><div class="search"><div class="input"><input type="search" placeholder="Search" data-translate=2 /></div><div class="checkbox"><input type="checkbox" id="highlightWords"><label for="highlightWords" data-translate>Highlight the words</label></div><div class="list"></div></div><div class="load"><div class="lds-dual-ring"></div></div></div><div class="dragbar"></div><div id="right" tabIndex="-1">'+(isFrameCapable?'<iframe frameBorder="0" id="frame" src="">':'<div class="area">');
+  '<div id="head"><div class="h-area"><div class="h-tabs"><ul><li data-translate title="Shortcut: ALT+C" data-content="C̲ontent"></li><li data-translate title="Shortcut: ALT+N" data-content="In̲dex"></li><li data-translate title="Shortcut: ALT+S" data-content="S̲earch"></li></ul></div><div class="h-tools sidebar"><ul><li class="sidebar" title="Hide/Show sidebar" data-translate>&#926;</li></ul></div><div class="h-tools online"><ul><li class="home" title="Home page" data-translate><a href="' + location.protocol + '//' + location.host + '">&#916;</a></li><li class="language" title="Change language"><span data-translate data-content="en"></span><ul class="dropdown languages selected"><li><a title="English" data-content="en"></a></li><li><a title="Deutsch (German)" data-content="de"></a></li><li><a title="&#x4E2D;&#x6587; (Chinese)" data-content="zh"></a></li></ul></li><li class="version" title="Change AHK version"><span data-translate data-content="v1"></span><ul class="dropdown versions selected"><li><a title="AHK v1.1" data-content="v1"></a></li><li><a title="AHK v2.0" data-content="v2"></a></li></ul></li><li class="edit" title="Edit page on GitHub" data-translate=2><a data-content="E"></a></li></ul></div><div class="h-tools chm"><ul><li class="back" title="Go back" data-translate=2>&#9668;</li><li class="forward" title="Go forward" data-translate=2>&#9658;</li><li class="zoom" title="Change font size" data-translate=2 data-content="Z"></li><li class="print" title="Print current document" data-translate=2 data-content="P"></li></ul></div><div class="h-tools main visible"><ul><li class="color" title="Change to dark/light theme" data-translate=2 data-content="C"></li><li class="settings" title="Open settings" data-translate=2>&#1029;</li></ul></div></div></div>' +
+  '<div id="main"><div id="left"><div class="toc"></div><div class="index"><div class="input"><input type="search" placeholder="Search" data-translate=2 /></div><div class="select"><select size="1" class="empty"><option value="-1" class="empty" selected data-translate>Filter</option><option value="0" data-translate>Directives</option><option value="1" data-translate>Built-in Variables</option><option value="2" data-translate>Built-in Functions</option><option value="3" data-translate>Control Flow Statements</option><option value="4" data-translate>Operators</option><option value="5" data-translate>Declarations</option></select></div><div class="list"></div></div><div class="search"><div class="input"><input type="search" placeholder="Search" data-translate=2 /></div><div class="checkbox"><input type="checkbox" id="highlightWords"><label for="highlightWords" data-translate>Highlight keywords</label><div class="updown" title="Go to previous/next occurrence" data-translate><div class="up"><div class="triangle-up"></div></div><div class="down"><div class="triangle-down"></div></div></div></div><div class="list"></div></div><div class="load"><div class="lds-dual-ring"></div></div></div><div class="dragbar"></div><div id="right" tabIndex="-1">'+(isFrameCapable?'<iframe frameBorder="0" id="frame" src="">':'<div class="area">');
   self.template = isIE8 ? self.template.replace(/ data-content="(.*?)">/g, '>$1') : self.template;
   self.build = function() { document.write(self.template); }; // Write HTML before DOM is loaded to prevent flickering.
   self.modify = function() { // Modify elements added via build.
@@ -1030,6 +1050,20 @@ function ctor_structure()
         else
           search.highlightWords('');
       }
+    });
+
+    $('#left .checkbox .up').on('click', function() {
+      if (isFrameCapable)
+        postMessageToFrame('scrollToMatch', ['prev']);
+      else
+        search.scrollToMatch('prev');
+    });
+
+    $('#left .checkbox .down').on('click', function() {
+      if (isFrameCapable)
+        postMessageToFrame('scrollToMatch', ['next']);
+      else
+        search.scrollToMatch('next');
     });
 
     // --- Apply stored values ---
@@ -1305,9 +1339,19 @@ function addFeatures()
 {
   var content = document.querySelectorAll('#right .area, #right body')[0];
 
+  $.queueFunc.add(modifyTables);
+  $.queueFunc.add(modifyHeaders);
+  $.queueFunc.add(modifyLinks);
+  $.queueFunc.add(modifyVersions);
+  $.queueFunc.add(modifyCodes);
+  $.queueFunc.add(addFooter);
+  $.queueFunc.add(addBackButton);
+
   // --- Responsive tables (mobile) ---
 
-  if (isPhone) {
+  function modifyTables() {
+    if (!isPhone)
+      return;
     var tables = content.querySelectorAll('table.info');
     for(var i = 0; i < tables.length; i++) {
       var table = tables[i], th = {}, newTable = "";
@@ -1340,8 +1384,9 @@ function addFeatures()
 
   // --- Generate anchors for anchor-less head lines ---
 
-  if (!isInsideCHM)
-  {
+  function modifyHeaders() {
+    if (isInsideCHM)
+      return;
     var hs = content.querySelectorAll('h2, h3, h4, h5, h6');
     for(var i = 0; i < hs.length; i++) {
       var h = hs[i];
@@ -1380,261 +1425,267 @@ function addFeatures()
 
   // --- Open external links in a new tab/window ---
 
-  var as = content.querySelectorAll("a[href^='http']");
-  for(var i = 0; i < as.length; i++) {
-    var a = as[i];
-    if (!a.querySelector('img'))
-      a.className = "extLink"; a.target = "_blank";
+  function modifyLinks() {
+    var as = content.querySelectorAll("a[href^='http']");
+    for(var i = 0; i < as.length; i++) {
+      var a = as[i];
+      if (!a.querySelector('img'))
+        a.className = "extLink"; a.target = "_blank";
+    }
   }
 
   // --- Add links for version annotations ---
 
-  var spans = content.querySelectorAll("span.ver");
-  for(var i = 0; i < spans.length; i++) {
-    var span = spans[i], m, title, href;
-    var text = span.textContent || span.innerText;
-    if (m = /AHK_L (\d+)\+/.exec(text)) {
-      title = T("Applies to:\nAutoHotkey_L Revision {0} and later\nAutoHotkey v1.0.90.00 and later").format(m[1]);
-      href = 'AHKL_ChangeLog.htm#L' + m[1];
-      text = text.replace(m[0], 'v1.0.90+'); // For users who don't know what AHK_L was.
-    } else if (m = /(v\d\.\d\.(\d+\.)?\d+)(\+)?/.exec(text)) {
-      title = m[3] ? T("Applies to AutoHotkey {0} and later").format(m[1]) : "";
-      if (!m[2])
-        m[1] = m[1] + '.00';
-      if (m[1] < 'v1.0.45.00')
-        href = 'ChangeLogHelp.htm#Older_Changes';
-      else if (m[1] <= 'v1.0.48.05')
-        href = 'ChangeLogHelp.htm#' + m[1];
-      else
-        href = 'AHKL_ChangeLog.htm#' + m[1];
-    } else continue;
-    // outerHTML/innerHTML not possible here because IE8 doesn't allow nested links:
-    $(span).html('<a href="' + workingDir + href + '" title="' + title + '">' + text + '</a>');
+  function modifyVersions() {
+    var spans = content.querySelectorAll("span.ver");
+    for(var i = 0; i < spans.length; i++) {
+      var span = spans[i], m, title, href;
+      var text = span.textContent || span.innerText;
+      if (m = /AHK_L (\d+)\+/.exec(text)) {
+        title = T("Applies to:\nAutoHotkey_L Revision {0} and later\nAutoHotkey v1.0.90.00 and later").format(m[1]);
+        href = 'AHKL_ChangeLog.htm#L' + m[1];
+        text = text.replace(m[0], 'v1.0.90+'); // For users who don't know what AHK_L was.
+      } else if (m = /(v\d\.\d\.(\d+\.)?\d+)(\+)?/.exec(text)) {
+        title = m[3] ? T("Applies to AutoHotkey {0} and later").format(m[1]) : "";
+        if (!m[2])
+          m[1] = m[1] + '.00';
+        if (m[1] < 'v1.0.45.00')
+          href = 'ChangeLogHelp.htm#Older_Changes';
+        else if (m[1] <= 'v1.0.48.05')
+          href = 'ChangeLogHelp.htm#' + m[1];
+        else
+          href = 'AHKL_ChangeLog.htm#' + m[1];
+      } else continue;
+      // outerHTML/innerHTML not possible here because IE8 doesn't allow nested links:
+      $(span).html('<a href="' + workingDir + href + '" title="' + title + '">' + text + '</a>');
+    }
   }
 
   // --- Useful features for code boxes ---
   
-  var pres = content.querySelectorAll("pre, code");
+  function modifyCodes() {
+    var pres = content.querySelectorAll("pre, code");
 
-  // Provide select and download buttons:
-  for(var i = 0; i < pres.length; i++) {
-    var pre = pres[i];
-    if (pre.tagName == 'CODE')
-      continue;
-    var isSyntax = (pre.className.indexOf('Syntax') != -1);
-    var isNoHighlight = (pre.className.indexOf('no-highlight') != -1);
-    var parent = document.createElement('pre'); parent.className = 'parent ' + pre.className;
-    if (isSyntax || isNoHighlight)
-      pre.className = 'origin no-highlight';
-    else
-      pre.className = 'origin';
-    pre.parentNode.insertBefore(parent, pre);
-    parent.appendChild(pre);
-    var buttons = document.createElement('div'); buttons.className = 'buttons';
-    parent.appendChild(buttons);
-    var sel = document.createElement('a'); sel.className = 'selectCode'; sel.title = T("Select code"); sel.innerHTML = 'S';
-    buttons.appendChild(sel);
-    if (!isSyntax && !isNoHighlight) {
-      var dwn = document.createElement('a'); dwn.className = 'downloadCode'; dwn.title = T("Download code"); dwn.innerHTML = '&#8595;';
-      buttons.appendChild(dwn);
-    }
-    $(parent) // Show these buttons on hover:
-    .mouseenter(function() {
-      $(this).children('div.buttons').fadeTo(200, 0.8);
-    })
-    .mouseleave(function() {
-      $(this).children('div.buttons').fadeTo(200, 0);
-    });
-    $(parent).find('div.buttons > a.selectCode') // Select the code on click:
-    .on('click', function() {
-      var doc = document
-        , text = $(this).parent().siblings('pre.origin')[0]
-        , range, selection;
-      if (doc.body.createTextRange) {
-        range = document.body.createTextRange();
-        range.moveToElementText(text);
-        range.select();
-      } else if (window.getSelection) {
-        selection = window.getSelection();
-        range = document.createRange();
-        range.selectNodeContents(text);
-        selection.removeAllRanges();
-        selection.addRange(range);
-      }
-    });
-    $(parent).find('div.buttons > a.downloadCode') // Download the code on click:
-    .on('click', function(e) {
-      var textToWrite = '\ufeff' + $(this).parent().siblings('pre.origin').text().replace(/\n/g, "\r\n");
-      var textFileAsBlob = new Blob([textToWrite], {type:'text/csv'});
-      var fileNameToSaveAs = location.pathname.match(/([^\/]+)(?=\.\w+$)/)[0] + "-Script.ahk";
-  
-      var downloadLink = document.createElement("a");
-      downloadLink.download = fileNameToSaveAs;
-      downloadLink.innerHTML = "Download File";
-  
-      // http://stackoverflow.com/a/9851769
-  
-      if (isIE || isEdge) {
-        navigator.msSaveBlob(textFileAsBlob, fileNameToSaveAs);
-      }
-      if (isChrome || isBlink) {
-        downloadLink.href = window.webkitURL.createObjectURL(textFileAsBlob);
-        downloadLink.click();
-      }
-      if (isFirefox) {
-        downloadLink.href = window.URL.createObjectURL(textFileAsBlob);
-        downloadLink.style.display = "none";
-        document.body.appendChild(downloadLink);
-        downloadLink.click();
-      }
-    });
-  }
-
-  // Syntax highlighting:
-  if (!isIE8) {
-    if (cache.index_data) {
-        addSyntaxColors(pres);
-    } else {
-      loadScript(index.dataPath, function() { cache.set('index_data', indexData); addSyntaxColors(pres); });
-    }
-  }
-  function addSyntaxColors(pres) {
-    // Create lists of syntax elements by using index data to reduce code size.
-    // An index entry counts as syntax element, if its third field is one of the following digits:
-    /* 
-        0 - directive
-        1 - built-in var
-        2 - built-in function
-        3 - control flow statement
-        4 - operator
-        5 - declaration
-    */
-    var syntax = [], dict = {}, entry = '', type = '';
-    for (var i = cache.index_data.length - 1; i >= 0; i--) {
-      entry = cache.index_data[i][0];
-      type = cache.index_data[i][2];
-      syntax[type] = syntax[type] || [];
-      if (typeof type !== 'undefined') {
-        if (entry.indexOf(' ... ') != -1) {
-          part = entry.split(' ... ');
-          for (k in part) {
-            syntax[type][k] = syntax[type][k] || [];
-            if (syntax[type][k].indexOf(part[k]) == -1)
-              syntax[type][k].push(part[k]);
-          }
-        }
-        else
-          (syntax[type].single = syntax[type].single || []).push(entry);
-        dict[entry.toLowerCase()] = i;
-      }
-    }
-    // Traverse pre elements:
-    for (var i = 0; i < pres.length; i++) {
-      var pre = pres[i], els = [];
-      els.order = [];
-      // Skip pre.no-highlight elements:
-      if (pre.className.indexOf('no-highlight') != -1)
+    // Provide select and download buttons:
+    for(var i = 0; i < pres.length; i++) {
+      var pre = pres[i];
+      if (pre.tagName == 'CODE')
         continue;
-      // Temporary remove elements which interfering with syntax detection:
-      els.order.push('various'); els.various = [];
-      els.order.push('em'); els.em = [];
-      $(pre).children().each(function() {
-        if (this.tagName == 'EM') {
-          els.em.push(this.outerHTML);
-          $(this).replaceWith('<em>');
+      var isSyntax = (pre.className.indexOf('Syntax') != -1);
+      var isNoHighlight = (pre.className.indexOf('no-highlight') != -1);
+      var parent = document.createElement('pre'); parent.className = 'parent ' + pre.className;
+      if (isSyntax || isNoHighlight)
+        pre.className = 'origin no-highlight';
+      else
+        pre.className = 'origin';
+      pre.parentNode.insertBefore(parent, pre);
+      parent.appendChild(pre);
+      var buttons = document.createElement('div'); buttons.className = 'buttons';
+      parent.appendChild(buttons);
+      var sel = document.createElement('a'); sel.className = 'selectCode'; sel.title = T("Select code"); sel.innerHTML = 'S';
+      buttons.appendChild(sel);
+      if (!isSyntax && !isNoHighlight) {
+        var dwn = document.createElement('a'); dwn.className = 'downloadCode'; dwn.title = T("Download code"); dwn.innerHTML = '&#8595;';
+        buttons.appendChild(dwn);
+      }
+      $(parent) // Show these buttons on hover:
+      .mouseenter(function() {
+        $(this).children('div.buttons').fadeTo(200, 0.8);
+      })
+      .mouseleave(function() {
+        $(this).children('div.buttons').fadeTo(200, 0);
+      });
+      $(parent).find('div.buttons > a.selectCode') // Select the code on click:
+      .on('click', function() {
+        var doc = document
+          , text = $(this).parent().siblings('pre.origin')[0]
+          , range, selection;
+        if (doc.body.createTextRange) {
+          range = document.body.createTextRange();
+          range.moveToElementText(text);
+          range.select();
+        } else if (window.getSelection) {
+          selection = window.getSelection();
+          range = document.createRange();
+          range.selectNodeContents(text);
+          selection.removeAllRanges();
+          selection.addRange(range);
         }
-        else if (this.href && this.getAttribute("href").substring(0, 4) != "http")
-          $(this).replaceWith(this.innerText);
-        else if (this.attributes.length || this.children.length) {
-          els.various.push(this.outerHTML);
-          $(this).replaceWith('<various>');
+      });
+      $(parent).find('div.buttons > a.downloadCode') // Download the code on click:
+      .on('click', function(e) {
+        var pre = $(this).parent().siblings('pre.origin');
+        var textToWrite = '\ufeff' + pre.text().replace(/\n/g, "\r\n");
+        var textFileAsBlob = new Blob([textToWrite], {type:'text/csv'});
+        var fileNameToSaveAs = pre.attr("filename") || location.pathname.match(/([^\/]+)(?=\.\w+$)/)[0] + "-Script.ahk";
+    
+        var downloadLink = document.createElement("a");
+        downloadLink.download = fileNameToSaveAs;
+        downloadLink.innerHTML = "Download File";
+    
+        // http://stackoverflow.com/a/9851769
+    
+        if (isIE || isEdge) {
+          navigator.msSaveBlob(textFileAsBlob, fileNameToSaveAs);
+        }
+        if (isChrome || isBlink) {
+          downloadLink.href = window.webkitURL.createObjectURL(textFileAsBlob);
+          downloadLink.click();
+        }
+        if (isFirefox) {
+          downloadLink.href = window.URL.createObjectURL(textFileAsBlob);
+          downloadLink.style.display = "none";
+          document.body.appendChild(downloadLink);
+          downloadLink.click();
         }
       });
-      // Store pre content into a variable to improve performance:
-      var innerHTML = pre.innerHTML;
-      // escape sequences:
-      els.order.push('esc'); els.esc = [];
-      innerHTML = innerHTML.replace(/`./gm, function(SEQUENCE) {
-        out = wrap(SEQUENCE, 'esc', false);
-        els.esc.push(out);
-        return '<esc></esc>';
-      });
-      // continuation section inside a string "(...)"
-      els.order.push('cont1'); els.cont1 = [];
-      innerHTML = innerHTML.replace(/('|")([<\/em>\s]*?^\s*\([\s\S]*?^\s*\).*?)\1/gm, function(_, QUOTE, SECTION) {
-        out = wrap(SECTION, 'str', false);
-        els.cont1.push(out);
-        return QUOTE + '<cont1></cont1>' + QUOTE;
-      });
-      // continuation section for hotstrings ::(...)
-      els.order.push('cont2'); els.cont2 = [];
-      innerHTML = innerHTML.replace(/(^\s*:.*?:.*?::)([<\/em>\s]*?^\s*\([\s\S]*?^\s*\).*?)/gm, function(_, PRE, SECTION) {
-        out = wrap(SECTION, 'str', false);
-        els.cont2.push(out);
-        return PRE + '<cont2></cont2>';
-      });
-      // function definitions:
-      els.order.push('fun'); els.fun = [];
-      innerHTML = innerHTML.replace(/^(\s*?)(\S*?)(?=\(.*?\)[<\/em>\s]*{)/mg, function(_, PRE, DEFINITION) {
-        out = PRE + wrap(DEFINITION, 'fun', false);
-        els.fun.push(out);
-        return '<fun></fun>';
-      });
-      // strings:
-      els.order.push('str'); els.str = [];
-      innerHTML = innerHTML.replace(/(("|')[\s\S]*?\2)\B/gm, function(_, STRING) {
-        out = wrap(STRING, 'str', false);
-        els.str.push(out);
-        return '<str></str>';
-      });
-      // numeric values:
-      els.order.push('num'); els.num = [];
-      innerHTML = innerHTML.replace(/\b((0(x|X)[0-9a-fA-F]*)|(([0-9]+\.?[0-9]*)|(\.[0-9]+))((e|E)(\+|-)?[0-9]+)?)\b/gm, function(_, NUMBER) {
-        out = wrap(NUMBER, 'num', false);
-        els.num.push(out);
-        return '<num></num>';
-      });
-      // methods:
-      els.order.push('met'); els.met = [];
-      innerHTML = innerHTML.replace(/(\.)([^~`!@#$%^&*(){}\[\];:"'<,.>?\/\\|+=\-\s]+?)(?=\()/g, function(_, PRE, METHOD) {
-        out = PRE + wrap(METHOD, 'met', false);
-        els.met.push(out);
-        return '<met></met>';
-      });
-      // declarations:
-      els.order.push('dec'); els.dec = [];
-      innerHTML = innerHTML.replace(new RegExp('(^\\s*)((' + syntax[5][0].join('|') + ') (\\S+) (' + syntax[5][1].join('|') + ') (\\S+)|(?:' + syntax[5].single.join('|') + ')\\b)', 'gim'), function(_, PRE, DEC, CLASS, INPUT1, EXTENDS, INPUT2) {
-        if (CLASS) {
-          var dec = cache.index_data[dict[(CLASS + ' ... ' + EXTENDS).toLowerCase()]];
-          if (dec)
-            out = PRE + wrap(CLASS, 'dec', dec[1]) + ' ' + INPUT1 + ' ' + wrap(EXTENDS, 'dec', dec[1]) + ' ' + INPUT2;
+    }
+
+    // Syntax highlighting:
+    if (!isIE8) {
+      if (cache.index_data) {
+          addSyntaxColors(pres);
+      } else {
+        loadScript(index.dataPath, function() { cache.set('index_data', indexData); addSyntaxColors(pres); });
+      }
+    }
+    function addSyntaxColors(pres) {
+      // Create lists of syntax elements by using index data to reduce code size.
+      // An index entry counts as syntax element, if its third field is one of the following digits:
+      /* 
+          0 - directive
+          1 - built-in var
+          2 - built-in function
+          3 - control flow statement
+          4 - operator
+          5 - declaration
+      */
+      var syntax = [], dict = {}, entry = '', type = '';
+      for (var i = cache.index_data.length - 1; i >= 0; i--) {
+        entry = cache.index_data[i][0];
+        type = cache.index_data[i][2];
+        syntax[type] = syntax[type] || [];
+        if (typeof type !== 'undefined') {
+          if (entry.indexOf(' ... ') != -1) {
+            part = entry.split(' ... ');
+            for (k in part) {
+              syntax[type][k] = syntax[type][k] || [];
+              if (syntax[type][k].indexOf(part[k]) == -1)
+                syntax[type][k].push(part[k]);
+            }
+          }
           else
-            out = m;
+            (syntax[type].single = syntax[type].single || []).push(entry);
+          dict[entry.toLowerCase()] = i;
         }
-        else
-          out = PRE + wrap(DEC, 'dec', true);
-        els.dec.push(out);
-        return '<dec></dec>';
-      });
-      // ByRef:
-      els.order.push('byref'); els.byref = [];
-      innerHTML = innerHTML.replace(/(.+?)\b(byref)\b(?=(.+?)\))/gim, function(_, PRE, BYREF) {
-        out = PRE + wrap(BYREF, 'cfs', 'Functions.htm#ByRef');
-        els.byref.push(out);
-        return '<byref></byref>';
-      });
-      // built-in vars:
-      els.order.push('biv'); els.biv = [];
-      innerHTML = innerHTML.replace(new RegExp('\\b(' + syntax[1].single.join('|') + ')\\b', 'gi'), function(_, BIV) {
-        out = wrap(BIV, 'biv', true);
-        els.biv.push(out);
-        return '<biv></biv>';
-      });
-      // directives:
-      els.order.push('dir'); els.dir = [];
-      innerHTML = innerHTML.replace(new RegExp('(' + syntax[0].single.join('|') + ')\\b($|[\\s,])(.*?)(?=<em></em>|$)', 'gim'), function(_, DIR, SEP, PARAMS) {
-        // Get type of every parameter:
-        var types = cache.index_data[dict[DIR.toLowerCase()]][3];
+      }
+      // Traverse pre elements:
+      for (var i = 0; i < pres.length; i++) {
+        var pre = pres[i], els = [];
+        els.order = [];
+        // Skip pre.no-highlight elements:
+        if (pre.className.indexOf('no-highlight') != -1)
+          continue;
+        // Temporary remove elements which interfering with syntax detection:
+        els.order.push('various'); els.various = [];
+        els.order.push('em'); els.em = [];
+        $(pre).children().each(function() {
+          if (this.tagName == 'EM') {
+            els.em.push(this.outerHTML);
+            $(this).replaceWith('<em>');
+          }
+          else if (this.href && this.getAttribute("href").substring(0, 4) != "http")
+            $(this).replaceWith(this.innerText);
+          else if (this.attributes.length || this.children.length) {
+            els.various.push(this.outerHTML);
+            $(this).replaceWith('<various>');
+          }
+        });
+        // Store pre content into a variable to improve performance:
+        var innerHTML = pre.innerHTML;
+        // escape sequences:
+        els.order.push('esc'); els.esc = [];
+        innerHTML = innerHTML.replace(/`./gm, function(SEQUENCE) {
+          out = wrap(SEQUENCE, 'esc', false);
+          els.esc.push(out);
+          return '<esc></esc>';
+        });
+        // continuation section inside a string "(...)"
+        els.order.push('cont1'); els.cont1 = [];
+        innerHTML = innerHTML.replace(/('|")([<\/em>\s]*?^\s*\([\s\S]*?^\s*\).*?)\1/gm, function(_, QUOTE, SECTION) {
+          out = wrap(SECTION, 'str', false);
+          els.cont1.push(out);
+          return QUOTE + '<cont1></cont1>' + QUOTE;
+        });
+        // continuation section for hotstrings ::(...)
+        els.order.push('cont2'); els.cont2 = [];
+        innerHTML = innerHTML.replace(/(^\s*:.*?:.*?::)([<\/em>\s]*?^\s*\([\s\S]*?^\s*\).*?)/gm, function(_, PRE, SECTION) {
+          out = wrap(SECTION, 'str', false);
+          els.cont2.push(out);
+          return PRE + '<cont2></cont2>';
+        });
+        // function definitions:
+        els.order.push('fun'); els.fun = [];
+        innerHTML = innerHTML.replace(/^(\s*?)(\S*?)(?=\(.*?\)[<\/em>\s]*{)/mg, function(_, PRE, DEFINITION) {
+          out = PRE + wrap(DEFINITION, 'fun', false);
+          els.fun.push(out);
+          return '<fun></fun>';
+        });
+        // strings:
+        els.order.push('str'); els.str = [];
+        innerHTML = innerHTML.replace(/(("|')[\s\S]*?\2)\B/gm, function(_, STRING) {
+          out = wrap(STRING, 'str', false);
+          els.str.push(out);
+          return '<str></str>';
+        });
+        // numeric values:
+        els.order.push('num'); els.num = [];
+        innerHTML = innerHTML.replace(/\b((0(x|X)[0-9a-fA-F]*)|(([0-9]+\.?[0-9]*)|(\.[0-9]+))((e|E)(\+|-)?[0-9]+)?)\b/gm, function(_, NUMBER) {
+          out = wrap(NUMBER, 'num', false);
+          els.num.push(out);
+          return '<num></num>';
+        });
+        // methods:
+        els.order.push('met'); els.met = [];
+        innerHTML = innerHTML.replace(/(\.)([^~`!@#$%^&*(){}\[\];:"'<,.>?\/\\|+=\-\s]+?)(?=\()/g, function(_, PRE, METHOD) {
+          out = PRE + wrap(METHOD, 'met', false);
+          els.met.push(out);
+          return '<met></met>';
+        });
+        // declarations:
+        els.order.push('dec'); els.dec = [];
+        innerHTML = innerHTML.replace(new RegExp('(^\\s*)((' + syntax[5][0].join('|') + ') (\\S+) (' + syntax[5][1].join('|') + ') (\\S+)|(?:' + syntax[5].single.join('|') + ')\\b)', 'gim'), function(_, PRE, DEC, CLASS, INPUT1, EXTENDS, INPUT2) {
+          if (CLASS) {
+            var dec = cache.index_data[dict[(CLASS + ' ... ' + EXTENDS).toLowerCase()]];
+            if (dec)
+              out = PRE + wrap(CLASS, 'dec', dec[1]) + ' ' + INPUT1 + ' ' + wrap(EXTENDS, 'dec', dec[1]) + ' ' + INPUT2;
+            else
+              out = m;
+          }
+          else
+            out = PRE + wrap(DEC, 'dec', true);
+          els.dec.push(out);
+          return '<dec></dec>';
+        });
+        // ByRef:
+        els.order.push('byref'); els.byref = [];
+        innerHTML = innerHTML.replace(/(.+?)\b(byref)\b(?=(.+?)\))/gim, function(_, PRE, BYREF) {
+          out = PRE + wrap(BYREF, 'cfs', 'Functions.htm#ByRef');
+          els.byref.push(out);
+          return '<byref></byref>';
+        });
+        // built-in vars:
+        els.order.push('biv'); els.biv = [];
+        innerHTML = innerHTML.replace(new RegExp('\\b(' + syntax[1].single.join('|') + ')\\b', 'gi'), function(_, BIV) {
+          out = wrap(BIV, 'biv', true);
+          els.biv.push(out);
+          return '<biv></biv>';
+        });
+        // directives:
+        els.order.push('dir'); els.dir = [];
+        innerHTML = innerHTML.replace(new RegExp('(' + syntax[0].single.join('|') + ')\\b($|[\\s,])(.*?)(?=<em></em>|$)', 'gim'), function(_, DIR, SEP, PARAMS) {
+          // Get type of every parameter:
+          var types = cache.index_data[dict[DIR.toLowerCase()]][3];
         // Skip param processing if first param is an expression:
         if (types[0] == 'E')
         {
@@ -1642,70 +1693,17 @@ function addFeatures()
           els.dir.push(out);
           return '<dir></dir>' + SEP + PARAMS;
         }
-        // Temporary exclude (...), {...} and [...]:
-        sub = [];
-        PARAMS = PARAMS.replace(/[({\[].*[\]})]/g, function(c) {
-          sub.push(c);
-          return '<sub></sub>';
-        });
-        // Split params:
-        PARAMS = PARAMS.split(',');
-        // Detect smart comma handling:
-        if (PARAMS.length > types.length) // For the last param of any directive.
-          PARAMS.push(PARAMS.splice(types.length - 1).join(','));
-        // Iterate params and recompose them:
-        for (n in PARAMS) {
-          if (PARAMS[n].match(/^\s*%\s/)) // Skip forced expression parameter:
-            continue;
-          if (types[n] == 'S') // string
-            PARAMS[n] = PARAMS[n].match(/^\s*<num><\/num>\s*$/) ? PARAMS[n] : wrap(PARAMS[n], 'str', false);
-        }
-        PARAMS = PARAMS.join(',');
-        // Restore (...), {...} and [...] previously excluded:
-        for (n in sub) {
-          PARAMS = PARAMS.replace('<sub></sub>', sub[n])
-        }
-        out = wrap(DIR, 'dir', true) + SEP + PARAMS;
-        els.dir.push(out);
-        return '<dir></dir>';
-      });
-      // built-in functions:
-      els.order.push('bif'); els.bif = [];
-      innerHTML = innerHTML.replace(new RegExp('\\b(' + syntax[2].single.join('|') + ')\\b(?=$|[\\s(])', 'gi'), function(_, BIF) {
-        out = wrap(BIF, 'bif', true);
-        els.bif.push(out);
-        return '<bif></bif>';
-      });
-      // control flow statements:
-      els.order.push('cfs'); els.cfs = [];
-      innerHTML = innerHTML.replace(new RegExp('\\b(' + syntax[3][0].join('|') + ') (\\S+|\\S+, \\S+) (' + syntax[3][1].join('|') + ') (.+?)(?=<em></em>|$|{)|\\b(' + syntax[3].single.join('|') + ')\\b($|[\\s,(])(.*?)(?=<em></em>|$|{|\\b(' + syntax[3].single.join('|') + ')\\b)', 'gim'), function(ASIS, IF, INPUT, BETWEEN, VAL, CFS, SEP, PARAMS) {
-        if (IF) {
-          if (INPUT) {
-            var cfs = cache.index_data[dict[(IF + ' ... ' + BETWEEN).toLowerCase()]];
-            if (cfs)
-              out = wrap(IF, 'cfs', cfs[1]) + ' ' + INPUT + ' ' + wrap(BETWEEN, 'cfs', cfs[1]) + ' ' + ((cfs[3][1] == "S") ? (VAL.match(/^\s*<num><\/num>\s*$/) ? VAL : wrap(VAL, 'str', false)) : VAL);
-            else
-              out = ASIS;
-          }
-        }
-        else {
-          var cfs = CFS.toLowerCase();
-          // Skip param processing if the statement uses parentheses:
-          if (SEP == '(') {
-            out = wrap(CFS, 'cfs', true);
-            els.cfs.push(out);
-            return '<cfs></cfs>' + SEP + PARAMS;
-          }
-          // Get type of every parameter:
-          var types = cache.index_data[dict[cfs]][3];
           // Temporary exclude (...), {...} and [...]:
           sub = [];
           PARAMS = PARAMS.replace(/[({\[].*[\]})]/g, function(c) {
             sub.push(c);
-            return '<sub></sub>'
+            return '<sub></sub>';
           });
           // Split params:
           PARAMS = PARAMS.split(',');
+          // Detect smart comma handling:
+          if (PARAMS.length > types.length) // For the last param of any directive.
+            PARAMS.push(PARAMS.splice(types.length - 1).join(','));
           // Iterate params and recompose them:
           for (n in PARAMS) {
             if (PARAMS[n].match(/^\s*%\s/)) // Skip forced expression parameter:
@@ -1718,87 +1716,145 @@ function addFeatures()
           for (n in sub) {
             PARAMS = PARAMS.replace('<sub></sub>', sub[n])
           }
-          out = wrap(CFS, 'cfs', true) + SEP + PARAMS;
-        }
-        els.cfs.push(out);
-        return '<cfs></cfs>';
-      });
-      // hotstrings:
-      els.order.push('hotstr'); els.hotstr = [];
-      innerHTML = innerHTML.replace(/^(\s*)(:.*?:)(.*?)(::)(.*)/mg, function(_, PRE, HOTSTR1, ABBR, HOTSTR2, REPL) {
-        out = PRE + wrap(HOTSTR1, 'lab', false) + wrap(ABBR, 'str', false) + wrap(HOTSTR2, 'lab', false) + wrap(REPL, 'str', false);
-        els.hotstr.push(out);
-        return '<hotstr></hotstr>';
-      });
-      // hotkeys:
-      els.order.push('hotkey'); els.hotkey = [];
-      innerHTML = innerHTML.replace(/^(\s*)((([#!^+*~$]|&lt;|&gt;)*(\S+)( up)?|~?(\S+) &amp; ~?(\S+)( up)?)::)/gim, function(_, PRE, HOTKEY) {
-        out = PRE + wrap(HOTKEY, 'lab', false);
-        els.hotkey.push(out);
-        return '<hotkey></hotkey>';
-      });
-      // labels:
-      els.order.push('lab'); els.lab = [];
-      innerHTML = innerHTML.replace(/^(\s*)([^\s{(]+?:)(?=\s|$)/mg, function(_, PRE, LABEL) {
-        out = PRE + wrap(LABEL, 'lab', false);
-        els.lab.push(out);
-        return '<lab></lab>';
-      });
-      // Release changes:
-      pre.innerHTML = innerHTML;
-      // Restore elements:
-      for (var k = els.order.length - 1; k >= 0; k--) {
-        $(pre).find(els.order[k]).each(function(index) {
-          this.outerHTML = els[els.order[k]][index];
+          out = wrap(DIR, 'dir', true) + SEP + PARAMS;
+          els.dir.push(out);
+          return '<dir></dir>';
         });
+        // built-in functions:
+        els.order.push('bif'); els.bif = [];
+        innerHTML = innerHTML.replace(new RegExp('\\b(' + syntax[2].single.join('|') + ')\\b(?=$|[\\s(])', 'gi'), function(_, BIF) {
+          out = wrap(BIF, 'bif', true);
+          els.bif.push(out);
+          return '<bif></bif>';
+        });
+        // control flow statements:
+        els.order.push('cfs'); els.cfs = [];
+        innerHTML = innerHTML.replace(new RegExp('\\b(' + syntax[3][0].join('|') + ') (\\S+|\\S+, \\S+) (' + syntax[3][1].join('|') + ') (.+?)(?=<em></em>|$|{)|\\b(' + syntax[3].single.join('|') + ')\\b($|[\\s,(])(.*?)(?=<em></em>|$|{|\\b(' + syntax[3].single.join('|') + ')\\b)', 'gim'), function(ASIS, IF, INPUT, BETWEEN, VAL, CFS, SEP, PARAMS) {
+          if (IF) {
+            if (INPUT) {
+              var cfs = cache.index_data[dict[(IF + ' ... ' + BETWEEN).toLowerCase()]];
+              if (cfs)
+                out = wrap(IF, 'cfs', cfs[1]) + ' ' + INPUT + ' ' + wrap(BETWEEN, 'cfs', cfs[1]) + ' ' + ((cfs[3][1] == "S") ? (VAL.match(/^\s*<num><\/num>\s*$/) ? VAL : wrap(VAL, 'str', false)) : VAL);
+              else
+                out = ASIS;
+            }
+          }
+          else {
+            var cfs = CFS.toLowerCase();
+          // Skip param processing if the statement uses parentheses:
+          if (SEP == '(') {
+            out = wrap(CFS, 'cfs', true);
+            els.cfs.push(out);
+            return '<cfs></cfs>' + SEP + PARAMS;
+          }
+          // Get type of every parameter:
+          var types = cache.index_data[dict[cfs]][3];
+            // Temporary exclude (...), {...} and [...]:
+            sub = [];
+            PARAMS = PARAMS.replace(/[({\[].*[\]})]/g, function(c) {
+              sub.push(c);
+              return '<sub></sub>'
+            });
+            // Split params:
+            PARAMS = PARAMS.split(',');
+            // Iterate params and recompose them:
+            for (n in PARAMS) {
+              if (PARAMS[n].match(/^\s*%\s/)) // Skip forced expression parameter:
+                continue;
+              if (types[n] == 'S') // string
+                PARAMS[n] = PARAMS[n].match(/^\s*<num><\/num>\s*$/) ? PARAMS[n] : wrap(PARAMS[n], 'str', false);
+            }
+            PARAMS = PARAMS.join(',');
+            // Restore (...), {...} and [...] previously excluded:
+            for (n in sub) {
+              PARAMS = PARAMS.replace('<sub></sub>', sub[n])
+            }
+            out = wrap(CFS, 'cfs', true) + SEP + PARAMS;
+          }
+          els.cfs.push(out);
+          return '<cfs></cfs>';
+        });
+        // hotstrings:
+        els.order.push('hotstr'); els.hotstr = [];
+        innerHTML = innerHTML.replace(/^(\s*)(:.*?:)(.*?)(::)(.*)/mg, function(_, PRE, HOTSTR1, ABBR, HOTSTR2, REPL) {
+          out = PRE + wrap(HOTSTR1, 'lab', false) + wrap(ABBR, 'str', false) + wrap(HOTSTR2, 'lab', false) + wrap(REPL, 'str', false);
+          els.hotstr.push(out);
+          return '<hotstr></hotstr>';
+        });
+        // hotkeys:
+        els.order.push('hotkey'); els.hotkey = [];
+        innerHTML = innerHTML.replace(/^(\s*)((([#!^+*~$]|&lt;|&gt;)*(\S+)( up)?|~?(\S+) &amp; ~?(\S+)( up)?)::)/gim, function(_, PRE, HOTKEY) {
+          out = PRE + wrap(HOTKEY, 'lab', false);
+          els.hotkey.push(out);
+          return '<hotkey></hotkey>';
+        });
+        // labels:
+        els.order.push('lab'); els.lab = [];
+        innerHTML = innerHTML.replace(/^(\s*)([^\s{(]+?:)(?=\s|$)/mg, function(_, PRE, LABEL) {
+          out = PRE + wrap(LABEL, 'lab', false);
+          els.lab.push(out);
+          return '<lab></lab>';
+        });
+        // Release changes:
+        pre.innerHTML = innerHTML;
+        // Restore elements:
+        for (var k = els.order.length - 1; k >= 0; k--) {
+          $(pre).find(els.order[k]).each(function(index) {
+            this.outerHTML = els[els.order[k]][index];
+          });
+        }
       }
-    }
-    function wrap(match, type, isLink) {
-      var span = document.createElement('span');
-      span.className = type;
-      if (isLink) {
-        var a = document.createElement('a');
-        if (isLink == true)
-          a.href = scriptDir + '/../' + cache.index_data[dict[match.toLowerCase()]][1];
-        else
-          a.href = scriptDir + '/../' + isLink;
-        a.innerHTML = match;
-        span.appendChild(a);
-      } else
-        span.innerHTML = match;
-      return span.outerHTML;
+      function wrap(match, type, isLink) {
+        var span = document.createElement('span');
+        span.className = type;
+        if (isLink) {
+          var a = document.createElement('a');
+          if (isLink == true)
+            a.href = scriptDir + '/../' + cache.index_data[dict[match.toLowerCase()]][1];
+          else
+            a.href = scriptDir + '/../' + isLink;
+          a.innerHTML = match;
+          span.appendChild(a);
+        } else
+          span.innerHTML = match;
+        return span.outerHTML;
+      }
     }
   }
 
   // --- Add footer at the bottom of the site ---
 
-  var div = document.createElement('div');
-  div.className = 'footer';
-  div.innerHTML = 'Copyright &copy; 2003-' + new Date().getFullYear() + ' ' + location.host + ' - LIC: <a href="' + scriptDir + '/../license.htm">GNU GPLv2</a>';
-  content.appendChild(div);
+  function addFooter() {
+    var div = document.createElement('div');
+    div.className = 'footer';
+    div.innerHTML = 'Copyright &copy; 2003-' + new Date().getFullYear() + ' ' + location.host + ' - LIC: <a href="' + scriptDir + '/../license.htm">GNU GPLv2</a>';
+    content.appendChild(div);
+  }
 
   // --- Add back-to-top button ---
 
-  var div = document.createElement('div');
-  div.className = 'back-to-top';
-  div.title = T('Back to top');
-  content.appendChild(div);
+  function addBackButton() {
+    var div = document.createElement('div');
+    div.className = 'back-to-top';
+    div.title = T('Back to top');
+    content.appendChild(div);
 
-  var isVisible = false;
-  $('#right').add(window).on('scroll', function() {
-    var scrollTop = $(this).scrollTop();
-    if (scrollTop > 20 && !isVisible) {
-      isVisible = true;
-      $('div.back-to-top').fadeIn();
-    } else if (scrollTop < 20 && isVisible) {
-      isVisible = false;
-      $('div.back-to-top').fadeOut();
-    }
-  });
+    var isVisible = false;
+    $('#right').add(window).on('scroll', function() {
+      var scrollTop = $(this).scrollTop();
+      if (scrollTop > 20 && !isVisible) {
+        isVisible = true;
+        $('div.back-to-top').fadeIn();
+      } else if (scrollTop < 20 && isVisible) {
+        isVisible = false;
+        $('div.back-to-top').fadeOut();
+      }
+    });
 
-  $('div.back-to-top').on('click', function() {
-    $(document.body).add(document.documentElement).add('#right').animate({scrollTop: 0}, 100);
-  });
+    $('div.back-to-top').on('click', function() {
+      $(document.body).add(document.documentElement).add('#right').animate({scrollTop: 0}, 100);
+    });
+  }
 
   // --- Ensure setting right scroll position when traversing history ---
 
@@ -1926,6 +1982,40 @@ marginLeft:0},function(){return a.getBoundingClientRect().left}):0))+"px":void 0
 padding:"inner"+a,content:b,"":"outer"+a},function(c,d){n.fn[d]=function(d,e){var f=arguments.length&&(c||"boolean"!=typeof d),g=c||(d===!0||e===!0?"margin":"border");return Y(this,function(b,c,d){var e;return n.isWindow(b)?b.document.documentElement["client"+a]:9===b.nodeType?(e=b.documentElement,Math.max(b.body["scroll"+a],e["scroll"+a],b.body["offset"+a],e["offset"+a],e["client"+a])):void 0===d?n.css(b,c,g):n.style(b,c,d,g)},b,f?d:void 0,f,null)}})}),n.fn.extend({bind:function(a,b,c){return this.on(a,null,b,c)},unbind:function(a,b){return this.off(a,null,b)},delegate:function(a,b,c,d){return this.on(b,a,c,d)},undelegate:function(a,b,c){return 1===arguments.length?this.off(a,"**"):this.off(b,a||"**",c)}}),n.fn.size=function(){return this.length},n.fn.andSelf=n.fn.addBack,"function"==typeof define&&define.amd&&define("jquery",[],function(){return n});var nc=a.jQuery,oc=a.$;return n.noConflict=function(b){return a.$===n&&(a.$=oc),b&&a.jQuery===n&&(a.jQuery=nc),n},b||(a.jQuery=a.$=n),n});
 
 /*Search highlighting*/jQuery.fn.highlight=function(c){function e(b,c){var d=0;if(3==b.nodeType){var a=b.data.toUpperCase().indexOf(c),a=a-(b.data.substr(0,a).toUpperCase().length-b.data.substr(0,a).length);if(0<=a){d=document.createElement("span");d.className="highlight";a=b.splitText(a);a.splitText(c.length);var f=a.cloneNode(!0);d.appendChild(f);a.parentNode.replaceChild(d,a);d=1}}else if(1==b.nodeType&&b.childNodes&&!/(script|style)/i.test(b.tagName))for(a=0;a<b.childNodes.length;++a)a+=e(b.childNodes[a],c);return d} return this.length&&c&&c.length?this.each(function(){e(this,c.toUpperCase())}):this};jQuery.fn.removeHighlight=function(){return this.find("span.highlight").each(function(){this.parentNode.firstChild.nodeName;with(this.parentNode)replaceChild(this.firstChild,this),normalize()}).end()};
+
+  $.queueFunc = { // debuggable.com (run-intense-js-without-freezing-the-browser)
+    _timer: null,
+    _queue: [],
+    add: function(fn, context, time) {
+      var setTimer = function(time) {
+        $.queueFunc._timer = setTimeout(function() {
+          time = $.queueFunc.add();
+          if ($.queueFunc._queue.length) {
+            setTimer(time);
+          }
+        }, time || 2);
+      }
+
+      if (fn) {
+        $.queueFunc._queue.push([fn, context, time]);
+        if ($.queueFunc._queue.length == 1) {
+          setTimer(time);
+        }
+        return;
+      }
+
+      var next = $.queueFunc._queue.shift();
+      if (!next) {
+        return 0;
+      }
+      next[0].call(next[1] || window);
+      return next[2];
+    },
+    clear: function() {
+      clearTimeout($.queueFunc._timer);
+      $.queueFunc._queue = [];
+    }
+  };
 }
 
 function loadIE8Polyfill() {

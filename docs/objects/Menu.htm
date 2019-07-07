@@ -341,7 +341,7 @@
 <p>As items are added to a menu or modified, the name and other properties of each item are stored in the Menu object. A Win32 menu is constructed the first time the menu or its parent menu is attached to a GUI or shown. It is destroyed automatically when the menu object is deleted (which occurs when its reference count reaches zero).</p>
 <p><a href="#Handle">Menu.Handle</a> returns a handle to a Win32 menu (a handle of type <code>HMENU</code>), constructing it if necessary.</p>
 <p>Any modifications which are made to the menu directly by Win32 functions are not reflected by the script's Menu object, so may be lost if an item is modified by one of the built-in methods.</p>
-<p>Each menu item is assigned an ID when it is first added to the menu. Scripts cannot rely on an item receiving a particular ID, but can retrieve the ID of an item by using GetMenuItemID as shown in <a href="#Example5">example #5</a>. This ID cannot be used with the Menu object, but can be used with various <a href="https://msdn.microsoft.com/en-us/library/ms646977">Win32 functions</a>.</p>
+<p>Each menu item is assigned an ID when it is first added to the menu. Scripts cannot rely on an item receiving a particular ID, but can retrieve the ID of an item by using GetMenuItemID as shown in <a href="#ExDllCall">example #5</a>. This ID cannot be used with the Menu object, but can be used with various <a href="https://msdn.microsoft.com/en-us/library/ms646977">Win32 functions</a>.</p>
 
 <h2 id="Remarks">Remarks</h2>
 <p>A menu usually looks like this:</p>
@@ -355,18 +355,21 @@
 <p><a href="Gui.htm">GUI</a>, <a href="../misc/Threads.htm">Threads</a>, <a href="../commands/Thread.htm">Thread</a>, <a href="../commands/Critical.htm">Critical</a>, <a href="../commands/_NoTrayIcon.htm">#NoTrayIcon</a>, <a href="../commands/Gosub.htm">Gosub</a>, <a href="../Functions.htm">Functions</a>, <a href="../commands/Return.htm">Return</a>, <a href="../commands/SetTimer.htm">SetTimer</a></p>
 
 <h2 id="Examples">Examples</h2>
-<pre class="NoIndent" id="Example1"><em>; EXAMPLE #1: This is a working script that adds a new menu item to the bottom of the tray icon menu.</em>
 
-A_TrayMenu.Add()  <em>; Creates a separator line.</em>
+<div class="ex" id="ExBasic">
+<p><a href="#ExBasic">#1</a>: This is a working script that adds a new menu item to the bottom of the tray icon menu:</p>
+<pre>A_TrayMenu.Add()  <em>; Creates a separator line.</em>
 A_TrayMenu.Add("Item1", "MenuHandler")  <em>; Creates a new menu item.</em>
 return
 
 MenuHandler(ItemName, ItemPos, Menu) {
     MsgBox "You selected " ItemName " (position " ItemPos ")"
 }</pre>
-<pre class="NoIndent" id="Example2"><em>; EXAMPLE #2: This is a working script that creates a popup menu that is displayed when the user presses the Win-Z hotkey.</em>
+</div>
 
-<em>; Create the popup menu by adding some items to it.</em>
+<div class="ex" id="ExPopup">
+<p><a href="#ExPopup">#2</a>: This is a working script that creates a popup menu that is displayed when the user presses the <kbd>Win</kbd>+<kbd>Z</kbd> hotkey:</p>
+<pre><em>; Create the popup menu by adding some items to it.</em>
 MyMenu := MenuCreate()
 MyMenu.Add "Item 1", "MenuHandler"
 MyMenu.Add "Item 2", "MenuHandler"
@@ -384,14 +387,16 @@ MyMenu.Add  <em>; Add a separator line below the submenu.</em>
 MyMenu.Add "Item 3", "MenuHandler"  <em>; Add another menu item beneath the submenu.</em>
 return  <em>; End of script's auto-execute section.</em>
 
-MenuHandler(Item) {
+MenuHandler(Item, *) {
     MsgBox "You selected " Item
 }
 
 #z::MyMenu.Show  <em>; i.e. press the Win-Z hotkey to show the menu.</em></pre>
-<pre class="NoIndent" id="Example3"><em>; EXAMPLE #3: This is a working script that demonstrates some of the various menu object members.</em>
+</div>
 
-#SingleInstance
+<div class="ex" id="ExTray">
+<p><a href="#ExTray">#3</a>: This is a working script that demonstrates some of the various menu object members:</p>
+<pre>#SingleInstance
 global tray := A_TrayMenu <em>; For convenience.</em>
 tray.delete <em>; Delete the standard items.</em>
 tray.add <em>; separator</em>
@@ -407,19 +412,19 @@ return
 
 <em>;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;</em>
 
-TestToggleCheck()
+TestToggleCheck(*)
 {
     tray.ToggleCheck "TestToggleCheck"
     tray.Enable "TestToggleEnable" <em>; Also enables the next test since it can't undo the disabling of itself.</em>
     tray.add "TestDelete" <em>; Similar to above.</em>
 }
 
-TestToggleEnable()
+TestToggleEnable(*)
 {
     tray.ToggleEnable "TestToggleEnable"
 }
 
-TestDefault()
+TestDefault(*)
 {
     if tray.default = "TestDefault"
         tray.default := ""
@@ -427,23 +432,23 @@ TestDefault()
         tray.default := "TestDefault"
 }
 
-TestAddStandard()
+TestAddStandard(*)
 {
     tray.addStandard
 }
 
-TestDelete()
+TestDelete(*)
 {
     tray.delete "TestDelete"
 }
 
-TestDeleteAll()
+TestDeleteAll(*)
 {
     tray.delete
     MsgBox "The script may exit now, as the tray menu no longer contains custom items."
 }
 
-TestRename()
+TestRename(*)
 {
     static
     if NewName != "renamed"
@@ -459,13 +464,15 @@ TestRename()
     tray.rename OldName, NewName
 }
 
-Test(Item)
+Test(Item, *)
 {
     MsgBox 'You selected "' Item '"'
 }</pre>
-<pre class="NoIndent" id="Example4"><em>; EXAMPLE #4: This is a working script that adds icons to its menu items.</em>
+</div>
 
-FileMenu := MenuCreate()
+<div class="ex" id="ExIcon">
+<p><a href="#ExIcon">#4</a>: This is a working script that adds icons to its menu items:</p>
+<pre>FileMenu := MenuCreate()
 FileMenu.Add("Script Icon", "MenuHandler")
 FileMenu.Add("Suspend Icon", "MenuHandler")
 FileMenu.Add("Pause Icon", "MenuHandler")
@@ -476,14 +483,17 @@ MyMenuBar := MenuBarCreate()
 MyMenuBar.Add("&amp;File", FileMenu)
 Gui := GuiCreate()
 Gui.MenuBar := MyMenuBar
-Gui.Add("Button",, "Exit This Example").OnEvent("Click", () =&gt; WinClose())
+Gui.Add("Button",, "Exit This Example").OnEvent("Click", (*) =&gt; WinClose())
 Gui.Show
 
-MenuHandler() {
+MenuHandler(*) {
     <em>; For this example, the menu items don't do anything.</em>
 }</pre>
-<pre class="NoIndent" id="Example5"><em>; EXAMPLE #5: Retrieving item count and ID.</em>
+</div>
 
+<div class="ex" id="ExDllCall">
+<p><a href="#ExDllCall">#5</a>: Retrieving item count and ID.</p>
+<pre>
 MyMenu := MenuCreate()
 MyMenu.Add "Item 1", "no"
 MyMenu.Add "Item 2", "no"
@@ -497,10 +507,11 @@ last_id := DllCall("GetMenuItemID", "ptr", MyMenu.Handle, "int", item_count-1)
 
 MsgBox "MyMenu has " item_count " items, and its last item has ID " last_id
 
-no() {
+no(*) {
     <em>; Do nothing.</em>
 }
 </pre>
+</div>
 
 </body>
 </html>
