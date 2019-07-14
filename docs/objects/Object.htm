@@ -1,8 +1,8 @@
 <!DOCTYPE HTML>
 <html lang="en">
 <head>
-<title>Basic Object - Methods &amp; Properties | AutoHotkey v2</title>
-<meta name="description" content="A basic object provides an interface to perform actions such as inserting or removing a key, getting the number of keys, cloning the object, etc." />
+<title>Object - Methods &amp; Properties | AutoHotkey v2</title>
+<meta name="description" content="Object is the basic class from which other AutoHotkey object classes derive." />
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <link href="../static/theme.css" rel="stylesheet" type="text/css" />
@@ -12,300 +12,298 @@
 
 <h1>Object</h1>
 
-<p class="warning"><strong>Note:</strong> This documentation covers both the current behaviour as of v2.0-a103 and some planned changes. See <a href="https://www.autohotkey.com/boards/viewtopic.php?f=37&t=57591">Objects (forum topic)</a> for details.</p>
-<p>AutoHotkey's basic object datatype is an associative array with features which allow its behaviour to be <a href="../Objects.htm#Custom_Objects">customized</a>.  By default in current and previous versions, all objects created by <code>{}</code>, <code>[]</code>, <code>Object()</code> and <code>Array()</code> are of the same type and support the same methods and properties.</p>
-<p>However, a future release will split this jack of all trades (master of none) object into distinct types: Array, Map, and the base type Object. Script authors may start to prepare by limiting usage to methods based on how the object was created or how it is intended to be used.</p>
+<p><strong>Object</strong> is the basic class from which other AutoHotkey object classes derive. Each instance of Object consists of the following:</p>
 <ul>
-  <li><code>[]</code>, <code>Array()</code> and <a href="../Functions.htm#Variadic">variadic functions</a> will create an Array object. <a href="../commands/StrSplit.htm">StrSplit</a> and <a href="../Variables.htm#Args">A_Args</a> will also return an Array object.</li>
-  <li>If the object is intended to be an associative array, the script will need to be updated when the Map type is introduced. For now, create the object with <code>{}</code> or <code>Object()</code> and use only the Map or general methods.</li>
-  <li>When accessing properties, always use <code>obj.<i>identifier</i></code> or <code>obj.%<i>expression</i>%</code>, not <code>obj[<i>expression</i>]</code>. The latter should be used only for array or associative array elements.</li>
-  <li>When accessing associative array elements, always use <code>obj[<i>expression</i>]</code>, not <code>obj.<i>literal</i></code>.</li>
+  <li>Own properties: a set of properties which belong to this specific Object.</li>
+  <li>Own methods: a set of methods which belong to this specific Object.</li>
+  <li>A base object, from which properties and methods are inherited.</li>
 </ul>
-<p>Further changes to scripts will be required. See <a href="https://www.autohotkey.com/boards/viewtopic.php?f=37&t=57591">Objects (forum topic)</a> for details. This forum topic introduces a script named Object.ahk which implements a preview of the planned changes. Consider experimenting with the script or reading its documentation to prepare for v2.0.</p>
-
-<p><strong>General methods:</strong></p>
+<p>There are value properties and dynamic properties. Value properties simply contain a value. Dynamic properties do not contain a value, but instead call a <em>getter</em> or <em>setter</em> function when accessed. The <em>getter</em> or <em>setter</em> can be overridden by a derived object (the easiest way is to define them within a class).</p>
+<p>The documentation below uses <code>Obj</code> as a placeholder for any instance of Object. All instances of Object are based on <code>Object.Prototype</code>, from which the following predefined methods and properties are inherited:</p>
+<p><strong>Methods:</strong></p>
 <ul>
 	<li><a href="#Clone">Clone</a></li>
-	<li><a href="#NewEnum">_NewEnum</a></li>
-	<li>Deprecated: <a href="#SetCapacity">SetCapacity</a> / <a href="#GetCapacity">GetCapacity</a></li>
-	<li>Deprecated: <a href="#GetAddress">GetAddress</a></li>
+  <li><a href="#DefineMethod">DefineMethod</a></li>
+  <li><a href="#DefineProp">DefineProp</a></li>
+  <li><a href="#DeleteMethod">DeleteMethod</a></li>
+  <li><a href="#DeleteProp">DeleteProp</a></li>
+  <li><a href="#GetMethod">GetMethod</a></li>
+  <li><a href="#GetOwnPropDesc">GetOwnPropDesc</a></li>
+  <li><a href="#HasBase">HasBase</a></li>
+  <li><a href="#HasMethod">HasMethod</a></li>
+  <li><a href="#HasOwnMethod">HasOwnMethod</a></li>
+  <li><a href="#HasOwnProp">HasOwnProp</a></li>
+  <li><a href="#HasProp">HasProp</a></li>
+  <li><a href="#OwnMethods">OwnMethods</a></li>
+  <li><a href="#OwnProps">OwnProps</a></li>
 </ul>
-<p><strong>Array methods:</strong></p>
-<ul>
-  <li><a href="#InsertAt">InsertAt</a> / <a href="#RemoveAt">RemoveAt</a></li>
-  <li><a href="#Push">Push</a> / <a href="#Pop">Pop</a></li>
-  <li><a href="#Length">Length</a></li>
-  <li>Deprecated: <a href="#MinMaxIndex">MinIndex / MaxIndex</a></li>
-</ul>
-<p><strong>Map methods:</strong></p>
-<ul>
-  <li><a href="#Delete">Delete</a></li>
-	<li><a href="#Count">Count</a></li>
-	<li><a href="#HasKey">HasKey</a></li>
-</ul>
-<p><strong>General properties:</strong></p>
+<p><strong>Properties:</strong></p>
 <ul>
 	<li><a href="#Base">Base</a></li>
 </ul>
 <p><strong>Functions:</strong></p>
 <ul>
-	<li><a href="#GetBase">ObjGetBase</a></li>
-	<li><a href="#SetBase">ObjSetBase</a></li>
-	<li>Deprecated: <a href="#RawGet">ObjRawGet</a></li>
-	<li>Deprecated: <a href="#RawSet">ObjRawSet</a></li>
+	<li><a href="#GetBase">ObjGetBase</a>, <a href="#SetBase">ObjSetBase</a>: Retrieve or set the object's <a href="../Objects.htm#Custom_Objects">base object</a>.</li>
+  <li><a href="#GetCapacity">ObjGetCapacity</a>, <a href="#SetCapacity">ObjSetCapacity</a>: Retrieve or set an Object's capacity to contain properties.</li>
+  <li><a href="#OwnPropCount">ObjOwnPropCount</a>: Retrieve the number of own properties contained by an object.</li>
+	<li>Deprecated: <a href="#RawGet">ObjRawGet</a>, <a href="#RawSet">ObjRawSet</a>: Retrieve or set an object's own value property, bypassing any meta-functions and potentially overwriting property accessor functions.</li>
+  <li>ObjHasOwnProp, ObjHasProp, ObjOwnMethods, ObjOwnProps: Equivalent to the corresponding predefined method, but cannot be overridden.</li>
 </ul>
-<p>Each method also has an equivalent function, which can be used to bypass any <a href="../Objects.htm#Custom_Objects">custom behaviour</a> implemented by the object -- it is recommended that these functions only be used for that purpose.  To call one, prefix the method name with "Obj" (but for _NewEnum, omit the underscore) and pass the target object as the first parameter.  For example:</p>
-<pre>array := [1, 2, 3]
-MsgBox ObjLength(array) " = " array.Length()</pre>
-&nbsp;
 
-<div class="methodShort" id="InsertAt"><h2>InsertAt</h2>
-<p>Inserts one or more values at a given position within a linear array.</p>
-<pre class="Syntax">Object.<span class="func">InsertAt</span>(Pos, Value1 <span class="optional">, Value2, ... Value<i>N</i></span>)</pre>
-<dl>
-  <dt>Pos</dt>
-  <dd>
-    <p>Type: <a href="../Concepts.htm#numbers">Integer</a></p>
-    <p>The position to insert <em>Value1</em> at. Subsequent values are inserted at Pos+1, Pos+2, etc.</p>
-  </dd>
-  <dt>Value1 ...</dt>
-  <dd>
-    <p>One or more values to insert. To insert an array of values, pass <code><a href="../Functions.htm#VariadicCall">theArray*</a></code> as the last parameter.</p>
-  </dd>
-</dl>
-<h3>Remarks</h3>
-<p>InsertAt is the counterpart of <a href="#RemoveAt">RemoveAt</a>.</p>
-<p>As Objects are associative arrays, <em>Pos</em> is also the integer key which will be associated with <em>Value1</em>. Any items previously at or to the right of <em>Pos</em> are shifted to the right by the exact number of value parameters, even if some values are missing (i.e. the object is a sparse array). For example:</p>
-<pre>x := []
-x.InsertAt(1, "A", "B") <em>; =&gt;  ["A", "B"]</em>
-x.InsertAt(2, "C")      <em>; =&gt;  ["A", "C", "B"]</em>
-
-<em>; Sparse/unassigned elements are preserved:</em>
-x := ["A", , "C"]
-x.InsertAt(2, "B")      <em>; =&gt;  ["A", "B",    , "C"]</em>
-
-x := ["C"]
-x.InsertAt(1, , "B")    <em>; =&gt;  [   , "B", "C"]</em></pre>
-<p>InsertAt should be used only when the object's integer keys represent positions in a linear array. If the object contains arbitrary integer keys such as IDs or handles, InsertAt is likely to cause unwanted side-effects. For example:</p>
-<pre>x := [], handleX := 0x4321, handleY := 0x1234
-x.InsertAt(handleX, "A")
-MsgBox x[handleX]  <em>; A - okay</em>
-x.InsertAt(handleY, "B")
-MsgBox x[handleX]  <em>; Empty</em>
-MsgBox x[handleX+1]  <em>; This is the new "position" of "A"</em></pre>
-<p>InsertAt does not affect string or object keys, so can be safely used with objects containing mixed key types.</p>
-</div>
-
-<div class="methodShort" id="RemoveAt"><h2>RemoveAt</h2>
-<p>Removes items from the given position in a linear array.</p>
-<pre class="Syntax">Object.<span class="func">RemoveAt</span>(Pos <span class="optional">, Length</span>)</pre>
-<dl>
-  <dt>Pos</dt>
-  <dd>
-    <p>Type: <a href="../Concepts.htm#numbers">Integer</a></p>
-    <p>The position of the value or values to remove.</p>
-  </dd>
-  
-  <dt>Length</dt>
-  <dd>
-    <p>Type: <a href="../Concepts.htm#numbers">Integer</a></p>
-    <p>The length of the range of values to remove. Items from <code>Pos</code> to <code>Pos+Length-1</code> are removed. If omitted, one item is removed.</p>
-  </dd>
-  
-  <dt>Return Value</dt>
-  <dd><p>If <em>Length</em> is omitted, the value removed from <em>Pos</em> is returned (blank if none). Otherwise the return value is the number of removed items which had values, which can differ from <em>Length</em> in a sparse array, but is always between 0 and <em>Length</em> (inclusive).</p></dd>
-</dl>
-<h3>Remarks</h3>
-<p>RemoveAt is the counterpart of <a href="#InsertAt">InsertAt</a>.</p>
-<p>The remaining items to the right of <em>Pos</em> are shifted to the left by <em>Length</em> (or 1 if omitted), even if some items in the removed range did not have values. For example:</p>
-<pre>x := ["A", "B"]
-MsgBox x.RemoveAt(1)  <em>; A</em>
-MsgBox x[1]           <em>; B</em>
-
-x := ["A", , "C"]
-MsgBox x.RemoveAt(1, 2)  <em>; 1</em>
-MsgBox x[1]              <em>; C</em></pre>
-<p>RemoveAt should be used only when the object's integer keys represent positions in a linear array. If the object contains arbitrary integer keys such as IDs or handles, RemoveAt is likely to cause unwanted side-effects. For example:</p>
-<pre>x := {0x4321: "A", 0x1234: "B"}
-MsgBox x.RemoveAt(0x1234) <em>; B</em>
-MsgBox x[0x4321]          <em>; Empty</em>
-MsgBox x[0x4321-1]        <em>; A</em></pre>
-<p>RemoveAt does not affect string or object keys, so can be safely used with objects containing mixed key types.</p>
-</div>
-
-<div class="methodShort" id="Push"><h2>Push</h2>
-<p>Appends values to the end of an array.</p>
-<pre class="Syntax">Object.<span class="func">Push</span>(<span class="optional"> Value, Value2, ..., Value<i>N</i> </span>)</pre>
-<dl>
-  <dt>Value ...</dt>
-  <dd><p>One or more values to insert. To insert an array of values, pass <code><a href="../Functions.htm#VariadicCall">theArray*</a></code> as the last parameter.</p></dd>
-  <dt>Return Value</dt>
-  <dd>
-    <p>Type: <a href="../Concepts.htm#numbers">Integer</a></p>
-    <p>The position of the last inserted value. Can be negative if the array only contained elements at negative indices.</p>
-  </dd>
-</dl>
-<h3>Remarks</h3>
-<p>The first value is inserted at position 1 if the array is empty or contains only string or object keys.</p>
-<p>Otherwise, the first value is inserted at <code>Object.MaxIndex() + 1</code>, even if that position is negative or zero. If this is undesired and the object can contain negative keys, <code>Object.InsertAt(Object.Length() + 1, ...)</code> can be used intead.</p>
-</div>
-
-<div class="methodShort" id="Pop"><h2>Pop</h2>
-<p>Removes and returns the last array element.</p>
-<pre class="Syntax">Value := Object.<span class="func">Pop</span>()</pre>
-<p>If there are no array elements, the return value is an empty string. Otherwise, it is equivalent to the following:</p>
-<pre>Value := Object.RemoveAt(Object.Length())</pre>
-</div>
-
-<div class="methodShort" id="Delete"><h2>Delete</h2>
-<p>Removes key-value pairs from an object.</p>
-<pre class="Syntax">Object.<span class="func">Delete</span>(Key)
-Object.<span class="func">Delete</span>(FirstKey, LastKey)</pre>
-<dl>
-  <dt>Key</dt>
-  <dd>
-    <p>Type: <a href="../Concepts.htm#numbers">Integer</a> or <a href="../Concepts.htm#strings">String</a></p>
-    <p>Any single key.</p>
-  </dd>
-  <dt>FirstKey, LastKey</dt>
-  <dd>
-    <p>Type: <a href="../Concepts.htm#numbers">Integer</a> or <a href="../Concepts.htm#strings">String</a></p>
-    <p>Any valid range of integer or string keys, where <em>FirstKey</em> &lt;= <em>LastKey</em>. Both keys must be the same type.</p>
-  </dd>
-  <dt>Return Value</dt>
-  <dd><p>If there is exactly one parameter, the removed value is returned (blank if none). Otherwise the return value is the number of matching keys which were found and removed.</p></dd>
-</dl>
-<h3>Remarks</h3>
-<p>Unlike <a href="#RemoveAt">RemoveAt</a>, Delete does not affect any of the key-value pairs that it does not remove. For example:</p>
-<pre>x := ["A", "B"]
-MsgBox x.RemoveAt(1)  <em>; A</em>
-MsgBox x[1]           <em>; B</em>
-
-x := ["A", "B"]
-MsgBox x.Delete(1)    <em>; A</em>
-MsgBox x[1]           <em>; Empty</em></pre>
-</div>
-
-<div class="methodShort" id="MinMaxIndex"><h2>MinIndex / MaxIndex</h2>
-<p class="warning"><strong>Deprecated:</strong> These methods will be unavailable in future releases. Array objects will be restricted to indices 1 .. Length. Map objects will not support array-like functionality.</p>
-<pre class="Syntax">MinIndex := Object.<span class="func">MinIndex</span>()
-MaxIndex := Object.<span class="func">MaxIndex</span>()</pre>
-<p>If any integer keys are present, MinIndex returns the lowest and MaxIndex returns the highest.  Otherwise an empty string is returned.</p></div>
-
-<div class="methodShort" id="Length"><h2>Length</h2>
-<pre class="Syntax">Length := Object.<span class="func">Length</span>()</pre>
-<p>Returns the length of a linear array beginning at position 1; that is, the highest positive integer key contained by the object, or 0 if there aren't any.</p>
-<pre>
-MsgBox ["A", "B", "C"].Length()  <em>;  3</em>
-MsgBox ["A",    , "C"].Length()  <em>;  3</em>
-MsgBox {-10: 0, 10: 0}.Length()  <em>; 10</em>
-MsgBox {-10: 0, -1: 0}.Length()  <em>;  0</em>
-</pre></div>
-
-<div class="methodShort" id="Count"><h2>Count</h2>
-<pre class="Syntax">Count := Object.<span class="func">Count</span>()</pre>
-<p>Returns the number of key-value pairs present in the object.</p>
-<pre>
-MsgBox {A: 1, Z: 26}.Count()    <em>;  2</em>
-MsgBox ["A", "B", "C"].Count()  <em>;  3</em>
-MsgBox ["A",    , "C"].Count()  <em>;  2</em>
-</pre>
-</div>
-
-<div class="methodShort" id="SetCapacity"><h2>SetCapacity</h2>
-<p>Adjusts the capacity of an object or one of its fields.</p>
-<p class="warning"><strong>Deprecated:</strong> This method will be unavailable in future releases. For binary data, use a <a href="Buffer.htm">Buffer</a> object.</p>
-<pre class="Syntax">Object.<span class="func">SetCapacity</span>(MaxItems)
-Object.<span class="func">SetCapacity</span>(Key, ByteSize)</pre>
-<dl>
-	<dt>MaxItems</dt>
-	<dd>
-    <p>Type: <a href="../Concepts.htm#numbers">Integer</a></p>
-    <p>The maximum number of key-value pairs the object should be able to contain before it must be automatically expanded.  If less than the current number of key-value pairs, that number is used instead, and any unused space is freed.</p></dd>
-	<dt>Key</dt>
-	<dd>
-    <p>Type: <a href="../Concepts.htm#numbers">Integer</a> or <a href="../Concepts.htm#strings">String</a></p>
-    <p>Any valid key.</p>
-  </dd>
-	<dt>ByteSize</dt>
-	<dd>
-    <p>Type: <a href="../Concepts.htm#numbers">Integer</a></p>
-    <p>The new size in bytes of the field's string buffer, excluding the null-terminator.  If the field does not exist, it is created.  If <i>ByteSize</i> is zero, the buffer is freed but the empty field is not removed.  If <i>ByteSize</i> is less than the current size, excess data is truncated; otherwise all existing data is preserved.</p>
-  </dd>
-	<dt><strong>Returns</strong></dt>
-	<dd>
-    <p>Type: <a href="../Concepts.htm#numbers">Integer</a></p>
-    <p>The new capacity. An exception is thrown on failure.</p>
-  </dd>
-</dl>
-</div>
-
-<div class="methodShort" id="GetCapacity"><h2>GetCapacity</h2>
-<p class="warning"><strong>Deprecated:</strong> This method will be unavailable in future releases. For binary data, use a <a href="Buffer.htm">Buffer</a> object.</p>
-<pre class="Syntax">MaxItems := Object.<span class="func">GetCapacity</span>()
-ByteSize := Object.<span class="func">GetCapacity</span>(Key)</pre>
-<p>Returns the current capacity of an object or one of its fields.</p>
-<p>Returns an empty string if the field does not exist or does not contain a string.</p></div>
-
-<div class="methodShort" id="GetAddress"><h2>GetAddress</h2>
-<p class="warning"><strong>Deprecated:</strong> This method will be unavailable in future releases. For binary data, use a <a href="Buffer.htm">Buffer</a> object.</p>
-<pre class="Syntax">Ptr := Object.<span class="func">GetAddress</span>(Key)</pre>
-<p>Returns the current address of the field's string buffer, if it has one. If the field contains an empty string and has zero capacity, the address is not unique and must not be modified. An exception is thrown if the field contains a pure number or object, or does not exist.</p></div>
-
-<div class="methodShort" id="NewEnum"><h2>_NewEnum</h2>
-<pre class="Syntax">Enum := Object.<span class="func">_NewEnum</span>()</pre>
-<p>Returns a new <a href="Enumerator.htm">enumerator</a> to enumerate this object's key-value pairs. This method is usually not called directly, but by the <a href="../commands/For.htm">for-loop</a>.</p>
-<p class="warning"><strong>Note:</strong> The above applies to v2.0-a103, but changes are planned for the enumeration interface. Distinctions will be made between array elements, properties and methods. Enumeration of properties or methods will require an explicit method call to retrieve the appropriate enumerator.  See <a href="https://www.autohotkey.com/boards/viewtopic.php?f=37&t=57591">Objects (forum topic)</a> for details.</p>
-</div>
-
-<div class="methodShort" id="HasKey"><h2>HasKey</h2>
-<pre class="Syntax">Object.<span class="func">HasKey</span>(Key)</pre>
-<p>Returns true if <i>Key</i> is associated with a value (even "") within <i>Object</i>, otherwise false.</p></div>
+<h1>Methods</h1>
 
 <div class="methodShort" id="Clone"><h2>Clone</h2>
-<pre class="Syntax">Clone := Object.<span class="func">Clone</span>()</pre>
-<p>Returns a shallow copy of the object.</p></div>
+<p>Returns a shallow copy of the object.</p>
+<pre class="Syntax">Clone := Obj.<span class="func">Clone</span>()</pre>
+<p>Each property or method owned by the object is copied into the clone. Object <em>references</em> are copied (like with a normal assignment), not the objects themselves; in other words, if a property contains a reference to an object, the clone will contain a reference to the same object.</p>
+<p>Dynamic properties are copied, not invoked.</p>
+<p>The clone has the same base object as the original object.</p>
+</div>
+
+<div class="methodShort" id="DefineMethod"><h2>DefineMethod</h2>
+<p>Defines a new method.</p>
+<pre class="Syntax">Obj.<span class="func">DefineMethod</span>(Name, MethodFunc)</pre>
+<dl>
+  <dt>Name</dt>
+  <dd>
+    <p>Type: <a href="../Concepts.htm#strings">String</a></p>
+    <p>The name of the method.</p>
+  </dd>
+  <dt>MethodFunc</dt>
+  <dd>
+    <p>Type: <a href="Functor.htm">Function Object</a></p>
+    <p>The implementation of the method. The function must accept at least one parameter, which receives a reference to the target object of the method call. This parameter is defined automatically with the name <code>this</code> when the method is created by a class definition.</p>
+  </dd>
+</dl>
+<p>The new method is owned by <em>Obj</em>, but may be inherited by any objects which use <em>Obj</em> as a base. If <em>Obj</em> is a class, the new method only applies to the class itself and subclasses (i.e. it is static). To define a method for all instances of a class, let <em>Obj</em> be the class's <code>Prototype</code>.</p>
+</div>
+
+<div class="methodShort" id="DefineProp"><h2>DefineProp</h2>
+<p>Defines a new dynamic property.</p>
+<pre class="Syntax">Obj.<span class="func">DefineProp</span>(Name, Desc)</pre>
+<dl>
+  <dt>Name</dt>
+  <dd>
+    <p>Type: <a href="../Concepts.htm#strings">String</a></p>
+    <p>The name of the property.</p>
+  </dd>
+  <dt>Desc</dt>
+  <dd>
+    <p>Type: Object</p>
+    <p>An object with zero or more of the following own properties:</p>
+    <p><code>Get</code>: The <a href="Functor.htm">function object</a> to call when the property's value is retrieved.</p>
+    <p><code>Set</code>: The <a href="Functor.htm">function object</a> to call when the property is assigned a value. Its second parameter is the value being assigned.</p>
+  </dd>
+</dl>
+<p>If <em>Get</em> or <em>Set</em> is not defined, it can be inherited from a base object. If <em>Get</em> is undefined, the property can return a value inherited from a base. If <em>Set</em> is undefined in this and all base objects, the property is read-only (attempting to set the property throws an exception).</p>
+</div>
+
+<div class="methodShort" id="DeleteMethod"><h2>DeleteMethod</h2>
+<p>Removes an own method from the object.</p>
+<pre class="Syntax">Obj.<span class="func">DeleteMethod</span>(Name)</pre>
+<dl>
+  <dt>Name</dt>
+  <dd>
+    <p>Type: <a href="../Concepts.htm#strings">String</a></p>
+    <p>A method name. If the object does not own a method by this name, an exception is thrown.</p>
+  </dd>
+</dl>
+</div>
+
+<div class="methodShort" id="DeleteProp"><h2>DeleteProp</h2>
+<p>Removes an own property from the object.</p>
+<pre class="Syntax">Obj.<span class="func">DeleteProp</span>(Name)</pre>
+<dl>
+  <dt>Name</dt>
+  <dd>
+    <p>Type: <a href="../Concepts.htm#strings">String</a></p>
+    <p>A property name.</p>
+  </dd>
+  <dt>Return Value</dt>
+  <dd><p>The value of the removed property (blank if none).</p></dd>
+</dl>
+</div>
+
+<div class="methodShort" id="GetMethod"><h2>GetMethod</h2>
+<p>Retrieves the implementation function of a method.</p>
+<pre class="Syntax">Obj.<span class="func">GetMethod</span>(Name)</pre>
+<dl>
+  <dt>Name</dt>
+  <dd>
+    <p>Type: <a href="../Concepts.htm#strings">String</a></p>
+    <p>A method name.</p>
+  </dd>
+  <dt>Return Value</dt>
+  <dd>
+    <p>Type: <a href="Functor.htm">Function Object</a></p>
+    <p>The implementation of the method. This is either a <a href="Func.htm">Func</a> created by a class definition or an object previously passed to <a href="#DefineMethod">DefineMethod</a>.</p>
+  </dd>
+</dl>
+<p>The method may be owned by the object itself or inherited from a base object.</p>
+</div>
+
+<div class="methodShort" id="GetOwnPropDesc"><h2>GetOwnPropDesc</h2>
+<p>Returns a descriptor for a given property, compatible with <a href="#DefineProp">DefineProp</a>.</p>
+<pre class="Syntax">Obj.<span class="func">GetOwnPropDesc</span>(Name)</pre>
+<dl>
+  <dt>Name</dt>
+  <dd>
+    <p>Type: <a href="../Concepts.htm#strings">String</a></p>
+    <p>A property name.</p>
+  </dd>
+  <dt>Return Value</dt>
+  <dd>
+    <p>Type: Object</p>
+    <p>A new object with zero or more of the following own properties:</p>
+    <p><code>Get</code>: The <a href="Functor.htm">function object</a> which is called when the property's value is retrieved, if defined in <em>Obj</em>.</p>
+    <p><code>Set</code>: The <a href="Functor.htm">function object</a> which is called when the property is assigned a value, if defined in <em>Obj</em>.</p>
+  </dd>
+</dl>
+<p>Modifying the returned object has no effect on <em>Obj</em> unless <a href="#DefineProp">DefineProp</a> is called.</p>
+</div>
+
+<div class="methodShort" id="HasOwnMethod"><h2>HasOwnMethod</h2>
+<pre class="Syntax">Obj.<span class="func">HasOwnMethod</span>(Name)</pre>
+<p>Returns true if the object owns a method by this name, otherwise false.</p>
+</div>
+
+<div class="methodShort" id="HasOwnProp"><h2>HasOwnProp</h2>
+<pre class="Syntax">Obj.<span class="func">HasOwnProp</span>(Name)</pre>
+<p>Returns true if the object owns a property by this name, otherwise false.</p>
+</div>
+
+<div class="methodShort" id="HasBase"><h2>HasBase</h2>
+<pre class="Syntax">Obj.<span class="func">HasBase</span>(BaseObj)</pre>
+<p>Returns true if <em>BaseObj</em> is a direct or indirect base of <em>Obj</em>, otherwise false. For example, <code>Obj.HasBase(Array.Prototype)</code> is true if <em>Obj</em> is an instance of Array or any derived class. This the same check performed by <code>Obj is Array</code>; however, instances can be based on other instances, whereas <code>is</code> requires a Class.</p>
+</div>
+
+<div class="methodShort" id="HasMethod"><h2>HasMethod</h2>
+<pre class="Syntax">Obj.<span class="func">HasMethod</span>(Name)</pre>
+<p>Returns true if the object has a method by this name, otherwise false. The method may be owned by the object itself or inherited from a base object.</p>
+</div>
+
+<div class="methodShort" id="HasProp"><h2>HasProp</h2>
+<pre class="Syntax">Obj.<span class="func">HasProp</span>(Name)</pre>
+<p>Returns true if the object has a property by this name, otherwise false. The property may be owned by the object itself or inherited from a base object.</p>
+</div>
+
+<div class="methodShort" id="OwnMethods"><h2>OwnMethods</h2>
+<p>Enumerates the object's own methods.</p>
+<pre class="Syntax">For Name <span class="optional">, MethodFunc</span> in Obj.<span class="func">OwnMethods</span>()</pre>
+<p>Returns a new <a href="Enumerator.htm">enumerator</a>. The enumerator is typically passed directly to a <a href="../commands/For.htm">for-loop</a>, which calls the enumerator once for each iteration of the loop. Each call to the enumerator returns the next method name and/or implementation function. The for-loop's variables correspond to the enumerator's parameters, which are:</p>
+<dl>
+  <dt>Name</dt>
+  <dd>
+    <p>Type: <a href="../Concepts.htm#strings">String</a></p>
+    <p>The method's name.</p>
+  </dd>
+  <dt>MethodFunc</dt>
+  <dd>
+    <p>Type: <a href="Functor.htm">Function Object</a></p>
+    <p>The implementation of the method. This is either a <a href="Func.htm">Func</a> created by a class definition or an object previously passed to <a href="#DefineMethod">DefineMethod</a>.</p>
+  </dd>
+</dl>
+</div>
+
+<div class="methodShort" id="OwnProps"><h2>OwnProps</h2>
+<p>Enumerates the object's own properties.</p>
+<pre class="Syntax">For Name <span class="optional">, Value</span> in Obj.<span class="func">OwnProps</span>()</pre>
+<p>Returns a new <a href="Enumerator.htm">enumerator</a>. The enumerator is typically passed directly to a <a href="../commands/For.htm">for-loop</a>, which calls the enumerator once for each iteration of the loop. Each call to the enumerator returns the next property name and/or value. The for-loop's variables correspond to the enumerator's parameters, which are:</p>
+<dl>
+  <dt>Name</dt>
+  <dd>
+    <p>Type: <a href="../Concepts.htm#strings">String</a></p>
+    <p>The property's name.</p>
+  </dd>
+  <dt>Value</dt>
+  <dd>
+    <p>The property's value.</p>
+    <p>If the property has a getter method, it is called to obtain the value (unless <em>Value</em> is omitted).</p>
+  </dd>
+</dl>
+</div>
+
+<h1>Properties</h1>
 
 <div class="methodShort" id="Base"><h2>Base</h2>
 <p>Retrieves or sets the object's <a href="../Objects.htm#Custom_Objects">base object</a>.</p>
-<pre class="Syntax">BaseObject := Object.Base</pre>
-<pre class="Syntax">Object.Base := BaseObject</pre>
-<p><em>BaseObject</em> must be an object or an empty string.</p>
-<p>Properties and methods defined by a base object are accessible only while that base object is in use. Therefore, changing <em>Object</em>'s base also changes the set of available properties and methods.</p>
+<pre class="Syntax">BaseObj := Obj.Base</pre>
+<pre class="Syntax">Obj.Base := BaseObj</pre>
+<p><em>BaseObj</em> must be an Object.</p>
+<p>If assigning the new base would change the native type of the object, an exception is thrown. An object's native type is decided by the nearest prototype object belonging to a built-in class, such as <code>Object.Prototype</code> or <code>Array.Prototype</code>. For example, an instance of Array must always derive from <code>Array.Prototype</code>, either directly or indirectly.</p>
+<p></p>
+<p>Properties and methods are inherited from the base object dynamically, so changing an object's base also changes which inherited properties and methods are available.</p>
 <p>See also: <a href="#GetBase">ObjGetBase</a>, <a href="#SetBase">ObjSetBase</a></p>
 </div>
 
+<h1>Functions</h1>
+
 <div class="methodShort" id="RawGet"><h2>ObjRawGet</h2>
-<p>Retrieves the value associated with a given key within <em>Object</em>.</p>
-<p class="warning"><strong>Deprecated:</strong> This function may be removed or replaced in a future release. Distinctions will be made between array elements, properties and methods. This function will become inapplicable.</p>
-<pre class="Syntax">Value := <span class="func">ObjRawGet</span>(Object, Key)</pre>
-<p>If <em>Object</em> does not contain <em>Key</em>, the return value is an empty string. No <a href="../Objects.htm#Meta_Functions">meta-functions</a> or <a href="../Objects.htm#Custom_Classes_property">property functions</a> are called. The content of <em>Object</em>'s base objects are not considered, and since <a href="#Base">base</a> itself is a property and not a key-value pair <a href="../Objects.htm#base-key">by default</a>, it is typically not returned.</p>
-<p>An exception is thrown if <em>Object</em> is of an incorrect type.</p>
+<p>Retrieves the value of an object's own property.</p>
+<p class="warning"><strong>Deprecated:</strong> This function may be removed or replaced in a future release.</p>
+<pre class="Syntax">Value := <span class="func">ObjRawGet</span>(Obj, Name)</pre>
+<p>If the object does not own a property by this name or it is a dynamic property, the return value is an empty string. No <a href="../Objects.htm#Meta_Functions">meta-functions</a> or <a href="../Objects.htm#Custom_Classes_property">property functions</a> are called. Inherited properties are not considered.</p>
+<p>An exception is thrown if <em>Obj</em> is of an incorrect type.</p>
 </div>
 
 <div class="methodShort" id="RawSet"><h2>ObjRawSet</h2>
-<p>Stores or overwrites a key-value pair in the object.</p>
-<p class="warning"><strong>Deprecated:</strong> This function may be removed or replaced in a future release. Distinctions will be made between array elements, properties and methods. This function will become inapplicable.</p>
-<pre class="Syntax"><span class="func">ObjRawSet</span> Object, Key, Value</pre>
-<p>This function is provided to allow scripts to bypass the __Set <a href="../Objects.htm#Meta_Functions">meta-function</a> and <a href="../Objects.htm#Custom_Classes_property">properties</a>. If that isn't required, a normal assignment should be used instead. For example: <code>Object[Key] := Value</code></p>
+<p>Creates a new value property or sets the value of an existing one.</p>
+<p class="warning"><strong>Deprecated:</strong> This function may be removed or replaced in a future release.</p>
+<pre class="Syntax"><span class="func">ObjRawSet</span> Obj, Name, Value</pre>
+<p>This function is provided to allow scripts to bypass the __Set <a href="../Objects.htm#Meta_Functions">meta-function</a> and <a href="../Objects.htm#Custom_Classes_property">properties</a>. If that isn't required, a normal assignment should be used instead. For example: <code>Obj.%Name% := Value</code></p>
 <p>Since the purpose is to bypass meta-functions, this is a function only, not a method. Calling a built-in method generally causes the __Call meta-function to be called.</p>
-<p>An exception is thrown if <em>Object</em> is of an incorrect type.</p>
+<p>An exception is thrown if <em>Obj</em> is of an incorrect type.</p>
 </div>
 
 <div class="methodShort" id="GetBase"><h2>ObjGetBase</h2>
 <p>Returns the object's <a href="../Objects.htm#Custom_Objects">base object</a>.</p>
-<pre class="Syntax">BaseObject := <span class="func">ObjGetBase</span>(Object)</pre>
-<p>No <a href="../Objects.htm#Meta_Functions">meta-functions</a> are called. The object's base is returned even if the key "base" has been stored in the object (such as with <a href="#RawSet">ObjRawSet</a> or <a href="#SetCapacity">SetCapacity</a>). An empty string is returned if the object has no base.</p>
-<p>An exception is thrown if <em>Object</em> is of an incorrect type.</p>
+<pre class="Syntax">BaseObj := <span class="func">ObjGetBase</span>(Obj)</pre>
+<p>No <a href="../Objects.htm#Meta_Functions">meta-functions</a> or <a href="../Objects.htm#Custom_Classes_property">property functions</a> are called. Calling this function is equivalent to invoking the default implementation of the <a href="#Base">Base</a> property, even when that property has been overridden.</p>
+<p>An exception is thrown if <em>Obj</em> is of an incorrect type.</p>
 <p>See also: <a href="#Base">Base property</a></p>
 </div>
 
 <div class="methodShort" id="SetBase"><h2>ObjSetBase</h2>
 <p>Sets the object's <a href="../Objects.htm#Custom_Objects">base object</a>.</p>
-<pre class="Syntax"><span class="func">ObjSetBase</span>(Object, BaseObject)</pre>
-<p>No <a href="../Objects.htm#Meta_Functions">meta-functions</a> are called. The object's base is set even if the key "base" has been stored in the object (such as with <a href="#RawSet">ObjRawSet</a> or <a href="#SetCapacity">SetCapacity</a>). An empty string is returned if the object has no base.</p>
-<p>An exception is thrown if <em>Object</em> is of an incorrect type or if <em>BaseObject</em> is not an object or empty string.</p>
+<pre class="Syntax"><span class="func">ObjSetBase</span>(Obj, BaseObj)</pre>
+<p>No <a href="../Objects.htm#Meta_Functions">meta-functions</a> or <a href="../Objects.htm#Custom_Classes_property">property functions</a> are called. Calling this function is equivalent to invoking the default implementation of the <a href="#Base">Base</a> property, even when that property has been overridden.</p>
+<p>An exception is thrown if <em>Obj</em> or <em>BaseObj</em> is of an incorrect type.</p>
 <p>See also: <a href="#Base">Base property</a></p>
+</div>
+
+<div class="methodShort" id="OwnPropCount"><h2>ObjOwnPropCount</h2>
+<p>Returns the number of properties owned by an object.</p>
+<pre class="Syntax">Count := <span class="func">ObjOwnPropCount</span>(Obj)</pre>
+</div>
+
+<div class="methodShort" id="SetCapacity"><h2>ObjSetCapacity</h2>
+<p>Sets the current capacity of the object's internal array of own properties.</p>
+<pre class="Syntax"><span class="func">ObjSetCapacity</span>(Obj, MaxProps)</pre>
+<dl>
+	<dt>MaxProps</dt>
+	<dd>
+    <p>Type: <a href="../Concepts.htm#numbers">Integer</a></p>
+    <p>The new capacity. If less than the current number of own properties, that number is used instead, and any unused space is freed.</p>
+  </dd>
+	<dt>Return Value</dt>
+	<dd>
+    <p>Type: <a href="../Concepts.htm#numbers">Integer</a></p>
+    <p>The new capacity.</p>
+  </dd>
+</dl>
+<p>An exception is thrown if <em>Obj</em> is of an incorrect type.</p>
+</div>
+
+<div class="methodShort" id="GetCapacity"><h2>ObjGetCapacity</h2>
+<pre class="Syntax">MaxItems := <span class="func">ObjGetCapacity</span>(Obj)</pre>
+<dl>
+	<dt>Return Value</dt>
+	<dd>
+    <p>Type: <a href="../Concepts.htm#numbers">Integer</a></p>
+    <p>The current capacity of the object's internal array of properties.</p>
+  </dd>
+</dl>
+<p>An exception is thrown if <em>Obj</em> is of an incorrect type.</p>
 </div>
 
 </body>

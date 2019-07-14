@@ -285,7 +285,9 @@ tocData = [
   ["Object Types","",
   [
     ["Object","objects/Object.htm"],
+    ["Array Object","objects/Array.htm"],
     ["Buffer Object","objects/Buffer.htm"],
+    ["Class Object","objects/Class.htm"],
     ["Enumerator Object","objects/Enumerator.htm"],
     ["Exception Object","commands/Throw.htm#Exception"],
     ["File Object","objects/File.htm"],
@@ -293,7 +295,8 @@ tocData = [
     ["Function Objects","objects/Functor.htm"],
     ["Gui Object","objects/Gui.htm"],
     ["GuiControl Object","objects/GuiControl.htm"],
-    ["Menu/MenuBar object","objects/Menu.htm"],
+    ["Map Object","objects/Map.htm"],
+    ["Menu/MenuBar Object","objects/Menu.htm"],
     ["RegExMatch Object","commands/RegExMatch.htm#MatchObject"]
   ]],
   ["Process","commands/Process.htm",

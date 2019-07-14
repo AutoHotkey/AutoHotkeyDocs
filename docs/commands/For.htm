@@ -14,54 +14,60 @@
 
 <p>Repeats a series of functions once for each key-value pair in an object.</p>
 
-<pre class="Syntax"><span class="func">For</span> Key <span class="optional">, Value</span> in Expression</pre>
+<pre class="Syntax"><span class="func">For</span> Value1 <span class="optional">, Value2</span> in Expression</pre>
 <h2>Parameters</h2>
 <dl>
 
-  <dt>Key</dt>
-  <dt>Value</dt>
+  <dt>Value1</dt>
+  <dt>Value2</dt>
   <dd>
     <p>Type: <a href="../Concepts.htm#variables">Variable</a></p>
-    <p>The variables in which to store the values returned by the enumerator at the beginning of each iteration - usually the key and value of each key-value pair within the object. The actual nature of these values is defined by the enumerator (and the type of enumerator is defined by the target object).</p>
+    <p>The variables in which to store the values returned by the enumerator at the beginning of each iteration. The nature of these values is defined by the enumerator, which is determined by <em>Expression</em>.</p>
     <p>When the loop breaks or completes, these variables are restored to their former values.</p>
   </dd>
 
   <dt>Expression</dt>
   <dd>
     <p>Type: <a href="../Concepts.htm#objects">Object</a></p>
-    <p>An <a href="../Variables.htm#Expressions">expression</a> which results in an object, or a variable which contains an object.</p>
+    <p>An <a href="../Variables.htm#Expressions">expression</a> which results in an enumerable object, or a variable which contains an enumerable object.</p>
   </dd>
 
 </dl>
 
 <h2>Remarks</h2>
-<p>The parameter list can optionally be enclosed in parentheses. For example: <code>for (key in myobject)</code></p>
-<p><i>Expression</i> is evaluated only once, before the loop begins. The resulting object's <code>_NewEnum</code> method is called to retrieve an <a href="../objects/Enumerator.htm"><i>enumerator</i></a> object. At the beginning of each iteration, the enumerator's <a href="../objects/Enumerator.htm#Next">Next</a> method is used to retrieve the next key-value pair. If Next returns false (zero or an empty string), the loop terminates.</p>
+<p>The parameter list can optionally be enclosed in parentheses. For example: <code>for (val in myarray)</code></p>
+<p>The process of enumeration is as follows:</p>
+<ul>
+  <li>Before the loop begins, <i>Expression</i> is evaluated to determine the target object.</li>
+  <li>The object's <code>__Enum</code> method is called to retrieve an <a href="../objects/Enumerator.htm"><i>enumerator</i></a> object. If no such method exists, the object itself is assumed to be an enumerator object.</li>
+  <li>At the beginning of each iteration, the enumerator is <a href="../objects/Enumerator.htm#Call">called</a> to retrieve the next value or pair of values. If it returns false (zero or an empty string), the loop terminates.</li>
+</ul>
 <p>Although not exactly equivalent to a for-loop, the following demonstrates this process:</p>
-<pre>_enum := (<i>Expression</i>)._NewEnum()
-while _enum.Next(Key, Value)
+<pre>_enum := <i>Expression</i>
+try _enum := _enum.__Enum()
+while %_enum%(Value1, Value2)
 {
     ...
 }
 </pre>
-<p>As in the code above, an exception is thrown if <em>Expression</em> or _NewEnum does not yield an object, or if a required method is missing.</p>
-<p>Existing key-value pairs may be modified during the loop, but inserting or removing keys may cause some items to be skipped or enumerated multiple times. One workaround is to build a list of keys to remove, then use a second loop to remove the keys after the first loop completes. Note that <code><a href="../objects/Object.htm#Delete">Object.Delete</a>(<i>first</i>, <i>last</i>)</code> can be used to remove a range of keys without looping.</p>
+<p>As in the code above, an exception is thrown if <em>Expression</em> or __Enum does not yield a object, or if the enumerator object cannot be called.</p>
+<p>While enumerating properties, methods or array elements, it is generally unsafe to insert or remove items of that type. Doing so may cause some items to be skipped or enumerated multiple times. One workaround is to build a list of items to remove, then use a second loop to remove the items after the first loop completes.</p>
 <p>A for-loop is usually followed by a <a href="Block.htm">block</a>, which is a collection of statements that form the <em>body</em> of the loop. However, a loop with only a single statement does not require a block (an &quot;if&quot; and its &quot;else&quot; count as a single statement for this purpose). The One True Brace (OTB) style may optionally be used, which allows the open-brace to appear on the same line rather than underneath. For example: <code>for x, y in z {</code>.</p>
 <p>As with all loops, <a href="Break.htm">Break</a>, <a href="Continue.htm">Continue</a> and <a href="../Variables.htm#Index">A_Index</a> may be used.</p>
 
 <h2>COM Objects</h2>
-<p>Since <i>Key</i> and <i>Value</i> are passed directly to the enumerator's Next method, the values they are assigned depends on what type of object is being enumerated. For COM objects, <i>Key</i> contains the value returned by <a href="http://msdn.microsoft.com/en-us/library/ms221369.aspx">IEnumVARIANT::Next()</a> and <i>Value</i> contains a number which represents its <a href="http://msdn.microsoft.com/en-us/library/cc237865.aspx">variant type</a>. For example, when used with a <a href="http://msdn.microsoft.com/en-us/library/x4k5wbx4.aspx">Scripting.Dictionary</a> object, each <i>Key</i> contains a key from the dictionary and <i>Value</i> is typically 8 for strings and 3 for integers. See <a href="ComObjType.htm">ComObjType</a> for a list of type codes.</p>
-<p>When enumerating a <a href="ComObjArray.htm">SafeArray</a>, <i>Key</i> contains the current element and <i>Value</i> contains its variant type.</p>
+<p>Since <i>Value1</i> and <i>Value2</i> are passed directly to the enumerator, the values they are assigned depends on what type of object is being enumerated. For COM objects, <i>Value1</i> contains the value returned by <a href="http://msdn.microsoft.com/en-us/library/ms221369.aspx">IEnumVARIANT::Next()</a> and <i>Value2</i> contains a number which represents its <a href="http://msdn.microsoft.com/en-us/library/cc237865.aspx">variant type</a>. For example, when used with a <a href="http://msdn.microsoft.com/en-us/library/x4k5wbx4.aspx">Scripting.Dictionary</a> object, each <i>Value1</i> contains a key from the dictionary and <i>Value2</i> is typically 8 for strings and 3 for integers. See <a href="ComObjType.htm">ComObjType</a> for a list of type codes.</p>
+<p>When enumerating a <a href="ComObjArray.htm">SafeArray</a>, <i>Value1</i> contains the current element and <i>Value2</i> contains its variant type.</p>
 
 <h2>Related</h2>
-<p><a href="../objects/Enumerator.htm">Enumerator object</a>, <a href="../objects/Object.htm#NewEnum">Object._NewEnum</a>, <a href="While.htm">While-loop</a>, <a href="Loop.htm">Loop</a>, <a href="Until.htm">Until</a>, <a href="Break.htm">Break</a>, <a href="Continue.htm">Continue</a>, <a href="Block.htm">Blocks</a></p>
+<p><a href="../objects/Enumerator.htm">Enumerator object</a>, <a href="../objects/Object.htm#OwnProps">OwnProps</a>, <a href="../objects/Object.htm#OwnMethods">OwnMethods</a>, <a href="While.htm">While-loop</a>, <a href="Loop.htm">Loop</a>, <a href="Until.htm">Until</a>, <a href="Break.htm">Break</a>, <a href="Continue.htm">Continue</a>, <a href="Block.htm">Blocks</a></p>
 
 <h2>Examples</h2>
 <div class="ex" id="ExBasic">
-<p><a href="#ExBasic">#1</a>: List the key-value pairs of an object:</p>
-<pre>colours := <a href="../Objects.htm#Arrays">Object</a>("red", 0xFF0000, "blue", 0x0000FF, "green", 0x00FF00)
+<p><a href="#ExBasic">#1</a>: List the properties owned by an object:</p>
+<pre>colours := {red: 0xFF0000, blue: 0x0000FF, green: 0x00FF00}
 <em>; The above expression could be used directly in place of "colours" below:</em>
-for k, v in colours
+for k, v in colours.OwnProps()
     s .= k "=" v "`n"
 MsgBox s
 </pre>
@@ -74,61 +80,32 @@ MsgBox s
 MsgBox windows</pre>
 </div>
 
-<div class="ex" id="ExCEnumerator">
-<p><a href="#ExCEnumerator">#3</a>: Class: CEnumerator</p>
-<p>Generic enumerator object that can be used for iterating over numeric keys. The array must not be modified during iteration, otherwise the iterated range will be invalid.
-It's possible to define a custom Length method for array boundaries. If there are missing array members between 1 and max index, they will be iterated but will have a value of "". This means that real sparse arrays are not supported by this enumerator by design. Source: <a href="https://www.autohotkey.com/board/topic/2667-suggestions-on-documentation-improvements/?p=531509">Suggestions on documentation improvements</a></p>
-<pre><em>/*
-Class: CEnumerator
+<div class="ex" id="ExFibF">
+<p><a href="#ExFibF">#3</a>: Define an enumerator as a <a href="../Variables.htm#fat-arrow">fat arrow function</a>. Returns numbers from the Fibonacci sequence, indefinitely or until stopped.</p>
+<pre>for n in FibF()
+    if MsgBox("#" A_Index " = " n "`nContinue?",, "y/n") = "No"
+        break
 
-To make an object use this iterator, insert this function in the class definition:
+FibF() {
+    a := 0, b := 1
+    return (ByRef n) => (
+        n := c := b, b += a, a := c,
+        true
+    )
+}</pre>
+</div>
 
-    _NewEnum()
-    {
-        return new CEnumerator(this)
-    }
-*/</em>
+<div class="ex" id="ExFibC">
+<p><a href="#ExFibC">#4</a>: Define an enumerator as a <a href="../Objects.htm#Custom_Classes">class</a>. Equivalent to the <a href="#ExFibF">previous example</a>.</p>
+<pre>for n in FibC.new()
+    if MsgBox("#" A_Index " = " n "`nContinue?",, "y/n") = "No"
+        break
 
-<em>; Iterate over the enumerator</em>
-For k, v in Test
-    MsgBox k "=" v
-
-<em>; Test class for demonstrating usage</em>
-class Test
-{
-    static Data := ["abc", "def", "ghi"]
-
-    _NewEnum()
-    {
-        return new CEnumerator(this.Data)
-    }
-}
-
-class CEnumerator
-{
-    __New(Object)
-    {
-        this.Object := Object
-        this.first := true
-        <em>; Cache for speed. Useful if custom Length functions have poor performance.</em>
-        <em>; In return, that means that no key-value pairs may be inserted during iteration or the range will become invalid.</em>
-        this.ObjMaxIndex := Object.Length()
-    }
-
-    Next(ByRef key, ByRef value)
-    {
-        if (this.first)
-        {
-            this.Delete("first")
-            key := 1
-        }
-        else
-            key++
-        if (key &lt;= this.ObjMaxIndex)
-            value := this.Object[key]
-        else
-            key := ""
-        return key != ""
+class FibC {
+    a := 0, b := 1
+    Call(ByRef n) {
+        n := c := this.b, this.b += this.a, this.a := c
+        return true
     }
 }</pre>
 </div>

@@ -1,0 +1,218 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+<title>Array Object - Methods &amp; Properties | AutoHotkey v2</title>
+<meta name="description" content="An Array object contains a list or sequence of values." />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<link href="../static/theme.css" rel="stylesheet" type="text/css" />
+<script src="../static/content.js" type="text/javascript"></script>
+</head>
+<body>
+
+<h1>Array Object</h1>
+
+<p>An <strong>Array</strong> object contains a list or sequence of values.</p>
+<p>Values are addressed by their position within the array (known as an <em>array index</em>), where position 1 is the first element.</p>
+<p>Arrays are often created by enclosing a list of values in brackets. For example:</p>
+<pre>veg := ["Asparagus", "Broccoli", "Cucumber"]
+Loop veg.Length
+    MsgBox veg[A_Index]</pre>
+<p>A negative index can be used to address elements in reverse, so -1 is the last element, -2 is the second last element, and so on.</p>
+<p>Attempting to use an array index which is out of bounds (such as zero, or if its absolute value is greater than the <a href="#Length">Length</a> of the array) is considered an error and will cause an exception to be thrown. The best way to add new elements to the array is to call <a href="#InsertAt">InsertAt</a> or <a href="#Push">Push</a>. For example:</p>
+<pre>users := Array()
+users.Push A_UserName
+MsgBox users[1]</pre>
+<p>An array can also be extended by assigning a larger value to <a href="#Length">Length</a>. This changes which indices are valid, but <a href="#Has">Has</a> will show that the new elements have no value. Elements without a value are typically used for <a href="../Functions.htm#VariadicCall">variadic calls</a> or by <a href="../Functions.htm#Variadic">variadic functions</a>, but can be used for any purpose.</p>
+<p>The documentation below uses <code>Arr</code> as a placeholder for any Array object. Note that "array" should not be used as a variable name as it is used to refer to the Array class itself.</p>
+<p>Array objects are based on <code>Array.Prototype</code>, which is based on <code>Object.Prototype</code>. In addition to the methods and property inherited from <a href="Object.htm">Object</a>, Array objects have the following predefined methods and properties:</p>
+
+<p><strong>Methods:</strong></p>
+<ul>
+  <li><a href="#Clone">Clone</a></li>
+  <li><a href="#Delete">Delete</a></li>
+  <li><a href="#Has">Has</a></li>
+  <li><a href="#InsertAt">InsertAt</a></li>
+  <li><a href="#Pop">Pop</a></li>
+  <li><a href="#Push">Push</a></li>
+  <li><a href="#RemoveAt">RemoveAt</a></li>
+  <li><a href="#__Enum">__Enum</a></li>
+</ul>
+<p><strong>Properties:</strong></p>
+<ul>
+  <li><a href="#Length">Length</a></li>
+  <li><a href="#Capacity">Capacity</a></li>
+  <li><a href="#__Item">__Item</a></li>
+</ul>
+
+<h1>Methods</h1>
+
+<div class="methodShort" id="Clone"><h2>Clone</h2>
+<p>Returns a shallow copy of the object.</p>
+<pre class="Syntax">Clone := Arr.<span class="func">Clone</span>()</pre>
+<p>All array elements are copied to the new array. Object <em>references</em> are copied (like with a normal assignment), not the objects themselves.</p>
+<p>Own properties, own methods and base are copied as per <a href="Object.htm#Clone">Obj.Clone</a>.</p>
+</div>
+
+<div class="methodShort" id="Delete"><h2>Delete</h2>
+<p>Removes the value of an array element, leaving the index without a value.</p>
+<pre class="Syntax">Arr.<span class="func">Delete</span>(Index)</pre>
+<dl>
+  <dt>Index</dt>
+  <dd>
+    <p>Type: <a href="../Concepts.htm#numbers">Integer</a></p>
+    <p>A valid array index.</p>
+  </dd>
+  <dt>Return Value</dt>
+  <dd><p>The removed value.</p></dd>
+</dl>
+<p>Delete does not affect the <a href="#Length">Length</a> of the array.</p>
+</div>
+
+<div class="methodShort" id="Has"><h2>Has</h2>
+<p>Returns true if <i>Index</i> is valid and there is a value at that position, otherwise false.</p>
+<pre class="Syntax">Arr.<span class="func">Has</span>(Index)</pre>
+</div>
+
+<div class="methodShort" id="InsertAt"><h2>InsertAt</h2>
+<p>Inserts one or more values at a given position.</p>
+<pre class="Syntax">Arr.<span class="func">InsertAt</span>(Index, Value1 <span class="optional">, Value2, ... Value<i>N</i></span>)</pre>
+<dl>
+  <dt>Index</dt>
+  <dd>
+    <p>Type: <a href="../Concepts.htm#numbers">Integer</a></p>
+    <p>The position to insert <em>Value1</em> at. Subsequent values are inserted at Index+1, Index+2, etc.</p>
+  </dd>
+  <dt>Value1 ...</dt>
+  <dd>
+    <p>One or more values to insert. To insert an array of values, pass <code><a href="../Functions.htm#VariadicCall">theArray*</a></code> as the last parameter.</p>
+  </dd>
+</dl>
+<h3>Remarks</h3>
+<p>InsertAt is the counterpart of <a href="#RemoveAt">RemoveAt</a>.</p>
+<p>Any items previously at or to the right of <em>Index</em> are shifted to the right. Missing parameters are also inserted, but without a value. For example:</p>
+<pre>x := []
+x.InsertAt(1, "A", "B") <em>; =&gt;  ["A", "B"]</em>
+x.InsertAt(2, "C")      <em>; =&gt;  ["A", "C", "B"]</em>
+
+<em>; Missing elements are preserved:</em>
+x := ["A", , "C"]
+x.InsertAt(2, "B")      <em>; =&gt;  ["A", "B",    , "C"]</em>
+
+x := ["C"]
+x.InsertAt(1, , "B")    <em>; =&gt;  [   , "B", "C"]</em></pre>
+</div>
+
+<div class="methodShort" id="Pop"><h2>Pop</h2>
+<p>Removes and returns the last array element.</p>
+<pre class="Syntax">Value := Arr.<span class="func">Pop</span>()</pre>
+<p>All of the following are equivalent:</p>
+<pre>Value := Arr.Pop()
+Value := Arr.RemoveAt(Arr.Length)
+Value := Arr.RemoveAt(-1)</pre>
+<p>If the array is empty (<a href="#Length">Length</a> is 0), an exception is thrown.</p>
+</div>
+
+<div class="methodShort" id="Push"><h2>Push</h2>
+<p>Appends values to the end of an array.</p>
+<pre class="Syntax">Arr.<span class="func">Push</span>(<span class="optional"> Value, Value2, ..., Value<i>N</i> </span>)</pre>
+<dl>
+  <dt>Value ...</dt>
+  <dd><p>One or more values to insert. To insert an array of values, pass <code><a href="../Functions.htm#VariadicCall">theArray*</a></code> as the last parameter.</p></dd>
+</dl>
+</div>
+
+<div class="methodShort" id="RemoveAt"><h2>RemoveAt</h2>
+<p>Removes items from the array.</p>
+<pre class="Syntax">Arr.<span class="func">RemoveAt</span>(Index <span class="optional">, Length</span>)</pre>
+<dl>
+  <dt>Index</dt>
+  <dd>
+    <p>Type: <a href="../Concepts.htm#numbers">Integer</a></p>
+    <p>The index of the value or values to remove.</p>
+  </dd>
+  
+  <dt>Length</dt>
+  <dd>
+    <p>Type: <a href="../Concepts.htm#numbers">Integer</a></p>
+    <p>The length of the range of values to remove. If omitted, one item is removed.</p>
+  </dd>
+  
+  <dt>Return Value</dt>
+  <dd><p>If <em>Length</em> is omitted, the removed value is returned (blank if none). Otherwise there is no return value.</p></dd>
+</dl>
+<h3>Remarks</h3>
+<p>RemoveAt is the counterpart of <a href="#InsertAt">InsertAt</a>.</p>
+<p>The range indicated by <em>Index</em> and <em>Length</em> must be valid (within the bounds of the array), but some elements can be missing values.</p>
+<p>The remaining items to the right of <em>Pos</em> are shifted to the left by <em>Length</em> (or 1 if omitted). For example:</p>
+<pre>x := ["A", "B"]
+MsgBox x.RemoveAt(1)  <em>; A</em>
+MsgBox x[1]           <em>; B</em>
+
+x := ["A", , "C"]
+MsgBox x.RemoveAt(1, 2)  <em>; 1</em>
+MsgBox x[1]              <em>; C</em></pre>
+</div>
+
+<div class="methodShort" id="__Enum"><h2>__Enum</h2>
+<p>Enumerates array elements.</p>
+<pre class="Syntax">For Value in Arr</pre>
+<pre class="Syntax">For Index, Value in Arr</pre>
+<p>Returns a new <a href="Enumerator.htm">enumerator</a>. This method is typically not called directly. Instead, the array object is passed directly to a <a href="../commands/For.htm">for-loop</a>, which calls __Enum once and then calls the enumerator once for each iteration of the loop. Each call to the enumerator returns the next array element. The for-loop's variables correspond to the enumerator's parameters, which are:</p>
+<dl>
+  <dt>Index</dt>
+  <dd>
+    <p>Type: <a href="../Concepts.htm#numbers">Integer</a></p>
+    <p>The array index, typically the same as <a href="../Variables.htm#Index">A_Index</a>. This is present only in the two-parameter mode.</p>
+  </dd>
+  <dt>Value</dt>
+  <dd>
+    <p>The value (blank if none).</p>
+  </dd>
+</dl>
+</div>
+
+<h1>Properties</h1>
+
+<div class="methodShort" id="Length"><h2>Length</h2>
+<p>Retrieves or sets the length of the array.</p>
+<pre class="Syntax">Length := Arr.<span class="func">Length</span></pre>
+<pre class="Syntax">Arr.<span class="func">Length</span> := Length</pre>
+<p>The length includes elements which have no value. Increasing the length changes which indices are considered valid, but the new elements have no value (as indicated by <a href="#Has">Has</a>).</p>
+<pre>
+MsgBox ["A", "B", "C"].Length  <em>;  3</em>
+MsgBox ["A",    , "C"].Length  <em>;  3</em>
+</pre>
+</div>
+
+<div class="methodShort" id="Capacity"><h2>Capacity</h2>
+<p>Retrieves or sets the current capacity of the array.</p>
+<pre class="Syntax">Arr.<span class="func">Capacity</span> := MaxItems</pre>
+<pre class="Syntax">MaxItems := Arr.<span class="func">Capacity</span></pre>
+<dl>
+	<dt>MaxItems</dt>
+	<dd>
+    <p>Type: <a href="../Concepts.htm#numbers">Integer</a></p>
+    <p>The maximum number of elements the array should be able to contain before it must be automatically expanded.  If setting a value less than <a href="#Length">Length</a>, elements are removed.</p>
+  </dd>
+</dl>
+</div>
+
+<div class="methodShort" id="__Item"><h2>__Item</h2>
+<p>Retrieves or sets the value of an array element.</p>
+<pre class="Syntax">Value := Arr[Index]</pre>
+<pre class="Syntax">Arr[Index] := Value</pre>
+<dl>
+  <dt>Index</dt>
+  <dd>
+    <p>Type: <a href="../Concepts.htm#numbers">Integer</a></p>
+    <p>A valid array index; that is, an integer with absolute value between 1 and <a href="#Length">Length</a> (inclusive).</p>
+    <p>A negative index can be used to address elements in reverse, so that -1 is the last element, -2 is the second last element, and so on.</p>
+    <p>Attempting to use an index which is out of bounds (such as zero, or if its absolute value is greater than the <a href="#Length">Length</a> of the array) is considered an error and will cause an exception to be thrown.</p>
+  </dd>
+</dl>
+<p>The property name __Item is typically omitted, as shown above, but is used when overriding the property.</p>
+</div>
+
+</body>
+</html>

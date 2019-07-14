@@ -96,40 +96,52 @@ Exception handling
 <p>If a <a href="#variables">variable</a> or parameter is said to be &quot;empty&quot; or &quot;blank&quot;, that usually means an empty string (a string of zero length).</p>
 
 <h3 id="objects">Objects</h3>
-<p>There are generally two ways of viewing objects:</p>
+<p>The <em>object</em> is AutoHotkey's composite or abstract data type. An object can be composed of any number of <em>properties</em> (which can be retrieved or set) and <a href="#methods"><em>methods</em></a> (which can be called). The name and effect of each property or method depends on the specific object or type of object.</p>
+<p>Objects have the following attributes:</p>
 <ul>
-  <li>An object contains a group of values, allowing the group itself to be treated as one value. For example, an object could contain an <em>array</em> or sequence of items, or a set of related values, such as the X and Y coordinates of a position on the screen. Objects can be used to build complex structures by combining them with other objects.</li>
-  <li>An object can represent a <em>thing</em>, a <em>service</em>, or something else, and can provide ways for the script to interact with this thing or service. For example, a <em>BankAccount</em> object might have properties such as the account number, current balance and the owner of the account, and methods to withdraw or deposit an amount.</li>
+  <li>Objects are not contained; they are <a href="#references-to-objects">referenced</a>. For example, <code>alpha := []</code> creates a new <a href="objects/Array.htm">Array</a> and stores a reference in <em>alpha</em>. <code>bravo := alpha</code> copies the reference (not the object) to <code>bravo</code>, so both refer to the same object. When an array or variable is said to contain an object, what it actually contains is a reference to the object.</li>
+  <li>Two object references compare equal only if they refer to the same object.</li>
+  <li>Objects are always considered <i>true</i> when a boolean value is required, such as in <code>if obj</code>, <code>!obj</code> or <code>obj ? x : y</code>.</li>
+  <li>Each object has a unique address (location in memory), which can be retrieved by the <a href="Variables.htm#amp">address operator</a>, but is typically not used directly. This address uniquely identifies the object, but only until the object is freed.</li>
+  <li>If an object is used in any context where an object is not expected, it is typically treated as an empty string. For example, <code>MsgBox(myObject)</code> shows an empty MsgBox. Do not rely on this behaviour as it may change.</li>
+</ul>
+<p class="note"><strong>Note:</strong> All objects which derive from <a href="objects/Object.htm">Object</a> have additional shared behaviour, properties and methods.</p>
+<p>Some ways that objects are used include:</p>
+<ul>
+  <li>To contain a collection of items or <em>elements</em>. For example, an <a href="objects/Array.htm">Array</a> contains a sequence of items, while a <a href="objects/Map.htm">Map</a> associates keys with values. Objects allow a group of values to be treated as one value, to be assigned to a single variable, passed to or returned from a function, and so on.</li>
+  <li>To represent something real or conceptual. For example: a position on the screen, with X and Y properties; a contact in an address book, with Name, PhoneNumber, EmailAddress and so on. Objects can be used to represent more complex sets of information by combining them with other objects.</li>
+  <li>To encapsulate a service or set of services, allowing other parts of the script to focus on a task rather than how that task is carried out. For example, a <a href="objects/File.htm">File</a> object provides methods to read data from a file or write data to a file. If a script function which writes information to a file accepts a File object as a parameter, it need not know how the file was opened. The same function could be reused to write information to some other target, such as a TCP/IP socket or WebSocket (via user-defined objects).</li>
+  <li>A combination of the above. For example, a <a href="objects/Gui.htm">Gui</a> represents a GUI window; it provides a script with the means to create and display a graphical user interface; it contains a collection of controls, and provides information about the window via properties such as Title and FocusedCtrl.</li>
 </ul>
 <p>The proper use of objects (and in particular, <a href="Objects.htm#Custom_Classes">classes</a>) can result in code which is <em>modular</em> and <em>reusable</em>. Modular code is usually easier to test, understand and maintain. For instance, one can improve or modify one section of code without having to know the details of other sections, and without having to make corresponding changes to those sections. Reusable code saves time, by avoiding the need to write and test code for the same or similar tasks over and over.</p>
-<p>When you assign an object to a <a href="#variables">variable</a>, as in <code>myObj := {}</code>, what you store is not the object itself, but a <a href="#references-to-objects"><em>reference</em></a> to the object. Copying that variable, as in <code>yourObj := myObj</code>, creates a new reference to the <em>same</em> object. A change such as <code>myObj.ans := 42</code> would be reflected by both <code>myObj.ans</code> and <code>yourObj.ans</code>, since they both refer to the same object. However, <code>myObj := Object()</code> only affects the variable <em>myObj</em>, not the variable <em>yourObj</em>, which still refers to the original object.</p>
 
 <h3 id="object-protocol">Object Protocol</h3>
 <p class="note">This section builds on these concepts which are covered in later sections: <a href="#variables">variables</a>, <a href="#functions">functions</a></p>
 <p>Objects work through the principle of <em>message passing</em>. You don't know where an object's code or variables actually reside, so you must pass a message to the object, like &quot;give me <em>foo</em>&quot; or &quot;go do <em>bar</em>&quot;, and rely on the object to respond to the message. Objects in AutoHotkey support the following basic messages:</p>
 <ul>
-  <li><strong>Get</strong> a value.</li>
-  <li><strong>Set</strong> a value, denoted by <code>:=</code>.</li>
-  <li><strong>Call</strong> a method, denoted by <code>()</code>.</li>
+  <li><strong>Get</strong> a property.</li>
+  <li><strong>Set</strong> a property, denoted by <code>:=</code>.</li>
+  <li><strong>Call</strong> a <a href="#methods">method</a>, denoted by <code>()</code>.</li>
 </ul>
-<p>Each message can optionally have one or more <a href="#parameters">parameters</a> (and, for <strong>Set</strong>, the value). Usually there is at least one parameter, and it is interpreted as the name of a property or method, a key or an array index, depending on the object and how you're using it. The parameters of a message are specified using three different patterns: <code>.Name</code>, <code>[Parameters]</code> and <code>(Parameters)</code>, where <em>Name</em> is a literal <a href="#names">name or identifier</a>, and <em>Parameters</em> is a list of parameters (as sub-expressions), which can be empty/blank (<code>[]</code> or <code>()</code>).</p>
-<p>For <strong>Get</strong> and <strong>Set</strong>, <code>.Name</code> and <code>[Parameters]</code> can be used interchangeably, or in combination:</p>
-<pre>myObj[arg1, arg2, ..., argN]
-myObj.name
-myObj.name[arg2, ..., argN]
+<p>A <em>property</em> is simply some aspect of the object that can be set and/or retrieved. For example, <a href="objects/Array.htm">Array</a> has a <a href="objects/Array.htm#Length">Length</a> property which corresponds to the number of elements in the array. If you define a property, it can have whatever meaning you want. Generally a property acts like a <a href="#variables">variable</a>, but its value might be calculated on demand and not actually stored anywhere.</p>
+<p>Each message contains the following, usually written where the property or method is <a href="#call">called</a>:</p>
+<ul>
+  <li>The name of the property or method.</li>
+  <li>Zero or more <a href="#parameters">parameters</a> which may affect what action is carried out, how a value is stored, or which value is returned. For example, a property might take an array index or key.</li>
+</ul>
+<p>For example:</p>
+<pre>
+myObj.methodName(arg1)
+value := myObj.propertyName[arg1]
 </pre>
-<p>For <strong>Call</strong>, <code>.Name</code> and <code>[Parameter]</code> can be used interchangeably, and must always be followed by <code>(Parameters)</code>:</p>
-<pre>myObj.name(arg2, ..., argN)
-myObj[arg1](arg2, ..., argN)
-</pre>
-<p>Notice that if <code>name</code> is present, it becomes the first parameter. <code>myObj.name</code> is equivalent to <code>myObj[&quot;name&quot;]</code>, while <code>myObj.123</code> is equivalent to <code>myObj[123]</code>. This is true for every type of object, so it is always possible to compute the name of a property or method at runtime, rather than hard-coding it into the script.</p>
-<p>Although <em>name</em> or <em>arg1</em> is considered to be the first parameter, remember that these are just <em>messages</em>, and the object is free to handle them in any way. In a method call such as those shown above, usually the object uses <em>name</em> or <em>arg1</em> to identify which method should be called, and then only <em>arg2</em> and beyond are passed to the method. In effect, <em>arg2</em> becomes the method's first apparent parameter.</p>
+<p>An object may also have a <em>default</em> property, which is invoked when square brackets are used without a property name. For example:</p>
+<pre>value := myObj[arg1]</pre>
 <p>Generally, <strong>Set</strong> has the same meaning as an assignment, so it uses the same operator:</p>
-<pre>myObj[arg1, arg2, ..., argN] := value
+<pre>
 myObj.name := value
-myObj.name[arg2, ..., argN] := value
+myObj.name[arg1, arg2, ..., argN] := value
+myObj[arg1, arg2, ..., argN] := value
 </pre>
-<p>Technically, <code>value</code> is passed as the last the parameter of the <em>Set</em> message; however, this detail is almost never relevant to script authors. Generally one can simply think of it as &quot;the value being assigned&quot;.</p>
 
 <h2 id="variables">Variables</h2>
 <p>A variable allows you to use a name as a placeholder for a value. Which value that is could change repeatedly during the time your script is running. For example, a hotkey could use a variable <code>press_count</code> to count the number of times it is pressed, and send a different key whenever <code>press_count</code> is a multiple of 3 (every third press). Even a variable which is only assigned a value once can be useful. For example, a <code>WebBrowserTitle</code> variable could be used to make your code easier to update when and if you were to change your preferred web browser, or if the <a href="misc/WinTitle.htm">title</a> or <a href="misc/WinTitle.htm#ahk_class">window class</a> changes due to a software update.</p>
@@ -200,7 +212,7 @@ ControlSend "^{Home}",, "A"          <em>; Correct. Control is omitted.</em>
 </pre>
 
 <h3 id="methods">Methods</h3>
-<p><em>Methods</em> are functions which operate on a particular <a href="#objects">object</a>. While there can only be one function named <code>Send</code> (for example), there can be as many methods named <code>Send</code> as there are objects, as each object (or class of objects) can respond in a different way. For this reason, the target object (which may be a variable or sub-expression) is specified to left of the method name instead of inside the parameter list. For details, see <a href="#object-protocol">Object Protocol</a>.</p>
+<p>A <em>method</em> is a function associated with a specific <a href="#objects">object</a> or type of object. To call a method, one must specify an object and a method name. The method name does not uniquely identify the function; instead, what happens when the method call is attempted depends on the object. For example, <code>x.Show()</code> might <a href="objects/Menu.htm#Show">show a menu</a>, <a href="objects/Gui.htm#Show">show a GUI</a>, raise an error or do something else, depending on what <code>x</code> is. In other words, a method call simply passes a message to the object, instructing it to do something. For details, see <a href="#object-protocol">Object Protocol</a> and <a href="Language.htm#operators-for-objects">Operators for Objects</a>.</p>
 
 <h2 id="control-flow">Control Flow</h2>
 <p><em>Control flow</em> is the order in which individual statements are executed. Normally statements are executed sequentially from top to bottom, but a control flow statement can override this, such as by specifying that statements should be executed repeatedly, or only if a certain condition is met.</p>
@@ -318,7 +330,9 @@ MsgBox 0.1 + 0.2 = 0.3   <em>; 0 (not equal)</em>
 <p>Because a variable only ever contains a <em>reference</em> to an object and not the object itself, when you pass such a variable to a non-ByRef parameter, what the function receives is a reference to the same object. This allows the function to modify the object, but it does not allow the function to modify the <em>variable</em> which the function's caller used, because the function only has a reference to the object, not the variable.</p>
 
 <h3 id="references-to-objects">References to Objects</h3>
-<p>Scripts interact with an object only indirectly, through a <em>reference</em> to the object. When you create an object, the object is created at some location you don't control, and you're given a reference. Passing this reference to a function or storing it in a variable or another object creates a new reference to the <em>same</em> object. You release a reference by simply using an assignment to replace it with any other value. An object is deleted only after all references have been released; you cannot delete an object explicitly, and should not try.</p>
+<p>Scripts interact with an object only indirectly, through a <em>reference</em> to the object. When you create an object, the object is created at some location you don't control, and you're given a reference. Passing this reference to a function or storing it in a variable or another object creates a new reference to the <em>same</em> object.</p>
+<p>For example, if <em>myObj</em> contains a reference to an object, <code>yourObj := myObj</code>, creates a new reference to the same object. A change such as <code>myObj.ans := 42</code> would be reflected by both <code>myObj.ans</code> and <code>yourObj.ans</code>, since they both refer to the same object. However, <code>myObj := Object()</code> only affects the variable <em>myObj</em>, not the variable <em>yourObj</em>, which still refers to the original object.</p>
+<p>A reference is released by simply using an assignment to replace it with any other value. An object is deleted only after all references have been released; you cannot delete an object explicitly, and should not try. (However, you can delete an object's properties, content or associated resources, such as an <a href="objects/Array.htm">Array</a>'s elements, the window associated with a <a href="objects/Gui.htm">Gui</a>, the menu of a <a href="objects/Menu.htm">Menu</a> object, and so on.)</p>
 <pre>ref1 := Object()  <em>; Create an object and store first reference</em>
 ref2 := ref1      <em>; Create a new reference to the same object</em>
 ref1 := &quot;&quot;        <em>; Release the first reference</em>
