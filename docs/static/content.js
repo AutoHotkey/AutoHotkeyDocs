@@ -731,7 +731,7 @@ function ctor_search()
     function append_results(ro) {
       var output = '';
       for (var t = 0; t < ro.length && t < RESULT_LIMIT; ++t) {
-        output += '<a href="' + workingDir + ro[t].u + '" tabindex="-1">' + ro[t].n + '</a>';
+        output += '<a href="' + workingDir + ro[t].u + '" tabindex="-1"' + (isIE8 ? '>' + ro[t].n : ' data-content="' + ro[t].n + '">') + '</a>';
       }
       return output;
     }
