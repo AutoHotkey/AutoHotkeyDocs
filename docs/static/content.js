@@ -1346,6 +1346,8 @@ function addFeatures()
   $.queueFunc.add(modifyCodes);
   $.queueFunc.add(addFooter);
   $.queueFunc.add(addBackButton);
+  $.queueFunc.add(scrollToPos);
+  $.queueFunc.add(highlightWords);
 
   // --- Responsive tables (mobile) ---
 
@@ -1909,13 +1911,17 @@ function addFeatures()
 
   // --- Ensure setting right scroll position when traversing history ---
 
-  if (supportsHistory && history.state)
-    document.getElementById('right').scrollTop = history.state.scrollTop;
+  function scrollToPos() {
+    if (supportsHistory && history.state)
+      document.getElementById('right').scrollTop = history.state.scrollTop;
+  }
 
   // --- Highlight search words with jQuery Highlight plugin ---
 
-  if (cache.search_highlightWords && cache.clickTab == 2)
-    search.highlightWords(cache.search_input);
+  function highlightWords() {
+    if (cache.search_highlightWords && cache.clickTab == 2)
+      search.highlightWords(cache.search_input);
+  }
 }
 
 // --- Get the working directory of the site ---
