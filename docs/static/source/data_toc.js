@@ -148,6 +148,7 @@ tocData = [
     ["SetTimer","commands/SetTimer.htm"],
     ["Sleep","commands/Sleep.htm"],
     ["Suspend","commands/Suspend.htm"],
+    ["Switch","commands/Switch.htm"],
     ["Thread","commands/Thread.htm"],
     ["Throw","commands/Throw.htm"],
     ["Try","commands/Try.htm"],
