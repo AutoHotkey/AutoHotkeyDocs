@@ -1344,9 +1344,9 @@ function addFeatures()
   $.queueFunc.add(modifyLinks);
   $.queueFunc.add(modifyVersions);
   $.queueFunc.add(modifyCodes);
-  $.queueFunc.add(addFooter);
+  addFooter();
   $.queueFunc.add(addBackButton);
-  $.queueFunc.add(scrollToPos);
+  scrollToPos();
   $.queueFunc.add(highlightWords);
 
   // --- Responsive tables (mobile) ---
