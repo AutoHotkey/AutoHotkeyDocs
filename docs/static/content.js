@@ -1564,6 +1564,7 @@ function addFeatures()
           6 - command
       */
       var syntax = [], dict = {}, entry = '', type = '';
+      var assignOp = "&lt;&lt;|<<|&gt;&gt;|>>|\\/\\/|\\^|&amp;|&|\\||\\.|\\/|\\*|-|\\+|:|)=";
       for (var i = cache.index_data.length - 1; i >= 0; i--) {
         entry = cache.index_data[i][0];
         type = cache.index_data[i][2];
@@ -1655,6 +1656,13 @@ function addFeatures()
           els.met.push(out);
           return '<met></met>';
         });
+        // properties:
+        els.order.push('prp'); els.prp = [];
+        innerHTML = innerHTML.replace(/\.([^~`!@#$%^&*(){}\[\];:"'<,.>?\/\\|+=\-\s]+?)\b/g, function(_, PROPERTY) {
+          out = '.' + wrap(PROPERTY, 'prp', false);
+          els.prp.push(out);
+          return '<prp></prp>';
+        });
         // declarations:
         els.order.push('dec'); els.dec = [];
         innerHTML = innerHTML.replace(new RegExp('(^\\s*)((' + syntax[5][0].join('|') + ') (\\S+) (' + syntax[5][1].join('|') + ') (\\S+)|(?:' + syntax[5].single.join('|') + ')\\b)', 'gim'), function(_, PRE, DEC, CLASS, INPUT1, EXTENDS, INPUT2) {
@@ -1725,7 +1733,7 @@ function addFeatures()
         });
         // commands:
         els.order.push('cmd'); els.cmd = [];
-        innerHTML = innerHTML.replace(new RegExp('\\b(' + syntax[6].single.join('|') + ')\\b($|[\\s,])(.*?$(?:(?:\\s*?(,|<cont>).*?$))*)', "gim"), function(_, CMD, SEP, PARAMS) {
+        innerHTML = innerHTML.replace(new RegExp('\\b(' + syntax[6].single.join('|') + ')\\b($|,|\\s(?!(?:' + assignOp + '))(.*?$(?:(?:\\s*?(,|<cont>).*?$))*)', "gim"), function(_, CMD, SEP, PARAMS) {
           // Get type of every parameter:
           var types = cache.index_data[dict[CMD.toLowerCase()]][3];
           // Temporary exclude (...), {...} and [...]:
@@ -1766,7 +1774,7 @@ function addFeatures()
         });
         // control flow statements:
         els.order.push('cfs'); els.cfs = [];
-        innerHTML = innerHTML.replace(new RegExp('\\b(' + syntax[3][0].join('|') + ') (\\S+|\\S+, \\S+) (' + syntax[3][1].join('|') + ') ((.+) (' + syntax[3][2].join('|') + ') (.+?)|.+?)(?=<em></em>|$|{)|\\b(' + syntax[3].single.join('|') + ')\\b($|[\\s,(])(.*?)(?=<em></em>|$|{|\\b(' + syntax[3].single.join('|') + ')\\b)', 'gim'), function(ASIS, IF, INPUT, BETWEEN, VAL, VAL1, AND, VAL2, CFS, SEP, PARAMS) {
+        innerHTML = innerHTML.replace(new RegExp('\\b(' + syntax[3][0].join('|') + ') (\\S+|\\S+, \\S+) (' + syntax[3][1].join('|') + ') ((.+) (' + syntax[3][2].join('|') + ') (.+?)|.+?)(?=<em></em>|$|{)|\\b(' + syntax[3].single.join('|') + ')\\b($|,|\\(|\\s(?!(?:' + assignOp + '))(.*?)(?=<em></em>|$|{|\\b(' + syntax[3].single.join('|') + ')\\b)', 'gim'), function(ASIS, IF, INPUT, BETWEEN, VAL, VAL1, AND, VAL2, CFS, SEP, PARAMS) {
           if (IF) {
             if (VAL1) {
               var cfs = cache.index_data[dict[(IF + ' ... ' + BETWEEN + ' ... ' + AND).toLowerCase()]];
@@ -1843,7 +1851,9 @@ function addFeatures()
         });
         // legacy assignments:
         els.order.push('assign'); els.assign = [];
-        innerHTML = innerHTML.replace(/^(\s*[^(\s,]*?\s*[^:!*\/&^+\-|~.])=(.*?)(?=<em><\/em>|$)/gim, function(_, VAR, VAL) {
+        innerHTML = innerHTML.replace(/^(\s*[^(\s,]*?\s*[^:!*\/&^+\-|~.])=(.*?)(?=<em><\/em>|$)/gim, function(ASIS, VAR, VAL) {
+          if (VAR.indexOf('<cfs></cfs>') != -1)
+            return ASIS;
           out = VAR + '=' + (VAL.match(/^\s*<num><\/num>\s*$/) ? VAL : wrap(VAL, 'str', false));
           els.assign.push(out);
           return '<assign></assign>';
