@@ -28,10 +28,11 @@
     <p>Specifying <code>L0</code> disables collection of text and the length limit, but does not affect which keys are counted as producing text (see <a href="#VisibleText">VisibleText</a>). This can be useful in combination with <a href="#OnChar">OnChar</a>, <a href="#OnKeyDown">OnKeyDown</a>, <a href="#KeyOpt">KeyOpt</a> or <em><a href="#EndKeys">EndKeys</a></em>.</p>
     <p id="option-m"><strong>M</strong>: Modified keystrokes such as <kbd>Control</kbd>+<kbd>A</kbd> through <kbd>Control</kbd>+<kbd>Z</kbd> are recognized and transcribed if they correspond to real ASCII characters. Consider this example, which recognizes <kbd>Control</kbd>+<kbd>C</kbd>:</p>
     <pre>CtrlC := Chr(3) <em>; Store the character for Ctrl-C in the CtrlC var.</em>
-Input, OutputVar, L1 M
-if (OutputVar = CtrlC)
-    MsgBox, You pressed Control-C.
-ExitApp</pre>
+ih := InputHook("L1 M")
+ih.Start()
+ih.Wait()
+if (ih.Input = CtrlC)
+    MsgBox, You pressed Control-C.</pre>
     <p class="note"><strong>Note</strong>: The characters <kbd>Ctrl</kbd>+<kbd>A</kbd> through <kbd>Ctrl</kbd>+<kbd>Z</kbd> correspond to <a href="Chr.htm">Chr(1)</a> through <a href="Chr.htm">Chr(26)</a>. Also, the <strong>M</strong> option might cause some keyboard shortcuts such as <kbd>Ctrl</kbd>+<kbd>&larr;</kbd> to misbehave while an Input is in progress.</p>
     <p id="option-t"><strong>T</strong>: Sets <a href="#Timeout">Timeout</a> (e.g. <code>T3</code> or <code>T2.5</code>).</p>
     <p id="vis"><strong>V</strong>: Sets <a href="#VisibleText">VisibleText</a> and <a href="#VisibleNonText">VisibleNonText</a> to true. Normally, the user's input is blocked (hidden from the system). Use this option to have the user's keystrokes sent to the active window.</p>
@@ -320,7 +321,7 @@ ExitApp</pre>
 
 <h2 id="Remarks">Remarks</h2>
 <p>The <a href="#Start">Start</a> method must be called before input will be collected.</p>
-<p>InputHook is designed to allow different parts of the script to monitor input, with minimal conflicts. It can operate continuously, such as to watch for <a href="#example-sac">arbitrary words</a> or other patterns. It can also operate temporarily, such as to collect user input or temporarily override specific (or <a href="#KeyWaitAny">non-specific</a>) keys without interfering with hotkeys.</p>
+<p>InputHook is designed to allow different parts of the script to monitor input, with minimal conflicts. It can operate continuously, such as to watch for <a href="#ExSac">arbitrary words</a> or other patterns. It can also operate temporarily, such as to collect user input or temporarily override specific (or <a href="#ExKeyWaitAny">non-specific</a>) keys without interfering with hotkeys.</p>
 <p>Keyboard <a href="../Hotkeys.htm">hotkeys</a> are still in effect while an Input is in progress, but cannot be triggered by keys which the Input suppresses.</p>
 <p>Keys are either suppressed (blocked) or not depending on the following factors (in order):</p>
 <ul>
@@ -370,8 +371,8 @@ OutputVar := ih.Input
 <p><a href="Input.htm">Input</a>, <a href="KeyWait.htm">KeyWait</a>, <a href="../Hotstrings.htm">Hotstrings</a>, <a href="InputBox.htm">InputBox</a>, <a href="_InstallKeybdHook.htm">#InstallKeybdHook</a>, <a href="../misc/Threads.htm">Threads</a>, <a href="IfIn.htm">if var in/contains MatchList</a></p>
 
 <h2>Examples</h2>
-<div class="ex" id="KeyWaitAny">
-<p><a href="#KeyWaitAny">#1</a>: Wait for the user to press any single key.</p>
+<div class="ex" id="ExKeyWaitAny">
+<p><a href="#ExKeyWaitAny">#1</a>: Wait for the user to press any single key.</p>
 <pre>
 MsgBox % KeyWaitAny()
 
@@ -388,8 +389,8 @@ KeyWaitAny(Options:="")
 }
 </pre>
 </div>
-<div class="ex" id="KeyWaitCombo">
-<p><a href="#KeyWaitCombo">#2</a>: Wait for any key in combination with Ctrl/Alt/Shift/Win.</p>
+<div class="ex" id="ExKeyWaitCombo">
+<p><a href="#ExKeyWaitCombo">#2</a>: Wait for any key in combination with Ctrl/Alt/Shift/Win.</p>
 <pre>
 MsgBox % KeyWaitCombo()
 
@@ -405,8 +406,8 @@ KeyWaitCombo(Option:="")
 }
 </pre>
 </div>
-<div class="ex" id="example-sac">
-<p><a href="#example-sac">#3</a>: Simple auto-complete: any day of the week.  Pun aside, this is a fully functional example.  Simply run the script and start typing today, press Tab to complete or press Escape to exit.</p>
+<div class="ex" id="ExSac">
+<p><a href="#ExSac">#3</a>: Simple auto-complete: any day of the week.  Pun aside, this is a fully functional example.  Simply run the script and start typing today, press <kbd>Tab</kbd> to complete or press <kbd>Escape</kbd> to exit.</p>
 <pre>global WordList := "Monday`nTuesday`nWednesday`nThursday`nFriday`nSaturday`nSunday"
 
 global Suffix := "", SacHook
