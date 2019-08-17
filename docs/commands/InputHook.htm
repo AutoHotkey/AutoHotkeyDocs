@@ -32,7 +32,7 @@ ih := InputHook("L1 M")
 ih.Start()
 ih.Wait()
 if (ih.Input = CtrlC)
-    MsgBox, You pressed Control-C.</pre>
+    MsgBox "You pressed Control-C."</pre>
     <p class="note"><strong>Note</strong>: The characters <kbd>Ctrl</kbd>+<kbd>A</kbd> through <kbd>Ctrl</kbd>+<kbd>Z</kbd> correspond to <a href="Chr.htm">Chr(1)</a> through <a href="Chr.htm">Chr(26)</a>. Also, the <strong>M</strong> option might cause some keyboard shortcuts such as <kbd>Ctrl</kbd>+<kbd>&larr;</kbd> to misbehave while an Input is in progress.</p>
     <p id="option-t"><strong>T</strong>: Sets <a href="#Timeout">Timeout</a> (e.g. <code>T3</code> or <code>T2.5</code>).</p>
     <p id="vis"><strong>V</strong>: Sets <a href="#VisibleText">VisibleText</a> and <a href="#VisibleNonText">VisibleNonText</a> to true. Normally, the user's input is blocked (hidden from the system). Use this option to have the user's keystrokes sent to the active window.</p>
@@ -338,7 +338,7 @@ if (ih.Input = CtrlC)
 <h2 id="comparison">InputHook vs. Input</h2>
 <p>InputHook and the <a href="Input.htm">Input</a> command are two different interfaces for the same underlying functionality. The following are mostly equivalent:</p>
 <pre>
-Input, OutputVar, %Options%, %EndKeys%, %MatchList%
+OutputVar := Input(Options, EndKeys, MatchList)
 </pre><pre>
 ih := InputHook(Options, EndKeys, MatchList)
 ih.Start()
@@ -374,10 +374,10 @@ OutputVar := ih.Input
 <div class="ex" id="ExKeyWaitAny">
 <p><a href="#ExKeyWaitAny">#1</a>: Wait for the user to press any single key.</p>
 <pre>
-MsgBox % KeyWaitAny()
+MsgBox KeyWaitAny()
 
 <em>; Same again, but don't block the key.</em>
-MsgBox % KeyWaitAny("V")
+MsgBox KeyWaitAny("V")
 
 KeyWaitAny(Options:="")
 {
@@ -392,7 +392,7 @@ KeyWaitAny(Options:="")
 <div class="ex" id="ExKeyWaitCombo">
 <p><a href="#ExKeyWaitCombo">#2</a>: Wait for any key in combination with Ctrl/Alt/Shift/Win.</p>
 <pre>
-MsgBox % KeyWaitCombo()
+MsgBox KeyWaitCombo()
 
 KeyWaitCombo(Option:="")
 {
@@ -415,7 +415,6 @@ global Suffix := "", SacHook
 SacHook := InputHook("V", "{Esc}")
 SacHook.OnChar := Func("SacChar")
 SacHook.OnKeyDown := Func("SacKeyDown")
-SacHook.OnEnd := Func("SacEnd")
 SacHook.KeyOpt("{Backspace}", "N")
 SacHook.Start()
 
@@ -423,9 +422,11 @@ SacChar(ih, char)  <em>; Called when a character is added to SacHook.Input.</em>
 {
     Suffix := ""
     if RegExMatch(ih.Input, "`nm)\w+$", prefix)
-        RegExMatch(WordList, "`nmi)^" prefix "\K.*", Suffix)
+        &amp;&amp; RegExMatch(WordList, "`nmi)^" prefix[0] "\K.*", Suffix)
+        Suffix := Suffix[0]
     
-    ToolTip % Suffix, % A_CaretX + 15, % A_CaretY    
+    CaretGetPos cx, cy
+    ToolTip Suffix, cx + 15, cy
     
     <em>; Intercept Tab only while we're showing a Tooltip.</em>
     ih.KeyOpt("{Tab}", Suffix = "" ? "-NS" : "+NS")
@@ -436,12 +437,7 @@ SacKeyDown(ih, vk, sc)
     if (vk = 8) <em>; Backspace</em>
         SacChar(ih, "")
     else if (vk = 9) <em>; Tab</em>
-        Send % "{Text}" Suffix
-}
-
-SacEnd()
-{
-    ExitApp
+        Send "{Text}" Suffix
 }
 </pre>
 </div>
