@@ -731,7 +731,7 @@ function ctor_search()
     function append_results(ro) {
       var output = '';
       for (var t = 0; t < ro.length && t < RESULT_LIMIT; ++t) {
-        output += '<a href="' + workingDir + ro[t].u + '" tabindex="-1">' + ro[t].n + '</a>';
+        output += '<a href="' + workingDir + ro[t].u + '" tabindex="-1"' + (isIE8 ? '>' + ro[t].n : ' data-content="' + ro[t].n + '">') + '</a>';
       }
       return output;
     }
@@ -1346,6 +1346,8 @@ function addFeatures()
   $.queueFunc.add(modifyCodes);
   $.queueFunc.add(addFooter);
   $.queueFunc.add(addBackButton);
+  $.queueFunc.add(scrollToPos);
+  $.queueFunc.add(highlightWords);
 
   // --- Responsive tables (mobile) ---
 
@@ -1858,13 +1860,17 @@ function addFeatures()
 
   // --- Ensure setting right scroll position when traversing history ---
 
-  if (supportsHistory && history.state)
-    document.getElementById('right').scrollTop = history.state.scrollTop;
+  function scrollToPos() {
+    if (supportsHistory && history.state)
+      document.getElementById('right').scrollTop = history.state.scrollTop;
+  }
 
   // --- Highlight search words with jQuery Highlight plugin ---
 
-  if (cache.search_highlightWords && cache.clickTab == 2)
-    search.highlightWords(cache.search_input);
+  function highlightWords() {
+    if (cache.search_highlightWords && cache.clickTab == 2)
+      search.highlightWords(cache.search_input);
+  }
 }
 
 // --- Get the working directory of the site ---
