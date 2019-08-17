@@ -1344,9 +1344,9 @@ function addFeatures()
   $.queueFunc.add(modifyLinks);
   $.queueFunc.add(modifyVersions);
   $.queueFunc.add(modifyCodes);
-  $.queueFunc.add(addFooter);
+  addFooter();
   $.queueFunc.add(addBackButton);
-  $.queueFunc.add(scrollToPos);
+  scrollToPos();
   $.queueFunc.add(highlightWords);
 
   // --- Responsive tables (mobile) ---
@@ -1563,6 +1563,7 @@ function addFeatures()
           5 - declaration
       */
       var syntax = [], dict = {}, entry = '', type = '';
+      var assignOp = "&lt;&lt;|<<|&gt;&gt;|>>|\\/\\/|\\^|&amp;|&|\\||\\.|\\/|\\*|-|\\+|:|)=";
       for (var i = cache.index_data.length - 1; i >= 0; i--) {
         entry = cache.index_data[i][0];
         type = cache.index_data[i][2];
@@ -1653,6 +1654,13 @@ function addFeatures()
           out = PRE + wrap(METHOD, 'met', false);
           els.met.push(out);
           return '<met></met>';
+        });
+        // properties:
+        els.order.push('prp'); els.prp = [];
+        innerHTML = innerHTML.replace(/\.([^~`!@#$%^&*(){}\[\];:"'<,.>?\/\\|+=\-\s]+?)\b/g, function(_, PROPERTY) {
+          out = '.' + wrap(PROPERTY, 'prp', false);
+          els.prp.push(out);
+          return '<prp></prp>';
         });
         // declarations:
         els.order.push('dec'); els.dec = [];
