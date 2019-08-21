@@ -1563,7 +1563,7 @@ function addFeatures()
           5 - declaration
       */
       var syntax = [], dict = {}, entry = '', type = '';
-      var assignOp = "&lt;&lt;|<<|&gt;&gt;|>>|\\/\\/|\\^|&amp;|&|\\||\\.|\\/|\\*|-|\\+|:|)=";
+      var assignOp = "(?:&lt;&lt;|<<|&gt;&gt;|>>|\\/\\/|\\^|&amp;|&|\\||\\.|\\/|\\*|-|\\+|:)=";
       for (var i = cache.index_data.length - 1; i >= 0; i--) {
         entry = cache.index_data[i][0];
         type = cache.index_data[i][2];
@@ -1732,14 +1732,14 @@ function addFeatures()
         });
         // built-in functions:
         els.order.push('bif'); els.bif = [];
-        innerHTML = innerHTML.replace(new RegExp('\\b(' + syntax[2].single.join('|') + ')\\b(?=$|[\\s(])', 'gi'), function(_, BIF) {
+        innerHTML = innerHTML.replace(new RegExp('\\b(' + syntax[2].single.join('|') + ')\\b(?=$|\\(|\\s(?!\\s*' + assignOp + '))', 'gi'), function(_, BIF) {
           out = wrap(BIF, 'bif', true);
           els.bif.push(out);
           return '<bif></bif>';
         });
         // control flow statements:
         els.order.push('cfs'); els.cfs = [];
-        innerHTML = innerHTML.replace(new RegExp('\\b(' + syntax[3][0].join('|') + ') (\\S+|\\S+, \\S+) (' + syntax[3][1].join('|') + ') (.+?)(?=<em></em>|$|{)|\\b(' + syntax[3].single.join('|') + ')\\b($|[\\s,(])(.*?)(?=<em></em>|$|{|\\b(' + syntax[3].single.join('|') + ')\\b)', 'gim'), function(ASIS, IF, INPUT, BETWEEN, VAL, CFS, SEP, PARAMS) {
+        innerHTML = innerHTML.replace(new RegExp('\\b(' + syntax[3][0].join('|') + ') (\\S+|\\S+, \\S+) (' + syntax[3][1].join('|') + ') (.+?)(?=<em></em>|$|{)|\\b(' + syntax[3].single.join('|') + ')\\b($|,|\\(|\\s(?!\\s*' + assignOp + '))(.*?)(?=<em></em>|$|{|\\b(' + syntax[3].single.join('|') + ')\\b)', 'gim'), function(ASIS, IF, INPUT, BETWEEN, VAL, CFS, SEP, PARAMS) {
           if (IF) {
             if (INPUT) {
               var cfs = cache.index_data[dict[(IF + ' ... ' + BETWEEN).toLowerCase()]];
