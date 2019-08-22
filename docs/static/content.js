@@ -1564,7 +1564,7 @@ function addFeatures()
           6 - command
       */
       var syntax = [], dict = {}, entry = '', type = '';
-      var assignOp = "&lt;&lt;|<<|&gt;&gt;|>>|\\/\\/|\\^|&amp;|&|\\||\\.|\\/|\\*|-|\\+|:|)=";
+      var assignOp = "(?:&lt;&lt;|<<|&gt;&gt;|>>|\\/\\/|\\^|&amp;|&|\\||\\.|\\/|\\*|-|\\+|:|)=";
       for (var i = cache.index_data.length - 1; i >= 0; i--) {
         entry = cache.index_data[i][0];
         type = cache.index_data[i][2];
@@ -1634,13 +1634,6 @@ function addFeatures()
           els.esc.push(out);
           return '<esc></esc>';
         });
-        // continuation sections:
-        els.order.push('cont'); els.cont = [];
-        innerHTML = innerHTML.replace(/(^\s*\([\s\S]*?^\s*\))/gm, function(_, SECTION) {
-          out = wrap(SECTION, 'str', false);
-          els.cont.push(out);
-          return '<cont></cont>';
-        });
         // function definitions:
         els.order.push('fun'); els.fun = [];
         innerHTML = innerHTML.replace(/^(\s*?)(\S*?)(?=\(.*?\)[<\/em>\s]*{)/mg, function(_, PRE, DEFINITION) {
@@ -1654,6 +1647,13 @@ function addFeatures()
           out = wrap(STRING, 'str', false);
           els.str.push(out);
           return '<str></str>';
+        });
+        // continuation sections:
+        els.order.push('cont'); els.cont = [];
+        innerHTML = innerHTML.replace(/(^\s*\([\s\S]*?^\s*\))/gm, function(_, SECTION) {
+          out = wrap(SECTION, 'str', false);
+          els.cont.push(out);
+          return '<cont></cont>';
         });
         // numeric values:
         els.order.push('num'); els.num = [];
@@ -1746,7 +1746,7 @@ function addFeatures()
         });
         // commands:
         els.order.push('cmd'); els.cmd = [];
-        innerHTML = innerHTML.replace(new RegExp('\\b(' + syntax[6].single.join('|') + ')\\b($|,|\\s(?!(?:' + assignOp + '))(.*?$(?:(?:\\s*?(,|<cont>).*?$))*)', "gim"), function(_, CMD, SEP, PARAMS) {
+        innerHTML = innerHTML.replace(new RegExp('\\b(' + syntax[6].single.join('|') + ')\\b($|,|\\s(?!\\s*' + assignOp + '))(.*?$(?:(?:\\s*?(,|<cont>).*?$))*)', "gim"), function(_, CMD, SEP, PARAMS) {
           // Get type of every parameter:
           var types = cache.index_data[dict[CMD.toLowerCase()]][3];
           // Temporary exclude (...), {...} and [...]:
@@ -1787,7 +1787,7 @@ function addFeatures()
         });
         // control flow statements:
         els.order.push('cfs'); els.cfs = [];
-        innerHTML = innerHTML.replace(new RegExp('\\b(' + syntax[3][0].join('|') + ') (\\S+|\\S+, \\S+) (' + syntax[3][1].join('|') + ') ((.+) (' + syntax[3][2].join('|') + ') (.+?)|.+?)(?=<(?:em|sct)></(?:em|sct)>|$|{)|\\b(' + syntax[3].single.join('|') + ')\\b($|,|\\(|\\s(?!(?:' + assignOp + '))(.*?)(?=<(?:em|sct)></(?:em|sct)>|$|{|\\b(' + syntax[3].single.join('|') + ')\\b)', 'gim'), function(ASIS, IF, INPUT, BETWEEN, VAL, VAL1, AND, VAL2, CFS, SEP, PARAMS) {
+        innerHTML = innerHTML.replace(new RegExp('\\b(' + syntax[3][0].join('|') + ') (\\S+|\\S+, \\S+) (' + syntax[3][1].join('|') + ') ((.+) (' + syntax[3][2].join('|') + ') (.+?)|.+?)(?=<(?:em|sct)></(?:em|sct)>|$|{)|\\b(' + syntax[3].single.join('|') + ')\\b($|,|{|(?=\\()|\\s(?!\\s*' + assignOp + '))(.*?)(?=<(?:em|sct)></(?:em|sct)>|$|{|\\b(' + syntax[3].single.join('|') + ')\\b)', 'gim'), function(ASIS, IF, INPUT, BETWEEN, VAL, VAL1, AND, VAL2, CFS, SEP, PARAMS) {
           if (IF) {
             if (VAL1) {
               var cfs = cache.index_data[dict[(IF + ' ... ' + BETWEEN + ' ... ' + AND).toLowerCase()]];
@@ -1844,7 +1844,7 @@ function addFeatures()
         // hotstrings:
         els.order.push('hotstr'); els.hotstr = [];
         innerHTML = innerHTML.replace(/^(\s*)(:.*?:)(.*?)(::)(.*)/mg, function(_, PRE, HOTSTR1, ABBR, HOTSTR2, REPL) {
-          out = PRE + wrap(HOTSTR1, 'lab', false) + wrap(ABBR, 'str', false) + wrap(HOTSTR2, 'lab', false) + wrap(REPL, 'str', false);
+          out = PRE + wrap(HOTSTR1, 'lab', false) + wrap(ABBR, 'str', false) + wrap(HOTSTR2, 'lab', false) + (HOTSTR1.match(/x/i) ? REPL : wrap(REPL, 'str', false));
           els.hotstr.push(out);
           return '<hotstr></hotstr>';
         });
