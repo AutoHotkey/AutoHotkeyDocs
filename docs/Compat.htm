@@ -12,7 +12,7 @@
 
 <h1>Script Compatibility</h1>
 
-<p>Although many scripts written for AutoHotkey 1.0 do not require changes to run on AutoHotkey 1.1, some may function incorrectly due to necessary differences between the two versions. As the most problematic differences only affect advanced functionality like DllCall, most users do not need to be concerned.</p>
+<p>Although many scripts written for AutoHotkey 1.0 do not require changes to run on AutoHotkey 1.1, some may function incorrectly due to necessary differences between the two versions. As the most problematic differences only affect advanced functionality like DllCall(), most users do not need to be concerned.</p>
 <p>AutoHotkey 1.1 is also known as "AutoHotkey_L", while AutoHotkey 1.0 was retrospectively labelled "AutoHotkey Basic". Some older versions of AutoHotkey_L used 1.0.* version numbers, so for clarity, this document refers to the two branches of AutoHotkey by name rather than version number.</p>
 <p class="note"><strong>Note:</strong> Some of the most common problems are caused by changes required to support Unicode text, and can be avoided by simply using the ANSI version of AutoHotkey_L.</p>
 
@@ -80,7 +80,7 @@
 </ul>
 
 <h3 id="FileRead">FileRead</h3>
-<p><a href="commands/FileRead.htm#Binary">FileRead</a> translates text between code pages in certain common cases and therefore might output corrupt binary data.  To avoid this, add the <code>*c</code> option or use <a href="commands/FileOpen.htm">FileOpen</a> instead.</p>
+<p><a href="commands/FileRead.htm#Binary">FileRead</a> translates text between code pages in certain common cases and therefore might output corrupt binary data.  To avoid this, add the <code>*c</code> option or use <a href="commands/FileOpen.htm">FileOpen()</a> instead.</p>
 
 <h3 id="Names">Variable and Function Names</h3>
 <p>The characters <code>[</code>, <code>]</code> and <code>?</code> are reserved for use in <a href="Variables.htm#Expressions">expressions</a>, so are no longer valid in variable names.  Consequently, <code>?</code> (used in <a href="Variables.htm#ternary">ternary operations</a>) no longer requires a space on either side.  See also <a href="Objects.htm#Syntax">object syntax</a>.</p>
@@ -97,7 +97,7 @@
 <h3 id="Transform">Transform</h3>
 <p>Some <i>Transform</i> sub-commands are altered or unavailable in Unicode versions of AutoHotkey_L:</p>
 <ul>
-  <li><a href="commands/Transform.htm#Unicode">Transform, Unicode</a> is unavailable. To assign Unicode text to the clipboard, use a regular assignment. See also: <a href="commands/StrPut.htm">StrPut</a>/<a href="commands/StrGet.htm">StrGet</a>.</li>
+  <li><a href="commands/Transform.htm#Unicode">Transform, Unicode</a> is unavailable. To assign Unicode text to the clipboard, use a regular assignment. See also: <a href="commands/StrPut.htm">StrPut()</a> / <a href="commands/StrGet.htm">StrGet()</a>.</li>
   <li><a href="commands/Transform.htm#HTML">Transform, HTML</a> supports additional features.</li>
 </ul>
 
@@ -209,9 +209,9 @@ VarSetCapacity(native_var,  t_size(capacity_in_chars))  <em>; see <a href="#NumP
 </table>
 <p>If "Str" or the equivalent type for the current build is used as a parameter, the address of the string or var is passed to the function, otherwise a temporary copy of the string is created in the desired format and passed instead. As a general rule, "AStr" and "WStr" should not be used if the function writes a value into that parameter.</p>
 <p class="note"><b>Note:</b> "AStr" and "WStr" are equally valid for parameters and the function's return value.</p>
-<p>In general, if a script calls a function via DllCall which accepts a string as a parameter, one of the following approaches must be taken:</p>
+<p>In general, if a script calls a function via DllCall() which accepts a string as a parameter, one of the following approaches must be taken:</p>
 <ol>
-  <li>If both Unicode (W) and ANSI (A) versions of the function are available, call the appropriate one for the current build.  In the following example, "DeleteFile" is internally known as "DeleteFileA" or "DeleteFileW".  Since "DeleteFile" itself doesn't really exist, DllCall automatically tries "A" or "W" as appropriate for the current build:
+  <li>If both Unicode (W) and ANSI (A) versions of the function are available, call the appropriate one for the current build.  In the following example, "DeleteFile" is internally known as "DeleteFileA" or "DeleteFileW".  Since "DeleteFile" itself doesn't really exist, DllCall() automatically tries "A" or "W" as appropriate for the current build:
   <pre>DllCall("DeleteFile", "Ptr", &amp;filename)
 DllCall("DeleteFile", "Str", filename)</pre>
   <p>In this example, <code>&amp;filename</code> passes the address of the string exactly as-is, so the function must expect a string in the same format as the "Str" type. Note that "UInt" must be used in place of "Ptr" in AutoHotkey Basic, but the resulting code may not be 64-bit compatible.</p>
@@ -219,11 +219,11 @@ DllCall("DeleteFile", "Str", filename)</pre>
   <li>If the function only accepts a specific type of string as input, the script may use the appropriate string type:
   <pre>DllCall("DeleteFileA", "AStr", filename)
 DllCall("DeleteFileW", "WStr", filename)</pre></li>
-  <li>If the function must modify a string (in a non-native format), the script must allocate a buffer as described <a href="#VarSetCapacity">above</a> and pass its address to the function.  If the parameter accepts input, the script must also convert the input string to the appropriate format; this can be done using <a href="commands/StrPut.htm">StrPut</a>.</li>
+  <li>If the function must modify a string (in a non-native format), the script must allocate a buffer as described <a href="#VarSetCapacity">above</a> and pass its address to the function.  If the parameter accepts input, the script must also convert the input string to the appropriate format; this can be done using <a href="commands/StrPut.htm">StrPut()</a>.</li>
 </ol>
 
 <h3 id="NumPutGet">NumPut / NumGet</h3>
-<p>When NumPut or NumGet are used with strings, the offset and type must be correct for the given type of string.  The following may be used as a guide:</p>
+<p>When NumPut() or NumGet() are used with strings, the offset and type must be correct for the given type of string.  The following may be used as a guide:</p>
 <pre><em>;  8-bit/ANSI   strings:  size_of_char=1  type_of_char="Char"
 ; 16-bit/UTF-16 strings:  size_of_char=2  type_of_char="UShort"</em>
 <i>n</i>th_char := NumGet(var, (<i>n</i>-1)*<i>size_of_char</i>, <i>type_of_char</i>)
@@ -245,9 +245,9 @@ t_size(char_count=1) {
 <ul>
   <li>Offset calculation for fields in structures which contain one or more pointers.</li>
   <li>Size calculation for structures containing one or more pointers.</li>
-  <li>Type names used with <a href="commands/DllCall.htm">DllCall</a>, <a href="commands/NumPut.htm">NumPut</a> or <a href="commands/NumGet.htm">NumGet</a>.</li>
+  <li>Type names used with <a href="commands/DllCall.htm">DllCall()</a>, <a href="commands/NumPut.htm">NumPut()</a> or <a href="commands/NumGet.htm">NumGet()</a>.</li>
 </ul>
-<p>For size and offset calculations, use <a href="Variables.htm#PtrSize">A_PtrSize</a>. For DllCall, NumPut and NumGet, use the <a href="commands/DllCall.htm">Ptr</a> type where appropriate.</p>
+<p>For size and offset calculations, use <a href="Variables.htm#PtrSize">A_PtrSize</a>. For DllCall(), NumPut() and NumGet(), use the <a href="commands/DllCall.htm">Ptr</a> type where appropriate.</p>
 <p>Remember that the offset of a field is usually the total size of all fields preceding it. Also note that handles (including types like HWND and HBITMAP) are essentially pointer-types.</p>
 <pre><em>/*
   typedef struct _PROCESS_INFORMATION {
