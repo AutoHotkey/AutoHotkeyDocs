@@ -1636,24 +1636,12 @@ function addFeatures()
         });
         // function definitions:
         els.order.push('fun'); els.fun = [];
-        innerHTML = innerHTML.replace(/^(\s*?)(\S*?)(?=\(.*?\)[<\/em>\s]*{)/mg, function(_, PRE, DEFINITION) {
+        innerHTML = innerHTML.replace(/^(\s*?)(\S*?)(?=\(.*?\)\s*(<(em|sct)><\/(em|sct)>\s*)*{)/mg, function(ASIS, PRE, DEFINITION) {
+          if (DEFINITION.match(/^(while|if)$/i))
+            return ASIS;
           out = PRE + wrap(DEFINITION, 'fun', false);
           els.fun.push(out);
           return '<fun></fun>';
-        });
-        // strings:
-        els.order.push('str'); els.str = [];
-        innerHTML = innerHTML.replace(/((")[\s\S]*?\2)\B/gm, function(_, STRING) {
-          out = wrap(STRING, 'str', false);
-          els.str.push(out);
-          return '<str></str>';
-        });
-        // continuation sections:
-        els.order.push('cont'); els.cont = [];
-        innerHTML = innerHTML.replace(/(^\s*\([\s\S]*?^\s*\))/gm, function(_, SECTION) {
-          out = wrap(SECTION, 'str', false);
-          els.cont.push(out);
-          return '<cont></cont>';
         });
         // numeric values:
         els.order.push('num'); els.num = [];
@@ -1661,6 +1649,29 @@ function addFeatures()
           out = wrap(NUMBER, 'num', false);
           els.num.push(out);
           return '<num></num>';
+        });
+        // legacy assignments:
+        els.order.push('assign'); els.assign = [];
+        innerHTML = innerHTML.replace(/^(\s*[^(\s,^:!*\/&^+\-|~.=]*?)([ \t]*=[ \t]*)(.*?)(?=<(?:em|sct)><\/(?:em|sct)>|$)/gim, function(_, VAR, OP, VAL) {
+          out = (VAL.match(/^\s*<num><\/num>\s*$/) ? VAL : wrap(VAL, 'str', false));
+          els.assign.push(out);
+          return VAR + OP + '<assign></assign>';
+        });
+        // continuation sections:
+        els.order.push('cont'); els.cont = [];
+        innerHTML = innerHTML.replace(/(^.*?(.)(?:\s*?<(?:em|sct)><\/(?:em|sct)>|$)[\r\n]*?^\s*)(\((?!.*?\))[\s\S]*?^\s*\))/gm, function(ASIS, PRE, QUOTE, SECTION) {
+          if (QUOTE == '"')
+            return ASIS;
+          out = wrap(SECTION, 'str', false);
+          els.cont.push(out);
+          return PRE + '<cont></cont>';
+        });
+        // strings:
+        els.order.push('str'); els.str = [];
+        innerHTML = innerHTML.replace(/((")[\s\S]*?\2)/gm, function(_, STRING) {
+          out = wrap(STRING, 'str', false);
+          els.str.push(out);
+          return '<str></str>';
         });
         // methods:
         els.order.push('met'); els.met = [];
@@ -1746,7 +1757,7 @@ function addFeatures()
         });
         // commands:
         els.order.push('cmd'); els.cmd = [];
-        innerHTML = innerHTML.replace(new RegExp('\\b(' + syntax[6].single.join('|') + ')\\b($|,|\\s(?!\\s*' + assignOp + '))(.*?$(?:(?:\\s*?(,|<cont>).*?$))*)', "gim"), function(_, CMD, SEP, PARAMS) {
+        innerHTML = innerHTML.replace(new RegExp('\\b(' + syntax[6].single.join('|') + ')\\b(\\s*,|\\s*<(?:em|sct)><\\/(?:em|sct)>\\s*,|$|,|\\s(?!\\s*' + assignOp + '))(.*?$(?:(?:\\s*?(,|<cont>).*?$))*)', "gim"), function(_, CMD, SEP, PARAMS) {
           // Get type of every parameter:
           var types = cache.index_data[dict[CMD.toLowerCase()]][3];
           // Temporary exclude (...), {...} and [...]:
@@ -1763,9 +1774,9 @@ function addFeatures()
 
           if (CMD.toLowerCase() == "msgbox") // For MsgBox.
           {
-            if (PARAMS[0] && !PARAMS[0].match(/^\s*<num><\/num>/)) // 1-parameter mode
+            if (PARAMS[0] && !PARAMS[0].match(/^(\s*(<(em|sct)><\/\3>|$)|\s*<num><\/num>)/)) // 1-parameter mode
               PARAMS.push(PARAMS.splice(0).join(','));
-            if (PARAMS[3] && !PARAMS[3].match(/^\s*<num><\/num>/)) // 3-parameter mode
+            if (PARAMS[3] && !PARAMS[3].match(/^(\s*(<(em|sct)><\/\3>|$)|\s*<num><\/num>)/)) // 3-parameter mode
               PARAMS.push(PARAMS.splice(2).join(','));
           }
           // Iterate params and recompose them:
@@ -1861,15 +1872,6 @@ function addFeatures()
           out = PRE + wrap(LABEL, 'lab', false);
           els.lab.push(out);
           return '<lab></lab>';
-        });
-        // legacy assignments:
-        els.order.push('assign'); els.assign = [];
-        innerHTML = innerHTML.replace(/^(\s*[^(\s,]*?\s*[^:!*\/&^+\-|~.])=(.*?)(?=<(?:em|sct)><\/(?:em|sct)>|$)/gim, function(ASIS, VAR, VAL) {
-          if (VAR.indexOf('<cfs></cfs>') != -1)
-            return ASIS;
-          out = VAR + '=' + (VAL.match(/^\s*<num><\/num>\s*$/) ? VAL : wrap(VAL, 'str', false));
-          els.assign.push(out);
-          return '<assign></assign>';
         });
         // Release changes:
         pre.innerHTML = innerHTML;
