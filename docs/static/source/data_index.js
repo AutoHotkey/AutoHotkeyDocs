@@ -26,6 +26,7 @@ indexData = [
   ["&&","Variables.htm#and",4],
   ["&=","Variables.htm#AssignOp",4],
   ["#ClipboardTimeout","commands/_ClipboardTimeout.htm",0,"S"],
+  ["#DllLoad","commands/_DllLoad.htm",0,"S"],
   ["#ErrorStdOut","commands/_ErrorStdOut.htm",0,""],
   ["#HotkeyInterval","commands/_HotkeyInterval.htm",0,"S"],
   ["#HotkeyModifierTimeout","commands/_HotkeyModifierTimeout.htm",0,"S"],

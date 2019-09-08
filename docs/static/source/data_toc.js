@@ -466,6 +466,7 @@ tocData = [
   ["#Directives","",
   [
     ["#ClipboardTimeout","commands/_ClipboardTimeout.htm"],
+	["#DllLoad","commands/_DllLoad.htm"],
     ["#ErrorStdOut","commands/_ErrorStdOut.htm"],
     ["#HotkeyInterval","commands/_HotkeyInterval.htm"],
     ["#HotkeyModifierTimeout","commands/_HotkeyModifierTimeout.htm"],
