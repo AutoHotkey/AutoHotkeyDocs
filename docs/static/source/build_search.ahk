@@ -76,11 +76,11 @@ ScanFiles()
 ScanFiles()
 {
     index := {}
-    files := {}
-    files_map := {}
-    filewords := {}
-    titles_map := {}
-    titles := {}
+    files := []
+    files_map := Map()
+    filewords := Map()
+    titles_map := Map()
+    titles := Map()
     
     Loop Files, "*.htm", "R"
     {
@@ -213,7 +213,7 @@ ScanFile(filename)
     h1.innerHTML := RegExReplace(h1.innerHTML, '<span.*?</span>') ; Remove heading notes or version annotations.
     h1 := Trim(h1.innerText)
     titles[file_index] := h1
-    if titles_map[h1]
+    if titles_map.has(h1)
         throw Exception("Duplicate title: " h1 "`n  " files[file_index] "`n  " files[titles_map[h1]])
     titles_map[h1] := file_index
     
@@ -221,7 +221,7 @@ ScanFile(filename)
     FileDelete "test\" name
     FileAppend text, "test\" name
     
-    words := {}
+    words := Map()
     filewords[file_index] := words
     
     ScanText(text, words)
@@ -271,9 +271,9 @@ ScanText(text, words, weight := 1)
     p := 1
     While p := RegExMatch(text, word_pattern, m, p)
     {
-        m := m.0
+        m := m[0]
         ; '@' prefix avoids reassigning words.base, and possibly other issues.
-        words['@' m] := (words['@' m] or 0) + weight
+        words['@' m] := (words.has('@' m) ? words['@' m] : 0) + weight
         p += StrLen(m)
     }
 }
