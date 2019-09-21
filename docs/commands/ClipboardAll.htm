@@ -21,21 +21,20 @@
 <dl>
   <dt>Data</dt>
   <dd>
-    <p>Type: <a href="../Concepts.htm#strings">String</a> or <a href="../Concepts.htm#numbers">Integer</a></p>
-    <p>A string containing binary data, or a pure integer which is the address of the binary data. The data must be in a specific format, so typically originates from a previous call to ClipboardAll. See <a href="#ExFile">example #2</a> below.</p>
+    <p>Type: <a href="../Concepts.htm#objects">Object</a> or <a href="../Concepts.htm#numbers">Integer</a></p>
+    <p>A <a href="../objects/Buffer.htm">Buffer</a>-like object or a pure integer which is the address of the binary data. The data must be in a specific format, so typically originates from a previous call to ClipboardAll. See <a href="#ExFile">example #2</a> below.</p>
   </dd>
   <dt>Size</dt>
   <dd>
     <p>Type: <a href="../Concepts.htm#numbers">Integer</a></p>
-    <p>The number of bytes of data to use. This is optional when <em>Data</em> is a string.</p>
+    <p>The number of bytes of data to use. This is optional when <em>Data</em> is an object.</p>
   </dd>
 </dl>
 
 <h2 id="clipboardall-object">Return Value</h2>
 <p>Type: <a href="../Concepts.htm#objects">Object</a></p>
-<p>This function returns a <a href="../Concepts.htm#references-to-objects">reference</a> to a ClipboardAll object, which has three properties (inherited from <a href="../objects/Buffer.htm">Buffer</a>):</p>
+<p>This function returns a <a href="../Concepts.htm#references-to-objects">reference</a> to a ClipboardAll object, which has two properties (inherited from <a href="../objects/Buffer.htm">Buffer</a>):</p>
 <ul>
-  <li><a href="../objects/Buffer.htm#Data">Data</a>: A string containing raw binary data which represents the clipboard contents. This is typically passed to <a href="FileAppend.htm">FileAppend</a> or <a href="../objects/File.htm#RawWrite">File.RawWrite</a> to write it to file.</li>
   <li><a href="../objects/Buffer.htm#Ptr">Ptr</a>: The address of the data contained by the object. This address is valid until the object is freed.</li>
   <li><a href="../objects/Buffer.htm#Size">Size</a>: The size, in bytes, of the raw binary data.</li>
 </ul>
@@ -49,7 +48,7 @@
 <p>Known limitation: Using <em>ClipboardAll</em> while cells from Microsoft Excel are on the clipboard may cause Excel to display a &quot;no printers&quot; dialog.</p>
 
 <h2>Related</h2>
-<p><a href="../misc/Clipboard.htm">Clipboard</a>, <a href="ClipWait.htm">ClipWait</a>, <a href="OnClipboardChange.htm">OnClipboardChange</a>, <a href="_ClipboardTimeout.htm">#ClipboardTimeout</a></p>
+<p><a href="../misc/Clipboard.htm">Clipboard</a>, <a href="ClipWait.htm">ClipWait</a>, <a href="OnClipboardChange.htm">OnClipboardChange</a>, <a href="_ClipboardTimeout.htm">#ClipboardTimeout</a>, <a href="../objects/Buffer.htm">Buffer</a></p>
 
 <h2>Examples</h2>
 
@@ -63,15 +62,16 @@ ClipSaved := ""  <em>; Free the memory in case the clipboard was very large.</em
 
 <div class="ex" id="ExFile">
 <p><a href="#ExFile">#2</a>: Saves and restores everything on the clipboard using a file:</p>
-<pre><em>; Option 1: Delete any existing file and then use FileAppend in "RAW" mode.</em>
+<pre><em>; Option 1: Delete any existing file and then use FileAppend.</em>
 <a href="FileDelete.htm">FileDelete</a> "Company Logo.clip"
-<a href="FileAppend.htm">FileAppend</a> ClipboardAll().Data, "Company Logo.clip", "RAW" <em>; The file extension does not matter.</em>
+<a href="FileAppend.htm">FileAppend</a> ClipboardAll(), "Company Logo.clip" <em>; The file extension does not matter.</em>
 
 <em>; Option 2: Use FileOpen in overwrite mode and File.RawWrite.</em>
-<a href="FileOpen.htm">FileOpen</a>("Company Logo.clip", "w").<a href="../objects/File.htm#RawWrite">RawWrite</a>(ClipboardAll().Data)</pre>
+ClipData := ClipboardAll()
+<a href="FileOpen.htm">FileOpen</a>("Company Logo.clip", "w").<a href="../objects/File.htm#RawWrite">RawWrite</a>(ClipData)</pre>
 <p>To later load the file back onto the clipboard (or into a variable), follow this example:</p>
-<pre>clip := FileRead("Company Logo.clip", "RAW")
-Clipboard := ClipboardAll(clip.Data)</pre>
+<pre>ClipData := FileRead("Company Logo.clip", "RAW")  <em>; In this case, FileRead returns a Buffer.</em>
+Clipboard := ClipboardAll(ClipData)  <em>; Convert the Buffer to a ClipboardAll and assign it.</em></pre>
 </div>
 
 </body>
