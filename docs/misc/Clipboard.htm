@@ -42,18 +42,40 @@ ClipSaved := ""   <em>; Free the memory in case the clipboard was very large.</e
 <pre><a href="../commands/FileAppend.htm">FileAppend</a>, %ClipboardAll%, C:\Company Logo.clip <em>; The file extension does not matter.</em></pre>
 <p>To later load the file back onto the clipboard (or into a variable), follow this example:</p>
 <pre><a href="../commands/FileRead.htm">FileRead</a>, Clipboard, <strong>*c</strong> C:\Company Logo.clip <em>; Note the use of *c, which must precede the filename.</em></pre>
+
+<h3 id="limitations">Limitations</h3>
+<p>Some limitations apply to the direct use of <em>ClipboardAll</em>:</p>
+<ul>
+  <li><em>ClipboardAll</em> is blank when used in ways other than those described above.</li>
+  <li><em>ClipboardAll</em> is not supported inside <a href="../Variables.htm#comma">comma-separated expressions</a>; that is, it should be assigned on a line by itself such as <code>ClipSaved := ClipboardAll</code>.</li>
+</ul>
+<p>A variable containing binary clipboard data can be used as follows:</p>
+<ul>
+  <li>Put the data back on the clipboard by assigning to <em>Clipboard</em> as shown above.</li>
+  <li>Write the clipboard data to file with <a href="../commands/FileAppend.htm">FileAppend</a>, as shown above.</li>
+  <li>Copy it to another variable (or <a href="../Functions.htm#ByRef">ByRef</a> parameter) as in this example: <code>ClipSaved2 := ClipSaved</code>.</li>
+  <li>Pass it to a <a href="../Functions.htm">user-defined function</a> <a href="../Functions.htm#ByRef">by reference</a>, or in <span class="ver">[v1.0.46+]</span>, by value.</li>
+  <li>Determine the size of the data by passing it to <a href="../commands/StringLen.htm">StrLen() / StringLen</a> as described <a href="#len">below</a>.</li>
+  <li>Compare two such variables by using an old-style IF as shown <a href="#compare">below</a>.</li>
+  <li>Take its <a href="../Variables.htm#amp">address</a> or pass the variable itself to <a href="../commands/NumGet.htm">NumGet</a> to examine the data.</li>
+</ul>
+<p>Further limitations apply:</p>
+<ul>
+  <li>When binary clipboard data is assigned to a variable, the variable is marked with a hidden attribute. This attribute can only be set by <a href="../commands/FileRead.htm">FileRead</a> with the <code>*c</code> option, or by direct assignment from <em>ClipboardAll</em> (as shown above) or another variable which has the attribute.</li>
+  <li>When used in ways other than those described above, binary clipboard data is usually interpreted as text and truncated at the first null character, which is typically at the beginning of the data. For instance, this occurs when one attempts to return the data from a function or assign it to a property or array element.</li>
+  <li>The clipboard attribute is removed when the variable is freed or assigned any other value, even by indirect means such as <a href="../commands/StringReplace.htm">StringReplace</a>.</li>
+  <li>Variables without the clipboard attribute are treated as text when assigned to <em>Clipboard</em> or passed to FileAppend, even if the data is in the appropriate binary format.</li>
+</ul>
+
 <h3>Notes</h3>
-<p><em>ClipboardAll</em> is blank when used in ways other than those described above. In addition, <em>ClipboardAll</em> is not supported inside <a href="../Variables.htm#comma">comma-separated expressions</a>; that is, it should be assigned on a line by itself such as <code>ClipSaved := ClipboardAll</code>.</p>
-<p>Variables to which <em>ClipboardAll</em> has been assigned are in binary format and thus will appear as gibberish when displayed with <a href="../commands/MsgBox.htm">MsgBox</a> or similar. Also, altering a binary-clipboard variable (by means such as <a href="../commands/StringReplace.htm">StringReplace</a>) will revert it to a normal variable, resulting in the loss of its clipboard data. <span class="ver">[v1.0.46+]</span>: Binary-clipboard variables may be passed to <a href="../Functions.htm#ByRef">functions</a> by value (formerly they only worked <a href="../Functions.htm#ByRef">ByRef</a>).</p>
 <p>If <em>ClipboardAll</em> cannot retrieve one or more of the data objects (formats) on the clipboard, they will be omitted but all the remaining objects will be stored.</p>
-<p>A variable containing clipboard data can be copied to another variable as in this example: <code>ClipSaved2 := ClipSaved</code>.</p>
 <p><a href="../commands/ClipWait.htm">ClipWait</a> may be used to detect when the clipboard contains data (optionally including non-text data).</p>
-<p><a href="../commands/StringLen.htm">StrLen() / StringLen</a> may be used to discover the total size of a variable to which <em>ClipboardAll</em> has been assigned. However, to get the size in bytes on Unicode versions of AutoHotkey, the length must be multiplied by 2. <a href="../Variables.htm#IsUnicode">A_IsUnicode</a> can be used to support ANSI and Unicode versions, as in this example: <code>size := StrLen(ClipSaved) * (A_IsUnicode ? 2 : 1)</code>.</p>
-<p>Variables to which <em>ClipboardAll</em> has been assigned can be compared to each other (but not directly to <em>ClipboardAll</em>) by means of the != and = operators. In the following example, the length of each variable is checked first. If that is not enough to make the determination, the contents are compared to break the tie:</p>
-<pre>if (ClipSaved1 != ClipSaved2)   <em>; This <u>must</u> be an old-style IF statement, not an expression.</em>
+<p id="len"><a href="../commands/StringLen.htm">StrLen() / StringLen</a> may be used to discover the total size of a variable to which <em>ClipboardAll</em> has been assigned. However, to get the size in bytes on Unicode versions of AutoHotkey, the length must be multiplied by 2. <a href="../Variables.htm#IsUnicode">A_IsUnicode</a> can be used to support ANSI and Unicode versions, as in this example: <code>size := StrLen(ClipSaved) * (A_IsUnicode ? 2 : 1)</code>.</p>
+<p id="compare">Variables to which <em>ClipboardAll</em> has been assigned can be compared to each other (but not directly to <em>ClipboardAll</em>) by means of <a href="../commands/IfEqual.htm">IfEqual, IfNotEqual</a>, <code>If Var1 = %Var2%</code>, or <code>If Var1 != %Var2%</code>. In the following example, the length of each variable is checked first. If that is not enough to make the determination, the contents are compared to break the tie:</p>
+<pre>if ClipSaved1 != %ClipSaved2%   <em>; This <u>must</u> be an old-style IF statement, not an expression.</em>
     MsgBox The two saved clipboards are different.</pre>
 <p>Saving <em>ClipboardAll</em> to a variable is not restricted by the memory limit set by <a href="../commands/_MaxMem.htm">#MaxMem</a>.</p>
-<p>A saved clipboard file internally consists of a four-byte format type, followed by a four-byte data-block size, followed by the data-block for that format. If the clipboard contained more than one format (which is almost always the case), these three items are repeated until all the formats are included. The file ends with a four-byte format type of 0.</p>
+<p>A saved clipboard file internally consists of a four-byte format type, followed by a four-byte (for 32-bit) or eight-byte (for 64-bit) data-block size, followed by the data-block for that format. If the clipboard contained more than one format (which is almost always the case), these three items are repeated until all the formats are included. The file ends with a four-byte format type of 0.</p>
 <p>Known limitation: Retrieving <em>ClipboardAll</em> while cells from Microsoft Excel are on the clipboard may cause Excel to display a &quot;no printers&quot; dialog.</p>
 <p>Clipboard utilities written in AutoHotkey:</p>
 <ul>
