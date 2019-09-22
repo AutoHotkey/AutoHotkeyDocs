@@ -75,12 +75,12 @@ ScanFiles()
 
 ScanFiles()
 {
-    index := {}
-    files := {}
-    files_map := {}
-    filewords := {}
-    titles_map := {}
-    titles := {}
+    index := Map()
+    files := []
+    filewords := []
+    files_map := Map()
+    titles_map := Map()
+    titles := Map()
     
     Loop Files, "*.htm", "R"
     {
@@ -107,10 +107,10 @@ ScanFiles()
     title_list := Sort(SubStr(title_list,1,-1))
     sfiles := []
     stitles := []
-    smap := {}
+    smap := Map()
     Loop Parse, title_list, "`n"
     {
-        file_index := titles_map[A_LoopField]
+        file_index := titles_map[StrLower(A_LoopField)]
         sfiles.Push(files[file_index])
         stitles.Push(A_LoopField)
         smap[file_index] := A_Index
@@ -124,7 +124,6 @@ ScanFiles()
         ; Always quote these (though should be okay unquoted in HTML5 browsers, it's no good in CHM viewer even with IE11).
         static js_keywords := "boolean|break|byte|case|catch|char|continue|default|delete|do|double|else|false|final|finally|float|for|function|if|in|instanceof|int|long|new|null|return|short|switch|this|throw|true|try|typeof|var|void|while|with"
             . "|class|const|debugger|enum|export|extends|import|super"  ; These probably only in JScript.
-        word := StrLower(SubStr(word, 2))
         if word ~= "(?!\b(" js_keywords ")\b)^[\p{Ll}_][\p{L}\d_]*$"
             s .= word ':"'
         else
@@ -137,9 +136,11 @@ ScanFiles()
     }
     s := SubStr(s,1,-1) "}`n`n"
     
-    abbs := { "C" : "commands/"
-            , "V" : "Variables#"
-            , "F" : "Functions#" }
+    abbs := Map(
+        "C", "commands/",
+        "V", "Variables#",
+        "F", "Functions#"
+        )
     s .= 'var'
     for a, p in abbs
         s .= Format(' {1}="{2}",', a, p)
@@ -186,7 +187,8 @@ ScanFile(filename)
     Loop {
         try {
             text := doc.body.innerText
-            break
+            if text != ""
+                break
         }
         if A_Index > 10 {
             D("can't parse file " filename)
@@ -201,7 +203,9 @@ ScanFile(filename)
     }
     
     href := StrReplace(filename, "\", "/")
-    file_index := files.Push(href)
+    files.Push(href)
+    filewords.Push(words := Map())
+    file_index := files.Length
     files_map[href] := file_index
 
     h1 := ""
@@ -213,16 +217,13 @@ ScanFile(filename)
     h1.innerHTML := RegExReplace(h1.innerHTML, '<span.*?</span>') ; Remove heading notes or version annotations.
     h1 := Trim(h1.innerText)
     titles[file_index] := h1
-    if titles_map[h1]
-        throw Exception("Duplicate title: " h1 "`n  " files[file_index] "`n  " files[titles_map[h1]])
-    titles_map[h1] := file_index
+    if titles_map.Has(h1_ := StrLower(h1))
+        throw Exception("Duplicate title: " h1 "`n  " files[file_index] "`n  " files[titles_map[h1_]])
+    titles_map[h1_] := file_index
     
     SplitPath filename, name
     FileDelete "test\" name
     FileAppend text, "test\" name
-    
-    words := {}
-    filewords[file_index] := words
     
     ScanText(text, words)
     
@@ -260,9 +261,8 @@ ScanFile(filename)
         if InStr(a_href, "://") || a_href = ""
             continue
         a_href := RegExReplace(href "/../" a_href, "(^|/)[^/]+(?0)?/\.\.(?=/)", "")
-        if !(fw := filewords[files_map[a_href]])
-            continue
-        ScanText(a.innerText, fw, 10)
+        if files_map.Has(a_href)
+            ScanText(a.innerText, filewords[files_map[a_href]], 10)
     }
 }
 
@@ -271,9 +271,8 @@ ScanText(text, words, weight := 1)
     p := 1
     While p := RegExMatch(text, word_pattern, m, p)
     {
-        m := m.0
-        ; '@' prefix avoids reassigning words.base, and possibly other issues.
-        words['@' m] := (words['@' m] or 0) + weight
+        m := StrLower(m.0)
+        words[m] := (words.Has(m) ? words[m] : 0) + weight
         p += StrLen(m)
     }
 }
@@ -282,24 +281,24 @@ MergeWordsIntoIndex(words, file_index)
 {
     for word, freq in words  ; freq = frequency
     {
-        iw := index[word]
-        if !iw
+        if !index.Has(word)
         {
             ; Add word to index
             index[word] := [[file_index, freq]]
             continue
         }
-        Loop iw.Length()
-            if iw[A_Index, 1] = file_index
+        iw := index[word]
+        for iww in iw
+            if iww[1] = file_index
             {
                 ; File already indexed -- increase frequency
                 ; FIXME: file list should probably be re-sorted later?
-                iw[A_Index, 2] := iw[A_Index, 2] + freq
+                iww[2] += freq
                 return
             }
         ; Add new file to this word -- files are ordered according to word frequency
         insert_at := 1
-        while insert_at <= iw.Length() && freq <= iw[insert_at, 2]
+        while insert_at <= iw.Length && freq <= iw[insert_at][2]
             insert_at++
         iw.InsertAt(insert_at, [file_index, freq])
     }
@@ -320,18 +319,21 @@ ScanIndex()
     
     Loop ji.length
     {
-        title := ji[A_Index-1][0]
-        path  := ji[A_Index-1][1]
+        title := ji.%A_Index-1%.0
+        path  := ji.%A_Index-1%.1
         
         ; Scan the words in this topic title
-        words := {}
+        words := Map()
         ScanText(title, words, 400)
         
         ; Add this topic file (if needed)
-        file_index := titles_map[title]
-        if file_index = ""
+        if titles_map.Has(title_ := StrLower(title))
+            file_index := titles_map[title_]
+        else
         {
-            titles_map[title] := file_index := files.Push(path)
+            files.Push(path)
+            filewords.Push(Map())
+            titles_map[title_] := file_index := files.Length
             titles[file_index] := title
         }
         
