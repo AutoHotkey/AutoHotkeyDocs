@@ -287,42 +287,43 @@ MsgBox "The following string was read from the file: " TestString</pre>
 
 <div class="ex" id="ExHideCursor">
 <p><a href="#ExHideCursor">#9</a>: Hides the mouse cursor when you press <kbd>Win</kbd>+<kbd>C</kbd>. To later show the cursor, press this hotkey again.</p>
-<pre>OnExit () =&gt; SystemCursor("Show")  <em>; Ensure the cursor is made visible when the script exits.</em>
+<pre>OnExit (*) =&gt; SystemCursor("Show")  <em>; Ensure the cursor is made visible when the script exits.</em>
 
 #c::SystemCursor("Toggle")  <em>; Win+C hotkey to toggle the cursor on and off.</em>
 
-SystemCursor(cmd)  <em>; cmd = "Show|Hide|Toggle"</em>
+SystemCursor(cmd)  <em>; cmd = "Show|Hide|Toggle|Reload"</em>
 {
-    static vision := true, c := {}
-    static system_cursors := "32512,32513,32514,32515,32516,32642,32643,32644,32645,32646,32648,32649,32650"
+    static visible := true, c := Map()
+    static sys_cursors := [32512, 32513, 32514, 32515, 32516, 32642
+                         , 32643, 32644, 32645, 32646, 32648, 32649, 32650]
     VarSetCapacity(h_cursor, 4444, 1)
-    if (cmd = "Reload" or !c.Length())  <em>; Reload when requested or at first call.</em>
+    if (cmd = "Reload" or !c.Count)  <em>; Reload when requested or at first call.</em>
     {
         VarSetCapacity(AndMask, 32*4, 0xFF)
         VarSetCapacity(XorMask, 32*4, 0)
-        For i, resID in StrSplit(system_cursors, ",")
+        for i, id in sys_cursors
         {
-            h_cursor := DllCall("LoadCursor", &quot;Ptr&quot;, 0, &quot;Ptr&quot;, resID)
-            <em>; System cursors:</em>
-            c[i] := {r: resID}
-            <em>; Handles of default cursors:</em>
-            c[i][1] := DllCall("CopyImage", &quot;Ptr&quot;, h_cursor, &quot;UInt&quot;, 2, &quot;Int&quot;, 0, &quot;Int&quot;, 0, &quot;UInt&quot;, 0)
-            <em>; Blank cursors:</em>
-            c[i][0] := DllCall("CreateCursor", &quot;Ptr&quot;, 0, &quot;Int&quot;, 0, &quot;Int&quot;, 0, &quot;Int&quot;, 32, &quot;Int&quot;, 32, &quot;Ptr&quot;, &amp;AndMask, &quot;Ptr&quot;, &amp;XorMask)
+            h_cursor  := DllCall("LoadCursor", "Ptr", 0, "Ptr", id)
+            h_default := DllCall("CopyImage", "Ptr", h_cursor, "UInt", 2
+                , "Int", 0, "Int", 0, "UInt", 0)
+            h_blank   := DllCall("CreateCursor", "Ptr", 0, "Int", 0, "Int", 0
+                , "Int", 32, "Int", 32, "Ptr", &AndMask, "Ptr", &XorMask)
+            c[id] := {"default": h_default, "blank": h_blank}
         }
     }
-    if (cmd = "Show")
-        vision := true
-    else if (cmd = "Hide")
-        vision := false
-    else if (cmd = "Toggle")
-        vision := !vision
-    else
-        return
-    For i, cursor in c
+    switch cmd
     {
-        h_cursor := DllCall("CopyImage", &quot;Ptr&quot;, cursor[vision], &quot;UInt&quot;, 2, &quot;Int&quot;, 0, &quot;Int&quot;, 0, &quot;UInt&quot;, 0)
-        DllCall("SetSystemCursor", &quot;Ptr&quot;, h_cursor, &quot;UInt&quot;, cursor.r)
+      case "Show": visible := true
+      case "Hide": visible := false
+      case "Toggle": visible := !visible
+      default: return
+    }
+    for id, handles in c
+    {
+        h_cursor := DllCall("CopyImage"
+            , "Ptr", visible ? handles.default : handles.blank
+            , "UInt", 2, "Int", 0, "Int", 0, "UInt", 0)
+        DllCall("SetSystemCursor", "Ptr", h_cursor, "UInt", id)
     }
 }</pre>
 </div>

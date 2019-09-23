@@ -374,7 +374,6 @@ indexData = [
   ["cursor shape","Variables.htm#Cursor"],
   ["custom combination hotkeys","Hotkeys.htm#combo"],
   ["Custom controls (GUI)","commands/GuiControls.htm#Custom"],
-  ["Data property (Buffer)","objects/Buffer.htm#Data"],
   ["DateAdd","commands/DateAdd.htm",2],
   ["DateDiff","commands/DateDiff.htm",2],
   ["dates and times (of files)","commands/FileSetTime.htm"],
