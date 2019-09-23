@@ -29,7 +29,7 @@ translateData = {
   "Go forward":true,
   "Change font size":true,
   "Print current document":true,
-  "Open Settings":true,
+  "Open settings":true,
   "Change to dark/light theme":true,
   // ALT+... shortcuts (needs uppercase)
   "C":true,

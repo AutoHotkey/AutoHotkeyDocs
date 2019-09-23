@@ -11,7 +11,7 @@ file_indexed := {}
 datafile := A_WorkingDir "\static\source\data_index.js"
 Loop Read, %datafile%
 {
-    if RegExMatch(A_LoopReadLine, "O)\[""(.*)"",""(.*)""\]", m)
+    if RegExMatch(A_LoopReadLine, "O)\[""(.*?)"",""(.*?)""", m)
     {
         CheckHREF(m[1], m[2])
     }
@@ -21,7 +21,7 @@ Loop Read, %datafile%
 datafile := A_WorkingDir "\static\source\data_toc.js"
 Loop Read, %datafile%
 {
-    if RegExMatch(A_LoopReadLine, "O)\{label:""(.*?)"",path:""(.*?)""", m)
+    if RegExMatch(A_LoopReadLine, "O)\[""(.*?)"",""(.+?)""", m)
     {
         CheckHREF(m[1], m[2])
     }
