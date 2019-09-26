@@ -126,8 +126,8 @@ k_ShowHide(GuiObj, HideText, ShowText)
 
 GetKeyNameText(Key, Extended := false, DoNotCare := false)
 {
-   Params := (GetKeySC(Key) << 16) | (Extended << 24) | (DoNotCare << 25)
-   VarSetCapacity(KeyNameText, 64, 0)
-   DllCall("User32.dll\GetKeyNameText", "Int", Params, "Str", KeyNameText, "Int", 32)
-   return KeyNameText
+    Params := (GetKeySC(Key) << 16) | (Extended << 24) | (DoNotCare << 25)
+    KeyNameText := BufferAlloc(64, 0)
+    DllCall("User32.dll\GetKeyNameText", "Int", Params, "Ptr", KeyNameText, "Int", 32)
+    return StrGet(KeyNameText)
 }
