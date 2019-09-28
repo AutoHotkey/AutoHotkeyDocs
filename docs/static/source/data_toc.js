@@ -98,6 +98,7 @@ tocData = [
     ["IniDelete","commands/IniDelete.htm"],
     ["IniRead","commands/IniRead.htm"],
     ["IniWrite","commands/IniWrite.htm"],
+    ["Long Paths","misc/LongPaths.htm"],
     ["Loop (files & folders)","commands/LoopFile.htm"],
     ["Loop (read file contents)","commands/LoopReadFile.htm"],
     ["SetWorkingDir","commands/SetWorkingDir.htm"],
