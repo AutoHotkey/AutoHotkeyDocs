@@ -75,6 +75,7 @@ indexData = [
   ["~=","Variables.htm#regex",4],
   ["__Call meta-function","Objects.htm#Meta_Functions"],
   ["__Get meta-function","Objects.htm#Meta_Functions"],
+  ["__Enum method","Objects.htm#__Enum"],
   ["__Enum method (Array)","objects/Array.htm#__Enum"],
   ["__Enum method (Map)","objects/Map.htm#__Enum"],
   ["__Item property (Array)","objects/Array.htm#__Item"],
