@@ -300,6 +300,7 @@ indexData = [
   ["comma operator (multi-statement)","Variables.htm#comma"],
   ["command line parameters","Scripts.htm#cmd"],
   ["comments in scripts","Language.htm#comments"],
+  ["ComCall","commands/ComCall.htm",2],
   ["ComObjActive","commands/ComObjActive.htm",2],
   ["ComObjArray","commands/ComObjArray.htm",2],
   ["ComObjConnect","commands/ComObjConnect.htm",2],

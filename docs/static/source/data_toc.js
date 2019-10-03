@@ -61,6 +61,7 @@ tocData = [
     ["Buffer Object","objects/Buffer.htm"],
     ["BufferAlloc","commands/BufferAlloc.htm"],
     ["CallbackCreate","commands/CallbackCreate.htm"],
+    ["ComCall","commands/ComCall.htm"],
     ["DllCall","commands/DllCall.htm"],
     ["NumGet","commands/NumGet.htm"],
     ["NumPut","commands/NumPut.htm"],
@@ -71,6 +72,7 @@ tocData = [
     [
       ["ComObjActive","commands/ComObjActive.htm"],
       ["ComObjArray","commands/ComObjArray.htm"],
+      ["ComCall","commands/ComCall.htm"],
       ["ComObjConnect","commands/ComObjConnect.htm"],
       ["ComObjCreate","commands/ComObjCreate.htm"],
       ["ComObjGet","commands/ComObjGet.htm"],

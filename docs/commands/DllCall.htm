@@ -47,7 +47,7 @@
 
 <h2>Return Value</h2>
 <p>Type: <a href="../Concepts.htm#strings">String</a> or <a href="../Concepts.htm#numbers">Integer</a></p>
-<p>DllCall returns the actual value returned by <em>Function</em>. If <em>Function</em> is of a type that does not return a value, the result is an undefined integer.</p>
+<p>DllCall returns the actual value returned by <em>Function</em>. If <em>Function</em> is of a type that does not return a value, the result is an undefined value of the specified return type (integer by default).</p>
 
 <h2 id="types">Types of Arguments and Return Values</h2>
 <table class="info">
@@ -124,11 +124,19 @@ str := StrGet(&amp;buf, "cp0")  <em>; Retrieve ANSI string from buffer.</em>
     <p><em>Unsigned</em> 64-bit integers produced by a function are not supported. Therefore, to work with numbers greater or equal to 0x8000000000000000, omit the U prefix and interpret any negative values received from the function as large integers. For example, a function that yields -1 as an Int64 is really yielding 0xFFFFFFFFFFFFFFFF if it is designed to yield a UInt64.</p>
     </td>
 </tr>
+<tr id="hresult">
+  <td>HRESULT</td>
+  <td>
+    <p>A 32-bit integer. This is generally used with COM functions and is valid only as a return type without any prefix or suffix. Error values (as defined by the <a href="https://docs.microsoft.com/en-us/windows/win32/api/winerror/nf-winerror-failed">FAILED macro</a>) are never returned; instead, an exception is thrown, with <code>Extra</code> set to the hexadecimal error code. Therefore, the return value is a success code in the range 0 to 2147483647.</p>
+    <p>HRESULT is the default return type for <a href="ComCall.htm">ComCall</a>.</p>
+  </td>
+</tr>
 </table>
 
 <h2 id="error">Errors</h2>
 <p>DllCall throws an <a href="Catch.htm#RuntimeErrors">exception</a> under any of the following conditions:</p>
 <ul>
+  <li>The <a href="#HRESULT">HRESULT</a> return type was used and the function returned an error value (as defined by the <a href="https://docs.microsoft.com/en-us/windows/win32/api/winerror/nf-winerror-failed">FAILED macro</a>). <code>Exception.Extra</code> contains the hexadecimal error code.</li>
   <li>The <em>[DllFile\]Function</em> parameter is a floating point number. A string or positive integer is required.</li>
   <li>The <a href="#types">return type</a> or one of the specified <a href="#types">arg types</a> is invalid.</li>
   <li>An argument was passed a value of an unexpected type. For instance, an <a href="../Variables.htm#Expressions">expression</a> that evaluates to a number was passed to a string (<a href="#str">str</a>) argument, or an object was passed to an argument <em>not</em> of type <a href="#ptr">Ptr</a>.</li>
@@ -138,7 +146,7 @@ str := StrGet(&amp;buf, "cp0")  <em>; Retrieve ANSI string from buffer.</em>
   <li>The function was called but was passed too many or too few arguments. <code>Exception.Extra</code> contains the number of bytes by which the argument list was incorrect. If it is positive, too many arguments (or arguments that were too large) were passed, or the call requires <a href="#cdecl">CDecl</a>. If it is negative, too few arguments were passed. This situation should be corrected to ensure reliable operation of the function. The presence of this error may also indicate that an exception occurred. Note that due to the x64 calling convention, 64-bit builds never raise this error.</li>
 </ul>
 
-<h2 id="except">Exceptions and A_LastError</h2>
+<h2 id="except">Native Exceptions and A_LastError</h2>
 <p>In spite of the built-in exception handling, it is still possible to crash a script with DllCall. This can happen when a function does not directly generate an exception but yields something inappropriate, such as a bad pointer or a string that is not terminated. This might not be the function's fault if the script passed it an unsuitable value such as a bad pointer or a <a href="#str">&quot;str&quot;</a> with insufficient capacity. A script can also crash when it specifies an inappropriate argument type or return type, such as claiming that an ordinary integer yielded by a function is an <a href="#asterisk">asterisk variable</a> or <a href="#str">str</a>.</p>
 <p>The built-in variable <a href="../Variables.htm#LastError">A_LastError</a> contains the result of the operating system's GetLastError() function.</p>
 
@@ -164,6 +172,7 @@ Loop 500
 <p>3) Call the target function, passing the <a href="../Variables.htm#amp">address</a> of <em>MyStruct</em> as a Ptr argument. For example, <code>DllCall(&quot;MyDll\MyFunc&quot;, &quot;Ptr&quot;, <strong>&amp;</strong>MyStruct)</code>. The function will examine and/or change some of the members.</p>
 <p>4) Use <code>MyInteger := <a href="NumGet.htm">NumGet</a>(MyStruct, 4, "UInt")</code> to retrieve any desired integers from the structure. Replace <code>4</code> with the offset of the target member in the structure. The first member is always at offset 0. The second member is at offset 0 plus the size of the first member (typically 4). Members beyond the second are at the offset of the previous member plus the size of the previous member. Most members -- such as DWORD, Int, and <a href="#Int">other types of 32-bit integers</a> -- are 4 bytes in size. Replace <code>"UInt"</code> with the appropriate type or omit it if the member is a pointer or handle.</p>
 <p>See <a href="#ExStruct">Structure Examples</a> for actual usages.</p>
+
 <h2 id="limits">Known Limitations</h2>
 <p>When a <a href="../Variables.htm#amp">variable's address</a> (e.g. <code>&amp;MyVar</code>) is passed to a function and that function alters the length of the variable's contents, subsequent uses of the variable may behave incorrectly. To fix this, do one of the following: 1) Pass <em>MyVar</em> as a <a href="#str">&quot;Str&quot;</a> argument rather than as a Ptr/address; 2) Call <code><a href="VarSetCapacity.htm#neg1">VarSetCapacity</a>(MyVar, -1)</code> to update the variable's internally-stored length after calling DllCall.</p>
 <p>Any binary zero stored in a variable by a function hides all data to the right of the zero; that is, such data cannot be accessed or changed by most built-in functions. However, such data can be manipulated by the <a href="../Variables.htm#amp">address operator</a> and <a href="NumPut.htm">NumPut</a>/<a href="NumGet.htm">NumGet</a>, as well as DllCall itself.</p>
@@ -172,14 +181,17 @@ Loop 500
 result := DllCall(&quot;CharLower&quot;, &quot;<strong><u>Str</u></strong>&quot;, DllCall(&quot;CharUpper&quot;, &quot;Str&quot;, MyVar, &quot;<strong><u>Str</u></strong>&quot;), &quot;Str&quot;)</pre>
 <p>To work around this, change the two underlined &quot;Str&quot; values above to Ptr. This interprets CharUpper's return value as a pure address that will get passed as an integer to CharLower.</p>
 <p>Certain limitations may be encountered when dealing with strings. For details, see <a href="../Compat.htm#DllCall">Script Compatibility</a>.</p>
+
 <h2 id="COM">Component Object Model (COM)</h2>
 <p>COM objects which are accessible to VBScript and similar languages are typically also accessible to AutoHotkey via <a href="ComObjCreate.htm">ComObjCreate</a>, <a href="ComObjGet.htm">ComObjGet</a> or <a href="ComObjActive.htm">ComObjActive</a> and the built-in <a href="../Objects.htm#Usage_Objects">object syntax</a>.</p>
-<p>COM objects which don't support <a href="http://msdn.microsoft.com/en-us/library/ms221608.aspx">IDispatch</a> can be used with DllCall by retrieving the address of a function from the virtual function table of the object's interface. For more details, see <a href="#ExTaskbar">the example</a> further below.</p>
-<p>Much of the .NET Framework is also accessible via COM and DllCall. See <a href="https://www.autohotkey.com/forum/topic26191.html">.NET Framework Interop</a>.
-</p>
+<p>COM objects which don't support <a href="http://msdn.microsoft.com/en-us/library/ms221608.aspx">IDispatch</a> can be used with DllCall by retrieving the address of a function from the virtual function table of the object's interface. For more details, see <a href="#ExTaskbar">the example</a> further below. However, it is usually better to use <a href="ComCall.htm">ComCall</a>, which streamlines this process.</p>
+
+<h2 id="dotnet">.NET Framework</h2>
+<p>.NET Framework libraries are executed by a "virtual machine" known as the Common Language Runtime, or CLR. That being the case, .NET DLL files are formatted differently to normal DLL files, and generally do not contain any functions which DllCall is capable of calling.</p>
+<p>However, AutoHotkey can utilize the CLR through <a href="https://docs.microsoft.com/en-us/dotnet/standard/native-interop/com-callable-wrapper">COM callable wrappers</a>. Unless the library is also registered as a general COM component, the CLR itself must first be manually initialized via DllCall. For details, see <a href="https://www.autohotkey.com/forum/topic26191.html">.NET Framework Interop</a> (which currently utilizes DllCall and is not compatible with AutoHotkey v2).</p>
 
 <h2>Related</h2>
-<p><a href="../Compat.htm#DllCall">Script Compatibility</a>, <a href="BufferAlloc.htm">BufferAlloc</a>, <a href="../objects/Buffer.htm">Buffer object</a>, <a href="PostMessage.htm">PostMessage</a>, <a href="OnMessage.htm">OnMessage</a>, <a href="CallbackCreate.htm">CallbackCreate</a>, <a href="Run.htm">Run</a>, <a href="VarSetCapacity.htm">VarSetCapacity</a>, <a href="../Functions.htm">Functions</a>, <a href="SysGet.htm">SysGet</a>, <a href="http://msdn.microsoft.com/library/">MSDN Library</a>, <a href="_DllLoad.htm">#DllLoad</p>
+<p><a href="../Compat.htm#DllCall">Script Compatibility</a>, <a href="BufferAlloc.htm">BufferAlloc</a>, <a href="../objects/Buffer.htm">Buffer object</a>, <a href="ComCall.htm">ComCall</a>, <a href="PostMessage.htm">PostMessage</a>, <a href="OnMessage.htm">OnMessage</a>, <a href="CallbackCreate.htm">CallbackCreate</a>, <a href="Run.htm">Run</a>, <a href="VarSetCapacity.htm">VarSetCapacity</a>, <a href="../Functions.htm">Functions</a>, <a href="SysGet.htm">SysGet</a>, <a href="_DllLoad.htm">#DllLoad</a>, <a href="https://docs.microsoft.com/en-au/windows/win32/apiindex/windows-api-list">Windows API Index</a></p>
 
 <h2>Examples</h2>
 <div class="ex" id="ExMessageBox">
@@ -391,7 +403,7 @@ SetSystemTime(YYYYMMDDHHMISS)
 </div>
 
 <div class="ex" id="ExTaskbar">
-<p><a href="#ExTaskbar">#13</a>: Temporarily remove the active window from the taskbar by using COM.</p>
+<p><a href="#ExTaskbar">#13</a>: Remove the active window from the taskbar for 3 seconds. Compare this to the <a href="ComCall.htm#ExTaskbar">equivalent ComCall example</a>.</p>
 <pre><em>/*
   Methods in <a href="http://msdn.microsoft.com/en-us/library/bb774652.aspx">ITaskbarList</a>'s VTable:
     IUnknown:
@@ -418,7 +430,7 @@ DllCall(vtable(tbl,5), "ptr", tbl, "ptr", activeHwnd)  <em>; tbl.<a href="http:/
 Sleep 3000
 DllCall(vtable(tbl,4), "ptr", tbl, "ptr", activeHwnd)  <em>; tbl.<a href="http://msdn.microsoft.com/en-us/library/bb774646.aspx">AddTab</a>(activeHwnd)</em>
 
-<em>; Non-dispatch objects must always be manually freed.</em>
+<em>; Non-wrapped interface pointers must be manually freed.</em>
 ObjRelease(tbl)
 
 vtable(ptr, n) {
