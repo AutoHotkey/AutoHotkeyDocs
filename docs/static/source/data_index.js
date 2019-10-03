@@ -590,6 +590,7 @@ indexData = [
   ["IsFunc","commands/IsFunc.htm",2],
   ["IsLabel","commands/IsLabel.htm",2],
   ["IsObject","commands/IsObject.htm",2],
+  ["IsSet","commands/IsSet.htm",2],
   ["Join (continuation sections)","Scripts.htm#Join"],
   ["Joystick","KeyList.htm#Joystick"],
   ["JScript, embedded/inline","commands/DllCall.htm#COM"],

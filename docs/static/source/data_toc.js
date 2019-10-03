@@ -281,6 +281,7 @@ tocData = [
     ["IsFunc","commands/IsFunc.htm"],
     ["IsLabel","commands/IsLabel.htm"],
     ["IsObject","commands/IsObject.htm"],
+    ["IsSet","commands/IsSet.htm"],
     ["ListLines","commands/ListLines.htm"],
     ["ListVars","commands/ListVars.htm"],
     ["OutputDebug","commands/OutputDebug.htm"],
