@@ -1,0 +1,74 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+<title>Long Paths | AutoHotkey</title>
+<meta name="description" content="Learn how long paths are handled in AutoHotkey and which techniques are available to bypass path length limitations." />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<link href="../static/theme.css" rel="stylesheet" type="text/css" />
+<script src="../static/content.js" type="text/javascript"></script>
+</head>
+
+<body>
+<h1>Long Paths <span class="ver">[v1.1.31+]</span></h1>
+
+<p>In general, programs are affected by two kinds of path length limitations:</p>
+<ol>
+  <li>Functions provided by the operating system generally limit paths to 259 characters, with some exceptions.</li>
+  <li>Code for dealing with paths within the program may rely on the first limitation to simplify the code, effectively placing another 259 character limitation.</li>
+</ol>
+<p>These limitations are often referred to as "MAX_PATH limitations", after the constant <code>MAX_PATH</code>, which has the value 260. This allows for the drive letter, colon and slash (<code>C:\</code>), a single file or directory name at maximum length (255 characters), and a null terminator.</p>
+<p>AutoHotkey <span class="ver">[v1.1.31+]</span> (excluding ANSI versions) removes the second kind in most cases, which enables the script to work around the first kind. There are two ways to do this:</p>
+<ul>
+  <li>Long paths can be enabled for AutoHotkey and all other long-path-aware programs on Windows 10. Refer to the <a href="https://docs.microsoft.com/en-us/windows/win32/fileio/naming-a-file#enable-long-paths-in-windows-10-version-1607-and-later">Microsoft documentation</a> for details. In short, this enables most commands and functions to transparently work with long paths, but requires Windows 10 version 1607 or later.</li>
+  <li>In many cases, prefixing the path with <code>\\?\</code> enables it to exceed the usual limit. However, some system functions do not support it (or long paths in general). See <a href="#limitations">Known Limitations</a> for details.</li>
+</ul>
+
+<h2 id="prefix">Long Path Prefix</h2>
+<p>If supported by the underlying system function, the <code>\\?\</code> prefix -- for example, in <code>\\?\C:\My Folder</code> -- increases the limit to 32,767 characters. However, it does this by skipping <a href="https://blogs.msdn.microsoft.com/jeremykuhne/2016/04/21/path-normalization/">path normalization</a>. Some elements of the path which would normally be removed or altered by normalization instead become part of the file's actual path. Care must be taken as this can allow the creation of paths that "normal" programs cannot access.</p>
+<p>In particular, normalization:</p>
+<ul>
+  <li>Resolves relative paths such as <code>dir\file.ext</code>, <code>\file.ext</code> and <code>C:file.ext</code> (note the absence of a slash).</li>
+  <li>Resolves relative components such as <code>\..</code> and <code>\.</code>.</li>
+  <li>Canonicalizes component/directory separators, replacing <code>/</code> with <code>\</code> and eliminating redundant separators.</li>
+  <li>Trims certain characters, such as a single period at the end of a component (<code>dir.\file</code>) or trailing spaces and periods (<code>dir\filename . .</code>).</li>
+</ul>
+<p>A path can be normalized explicitly by passing it to <a href="https://docs.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-getfullpathnamew">GetFullPathName</a> via the function defined below, before applying the prefix. For example:</p>
+<pre>MsgBox % "\\?\" NormalizePath("..\file.ext")</pre>
+<pre filename="foo.ahk">NormalizePath(path) {
+    cc := DllCall("GetFullPathName", "str", path, "uint", 0, "ptr", 0, "ptr", 0, "uint")
+    VarSetCapacity(buf, cc*2)
+    DllCall("GetFullPathName", "str", path, "uint", cc, "str", buf, "ptr", 0)
+    return buf
+}</pre>
+<p>A path with the <code>\\?\</code> prefix can also be normalized by this function. However, in that case the working directory is never used, and the root is <code>\\?\</code> (for example, <code>\\?\C:\..</code> resolves to <code>\\?\</code> whereas <code>C:\..</code> resolves to <code>C:\</code>).</p>
+
+<h2 id="limitations">Known Limitations</h2>
+<p>ANSI versions of AutoHotkey do not support long paths.</p>
+<p>Even when the path itself is not limited to 259 characters, each component (file or directory name) cannot exceed the hard limit imposed by the file system (usually 255 characters).</p>
+<p>These do not support long paths due to limitations of the underlying system function(s):</p>
+<ul>
+  <li>DllCall (for <em>DllFile</em> and <em>Function</em>)</li>
+  <li>FileCopyDir</li>
+  <li>FileCreateShortcut</li>
+  <li>FileGetShortcut</li>
+  <li>FileMoveDir, unless the R option is used</li>
+  <li>FileRecycle</li>
+  <li>FileRemoveDir, unless <em>Recurse</em> is false</li>
+  <li>SoundPlay (for this, the limit is 127 characters)</li>
+  <li>Drive Label and DriveGet (except Type)</li>
+  <li>Built-in variables which return special folder paths (for which long paths might be impossible anyway): A_AppData, A_Desktop, A_MyDocuments, ProgramFiles, A_ProgramFiles, A_Programs, A_StartMenu, A_Startup and Common variants, A_Temp and A_WinDir</li>
+</ul>
+<p>SetWorkingDir and A_WorkingDir support long paths only when Windows 10 long path awareness is enabled, since the <code>\\?\</code> prefix cannot be used. If the working directory exceeds MAX_PATH, it becomes impossible to launch programs with Run. These limitations are imposed by the OS.</p>
+<p>It does not appear to be possible to run an executable with a full path which exceeds MAX_PATH. That being the case, it would not be possible to fully test any changes aimed at supporting longer executable paths. Therefore, MAX_PATH limits have been left in place for the following:</p>
+<ul>
+  <li>ahk_exe</li>
+  <li>The default script's path, which is based on the current executable's path.</li>
+  <li>Retrieval of the AutoHotkey installation directory, which is used by A_AhkPath in compiled scripts and may be used to launch Window Spy or the help file.</li>
+  <li>WinGet ProcessPath.</li>
+  <li>WinGet ProcessName (this theoretically isn't a problem since it is applied only to the name portion, and NTFS only supports names up to 255 chars).</li>
+</ul>
+<p>Long #Include paths shown in error messages may be truncated arbitrarily.</p>
+
+</body>
+</html>
