@@ -166,8 +166,8 @@ ConnectToAddress(IPAddress, Port)
 <em>; This can connect to most types of TCP servers, not just WinLIRC.
 ; Returns -1 (INVALID_SOCKET) upon failure or the socket ID upon success.</em>
 {
-    VarSetCapacity(wsaData, 400)
-    result := DllCall("Ws2_32\WSAStartup", &quot;UShort&quot;, 0x0002, &quot;UInt&quot;, &amp;wsaData) <em>; Request Winsock 2.0 (0x0002)</em>
+    wsaData := BufferAlloc(400)
+    result := DllCall("Ws2_32\WSAStartup", &quot;UShort&quot;, 0x0002, &quot;Ptr&quot;, wsaData) <em>; Request Winsock 2.0 (0x0002)</em>
     <em>; Since WSAStartup() will likely be the first Winsock function called by this script,</em>
     <em>; check ErrorLevel to see if the OS has Winsock 2.0 available:</em>
     if ErrorLevel
@@ -193,13 +193,14 @@ ConnectToAddress(IPAddress, Port)
 
     <em>; Prepare for connection:</em>
     SizeOfSocketAddress := 16
-    VarSetCapacity(SocketAddress, SizeOfSocketAddress)
-    InsertInteger(2, SocketAddress, 0, AF_INET)   <em>; sin_family</em>
-    InsertInteger(DllCall("Ws2_32\htons", &quot;UShort&quot;, Port), SocketAddress, 2, 2)   <em>; sin_port</em>
-    InsertInteger(DllCall("Ws2_32\inet_addr", &quot;AStr&quot;, IPAddress), SocketAddress, 4, 4)   <em>; sin_addr.s_addr</em>
+    SocketAddress := BufferAlloc(SizeOfSocketAddress, 0)
+    NumPut( "UShort", 2  <em>; sin_family</em>
+          , "UShort", DllCall("Ws2_32\htons", "UShort", Port)  <em>; sin_port</em>
+          , "UInt", DllCall("Ws2_32\inet_addr", "AStr", IPAddress)  <em>; sin_addr.s_addr</em>
+          , SocketAddress)
 
     <em>; Attempt connection:</em>
-    if DllCall("Ws2_32\connect", &quot;UInt&quot;, socket, &quot;UInt&quot;, &amp;SocketAddress, &quot;Int&quot;, SizeOfSocketAddress)
+    if DllCall("Ws2_32\connect", &quot;UInt&quot;, socket, &quot;Ptr&quot;, SocketAddress, &quot;Int&quot;, SizeOfSocketAddress)
     {
         MsgBox "connect() indicated Winsock error " DllCall("Ws2_32\WSAGetLastError") ". Is WinLIRC running?"
         return -1
@@ -209,7 +210,7 @@ ConnectToAddress(IPAddress, Port)
 
 
 
-ReceiveData(wParam, lParam)
+ReceiveData(wParam, lParam, *)
 <em>; By means of OnMessage, this function has been set up to be called automatically whenever new data
 ; arrives on the connection.  It reads the data from WinLIRC and takes appropriate action depending
 ; on the contents.</em>
@@ -218,8 +219,8 @@ ReceiveData(wParam, lParam)
     socket := wParam
     ReceivedDataSize := 4096  <em>; Large in case a lot of data gets buffered due to delay in processing previous data.</em>
 
-    VarSetCapacity(ReceivedData, ReceivedDataSize, 0)  <em>; 0 for last param terminates string for use with recv().</em>
-    ReceivedDataLength := DllCall("Ws2_32\recv", &quot;UInt&quot;, socket, &quot;Str&quot;, ReceivedData, &quot;Int&quot;, ReceivedDataSize, &quot;Int&quot;, 0)
+    ReceivedData := BufferAlloc(ReceivedDataSize, 0)
+    ReceivedDataLength := DllCall("Ws2_32\recv", &quot;UInt&quot;, socket, &quot;Ptr&quot;, ReceivedData, &quot;Int&quot;, ReceivedDataSize, &quot;Int&quot;, 0)
     if ReceivedDataLength = 0  <em>; The connection was gracefully closed, probably due to exiting WinLIRC.</em>
         ExitApp  <em>; The OnExit routine will call WSACleanup() for us.</em>
     if ReceivedDataLength = -1
@@ -236,7 +237,7 @@ ReceiveData(wParam, lParam)
     <em>; at a time (even for explicitly-sent IR signals), which the following method handles properly.</em>
     <em>; Data received from WinLIRC looks like the following example (see the WinLIRC docs for details):</em>
     <em>; 0000000000eab154 00 NameOfButton NameOfRemote</em>
-    Loop Parse, ReceivedData, "`n", "`r"
+    Loop Parse, StrGet(ReceivedData, "CP0"), "`n", "`r"
     {
         if A_LoopField ~= "^(|BEGIN|SIGHUP|END)$"  <em>; Ignore blank lines and WinLIRC's start-up messages.</em>
             continue
@@ -245,7 +246,7 @@ ReceiveData(wParam, lParam)
             if A_Index = 3
                 ButtonName := A_LoopField
         global DelayBetweenButtonRepeats  <em>; Declare globals to make them available to this function.</em>
-        static PrevButtonName, PrevButtonTime, RepeatCount  <em>; These variables remember their values between calls.</em>
+        static PrevButtonName, PrevButtonTime := 0, RepeatCount := 0  <em>; These variables remember their values between calls.</em>
         if (ButtonName != PrevButtonName || A_TickCount - PrevButtonTime &gt; DelayBetweenButtonRepeats)
         {
             if IsLabel(ButtonName)  <em>; There is a subroutine associated with this button.</em>
@@ -268,17 +269,7 @@ ReceiveData(wParam, lParam)
 
 
 
-InsertInteger(pInteger, ByRef pDest, pOffset := 0, pSize := 4)
-<em>; The caller must ensure that pDest has sufficient capacity.  To preserve any existing contents in pDest,
-; only pSize number of bytes starting at pOffset are altered in it.</em>
-{
-    Loop pSize  <em>; Copy each byte in the integer into the structure as raw binary data.</em>
-        DllCall("RtlFillMemory", &quot;UInt&quot;, &amp;pDest + pOffset + A_Index-1, &quot;UInt&quot;, 1, &quot;UChar&quot;, pInteger &gt;&gt; 8*(A_Index-1) &amp; 0xFF)
-}
-
-
-
-ExitSub()  <em>; This function is called automatically when the script exits for any reason.</em>
+ExitSub(*)  <em>; This function is called automatically when the script exits for any reason.</em>
 {
     <em>; MSDN: "Any sockets open when WSACleanup is called are reset and automatically
     ; deallocated as if closesocket was called."</em>

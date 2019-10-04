@@ -304,7 +304,7 @@ FindMatches(this, *)
     ; Refresh list with search results:
     LB.Delete(), LB.Add(FileArray)
 
-    if !FileArray.Length()
+    if !FileArray.Length
     {
         ; No matching record is found. Disable listbox:
         LB.Enabled := false

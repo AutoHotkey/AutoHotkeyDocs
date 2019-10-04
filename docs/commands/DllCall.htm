@@ -67,9 +67,9 @@
   <td><span id="astr"></span>AStr</td>
   <td>
     <p>AStr causes the input value to be automatically converted to ANSI. Since the temporary memory used for this conversion is only large enough for the converted input string, any value written to it by the function is discarded. To receive an ANSI string as an output parameter, follow this example:</p>
-<pre>VarSetCapacity(buf, <i>length</i>)  <em>; Allocate temporary buffer.</em>
-DllCall("<i>Function</i>", "ptr", &amp;buf)  <em>; Pass buffer to function.</em>
-str := StrGet(&amp;buf, "cp0")  <em>; Retrieve ANSI string from buffer.</em>
+<pre>buf := BufferAlloc(<i>length</i>)  <em>; Allocate temporary buffer.</em>
+DllCall("<i>Function</i>", "ptr", buf)  <em>; Pass buffer to function.</em>
+str := StrGet(buf, "cp0")  <em>; Retrieve ANSI string from buffer.</em>
 </pre>
     <p>See <a href="../Compat.htm#DllCall">Script Compatibility</a> for equivalent Win32 types and other details.</p>
   </td>
@@ -161,7 +161,7 @@ DllCall(&quot;<strong>FreeLibrary</strong>&quot;, &quot;Ptr&quot;, hModule)  <em
 <strong>MulDivProc</strong> := DllCall(&quot;GetProcAddress&quot;, &quot;Ptr&quot;, DllCall(&quot;GetModuleHandle&quot;, &quot;Str&quot;, &quot;<strong>kernel32</strong>&quot;, &quot;Ptr&quot;), &quot;AStr&quot;, &quot;<strong>MulDiv</strong>&quot;, &quot;Ptr&quot;)
 Loop 500
     DllCall(<strong>MulDivProc</strong>, &quot;Int&quot;, 3, &quot;Int&quot;, 4, &quot;Int&quot;, 3)</pre>
-<p>If DllCall's first parameter is a literal string such as <code>"MulDiv"</code> and the DLL containing the function is ordinarily loaded before the script starts, or has been successfully loaded with <code>#DllLoad</code>, the string is automatically resolved to a function address. This built-in optimization is more effective than the example shown above.</p>
+<p>If DllCall's first parameter is a literal string such as <code>"MulDiv"</code> and the DLL containing the function is ordinarily loaded before the script starts, or has been successfully loaded with <a href="_DllLoad.htm">#DllLoad</a>, the string is automatically resolved to a function address. This built-in optimization is more effective than the example shown above.</p>
 <p>Finally, when passing a string-variable to a function that will not change the length of the string, performance is improved by passing the variable <a href="../Variables.htm#amp">by address</a> (e.g. &amp;MyVar) rather than as a &quot;<a href="#str">str</a>&quot; (especially when the string is very long). The following example converts a string to uppercase: <code>DllCall(&quot;CharUpper&quot;, &quot;<strong>Ptr</strong>&quot;, <strong>&amp;</strong>MyVar, &quot;Ptr&quot;)</code>.</p>
 
 <h2 id="struct">Structures and Arrays</h2>
@@ -214,9 +214,9 @@ if not DllCall(&quot;IsWindowVisible&quot;, &quot;Ptr&quot;, WinExist(&quot;Unti
 
 <div class="ex" id="ExWsprintf">
 <p><a href="#ExWsprintf">#4</a>: Calls the API's wsprintf() to pad the number 432 with leading zeros to make it 10 characters wide (0000000432).</p>
-<pre>VarSetCapacity(ZeroPaddedNumber, 20)  <em>; Ensure the variable is large enough to accept the new string.</em>
-DllCall(&quot;wsprintf&quot;, &quot;Str&quot;, ZeroPaddedNumber, &quot;Str&quot;, &quot;%010d&quot;, &quot;Int&quot;, 432, &quot;Cdecl&quot;)  <em>; Requires the Cdecl calling convention.</em>
-MsgBox ZeroPaddedNumber
+<pre>ZeroPaddedNumber := BufferAlloc(20)  <em>; Ensure the buffer is large enough to accept the new string.</em>
+DllCall(&quot;wsprintf&quot;, &quot;Ptr&quot;, ZeroPaddedNumber, &quot;Str&quot;, &quot;%010d&quot;, &quot;Int&quot;, 432, &quot;Cdecl&quot;)  <em>; Requires the Cdecl calling convention.</em>
+MsgBox StrGet(ZeroPaddedNumber)
 
 <em>; Alternatively, use the <a href="Format.htm">Format</a> function in conjunction with the zero flag:</em>
 MsgBox Format("{:010}", 432)
@@ -276,7 +276,8 @@ if !hFile
     return
 }
 TestString := "This is a test string.`r`n"  <em>; When writing a file this way, use `r`n rather than `n to start a new line.</em>
-DllCall(&quot;WriteFile&quot;, &quot;Ptr&quot;, hFile, &quot;Str&quot;, TestString, &quot;UInt&quot;, StrLen(TestString), &quot;UIntP&quot;, BytesActuallyWritten, &quot;Ptr&quot;, 0)
+StrLen := StrLen(TestString) * (A_IsUnicode ? 2 : 1)
+DllCall(&quot;WriteFile&quot;, &quot;Ptr&quot;, hFile, &quot;Str&quot;, TestString, &quot;UInt&quot;, StrLen, &quot;UIntP&quot;, BytesActuallyWritten, &quot;Ptr&quot;, 0)
 DllCall(&quot;CloseHandle&quot;, &quot;Ptr&quot;, hFile)  <em>; Close the file.</em>
 
 <em>; Now that the file was written, read its contents back into memory.</em>
@@ -290,51 +291,51 @@ if !hFile
     MsgBox "Can't open '" FileName "' for reading."
     return
 }
-<em>; Make the variable empty for testing purposes, but ensure it retains sufficient capacity:</em>
-BytesToRead := VarSetCapacity(TestString, StrLen(TestString))
-DllCall(&quot;ReadFile&quot;, &quot;Ptr&quot;, hFile, &quot;Str&quot;, TestString, &quot;UInt&quot;, BytesToRead, &quot;UIntP&quot;, BytesActuallyRead, &quot;Ptr&quot;, 0)
+<em>; Allocate a block of memory for the string to read:</em>
+Buf := BufferAlloc(StrLen)
+DllCall(&quot;ReadFile&quot;, &quot;Ptr&quot;, hFile, &quot;Ptr&quot;, Buf, &quot;UInt&quot;, Buf.Size, &quot;UIntP&quot;, BytesActuallyRead, &quot;Ptr&quot;, 0)
 DllCall(&quot;CloseHandle&quot;, &quot;Ptr&quot;, hFile)  <em>; Close the file.</em>
-MsgBox "The following string was read from the file: " TestString</pre>
+MsgBox "The following string was read from the file: " StrGet(Buf)</pre>
 </div>
 
 <div class="ex" id="ExHideCursor">
 <p><a href="#ExHideCursor">#9</a>: Hides the mouse cursor when you press <kbd>Win</kbd>+<kbd>C</kbd>. To later show the cursor, press this hotkey again.</p>
-<pre>OnExit () =&gt; SystemCursor("Show")  <em>; Ensure the cursor is made visible when the script exits.</em>
+<pre>OnExit (*) =&gt; SystemCursor("Show")  <em>; Ensure the cursor is made visible when the script exits.</em>
 
 #c::SystemCursor("Toggle")  <em>; Win+C hotkey to toggle the cursor on and off.</em>
 
-SystemCursor(cmd)  <em>; cmd = "Show|Hide|Toggle"</em>
+SystemCursor(cmd)  <em>; cmd = "Show|Hide|Toggle|Reload"</em>
 {
-    static vision := true, c := {}
-    static system_cursors := "32512,32513,32514,32515,32516,32642,32643,32644,32645,32646,32648,32649,32650"
-    VarSetCapacity(h_cursor, 4444, 1)
-    if (cmd = "Reload" or !c.Length())  <em>; Reload when requested or at first call.</em>
+    static visible := true, c := Map()
+    static sys_cursors := [32512, 32513, 32514, 32515, 32516, 32642
+                         , 32643, 32644, 32645, 32646, 32648, 32649, 32650]
+    if (cmd = "Reload" or !c.Count)  <em>; Reload when requested or at first call.</em>
     {
-        VarSetCapacity(AndMask, 32*4, 0xFF)
-        VarSetCapacity(XorMask, 32*4, 0)
-        For i, resID in StrSplit(system_cursors, ",")
+        for i, id in sys_cursors
         {
-            h_cursor := DllCall("LoadCursor", &quot;Ptr&quot;, 0, &quot;Ptr&quot;, resID)
-            <em>; System cursors:</em>
-            c[i] := {r: resID}
-            <em>; Handles of default cursors:</em>
-            c[i][1] := DllCall("CopyImage", &quot;Ptr&quot;, h_cursor, &quot;UInt&quot;, 2, &quot;Int&quot;, 0, &quot;Int&quot;, 0, &quot;UInt&quot;, 0)
-            <em>; Blank cursors:</em>
-            c[i][0] := DllCall("CreateCursor", &quot;Ptr&quot;, 0, &quot;Int&quot;, 0, &quot;Int&quot;, 0, &quot;Int&quot;, 32, &quot;Int&quot;, 32, &quot;Ptr&quot;, &amp;AndMask, &quot;Ptr&quot;, &amp;XorMask)
+            h_cursor  := DllCall("LoadCursor", "Ptr", 0, "Ptr", id)
+            h_default := DllCall("CopyImage", "Ptr", h_cursor, "UInt", 2
+                , "Int", 0, "Int", 0, "UInt", 0)
+            h_blank   := DllCall("CreateCursor", "Ptr", 0, "Int", 0, "Int", 0
+                , "Int", 32, "Int", 32
+                , "Ptr", BufferAlloc(32*4, 0xFF)
+                , "Ptr", BufferAlloc(32*4, 0))
+            c[id] := {"default": h_default, "blank": h_blank}
         }
     }
-    if (cmd = "Show")
-        vision := true
-    else if (cmd = "Hide")
-        vision := false
-    else if (cmd = "Toggle")
-        vision := !vision
-    else
-        return
-    For i, cursor in c
+    switch cmd
     {
-        h_cursor := DllCall("CopyImage", &quot;Ptr&quot;, cursor[vision], &quot;UInt&quot;, 2, &quot;Int&quot;, 0, &quot;Int&quot;, 0, &quot;UInt&quot;, 0)
-        DllCall("SetSystemCursor", &quot;Ptr&quot;, h_cursor, &quot;UInt&quot;, cursor.r)
+      case "Show": visible := true
+      case "Hide": visible := false
+      case "Toggle": visible := !visible
+      default: return
+    }
+    for id, handles in c
+    {
+        h_cursor := DllCall("CopyImage"
+            , "Ptr", visible ? handles.default : handles.blank
+            , "UInt", 2, "Int", 0, "Int", 0, "UInt", 0)
+        DllCall("SetSystemCursor", "Ptr", h_cursor, "UInt", id)
     }
 }</pre>
 </div>
@@ -343,8 +344,8 @@ SystemCursor(cmd)  <em>; cmd = "Show|Hide|Toggle"</em>
 <p><a href="#ExStruct">#10</a>: Structure example. Pass the address of a RECT structure to GetWindowRect(), which sets the structure's members to the positions of the left, top, right, and bottom sides of a window (relative to the screen).</p>
 <pre>Run "Notepad"
 WinWait "Untitled - Notepad"  <em>; This also sets the &quot;<a href="../misc/WinTitle.htm#LastFoundWindow">last found window</a>&quot; for use with WinExist below.</em>
-VarSetCapacity(Rect, 16)  <em>; A RECT is a struct consisting of four 32-bit integers (i.e. 4*4=16).</em>
-DllCall(&quot;GetWindowRect&quot;, &quot;Ptr&quot;, WinExist(), &quot;Ptr&quot;, &amp;Rect)  <em>; WinExist returns an HWND.</em>
+Rect := BufferAlloc(16)  <em>; A RECT is a struct consisting of four 32-bit integers (i.e. 4*4=16).</em>
+DllCall(&quot;GetWindowRect&quot;, &quot;Ptr&quot;, WinExist(), &quot;Ptr&quot;, Rect)  <em>; WinExist returns an HWND.</em>
 L := NumGet(Rect, 0, "Int"), T := NumGet(Rect, 4, "Int")
 R := NumGet(Rect, 8, "Int"), B := NumGet(Rect, 12, "Int")
 MsgBox Format("Left {1} Top {2} Right {3} Bottom {4}", L, T, R, B)</pre>
@@ -352,12 +353,15 @@ MsgBox Format("Left {1} Top {2} Right {3} Bottom {4}", L, T, R, B)</pre>
 
 <div class="ex" id="ExStructRect">
 <p><a href="#ExStructRect">#11</a>: Structure example. Pass to FillRect() the address of a RECT structure that indicates a part of the screen to temporarily paint red.</p>
-<pre>VarSetCapacity(Rect, 16, 0)  <em>; Set capacity to hold four 4-byte integers and initialize them all to zero.</em>
-<a href="NumPut.htm">NumPut</a>(A_ScreenWidth//2, Rect, 8, "Int")  <em>; The third integer in the structure is &quot;rect.right&quot;.</em>
-NumPut(A_ScreenHeight//2, Rect, 12, "Int") <em>; The fourth integer in the structure is &quot;rect.bottom&quot;.</em>
+<pre>Rect := BufferAlloc(16)  <em>; Set capacity to hold four 4-byte integers.</em>
+<a href="NumPut.htm">NumPut</a>( "Int", 0                  <em>; left</em>
+      , "Int", 0                  <em>; top</em>
+      , "Int", A_ScreenWidth//2   <em>; right</em>
+      , "Int", A_ScreenHeight//2  <em>; bottom</em>
+      , Rect)
 hDC := DllCall(&quot;GetDC&quot;, "Ptr", 0, "Ptr")  <em>; Pass zero to get the desktop's device context.</em>
 hBrush := DllCall(&quot;CreateSolidBrush&quot;, "UInt", 0x0000FF, "Ptr")  <em>; Create a red brush (0x0000FF is in BGR format).</em>
-DllCall(&quot;FillRect&quot;, "Ptr", hDC, "Ptr", &amp;Rect, "Ptr", hBrush)  <em>; Fill the specified rectangle using the brush above.</em>
+DllCall(&quot;FillRect&quot;, "Ptr", hDC, "Ptr", Rect, "Ptr", hBrush)  <em>; Fill the specified rectangle using the brush above.</em>
 DllCall(&quot;ReleaseDC&quot;, "Ptr", 0, "Ptr", hDC)  <em>; Clean-up.</em>
 DllCall(&quot;DeleteObject&quot;, "Ptr", hBrush)  <em>; Clean-up.</em></pre>
 </div>
@@ -376,22 +380,19 @@ SetSystemTime(YYYYMMDDHHMISS)
     UTC_Delta := Round(-UTC_Delta/60)  <em>; Round to nearest minute to ensure accuracy.</em>
     YYYYMMDDHHMISS := DateAdd(YYYYMMDDHHMISS, UTC_Delta, "Minutes")  <em>; Apply offset to convert to UTC.</em>
 
-    VarSetCapacity(SystemTime, 16, 0)  <em>; This struct consists of 8 UShorts (i.e. 8*2=16).</em>
+    SystemTime := BufferAlloc(16)  <em>; This struct consists of 8 UShorts (i.e. 8*2=16).</em>
 
-    Int := SubStr(YYYYMMDDHHMISS, 1, 4)  <em>; YYYY (year)</em>
-    <a href="NumPut.htm">NumPut</a>(Int, SystemTime, 0, &quot;UShort&quot;)
-    Int := SubStr(YYYYMMDDHHMISS, 5, 2)  <em>; MM (month of year, 1-12)</em>
-    NumPut(Int, SystemTime, 2, &quot;UShort&quot;)
-    Int := SubStr(YYYYMMDDHHMISS, 7, 2)  <em>; DD (day of month)</em>
-    NumPut(Int, SystemTime, 6, &quot;UShort&quot;)
-    Int := SubStr(YYYYMMDDHHMISS, 9, 2)  <em>; HH (hour in 24-hour time)</em>
-    NumPut(Int, SystemTime, 8, &quot;UShort&quot;)
-    Int := SubStr(YYYYMMDDHHMISS, 11, 2) <em>; MI (minute)</em>
-    NumPut(Int, SystemTime, 10, &quot;UShort&quot;)
-    Int := SubStr(YYYYMMDDHHMISS, 13, 2) <em>; SS (second)</em>
-    NumPut(Int, SystemTime, 12, &quot;UShort&quot;)
+    <a href="NumPut.htm">NumPut</a>( "UShort", SubStr(YYYYMMDDHHMISS, 1, 4)  <em>; YYYY (year)</em>
+          , "UShort", SubStr(YYYYMMDDHHMISS, 5, 2)  <em>; MM (month of year, 1-12)</em>
+          , "UShort", 0                             <em>; Unused (day of week)</em>
+          , "UShort", SubStr(YYYYMMDDHHMISS, 7, 2)  <em>; DD (day of month)</em>
+          , "UShort", SubStr(YYYYMMDDHHMISS, 9, 2)  <em>; HH (hour in 24-hour time)</em>
+          , "UShort", SubStr(YYYYMMDDHHMISS, 11, 2) <em>; MI (minute)</em>
+          , "UShort", SubStr(YYYYMMDDHHMISS, 13, 2) <em>; SS (second)</em>
+          , "UShort", 0                             <em>; Unused (millisecond)</em>
+          , SystemTime)
 
-    return DllCall(&quot;SetSystemTime&quot;, &quot;Ptr&quot;, &amp;SystemTime)
+    return DllCall(&quot;SetSystemTime&quot;, &quot;Ptr&quot;, SystemTime)
 }</pre>
 <p>More structure examples:</p>
 <ul>

@@ -510,7 +510,7 @@ Gui.Show()
 
 LoadFolder(ImageListID1, ImageListID2, this, *)
 {
-    static IconArray := []
+    static IconMap := Map()
     LV := this.Gui["LV"]
     this.Gui.Opt("+OwnDialogs")  <em>; Forces user to dismiss the following dialog before using main window.</em>
     Folder := DirSelect(, 3, "Select a folder to read:")
@@ -524,7 +524,7 @@ LoadFolder(ImageListID1, ImageListID2, this, *)
 
     <em>; Calculate buffer size required for SHFILEINFO structure.</em>
     sfi_size := A_PtrSize + 688
-    VarSetCapacity(sfi, sfi_size)
+    sfi := BufferAlloc(sfi_size)
 
     <em>; Gather a list of file names from the selected folder and append them to the ListView:</em>
     LV.Opt("-Redraw")  <em>; Improve performance by disabling redrawing during load.</em>
@@ -555,13 +555,13 @@ LoadFolder(ImageListID1, ImageListID2, this, *)
             <em>; Check if this file extension already has an icon in the ImageLists. If it does,
             ; several calls can be avoided and loading performance is greatly improved,
             ; especially for a folder containing hundreds of files:</em>
-            IconNumber := IconArray[ExtID]
+            IconNumber := IconMap.Has(ExtID) ? IconMap[ExtID] : 0
         }
         if not IconNumber  <em>; There is not yet any icon for this extension, so load it.</em>
         {
             <em>; Get the high-quality small-icon associated with this file extension:</em>
             if not DllCall("Shell32\SHGetFileInfoW", "Str", FileName
-            , "Uint", 0, "Ptr", &amp;sfi, "UInt", sfi_size, "UInt", 0x101)  <em>; 0x101 is SHGFI_ICON+SHGFI_SMALLICON</em>
+            , "Uint", 0, "Ptr", sfi, "UInt", sfi_size, "UInt", 0x101)  <em>; 0x101 is SHGFI_ICON+SHGFI_SMALLICON</em>
                 IconNumber := 9999999  <em>; Set it out of bounds to display a blank icon.</em>
             else <em>; Icon successfully loaded.</em>
             {
@@ -574,7 +574,7 @@ LoadFolder(ImageListID1, ImageListID2, this, *)
                 <em>; Now that it's been copied into the ImageLists, the original should be destroyed:</em>
                 DllCall("DestroyIcon", "Ptr", hIcon)
                 <em>; Cache the icon to save memory and improve loading performance:</em>
-                IconArray[ExtID] := IconNumber
+                IconMap[ExtID] := IconNumber
             }
         }
 

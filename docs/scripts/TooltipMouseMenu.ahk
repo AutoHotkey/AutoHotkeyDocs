@@ -131,7 +131,7 @@ mY -= 3   ; Space after which first line starts.
 mY /= 13  ; Space taken by each line.
 if mY < 1
     return
-if mY > MenuItem.Length()
+if mY > MenuItem.Length
     return
 TargetSection := MenuItem[Round(mY)]
 Gosub(StrReplace(TargetSection, "`s"))
