@@ -364,6 +364,7 @@ class GMem
     }
 }</pre>
 <p>__Delete is not called for any object which has the key "__Class". <a href="#Custom_Classes">Class objects</a> have this key by default.</p>
+<p>If the class has a super-class which defines these methods, <code>base.__New()</code> (with parameters as appropriate) and <code>base.__Delete()</code> should typically be called. Otherwise, only the most derived definition of the method is called, excluding any definition within the target object itself.</p>
 <p><span class="ver">[v1.1.28+]:</span> If an exception or runtime error is thrown while __Delete is executing and is not handled within __Delete, it acts as though __Delete was called from a new <a href="misc/Threads.htm">thread</a>. That is, an error dialog is displayed and __Delete returns, but the thread does not exit (unless it was already exiting). Prior to v1.1.28, unhandled exceptions caused inconsistent behavior.</p>
 
 <h3 id="Meta_Functions">Meta-Functions</h3>
@@ -383,6 +384,8 @@ class <i>ClassName</i> {
 <i>ClassName</i> := { __Get: Func("<i>MyGet</i>"), __Set: Func("<i>MySet</i>"), __Call: Func("<i>MyCall</i>") }
 </pre>
 <p>Meta-functions define what happens when a key is requested but not found within the target object. For example, if <code>obj.key</code> has not been assigned a value, it invokes the <i>__Get</i> meta-function. Similarly, <code>obj.key := value</code> invokes <i>__Set</i> and <code>obj.key()</code> invokes <i>__Call</i>. These meta-functions (or methods) would need to be defined in <code>obj.base</code>, <code>obj.base.base</code> or such.</p>
+<p>Meta-functions are generally defined like methods, but do not follow the same rules (except when called explicitly by the script). They must be defined in a base object; any definition in the target object itself is ignored. Each definition of __Get, __Set and __Call applicable to the target object is called automatically according to the rules below, and should not call <code>base.__Get(key)</code> or similar. <a href="#Custom_NewDelete">__New</a> and <a href="#Custom_NewDelete">__Delete</a> must be defined in a base object, but otherwise behave like methods.</p>
+<p class="note"><strong>Note:</strong> AutoHotkey v2 replaces meta-functions with more conventional methods.</p>
 <p>When the script gets, sets or calls a key which does not exist within the target object, the base object is invoked as follows:</p>
 <ul class="list_of_p">
   <li>If this base object defines the appropriate meta-function, call it.  If the meta-function explicitly <code>return</code>s, use the return value as the result of the operation (whatever caused the meta-function to be called) and return control to the script. Otherwise, continue as described below.
