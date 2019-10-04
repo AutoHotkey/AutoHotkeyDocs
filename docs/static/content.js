@@ -567,8 +567,8 @@ function ctor_search()
     SearchText = SearchText.toLowerCase().replace(/^ +| +$| +(?= )|\+/, '');
     if (SearchText == '')
       return '';
-    else
-      return SearchText.split(' ');
+    else // split and remove undefined or empty strings
+      return SearchText.split(' ').filter(function(e){return (!!e)});
   }
   self.highlightWords = function(words) {
     var content = $(isInsideFrame ? 'body' : '#right .area');
