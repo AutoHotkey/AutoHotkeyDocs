@@ -621,7 +621,8 @@ function ctor_search()
     // Get each word from index and clone for modification below:
     var all_results = []
     for (var i = 0; i < qry.length; ++i) {
-      var w = index_partial(qry[i])
+      var t = qry[i].replace(/(\(|\(\))$/,'') // special case for page names ending with ()
+      var w = index_partial(t)
       w = w ? w.slice() : []
       all_results[i] = get_results(w)
     }
