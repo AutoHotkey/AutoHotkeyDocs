@@ -165,7 +165,7 @@ result := DllCall(&quot;CharLower&quot;, &quot;<strong><u>Str</u></strong>&quot;
 <h2>Examples</h2>
 <div class="ex" id="ExMessageBox">
 <p><a href="#ExMessageBox">#1</a>: Calls the Windows API function &quot;MessageBox&quot; and report which button the user presses.</p>
-<pre>WhichButton := DllCall(&quot;MessageBox&quot;, &quot;Int&quot;, &quot;0&quot;, &quot;Str&quot;, &quot;Press Yes or No&quot;, &quot;Str&quot;, &quot;Title of box&quot;, &quot;Int&quot;, 4)
+<pre>WhichButton := DllCall(&quot;MessageBox&quot;, &quot;Int&quot;, 0, &quot;Str&quot;, &quot;Press Yes or No&quot;, &quot;Str&quot;, &quot;Title of box&quot;, &quot;Int&quot;, 4)
 MsgBox You pressed button #%WhichButton%.</pre>
 </div>
 
@@ -222,7 +222,7 @@ F1 up::DllCall(&quot;SystemParametersInfo&quot;, &quot;UInt&quot;, 0x71, &quot;U
 </div>
 
 <div class="ex" id="ExWatchScrollBar">
-<p><a href="#ExWatchScrollBar">#8</a>: Monitors the active window and display the position of its vertical scroll bar in its focused control (with real-time updates). This requires <span class="ver">[v1.0.43.06+]</span> because it uses <a href="ControlGet.htm#Hwnd">ControlGet Hwnd</a>.</p>
+<p><a href="#ExWatchScrollBar">#8</a>: Monitors the active window and displays the position of its vertical scroll bar in its focused control (with real-time updates). This requires <span class="ver">[v1.0.43.06+]</span> because it uses <a href="ControlGet.htm#Hwnd">ControlGet Hwnd</a>.</p>
 <pre>#Persistent
 SetTimer, WatchScrollBar, 100
 return
@@ -254,7 +254,8 @@ if not hFile
     return
 }
 TestString := "This is a test string.`r`n"  <em>; When writing a file this way, use `r`n rather than `n to start a new line.</em>
-DllCall(&quot;WriteFile&quot;, &quot;Ptr&quot;, hFile, &quot;Str&quot;, TestString, &quot;UInt&quot;, StrLen(TestString), &quot;UIntP&quot;, BytesActuallyWritten, &quot;Ptr&quot;, 0)
+StrLen := StrLen(TestString) * (A_IsUnicode ? 2 : 1)
+DllCall(&quot;WriteFile&quot;, &quot;Ptr&quot;, hFile, &quot;Str&quot;, TestString, &quot;UInt&quot;, StrLen, &quot;UIntP&quot;, BytesActuallyWritten, &quot;Ptr&quot;, 0)
 DllCall(&quot;CloseHandle&quot;, &quot;Ptr&quot;, hFile)  <em>; Close the file.</em>
 
 <em>; Now that the file was written, read its contents back into memory.</em>
@@ -269,7 +270,7 @@ if not hFile
     return
 }
 <em>; Make the variable empty for testing purposes, but ensure it retains sufficient capacity:</em>
-BytesToRead := VarSetCapacity(TestString, StrLen(TestString))
+BytesToRead := VarSetCapacity(TestString, StrLen)
 DllCall(&quot;ReadFile&quot;, &quot;Ptr&quot;, hFile, &quot;Str&quot;, TestString, &quot;UInt&quot;, BytesToRead, &quot;UIntP&quot;, BytesActuallyRead, &quot;Ptr&quot;, 0)
 DllCall(&quot;CloseHandle&quot;, &quot;Ptr&quot;, hFile)  <em>; Close the file.</em>
 MsgBox The following string was read from the file: %TestString%</pre>
