@@ -691,7 +691,6 @@ indexData = [
   ["MsgBox","commands/MsgBox.htm",2],
   ["mute (changing it)","commands/SoundSet.htm"],
   ["nested functions","Functions.htm#nested"],
-  ["new","Variables.htm#new",4],
   ["New method (Class)","objects/Class.htm#New"],
   ["normal-mode Send","commands/Send.htm#specialchars"],
   ["not","Variables.htm#not",4],
