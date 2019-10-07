@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <title>Objects - Definition &amp; Usage | AutoHotkey v2</title>
-<meta name="description" content="Learn details about basic usage of objects, extended usage of objects, custom objects, default base object and implementation of objects." />
+<meta name="description" content="How to use objects, define new types of objects, and other details about how objects work in AutoHotkey." />
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <link href="static/theme.css" rel="stylesheet" type="text/css" />
@@ -40,7 +40,7 @@ ul.list_of_p li { margin: 1em 0; }
   <li><a href="#Usage">Basic Usage</a> - <a href="#Usage_Simple_Arrays">Arrays</a>, <a href="#Usage_Associative_Arrays">Maps (Associative Arrays)</a>, <a href="#Usage_Objects">Objects</a>, <a href="#Usage_Freeing_Objects">Freeing Objects</a></li>
   <li><a href="#Extended_Usage">Extended Usage</a> - <a href="#Function_References">Function References</a>, <a href="#Usage_Arrays_of_Arrays">Arrays of Arrays</a></li>
   <li><a href="#Custom_Objects">Custom Objects</a> - <a href="#creating-a-base-object">Creating a Base Object</a>, <a href="#Custom_Classes">Classes</a>, <a href="#Custom_NewDelete">Construction and Destruction</a>, <a href="#Meta_Functions">Meta-Functions</a></li>
-  <li><a href="#Default_Base_Object">Default Base Object</a> - <a href="#Automatic_Var_Init">Automatic Var Init</a>, <a href="#Pseudo_Properties">Pseudo-Properties</a>, <a href="#Default__Warn">Debugging</a></li>
+  <li><a href="#Primitive">Primitive Values</a></li>
   <li><a href="#Implementation">Implementation</a> - <a href="#Reference_Counting">Reference-Counting</a>, <a href="#Implementation_Pointers">Pointers to Objects</a></li>
 </ul>
 
@@ -459,60 +459,62 @@ class <i>ClassName</i> {
 <p><a href="#Custom_Classes_property">Property syntax</a> and <a href="objects/Object.htm#DefineProp">DefineProp</a> can be used to define properties which compute a value each time they are evaluated, but each property must be defined in advance. By contrast, <em>__Get</em> and <em>__Set</em> can be used to implement properties which are known only at the moment they are invoked.</p>
 <p>For example, a "proxy" object could be created which sends requests for properties over the network (or through some other channel). A remote server would send back a response containing the value of the property, and the proxy would return the value to its caller. Even if the name of each property was known in advance, it would not be logical to define each property individually in the proxy class since every property does the same thing (send a network request). Meta-functions receive the property name as a parameter, so are a good solution to this problem.</p>
 
-<h2 id="Default_Base_Object">Default Base Object</h2>
-<p class="warning"><strong>Note:</strong> This section is out of date, and the default base object will be soon replaced with more specific classes.</p>
-<p>When a non-object value is used with object syntax, the <i>default base object</i> is invoked.  This can be used for debugging or to globally define object-like behaviour for strings, numbers and/or variables.  The default base may be accessed by using <code>.base</code> with any non-object value; for instance, <code>"".base</code>.  Although the default base cannot be <i>set</i> as in <code>"".base := Object()</code>, the default base may itself have a base as in <code>"".base.base := Object()</code>.</p>
+<h2 id="primitive">Primitive Values</h2>
+<p>Primitive values, such as strings and numbers, cannot have their own properties and methods. However, primitive values support the same kind of <a href="#delegation">delegation</a> as objects. That is, any property or method call on a primitive value is delegated to the <em>prototype object</em> corresponding to that value's type, or in other words, the value's <em>base object</em>. The following prototype objects exist:</p>
+<ul style="line-height: 1.5">
+  <li>Any <ul style="padding-left: 1.7em">
+    <li>Primitive <ul style="padding-left: 1.7em">
+      <li>Number <ul style="padding-left: 1.7em">
+        <li>Float</li>
+        <li>Integer</li>
+      </ul>
+      <li>String</li>
+    </ul>
+  </ul>
+</ul>
+<p>However, these objects are currently only accessible through the <code>base</code> property of a primitive value (or a derived prototype object). <a href="objects/Object.htm">Object.Prototype</a> is also based on the Any prototype, so any methods or properties defined on that prototype are inherited by values of all types except ComObject. Similarly, all primitive values inherit from Primitive, and all numbers inherit from Number.</p>
+<p>Although checking the <a href="commands/Type.htm">Type</a> string is generally faster, the type of a value can be tested by checking whether it has a given base. For example, <code>n.HasBase(0.base.base)</code> is true if <em>n</em> is a pure Integer or Float, but not if n is a numeric string, since the String prototype does not derive from the Number prototype. By contrast, <code>n is 'number'</code> is true if <em>n</em> is a number or a numeric string.</p>
+<p>Rather than referring to the prototype objects via numbers and strings, the following code can be used to create the missing classes:</p>
+<pre><em>; Define primitive classes.</em>
+global Any := Class.new()
+     , Primitive := Class.new()
+     , String := Class.new()
+     , Number := Class.new()
+     , Integer := Class.new()
+     , Float := Class.new()
 
-<h3 id="Automatic_Var_Init">Automatic Var Init</h3>
-<p>When an empty variable is used as the target of a <i>set</i> operation, it is passed directly to the __Set meta-function, giving it opportunity to insert a new object into the variable.  For brevity, this example does not support multiple parameters; it could, by using a <a href="Functions.htm#Variadic">variadic function</a>.</p>
-<pre>"".base.__Set := Func("Default_Set_AutomaticVarInit")
+<em>; Define hierarchy for primitive classes.</em>
+Primitive.base := Any
+  , Number.base := Primitive
+    , Integer.base := Number
+    , Float.base := Number
+  , String.base := Primitive
 
-empty_var.foo := "bar"
-MsgBox empty_var.foo
+<em>; Attach the existing prototype objects.</em>
+Any.Prototype := (
+    Primitive.Prototype := (
+      Number.Prototype := (
+        Integer.Prototype := 0.base,
+        Float.Prototype := 0.0.base
+      ).base,
+      String.Prototype := "".base
+    ).base
+  ).base
+</pre>
+<p>The <code>is</code> operator can be used with these classes. For example, <code>n is Number</code> is equivalent to <code>n.HasBase(Number.Prototype)</code> except when the HasBase method has been overridden for <em>n</em>. Note that <code>x is Any</code> would ordinarily be true for any value within AutoHotkey's type hierarchy, but false for COM objects.</p>
 
-Default_Set_AutomaticVarInit(ByRef var, key, value)
-{
-    if (var = "")
-        var := Object(key, value)
-    return var
-}</pre>
-
-<h3 id="Pseudo_Properties">Pseudo-Properties</h3>
-<p>Object "syntax sugar" can be applied to strings and numbers.</p>
-<pre>"".base.__Get := Func("Default_Get_PseudoProperty")
-"".base.is    := Func("Default_is")
-
+<h3 id="primitive-extension">Adding Properties and Methods</h3>
+<p>Properties and methods can be added for all values of a given type by modifying that type's prototype object. However, since a primitive value is not an Object and cannot have its own properties or methods, the primitive prototype objects do not derive from <code>Object.Prototype</code>. In other words, methods such as <a href="Object.htm#DefineProp">DefineProp</a> and <a href="Object.htm#DefineMethod">DefineMethod</a> are not accessible by default. They can be called indirectly. For example:</p>
+<pre>
+DefProp := {}.GetMethod("DefineProp")
+%DefProp%( "".base, "Length", { get: Func("StrLen") } )
 MsgBox A_AhkPath.length " == " StrLen(A_AhkPath)
-MsgBox A_AhkPath.length.is("int")
-
-Default_Get_PseudoProperty(nonobj, key)
-{
-    if (key = "length")
-        return StrLen(nonobj)
-}
-
-Default_is(nonobj, type)
-{
-    static alias := {int: "integer"}
-    return nonobj is (alias[type] or type)
-}</pre>
-<p>Note that built-in functions may also be used, but in this case the parentheses cannot be omitted:</p>
-<pre>"".base.length := Func("StrLen")
-MsgBox A_AhkPath.length() " == " StrLen(A_AhkPath)</pre>
-
-<h3 id="Default__Warn">Debugging</h3>
-<p>By default, invoking a non-object value causes an exception to be thrown. The following example changes the behaviour so that a warning is shown and the script continues:</p>
-<pre>"".base.__Get := "".base.__Set := "".base.__Call := Func("Default__Warn")
-
-empty_var.foo := "bar"
-x := (1 + 1).is("integer")
-
-Default__Warn(nonobj, p1:="", p2:="", p3:="", p4:="")
-{
-    ListLines
-    MsgBox "A non-object value was improperly invoked.`n`nSpecifically: " nonobj
-    return "" <em>; Override the default behaviour by explicitly returning.</em>
-}</pre>
+</pre>
+<p>Although primitive values can inherit value properties from their prototype, an exception is thrown if the script attempts to set a value property on a primitive value. For example:</p>
+<pre>"".base.test := 1  <em>; Don't try this at home.</em>
+MsgBox "".test  <em>; 1</em>
+"".test := 2  <em>; Error: Property is read-only.</em></pre>
+<p>Although __Set and property setters can be used, they are not useful since primitive values should be considered immutable.</p>
 
 <h2 id="Implementation">Implementation</h2>
 <span id="Refs"></span><h3 id="Reference_Counting">Reference-Counting</h3>
