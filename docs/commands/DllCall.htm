@@ -54,9 +54,11 @@
 <tr id="str">
 <td>Str</td>
 <td><p>A string such as &quot;Blue&quot; or MyVar. If the called function modifies the string and the argument is a naked variable, its contents will be updated. For example, the following call would convert the contents of <em>MyVar</em> to uppercase: <code>DllCall(&quot;CharUpper&quot;, &quot;Str&quot;, <i>MyVar</i>)</code>.</p>
-  <p>However, if the function is designed to store a string larger than a variable's current capacity, ensure that the variable is large enough before calling the function. This can be achieved by calling <code><a href="VarSetCapacity.htm">VarSetCapacity</a>(MyVar, 123)</code>, where 123 is the length that <em>MyVar</em> must be able to hold.</p>
+  <p>If the function is designed to store a string longer than the parameter's input value (or if the parameter is for output only), the recommended approach is to use <a href="BufferAlloc.htm">BufferAlloc</a> to allocate a buffer, the <a href="#ptr">Ptr</a> type to pass it, and <a href="StrGet.htm">StrGet</a> to retrieve the string after the function returns. </p>
+  <p>Otherwise, ensure that the variable is large enough before calling the function. This can be achieved by calling <code><a href="VarSetCapacity.htm">VarSetCapacity</a>(MyVar, 123)</code>, where 123 is the number of <strong>bytes</strong> that <em>MyVar</em> must be able to hold. If the variable is not null-terminated upon return, an error message is shown and the program exits as it is likely that memory has been corrupted via buffer overrun. This would typically indicate that the variable's capacity was insufficient.</p>
+  <p></p>
   <p>A <em>Str</em> argument must not be an <a href="../Variables.htm#Expressions">expression</a> that evaluates to a number (such as <code>i+1</code>). If it is, the function is not called and throws an <a href="Catch.htm#RuntimeErrors">exception</a>.</p>
-  <p>The <a href="#asterisk">asterisk variable</a> &quot;Str*&quot; is supported but rarely used. It can be used with functions that expect something like &quot;TCHAR **&quot; or &quot;LPTSTR *&quot;.</p>
+  <p id="strp">The rarely-used <a href="#asterisk">Str*</a> arg type passes the address of a temporary variable containing the address of the string. If the function writes a new address into the temporary variable, the new string is copied into the script's variable, if one was passed. This can be used with functions that expect something like &quot;TCHAR **&quot; or &quot;LPTSTR *&quot;. However, if the function allocates memory and expects the caller to free it (such as by calling <a href="https://docs.microsoft.com/en-us/windows/win32/api/combaseapi/nf-combaseapi-cotaskmemfree">CoTaskMemFree</a>), the <code>Ptr*</code> arg type must be used instead.</p>
   <p class="note"><strong>Note</strong>: When passing a string to a function, be aware what <a href="../Compat.htm#DllCall"><i>type</i> of string</a> the function expects.</p></td>
 </tr>
 <tr>
@@ -71,6 +73,7 @@
 DllCall("<i>Function</i>", "ptr", buf)  <em>; Pass buffer to function.</em>
 str := StrGet(buf, "cp0")  <em>; Retrieve ANSI string from buffer.</em>
 </pre>
+    <p>The rarely-used <a href="#asterisk">AStr*</a> arg type is also supported and behaves similarly to the <a href="strp">Str*</a> type, except that any new string is converted from ANSI to the native format, UTF-16.</p>
     <p>See <a href="../Compat.htm#DllCall">Script Compatibility</a> for equivalent Win32 types and other details.</p>
   </td>
 </tr>
