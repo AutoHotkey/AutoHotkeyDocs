@@ -149,10 +149,11 @@ FileOpen("**", "w")  <em>; for stderr</em></pre>
 </table>
 
 <h2>Return Value</h2>
-<p>Type: <a href="../Concepts.htm#objects">Object</a></p>
-<p>If the file is opened successfully, the return value is a <a href="../Concepts.htm#references-to-objects">reference</a> to a new <a href="../objects/File.htm">File object</a>.</p>
-<p>If the function fails, the return value is 0 and <a href="../Variables.htm#LastError">A_LastError</a> contains an error code.</p>
-<p>Use <code>if file</code> or <code>IsObject(file)</code> to check if the function succeeded.</p>
+<p>Type: <a href="../objects/File.htm">File</a></p>
+<p>The return value is a new <a href="../objects/File.htm">File object</a> encapsulating the open handle to the file. Use the methods and properties of this object to access the file's contents.</p>
+
+<h2 id="Errors">Errors</h2>
+<p>If the file cannot be opened, an <a href="Throw.htm#Exception">exception</a> is thrown. The exception object's <code>Message</code> is based on the error code, which can be retrieved from the exception's <code>Extra</code> property.</p>
 
 <h2>Remarks</h2>
 <p><a href="../objects/File.htm#ReadLine">File.ReadLine</a> always supports <code>`n</code>, <code>`r`n</code> and <code>`r</code> as line endings and does not include them in its return value, regardless of whether the <code>`r</code> or <code>`n</code> options are used. The options only affect translation of line endings within the text returned by <a href="../objects/File.htm#Read">File.Read</a> or written by <a href="../objects/File.htm#Write">File.Write</a> or <a href="../objects/File.htm#WriteLine">File.WriteLine</a>.</p>
@@ -169,10 +170,12 @@ FileOpen("**", "w")  <em>; for stderr</em></pre>
 <pre>FileName := FileSelect("S16",, "Create a new file:")
 if (FileName = "")
     return
-file := FileOpen(FileName, "w")
-if !IsObject(file)
+try
+    file := FileOpen(FileName, "w")
+catch error
 {
     MsgBox "Can't open '" FileName "' for writing."
+        . "`n`nError " error.Extra ": " error.Message
     return
 }
 TestString := "This is a test string.`r`n"  <em>; When writing a file this way, use `r`n rather than `n to start a new line.</em>
@@ -180,10 +183,12 @@ file.Write(TestString)
 file.Close()
 
 <em>; Now that the file was written, read its contents back into memory.</em>
-file := FileOpen(FileName, "r-d") <em>; read the file ("r"), share all access except for delete ("-d")</em>
-if !IsObject(file)
+try
+    file := FileOpen(FileName, "r-d") <em>; read the file ("r"), share all access except for delete ("-d")</em>
+catch
 {
     MsgBox "Can't open '" FileName "' for reading."
+        . "`n`nError " error.Extra ": " error.Message
     return
 }
 CharsToRead := StrLen(TestString)
