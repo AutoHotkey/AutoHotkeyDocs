@@ -20,7 +20,7 @@ tocData = [
       ["Basic Usage","Objects.htm#Usage"],
       ["Extended Usage","Objects.htm#Extended_Usage"],
       ["Custom Objects","Objects.htm#Custom_Objects"],
-      ["Default Base Object","Objects.htm#Default_Base_Object"],
+      ["Primitive Values","Objects.htm#primitive"],
       ["Implementation","Objects.htm#Implementation"]
     ]]
   ]],
@@ -277,6 +277,10 @@ tocData = [
     ["Download","commands/Download.htm"],
     ["Edit","commands/Edit.htm"],
     ["Func","commands/Func.htm"],
+    ["GetMethod","commands/GetMethod.htm"],
+    ["HasBase","commands/HasBase.htm"],
+    ["HasMethod","commands/HasMethod.htm"],
+    ["HasProp","commands/HasProp.htm"],
     ["IsByRef","commands/IsByRef.htm"],
     ["IsFunc","commands/IsFunc.htm"],
     ["IsLabel","commands/IsLabel.htm"],
@@ -302,7 +306,8 @@ tocData = [
     ["GuiControl Object","objects/GuiControl.htm"],
     ["Map Object","objects/Map.htm"],
     ["Menu/MenuBar Object","objects/Menu.htm"],
-    ["RegExMatch Object","commands/RegExMatch.htm#MatchObject"]
+    ["RegExMatch Object","commands/RegExMatch.htm#MatchObject"],
+    ["Any Prototype","objects/Any.htm"]
   ]],
   ["Process","commands/Process.htm",
   [

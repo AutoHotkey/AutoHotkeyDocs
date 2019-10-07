@@ -19,7 +19,8 @@
   <li>A base object, from which properties and methods are inherited.</li>
 </ul>
 <p>There are value properties and dynamic properties. Value properties simply contain a value. Dynamic properties do not contain a value, but instead call a <em>getter</em> or <em>setter</em> function when accessed. The <em>getter</em> or <em>setter</em> can be overridden by a derived object (the easiest way is to define them within a class).</p>
-<p>The documentation below uses <code>Obj</code> as a placeholder for any instance of Object. All instances of Object are based on <code>Object.Prototype</code>, from which the following predefined methods and properties are inherited:</p>
+<p>The documentation below uses <code>Obj</code> as a placeholder for any instance of Object.</p>
+<p>All instances of Object are based on <code>Object.Prototype</code>, which is based on the <a href="Any.htm">Any prototype</a>. In addition to the methods and property inherited from Any, Objects have the following predefined methods and properties:</p>
 <p><strong>Methods:</strong></p>
 <ul>
 	<li><a href="#Clone">Clone</a></li>
@@ -27,13 +28,9 @@
   <li><a href="#DefineProp">DefineProp</a></li>
   <li><a href="#DeleteMethod">DeleteMethod</a></li>
   <li><a href="#DeleteProp">DeleteProp</a></li>
-  <li><a href="#GetMethod">GetMethod</a></li>
   <li><a href="#GetOwnPropDesc">GetOwnPropDesc</a></li>
-  <li><a href="#HasBase">HasBase</a></li>
-  <li><a href="#HasMethod">HasMethod</a></li>
   <li><a href="#HasOwnMethod">HasOwnMethod</a></li>
   <li><a href="#HasOwnProp">HasOwnProp</a></li>
-  <li><a href="#HasProp">HasProp</a></li>
   <li><a href="#OwnMethods">OwnMethods</a></li>
   <li><a href="#OwnProps">OwnProps</a></li>
 </ul>
@@ -43,7 +40,7 @@
 </ul>
 <p><strong>Functions:</strong></p>
 <ul>
-	<li><a href="#GetBase">ObjGetBase</a>, <a href="#SetBase">ObjSetBase</a>: Retrieve or set the object's <a href="../Objects.htm#Custom_Objects">base object</a>.</li>
+	<li><a href="#SetBase">ObjSetBase</a>: Set the object's <a href="../Objects.htm#delegation">base object</a>.</li>
   <li><a href="#GetCapacity">ObjGetCapacity</a>, <a href="#SetCapacity">ObjSetCapacity</a>: Retrieve or set an Object's capacity to contain properties.</li>
   <li><a href="#OwnPropCount">ObjOwnPropCount</a>: Retrieve the number of own properties contained by an object.</li>
 	<li>Deprecated: <a href="#RawGet">ObjRawGet</a>, <a href="#RawSet">ObjRawSet</a>: Retrieve or set an object's own value property, bypassing any meta-functions and potentially overwriting property accessor functions.</li>
@@ -126,24 +123,6 @@
 </dl>
 </div>
 
-<div class="methodShort" id="GetMethod"><h2>GetMethod</h2>
-<p>Retrieves the implementation function of a method.</p>
-<pre class="Syntax">Obj.<span class="func">GetMethod</span>(Name)</pre>
-<dl>
-  <dt>Name</dt>
-  <dd>
-    <p>Type: <a href="../Concepts.htm#strings">String</a></p>
-    <p>A method name.</p>
-  </dd>
-  <dt>Return Value</dt>
-  <dd>
-    <p>Type: <a href="Functor.htm">Function Object</a></p>
-    <p>The implementation of the method. This is either a <a href="Func.htm">Func</a> created by a class definition or an object previously passed to <a href="#DefineMethod">DefineMethod</a>.</p>
-  </dd>
-</dl>
-<p>The method may be owned by the object itself or inherited from a base object.</p>
-</div>
-
 <div class="methodShort" id="GetOwnPropDesc"><h2>GetOwnPropDesc</h2>
 <p>Returns a descriptor for a given property, compatible with <a href="#DefineProp">DefineProp</a>.</p>
 <pre class="Syntax">Obj.<span class="func">GetOwnPropDesc</span>(Name)</pre>
@@ -173,21 +152,6 @@
 <div class="methodShort" id="HasOwnProp"><h2>HasOwnProp</h2>
 <pre class="Syntax">Obj.<span class="func">HasOwnProp</span>(Name)</pre>
 <p>Returns true if the object owns a property by this name, otherwise false.</p>
-</div>
-
-<div class="methodShort" id="HasBase"><h2>HasBase</h2>
-<pre class="Syntax">Obj.<span class="func">HasBase</span>(BaseObj)</pre>
-<p>Returns true if <em>BaseObj</em> is a direct or indirect base of <em>Obj</em>, otherwise false. For example, <code>Obj.HasBase(Array.Prototype)</code> is true if <em>Obj</em> is an instance of Array or any derived class. This the same check performed by <code>Obj is Array</code>; however, instances can be based on other instances, whereas <code>is</code> requires a Class.</p>
-</div>
-
-<div class="methodShort" id="HasMethod"><h2>HasMethod</h2>
-<pre class="Syntax">Obj.<span class="func">HasMethod</span>(Name)</pre>
-<p>Returns true if the object has a method by this name, otherwise false. The method may be owned by the object itself or inherited from a base object.</p>
-</div>
-
-<div class="methodShort" id="HasProp"><h2>HasProp</h2>
-<pre class="Syntax">Obj.<span class="func">HasProp</span>(Name)</pre>
-<p>Returns true if the object has a property by this name, otherwise false. The property may be owned by the object itself or inherited from a base object.</p>
 </div>
 
 <div class="methodShort" id="OwnMethods"><h2>OwnMethods</h2>
@@ -229,14 +193,14 @@
 <h2>Properties</h2>
 
 <div class="methodShort" id="Base"><h2>Base</h2>
-<p>Retrieves or sets the object's <a href="../Objects.htm#Custom_Objects">base object</a>.</p>
+<p>Retrieves or sets the object's <a href="../Objects.htm#delegation">base object</a>.</p>
 <pre class="Syntax">BaseObj := Obj.Base</pre>
 <pre class="Syntax">Obj.Base := BaseObj</pre>
 <p><em>BaseObj</em> must be an Object.</p>
 <p>If assigning the new base would change the native type of the object, an exception is thrown. An object's native type is decided by the nearest prototype object belonging to a built-in class, such as <code>Object.Prototype</code> or <code>Array.Prototype</code>. For example, an instance of Array must always derive from <code>Array.Prototype</code>, either directly or indirectly.</p>
-<p></p>
 <p>Properties and methods are inherited from the base object dynamically, so changing an object's base also changes which inherited properties and methods are available.</p>
-<p>See also: <a href="#GetBase">ObjGetBase</a>, <a href="#SetBase">ObjSetBase</a></p>
+<p>This property is inherited from <a href="Any.htm">Any</a>; however, it can be set only for instances of Object.</p>
+<p>See also: <a href="Any.htm#GetBase">ObjGetBase</a>, <a href="#SetBase">ObjSetBase</a></p>
 </div>
 
 <h2>Functions</h2>
@@ -258,20 +222,12 @@
 <p>An exception is thrown if <em>Obj</em> is of an incorrect type.</p>
 </div>
 
-<div class="methodShort" id="GetBase"><h2>ObjGetBase</h2>
-<p>Returns the object's <a href="../Objects.htm#Custom_Objects">base object</a>.</p>
-<pre class="Syntax">BaseObj := <span class="func">ObjGetBase</span>(Obj)</pre>
-<p>No <a href="../Objects.htm#Meta_Functions">meta-functions</a> or <a href="../Objects.htm#Custom_Classes_property">property functions</a> are called. Calling this function is equivalent to invoking the default implementation of the <a href="#Base">Base</a> property, even when that property has been overridden.</p>
-<p>An exception is thrown if <em>Obj</em> is of an incorrect type.</p>
-<p>See also: <a href="#Base">Base property</a></p>
-</div>
-
 <div class="methodShort" id="SetBase"><h2>ObjSetBase</h2>
-<p>Sets the object's <a href="../Objects.htm#Custom_Objects">base object</a>.</p>
+<p>Sets the object's <a href="../Objects.htm#delegation">base object</a>.</p>
 <pre class="Syntax"><span class="func">ObjSetBase</span>(Obj, BaseObj)</pre>
-<p>No <a href="../Objects.htm#Meta_Functions">meta-functions</a> or <a href="../Objects.htm#Custom_Classes_property">property functions</a> are called. Calling this function is equivalent to invoking the default implementation of the <a href="#Base">Base</a> property, even when that property has been overridden.</p>
+<p>No <a href="../Objects.htm#Meta_Functions">meta-functions</a> or <a href="../Objects.htm#Custom_Classes_property">property functions</a> are called. Overriding the <a href="#Base">Base</a> property does not affect the behaviour of this function.</p>
 <p>An exception is thrown if <em>Obj</em> or <em>BaseObj</em> is of an incorrect type.</p>
-<p>See also: <a href="#Base">Base property</a></p>
+<p>See also: <a href="Any.htm#GetBase">ObjGetBase</a>, <a href="#Base">Base property</a></p>
 </div>
 
 <div class="methodShort" id="OwnPropCount"><h2>ObjOwnPropCount</h2>
