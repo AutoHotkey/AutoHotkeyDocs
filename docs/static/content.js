@@ -1999,9 +1999,16 @@ function overwriteProps(a, b) {
 // but results in longer initial load time for these browsers:
 function registerEvent(el, events, children, func) {
   if (isIE8 || isEdge)
-    el.find(children).on(events, func);
+  {
+    var ElChildren = el.find(children);
+    ElChildren.off(events);
+    ElChildren.on(events, func);
+  }
   else
+  {
+    el.off(events, children);
     el.on(events, children, func);
+  }
 }
 
 function loadJQuery() {

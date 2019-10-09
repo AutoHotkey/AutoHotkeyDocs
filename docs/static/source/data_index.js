@@ -640,6 +640,7 @@ indexData = [
   ["logarithm, Log","commands/Math.htm#Log"],
   ["logoff","commands/Shutdown.htm"],
   ["long file name (converting to)","commands/LoopFiles.htm#LoopFilePath"],
+  ["long paths","misc/LongPaths.htm"],
   ["Loop","commands/Loop.htm",3,"E"],
   ["Loop (until)","commands/Until.htm"],
   ["Loop (while)","commands/While.htm"],
