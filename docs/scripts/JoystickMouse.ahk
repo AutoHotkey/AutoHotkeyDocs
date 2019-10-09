@@ -73,7 +73,7 @@ ButtonLeft()
         if GetKeyState(A_ThisHotkey)
             return  ; The button is still, down, so keep waiting.
         ; Otherwise, the button has been released.
-        SetTimer , "Off"
+        SetTimer , 0
         SetMouseDelay -1  ; Makes movement smoother.
         MouseClick "Left",,, 1, 0, "U"  ; Release the mouse button.
     }
@@ -90,7 +90,7 @@ ButtonRight()
         if GetKeyState(A_ThisHotkey)
             return  ; The button is still, down, so keep waiting.
         ; Otherwise, the button has been released.
-        SetTimer , "Off"
+        SetTimer , 0
         MouseClick "Right",,, 1, 0, "U"  ; Release the mouse button.
     }
 }
@@ -106,7 +106,7 @@ ButtonMiddle()
         if GetKeyState(A_ThisHotkey)
             return  ; The button is still, down, so keep waiting.
         ; Otherwise, the button has been released.
-        SetTimer , "Off"
+        SetTimer , 0
         MouseClick "Middle",,, 1, 0, "U"  ; Release the mouse button.
     }
 

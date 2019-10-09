@@ -312,7 +312,7 @@ ButtonClickEnd()
     if GetKeyState(Button2, "P")
         return
 
-    SetTimer , "Off"
+    SetTimer , 0
     MouseClick ButtonClick,,, 1, 0, "U"
 }
 
@@ -607,7 +607,7 @@ ButtonAccelerationEnd()
         return
     }
 
-    SetTimer , "Off"
+    SetTimer , 0
     MouseCurrentAccelerationSpeed := 0
     MouseCurrentSpeed := MouseSpeed
     Button := 0

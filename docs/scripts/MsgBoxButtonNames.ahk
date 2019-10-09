@@ -17,7 +17,7 @@ ChangeButtonNames()
 {
     if !WinExist("Add or Delete")
         return  ; Keep waiting.
-    SetTimer , "Off"
+    SetTimer , 0
     WinActivate
     ControlSetText "&Add", "Button1"
     ControlSetText "&Delete", "Button2"

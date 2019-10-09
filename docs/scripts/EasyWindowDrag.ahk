@@ -22,12 +22,12 @@ EWD_MoveWindow()
     {
         if !GetKeyState("LButton", "P")  ; Button has been released, so drag is complete.
         {
-            SetTimer , "Off"
+            SetTimer , 0
             return
         }
         if GetKeyState("Escape", "P")  ; Escape has been pressed, so drag is cancelled.
         {
-            SetTimer , "Off"
+            SetTimer , 0
             WinMove EWD_OriginalPosX, EWD_OriginalPosY,,, "ahk_id " EWD_MouseWin
             return
         }
