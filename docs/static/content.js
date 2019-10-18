@@ -1651,28 +1651,37 @@ function addFeatures()
           els.num.push(out);
           return '<num></num>';
         });
-        // legacy assignments:
-        els.order.push('assign'); els.assign = [];
-        innerHTML = innerHTML.replace(/^(\s*[^(\s,^:!*\/&^+\-|~.=]*?)([ \t]*=[ \t]*)(.*?)(?=<(?:em|sct)><\/(?:em|sct)>|$)/gim, function(_, VAR, OP, VAL) {
-          out = (VAL.match(/^\s*<num><\/num>\s*$/) ? VAL : wrap(VAL, 'str', false));
-          els.assign.push(out);
-          return VAR + OP + '<assign></assign>';
-        });
         // continuation sections:
         els.order.push('cont'); els.cont = [];
         innerHTML = innerHTML.replace(/(^.*?(.)(?:\s*?<(?:em|sct)><\/(?:em|sct)>|$)[\r\n]*?^\s*)(\((?!.*?\))[\s\S]*?^\s*\))/gm, function(ASIS, PRE, QUOTE, SECTION) {
           if (QUOTE == '"')
             return ASIS;
-          out = wrap(SECTION, 'str', false);
+          out = processStrParam(SECTION);
           els.cont.push(out);
           return PRE + '<cont></cont>';
+        });
+        // built-in vars:
+        els.order.push('biv'); els.biv = [];
+        innerHTML = innerHTML.replace(new RegExp('\\b(' + syntax[1].single.join('|') + ')\\b', 'gi'), function(_, BIV) {
+          out = wrap(BIV, 'biv', true);
+          els.biv.push(out);
+          return '<biv></biv>';
         });
         // strings:
         els.order.push('str'); els.str = [];
         innerHTML = innerHTML.replace(/((")[\s\S]*?\2)/gm, function(_, STRING) {
           out = wrap(STRING, 'str', false);
-          els.str.push(out);
-          return '<str></str>';
+          index = els.str.push(out) - 1;
+          return '<str ' + index + '></str>';
+        });
+        // legacy assignments:
+        els.order.push('assign'); els.assign = [];
+        innerHTML = innerHTML.replace(/^([ \t]*[^(,\s]*?)([ \t]*=[ \t]*)(.*?)(?=<(?:em|sct)><\/(?:em|sct)>|$)/gim, function(ASIS, VAR, OP, VAL) {
+          if ('^:!*/&^+-|~.='.indexOf(VAR.slice(-1)) != -1)
+            return ASIS;
+          out = processStrParam(VAL);
+          els.assign.push(out);
+          return VAR + OP + '<assign></assign>';
         });
         // methods:
         els.order.push('met'); els.met = [];
@@ -1710,13 +1719,6 @@ function addFeatures()
           els.byref.push(out);
           return '<byref></byref>';
         });
-        // built-in vars:
-        els.order.push('biv'); els.biv = [];
-        innerHTML = innerHTML.replace(new RegExp('\\b(' + syntax[1].single.join('|') + ')\\b', 'gi'), function(_, BIV) {
-          out = wrap(BIV, 'biv', true);
-          els.biv.push(out);
-          return '<biv></biv>';
-        });
         // built-in functions:
         els.order.push('bif'); els.bif = [];
         innerHTML = innerHTML.replace(new RegExp('\\b(' + syntax[2].single.join('|').replace('()', '') + ')(?=\\()', 'gi'), function(_, BIF) {
@@ -1732,8 +1734,8 @@ function addFeatures()
           // Temporary exclude (...), {...} and [...]:
           sub = [];
           PARAMS = PARAMS.replace(/[({\[].*[\]})]/g, function(c) {
-            sub.push(c);
-            return '<sub></sub>';
+            index = sub.push(c) - 1;
+            return '<sub ' + index + '></sub>';
           });
           // Split params:
           PARAMS = PARAMS.split(',');
@@ -1742,16 +1744,16 @@ function addFeatures()
             PARAMS.push(PARAMS.splice(types.length - 1).join(','));
           // Iterate params and recompose them:
           for (n in PARAMS) {
+            // Restore (...), {...} and [...] previously excluded:
+            PARAMS[n] = PARAMS[n].replace(/<sub (\d+)><\/sub>/g, function(_, index) {
+              return sub[index];
+            });
             if (PARAMS[n].match(/^\s*%\s/)) // Skip forced expression parameter:
               continue;
             if (types[n] == 'S') // string
-              PARAMS[n] = PARAMS[n].match(/^\s*<num><\/num>\s*$/) ? PARAMS[n] : wrap(PARAMS[n], 'str', false);
+              PARAMS[n] = processStrParam(PARAMS[n]);
           }
           PARAMS = PARAMS.join(',');
-          // Restore (...), {...} and [...] previously excluded:
-          for (n in sub) {
-            PARAMS = PARAMS.replace('<sub></sub>', sub[n])
-          }
           out = wrap(DIR, 'dir', true) + SEP + PARAMS;
           els.dir.push(out);
           return '<dir></dir>';
@@ -1764,8 +1766,8 @@ function addFeatures()
           // Temporary exclude (...), {...} and [...]:
           sub = [];
           PARAMS = PARAMS.replace(/[({\[].*[\]})]/g, function(c) {
-            sub.push(c);
-            return '<sub></sub>'
+            index = sub.push(c) - 1;
+            return '<sub ' + index + '></sub>';
           });
           // Split params:
           PARAMS = PARAMS.split(',');
@@ -1782,17 +1784,19 @@ function addFeatures()
           }
           // Iterate params and recompose them:
           for (n in PARAMS) {
+            // Restore (...), {...} and [...] previously excluded:
+            PARAMS[n] = PARAMS[n].replace(/<sub (\d+)><\/sub>/g, function(_, index) {
+              return sub[index];
+            });
             p = /([\s\S]*?)(\s*<(?:em|sct)><\/(?:em|sct)>[\s\S]*|)$/.exec(PARAMS[n]);
             if (p[1].match(/^\s*%\s/)) // Skip forced expression parameter:
               continue;
+            if (p[1].match(/<cont>/)) // Skip continuation section:
+              continue;
             if (types[n] == 'S') // string
-              PARAMS[n] = (p[1].match(/^\s*<num><\/num>\s*$/) ? p[1] : wrap(p[1], 'str', false)) + p[2];
+              PARAMS[n] = processStrParam(p[1]) + p[2];
           }
           PARAMS = PARAMS.join(',');
-          // Restore (...), {...} and [...] previously excluded:
-          for (n in sub) {
-            PARAMS = PARAMS.replace('<sub></sub>', sub[n])
-          }
           out = wrap(CMD, 'cmd', true) + SEP + PARAMS;
           els.cmd.push(out);
           return '<cmd></cmd>';
@@ -1804,14 +1808,14 @@ function addFeatures()
             if (VAL1) {
               var cfs = cache.index_data[dict[(IF + ' ... ' + BETWEEN + ' ... ' + AND).toLowerCase()]];
               if (cfs)
-                out = wrap(IF, 'cfs', cfs[1]) + ' ' + INPUT + ' ' + wrap(BETWEEN, 'cfs', cfs[1]) + ' ' + (VAL1.match(/^\s*<num><\/num>\s*$/) ? VAL1 : wrap(VAL1, 'str', false)) + ' ' + wrap(AND, 'cfs', cfs[1]) + ' ' + (VAL2.match(/^\s*<num><\/num>\s*$/) ? VAL2 : wrap(VAL2, 'str', false));
+                out = wrap(IF, 'cfs', cfs[1]) + ' ' + INPUT + ' ' + wrap(BETWEEN, 'cfs', cfs[1]) + ' ' + processStrParam(VAL1) + ' ' + wrap(AND, 'cfs', cfs[1]) + ' ' + processStrParam(VAL2);
               else
                 out = ASIS;
             }
             else if (INPUT) {
               var cfs = cache.index_data[dict[(IF + ' ... ' + BETWEEN).toLowerCase()]];
               if (cfs)
-                out = wrap(IF, 'cfs', cfs[1]) + ' ' + INPUT + ' ' + wrap(BETWEEN, 'cfs', cfs[1]) + ' ' + ((cfs[3][1] == "S") ? (VAL.match(/^\s*<num><\/num>\s*$/) ? VAL : wrap(VAL, 'str', false)) : VAL);
+                out = wrap(IF, 'cfs', cfs[1]) + ' ' + INPUT + ' ' + wrap(BETWEEN, 'cfs', cfs[1]) + ' ' + ((cfs[3][1] == "S") ? processStrParam(VAL) : VAL);
               else
                 out = ASIS;
             }
@@ -1824,30 +1828,30 @@ function addFeatures()
             if (cfs == 'if')
               if (m = PARAMS.match(/^([^.(:]+?)(&gt;=|&gt;|&lt;&gt;|&lt;=|&lt;|!=|=)(.*)$/)) {
                 var VAR = m[1], OP = m[2], VAL = m[3];
-                out = wrap(CFS, 'cfs', 'commands/IfEqual.htm') + SEP + VAR + OP + (VAL.match(/^\s*<num><\/num>\s*$/) ? VAL : wrap(VAL, 'str', false));
+                out = wrap(CFS, 'cfs', 'commands/IfEqual.htm') + SEP + VAR + OP + processStrParam(VAL);
                 els.cfs.push(out);
                 return '<cfs></cfs>';
               }
             // Temporary exclude (...), {...} and [...]:
             sub = [];
             PARAMS = PARAMS.replace(/[({\[].*[\]})]/g, function(c) {
-              sub.push(c);
-              return '<sub></sub>'
+              index = sub.push(c) - 1;
+              return '<sub ' + index + '></sub>';
             });
             // Split params:
             PARAMS = PARAMS.split(',');
             // Iterate params and recompose them:
             for (n in PARAMS) {
+              // Restore (...), {...} and [...] previously excluded:
+              PARAMS[n] = PARAMS[n].replace(/<sub (\d+)><\/sub>/g, function(_, index) {
+                return sub[index];
+              });
               if (PARAMS[n].match(/^\s*%\s/)) // Skip forced expression parameter:
                 continue;
               if (types[n] == 'S') // string
-                PARAMS[n] = PARAMS[n].match(/^\s*<num><\/num>\s*$/) ? PARAMS[n] : wrap(PARAMS[n], 'str', false);
+                PARAMS[n] = processStrParam(PARAMS[n]);
             }
             PARAMS = PARAMS.join(',');
-            // Restore (...), {...} and [...] previously excluded:
-            for (n in sub) {
-              PARAMS = PARAMS.replace('<sub></sub>', sub[n])
-            }
             out = wrap(CFS, 'cfs', true) + SEP + PARAMS;
           }
           els.cfs.push(out);
@@ -1879,6 +1883,9 @@ function addFeatures()
         // Restore elements:
         for (var k = els.order.length - 1; k >= 0; k--) {
           $(pre).find(els.order[k]).each(function(index) {
+          if (this.attributes[0])
+            this.outerHTML = els[els.order[k]][this.attributes[0].name];
+          else
             this.outerHTML = els[els.order[k]][index];
           });
         }
@@ -1897,6 +1904,22 @@ function addFeatures()
         } else
           span.innerHTML = match;
         return span.outerHTML;
+      }
+      function processStrParam(param) {
+        if (param.match(/^\s*<num><\/num>\s*$/)) // skip number
+          return param;
+        param = param.replace(/<str (\d+)><\/str>/g, function(_, index) { // resolve substring
+          return els.str[index];
+        });
+        // handle %...%:
+        var out = '', lastIndex = 0;
+        var re = /%[^,\s]+?%/g;
+        while (m = re.exec(param)) {
+          out += wrap(param.slice(lastIndex, m.index), 'str', false) + m[0];
+          lastIndex = re.lastIndex;
+        }
+        out += wrap(param.slice(lastIndex), 'str', false);
+        return out;
       }
     }
   }
