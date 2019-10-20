@@ -94,39 +94,31 @@ End Sub
 sc := <a href="ComObjCreate.htm">ComObjCreate</a>("ScriptControl"), sc.Language := "VBScript", sc.AddCode(code)
 
 
-<em>; Example: Pass a VARIANT ByRef to a COM function.</em>
-var := ComVar()
+<em>; Example: Pass a VARIANT ByRef to a COM method.</em>
+var := ComVar.new()
 var[] := "in value"
 sc.Run("Example", var.ref)
 MsgBox var[]
 
-<em>; ComVar: Creates an object which can be used to pass a value ByRef.
-;   ComVar[] retrieves the value.
-;   ComVar[] := Val sets the value.
-;   ComVar.ref retrieves a ByRef object for passing to a COM function.</em>
-ComVar(Type:=0xC)
-{
-    static <a href="../Objects.htm#Custom_Objects">base</a> := { __Get: "ComVarGet", __Set: "ComVarSet", __Delete: "ComVarDel" }
-    <em>; Create an array of 1 VARIANT.  This method allows built-in code to take
-    ; care of all conversions between VARIANT and AutoHotkey internal types.</em>
-    arr := <a href="ComObjArray.htm">ComObjArray</a>(Type, 1)
-    <em>; Lock the array and retrieve a pointer to the VARIANT.</em>
-    DllCall("oleaut32\SafeArrayAccessData", "ptr", <a href="ComObjValue.htm">ComObjValue</a>(arr), "ptr*", arr_data)
-    <em>; Store the array and an object which can be used to pass the VARIANT ByRef.</em>
-    return { ref: ComObject(0x4000|Type, arr_data), _: arr, base: base }
+
+<em>; ComVar: An object which can be used to pass a value ByRef.
+;   this[] retrieves the value.
+;   this[] := Val sets the value.
+;   this.ref retrieves a ByRef object for passing to a COM method.</em>
+class ComVar {
+    __new(Type := 0xC) {
+        <em>; Allocate memory for the typed variable.
+        ; The largest supported type is VT_VARIANT on x64 (24 bytes).</em>
+        this.var := BufferAlloc(24, 0)
+        <em>; Create an object which can be used to pass the variable ByRef.</em>
+        this.ref := ComObject(0x4000|Type, this.var.ptr + (Type=0xC ? 0 : 8))
+    }
+    __item {
+        get => this.ref[]
+        set => this.ref[] := value
+    }
 }
-ComVarGet(cv, <a href="../Functions.htm#Variadic">p*</a>) { <em>; Called when script accesses an unknown field.</em>
-    if !p.Length  <em>; No name/parameters, i.e. cv[]</em>
-        return cv._[0]
-}
-ComVarSet(cv, v, p*) { <em>; Called when script sets an unknown field.</em>
-    if !p.Length  <em>; No name/parameters, i.e. cv[]:=v</em>
-        return cv._[0] := v
-}
-ComVarDel(cv) { <em>; Called when the object is being freed.
-    ; This must be done to allow the internal array to be freed.</em>
-    DllCall("oleaut32\SafeArrayUnaccessData", "ptr", ComObjValue(cv._))
-}
+
 </pre>
 </div>
 
