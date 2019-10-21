@@ -23,7 +23,7 @@
   <li><a href="#intro">Introduction</a></li>
   <li><a href="#auto">The Top of the Script (the Auto-execute Section)</a>: This portion executes automatically when the script starts.</li>
   <li><a href="#continuation">Splitting a Long Line into a Series of Shorter Ones</a>: This can improve a script's readability and maintainability.</li>
-  <li><a href="#ahk2exe">Convert a Script to an EXE (ahk2exe)</a>: Convert a .ahk script into a .exe file that can run on any PC.</li>
+  <li><a href="#ahk2exe">Convert a Script to an EXE (Ahk2Exe)</a>: Convert a .ahk script into a .exe file that can run on any PC.</li>
   <li><a href="#cmd">Passing Command Line Parameters to a Script</a>: The variables %1%, %2%, etc. contain the incoming parameters.</li>
   <li><a href="#cp">Script File Codepage</a>: Using non-ASCII characters safely in scripts.</li>
   <li><a href="#debug">Debugging a Script</a>: How to find the flaws in a misbehaving script.</li>
@@ -110,38 +110,69 @@ FileAppend, %Var%, C:\My File.txt</pre>
 
 <h2 id="ahk2exe">Convert a Script to an EXE (ahk2exe)</h2>
 <p>A script compiler (courtesy of fincs) is included with the program.</p>
-<p>Once a script is compiled, it becomes a standalone executable; that is, AutoHotkey.exe is not required in order to run the script. The compilation process creates an executable file which contains the following: the AutoHotkey interpreter, the script, any files it <a href="commands/_Include.htm">includes</a>, and any files it has incorporated via the <a href="commands/FileInstall.htm">FileInstall</a> command.</p>
+<p>Once a script is compiled, it becomes a standalone executable; that is, AutoHotkey.exe is not required in order to run the script. The compilation process creates an executable file which contains the following: the AutoHotkey interpreter, the script, any files it <a href="commands/_Include.htm">includes</a>, and any files it has incorporated via the <a href="commands/FileInstall.htm">FileInstall</a> command. <br><span class="ver">[v1.1.32+]:</span> Additional files can be included using <a href=Ahk2ExeDirectives.htm>Compiler Directives</a>.</p>
 <p>Ahk2Exe can be used in the following ways:</p>
 <ol>
-  <li><strong>GUI Interface</strong>: Run the &quot;Convert .ahk to .exe&quot; item in the Start Menu.</li>
-  <li><strong>Right-click</strong>: Within an open Explorer window, you can right-click any .ahk file and select &quot;Compile Script&quot; (only available if the script compiler option was chosen when AutoHotkey was installed). This creates an EXE file of the same base filename as the script, which appears after a short time in the same directory. Note: The EXE file is produced using the same custom icon, .bin file and use <a href="#mpress">MPRESS</a> setting that were last used by Method #1 above.</li>
-  <li id="ahk2exeCmd"><strong>Command Line</strong>: The compiler can be run from the command line with the following parameters:
-  <pre class="no-highlight">Ahk2Exe.exe /in MyScript.ahk [/out MyScript.exe] [/icon MyIcon.ico] [/bin AutoHotkeySC.bin] [/mpress 0or1]</pre>
+  <li><strong>GUI Interface</strong>: Run the &quot;Convert .ahk to .exe&quot; item in the Start Menu.</li><br>
+  <li><strong>Right-click</strong>: Within an open Explorer window, you can right-click any .ahk file and select &quot;Compile Script&quot; (only available if the script compiler option was chosen when AutoHotkey was installed). This creates an EXE file of the same base filename as the script, which appears after a short time in the same directory. Note: The EXE file is produced using the same custom icon, .bin file and <a href="#mpress">compression</a> setting that were last used by Method #1 above.</li><br>
+  <li id="ahk2exeCmd"><strong>Command Line</strong>: The compiler can be run from the command line with the following parameter pairs (the first is mandatory; the rest are optional):
+<table class="info">
+  <tr><th>Parameter pair</th><th>Meaning</th></tr>
+  <tr id="Slashin">
+    <td>/in <i>script_name</i></td>
+    <td>The name of the script to compile.</td></tr>
+  <tr id="Slashout">
+    <td>/out <i>exe_name</i></td>
+    <td>The path\name of the output .exe to be created.<br>(Default is the directory\base_name of the input file plus extension of .exe.)</td>
+  </tr>
+  <tr id="slashicon">
+    <td>/icon <i>icon_name</i></td>
+    <td>The icon file to be used.<br>(Default is the last icon used in the GUI interface.)</td>
+  </tr>
+  <tr id="Slashbin">
+    <td>/bin <i>file_name</i></td>
+    <td>The .bin file to be used.<br>(Default is the last .bin file name used in the GUI interface.)</td>
+  </tr>
+  <tr id="CPn">
+    <td>/cp <i>codepage</i></td>
+    <td><span class="ver">[1.1.23.01+]:</span> Overrides the default codepage used to read script files. For more details, see <a href="http://msdn.microsoft.com/en-us/library/dd317756.aspx">codepage</a>.<br>(Unicode scripts should begin with a byte-order-mark (BOM), rendering the use of this parameter unnecessary.)</td>
+  </tr>
+  <tr>
+    <td>/mpress <i>0or1</i></td>
+    <td><i>(Depreciated)</i> <a href=#mpress>Compress</a> the exe with Mpress? 0 = no, 1 = yes<br>(Default is the last setting used in the GUI interface.)</td>
+  </tr>
+  <tr>
+    <td>/compress <i>n</i></td>
+    <td><span class="ver">[v1.1.32+]:</span> <a href=#mpress>Compress</a> the exe? 0 = no, 1 = use Mpress, -1 = use UPX.<br>(Default is the last setting used in the GUI interface.)</td>
+  </tr>
+  <tr>
+    <td>/ahk <i>file_name</i></td>
+    <td><span class="ver">[v1.1.32+]:</span> The path\name of AutoHotkey.exe to be used when compiling the script.<br>(Default is AutoHotkey.exe in the directory immediately above that containing the compiler. If not there, the installed Autohotkey.exe is used.)</td>
+  </tr>
+</table>
   For example:
 <pre class="no-highlight">Ahk2Exe.exe /in "MyScript.ahk" /icon "MyIcon.ico"</pre>
-Usage:
-<ul>
-<li>Parameters containing spaces should be enclosed in double quotes.</li>
-<li>If the &quot;out&quot; file is omitted, the EXE will have the same base filename as the script itself.</li>
-</ul></li>
+</li>
 </ol>
 <p>Notes:</p>
 <ul>
+  <li>Parameters containing spaces should be enclosed in double quotes.</li>
   <li>Compiling does not typically improve the performance of a script.</li>
   <li>As of v1.1.01, password protection and the /NoDecompile switch are not supported.</li>
   <li>The commands <a href="commands/_NoTrayIcon.htm">#NoTrayIcon</a> and &quot;<a href="commands/Menu.htm">Menu, Tray, ShowMainWindow</a>&quot; affect the behavior of compiled scripts.</li>
-  <li>Custom version info (as seen in Explorer's file-properties dialog) can be added to your compiled scripts by using a utility such as <a href="http://www.angusj.com/resourcehacker/">Resource Hacker</a> (freeware) to edit the file &quot;AutoHotkeySC.bin&quot;. This file is contained in the &quot;Compiler&quot; subfolder where AutoHotkey was installed. <a href="https://github.com/mercury233/compile-ahk">Compile AHK</a> can be used to facilitate this process. As of v1.1.01, the compiled script can be edited instead of AutoHotkeySC.bin.</li>
-  <li>The method above can also be used to change existing icons or add new ones to all compiled scripts.</li>
-  <li>The built-in variable A_IsCompiled contains 1 if the script is running in compiled form. Otherwise, it is blank.</li>
-  <li>When parameters are passed to Ahk2Exe, a message indicating the success or failure of the compiling process is written to stdout. Although the message will not appear at the command prompt, it can be &quot;caught&quot; by means such as redirecting output to a file. <span class="ver">[v1.0.43+]</span></li>
-  <li>Additionally in the case of a failure, Ahk2Exe has exit codes indicating the kind of error that occurred. These error codes can be found at <a href="https://github.com/fincs/Ahk2Exe/blob/master/ErrorCodes.md">GitHub (ErrorCodes.md)</a>. <span class="ver">[v1.1.22.03+]</span></li>
+  <li>The built-in variable <code>A_IsCompiled</code> contains 1 if the script is running in compiled form. Otherwise, it is blank.</li>
+  <li><span class="ver">[v1.0.43+]:</span> When parameters are passed to Ahk2Exe, a message indicating the success or failure of the compiling process is written to stdout. Although the message will not appear at the command prompt, it can be &quot;caught&quot; by means such as redirecting output to a file. </li>
+  <li> <span class="ver">[v1.1.22.03+]:</span> Additionally in the case of a failure, Ahk2Exe has exit codes indicating the kind of error that occurred. These error codes can be found at <a href="https://github.com/AutoHotkey/Ahk2Exe/blob/master/ErrorCodes.md">GitHub (ErrorCodes.md)</a>.</li>
 </ul>
-<p>The compiler's source code and newer versions can be found at <a href="https://github.com/fincs/Ahk2Exe">GitHub</a>.</p>
+<p>The compiler's source code and newer versions can be found at <a href="https://github.com/AutoHotkey/Ahk2Exe">GitHub</a>.</p>
+
+<h3 id="CompilerDirectives">Script Compiler Directives</h3>
+<p><span class="ver">[v1.1.32+]:</span> The script compiler can process directives to allow further customisation of the compined script. See <a href=Ahk2ExeDirectives.htm>Compiler Directives</a> for more details.</p>
 
 <h3 id="mpress">Compressing Compiled Scripts</h3>
-<p>Ahk2Exe optionally uses MPRESS (a freeware program by MATCODE Software) to compress compiled scripts. If <strong>mpress.exe</strong> is present in the "Compiler" subfolder where AutoHotkey was installed, it is used automatically unless it is disabled via <code>/mpress 0</code> or the GUI setting. </p>
-<p>Official website (was offline in March 2016): <a href="http://www.matcode.com/mpress.htm">http://www.matcode.com/mpress.htm</a></p>
-<p>Mirror (downloads and information): <a href="https://www.autohotkey.com/mpress/">https://www.autohotkey.com/mpress/</a></p>
+<p>Ahk2Exe optionally uses MPRESS or <span class="ver">[v1.1.32+]</span> UPX freeware to compress compiled scripts. If <strong>mpress.exe</strong> and/or <strong>upx.exe</strong> has been copied to the "Compiler" subfolder where AutoHotkey was installed, either can be used to compress the .exe as directed by the <code>/compress</code> parameter or the GUI setting. </p>
+<p><strong>Mpress</strong> official website: <a href="http://www.matcode.com/mpress.htm">http://www.matcode.com/mpress.htm</a><br>Mpress mirror (downloads and information): <a href="https://www.autohotkey.com/mpress/">https://www.autohotkey.com/mpress/</a></p>
+<p><strong>Upx</strong> official website (downloads and information): <a href="https://upx.github.io/">https://upx.github.io/</a></p>
 <p><strong>Note:</strong> While compressing the script executable prevents casual inspection of the script's source code using a plain text editor like Notepad or a PE resource editor, it does not prevent the source code from being extracted by tools dedicated to that purpose.</p>
 
 <h2 id="cmd">Passing Command Line Parameters to a Script</h2>
