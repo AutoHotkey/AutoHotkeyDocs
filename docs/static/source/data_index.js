@@ -259,7 +259,7 @@ indexData = [
   ["AddResource","Ahk2ExeDirectives.htm#AddResource",0,""],
   ["Address of a variable","Variables.htm#amp"],
   ["administrator privileges for scripts","Variables.htm#RequireAdmin"],
-  ["ahk2exe","Scripts.htm#ahk2exe"],
+  ["Ahk2Exe","Scripts.htm#ahk2exe"],
   ["ahk_class","misc/WinTitle.htm#ahk_class"],
   ["ahk_exe","misc/WinTitle.htm#ahk_exe"],
   ["ahk_group","misc/WinTitle.htm#ahk_group"],
