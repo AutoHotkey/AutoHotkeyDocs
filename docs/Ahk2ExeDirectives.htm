@@ -2,16 +2,51 @@
 <html lang="en">
 <head>
 <title>Script Compiler Directives | AutoHotkey</title>
-<meta name="description" content="Script compiler directives" />
+<meta name="description" content="Script compiler directives allow the user to specify details of how a script is to be compiled." />
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <link href="static/theme.css" rel="stylesheet" type="text/css" />
 <script src="static/content.js" type="text/javascript"></script>
 </head>
 <body>
-<h1>Script Compiler (Ahk2Exe) Directives <span class="ver">[v1.1.32+]</span></h1>
-<p>The script compiler accepts certain directives that allow further
-customisation the compiled script (.exe).<br>All compiler directives are introduced by the string <code>@Ahk2Exe-</code>, preceded by the comment flag.</p>
+<h1>Script Compiler (<a href="Scripts.htm#ahk2exe">Ahk2Exe</a>) Directives <span class="ver">[v1.1.32+]</span></h1>
+<h2>Table of Contents</h2>
+<ul>
+  <li><a href="#Intro1">Introduction</a></li>
+  <li><a href="#IgnoreKeep">Directives that control the script behaviour</a>:</li>
+  <ul>
+    <li><a href="#IgnoreKeep">IgnoreBegin</a></li>
+    <li><a href="#IgnoreKeep">IgnoreEnd</a></li>
+    <li><a href="#IgnoreKeep">IgnoreKeep</a></li>
+  </ul>
+  <li><a href="#Directives">Directives that control executable metadata</a>:</li>
+  <ul>
+    <li><a href="#Intro2">Introduction</a></li>
+    <li><a href="#AddResource">AddResource</a>: Adds a resource to the .exe.</li>
+    <li><a href="#Bin">Bin</a>: Specifies the binary version of AutoHotkey to use.</li>
+    <li><a href="#ConsoleApp">ConsoleApp</a>: Sets Console mode.</li>
+    <li><a href="#Cont">Cont</a>: Specifies a directive continuation line.</li>
+    <li><a href="#Debug">Debug</a>: Shows directive debugging text.</li>
+    <li><a href="#ExeName">ExeName</a>: Specifies the location and name for the .exe.</li>
+    <li><a href="#Let">Let</a>: Sets a user variable.</li>
+    <li><a href="#Obey">Obey</a>: Obeys a command or expression.</li>
+    <li><a href="#PostExec">PostExec</a>: Runs a program after compilation.</li>
+    <li><a href="#SetMainIcon">SetMainIcon</a>: Sets the main icon.</li>
+    <li><a href="#SetProp">Set<i>Prop</i></a>: Sets an .exe property.</li>
+    <li><a href="#Set">Set</a>: Sets a miscellaneous property.</li>
+    <li><a href="#UpdateManifest">UpdateManifest</a>: Changes the .exe's manifest.</li>
+    <li><a href="#UseResourceLang">UseResourceLang</a>: Changes the resource language.</li>
+  </ul>
+</ul>
+<h2 id="Intro1">Introduction</h2>
+<p>Script compiler directives allow the user to specify details of how a script is to be compiled. Some of the features are:</p>
+<ul>
+  <li>Ability to change the version information (such as the name, description, version...).</li>
+  <li>Ability to add resources to the compiled script.</li>
+  <li>Ability to tweak several miscellaneous aspects of compilation.</li>
+  <li>Ability to remove code sections from the compiled script and vice versa.</li>
+</ul>
+<p>The script compiler looks for special comments in the source script and recognises these as Compiler Directives. All compiler directives are introduced by the string <code>@Ahk2Exe-</code>, preceded by the comment flag (usually <code>;</code>).</p>
 
 <h2 id="IgnoreKeep">Directives that control the script behaviour</h2>
 <p>It is possible to remove code sections from the compiled script by wrapping
@@ -35,6 +70,7 @@ the compiled script smaller. The reverse is also true: it will not be necessary 
 for A_IsCompiled because the code is inside a comment block in the uncompiled script.</p>
 
 <h2 id="Directives">Directives that control executable metadata</h2>
+<h3 id="Intro2">Introduction</h3>
 <p>In the parameters of these directives, the following escape sequences are supported:
 <code>``</code>, <code>`,</code>, <code>`n</code>, <code>`r</code> and <code>`t</code>.
 Commas <em>always</em> need to be escaped, regardless of the parameter position.
@@ -93,10 +129,17 @@ If omitted, Ahk2Exe automatically detects the type according to the file extensi
 <li>23 (RT_HTML): <code>.htm</code>, <code>.html</code>, <code>.mht</code></li>
 <li>24 (RT_MANIFEST): <code>.manifest</code>. If the name for the resource is not specified, it defaults to <code>1</code></li>
 </ul>
+<p><strong>An example:</strong> To replace the standard icons (other than the <a href="#SetMainIcon">main icon</a>):
+<pre>
+  ;@Ahk2Exe-AddResource Icon1.ico, 160    ; Replaces 'H on blue'
+  ;@Ahk2Exe-AddResource Icon2.ico, 206    ; Replaces 'S on green'
+  ;@Ahk2Exe-AddResource Icon3.ico, 207    ; Replaces 'H on red'
+  ;@Ahk2Exe-AddResource Icon4.ico, 208    ; Replaces 'S on red'
+</pre></p>
 </div>
 
 <div class="methodShort" id="Bin"><h3>Bin</h3>
-<p>Specifies the Binary version of AutoHotkey to be included in the generated .exe. (Also see the <code>ExeName</code> directive.)<br>This directive can be specified many times if necessary, but only in the top level script file (i.e. not in an #Include file).<br>(If an actual comment is appended to this directive, it must use the <code>&nbsp;;</code> flag.
+<p>Specifies the Binary version of AutoHotkey to be included in the generated .exe. (This overrides anything specified in the GUI or CLI.) This directive can be specified many times if necessary, but only in the top level script file (i.e. not in an #Include file).<br>(If an actual comment is appended to this directive, it must use the <code>&nbsp;;</code> flag.
 <br>To truly comment out this directive, insert a space after the first comment flag.)</td></p>
 <pre class="Syntax">;@Ahk2Exe-Bin [Path\]Name [, [Exe_path\][Name] , Codepage]</pre>
 <table class="info">
@@ -180,7 +223,7 @@ specify the built-in variable <code>%A_WorkFileName%</code> as a parameter, betw
 </div>
 
 <div class="methodShort" id="SetMainIcon"><h3>SetMainIcon</h3>
-<p>Overrides the custom EXE icon used for compilation.</p>
+<p>Overrides the custom EXE icon used for compilation.<br>(To change the other icons, see the <a href="#AddResource">AddResource</a> example.)</p>
 <pre class="Syntax">;@Ahk2Exe-SetMainIcon [IcoFile]</pre>
 <table class="info">
 <tr><td width="15%">IcoFile</td><td width="85%"><i>(Optional)</i> The icon file to use. If omitted, the default AutoHotkey icon is used.</td></tr>
