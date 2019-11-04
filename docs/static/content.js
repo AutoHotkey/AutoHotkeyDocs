@@ -1906,7 +1906,7 @@ function addFeatures()
         return span.outerHTML;
       }
       function processStrParam(param) {
-        if (param.match(/^\s*<num><\/num>\s*$/)) // skip number
+        if (param.match(/^\s*(\+|-|\^)?\s*<num><\/num>\s*$/)) // skip number
           return param;
         param = param.replace(/<str (\d+)><\/str>/g, function(_, index) { // resolve substring
           return els.str[index];
