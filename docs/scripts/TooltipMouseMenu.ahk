@@ -1,4 +1,4 @@
-﻿; ToolTip Mouse Menu (requires XP/2k/NT) -- by Rajat
+﻿; ToolTip Mouse Menu -- by Rajat
 ; http://www.autohotkey.com
 ; This script displays a popup menu in response to briefly holding down
 ; the middle mouse button.  Select a menu item by left-clicking it.

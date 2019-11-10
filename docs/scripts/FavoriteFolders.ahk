@@ -123,10 +123,9 @@ f_OpenFavorite(ItemName, ItemPos, *)
         ControlSetText f_text, "Edit1", "ahk_id " f_window_id
         return
     }
-    else if f_class  ~= "ExploreWClass|CabinetWClass"  ; In Explorer, switch folders.
+    else if f_class = "CabinetWClass"  ; In Explorer, switch folders.
     {
-        if StrSplit(A_OSVersion, ".")[1] >= 6  ; Windows Vista and later.
-            ControlClick "ToolbarWindow323", "ahk_id " f_window_id,,,, "NA x1 y1"
+        ControlClick "ToolbarWindow323", "ahk_id " f_window_id,,,, "NA x1 y1"
         ControlFocus "Edit1", "ahk_id " f_window_id
         ControlSetText f_path, "Edit1", "ahk_id " f_window_id
         ; Tekl reported the following: "If I want to change to Folder L:\folder

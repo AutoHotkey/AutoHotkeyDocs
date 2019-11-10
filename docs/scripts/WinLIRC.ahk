@@ -59,11 +59,11 @@ return
 ; your preferences.
 
 VolUp:
-SoundSet "+5"  ; Increase master volume by 5%. On Vista, replace this line with: Send {Volume_Up}
+SoundSet "+5"  ; Increase master volume by 5%.
 return
 
 VolDown:
-SoundSet "-5"  ; Reduce master volume by 5%. On Vista, replace this line with: Send {Volume_Down}
+SoundSet "-5"  ; Reduce master volume by 5%.
 return
 
 ChUp:

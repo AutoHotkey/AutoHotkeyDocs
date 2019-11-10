@@ -1,4 +1,4 @@
-﻿; Easy Window Dragging (requires XP/2k/NT)
+﻿; Easy Window Dragging
 ; http://www.autohotkey.com
 ; Normally, a window can only be dragged by clicking on its title bar.
 ; This script extends that so that any point inside a window can be dragged.
