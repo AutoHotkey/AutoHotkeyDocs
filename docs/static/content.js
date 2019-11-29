@@ -1434,8 +1434,10 @@ function addFeatures()
     var as = content.querySelectorAll("a[href^='http']");
     for(var i = 0; i < as.length; i++) {
       var a = as[i];
-      if (!a.querySelector('img'))
-        a.className = "extLink"; a.target = "_blank";
+      if (!a.querySelector('img') && a.className.indexOf('no-ext') == -1) {
+        a.className = "extLink";
+        a.target = "_blank";
+      }
     }
   }
 
@@ -1931,7 +1933,7 @@ function addFeatures()
   function addFooter() {
     var div = document.createElement('div');
     div.className = 'footer';
-    div.innerHTML = 'Copyright &copy; 2003-' + new Date().getFullYear() + ' ' + location.host + ' - LIC: <a href="' + scriptDir + '/../license.htm">GNU GPLv2</a>';
+    div.innerHTML = 'Copyright &copy; 2003-' + new Date().getFullYear() + ' ' + location.host + ' - LIC: <a href="' + scriptDir + '/../license.htm" class="no-ext">GNU GPLv2</a>';
     content.appendChild(div);
   }
 
