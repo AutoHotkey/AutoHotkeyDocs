@@ -169,8 +169,8 @@ var isPhone = (document.documentElement.clientWidth <= 600);
               history.replaceState(null, null, "?frame=" + encodeURI(relPath).replace(/#/g, '%23'));
           }
           document.title = data[2];
-          if (structure.modifyOnlineTools)
-            structure.modifyOnlineTools(relPath, data[4]);
+          if (structure.modifyTools)
+            structure.modifyTools(relPath, data[4]);
           if ($('#left > div.toc li > span.selected a').attr('href') == data[1].href)
             break;
           else if (data[3]) {
@@ -801,7 +801,7 @@ function ctor_structure()
   self.dataPath = scriptDir + '/source/data_translate.js';
   self.metaViewport = '<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">';
   self.template = '<div id="body">' +
-  '<div id="head"><div class="h-area"><div class="h-tabs"><ul><li data-translate title="Shortcut: ALT+C" data-content="C̲ontent"></li><li data-translate title="Shortcut: ALT+N" data-content="In̲dex"></li><li data-translate title="Shortcut: ALT+S" data-content="S̲earch"></li></ul></div><div class="h-tools sidebar"><ul><li class="sidebar" title="Hide/Show sidebar" data-translate>&#926;</li></ul></div><div class="h-tools online"><ul><li class="home" title="Home page" data-translate><a href="' + location.protocol + '//' + location.host + '">&#916;</a></li><li class="language" title="Change language" data-translate=2><span data-translate data-content="en"></span><ul class="dropdown languages selected"><li><a title="English" data-content="en"></a></li><li><a title="Deutsch (German)" data-content="de"></a></li><li><a title="&#x4E2D;&#x6587; (Chinese)" data-content="zh"></a></li></ul></li><li class="version" title="Change AHK version" data-translate=2><span data-translate data-content="v1"></span><ul class="dropdown versions selected"><li><a title="AHK v1.1" data-content="v1"></a></li><li><a title="AHK v2.0" data-content="v2"></a></li></ul></li><li class="edit" title="Edit page on GitHub" data-translate=2><a data-content="E"></a></li></ul></div><div class="h-tools chm"><ul><li class="back" title="Go back" data-translate=2>&#9668;</li><li class="forward" title="Go forward" data-translate=2>&#9658;</li><li class="zoom" title="Change font size" data-translate=2 data-content="Z"></li><li class="print" title="Print current document" data-translate=2 data-content="P"></li></ul></div><div class="h-tools main visible"><ul><li class="color" title="Change to dark/light theme" data-translate=2 data-content="C"></li><li class="settings" title="Open settings" data-translate=2>&#1029;</li></ul></div></div></div>' +
+  '<div id="head"><div class="h-area"><div class="h-tabs"><ul><li data-translate title="Shortcut: ALT+C" data-content="C̲ontent"></li><li data-translate title="Shortcut: ALT+N" data-content="In̲dex"></li><li data-translate title="Shortcut: ALT+S" data-content="S̲earch"></li></ul></div><div class="h-tools sidebar"><ul><li class="sidebar" title="Hide/Show sidebar" data-translate>&#926;</li></ul></div><div class="h-tools online"><ul><li class="home" title="Home page" data-translate><a href="' + location.protocol + '//' + location.host + '">&#916;</a></li><li class="language" title="Change language" data-translate=2><span data-translate data-content="en"></span><ul class="dropdown languages selected"><li><a title="English" data-content="en"></a></li><li><a title="Deutsch (German)" data-content="de"></a></li><li><a title="&#x4E2D;&#x6587; (Chinese)" data-content="zh"></a></li></ul></li><li class="version" title="Change AHK version" data-translate=2><span data-translate data-content="v1"></span><ul class="dropdown versions selected"><li><a title="AHK v1.1" data-content="v1"></a></li><li><a title="AHK v2.0" data-content="v2"></a></li></ul></li><li class="edit" title="Edit page on GitHub" data-translate=2><a data-content="E"></a></li></ul></div><div class="h-tools chm"><ul><li class="back" title="Go back" data-translate=2>&#9668;</li><li class="forward" title="Go forward" data-translate=2>&#9658;</li><li class="zoom" title="Change font size" data-translate=2 data-content="Z"></li><li class="print" title="Print current document" data-translate=2 data-content="P"></li><li class="browser" title="Open this document in the default browser (requires internet connection)" data-translate><a target="_blank">¬</a></li></ul></div><div class="h-tools main visible"><ul><li class="color" title="Change to dark/light theme" data-translate=2 data-content="C"></li><li class="settings" title="Open settings" data-translate=2>&#1029;</li></ul></div></div></div>' +
   '<div id="main"><div id="left"><div class="toc"></div><div class="index"><div class="input"><input type="search" placeholder="Search" data-translate=2 /></div><div class="select"><select size="1" class="empty"><option value="-1" class="empty" selected data-translate>Filter</option><option value="0" data-translate>Directives</option><option value="1" data-translate>Built-in Variables</option><option value="2" data-translate>Built-in Functions</option><option value="3" data-translate>Control Flow Statements</option><option value="4" data-translate>Operators</option><option value="5" data-translate>Declarations</option><option value="6" data-translate>Commands</option></select></div><div class="list"></div></div><div class="search"><div class="input"><input type="search" placeholder="Search" data-translate=2 /></div><div class="checkbox"><input type="checkbox" id="highlightWords"><label for="highlightWords" data-translate>Highlight keywords</label><div class="updown" title="Go to previous/next occurrence" data-translate><div class="up"><div class="triangle-up"></div></div><div class="down"><div class="triangle-down"></div></div></div></div><div class="list"></div></div><div class="load"><div class="lds-dual-ring"></div></div></div><div class="dragbar"></div><div id="right" tabIndex="-1">'+(isFrameCapable?'<iframe frameBorder="0" id="frame" src="">':'<div class="area">');
   self.template = isIE8 ? self.template.replace(/ data-content="(.*?)">/g, '>$1') : self.template;
   self.build = function() { document.write(self.template); }; // Write HTML before DOM is loaded to prevent flickering.
@@ -885,7 +885,7 @@ function ctor_structure()
     var $langList = $online.find('ul.languages')
     var $verList = $online.find('ul.versions')
 
-    self.modifyOnlineTools = function(relPath, equivPath) {
+    self.modifyTools = function(relPath, equivPath) {
       // Bug - IE/Edge doesn't turn off list-style if element is hidden:
       $langList.add($verList).css("list-style", "none");
       // Hide currently selected language and version in the selection lists:
@@ -910,7 +910,7 @@ function ctor_structure()
         a.attr('href', thisLink + (equivPath || relPath));
       });
       // Hide dropdown list on click with left or middle mouse button:
-      $langList.add($verList).off('mouseup').on('mouseup', function(e) {
+      registerEvent($langList.add($verList), 'mouseup', '', function(e) {
         if (e.which == 1 || e.which == 2) {
           setTimeout(function() {
             $dropdown.animate({height: 'hide'}, 100);
@@ -923,29 +923,31 @@ function ctor_structure()
         href: T("https://github.com/Lexikos/AutoHotkey_L-Docs/edit/master/docs/") + relPath,
         target: "_blank"
       });
+
+      // --- CHM tools (only visible if help is CHM) ---
+
+      var $chm = $('#head .h-tools.chm');
+      // 'Go back' button:
+      registerEvent($chm.find('li.back'), 'click', '', function() { history.back(); });
+      // 'Go forward' button:
+      registerEvent($chm.find('li.forward'), 'click', '', function() { history.forward(); });
+      // 'Zoom' button:
+      registerEvent($chm.find('li.zoom'), 'click', '', function() {
+        cache.set('fontSize', cache.fontSize + 0.2);
+        if (cache.fontSize > 1.4)
+          cache.set('fontSize', 0.6);
+        $('#frame').contents().find('body').css('font-size', cache.fontSize + 'em');
+      });
+      // 'Print' button:
+      registerEvent($chm.find('li.print'), 'click', '', function() { window.parent.document.getElementById('frame').contentWindow.document.execCommand('print', false, null); });
+      // 'Open in default browser' button:
+      $chm.find('li.browser > a').attr('href', link[ver][lang] + relPath);
+
+      // --- If help is CHM, show CHM tools, else show online tools ---
+
+      (isInsideCHM) ? $chm.show().addClass('visible') : $online.show().addClass('visible');
     };
-    self.modifyOnlineTools(relPath, equivPath);
-
-    // --- CHM tools (only visible if help is CHM) ---
-
-    var $chm = $('#head .h-tools.chm');
-    // 'Go back' button:
-    $chm.find('li.back').on('click', function() { history.back(); });
-    // 'Go forward' button:
-    $chm.find('li.forward').on('click', function() { history.forward(); });
-    // 'Zoom' button:
-    $chm.find('li.zoom').on('click', function() {
-      cache.set('fontSize', cache.fontSize + 0.2);
-      if (cache.fontSize > 1.4)
-        cache.set('fontSize', 0.6);
-      $('#frame').contents().find('body').css('font-size', cache.fontSize + 'em');
-    });
-    // 'Print' button:
-    $chm.find('li.print').on('click', function() { window.parent.document.getElementById('frame').contentWindow.document.execCommand('print', false, null); });
-
-    // --- If help is CHM, show CHM tools, else show online tools ---
-
-    (isInsideCHM) ? $chm.show().addClass('visible') : $online.show().addClass('visible');
+    self.modifyTools(relPath, equivPath);
 
     // --- Apply click events for sidebar tabs ---
 
