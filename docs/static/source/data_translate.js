@@ -30,7 +30,7 @@ translateData = {
   "Go forward":true,
   "Change the font size":true,
   "Print this document":true,
-  "Open this document in the default browser (requires internet connection)":true,
+  "Open this document in the default browser (requires internet connection). Middle-click to copy the link address.":true,
   "Use the dark or light theme":true,
   "Open the help settings":true,
   // ALT+... shortcuts (needs uppercase)
