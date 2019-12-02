@@ -2084,7 +2084,7 @@ function overwriteProps(a, b) {
 // Prevent event delegation on IE8/Edge to bypass performance issues
 // but results in longer initial load time for these browsers:
 function registerEvent(el, events, children, func) {
-  if (isIE8 || isEdge)
+  if (children && (isIE8 || isEdge))
   {
     var ElChildren = el.find(children);
     ElChildren.off(events);
