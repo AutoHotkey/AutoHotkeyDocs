@@ -568,7 +568,7 @@ function ctor_search()
     if (SearchText == '')
       return '';
     else // split and remove undefined or empty strings
-      return SearchText.split(' ').filter(function(e){return (!!e)});
+      return $(SearchText.split(' ')).filter(function(){return (!!this)});
   }
   self.highlightWords = function(words) {
     var content = $(isInsideFrame ? 'body' : '#right .area');
