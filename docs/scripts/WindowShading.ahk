@@ -42,7 +42,7 @@ WinMove ,,, ws_MinHeight, "ahk_id " ws_ID
 ws_IDList .= "|" ws_ID
 return
 
-ExitSub()
+ExitSub(*)
 {
     Loop Parse, ws_IDList, "|"
     {

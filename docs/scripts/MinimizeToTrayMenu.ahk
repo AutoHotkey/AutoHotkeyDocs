@@ -55,6 +55,7 @@ SetKeyDelay 0
 ; END OF CONFIGURATION SECTION (do not make changes below this point
 ; unless you want to change the basic functionality of the script).
 
+mwt_WindowCount := 0
 Hotkey mwt_Hotkey, "mwt_Minimize"
 Hotkey mwt_UnHotkey, "mwt_UnMinimize"
 
@@ -179,7 +180,7 @@ if mwt_AlreadyExists = false
 return
 
 
-RestoreFromTrayMenu(ThisMenuItem)
+RestoreFromTrayMenu(ThisMenuItem, *)
 {
     global
     A_TrayMenu.Delete ThisMenuItem
@@ -222,30 +223,32 @@ if mwt_WindowCount > 0
 return
 
 
-mwt_RestoreAllThenExit()
+mwt_RestoreAllThenExit(*)
 {
-    Gosub mwt_RestoreAll
+    mwt_RestoreAll()
     ExitApp  ; Do a true exit.
 }
 
 
-mwt_RestoreAll:
-Loop mwt_MaxWindows
+mwt_RestoreAll(*)
 {
-    if mwt_WindowID%A_Index% != ""
+    global
+    Loop mwt_MaxWindows
     {
-        IDToRestore := mwt_WindowID%A_Index%
-        WinShow "ahk_id " IDToRestore
-        WinActivate "ahk_id " IDToRestore  ; Sometimes needed.
-        ; Do it this way vs. DeleteAll so that the sep. line and first
-        ; item are retained:
-        MenuToRemove := mwt_WindowTitle%A_Index%
-        A_TrayMenu.Delete MenuToRemove
-        mwt_WindowID%A_Index% := ""  ; Make it blank to free up a slot.
-        mwt_WindowTitle%A_Index% := ""
-        mwt_WindowCount -= 1
+        if mwt_WindowID%A_Index% != ""
+        {
+            IDToRestore := mwt_WindowID%A_Index%
+            WinShow "ahk_id " IDToRestore
+            WinActivate "ahk_id " IDToRestore  ; Sometimes needed.
+            ; Do it this way vs. DeleteAll so that the sep. line and first
+            ; item are retained:
+            MenuToRemove := mwt_WindowTitle%A_Index%
+            A_TrayMenu.Delete MenuToRemove
+            mwt_WindowID%A_Index% := ""  ; Make it blank to free up a slot.
+            mwt_WindowTitle%A_Index% := ""
+            mwt_WindowCount -= 1
+        }
+        if mwt_WindowCount = 0
+            break
     }
-    if mwt_WindowCount = 0
-        break
 }
-return
