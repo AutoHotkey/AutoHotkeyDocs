@@ -338,10 +338,15 @@ tocData = [
   ]],
   ["Sound","",
   [
+    ["Sound Functions","commands/Sound.htm"],
     ["SoundBeep","commands/SoundBeep.htm"],
-    ["SoundGet","commands/SoundGet.htm"],
+    ["SoundGetInterface","commands/SoundGetInterface.htm"],
+    ["SoundGetMute","commands/SoundGetMute.htm"],
+    ["SoundGetName","commands/SoundGetName.htm"],
+    ["SoundGetVolume","commands/SoundGetVolume.htm"],
     ["SoundPlay","commands/SoundPlay.htm"],
-    ["SoundSet","commands/SoundSet.htm"]
+    ["SoundSetMute","commands/SoundSetMute.htm"],
+    ["SoundSetVolume","commands/SoundSetVolume.htm"]
   ]],
   ["String","",
   [
