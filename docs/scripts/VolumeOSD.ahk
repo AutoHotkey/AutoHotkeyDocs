@@ -1,23 +1,21 @@
 ﻿/*
 Volume On-Screen-Display (based on the v1 script by Rajat)
 http://www.autohotkey.com
-This script assigns hotkeys of your choice to raise and lower the master and/or
-wave volume. Both volumes are displayed as different color bar graphs.
+This script assigns hotkeys of your choice to raise and lower the master wave volume.
 */
 
 ; --- User Settings ---
 
+global config := {}
+
 ; The percentage by which to raise or lower the volume each time:
-global config := {Step: 4}
+config.Step := 4
 
 ; How long to display the volume level bar graphs:
 config.DisplayTime := 2000
 
 ; Master Volume Bar color (see the help file to use more precise shades):
 config.CBM := "Red"
-
-; Wave Volume Bar color:
-config.CBW := "Blue"
 
 ; Background color:
 config.CW := "Silver"
@@ -30,11 +28,9 @@ config.Thick := 12   ; thickness of bar
 
 ; If your keyboard has multimedia buttons for Volume, you can
 ; try changing the below hotkeys to use them by specifying
-; Volume_Up, ^Volume_Up, Volume_Down, and ^Volume_Down:
+; Volume_Up and Volume_Down:
 config.MasterUp := "#Up"      ; Win+UpArrow
 config.MasterDown := "#Down"
-config.WaveUp := "+#Up"       ; Shift+Win+UpArrow
-config.WaveDown := "+#Down"
 
 ; --- Auto Execute Section ---
 
@@ -47,21 +43,17 @@ global G := GuiCreate("+ToolWindow -Caption -Border +Disabled")
 G.MarginX := 0, G.MarginY := 0
 opt := "w" config.Width " h" config.Thick " background" config.CW
 G.Add("Progress", opt " vMaster c" config.CBM)
-G.Add("Progress", opt " vWave c" config.CBW)
 
 ; Register hotkeys:
 Hotkey config.MasterUp,   () => ChangeVolume("+")
 Hotkey config.MasterDown, () => ChangeVolume("-")
-Hotkey config.WaveUp,     () => ChangeVolume("+", "Wave")
-Hotkey config.WaveDown,   () => ChangeVolume("-", "Wave")
 
 ; --- Function Definitions ---
 
-ChangeVolume(Prefix, ComponentType := "Master")
+ChangeVolume(Prefix)
 {
-    SoundSet(Prefix config.Step, ComponentType)
-    G.Control["Master"].Value := Round(SoundGet("Master"))
-    G.Control["Wave"].Value := Round(SoundGet("Wave"))
+    SoundSetVolume(Prefix config.Step)
+    G["Master"].Value := Round(SoundGetVolume())
     G.Show("x" config.PosX " y" config.PosY)
     SetTimer "HideWindow", -config.DisplayTime
 }

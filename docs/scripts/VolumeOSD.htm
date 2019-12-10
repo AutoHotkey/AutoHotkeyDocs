@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <title>Volume On-Screen-Display - Script Example | AutoHotkey v2</title>
-<meta name="description" content="The volume on-screen-display (OSD) script allows pressing a hotkey to raise and lower the master and/or wave volume displayed as different color bar graphs." />
+<meta name="description" content="The volume on-screen-display (OSD) script allows pressing hotkeys to raise and lower the master volume." />
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <link href="../static/theme.css" rel="stylesheet" type="text/css" />
@@ -13,24 +13,22 @@
 <h1>Volume On-Screen-Display <span class="headnote">Based on the v1 script by Rajat</span></h1>
 
 <p>This script assigns hotkeys of your choice to raise and lower the
- master and/or wave volume.  Both volumes are displayed as different
- color bar graphs.
+ master volume.
 </p>
 <p><a href="VolumeOSD.ahk">Download This Script</a> &nbsp;| &nbsp;<a href="index.htm">Other Sample Scripts</a> &nbsp;| &nbsp;<a href="../AutoHotkey.htm">Home</a></p>
 
-<pre class="NoIndent"><em>; --- User Settings ---
+<pre class="NoIndent"><em>; --- User Settings ---</em>
 
-; The percentage by which to raise or lower the volume each time:</em>
-global config := {Step: 4}
+global config := {}
+
+<em>; The percentage by which to raise or lower the volume each time:</em>
+config.Step := 4
 
 <em>; How long to display the volume level bar graphs:</em>
 config.DisplayTime := 2000
 
 <em>; Master Volume Bar color (see the help file to use more precise shades):</em>
 config.CBM := "Red"
-
-<em>; Wave Volume Bar color:</em>
-config.CBW := "Blue"
 
 <em>; Background color:</em>
 config.CW := "Silver"
@@ -43,11 +41,9 @@ config.Thick := 12   <em>; thickness of bar</em>
 
 <em>; If your keyboard has multimedia buttons for Volume, you can
 ; try changing the below hotkeys to use them by specifying
-; Volume_Up, ^Volume_Up, Volume_Down, and ^Volume_Down:</em>
+; Volume_Up and Volume_Down:</em>
 config.MasterUp := "#Up"      <em>; Win+UpArrow</em>
 config.MasterDown := "#Down"
-config.WaveUp := "+#Up"       <em>; Shift+Win+UpArrow</em>
-config.WaveDown := "+#Down"
 
 <em>; --- Auto Execute Section ---
 
@@ -60,21 +56,17 @@ global G := GuiCreate("+ToolWindow -Caption -Border +Disabled")
 G.MarginX := 0, G.MarginY := 0
 opt := "w" config.Width " h" config.Thick " background" config.CW
 G.Add("Progress", opt " vMaster c" config.CBM)
-G.Add("Progress", opt " vWave c" config.CBW)
 
 <em>; Register hotkeys:</em>
 Hotkey config.MasterUp,   () =&gt; ChangeVolume("+")
 Hotkey config.MasterDown, () =&gt; ChangeVolume("-")
-Hotkey config.WaveUp,     () =&gt; ChangeVolume("+", "Wave")
-Hotkey config.WaveDown,   () =&gt; ChangeVolume("-", "Wave")
 
 <em>; --- Function Definitions ---</em>
 
-ChangeVolume(Prefix, ComponentType := "Master")
+ChangeVolume(Prefix)
 {
-    SoundSet(Prefix config.Step, ComponentType)
-    G["Master"].Value := Round(SoundGet("Master"))
-    G["Wave"].Value := Round(SoundGet("Wave"))
+    SoundSetVolume(Prefix config.Step)
+    G["Master"].Value := Round(SoundGetVolume())
     G.Show("x" config.PosX " y" config.PosY)
     SetTimer "HideWindow", -config.DisplayTime
 }
