@@ -72,7 +72,7 @@ Parameter #4: The HWND (unique ID) of the window or control to which the message
 <p>WPARAM and LPARAM are unsigned 32-bit integers (from 0 to 2<sup>32</sup>-1) or signed 64-bit integers (from -2<sup>63</sup> to 2<sup>63</sup>-1) depending on whether the exe running the script is 32-bit or 64-bit. For 32-bit scripts, if an incoming parameter is intended to be a signed integer, any negative numbers can be revealed by following this example:</p>
 <pre>if (A_PtrSize = 4 &amp;&amp; wParam &gt; 0x7FFFFFFF)  <em>; Checking <a href="../Variables.htm#PtrSize">A_PtrSize</a> ensures the script is 32-bit.</em>
     wParam := -(~wParam) - 1</pre>
-<p>You can omit one or more parameters from the end of the list if the corresponding information is not needed. For example, a function defined as <code>MyMsgMonitor(wParam, lParam)</code> would receive only the first two parameters, and one defined as <code>MyMsgMonitor()</code> would receive none of them.</p>
+<p>You can omit one or more parameters from the end of the list if the corresponding information is not needed, but in this case an asterisk must be specified as the final parameter. For example, a function defined as <code>MyMsgMonitor(wParam, lParam, *)</code> would receive only the first two parameters, and one defined as <code>MyMsgMonitor(*)</code> would receive none of them.</p>
 
 <h2>Additional Information Available to the Function</h2>
 <p>In addition to the parameters received above, the function may also consult the built-in variable <a href="../Variables.htm#EventInfo">A_EventInfo</a>, which contains 0 if the message was sent via SendMessage. If sent via PostMessage, it contains the <a href="../Variables.htm#TickCount">tick-count time</a> the message was posted.</p>
@@ -130,7 +130,7 @@ DllCall &quot;kernel32.dll\SetProcessShutdownParameters&quot;, &quot;UInt&quot;,
 OnMessage 0x11, &quot;WM_QUERYENDSESSION&quot;
 return
 
-WM_QUERYENDSESSION(wParam, lParam)
+WM_QUERYENDSESSION(wParam, lParam, *)
 {
     ENDSESSION_LOGOFF := 0x80000000
     if (lParam &amp; ENDSESSION_LOGOFF)  <em>; User is logging off.</em>
@@ -148,7 +148,7 @@ WM_QUERYENDSESSION(wParam, lParam)
 <pre>OnMessage 0x5555, &quot;MsgMonitor&quot;
 OnMessage 0x5556, &quot;MsgMonitor&quot;
 
-MsgMonitor(wParam, lParam, msg)
+MsgMonitor(wParam, lParam, msg, *)
 {
     <em>; Since returning quickly is often important, it is better to use a ToolTip than</em>
     <em>; something like MsgBox that would prevent the function from finishing:</em>
