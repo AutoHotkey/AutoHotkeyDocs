@@ -7,13 +7,10 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <link href="../static/theme.css" rel="stylesheet" type="text/css" />
 <script src="../static/content.js" type="text/javascript"></script>
-<style type="text/css">
-.red {color: #FF0000; font-weight: bold;}
-</style>
 </head>
 <body>
 
-<h1>Send[Text|Input|Play|Event]: Send Keys &amp; Clicks</h1>
+<h1>Send, SendText, SendInput, SendPlay, SendEvent</h1>
 
 <p>Sends simulated keystrokes and mouse clicks to the <a href="WinActivate.htm">active</a> window.</p>
 
@@ -22,91 +19,99 @@
 <span class="func">SendInput</span> Keys
 <span class="func">SendPlay</span> Keys
 <span class="func">SendEvent</span> Keys</pre>
+
 <h2>Parameters</h2>
 <dl>
 
   <dt>Keys</dt>
   <dd>
-    <p>Type: <a href="../Concepts.htm#strings">String</a></p>
     <p>The sequence of keys to send.</p>
+    <p>By default (that is, if neither the <a href="#Raw">Raw mode</a> nor <a href="#Text">Text mode</a> is used), the characters <code>^+!#{}</code> have a special meaning. The characters <code>^+!#</code> represent the modifier keys <kbd>Ctrl</kbd>, <kbd>Shift</kbd>, <kbd>Alt</kbd> and <kbd>Win</kbd>. They affect only the very next key. To send the corresponding modifier key on its own, enclose the key name in braces. To just press (hold down) or release the key, follow the key name with the word "down" or "up" as shown below.</p>
+    <style>
+      #modifierkeys td:not(:last-child) {
+        white-space: nowrap;
+        text-align: center
+      }
+    </style>
+    <table id="modifierkeys" class="info">
+      <tr>
+        <th>Symbol</th>
+        <th>Key</th>
+        <th>Press</th>
+        <th>Release</th>
+        <th>Examples</th>
+      </tr>
+      <tr>
+        <td>^</td>
+        <td>{Ctrl}</td>
+        <td>{Ctrl down}</td>
+        <td>{Ctrl up}</td>
+        <td><code>Send "^{Home}"</code> presses <kbd>Control</kbd>+<kbd>Home</kbd></td>
+      </tr>
+      <tr>
+        <td>+</td>
+        <td>{Shift}</td>
+        <td>{Shift down}</td>
+        <td>{Shift up}</td>
+        <td><code>Send "+abC"</code> sends the text "AbC"<br>
+          <code>Send "!+a"</code> presses <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>A</kbd></td>
+      </tr>
+      <tr>
+        <td>!</td>
+        <td>{Alt}</td>
+        <td>{Alt down}</td>
+        <td>{Alt up}</td>
+        <td><code>Send "!a"</code> presses <kbd>Alt</kbd>+<kbd>A</kbd></td>
+      </tr>
+      <tr>
+        <td>#</td>
+        <td>{LWin}<br>{RWin}</td>
+        <td>{LWin down}<br>{RWin down}</td>
+        <td>{LWin up}<br>{RWin up}</td>
+        <td><code>Send "#e"</code> holds down the <kbd>Win</kbd> key and then presses the <kbd>E</kbd> key</td>
+      </tr>
+    </table>
+    <p class="note"><strong>Note</strong>: As capital letters are produced by sending the <kbd>Shift</kbd> key, <code>A</code> produces a different effect in some programs than <code>a</code>. For example, <code>!A</code> presses <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>A</kbd> and <code>!a</code> presses <kbd>Alt</kbd>+<kbd>A</kbd>. If in doubt, use lowercase.</p>
+    <p>The characters <code>{}</code> are used to enclose <a href="#keynames">key names and other options</a>, and to send special characters literally. For example, <code>{Tab}</code> is the <kbd>Tab</kbd> key and <code>{!}</code> is a literal exclamation mark.</p>
+    <p>Enclosing a plain ASCII letter (a-z or A-Z) in braces forces it to be sent as the corresponding virtual keycode, even if the character does not exist on the current keyboard layout. In other words, <code>Send "a"</code> produces the letter "a" while <code>Send "{a}"</code> may or may not produce "a", depending on the keyboard layout. For details, see the <a href="#AZ">remarks below</a>.</p>
   </dd>
 
 </dl>
 
-<p id="SendRaw"><strong>Raw mode</strong> - <a href="#Raw">{Raw}</a>: The characters <code>^+!#{}</code> are interpreted literally rather than translating <code>{Enter}</code> to <kbd>Enter</kbd>, <code>^c</code> to <kbd>Control</kbd>+<kbd>C</kbd>, etc. To use raw mode with SendInput, SendPlay, SendEvent, or ControlSend, write <a href="#Raw">{Raw}</a> as the first item in the string; for example: <code>SendInput "{Raw}abc"</code>.</p>
-<p><em>Raw mode</em> does not affect the interpretation of <a href="../misc/EscapeChar.htm">escape sequences</a> and <a href="../Variables.htm#Expressions">expressions</a>. For example, <code>Send "{Raw}``100`%"</code> sends the string <code>`100%</code>.</p>
-<p id="SendText"><strong>Text mode</strong> - <em>SendText</em> or <a href="#Text">{Text}</a>: Similar to Raw mode, except that no attempt is made to translate characters (other than <code>`r</code>, <code>`n</code>, <code>`t</code> and <code>`b</code>) to keycodes; instead, the <a href="#fallback">fallback method</a> is used for all of the remaining characters. For SendEvent, SendInput and ControlSend, this improves reliability because the characters are much less dependent on correct modifier state. Text mode can be combined with Blind mode to avoid releasing any modifier keys: <code>Send "{Blind}{Text}your text"</code>. However, some applications require that the modifier keys be released.</p>
-<p><code>`n</code>, <code>`r</code> and <code>`r`n</code> are all translated to a single <kbd>Enter</kbd> keystroke, unlike normal mode and Raw mode, which translate <code>`r`n</code> to two <kbd>Enter</kbd> keystrokes. <code>`t</code> is translated to <kbd>Tab</kbd> and <code>`b</code> to <kbd>Backspace</kbd>, but all other characters are sent without translation.</p>
-<p>Like Blind mode, Text mode ignores <a href="SetStoreCapsLockMode.htm">SetStoreCapsLockMode</a> (that is, the state of <kbd>CapsLock</kbd> is not changed) and does not <a href="../Hotkeys.htm#win-l">wait for the <kbd>Win</kbd> key to be released</a>. This is because Text mode typically does not depend on the state of <kbd>CapsLock</kbd> and cannot trigger the system <kbd>Win</kbd>+<kbd>L</kbd> hotkey. However, this only applies when <em>Keys</em> begins with <code>{Text}</code> or <code>{Blind}{Text}</code>.</p>
-<p id="specialchars"><strong>Normal mode</strong>: When not in Raw mode or Text mode, the following symbols have special meaning: <code>!+^#{}</code></p>
-<p>The modifiers <code>!+^#</code> affect only the very next key. To send the corresponding modifier key on its own, enclose the key name in braces. To just press (hold down) or release the key, follow the key name with the word "down" or "up" as shown below.</p>
-<style>
-#modifierkeys td:not(:last-child) { white-space: nowrap; text-align: center }
-</style>
-<table id="modifierkeys" class="info">
-  <tr>
-    <th>Symbol</th>
-    <th>Key</th>
-    <th>Press</th>
-    <th>Release</th>
-    <th>Examples</th>
-  </tr>
-  <tr>
-    <td>!</td>
-    <td>{Alt}</td>
-    <td>{Alt down}</td>
-    <td>{Alt up}</td>
-    <td><code>Send "!a"</code> presses <kbd>Alt</kbd>+<kbd>A</kbd></td>
-  </tr>
-  <tr>
-    <td>+</td>
-    <td>{Shift}</td>
-    <td>{Shift down}</td>
-    <td>{Shift up}</td>
-    <td><code>Send "+abC"</code> sends the text "AbC"<br>
-    <code>Send "!+a"</code> presses <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>A</kbd></td>
-  </tr>
-  <tr>
-    <td>^</td>
-    <td>{Ctrl}</td>
-    <td>{Ctrl down}</td>
-    <td>{Ctrl up}</td>
-    <td><code>Send "^{Home}"</code> presses <kbd>Control</kbd>+<kbd>Home</kbd></td>
-  </tr>
-  <tr>
-    <td>#</td>
-    <td>{LWin}<br>{RWin}</td>
-    <td>{LWin down}<br>{RWin down}</td>
-    <td>{LWin up}<br>{RWin up}</td>
-    <td><code>Send "#e"</code> holds down the <kbd>Win</kbd> key and then presses the <kbd>E</kbd> key</td>
-  </tr>
-  <tr>
-    <th>Symbol</th>
-    <th colspan="4">Meaning</th>
-  </tr>
-  <tr>
-    <td>{ }</td>
-    <td colspan="4" style="white-space: normal; text-align: left"><p>Braces are used to enclose <a href="#keynames">key names and other options</a>, and to send special characters literally. For example, <code>{Tab}</code> is the <kbd>Tab</kbd> key and <code>{!}</code> is a literal exclamation mark.</p>
-    <p>Enclosing a plain ASCII letter (a-z or A-Z) in braces forces it to be sent as the corresponding virtual keycode, even if the character does not exist on the current keyboard layout. In other words, <code>Send "a"</code> produces the letter "a" while <code>Send "{a}"</code> may or may not produce "a", depending on the keyboard layout. For details, see the <a href="#AZ">remarks below</a>.</p></td>
-  </tr>
-</table>
-<p class="note"><strong>Note</strong>: As capital letters are produced by sending the <kbd>Shift</kbd> key, <code>A</code> produces a different effect in some programs than <code>a</code>. For example, <code>!A</code> presses <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>A</kbd> and <code>!a</code> presses <kbd>Alt</kbd>+<kbd>A</kbd>. If in doubt, use lowercase.</p>
-<p id="blind"><strong>Blind mode</strong> - <code>{Blind}</code>: Blind mode gives the script more control by disabling a number of things that are normally done automatically to make things work as expected. <code>{Blind}</code> must be the first item in the string to enable Blind mode. It has the following effects:</p>
+<h2 id="Send_variants">Send variants</h2>
+<p><strong>Send:</strong> By default, Send is synonymous with SendInput; but it can be made a synonym for SendEvent or SendPlay via <a href="SendMode.htm">SendMode</a>.</p>
+<p><strong>SendText:</strong> Similar to Send, except that all characters in <em>Keys</em> are interpreted and sent literally. See <a href="#Text">Text mode</a> for details.</p>
+<p><strong id="SendInput">SendInput</strong> and <strong id="SendPlay">SendPlay</strong>: SendInput and SendPlay use the same syntax as SendEvent but are generally faster and more reliable. In addition, they buffer any physical keyboard or mouse activity during the send, which prevents the user's keystrokes from being interspersed with those being sent. <a href="SendMode.htm">SendMode</a> can be used to make Send synonymous with SendInput or SendPlay. For more details about each mode, see <a href="#SendInputDetail">SendInput</a> and <a href="#SendPlayDetail">SendPlay</a> below.</p>
+<p id="SendEvent"><strong>SendEvent</strong>: SendEvent sends keystrokes using the Windows keybd_event function (search MSDN for details). The rate at which keystrokes are sent is determined by <a href="SetKeyDelay.htm">SetKeyDelay</a>. <a href="SendMode.htm">SendMode</a> can be used to make Send synonymous with SendEvent or SendPlay.</p>
+
+<h2 id="Special_modes">Special modes</h2>
+<p>The following modes affect the interpretation of the characters in <em>Keys</em> or the behavior of key-sending commands such as Send, SendInput, SendPlay, SendEvent and <a href="ControlSend.htm">ControlSend</a>. These modes must be specified as <code>{x}</code> in <em>Keys</em>, where x is either Raw, Text, or Blind. For example, <code>{Raw}</code>.</p>
+
+<h3 id="Raw">Raw mode</h3>
+<p id="SendRaw">The Raw mode can be enabled with <code>{Raw}</code>, which causes all subsequent characters, including the special characters <code>^+!#{}</code>, to be interpreted literally rather than translating <code>{Enter}</code> to <kbd>Enter</kbd>, <code>^c</code> to <kbd>Control</kbd>+<kbd>C</kbd>, etc. For example, <code>Send "{Raw}{Tab}"</code> sends <code>{Tab}</code> instead of a <kbd>Tab</kbd> keystroke.</p>
+<p>The Raw mode does not affect the interpretation of <a href="../misc/EscapeChar.htm">escape sequences</a> and <a href="../Variables.htm#Expressions">expressions</a>. For example, <code>Send "{Raw}``100`%"</code> sends the string <code class="no-highlight">`100%</code>.</p>
+
+<h3 id="Text">Text mode</h3>
+<p id="SendText">The Text mode can be either enabled with <code>{Text}</code> or <a href="ControlSend.htm">ControlSendText</a>, which is similar to the Raw mode, except that no attempt is made to translate characters (other than <code>`r</code>, <code>`n</code>, <code>`t</code> and <code>`b</code>) to keycodes; instead, the <a href="#fallback">fallback method</a> is used for all of the remaining characters. For SendEvent, SendInput and <a href="ControlSend.htm">ControlSend</a>, this improves reliability because the characters are much less dependent on correct modifier state. This mode can be combined with the Blind mode to avoid releasing any modifier keys: <code>Send "{Blind}{Text}your text"</code>. However, some applications require that the modifier keys be released.</p>
+<p><code>`n</code>, <code>`r</code> and <code>`r`n</code> are all translated to a single <kbd>Enter</kbd> keystroke, unlike the default behavior and Raw mode, which translate <code>`r`n</code> to two <kbd>Enter</kbd> keystrokes. <code>`t</code> is translated to <kbd>Tab</kbd> and <code>`b</code> to <kbd>Backspace</kbd>, but all other characters are sent without translation.</p>
+<p>Like the Blind mode, the Text mode ignores <a href="SetStoreCapsLockMode.htm">SetStoreCapsLockMode</a> (that is, the state of <kbd>CapsLock</kbd> is not changed) and does not <a href="../Hotkeys.htm#win-l">wait for the <kbd>Win</kbd> key to be released</a>. This is because the Text mode typically does not depend on the state of <kbd>CapsLock</kbd> and cannot trigger the system <kbd>Win</kbd>+<kbd>L</kbd> hotkey. However, this only applies when <em>Keys</em> begins with <code>{Text}</code> or <code>{Blind}{Text}</code>.</p>
+
+<h3 id="Blind">Blind mode</h3>
+<p id="blind">The Blind mode can be enabled with <code>{Blind}</code>, which gives the script more control by disabling a number of things that are normally done automatically to make things work as expected. <code>{Blind}</code> must be the first item in the string to enable the Blind mode. It has the following effects:</p>
 <ul>
-  <li>Blind mode avoids releasing <kbd>Alt</kbd>/<kbd>Control</kbd>/<kbd>Shift</kbd>/<kbd>Win</kbd> if they started out in the down position, unless the modifier is <a href="#blind-exclude">excluded</a>. For example, the hotkey <code>+s::Send "{Blind}abc"</code> would send ABC rather than abc because the user is holding down the <kbd>Shift</kbd> key.</li>
+  <li>The Blind mode avoids releasing <kbd>Alt</kbd>/<kbd>Control</kbd>/<kbd>Shift</kbd>/<kbd>Win</kbd> if they started out in the down position, unless the modifier is <a href="#blind-exclude">excluded</a>. For example, the hotkey <code>+s::Send "{Blind}abc"</code> would send ABC rather than abc because the user is holding down <kbd>Shift</kbd>.</li>
   <li>Modifier keys are restored differently to allow a Send to turn off a hotkey's modifiers even if the user is still physically holding them down. For example, <code>^space::Send "{Ctrl up}"</code> automatically pushes <kbd>Ctrl</kbd> back down if the user is still physically holding <kbd>Ctrl</kbd>, whereas <code>^space::Send "{Blind}{Ctrl up}"</code> allows <kbd>Ctrl</kbd> to be logically up even though it is physically down.</li>
   <li><a href="SetStoreCapsLockMode.htm">SetStoreCapsLockMode</a> is ignored; that is, the state of <kbd>CapsLock</kbd> is not changed.</li>
-  <li><a href="_MenuMaskKey.htm">Menu masking</a> is disabled. That is, Send omits the extra keystrokes that would otherwise be sent in order to prevent: 1) Start Menu appearance during <kbd>Win</kbd> keystrokes (LWin/RWin); 2) menu bar activation during <kbd>Alt</kbd> keystrokes. However, Blind mode does not prevent masking performed by the keyboard hook following activation of a hook hotkey.</li>
+  <li><a href="_MenuMaskKey.htm">Menu masking</a> is disabled. That is, Send omits the extra keystrokes that would otherwise be sent in order to prevent: 1) Start Menu appearance during <kbd>Win</kbd> keystrokes (LWin/RWin); 2) menu bar activation during <kbd>Alt</kbd> keystrokes. However, the Blind mode does not prevent masking performed by the keyboard hook following activation of a hook hotkey.</li>
   <li>Send does not wait for the <kbd>Win</kbd> key to be released even if the text contains an <kbd>L</kbd> keystroke. This would normally be done to prevent Send from triggering the system "lock workstation" hotkey (<kbd>Win</kbd>+<kbd>L</kbd>). See <a href="../Hotkeys.htm#win-l">Hotkeys</a> for details.</li>
 </ul>
-<p id="blind-exclude">The word "Blind" may be followed by one or more modifier symbols (<code>!#^+</code>) to allow those modifiers to be released automatically if needed. For example, <code>*^a::Send "{Blind^}b"</code> would send <kbd>Shift</kbd>+<kbd>B</kbd> instead of <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>B</kbd> if <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>A</kbd> was pressed. <code>{Blind!#^+}</code> allows all modifiers to be released if needed, but enables the other effects of Blind mode.</p>
-<p>Blind mode is used internally when <a href="../misc/Remap.htm">remapping a key</a>. For example, the remapping <code>a::b</code> would produce: 1) "b" when you type "a"; 2) uppercase "B" when you type uppercase "A"; and 3) <kbd>Control</kbd>+<kbd>B</kbd> when you type <kbd>Control</kbd>+<kbd>A</kbd>. If any modifiers are specified for the source key (including <kbd>Shift</kbd> if the source key is an uppercase letter), they are excluded as described above. For example <code>^a::b</code> produces normal <kbd>B</kbd>, not <kbd>Control</kbd>+<kbd>B</kbd>.</p>
+<p id="blind-exclude">The word "Blind" may be followed by one or more modifier symbols (<code>!#^+</code>) to allow those modifiers to be released automatically if needed. For example, <code>*^a::Send "{Blind^}b"</code> would send <kbd>Shift</kbd>+<kbd>B</kbd> instead of <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>B</kbd> if <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>A</kbd> was pressed. <code>{Blind!#^+}</code> allows all modifiers to be released if needed, but enables the other effects of the Blind mode.</p>
+<p>The Blind mode is used internally when <a href="../misc/Remap.htm">remapping a key</a>. For example, the remapping <code>a::b</code> would produce: 1) "b" when you type "a"; 2) uppercase "B" when you type uppercase "A"; and 3) <kbd>Control</kbd>+<kbd>B</kbd> when you type <kbd>Control</kbd>+<kbd>A</kbd>. If any modifiers are specified for the source key (including <kbd>Shift</kbd> if the source key is an uppercase letter), they are excluded as described above. For example <code>^a::b</code> produces normal <kbd>B</kbd>, not <kbd>Control</kbd>+<kbd>B</kbd>.</p>
 <p><code>{Blind}</code> is not supported by SendText or <a href="ControlSend.htm">ControlSendText</a>; use <code>{Blind}{Text}</code> instead.</p>
-<p>Blind mode is not completely supported by <a href="#SendPlayDetail">SendPlay</a>, especially when dealing with the modifier keys (<kbd>Control</kbd>, <kbd>Alt</kbd>, <kbd>Shift</kbd>, and <kbd>Win</kbd>).</p>
-<p><br>
-<strong id="SendInput">SendInput</strong> and <strong id="SendPlay">SendPlay</strong>: SendInput and SendPlay use the same syntax as SendEvent but are generally faster and more reliable. In addition, they buffer any physical keyboard or mouse activity during the send, which prevents the user's keystrokes from being interspersed with those being sent. By default, <em>Send</em> is synonymous <em>SendPlay</em>; but it can be made a synonym for SendEvent or <a href="#SendPlayDetail">SendPlay</a> via <a href="SendMode.htm">SendMode</a>. For more details about each mode, see <a href="#SendInputDetail">SendInput</a> and <a href="#SendPlayDetail">SendPlay</a> below.</p>
-<p id="SendEvent"><strong>SendEvent</strong>: SendEvent sends keystrokes using the Windows keybd_event function (search MSDN for details). The rate at which keystrokes are sent is determined by <a href="SetKeyDelay.htm">SetKeyDelay</a>. <a href="SendMode.htm">SendMode</a> can be used to make Send synonymous with SendEvent or SendPlay.</p>
-<p id="keynames"><strong>Key Names</strong>: The following table lists the special keys that can be sent (each key name must be enclosed in braces):</p>
+<p>The Blind mode is not completely supported by <a href="#SendPlayDetail">SendPlay</a>, especially when dealing with the modifier keys (<kbd>Control</kbd>, <kbd>Alt</kbd>, <kbd>Shift</kbd>, and <kbd>Win</kbd>).</p>
+
+<h2 id="keynames">Key names</h2>
+<p>The following table lists the special keys that can be sent (each key name must be enclosed in braces):</p>
 <table class="info">
   <tr>
     <th>&nbsp;</th>
@@ -503,7 +508,7 @@
     <th>&nbsp;</th>
   </tr>
   <tr id="Click">
-    <td align="center"><strong>{Click [Options]}</strong></td>
+    <td>{Click [Options]}</td>
     <td>Sends a mouse click using the same options available in the <a href="Click.htm">Click function</a>. For example, <code>Send "{Click}"</code> would click the left mouse button once at the mouse cursor's current position, and <code>Send "{Click 100, 200}"</code> would click at coordinates 100, 200 (based on <a href="CoordMode.htm">CoordMode</a>). To move the mouse without clicking, specify 0 after the coordinates; for example: <code>Send "{Click 100, 200, 0}"</code>. The delay between mouse clicks is determined by <a href="SetMouseDelay.htm">SetMouseDelay</a> (not <a href="SetKeyDelay.htm">SetKeyDelay</a>).</td>
   </tr>
   <tr>
@@ -511,16 +516,16 @@
     <td>Sends a mouse button event at the cursor's current position (to have control over position and other options, use <a href="Click.htm">{Click}</a> above). The delay between mouse clicks is determined by <a href="SetMouseDelay.htm">SetMouseDelay</a>.</td>
   </tr>
   <tr>
-    <td><strong>{Blind}</strong></td>
-    <td>Enables <a href="#blind">Blind mode</a>, which gives the script more control by disabling a number of things that are normally done automatically to make things generally work as expected. The string <code>{Blind}</code> must occur at the beginning of the string.</td>
+    <td>{Blind}</td>
+    <td>Enables the <a href="#blind">Blind mode</a>, which gives the script more control by disabling a number of things that are normally done automatically to make things generally work as expected. The string <code>{Blind}</code> must occur at the beginning of the string.</td>
   </tr>
-  <tr id="Raw">
-    <td><strong>{Raw}</strong></td>
-    <td>Enables <a href="#SendRaw"><em>Raw mode</em></a>, which causes the following characters to be interpreted literally: <code>^+!#{}</code>. Although the string <code>{Raw}</code> need not occur at the beginning of the string, once specified, it stays in effect for the remainder of the string.</td>
+  <tr>
+    <td>{Raw}</td>
+    <td>Enables the <a href="#SendRaw">Raw mode</a>, which causes the following characters to be interpreted literally: <code>^+!#{}</code>. Although the string <code>{Raw}</code> need not occur at the beginning of the string, once specified, it stays in effect for the remainder of the string.</td>
   </tr>
-  <tr id="Text">
-    <td><strong>{Text}</strong></td>
-    <td>Enables <a href="#SendText"><em>Text mode</em></a>, which sends a stream of characters rather than keystrokes. Like Raw mode, Text mode causes the following characters to be interpreted literally: <code>^+!#{}</code>. Although the string <code>{Text}</code> need not occur at the beginning of the string, once specified, it stays in effect for the remainder of the string.</td>
+  <tr>
+    <td>{Text}</td>
+    <td>Enables the <a href="#SendText">Text mode</a>, which sends a stream of characters rather than keystrokes. Like the Raw mode, the Text mode causes the following characters to be interpreted literally: <code>^+!#{}</code>. Although the string <code>{Text}</code> need not occur at the beginning of the string, once specified, it stays in effect for the remainder of the string.</td>
   </tr>
 </table>
 
@@ -542,7 +547,7 @@ Send "{Up up}"  <em>; Release the up-arrow key.</em></pre>
     Sleep 30  <em>; The number of milliseconds between keystrokes (or use <a href="SetKeyDelay.htm">SetKeyDelay</a>).</em>
 }
 Send "{Tab up}"  <em>; Release the key.</em></pre>
-<p>By default, Send will not automatically release a modifier key (<kbd>Control</kbd>/<kbd>Shift</kbd>/<kbd>Alt</kbd>/<kbd>Win</kbd>) if that modifier key was "pressed down" by sending it. For example, <code>Send "a"</code> may behave similar to <code>Send "<a href="#blind">{Blind}</a>{Ctrl up}a{Ctrl down}"</code> if the user is physically holding <kbd>Ctrl</kbd>, but <code>Send "{Ctrl Down}"</code> followed by <code>Send "a"</code> will produce a <kbd>Control</kbd>+<kbd>A</kbd> keystroke. <em>DownTemp</em> and <em>DownR</em> can be used to override this behavior. <em>DownTemp</em> and <em>DownR</em> have the same effect as <em>Down</em> except for the modifer keys (<kbd>Control</kbd>/<kbd>Shift</kbd>/<kbd>Alt</kbd>/<kbd>Win</kbd>).</p>
+<p>By default, Send will not automatically release a modifier key (<kbd>Control</kbd>/<kbd>Shift</kbd>/<kbd>Alt</kbd>/<kbd>Win</kbd>) if that modifier key was "pressed down" by sending it. For example, <code>Send "a"</code> may behave similar to <code>Send "<a href="#blind">{Blind}</a>{Ctrl up}a{Ctrl down}"</code> if the user is physically holding <kbd>Ctrl</kbd>, but <code>Send "{Ctrl Down}"</code> followed by <code>Send "a"</code> will produce a <kbd>Control</kbd>+<kbd>A</kbd> keystroke. <em>DownTemp</em> and <em>DownR</em> can be used to override this behavior. <em>DownTemp</em> and <em>DownR</em> have the same effect as <em>Down</em> except for the modifier keys (<kbd>Control</kbd>/<kbd>Shift</kbd>/<kbd>Alt</kbd>/<kbd>Win</kbd>).</p>
 <p id="DownTemp"><strong>DownTemp</strong> tells subsequent sends that the key is not permanently down, and may be released whenever a keystroke calls for it. For example, <code>Send "{Control DownTemp}"</code> followed later by <code>Send "a"</code> would produce a normal <kbd>A</kbd> keystroke, not a <kbd>Control</kbd>+<kbd>A</kbd> keystroke. Any use of Send may potentially release the modifier permanently, so <em>DownTemp</em> is not ideal for <a href="../misc/Remap.htm">remapping</a> modifier keys.</p>
 <p id="DownR"><strong>DownR</strong> (where "R" stands for <a href="../misc/Remap.htm">remapping</a>, which is its main use) tells subsequent sends that if the key is automatically released, it should be pressed down again when send is finished. For example, <code>Send "{Control DownR}"</code> followed later by <code>Send "a"</code> would produce a normal <kbd>A</kbd> keystroke, not a <kbd>Control</kbd>+<kbd>A</kbd> keystroke, but will leave the <kbd>Control</kbd> key in the pressed state for use with keyboard shortcuts. In other words, <em>DownR</em> has an effect similar to physically pressing the key.</p>
 <p>If a character does not correspond to a virtual key on the current keyboard layout, it cannot be "pressed" or "released". For example, <code>Send "{µ up}"</code> has no effect on most layouts, and <code>Send "{µ down}"</code> is equivalent to <code>Send "µ"</code>.</p>
@@ -560,7 +565,7 @@ Send "{Tab up}"  <em>; Release the key.</em></pre>
   <li>If a naked letter is sent (that is, without modifiers or braces), or if <a href="#Raw">Raw</a> mode is in effect, it is sent as a character. For example, <code>Send "{Raw}Regards"</code> sends the expected text, even though pressing the <kbd>R</kbd> key (vk52) produces some other character (such as <kbd>К</kbd> on the Russian layout). <code>{Raw}</code> can be omitted in this case, unless a modifier key was put into effect by a prior Send.</li>
   <li>If one or more modifier keys have been put into effect by the Send function, or if the letter is wrapped in braces, it is sent as a keycode (modified with <kbd>Shift</kbd> if the letter is upper-case). This allows the script to easily activate standard keyboard shortcuts. For example, <code>^c</code> and <code>{Ctrl down}c{Ctrl up}</code> activate the standard <kbd>Ctrl</kbd>+<kbd>C</kbd> shortcut and <code>{c}</code> is equivalent to <code>{vk43}</code>.</li>
 </ul>
-<p>If the letter exists in the current keyboard layout, it is always sent as whichever keycode the layout associates with that letter (unless <a href="#SendText">Text mode</a> is used, in which case the character is sent by other means). In other words, the section above is only relevant for non-Latin based layouts such as Russian.</p>
+<p>If the letter exists in the current keyboard layout, it is always sent as whichever keycode the layout associates with that letter (unless the <a href="#SendText">Text mode</a> is used, in which case the character is sent by other means). In other words, the section above is only relevant for non-Latin based layouts such as Russian.</p>
 <p id="mask"><strong>Modifier State</strong>: When Send is required to change the state of the <kbd>Win</kbd> or <kbd>Alt</kbd> modifier keys (such as if the user was holding one of those keys), it may inject additional keystrokes (<kbd>Ctrl</kbd> by default) to prevent the Start menu or window menu from appearing. For details, see <a href="_MenuMaskKey.htm">#MenuMaskKey</a>.</p>
 <p><strong>BlockInput Compared to SendInput/SendPlay</strong>: Although the <a href="BlockInput.htm">BlockInput</a> function can be used to prevent any keystrokes physically typed by the user from disrupting the flow of simulated keystrokes, it is often better to use <a href="#SendInputDetail">SendInput</a> or <a href="#SendPlayDetail">SendPlay</a> so that keystrokes and mouse clicks become uninterruptible. This is because unlike BlockInput, SendInput/Play does not discard what the user types during the send; instead, such keystrokes are buffered and sent afterward.</p>
 <p>When sending a large number of keystrokes, a <a href="../Scripts.htm#continuation">continuation section</a> can be used to improve readability and maintainability.</p>
@@ -570,7 +575,7 @@ Send "{Tab up}"  <em>; Release the key.</em></pre>
 <h2 id="SendInputDetail">SendInput</h2>
 <p>SendInput is generally the preferred method to send keystrokes and mouse clicks because of its superior speed and reliability. Under most conditions, SendInput is nearly instantaneous, even when sending long strings. Since SendInput is so fast, it is also more reliable because there is less opportunity for some other window to pop up unexpectedly and intercept the keystrokes. Reliability is further improved by the fact that anything the user types during a SendInput is postponed until afterward.</p>
 <p>Unlike the other sending modes, the operating system limits SendInput to about 5000 characters (this may vary depending on the operating system's version and performance settings). Characters and events beyond this limit are not sent.</p>
-<p><strong>Note:</strong> SendInput ignores SetKeyDelay because the operating system does not support a delay in this mode. However, when SendInput reverts to <a href="#SendEvent">SendEvent</a> under the conditions described below, it uses <code><a href="SetKeyDelay.htm">SetKeyDelay</a> -1, 0</code> (unless SendEvent's KeyDelay is <code>-1,-1</code>, in which case <code>-1,-1</code> is used). When SendInput reverts to <a href="#SendPlayDetail">SendPlay</a>, it uses SendPlay's KeyDelay.</p>
+<p class="note"><strong>Note:</strong> SendInput ignores SetKeyDelay because the operating system does not support a delay in this mode. However, when SendInput reverts to <a href="#SendEvent">SendEvent</a> under the conditions described below, it uses <code><a href="SetKeyDelay.htm">SetKeyDelay</a> -1, 0</code> (unless SendEvent's KeyDelay is <code>-1,-1</code>, in which case <code>-1,-1</code> is used). When SendInput reverts to <a href="#SendPlayDetail">SendPlay</a>, it uses SendPlay's KeyDelay.</p>
 <p id="SendInputUnavail">If a script <em>other than</em> the one executing SendInput has a <a href="_InstallKeybdHook.htm">low-level keyboard hook</a> installed, SendInput automatically reverts to <a href="#SendEvent">SendEvent</a> (or <a href="#SendPlayDetail">SendPlay</a> if <code><a href="SendMode.htm">SendMode</a> "InputThenPlay"</code> is in effect). This is done because the presence of an external hook disables all of SendInput's advantages, making it inferior to both SendPlay and SendEvent. However, since SendInput is unable to detect a low-level hook in programs other than AutoHotkey v1.0.43+, it will not revert in these cases, making it less reliable than SendPlay/Event.</p>
 <p>When SendInput sends mouse clicks by means such as <a href="#Click">{Click}</a>, and <code><a href="CoordMode.htm">CoordMode</a> "Mouse", "Relative"</code> is in effect (the default), every click will be relative to the window that was active at the start of the send. Therefore, if SendInput intentionally activates another window (by means such as alt-tab), the coordinates of subsequent clicks within the same function will be wrong because they will still be relative to the old window rather than the new one.</p>
 
@@ -590,9 +595,10 @@ Send "{Tab up}"  <em>; Release the key.</em></pre>
 
 <h2>Related</h2>
 <p><a href="SendMode.htm">SendMode</a>, <a href="SetKeyDelay.htm">SetKeyDelay</a>, <a href="SetStoreCapsLockMode.htm">SetStoreCapsLockMode</a>, <a href="../misc/EscapeChar.htm">Escape sequences (e.g. `n)</a>, <a href="ControlSend.htm">ControlSend</a>, <a href="BlockInput.htm">BlockInput</a>, <a href="../Hotstrings.htm">Hotstrings</a>, <a href="WinActivate.htm">WinActivate</a></p>
+
 <h2>Examples</h2>
 <div class="ex" id="ExBasic">
-<p><a href="#ExBasic">#1</a></p>
+<p><a href="#ExBasic">#1</a>: Basic usage</p>
 <pre>Send "Sincerely,{enter}John Smith"  <em>; Types a two-line signature.</em>
 Send "!fs" <em>; Select the File-&gt;Save menu (Alt+F followed by S).</em>
 Send "{End}+{Left 4}" <em>; Jump to the end of the text then send four shift+left-arrow keystrokes.</em>
