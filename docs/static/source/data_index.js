@@ -700,7 +700,6 @@ indexData = [
   ["mute (changing it)","commands/SoundSetMute.htm"],
   ["nested functions","Functions.htm#nested"],
   ["New method (Class)","objects/Class.htm#New"],
-  ["normal-mode Send","commands/Send.htm#specialchars"],
   ["not","Variables.htm#not",4],
   ["NoTimers","commands/Thread.htm"],
   ["NoTrayIcon","commands/_NoTrayIcon.htm"],

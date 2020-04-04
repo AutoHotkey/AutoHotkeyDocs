@@ -169,8 +169,8 @@ var isPhone = (document.documentElement.clientWidth <= 600);
               history.replaceState(null, null, "?frame=" + encodeURI(relPath).replace(/#/g, '%23'));
           }
           document.title = data[2];
-          if (structure.modifyOnlineTools)
-            structure.modifyOnlineTools(relPath, data[4]);
+          if (structure.modifyTools)
+            structure.modifyTools(relPath, data[4]);
           if ($('#left > div.toc li > span.selected a').attr('href') == data[1].href)
             break;
           else if (data[3]) {
@@ -568,7 +568,7 @@ function ctor_search()
     if (SearchText == '')
       return '';
     else // split and remove undefined or empty strings
-      return SearchText.split(' ').filter(function(e){return (!!e)});
+      return $(SearchText.split(' ')).filter(function(){return (!!this)});
   }
   self.highlightWords = function(words) {
     var content = $(isInsideFrame ? 'body' : '#right .area');
@@ -801,7 +801,7 @@ function ctor_structure()
   self.dataPath = scriptDir + '/source/data_translate.js';
   self.metaViewport = '<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">';
   self.template = '<div id="body">' +
-  '<div id="head"><div class="h-area"><div class="h-tabs"><ul><li data-translate title="Shortcut: ALT+C" data-content="C̲ontent"></li><li data-translate title="Shortcut: ALT+N" data-content="In̲dex"></li><li data-translate title="Shortcut: ALT+S" data-content="S̲earch"></li></ul></div><div class="h-tools sidebar"><ul><li class="sidebar" title="Hide/Show sidebar" data-translate>&#926;</li></ul></div><div class="h-tools online"><ul><li class="home" title="Home page" data-translate><a href="' + location.protocol + '//' + location.host + '">&#916;</a></li><li class="language" title="Change language" data-translate=2><span data-translate data-content="en"></span><ul class="dropdown languages selected"><li><a title="English" data-content="en"></a></li><li><a title="Deutsch (German)" data-content="de"></a></li><li><a title="&#x4E2D;&#x6587; (Chinese)" data-content="zh"></a></li></ul></li><li class="version" title="Change AHK version" data-translate=2><span data-translate data-content="v1"></span><ul class="dropdown versions selected"><li><a title="AHK v1.1" data-content="v1"></a></li><li><a title="AHK v2.0" data-content="v2"></a></li></ul></li><li class="edit" title="Edit page on GitHub" data-translate=2><a data-content="E"></a></li></ul></div><div class="h-tools chm"><ul><li class="back" title="Go back" data-translate=2>&#9668;</li><li class="forward" title="Go forward" data-translate=2>&#9658;</li><li class="zoom" title="Change font size" data-translate=2 data-content="Z"></li><li class="print" title="Print current document" data-translate=2 data-content="P"></li></ul></div><div class="h-tools main visible"><ul><li class="color" title="Change to dark/light theme" data-translate=2 data-content="C"></li><li class="settings" title="Open settings" data-translate=2>&#1029;</li></ul></div></div></div>' +
+  '<div id="head"><div class="h-area"><div class="h-tabs"><ul><li data-translate title="Shortcut: ALT+C" data-content="C̲ontent"></li><li data-translate title="Shortcut: ALT+N" data-content="In̲dex"></li><li data-translate title="Shortcut: ALT+S" data-content="S̲earch"></li></ul></div><div class="h-tools sidebar"><ul><li class="sidebar" title="Hide or show the sidebar" data-translate>&#926;</li></ul></div><div class="h-tools online"><ul><li class="home" title="Go to the homepage" data-translate><a href="' + location.protocol + '//' + location.host + '">&#916;</a></li><li class="language" title="Change the language" data-translate=2><span data-translate data-content="en"></span><ul class="dropdown languages selected"><li><a title="English" data-content="en"></a></li><li><a title="Deutsch (German)" data-content="de"></a></li><li><a title="&#xD55C;&#xAD6D;&#xC5B4 (Korean)" data-content="ko"></a></li><li><a title="&#x4E2D;&#x6587; (Chinese)" data-content="zh"></a></li></ul></li><li class="version" title="Change the version" data-translate=2><span data-translate data-content="v1"></span><ul class="dropdown versions selected"><li><a title="AHK v1.1" data-content="v1"></a></li><li><a title="AHK v2.0" data-content="v2"></a></li></ul></li><li class="edit" title="Edit this document on GitHub" data-translate=2><a data-content="E"></a></li></ul></div><div class="h-tools chm"><ul><li class="back" title="Go back" data-translate=2>&#9668;</li><li class="forward" title="Go forward" data-translate=2>&#9658;</li><li class="zoom" title="Change the font size" data-translate=2 data-content="Z"></li><li class="print" title="Print this document" data-translate=2 data-content="P"></li><li class="browser" title="Open this document in the default browser (requires internet connection). Middle-click to copy the link address." data-translate><a target="_blank">¬</a></li></ul></div><div class="h-tools main visible"><ul><li class="color" title="Use the dark or light theme" data-translate=2 data-content="C"></li><li class="settings" title="Open the help settings" data-translate=2>&#1029;</li></ul></div></div></div>' +
   '<div id="main"><div id="left"><div class="toc"></div><div class="index"><div class="input"><input type="search" placeholder="Search" data-translate=2 /></div><div class="select"><select size="1" class="empty"><option value="-1" class="empty" selected data-translate>Filter</option><option value="0" data-translate>Directives</option><option value="1" data-translate>Built-in Variables</option><option value="2" data-translate>Built-in Functions</option><option value="3" data-translate>Control Flow Statements</option><option value="4" data-translate>Operators</option><option value="5" data-translate>Declarations</option></select></div><div class="list"></div></div><div class="search"><div class="input"><input type="search" placeholder="Search" data-translate=2 /></div><div class="checkbox"><input type="checkbox" id="highlightWords"><label for="highlightWords" data-translate>Highlight keywords</label><div class="updown" title="Go to previous/next occurrence" data-translate><div class="up"><div class="triangle-up"></div></div><div class="down"><div class="triangle-down"></div></div></div></div><div class="list"></div></div><div class="load"><div class="lds-dual-ring"></div></div></div><div class="dragbar"></div><div id="right" tabIndex="-1">'+(isFrameCapable?'<iframe frameBorder="0" id="frame" src="">':'<div class="area">');
   self.template = isIE8 ? self.template.replace(/ data-content="(.*?)">/g, '>$1') : self.template;
   self.build = function() { document.write(self.template); }; // Write HTML before DOM is loaded to prevent flickering.
@@ -878,6 +878,7 @@ function ctor_structure()
     // language links. Keys are based on ISO 639-1 language name standard:
     var link = { 'v1': { 'en': 'https://www.autohotkey.com/docs/',
                          'de': 'https://ahkde.github.io/docs/',
+                         'ko': 'https://ahkscript.github.io/ko/docs/',
                          'zh': 'https://wyagd001.github.io/zh-cn/docs/' },
                  'v2': { 'en': 'https://lexikos.github.io/v2/docs/',
                          'de': 'https://ahkde.github.io/v2/docs/' } }
@@ -885,7 +886,7 @@ function ctor_structure()
     var $langList = $online.find('ul.languages')
     var $verList = $online.find('ul.versions')
 
-    self.modifyOnlineTools = function(relPath, equivPath) {
+    self.modifyTools = function(relPath, equivPath) {
       // Bug - IE/Edge doesn't turn off list-style if element is hidden:
       $langList.add($verList).css("list-style", "none");
       // Hide currently selected language and version in the selection lists:
@@ -910,7 +911,7 @@ function ctor_structure()
         a.attr('href', thisLink + (equivPath || relPath));
       });
       // Hide dropdown list on click with left or middle mouse button:
-      $langList.add($verList).off('mouseup').on('mouseup', function(e) {
+      registerEvent($langList.add($verList), 'mouseup', '', function(e) {
         if (e.which == 1 || e.which == 2) {
           setTimeout(function() {
           $dropdown.animate({height: 'hide'}, 100);
@@ -923,29 +924,36 @@ function ctor_structure()
         href: T("https://github.com/Lexikos/AutoHotkey_L-Docs/edit/master/docs/") + relPath,
         target: "_blank"
       });
+
+      // --- CHM tools (only visible if help is CHM) ---
+
+      var $chm = $('#head .h-tools.chm');
+      // 'Go back' button:
+      registerEvent($chm.find('li.back'), 'click', '', function() { history.back(); });
+      // 'Go forward' button:
+      registerEvent($chm.find('li.forward'), 'click', '', function() { history.forward(); });
+      // 'Zoom' button:
+      registerEvent($chm.find('li.zoom'), 'click', '', function() {
+        cache.set('fontSize', cache.fontSize + 0.2);
+        if (cache.fontSize > 1.4)
+          cache.set('fontSize', 0.6);
+        $('#frame').contents().find('body').css('font-size', cache.fontSize + 'em');
+      });
+      // 'Print' button:
+      registerEvent($chm.find('li.print'), 'click', '', function() { window.parent.document.getElementById('frame').contentWindow.document.execCommand('print', false, null); });
+      // 'Open in default browser' button:
+      btn = $chm.find('li.browser > a').attr('href', link[ver][lang] + relPath);
+      registerEvent(btn, 'mouseup', '', function(e) {
+        if (e.which == 2) {
+          window.clipboardData.setData('Text', this.href);
+        }
+      });
+
+      // --- If help is CHM, show CHM tools, else show online tools ---
+
+      (isInsideCHM) ? $chm.show().addClass('visible') : $online.show().addClass('visible');
     };
-    self.modifyOnlineTools(relPath, equivPath);
-
-    // --- CHM tools (only visible if help is CHM) ---
-
-    var $chm = $('#head .h-tools.chm');
-    // 'Go back' button:
-    $chm.find('li.back').on('click', function() { history.back(); });
-    // 'Go forward' button:
-    $chm.find('li.forward').on('click', function() { history.forward(); });
-    // 'Zoom' button:
-    $chm.find('li.zoom').on('click', function() {
-      cache.set('fontSize', cache.fontSize + 0.2);
-      if (cache.fontSize > 1.4)
-        cache.set('fontSize', 0.6);
-      $('#frame').contents().find('body').css('font-size', cache.fontSize + 'em');
-    });
-    // 'Print' button:
-    $chm.find('li.print').on('click', function() { window.parent.document.getElementById('frame').contentWindow.document.execCommand('print', false, null); });
-
-    // --- If help is CHM, show CHM tools, else show online tools ---
-
-    (isInsideCHM) ? $chm.show().addClass('visible') : $online.show().addClass('visible');
+    self.modifyTools(relPath, equivPath);
 
     // --- Apply click events for sidebar tabs ---
 
@@ -1432,8 +1440,10 @@ function addFeatures()
     var as = content.querySelectorAll("a[href^='http']");
     for(var i = 0; i < as.length; i++) {
       var a = as[i];
-      if (!a.querySelector('img'))
-        a.className = "extLink"; a.target = "_blank";
+      if (!a.querySelector('img') && a.className.indexOf('no-ext') == -1) {
+        a.className = "extLink";
+        a.target = "_blank";
+      }
     }
   }
 
@@ -1646,23 +1656,30 @@ function addFeatures()
         // continuation section inside a string "(...)"
         els.order.push('cont1'); els.cont1 = [];
         innerHTML = innerHTML.replace(/('|")([<\/em>\s]*?^\s*\([\s\S]*?^\s*\).*?)\1/gm, function(_, QUOTE, SECTION) {
-          out = wrap(SECTION, 'str', false);
+          out = processStrParam(SECTION);
           els.cont1.push(out);
           return QUOTE + '<cont1></cont1>' + QUOTE;
         });
         // continuation section for hotstrings ::(...)
         els.order.push('cont2'); els.cont2 = [];
         innerHTML = innerHTML.replace(/(^\s*:.*?:.*?::)([<\/em>\s]*?^\s*\([\s\S]*?^\s*\).*?)/gm, function(_, PRE, SECTION) {
-          out = wrap(SECTION, 'str', false);
+          out = processStrParam(SECTION);
           els.cont2.push(out);
           return PRE + '<cont2></cont2>';
+        });
+        // built-in vars:
+        els.order.push('biv'); els.biv = [];
+        innerHTML = innerHTML.replace(new RegExp('\\b(' + syntax[1].single.join('|') + ')\\b', 'gi'), function(_, BIV) {
+          out = wrap(BIV, 'biv', true);
+          els.biv.push(out);
+          return '<biv></biv>';
         });
         // strings:
         els.order.push('str'); els.str = [];
         innerHTML = innerHTML.replace(/(("|')[\s\S]*?\2)/gm, function(_, STRING) {
           out = wrap(STRING, 'str', false);
-          els.str.push(out);
-          return '<str></str>';
+          index = els.str.push(out) - 1;
+          return '<str ' + index + '></str>';
         });
         // methods:
         els.order.push('met'); els.met = [];
@@ -1700,13 +1717,6 @@ function addFeatures()
           els.byref.push(out);
           return '<byref></byref>';
         });
-        // built-in vars:
-        els.order.push('biv'); els.biv = [];
-        innerHTML = innerHTML.replace(new RegExp('\\b(' + syntax[1].single.join('|') + ')\\b', 'gi'), function(_, BIV) {
-          out = wrap(BIV, 'biv', true);
-          els.biv.push(out);
-          return '<biv></biv>';
-        });
         // directives:
         els.order.push('dir'); els.dir = [];
         innerHTML = innerHTML.replace(new RegExp('(' + syntax[0].single.join('|') + ')\\b($|[\\s,])(.*?)(?=<(?:em|sct)></(?:em|sct)>|$)', 'gim'), function(_, DIR, SEP, PARAMS) {
@@ -1722,8 +1732,8 @@ function addFeatures()
           // Temporary exclude (...), {...} and [...]:
           sub = [];
           PARAMS = PARAMS.replace(/[({\[].*[\]})]/g, function(c) {
-            sub.push(c);
-            return '<sub></sub>';
+            index = sub.push(c) - 1;
+            return '<sub ' + index + '></sub>';
           });
           // Split params:
           PARAMS = PARAMS.split(',');
@@ -1732,16 +1742,16 @@ function addFeatures()
             PARAMS.push(PARAMS.splice(types.length - 1).join(','));
           // Iterate params and recompose them:
           for (n in PARAMS) {
+            // Restore (...), {...} and [...] previously excluded:
+            PARAMS[n] = PARAMS[n].replace(/<sub (\d+)><\/sub>/g, function(_, index) {
+              return sub[index];
+            });
             if (PARAMS[n].match(/^\s*%\s/)) // Skip forced expression parameter:
               continue;
             if (types[n] == 'S') // string
-              PARAMS[n] = PARAMS[n].match(/^\s*<num><\/num>\s*$/) ? PARAMS[n] : wrap(PARAMS[n], 'str', false);
+              PARAMS[n] = processStrParam(PARAMS[n]);
           }
           PARAMS = PARAMS.join(',');
-          // Restore (...), {...} and [...] previously excluded:
-          for (n in sub) {
-            PARAMS = PARAMS.replace('<sub></sub>', sub[n])
-          }
           out = wrap(DIR, 'dir', true) + SEP + PARAMS;
           els.dir.push(out);
           return '<dir></dir>';
@@ -1760,7 +1770,7 @@ function addFeatures()
             if (INPUT) {
               var cfs = cache.index_data[dict[(IF + ' ... ' + BETWEEN).toLowerCase()]];
               if (cfs)
-                out = wrap(IF, 'cfs', cfs[1]) + ' ' + INPUT + ' ' + wrap(BETWEEN, 'cfs', cfs[1]) + ' ' + ((cfs[3][1] == "S") ? (VAL.match(/^\s*<num><\/num>\s*$/) ? VAL : wrap(VAL, 'str', false)) : VAL);
+                out = wrap(IF, 'cfs', cfs[1]) + ' ' + INPUT + ' ' + wrap(BETWEEN, 'cfs', cfs[1]) + ' ' + ((cfs[3][1] == "S") ? processStrParam(VAL) : VAL);
               else
                 out = ASIS;
             }
@@ -1778,23 +1788,23 @@ function addFeatures()
             // Temporary exclude (...), {...} and [...]:
             sub = [];
             PARAMS = PARAMS.replace(/[({\[].*[\]})]/g, function(c) {
-              sub.push(c);
-              return '<sub></sub>'
+              index = sub.push(c) - 1;
+              return '<sub ' + index + '></sub>';
             });
             // Split params:
             PARAMS = PARAMS.split(',');
             // Iterate params and recompose them:
             for (n in PARAMS) {
+              // Restore (...), {...} and [...] previously excluded:
+              PARAMS[n] = PARAMS[n].replace(/<sub (\d+)><\/sub>/g, function(_, index) {
+                return sub[index];
+              });
               if (PARAMS[n].match(/^\s*%\s/)) // Skip forced expression parameter:
                 continue;
               if (types[n] == 'S') // string
-                PARAMS[n] = PARAMS[n].match(/^\s*<num><\/num>\s*$/) ? PARAMS[n] : wrap(PARAMS[n], 'str', false);
+                PARAMS[n] = processStrParam(PARAMS[n]);
             }
             PARAMS = PARAMS.join(',');
-            // Restore (...), {...} and [...] previously excluded:
-            for (n in sub) {
-              PARAMS = PARAMS.replace('<sub></sub>', sub[n])
-            }
             out = wrap(CFS, 'cfs', true) + SEP + PARAMS;
           }
           els.cfs.push(out);
@@ -1826,6 +1836,9 @@ function addFeatures()
         // Restore elements:
         for (var k = els.order.length - 1; k >= 0; k--) {
           $(pre).find(els.order[k]).each(function(index) {
+          if (this.attributes[0])
+            this.outerHTML = els[els.order[k]][this.attributes[0].name];
+          else
             this.outerHTML = els[els.order[k]][index];
           });
         }
@@ -1845,6 +1858,22 @@ function addFeatures()
           span.innerHTML = match;
         return span.outerHTML;
       }
+      function processStrParam(param) {
+        if (param.match(/^\s*(\+|-|\^)?\s*<num><\/num>\s*$/)) // skip number
+          return param;
+        param = param.replace(/<str (\d+)><\/str>/g, function(_, index) { // resolve substring
+          return els.str[index];
+        });
+        // handle %...%:
+        var out = '', lastIndex = 0;
+        var re = /%[^,\s]+?%/g;
+        while (m = re.exec(param)) {
+          out += wrap(param.slice(lastIndex, m.index), 'str', false) + m[0];
+          lastIndex = re.lastIndex;
+        }
+        out += wrap(param.slice(lastIndex), 'str', false);
+        return out;
+      }
     }
   }
 
@@ -1853,7 +1882,7 @@ function addFeatures()
   function addFooter() {
     var div = document.createElement('div');
     div.className = 'footer';
-    div.innerHTML = 'Copyright &copy; 2003-' + new Date().getFullYear() + ' ' + location.host + ' - LIC: <a href="' + scriptDir + '/../license.htm">GNU GPLv2</a>';
+    div.innerHTML = 'Copyright &copy; 2003-' + new Date().getFullYear() + ' ' + location.host + ' - LIC: <a href="' + scriptDir + '/../license.htm" class="no-ext">GNU GPLv2</a>';
     content.appendChild(div);
   }
 
@@ -1999,7 +2028,7 @@ function overwriteProps(a, b) {
 // Prevent event delegation on IE8/Edge to bypass performance issues
 // but results in longer initial load time for these browsers:
 function registerEvent(el, events, children, func) {
-  if (isIE8 || isEdge)
+  if (children && (isIE8 || isEdge))
   {
     var ElChildren = el.find(children);
     ElChildren.off(events);
