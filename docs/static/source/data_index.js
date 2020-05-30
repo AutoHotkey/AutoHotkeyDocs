@@ -956,7 +956,7 @@ indexData = [
   ["variables, type of data","commands/is.htm"],
   ["variadic functions","Functions.htm#Variadic"],
   ["variants (duplicate hotkeys and hotstrings)","commands/_If.htm#variant"],
-  ["VarSetCapacity","commands/VarSetCapacity.htm",2],
+  ["VarSetStrCapacity","commands/VarSetStrCapacity.htm",2],
   ["version of a file","commands/FileGetVersion.htm"],
   ["virtual key","commands/Send.htm#vk"],
   ["volume (changing it)","commands/SoundSetVolume.htm"],

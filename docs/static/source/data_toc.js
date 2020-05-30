@@ -67,7 +67,7 @@ tocData = [
     ["NumPut","commands/NumPut.htm"],
     ["StrGet","commands/StrGet.htm"],
     ["StrPut","commands/StrPut.htm"],
-    ["VarSetCapacity","commands/VarSetCapacity.htm"],
+    ["VarSetStrCapacity","commands/VarSetStrCapacity.htm"],
     ["COM","",
     [
       ["ComObjActive","commands/ComObjActive.htm"],
@@ -289,8 +289,7 @@ tocData = [
     ["IsSet","commands/IsSet.htm"],
     ["ListLines","commands/ListLines.htm"],
     ["ListVars","commands/ListVars.htm"],
-    ["OutputDebug","commands/OutputDebug.htm"],
-    ["VarSetCapacity","commands/VarSetCapacity.htm"]
+    ["OutputDebug","commands/OutputDebug.htm"]
   ]],
   ["Object Types","",
   [
@@ -370,7 +369,8 @@ tocData = [
     ["StrReplace","commands/StrReplace.htm"],
     ["StrSplit","commands/StrSplit.htm"],
     ["SubStr","commands/SubStr.htm"],
-    ["Trim","commands/Trim.htm"]
+    ["Trim","commands/Trim.htm"],
+    ["VarSetStrCapacity","commands/VarSetStrCapacity.htm"]
   ]],
   ["Window","commands/Win.htm",
   [
