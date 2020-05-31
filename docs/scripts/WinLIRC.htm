@@ -138,12 +138,6 @@ socket := ConnectToAddress(WinLIRC_Address, WinLIRC_Port)
 if socket = -1  <em>; Connection failed (it already displayed the reason).</em>
     ExitApp
 
-<em>; Find this script's main window:</em>
-ErrorLevel := ProcessExist()  <em>; This sets ErrorLevel to this script's PID (it's done this way to support compiled scripts).</em>
-DetectHiddenWindows True
-ScriptMainWindowId := WinExist("ahk_class AutoHotkey ahk_pid " ErrorLevel)
-DetectHiddenWindows False
-
 <em>; When the OS notifies the script that there is incoming data waiting to be received,
 ; the following causes a function to be launched to read the data:</em>
 NotificationMsg := 0x5555  <em>; An arbitrary message number, but should be greater than 0x1000.</em>
@@ -153,7 +147,7 @@ OnMessage(NotificationMsg, "ReceiveData")
 ; This avoids the need to poll the connection and thus cuts down on resource usage.</em>
 FD_READ := 1     <em>; Received when data is available to be read.</em>
 FD_CLOSE := 32   <em>; Received when connection has been closed.</em>
-if DllCall("Ws2_32\WSAAsyncSelect", &quot;UInt&quot;, socket, &quot;UInt&quot;, ScriptMainWindowId, &quot;UInt&quot;, NotificationMsg, &quot;Int&quot;, FD_READ|FD_CLOSE)
+if DllCall("Ws2_32\WSAAsyncSelect", &quot;UInt&quot;, socket, &quot;UInt&quot;, A_ScriptHwnd, &quot;UInt&quot;, NotificationMsg, &quot;Int&quot;, FD_READ|FD_CLOSE)
 {
     MsgBox "WSAAsyncSelect() indicated Winsock error " DllCall("Ws2_32\WSAGetLastError")
     ExitApp
@@ -168,13 +162,6 @@ ConnectToAddress(IPAddress, Port)
 {
     wsaData := BufferAlloc(400)
     result := DllCall("Ws2_32\WSAStartup", &quot;UShort&quot;, 0x0002, &quot;Ptr&quot;, wsaData) <em>; Request Winsock 2.0 (0x0002)</em>
-    <em>; Since WSAStartup() will likely be the first Winsock function called by this script,</em>
-    <em>; check ErrorLevel to see if the OS has Winsock 2.0 available:</em>
-    if ErrorLevel
-    {
-        MsgBox "WSAStartup() could not be called due to error " ErrorLevel ". Winsock 2.0 or higher is required."
-        return -1
-    }
     if result  <em>; Non-zero, which means it failed (most Winsock functions return 0 upon success).</em>
     {
         MsgBox "WSAStartup() indicated Winsock error " DllCall("Ws2_32\WSAGetLastError")

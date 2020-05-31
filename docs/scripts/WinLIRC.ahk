@@ -124,12 +124,6 @@ socket := ConnectToAddress(WinLIRC_Address, WinLIRC_Port)
 if socket = -1  ; Connection failed (it already displayed the reason).
     ExitApp
 
-; Find this script's main window:
-ErrorLevel := ProcessExist()  ; This sets ErrorLevel to this script's PID (it's done this way to support compiled scripts).
-DetectHiddenWindows True
-ScriptMainWindowId := WinExist("ahk_class AutoHotkey ahk_pid " ErrorLevel)
-DetectHiddenWindows False
-
 ; When the OS notifies the script that there is incoming data waiting to be received,
 ; the following causes a function to be launched to read the data:
 NotificationMsg := 0x5555  ; An arbitrary message number, but should be greater than 0x1000.
@@ -139,7 +133,7 @@ OnMessage(NotificationMsg, "ReceiveData")
 ; This avoids the need to poll the connection and thus cuts down on resource usage.
 FD_READ := 1     ; Received when data is available to be read.
 FD_CLOSE := 32   ; Received when connection has been closed.
-if DllCall("Ws2_32\WSAAsyncSelect", "UInt", socket, "UInt", ScriptMainWindowId, "UInt", NotificationMsg, "Int", FD_READ|FD_CLOSE)
+if DllCall("Ws2_32\WSAAsyncSelect", "UInt", socket, "UInt", A_ScriptHwnd, "UInt", NotificationMsg, "Int", FD_READ|FD_CLOSE)
 {
     MsgBox "WSAAsyncSelect() indicated Winsock error " DllCall("Ws2_32\WSAGetLastError")
     ExitApp
@@ -154,13 +148,6 @@ ConnectToAddress(IPAddress, Port)
 {
     wsaData := BufferAlloc(400)
     result := DllCall("Ws2_32\WSAStartup", "UShort", 0x0002, "Ptr", wsaData) ; Request Winsock 2.0 (0x0002)
-    ; Since WSAStartup() will likely be the first Winsock function called by this script,
-    ; check ErrorLevel to see if the OS has Winsock 2.0 available:
-    if ErrorLevel
-    {
-        MsgBox "WSAStartup() could not be called due to error " ErrorLevel ". Winsock 2.0 or higher is required."
-        return -1
-    }
     if result  ; Non-zero, which means it failed (most Winsock functions return 0 upon success).
     {
         MsgBox "WSAStartup() indicated Winsock error " DllCall("Ws2_32\WSAGetLastError")
