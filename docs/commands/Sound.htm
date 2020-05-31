@@ -65,7 +65,7 @@
       <li>If omitted or blank, the function targets the master volume/mute controls or an interface that can be returned by <a href="https://docs.microsoft.com/en-us/windows/win32/api/mmdeviceapi/nf-mmdeviceapi-immdevice-activate">IMMDevice::Activate</a>.</li>
     </ul>
     <p>If only an index is specified, the display names are ignored. For example, <code>1</code>, <code>"1"</code> and <code>":1"</code> use the first component regardless of name, whereas <code>""</code> uses the master controls.</p>
-    <p>If the sound device lacks the specified <em>Component</em>, ErrorLevel will indicate the problem.</p>
+    <p>If the sound device lacks the specified <em>Component</em>, an exception is thrown.</p>
   </dd>
 
   <dt id="device">Device</dt>
@@ -93,31 +93,39 @@ scLV := scGui.Add('ListView', "w600 h400"
 
 devMap := Map()
 
-<em>; For each available sound device, first query its name.
-; Permit empty names by also checking ErrorLevel.</em>
-while (devName := SoundGetName(, dev := A_Index)) || !ErrorLevel
+loop
 {
+    <em>; For each loop iteration, try to get the corresponding device.</em>
+    try
+        devName := SoundGetName(, dev := A_Index)
+    catch  <em>; No more devices.</em>
+        break
+    
     <em>; Qualify names with ":index" where needed.</em>
     devName := Qualify(devName, devMap, dev)
     
     <em>; Retrieve master volume and mute setting, if possible.</em>
-    vol := SoundGetVolume( , dev)
-    if !ErrorLevel
-        vol := Round(vol, 2)
-    mute := SoundGetMute( , dev)
+    vol := mute := ""
+    try vol := Round(SoundGetVolume( , dev), 2)
+    try mute := SoundGetMute( , dev)
+    
     <em>; Display the master settings only if at least one was retrieved.</em>
     if vol != "" || mute != ""
         scLV.Add("", "", dev, devName, vol, mute)
     
     <em>; For each component, first query its name.</em>
     cmpMap := Map()
-    while (cmpName := SoundGetName(cmp := A_Index, dev)) || !ErrorLevel
+    
+    loop
     {
+        try
+            cmpName := SoundGetName(cmp := A_Index, dev)
+        catch
+            break
         <em>; Retrieve this component's volume and mute setting, if possible.</em>
-        vol := SoundGetVolume(cmp, dev)
-        if !ErrorLevel
-            vol := Round(vol, 2)
-        mute := SoundGetMute(cmp, dev)
+        vol := mute := ""
+        try vol := Round(SoundGetVolume(cmp, dev), 2)
+        try mute := SoundGetMute(cmp, dev)
         <em>; Display this component even if it does not support volume or mute,
         ; since it likely supports other controls via SoundGetInterface().</em>
         scLV.Add("", Qualify(cmpName, cmpMap, A_Index), dev, devName, vol, mute)

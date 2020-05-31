@@ -67,21 +67,26 @@
   <dt>Timeout</dt>
   <dd>
     <p>Type: <a href="../Concepts.htm#numbers">Integer</a></p>
-    <p>The maximum number of milliseconds to wait for the target window to process the message. If omitted, it defaults to 5000 (milliseconds), which is also the default behaviour in older versions of AutoHotkey which did not support this parameter. If the message is not processed within this time, the function finishes and sets ErrorLevel to 1.</p>
+    <p>The maximum number of milliseconds to wait for the target window to process the message. If omitted, it defaults to 5000 (milliseconds). If the message is not processed within this time, an exception is thrown.</p>
   </dd>
 
 </dl>
 
 <h2>Return Value</h2>
 <p>Type: <a href="../Concepts.htm#numbers">Integer</a></p>
-<p>This function returns an empty string if there was a problem or the message timed out. Otherwise, it returns the result of the message, which might sometimes be a &quot;reply&quot; depending on the nature of the message and its target window.</p>
+<p>This function returns the result of the message, which might sometimes be a &quot;reply&quot; depending on the nature of the message and its target window.</p>
 <p>The range of possible values depends on the target window and the version of AutoHotkey that is running.  When using a 32-bit version of AutoHotkey, or if the target window is 32-bit, the result is a 32-bit unsigned integer between 0 and 4294967295. When using the 64-bit version of AutoHotkey with a 64-bit window, the result is a 64-bit signed integer between -9223372036854775808 and 9223372036854775807.</p>
 <p>If the result is intended to be a 32-bit signed integer (a value from -2147483648 to 2147483648), it can be truncated to 32-bit and converted to a signed value as follows:</p>
 <pre>MsgReply := MsgReply &lt;&lt; 32 &gt;&gt; 32</pre>
 <p>This conversion may be necessary even on AutoHotkey 64-bit, because results from 32-bit windows are zero-extended. For example, a result of -1 from a 32-bit window is seen as 0xFFFFFFFF on any version of AutoHotkey, whereas a result of -1 from a 64-bit window is seen as 0xFFFFFFFF on AutoHotkey 32-bit and -1 on AutoHotkey 64-bit.</p>
 
-<h2>ErrorLevel</h2>
-<p><a href="../misc/ErrorLevel.htm">ErrorLevel</a> is set to 1 if there was a problem such as the target window or control not existing, or if SendMessage timed out. Otherwise, it is set to 0.</p>
+<h2>Error Handling</h2>
+<p>An exception is thrown in the following cases:</p>
+<ul>
+  <li>The target window or control could not be found.</li>
+  <li>The message timed out.</li>
+  <li>The message could not be sent. For example, if the target window is running at a higher integrity level than the script (i.e. it is running as admin while the script is not), messages may be blocked.</li>
+</ul>
 
 <h2>Remarks</h2>
 <p>This function should be used with caution because sending a message to the wrong window (or sending an invalid message) might cause unexpected behavior or even crash the target application. This is because most applications are not designed to expect certain types of messages from external sources.</p>
@@ -129,11 +134,9 @@ return</pre>
 <p><a href="#ExWinamp">#5</a>: This example asks Winamp which track number is currently active (see <a href="../misc/Winamp.htm">Automating Winamp</a> for more information):</p>
 <pre>SetTitleMatchMode 2
 track := SendMessage(1024, 0, 120,, "- Winamp")
-if !ErrorLevel
-{
-    track++  <em>; Winamp's count starts at 0, so adjust by 1.</em>
-    MsgBox "Track #" track " is active or playing."
-}</pre>
+track++  <em>; Winamp's count starts at 0, so adjust by 1.</em>
+MsgBox "Track #" track " is active or playing."
+</pre>
 </div>
 
 <div class="ex" id="ExPID">
