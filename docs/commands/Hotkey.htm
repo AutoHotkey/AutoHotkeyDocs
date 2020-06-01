@@ -14,7 +14,7 @@
 
 <p>Creates, modifies, enables, or disables a hotkey while the script is running:</p>
 <pre class="Syntax">
-<span class="func">Hotkey</span> KeyName <span class="optional">, Label, Options</span>
+<span class="func">Hotkey</span> KeyName <span class="optional">, Callback, Options</span>
 </pre>
 <p>Specifies the criteria for subsequently created or modified hotkey <a href="#variant">variants</a>:</p>
 <pre class="Syntax">
@@ -38,12 +38,12 @@
     <p>The <a href="../Hotkeys.htm#prefixdollar">use hook ($) prefix</a> can be added to existing hotkeys. This prefix affects all variants of the hotkey and cannot be removed.</p>
   </dd>
 
-  <dt>Label</dt>
+  <dt>Callback</dt>
   <dd>
       <p>Type: <a href="../Concepts.htm#strings">String</a> or <a href="../Concepts.htm#objects">Object</a></p>
       <p>The subroutine to execute (as a new <a href="../misc/Threads.htm">thread</a>) when the hotkey is pressed. This can be a <a href="../misc/Labels.htm">label</a> name, function name or <a href="../objects/Functor.htm">function object</a>.</p>
-  <p>Literal label and function names must be enclosed in quote marks. Both normal global labels and <a href="../Hotkeys.htm">hotkey</a>/<a href="../Hotstrings.htm">hotstring</a> labels can be used, but not local labels (use a <a href="../Functions.htm#nested">nested function</a> instead). The trailing colon(s) should not be included. If <em>Label</em> is dynamic (e.g. <code>VarContainingLabelName</code>), <a href="IsLabel.htm">IsLabel(VarContainingLabelName)</a> may be called beforehand to verify that the label exists.</p>
-  <p>If <em>Label</em> is a function, it is called without parameters. To specify a function when a label with the same name exists, pass it by reference instead of name. For example: <code>Hotkey "#c", Func("<i>FunctionName</i>")</code>. Hotkeys can also be <a href="../Hotkeys.htm#Function">defined as functions</a> without the Hotkey function.</p>
+  <p>Literal label and function names must be enclosed in quote marks. Both normal global labels and <a href="../Hotkeys.htm">hotkey</a>/<a href="../Hotstrings.htm">hotstring</a> labels can be used, but not local labels (use a <a href="../Functions.htm#nested">nested function</a> instead). The trailing colon(s) should not be included.</p>
+  <p>If <em>Callback</em> is a function, it is called without parameters. To specify a function when a label with the same name exists, pass it by reference instead of name. For example: <code>Hotkey "#c", Func("<i>FunctionName</i>")</code>. Hotkeys can also be <a href="../Hotkeys.htm#Function">defined as functions</a> without the Hotkey function.</p>
       <p>This parameter can be left blank if <em>KeyName</em> already exists as a hotkey, in which case its label will not be changed. This is useful to change only the hotkey's <em>Options</em>.</p>
       <p class="note"><strong>Note</strong>: If the label or function is specified but the hotkey is disabled from a previous use of this function, the hotkey will remain disabled. To prevent this, include the word ON in <em>Options</em>.</p>
       <p>This parameter can also be one of the following special values:</p>
@@ -57,8 +57,7 @@
   <dt>Options</dt>
   <dd>
       <p>Type: <a href="../Concepts.htm#strings">String</a></p>
-      <p>A string of zero or more of the following letters with optional spaces in between. For example: <code>UseErrorLevel B0</code>.</p>
-      <p id="UseErrorLevel"><strong>UseErrorLevel</strong>: If the function encounters a problem, this option skips the warning dialog, sets <a href="../misc/ErrorLevel.htm">ErrorLevel</a> to one of the codes from the table <a href="#ErrorLevel">below</a>, then allows the <a href="../misc/Threads.htm">current thread</a> to continue.</p>
+      <p>A string of zero or more of the following letters with optional spaces in between. For example: <code>On B0</code>.</p>
       <p><strong>On</strong>: Enables the hotkey if it is currently disabled.</p>
       <p><strong>Off</strong>: Disables the hotkey if it is currently enabled. This is typically used to create a hotkey in an initially-disabled state.</p>
       <p><strong>B</strong> or <strong>B0</strong>: Specify the letter B to buffer the hotkey as described in <a href="_MaxThreadsBuffer.htm">#MaxThreadsBuffer</a>. Specify B0 (B with the number 0) to disable this type of buffering.</p>
@@ -70,52 +69,48 @@
 
 </dl>
 
-<h2 id="ErrorLevel">Error Handling</h2>
-<p>When the first parameter is "If" or begins with "IfWin", an exception is thrown if a parameter is invalid or a memory allocation fails. ErrorLevel is not set in those cases.</p>
-<p><a href="../misc/ErrorLevel.htm">ErrorLevel</a> is changed only when the word UseErrorLevel is present in the <em>Options</em> parameter.</p>
+<h2>Error Handling</h2>
+<p>An exception is thrown if a parameter is invalid or memory allocation fails.</p>
+<p>One of the following exceptions may be thrown if the hotkey is invalid or could not be created:</p>
 <table class="info">
   <tr>
     <th>Error</th>
     <th>Description</th>
   </tr>
   <tr>
-    <td>1</td>
-    <td>The <em>Label</em> parameter specifies a nonexistent label name.</td>
+    <td>"Invalid key name."</td>
+    <td>The <em>KeyName</em> parameter specifies one or more keys that are either not recognized or not supported by the current keyboard layout/language. <a href="Throw.htm#Exception">Exception.Extra</a> contains the key name; e.g. "Entre" from <code>!Entre</code>.</td>
   </tr>
   <tr>
-    <td>2</td>
-    <td>The <em>KeyName</em> parameter specifies one or more keys that are either not recognized or not supported by the current keyboard layout/language.</td>
+    <td>"Unsupported prefix key."</td>
+    <td>For example, using the mouse wheel as a prefix in a hotkey such as <code>WheelDown &amp; Enter</code> is not supported. <a href="Throw.htm#Exception">Exception.Extra</a> contains the prefix key.</td>
   </tr>
   <tr>
-    <td>3</td>
-    <td>Unsupported prefix key. For example, using the mouse wheel as a prefix in a hotkey such as <code>WheelDown &amp; Enter</code> is not supported.</td>
+    <td>"This AltTab hotkey must have exactly one modifier/prefix."<br>
+    "This AltTab hotkey must specify which key (L or R)."</td>
+    <td>The <em>KeyName</em> parameter is not suitable for use with the <a href="../Hotkeys.htm#alttab">AltTab or ShiftAltTab</a> actions. A combination of two keys is required. For example: <code>RControl &amp; RShift::AltTab</code>. <a href="Throw.htm#Exception">Exception.Extra</a> contains <em>KeyName</em>.</td>
   </tr>
   <tr>
-    <td>4</td>
-    <td>The <em>KeyName</em> parameter is not suitable for use with the <a href="../Hotkeys.htm#alttab">AltTab or ShiftAltTab</a> actions. A combination of two keys is required. For example: <code>RControl &amp; RShift::AltTab</code>.</td>
+    <td>"Nonexistent hotkey."</td>
+    <td>The function attempted to modify a nonexistent hotkey. <a href="Throw.htm#Exception">Exception.Extra</a> contains <em>KeyName</em>.</td>
   </tr>
   <tr>
-    <td>5</td>
-    <td>The function attempted to modify a nonexistent hotkey.</td>
+    <td>"Nonexistent hotkey variant (IfWin)."</td>
+    <td>The function attempted to modify a nonexistent <a href="#variant">variant</a> of an existing hotkey. To solve this, use <a href="#if">Hotkey "If"</a> to set the criteria to match those of the hotkey to be modified. <a href="Throw.htm#Exception">Exception.Extra</a> contains <em>KeyName</em>.</td>
   </tr>
   <tr>
-    <td>6</td>
-    <td>The function attempted to modify a nonexistent <a href="#variant">variant</a> of an existing hotkey. To solve this, use <a href="#if">Hotkey "If"</a> to set the criteria to match those of the hotkey to be modified.</td>
-  </tr>
-  <tr>
-    <td>98</td>
+    <td>"Max hotkeys."</td>
     <td>Creating this hotkey would exceed the limit of 32762 hotkeys per script (however, each hotkey can have an unlimited number of <a href="#variant">variants</a>, and there is no limit to the number of <a href="../Hotstrings.htm">hotstrings</a>).</td>
-  </tr>
-  <tr>
-    <td>99</td>
-    <td>Out of memory. This is very rare and usually happens only when the operating system has become unstable.</td>
   </tr>
 </table>
 <p><br>
-Tip: The UseErrorLevel option can be used to test for the existence of a hotkey variant. For example:</p>
-<pre>Hotkey "^!p",, "UseErrorLevel"
-if ErrorLevel = 5 or ErrorLevel = 6
-    MsgBox "The hotkey does not exist or it has no variant for the current If criteria."</pre>
+Tip: <a href="Try.htm">Try</a>-<a href="Catch.htm">Catch</a> can be used to test for the existence of a hotkey variant.</p>
+<pre>
+try
+    Hotkey "^!p"
+catch
+    MsgBox "The hotkey does not exist or it has no variant for the current If criteria."
+</pre>
 
 <h2>Remarks</h2>
 <p>The <a href="#if">current If setting</a> determines the <a href="#variant">variant</a> of a hotkey upon which the Hotkey function will operate.</p>
