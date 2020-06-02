@@ -67,11 +67,11 @@ td.nowrap {
 <table class="info">
   <tr>
     <td class="nowrap"><code>Value := <a href="RegRead.htm">RegRead</a>()</code></td>
-    <td>Reads the current item. If the current item is a key, ErrorLevel will be set to 1 and an empty string is returned.</td>
+    <td>Reads the current item. If the current item is a key, an exception is thrown.</td>
   </tr>
   <tr>
     <td class="nowrap"><code><a href="RegWrite.htm">RegWrite</a> Value</code><br><code><a href="RegWrite.htm">RegWrite</a></code></td>
-    <td>Writes to the current item. If <em>Value</em> is omitted, the item will be made 0 or blank depending on its type. If the current item is a key, ErrorLevel will be set to 1 and there will be no other effect.</td>
+    <td>Writes to the current item. If <em>Value</em> is omitted, the item will be made 0 or blank depending on its type. If the current item is a key, an exception is thrown and the registry is not modified.</td>
   </tr>
   <tr>
     <td class="nowrap"><code><a href="RegDelete.htm">RegDelete</a></code></td>
@@ -108,8 +108,9 @@ td.nowrap {
         value := &quot;&quot;
     else
     {
-        value := RegRead()
-        if ErrorLevel
+        try
+            value := RegRead()
+        catch
             value := &quot;*error*&quot;
     }
     Result := MsgBox(a_LoopRegName " = " value " (" a_LoopRegType ")`n`nContinue?",, "y/n")
@@ -152,8 +153,9 @@ RegSearch(Target)
 CheckThisRegItem:
     if A_LoopRegType = &quot;KEY&quot;  <em>; Remove these two lines if you want to check key names too.</em>
         return
-    RegValue := RegRead()
-    if ErrorLevel
+    try
+        RegValue := RegRead()
+    catch
         return
     if InStr(RegValue, Target)
     {

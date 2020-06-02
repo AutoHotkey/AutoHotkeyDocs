@@ -39,8 +39,9 @@ if I_Icon != ""
         Menu "Tray", "Icon", I_Icon
 
 ; Determine AutoHotkey's location:
-ahk_dir := RegRead("HKEY_LOCAL_MACHINE\SOFTWARE\AutoHotkey", "InstallDir")
-if ErrorLevel  ; Not found, so look for it in some other common locations.
+try
+    ahk_dir := RegRead("HKEY_LOCAL_MACHINE\SOFTWARE\AutoHotkey", "InstallDir")
+catch  ; Not found, so look for it in some other common locations.
 {
     if A_AhkPath
         SplitPath A_AhkPath,, ahk_dir

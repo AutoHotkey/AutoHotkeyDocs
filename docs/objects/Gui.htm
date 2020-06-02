@@ -740,8 +740,9 @@ MenuHelpAbout(*)
 
 readContent(FileName)
 {
-    FileContent := FileRead(FileName)  <em>; Read the file's contents into the variable.</em>
-    if ErrorLevel
+    try
+        FileContent := FileRead(FileName)  <em>; Read the file's contents into the variable.</em>
+    catch
     {
         MsgBox("Could not open '" FileName "'.")
         return
@@ -754,16 +755,17 @@ readContent(FileName)
 
 saveContent(FileName)
 {
-    if FileExist(FileName)
+    try
     {
-        FileDelete(FileName)
-        if ErrorLevel
-        {
-            MsgBox("The attempt to overwrite '" FileName "' failed.")
-            return
-        }
+        if FileExist(FileName)
+            FileDelete(FileName)
+        FileAppend(MainEdit.Value, FileName)  <em>; Save the contents to the file.
     }
-    FileAppend(MainEdit.Value, FileName)  <em>; Save the contents to the file.
+    catch
+    {
+        MsgBox("The attempt to overwrite '" FileName "' failed.")
+        return
+    }
     ; Upon success, Show file name in title bar (in case we were called by MenuFileSaveAs):</em>
     Gui.Title := FileName
     return FileName
