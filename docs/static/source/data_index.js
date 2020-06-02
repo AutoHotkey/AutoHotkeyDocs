@@ -292,7 +292,7 @@ indexData = [
   ["between (check if var between two values)","commands/IfBetween.htm"],
   ["Bin directive (Ahk2Exe)","misc/Ahk2ExeDirectives.htm#Bin",99],
   ["Bind method (Func object)","objects/Func.htm#Bind"],
-  ["BinMod directive (Ahk2Exe)","misc/Ahk2ExeDirectives.htm#PostExec",99],
+  ["BinMod script (Ahk2Exe)","misc/Ahk2ExeDirectives.htm#PostExec",99],
   ["bitwise operations","Variables.htm#bitwise"],
   ["blind-mode Send","commands/Send.htm#blind"],
   ["BlockInput","commands/BlockInput.htm",6,"S"],
