@@ -1,4 +1,4 @@
-﻿; IntelliSense -- by Rajat
+﻿; IntelliSense -- by Rajat (updated by others)
 ; http://www.autohotkey.com
 ; This script watches while you edit an AutoHotkey script.  When it sees you
 ; type a command followed by a comma or space, it displays that command's
@@ -36,7 +36,7 @@ if I_HelpHotkey != ""
 ; Change tray icon (if one was specified in the configuration section above):
 if I_Icon != ""
     if FileExist(I_Icon)
-        Menu "Tray", "Icon", I_Icon
+        TraySetIcon I_Icon
 
 ; Determine AutoHotkey's location:
 try
@@ -65,7 +65,7 @@ Loop Read, ahk_dir "\Extras\Editors\Syntax\Commands.txt"
 
     ; Directives have a first space instead of a first comma.
     ; So use whichever comes first as the end of the command name:
-    I_cPos := InStr(I_FullCmd, ",")
+    I_cPos := InStr(I_FullCmd, "(")
     I_sPos := InStr(I_FullCmd, "`s")
     if (!I_cPos or (I_cPos > I_sPos and I_sPos))
         I_EndPos := I_sPos
@@ -91,7 +91,7 @@ Loop Read, ahk_dir "\Extras\Editors\Syntax\Commands.txt"
 Loop
 {
     ; Editor window check:
-    if !InStr(WinGetTitle("A"), I_Editor)
+    if !WinActive(I_Editor)
     {
         ToolTip
         Sleep 500
@@ -99,18 +99,19 @@ Loop
     }
     
     ; Get all keys till endkey:
-    I_Word := Input("V", "{Enter}{Escape}{Space},")
-    I_EndKey := ErrorLevel
+    I_Hook := I_Input("V", "{Enter}{Escape}{Space},")
+    I_Word := I_Hook.Input
+    I_EndKey := I_Hook.EndKey
     
     ; ToolTip is hidden in these cases:
-    if I_EndKey = "EndKey:Enter" or I_EndKey = "EndKey:Escape"
+    if I_EndKey = "Enter" or I_EndKey = "Escape"
     {
         ToolTip
         Continue
     }
 
     ; Editor window check again!
-    if !InStr(WinGetTitle("A"), I_Editor)
+    if !WinActive(I_Editor)
     {
         ToolTip
         Continue
@@ -151,13 +152,28 @@ Loop
     
     ; Show matched command to guide the user:
     I_ThisFullCmd := I_FullCmd%I_Index%
-    ToolTip I_ThisFullCmd, A_CaretX, A_CaretY + 20
+    CaretGetPos I_CaretX, I_CaretY
+    ToolTip I_ThisFullCmd, I_CaretX, I_CaretY + 20
+}
+
+
+
+; This script was originally written for AutoHotkey v1.
+; I_Input() is a rough reproduction of the Input command.
+I_Input(Options:="", EndKeys:="", MatchList:="") {
+    static ih
+    if IsSet(ih) && ih.InProgress
+        ih.Stop()
+    ih := InputHook(Options, EndKeys, MatchList)
+    ih.Start()
+    ih.Wait()
+    return ih
 }
 
 
 
 I_HelpHotkey:
-if !InStr(WinGetTitle("A"), I_Editor)
+if !WinActive(I_Editor)
     return
 
 ToolTip  ; Turn off syntax helper since there is no need for it now.

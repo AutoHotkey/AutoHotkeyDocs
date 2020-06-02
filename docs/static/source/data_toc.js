@@ -256,7 +256,6 @@ tocData = [
     ["List of Keys","KeyList.htm"],
     ["KeyHistory","commands/KeyHistory.htm"],
     ["KeyWait","commands/KeyWait.htm"],
-    ["Input","commands/Input.htm"],
     ["InputHook","commands/InputHook.htm"],
     ["MouseClick","commands/MouseClick.htm"],
     ["MouseClickDrag","commands/MouseClickDrag.htm"],

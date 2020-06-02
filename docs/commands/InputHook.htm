@@ -60,10 +60,9 @@ if (ih.Input = CtrlC)
 
 <h2 id="stack">Input Stack</h2>
 <p>Any number of InputHook objects can be created and in progress at any time, but the order in which they are started affects how input is collected.</p>
-<p>When each Input is started (by the <a href="#Start">Start</a> method or <a href="Input.htm">Input</a> function), it is pushed onto the top of a stack, and is removed from this stack only when the Input is terminated. Keyboard events are passed to each Input in order of most recently started to least. If an Input suppresses a given keyboard event, it is passed no further down the stack.</p>
+<p>When each Input is started (by the <a href="#Start">Start</a> method), it is pushed onto the top of a stack, and is removed from this stack only when the Input is terminated. Keyboard events are passed to each Input in order of most recently started to least. If an Input suppresses a given keyboard event, it is passed no further down the stack.</p>
 <p><a href="Send.htm">Sent</a> keystrokes are ignored if the <a href="SendLevel.htm">send level</a> of the keystroke is below the InputHook's <a href="#MinSendLevel">MinSendLevel</a>. In such cases, the keystroke may still be processed by an Input lower on the stack.</p>
 <p>Multiple InputHooks can be used in combination with <a href="#MinSendLevel">MinSendLevel</a> to separately collect both sent keystrokes and real ones.</p>
-<p>Calling the <a href="Input.htm">Input</a> function terminates any previous Input started by the Input function, but leaves any InputHooks active. If the Input is not <a href="Input.htm#vis">visible</a>, any InputHooks which it interrupts will generally not collect any input until the Input function returns.</p>
 
 <h2 id="object">InputHook Object</h2>
 <p>The InputHook function returns an InputHook object, which has the following methods and properties.</p>
@@ -349,11 +348,10 @@ if (ih.Input = CtrlC)
 <p>If you use multiple languages or keyboard layouts, Input uses the keyboard layout of the active window rather than the script's (regardless of whether the Input is <a href="#vis">visible</a>).</p>
 <p>Although not as flexible, <a href="../Hotstrings.htm">hotstrings</a> are generally easier to use.</p>
 
-<h2 id="comparison">InputHook vs. Input</h2>
-<p>InputHook and the <a href="Input.htm">Input</a> function are two different interfaces for the same underlying functionality. The following are mostly equivalent:</p>
+<h2 id="comparison">InputHook vs. Input (v1)</h2>
+<p>In AutoHotkey v1.1, InputHook is a replacement for the Input command, offering greater flexbility. The Input command was removed for v2.0, but the code below is mostly equivalent:</p>
 <pre>
-OutputVar := Input(Options, EndKeys, MatchList)
-</pre><pre>
+<em>; Input OutputVar, % Options, % EndKeys, % MatchList  ; v1</em>
 ih := InputHook(Options, EndKeys, MatchList)
 ih.Start()
 ErrorLevel := ih.Wait()
@@ -361,28 +359,28 @@ if (ErrorLevel = "EndKey")
     ErrorLevel .= ":" ih.EndKey
 OutputVar := ih.Input
 </pre>
-<p>The Input function terminates any previous Input which it started, whereas InputHook allows <a href="#stack">more than one Input</a> at a time.</p>
+<p>The Input command terminates any previous Input which it started, whereas InputHook allows <a href="#stack">more than one Input</a> at a time.</p>
 <p><em>Options</em> is interpreted the same, but the default settings differ:</p>
 <ul>
-  <li>The Input function limits the length of the input to 16383, while InputHook limits it to 1023. This can be overridden with the <a href="#option-l">L option</a>, and there is no absolute maximum.</li>
-  <li>The Input function blocks both text and non-text keystrokes by default, and blocks neither if the <a href="Input.htm#vis">V option</a> is present. By contrast, InputHook blocks only text keystrokes by default (<a href="#VisibleNonText">VisibleNonText</a> defaults to true), so most hotkeys can be used while an Input is in progress.</li>
+  <li>The Input command limits the length of the input to 16383, while InputHook limits it to 1023. This can be overridden with the <a href="#option-l">L option</a>, and there is no absolute maximum.</li>
+  <li>The Input command blocks both text and non-text keystrokes by default, and blocks neither if the <a href="#vis">V option</a> is present. By contrast, InputHook blocks only text keystrokes by default (<a href="#VisibleNonText">VisibleNonText</a> defaults to true), so most hotkeys can be used while an Input is in progress.</li>
 </ul>
-<p>The Input function blocks the <a href="../misc/Threads.htm">thread</a> while it is in progress, whereas InputHook allows the thread to continue, or even exit (which allows any thread that it interrupted to resume). Instead of waiting, the script can register an <a href="#OnEnd">OnEnd</a> function to be called when the Input is terminated.</p>
-<p>The Input function returns the user's input only after the Input is terminated, whereas InputHook's <a href="Input.htm">Input</a> property allows it to be retrieved at any time. The script can register an <a href="#OnChar">OnChar</a> function to be called whenever a character is added, instead of continuously checking the Input property.</p>
+<p>The Input command blocks the <a href="../misc/Threads.htm">thread</a> while it is in progress, whereas InputHook allows the thread to continue, or even exit (which allows any thread that it interrupted to resume). Instead of waiting, the script can register an <a href="#OnEnd">OnEnd</a> function to be called when the Input is terminated.</p>
+<p>The Input command returns the user's input only after the Input is terminated, whereas InputHook's <a href="#Input">Input</a> property allows it to be retrieved at any time. The script can register an <a href="#OnChar">OnChar</a> function to be called whenever a character is added, instead of continuously checking the Input property.</p>
 <p>InputHook gives much more control over individual keys via the <a href="#KeyOpt">KeyOpt</a> method. This includes adding or removing end keys, suppressing or not suppressing specific keys, or ignoring the text produced by specific keys.</p>
-<p>Unlike the Input function, InputHook can be used to detect keys which do not produce text, <em>without</em> terminating the Input. This is done by registering an <a href="#OnKeyDown">OnKeyDown</a> function and using <a href="#KeyOpt">KeyOpt</a> or <a href="#NotifyNonText">NotifyNonText</a> to specify which keys are of interest.</p>
+<p>Unlike the Input command, InputHook can be used to detect keys which do not produce text, <em>without</em> terminating the Input. This is done by registering an <a href="#OnKeyDown">OnKeyDown</a> function and using <a href="#KeyOpt">KeyOpt</a> or <a href="#NotifyNonText">NotifyNonText</a> to specify which keys are of interest.</p>
 <p>If a <em>MatchList</em> item caused the Input to terminate, the <a href="#Match">Match</a> property can be consulted to determine exactly which match (this is more useful when the <a href="#asterisk">* option</a> is present).</p>
-<p>Although the script can consult <a href="GetKeyState.htm">GetKeyState</a> after the Input function returns, sometimes it does not accurately reflect which keys were pressed when the Input was terminated. InputHook's <a href="#EndMods">EndMods</a> property reflects the logical state of the modifier keys at the time Input was terminated.</p>
+<p>Although the script can consult <a href="GetKeyState.htm">GetKeyState</a> after the Input command returns, sometimes it does not accurately reflect which keys were pressed when the Input was terminated. InputHook's <a href="#EndMods">EndMods</a> property reflects the logical state of the modifier keys at the time Input was terminated.</p>
 <p>There are some differences relating to backward-compatibility:</p>
 <ul>
-  <li>The Input function stores end keys <kbd>A</kbd>-<kbd>Z</kbd> in uppercase even though other letters on some keyboard layouts are lowercase. Passing the value to <a href="Send.htm">Send</a> would produce a shifted keystroke instead of a plain one. By contrast, InputHook's <a href="#EndKeys">EndKeys</a> property always returns the normalized name; i.e. whichever character is produced by pressing the key without holding <kbd>Shift</kbd> or other modifiers.</li>
-  <li><p>If a key name used in <em>EndKeys</em> corresponds to a VK which is shared between two physical keys (such as <kbd>NumpadUp</kbd> and <kbd>Up</kbd>), the Input function handles the primary key by VK and the secondary key by SC, whereas InputHook handles both by SC. <code>{vkNN}</code> notation can be used to handle the key by VK.</p>
-  <p>When the end key is handled by VK, both physical keys can terminate the Input. For example, <code>{NumpadUp}</code> would cause the Input function to be terminated by pressing <kbd>Up</kbd>, but ErrorLevel would contain <code>EndKey:NumpadUp</code> since only the VK is considered.</p>
-  <p>When an end key is handled by SC, the Input function always produces names for the known secondary SC of any given VK, and always produces <code>sc<i>NNN</i></code> for any other key (even if it has a name). By contrast, InputHook produces a name if the key has one.</p></li>
+  <li>The Input command stores end keys <kbd>A</kbd>-<kbd>Z</kbd> in uppercase even though other letters on some keyboard layouts are lowercase. Passing the value to <a href="Send.htm">Send</a> would produce a shifted keystroke instead of a plain one. By contrast, InputHook's <a href="#EndKeys">EndKeys</a> property always returns the normalized name; i.e. whichever character is produced by pressing the key without holding <kbd>Shift</kbd> or other modifiers.</li>
+  <li><p>If a key name used in <em>EndKeys</em> corresponds to a VK which is shared between two physical keys (such as <kbd>NumpadUp</kbd> and <kbd>Up</kbd>), the Input command handles the primary key by VK and the secondary key by SC, whereas InputHook handles both by SC. <code>{vkNN}</code> notation can be used to handle the key by VK.</p>
+  <p>When the end key is handled by VK, both physical keys can terminate the Input. For example, <code>{NumpadUp}</code> would cause the Input command to be terminated by pressing <kbd>Up</kbd>, but ErrorLevel would contain <code>EndKey:NumpadUp</code> since only the VK is considered.</p>
+  <p>When an end key is handled by SC, the Input command always produces names for the known secondary SC of any given VK, and always produces <code>sc<i>NNN</i></code> for any other key (even if it has a name). By contrast, InputHook produces a name if the key has one.</p></li>
 </ul>
 
 <h2>Related</h2>
-<p><a href="Input.htm">Input</a>, <a href="KeyWait.htm">KeyWait</a>, <a href="../Hotstrings.htm">Hotstrings</a>, <a href="InputBox.htm">InputBox</a>, <a href="_InstallKeybdHook.htm">#InstallKeybdHook</a>, <a href="../misc/Threads.htm">Threads</a></p>
+<p><a href="KeyWait.htm">KeyWait</a>, <a href="../Hotstrings.htm">Hotstrings</a>, <a href="InputBox.htm">InputBox</a>, <a href="_InstallKeybdHook.htm">#InstallKeybdHook</a>, <a href="../misc/Threads.htm">Threads</a></p>
 
 <h2>Examples</h2>
 <div class="ex" id="ExKeyWaitAny">
