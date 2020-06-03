@@ -14,7 +14,7 @@
 
 <p>Displays an input box to ask the user to enter a string.</p>
 
-<pre class="Syntax">Text := <span class="func">InputBox</span>(<span class="optional">Prompt, Title, Options, Default</span>)</pre>
+<pre class="Syntax">Obj := <span class="func">InputBox</span>(<span class="optional">Prompt, Title, Options, Default</span>)</pre>
 <h2>Parameters</h2>
 <dl>
 
@@ -35,8 +35,8 @@
       <p>Type: <a href="../Concepts.htm#strings">String</a></p>
       <p>A string of case-insensitive options, with each separated from the last by a space or tab.</p>
       <p><strong>Xn Yn:</strong> The X and Y coordinates of the dialog. For example, <em>X0 Y0</em> puts the window at the upper left corner of the desktop. If either coordinate is omitted, the dialog will be centered in that dimension. Either coordinate can be negative to position the dialog partially or entirely off the desktop (or on a secondary monitor in a multi-monitor setup).</p>
-      <p><strong>Wn Hn:</strong> The width and height of the dialog. For example, <em>W375 H189</em> is the default size.</p>
-      <p><strong>T:</strong> Specifies the timeout in seconds. For example, <em>T10.0</em> is ten seconds. If this value exceeds 2147483 (24.8 days), it will be set to 2147483. After the timeout has elapsed, the InputBox window will be automatically closed and <a href="../misc/ErrorLevel.htm">ErrorLevel</a> will be set to 2. It will still return what the user entered.</p>
+      <p><strong>Wn Hn:</strong> The width and height of the dialog's client area, which excludes the title bar and borders. For example, <em>W200 H100</em>.</p>
+      <p><strong>T:</strong> Specifies the timeout in seconds. For example, <em>T10.0</em> is ten seconds. If this value exceeds 2147483 (24.8 days), it will be set to 2147483. After the timeout has elapsed, the InputBox window will be automatically closed and <a href="#return">Result</a> will be set to word "Timeout". <a href="#return">Value</a> will still contain what the user entered.</p>
       <p><strong>Password:</strong> Mask the user's input. To specify which character is used, follow this example: <em>Password*</em></p>
   </dd>
 
@@ -48,12 +48,13 @@
 
 </dl>
 
-<h2>Return Value</h2>
-<p>Type: <a href="../Concepts.htm#strings">String</a></p>
-<p>This function returns the text entered by the user.</p>
-
-<h2>Error Handling</h2>
-<p><a href="../misc/ErrorLevel.htm">ErrorLevel</a> is set to 1 if the user presses the CANCEL button, 0 if the user presses OK, or 2 if the dialog times out. In all three cases, InputBox returns the text entered by the user. This allows the CANCEL button to perform a function other than CANCEL should the script designer wish it.</p>
+<h2 id="return">Return Value</h2>
+<p>Type: <a href="../objects/Object.htm">Object</a></p>
+<p>This function returns an object with the following properties:</p>
+<ul>
+  <li><code>Value</code> (<a href="../Concepts.htm#strings">String</a>): The text entered by the user.</li>
+  <li><code>Result</code> (<a href="../Concepts.htm#strings">String</a>): One of the following words indicating how the InputBox was closed: "OK", "Cancel", "Timeout".</li>
+</ul>
 
 <h2>Remarks</h2>
 <p>An input box usually looks like this:</p>
@@ -65,16 +66,16 @@
 <h2>Examples</h2>
 <div class="ex" id="ExPassword">
 <p><a href="#ExPassword">#1</a></p>
-<pre>password := InputBox("(your input will be hidden)", "Enter Password", "password")</pre>
+<pre>password := InputBox("(your input will be hidden)", "Enter Password", "password").value</pre>
 </div>
 
 <div class="ex" id="ExBasic">
 <p><a href="#ExBasic">#2</a></p>
-<pre>UserInput := InputBox("Please enter a phone number.", "Phone Number", "w640 h480")
-if ErrorLevel
-    MsgBox "CANCEL was pressed."
+<pre>IB := InputBox("Please enter a phone number.", "Phone Number", "w640 h480")
+if IB.Result = "Cancel"
+    MsgBox "You entered '" IB.Value "' but then cancelled."
 else
-    MsgBox "You entered '" UserInput "'"</pre>
+    MsgBox "You entered '" IB.Value "'."</pre>
 </div>
 
 </body>
