@@ -441,7 +441,6 @@ indexData = [
   ["environment variables","Concepts.htm#environment-variables"],
   ["environment variables (change them)","commands/EnvSet.htm"],
   ["EnvSet","commands/EnvSet.htm",2],
-  ["ErrorLevel","misc/ErrorLevel.htm",1],
   ["ErrorStdOut","commands/_ErrorStdOut.htm"],
   ["escape sequence","misc/EscapeChar.htm"],
   ["Escape (Gui event)","objects/GuiOnEvent.htm#Escape"],
