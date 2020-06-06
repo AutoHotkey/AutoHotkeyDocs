@@ -21,7 +21,7 @@
   <dt>Func</dt>
   <dd>
     <p>Type: <a href="../Concepts.htm#strings">String</a> or <a href="../Concepts.htm#objects">Object</a></p>
-    <p>A function name or <a href="../objects/Functor.htm">function object</a> to call when an unhandled error occurs. The function is given the exception object as a parameter, and may return a non-zero integer to block the default error dialog.</p>
+    <p>A function name or <a href="../objects/Functor.htm">function object</a> to call when an unhandled error occurs. See <em>Callback</em> below.</p>
   </dd>
   
   <dt>AddRemove</dt>
@@ -35,10 +35,30 @@
 
 </dl>
 
+<h2>Callback</h2>
+<p>The callback function should accept two parameters:</p>
+<pre class="Syntax"><i>Callback</i>(Thrown, Mode)</pre>
+<dl>
+  <dt>Thrown</dt>
+  <dd><em>Thrown</em> is the thrown value, usually an <a href="Throw.htm#Exception">exception object</a>.</dd>
+  <dt>Mode</dt>
+  <dd>One of the following strings:
+    <ul>
+      <li><code>"Return"</code>: <em>Thrown</em> is a continuable runtime error. The thread continues if the callback returns -1; otherwise the thread exits.</li>
+      <li><code>"Exit"</code>: <em>Thrown</em> is a non-continuable runtime error or a value <a href="Throw.htm">thrown</a> by the script. The thread will exit.</li>
+      <li><code>"ExitApp"</code>: <em>Thrown</em> is a critical runtime error, such as corruption detected by DllCall. The program will exit.</li>
+    </ul>
+  </dd>
+</dl>
+<p>The callback function can return one of the following values (other values are reserved for future use and should be avoided):</p>
+<ul>
+  <li><code>0</code>, <code>""</code> or no <code>return</code>: Allow error handling to proceed as normal.</li>
+  <li><code>1</code>: Suppress the default error dialog and any remaining error callbacks.</li>
+  <li><code>-1</code>: As above, but if <em>Mode</em> is <code>"Return"</code>, execution of the current thread is permitted to continue.</li>
+</ul>
+
 <h2>Remarks</h2>
 <p><em>Func</em> is called only for errors or exceptions which would normally cause an error message to be displayed. It cannot be called for a load-time error, since OnError cannot be called until after the script has loaded.</p>
-<p>If any error function returns a non-zero integer, the thread exits. If an error occurs (or an exception is thrown) within an error function, an error message is displayed for the new error and the thread exits. Otherwise, all error function are called, an error message is displayed and the thread exits.</p>
-<p><em>Func</em>'s first parameter receives the thrown value or <a href="Throw.htm#Exception">Exception</a> object. If this is an object, it can be modified to affect what the default error dialog displays.</p>
 <p><em>Func</em> is called on the current <a href="../misc/Threads.htm">thread</a>, before it exits (that is, before the call stack unwinds).</p>
 
 <h2>Related</h2>
@@ -46,16 +66,85 @@
 
 <h2 id="Examples">Examples</h2>
 <div class="ex" id="ExBasic">
-<p><a href="#ExBasic">#1</a></p>
+<p><a href="#ExBasic">#1</a>: Logging errors to a text file instead of displaying them to the user.</p>
 <pre>
 OnError "LogError"
 %cause% := error
 
-LogError(exception) {
+LogError(exception, mode) {
     FileAppend "Error on line " exception.Line ": " exception.Message "`n"
         , "errorlog.txt"
     return true
 }
+</pre>
+</div>
+
+<div class="ex" id="ExAccumulator">
+<p><a href="#ExAccumulator">#2</a>: Use OnError to implement alternative error handling methods. Caveat: OnError is ineffective while <a href="Try.htm">Try</a> is active.</p>
+<pre>
+AccumulateErrors()
+{
+    local ea := ErrorAccumulator.new()
+    ea.Start()
+    return ea
+}
+
+class ErrorAccumulator
+{
+    Errors := []                        <em>; Array for accumulated errors.</em>
+    _cb := Func("AccumulateError").Bind(this.Errors)
+    Start() => OnError(this._cb, -1)    <em>; Register our cb before others.</em>
+    Stop() => OnError(this._cb, 0)      <em>; Unregister our cb.</em>
+    Last => this.Errors[-1]             <em>; Most recent error.</em>
+    Count => this.Errors.Length         <em>; Number of accumulated errors.</em>
+    __item[i] => this.Errors[i]         <em>; Shortcut for indexing.</em>
+    __delete() => this.Stop()           <em>; For tying to function scope.</em>
+}
+
+<em>; This is the OnError callback function. 'errors' is given a value via Bind().</em>
+AccumulateError(errors, e, mode)
+{
+    if mode != "Return" <em>; Not continuable.</em>
+        return
+    if e.What = "" <em>; Expression defect or similar, not a built-in function.</em>
+        return
+    try {
+        <em>; Try to print the error to stdout.</em>
+        FileAppend Format("{1} ({2}) : ({3}) {4}`n", e.File, e.Line, e.What, e.Message), "*"
+        if HasProp(e, "extra")
+            FileAppend "     Specifically: " e.Extra "`n", "*"
+    }
+    errors.Push(e)
+    return -1 <em>; Continue.</em>
+}
+
+RearrangeWindows()
+{
+    <em>; Start accumulating errors in 'err'.</em>
+    local err := AccumulateErrors()
+
+    <em>; Do some things that might fail...</em>
+    MonitorGetWorkArea , left, top, right, bottom
+    width := (right-left)//2, height := bottom-top
+    WinMove left, top, width, height, A_ScriptFullPath
+    WinMove left+width, top, width, height, "AutoHotkey v2 Help"
+
+    <em>; Check if any errors occurred.</em>
+    if err.Count
+        MsgBox err.Count " error(s); last error at line #" err.Last.Line
+    else
+        MsgBox "No errors"
+
+    <em>; Stop is called automatically when the variable goes out of scope,
+    ; since only we have a reference to the object.  This causes OnError
+    ; to be called to unregister the callback.
+    ;err.Stop()</em>
+}
+
+<em>; Call the test function which suppresses and accumulates errors.</em>
+RearrangeWindows()
+<em>; Call another function to show normal error behaviour is restored.</em>
+WinMove 0, 0, width, height, "non-existent window"
 </pre>
 </div>
 
