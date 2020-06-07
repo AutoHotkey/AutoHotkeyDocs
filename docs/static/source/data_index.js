@@ -309,7 +309,6 @@ indexData = [
   ["ComObjConnect","commands/ComObjConnect.htm",2],
   ["ComObjCreate","commands/ComObjCreate.htm",2],
   ["ComObject","commands/ComObject.htm",2],
-  ["ComObjError","commands/ComObjError.htm",2],
   ["ComObjFlags","commands/ComObjFlags.htm",2],
   ["ComObjGet","commands/ComObjGet.htm",2],
   ["ComObjQuery","commands/ComObjQuery.htm",2],

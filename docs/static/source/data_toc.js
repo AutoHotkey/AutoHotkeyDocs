@@ -77,7 +77,6 @@ tocData = [
       ["ComObjCreate","commands/ComObjCreate.htm"],
       ["ComObjGet","commands/ComObjGet.htm"],
       ["ComObject","commands/ComObject.htm"],
-      ["ComObjError","commands/ComObjError.htm"],
       ["ComObjFlags","commands/ComObjFlags.htm"],
       ["ComObjQuery","commands/ComObjQuery.htm"],
       ["ComObjType","commands/ComObjType.htm"],
