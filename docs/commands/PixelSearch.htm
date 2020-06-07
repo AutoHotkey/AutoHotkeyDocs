@@ -23,10 +23,10 @@
     <p>Either or both of these parameters may be left blank, in which case ErrorLevel (see below) can be used to determine whether a match was found.</p></dd>
 
   <dt>X1, Y1</dt>
-  <dd><p>The X and Y coordinates of the upper left corner of the rectangle to search, which can be <a href="../Variables.htm#Expressions">expressions</a>. <strong>Coordinates are relative to the active window unless <a href="CoordMode.htm">CoordMode</a> was used to change that</strong>.</p></dd>
+  <dd><p>The X and Y coordinates of the starting corner of the rectangle to search, which can be <a href="../Variables.htm#Expressions">expressions</a>. <strong>Coordinates are relative to the active window unless <a href="CoordMode.htm">CoordMode</a> was used to change that</strong>.</p></dd>
 
   <dt>X2, Y2</dt>
-  <dd><p>The X and Y coordinates of the lower right corner of the rectangle to search, which can be <a href="../Variables.htm#Expressions">expressions</a>. Coordinates are relative to the active window unless <a href="CoordMode.htm">CoordMode</a> was used to change that.</p></dd>
+  <dd><p>The X and Y coordinates of the ending corner of the rectangle to search, which can be <a href="../Variables.htm#Expressions">expressions</a>. Coordinates are relative to the active window unless <a href="CoordMode.htm">CoordMode</a> was used to change that.</p></dd>
 
   <dt>ColorID</dt>
   <dd><p>The decimal or hexadecimal color ID to search for, in Blue-Green-Red (BGR) format, which can be an <a href="../Variables.htm#Expressions">expression</a>. Color IDs can be determined using Window Spy (accessible from the tray menu) or via <a href="PixelGetColor.htm">PixelGetColor</a>. For example: <code>0x9d6346</code>.</p></dd>
@@ -44,9 +44,14 @@
 <h2>Error Handling</h2>
 <p><span class="ver">[v1.1.04+]</span>: This command is able to throw an exception if there was a problem while searching. For more information, see <a href="Catch.htm#RuntimeErrors">Runtime Errors</a>.</p>
 <p><a href="../misc/ErrorLevel.htm">ErrorLevel</a> is set to 0 if the color was found in the specified region, 1 if it was not found, or 2 if there was a problem that prevented the command from conducting the search.</p>
+
 <h2>Remarks</h2>
 <p>The region to be searched must be visible; in other words, it is not possible to  search a region of a window hidden behind another window. By contrast, pixels beneath the mouse cursor can usually be detected. The exception to this is cursors in games, which in most cases will hide any pixels beneath them.</p>
-<p>Slow mode only: By default, the search starts at the upper-left pixel of the region and checks all pixels vertically beneath it for a match. If no match is found there, the search continues to the right, column by column, until it finds a matching pixel. The default left-to-right search order can be inverted by swapping <em>X1</em> and <em>X2</em> in the parameter list. In other words, if <em>X1</em> is greater than <em>X2</em>, the search will be conducted from right to left, starting at column <em>X1</em>. Similarly, if <em>Y1</em> is greater than <em>Y2</em>, each column of pixels to be searched starting at the bottom rather than the top. Finally, if the region to be searched is large and the search is repeated with high frequency, it may consume a lot of CPU time. To alleviate this, keep the size of the area to a minimum.</p>
+<p>The search order depends on the order of the parameters. In other words, if <em>X1</em> is greater than <em>X2</em>, the search will be conducted from right to left, starting at column <em>X1</em>. Similarly, if <em>Y1</em> is greater than <em>Y2</em>, the search will be conducted from bottom to top. However, prior to <span class="ver">[v1.1.32]</span>, the fast mode required <em>X1</em> and <em>Y1</em> to be the top-left corner.</p>
+<p>Fast mode: The search starts at the coordinates specified by <em>X1</em> and <em>Y1</em> and checks all pixels in the row from <em>X1</em> to <em>X2</em> for a match. If no match is found there, the search continues toward <em>Y2</em>, row by row, until it finds a matching pixel.</p>
+<p>Slow mode: The search starts at the coordinates specified by <em>X1</em> and <em>Y1</em> and checks all pixels in the column from <em>Y1</em> to <em>Y2</em> for a match. If no match is found there, the search continues toward <em>X2</em>, column by column, until it finds a matching pixel.</p>
+<p>If the region to be searched is large and the search is repeated with high frequency, it may consume a lot of CPU time. To alleviate this, keep the size of the area to a minimum.</p>
+
 <h2>Related</h2>
 <p><a href="PixelGetColor.htm">PixelGetColor</a>, <a href="ImageSearch.htm">ImageSearch</a>, <a href="CoordMode.htm">CoordMode</a>, <a href="MouseGetPos.htm">MouseGetPos</a></p>
 <h2>Examples</h2>

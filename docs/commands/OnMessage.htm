@@ -142,10 +142,10 @@ ExitApp</pre>
 </div>
 
 <div class="ex" id="shutdown">
-<p><a href="#shutdown">#2</a>: The following script detects system shutdown/logoff and allows you to abort it (this is reported NOT to work on Windows Vista and later). Related topic: <a href="OnExit.htm">OnExit</a></p>
-<pre><em>; The following DllCall is optional: it tells the OS to shut down this script <i>first</i> (prior to all other applications).</em>
-DllCall(&quot;kernel32.dll\SetProcessShutdownParameters&quot;, &quot;UInt&quot;, 0x4FF, &quot;UInt&quot;, 0)
-OnMessage(0x11, &quot;WM_QUERYENDSESSION&quot;)
+<p><a href="#shutdown">#2</a>: The following script detects system shutdown/logoff and allows the user to abort it. On Windows Vista and later, the system displays a user interface showing which program is blocking shutdown/logoff and allowing the user to force shutdown/logoff. On older OSes, the script displays a confirmation prompt. Related topic: <a href="OnExit.htm">OnExit</a></p>
+<pre><em>; The following DllCall is optional: it tells the OS to shut down this script first (prior to all other applications).</em>
+DllCall("kernel32.dll\SetProcessShutdownParameters", "UInt", 0x4FF, "UInt", 0)
+OnMessage(0x11, "WM_QUERYENDSESSION")
 return
 
 WM_QUERYENDSESSION(wParam, lParam)
@@ -155,11 +155,38 @@ WM_QUERYENDSESSION(wParam, lParam)
         EventType := "Logoff"
     else  <em>; System is either shutting down or restarting.</em>
         EventType := "Shutdown"
-    MsgBox, 4,, %EventType% in progress.  Allow it?
-    IfMsgBox Yes
-        return true  <em>; Tell the OS to allow the shutdown/logoff to continue.</em>
-    else
-        return false  <em>; Tell the OS to abort the shutdown/logoff.</em>
+    try
+    {
+        <em>; Set a prompt for the OS shutdown UI to display.  We do not display
+        ; our own confirmation prompt because we have only 5 seconds before
+        ; the OS displays the shutdown UI anyway.  Also, a program without
+        ; a visible window cannot block shutdown without providing a reason.</em>
+        BlockShutdown("Example script attempting to prevent " EventType ".")
+        return false
+    }
+    catch
+    {
+        <em>; ShutdownBlockReasonCreate is not available, so this is probably
+        ; Windows XP, 2003 or 2000, where we can actually prevent shutdown.</em>
+        MsgBox, 4,, %EventType% in progress.  Allow it?
+        IfMsgBox Yes
+            return true  <em>; Tell the OS to allow the shutdown/logoff to continue.</em>
+        else
+            return false  <em>; Tell the OS to abort the shutdown/logoff.</em>
+    }
+}
+
+BlockShutdown(Reason)
+{
+    <em>; If your script has a visible GUI, use it instead of A_ScriptHwnd.</em>
+    DllCall("ShutdownBlockReasonCreate", "ptr", A_ScriptHwnd, "wstr", Reason)
+    OnExit("StopBlockingShutdown")
+}
+
+StopBlockingShutdown()
+{
+    OnExit(A_ThisFunc, 0)
+    DllCall("ShutdownBlockReasonDestroy", "ptr", A_ScriptHwnd)
 }</pre>
 </div>
 

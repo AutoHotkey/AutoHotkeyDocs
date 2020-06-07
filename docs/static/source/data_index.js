@@ -719,7 +719,6 @@ indexData = [
   ["mute (changing it)","commands/SoundSet.htm"],
   ["new","Variables.htm#new",4],
   ["NewEnum method (Object)","objects/Object.htm#NewEnum"],
-  ["normal-mode Send","commands/Send.htm#specialchars"],
   ["not","Variables.htm#not",4],
   ["NoTimers","commands/Thread.htm"],
   ["NoTrayIcon","commands/_NoTrayIcon.htm"],

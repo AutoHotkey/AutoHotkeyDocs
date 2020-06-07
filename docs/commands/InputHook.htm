@@ -85,6 +85,7 @@ if (ih.Input = CtrlC)
   <li><a href="#OnEnd">OnEnd</a>: Retrieves or sets the <a href="../objects/Functor.htm">function object</a> which is called when Input is terminated.</li>
   <li><a href="#OnChar">OnChar</a>: Retrieves or sets the <a href="../objects/Functor.htm">function object</a> which is called after a character is added to the input buffer.</li>
   <li><a href="#OnKeyDown">OnKeyDown</a>: Retrieves or sets the <a href="../objects/Functor.htm">function object</a> which is called when a notification-enabled key is pressed.</li>
+  <li><a href="#OnKeyUp">OnKeyUp</a>: Retrieves or sets the <a href="../objects/Functor.htm">function object</a> which is called when a notification-enabled key is released.</li>
 </ul>
 <p>Option Properties:</p>
 <ul>
@@ -92,7 +93,7 @@ if (ih.Input = CtrlC)
   <li><a href="#CaseSensitive">CaseSensitive</a>: Controls whether <em>MatchList</em> is case sensitive.</li>
   <li><a href="#FindAnywhere">FindAnywhere</a>: Controls whether each match can be a substring of the input text.</li>
   <li><a href="#MinSendLevel">MinSendLevel</a>: Retrieves or sets the minimum <a href="SendLevel.htm">send level</a> of input to collect.</li>
-  <li><a href="#NotifyNonText">NotifyNonText</a>: Controls whether the <a href="#OnKeyDown">OnKeyDown</a> callback is called whenever a non-text key is pressed.</li>
+  <li><a href="#NotifyNonText">NotifyNonText</a>: Controls whether the <a href="#OnKeyDown">OnKeyDown</a> and <a href="#OnKeyUp">OnKeyUp</a> callbacks are called whenever a non-text key is pressed.</li>
   <li><a href="#Timeout">Timeout</a>: Retrieves or sets the timeout value in seconds.</li>
   <li><a href="#VisibleNonText">VisibleNonText</a>: Controls whether keys or key combinations which do not produce text are visible (not blocked).</li>
   <li><a href="#VisibleText">VisibleText</a>: Controls whether keys or key combinations which produce text are visible (not blocked).</li>
@@ -111,7 +112,7 @@ if (ih.Input = CtrlC)
   <p id="KeyOpt-plus"><strong>+</strong> (plus): Cancels any previous <code>-</code>, otherwise has no effect.</p>
   <p id="KeyOpt-e"><strong>E</strong>: End key. If enabled, pressing the key terminates Input, sets <a href="#EndReason">EndReason</a> to the word EndKey and the <a href="#EndKey">EndKey</a> property to the key's normalized name. Unlike the <em>EndKeys</em> parameter, the state of the Shift key is ignored. For example, <code>@</code> and <code>2</code> are both equivalent to <code>{vk32}</code> on the US keyboard layout.</p>
   <p id="KeyOpt-i"><strong>I</strong>: Ignore text. Any text normally produced by this key is ignored, and the key is treated as a non-text key (see <a href="#VisibleNonText">VisibleNonText</a>). Has no effect if the key normally does not produce text.</p>
-  <p id="KeyOpt-n"><strong>N</strong>: Notify. Causes the <a href="#OnKeyDown">OnKeyDown</a> callback to be called each time the key is pressed.</p>
+  <p id="KeyOpt-n"><strong>N</strong>: Notify. Causes the <a href="#OnKeyDown">OnKeyDown</a> and <a href="#OnKeyUp">OnKeyUp</a> callbacks to be called each time the key is pressed.</p>
   <p id="KeyOpt-s"><strong>S</strong>: Suppresses (blocks) the key after processing it. This overrides <a href="#VisibleText">VisibleText</a> or <a href="#VisibleNonText">VisibleNonText</a> until <code>-S</code> is used. <code>+S</code> implies <code>-V</code>.</p>
   <p id="KeyOpt-v"><strong>V</strong>: Visible. Prevents the key from being suppressed (blocked). This overrides <a href="#VisibleText">VisibleText</a> or <a href="#VisibleNonText">VisibleNonText</a> until <code>-V</code> is used. <code>+V</code> implies <code>-S</code>.</p>
   </dd>
@@ -218,6 +219,16 @@ if (ih.Input = CtrlC)
 <p>The function is never called when an end key is pressed.</p>
 </div>
 
+<div class="methodShort" id="OnKeyUp"><h2>OnKeyUp <span class="ver">[v1.1.32+]</span></h2>
+<p>Retrieves or sets the <a href="../objects/Functor.htm">function object</a> which is called when a notification-enabled key is released.</p>
+<pre class="Syntax">MyFunc := InputHook.OnKeyUp</pre>
+<pre class="Syntax">InputHook.OnKeyUp := MyFunc</pre>
+<p>Type: <a href="../objects/Functor.htm">function object</a> or <a href="../Concepts.htm#nothing">empty string</a>. Default: empty string.</p>
+<p>Key-up notifications must first be enabled by <a href="#KeyOpt">KeyOpt</a> or <a href="#NotifyNonText">NotifyNonText</a>. Whether a key is considered text or non-text is determined when the key is pressed. If an InputHook detects a key-up without having detected key-down, it is considered non-text.</p>
+<p>The function is passed the following parameters: <code>InputHook, VK, SC</code>. <em>VK</em> and <em>SC</em> are integers. To retrieve the key name (if any), use <code>GetKeyName(Format("vk{:x}sc{:x}", VK, SC))</code>.</p>
+<p>The function is called as a new <a href="../misc/Threads.htm">thread</a>, so starts off fresh with the default values for settings such as <a href="SendMode.htm">SendMode</a> and <a href="DetectHiddenWindows.htm">DetectHiddenWindows</a>.</p>
+</div>
+
 <div class="methodShort" id="BackspaceIsUndo"><h2>BackspaceIsUndo</h2>
 <p>Controls whether <kbd>Backspace</kbd> removes the most recently pressed character from the end of the Input buffer.</p>
 <pre class="Syntax">Boolean := InputHook.BackspaceIsUndo</pre>
@@ -253,11 +264,12 @@ if (ih.Input = CtrlC)
 </div>
 
 <div class="methodShort" id="NotifyNonText"><h2>NotifyNonText</h2>
-<p>Controls whether the <a href="#OnKeyDown">OnKeyDown</a> callback is called whenever a non-text key is pressed.</p>
+<p>Controls whether the <a href="#OnKeyDown">OnKeyDown</a> and <a href="#OnKeyUp">OnKeyUp</a> callbacks are called whenever a non-text key is pressed.</p>
 <pre class="Syntax">Boolean := InputHook.NotifyNonText</pre>
 <pre class="Syntax">InputHook.NotifyNonText := Boolean</pre>
 <p>Type: <a href="../Concepts.htm#boolean">Integer (boolean)</a>. Default: false.</p>
 <p>Setting this to true enables notifications for all keypresses which do not produce text, such as when pressing <kbd>Left</kbd> or <kbd>Alt</kbd>+<kbd>F</kbd>. Setting this property does not affect a key's <a href="#KeyOpt">options</a>, since the production of text depends on the active window's keyboard layout at the time the key is pressed. </p>
+<p>NotifyNonText is applied to key-up events by considering whether a previous key-down with a matching VK code was classified as text or non-text. For example, if NotifyNonText is true, pressing <kbd>Ctrl</kbd>+<kbd>A</kbd> will produce <a href="#OnKeyDown">OnKeyDown</a> and <a href="#OnKeyUp">OnKeyUp</a> calls for both <kbd>Ctrl</kbd> and <kbd>A</kbd>, while pressing <kbd>A</kbd> on its own will not call OnKeyDown or OnKeyUp unless <a href="#KeyOpt">KeyOpt</a> has been used to enable notifications for that key.</p>
 <p>See <a href="#VisibleText">VisibleText</a> for details about which keys are counted as producing text.</p>
 </div>
 

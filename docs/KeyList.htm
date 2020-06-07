@@ -41,11 +41,11 @@
 <table class="info">
   <tr>
     <td style="width:12em">LButton</td>
-    <td>Left mouse button</td>
+    <td>The left mouse button when used with Send, but the primary mouse button when used with hotkeys. In other words, if the user has swapped the buttons via system settings, <code>LButton::</code> is physically activated by clicking the <strong>right</strong> mouse button, but <code>Send {LButton}</code> performs the same as physically clicking the <strong>left</strong> button. To always perform a logical left click, use <code>Click Left</code> or <code>Send {Click Left}</code>.</td>
   </tr>
   <tr>
     <td>RButton</td>
-    <td>Right mouse button</td>
+    <td>The right mouse button when used with Send, but the secondary mouse button when used with hotkeys. In other words, if the user has swapped the buttons via system settings, <code>RButton::</code> is physically activated by clicking the <strong>left</strong> mouse button, but <code>Send {RButton}</code> performs the same as physically clicking the <strong>right</strong> button. To always perform a logical right click, use <code>Click Right</code> or <code>Send {Click Right}</code>.</td>
   </tr>
   <tr>
     <td>MButton</td>
@@ -76,7 +76,7 @@
   <tr>
     <td>WheelLeft<br>WheelRight</td>
     <td><p><span class="ver">[v1.0.48+]:</span> Scroll to the left or right.</p>
-    <p>Requires Windows Vista or later. These can be used as hotkeys with some (but not all) mice which have a second wheel or support tilting the wheel to either side. In some cases, software bundled with the mouse must instead be used to control this feature. Regardless of the particular mouse, <a href="commands/Send.htm">Send</a> and <a href="commands/Click.htm">Click</a> can be used to scroll horizontally in programs which support it.</p></td>
+    <p>Requires Windows Vista or later. These can be <a href="Hotkeys.htm#HWheel">used as hotkeys</a> with some (but not all) mice which have a second wheel or support tilting the wheel to either side. In some cases, software bundled with the mouse must instead be used to control this feature. Regardless of the particular mouse, <a href="commands/Send.htm">Send</a> and <a href="commands/Click.htm">Click</a> can be used to scroll horizontally in programs which support it.</p></td>
   </tr>
 </table>
 <h2 id="keyboard">Keyboard</h2>
@@ -86,7 +86,9 @@
 <table class="info">
   <tr>
     <td style="width:12em">CapsLock</td>
-    <td><kbd>CapsLock</kbd> (caps lock key)</td>
+    <td><kbd>CapsLock</kbd> (caps lock key)
+      <p class="warning"><strong>Note:</strong> Windows IME may interfere with the detection and functionality of CapsLock; see <a href="#IME">CapsLock and IME</a> for details.</p>
+    </td>
   </tr>
   <tr>
     <td>Space</td>
@@ -97,8 +99,12 @@
     <td><kbd>Tab</kbd> (tabulator key)</td>
   </tr>
   <tr>
-    <td>Enter (or Return)</td>
+    <td>Enter</td>
     <td><kbd>Enter</kbd></td>
+  </tr>
+  <tr>
+    <td>Return</td>
+    <td><strong>Deprecated:</strong> Use the synonym <code>Enter</code> instead to reduce ambiguity.</td>
   </tr>
   <tr>
     <td>Escape (or Esc)</td>
@@ -113,7 +119,7 @@
 <table class="info">
   <tr>
     <td style="width:12em">ScrollLock</td>
-    <td><kbd>ScrollLock</kbd> (scroll lock key)</td>
+    <td><kbd>ScrollLock</kbd> (scroll lock key). While the <kbd>Ctrl</kbd> key is held down, the <kbd>ScrollLock</kbd> key produces the key code of <code>CtrlBreak</code>, but can be differentiated from <kbd>Pause</kbd> by scan code.</td>
   </tr>
   <tr>
     <td>Delete (or Del)</td>
@@ -194,7 +200,7 @@
   </tr>
   <tr>
     <td>NumLock</td>
-    <td><kbd>NumLock</kbd> (number lock key)</td>
+    <td><kbd>NumLock</kbd> (number lock key). While the <kbd>Ctrl</kbd> key is held down, the <kbd>NumLock</kbd> key produces the key code of <code>Pause</code>, so use <code>^Pause</code> in hotkeys instead of <code>^NumLock</code>.</td>
   </tr>
   <tr>
     <td>NumpadDiv</td>
@@ -365,15 +371,15 @@
   </tr>
   <tr>
     <td>CtrlBreak</td>
-    <td><kbd>Ctrl</kbd>+<kbd>Break</kbd></td>
+    <td><kbd>Ctrl</kbd>+<kbd>Pause</kbd> or <kbd>Ctrl</kbd>+<kbd>ScrollLock</kbd></td>
   </tr>
   <tr>
     <td>Pause</td>
-    <td><kbd>Pause</kbd></td>
+    <td><kbd>Pause</kbd> or <kbd>Ctrl</kbd>+<kbd>NumLock</kbd>. While the <kbd>Ctrl</kbd> key is held down, the <kbd>Pause</kbd> key produces the key code of <code>CtrlBreak</code> and <kbd>NumLock</kbd> produces <code>Pause</code>, so use <code>^CtrlBreak</code> in hotkeys instead of <code>^Pause</code>.</td>
   </tr>
   <tr>
     <td>Break</td>
-    <td><kbd>Break</kbd>. Since this is synonymous with Pause, use <code>^CtrlBreak</code> in hotkeys instead of <code>^Pause</code> or <code>^Break</code>.</td>
+    <td><strong>Deprecated:</strong> Use the synonym <code>Pause</code> instead.</td>
   </tr>
   <tr>
     <td>Help</td>
@@ -447,5 +453,37 @@ return</pre></li>
       Disable or remove any extra software that came with your keyboard or mouse or change its driver to a more standard one such as the one built into the OS. This assumes there is such a driver for your particular keyboard or mouse and that you can live without the features provided by its custom driver and software.</p>
   </li>
 </ol>
+
+<h2 id="IME">CapsLock and IME</h2>
+<p>Some configurations of Windows IME (such as Japanese input with English keyboard) use CapsLock to toggle between modes. In such cases, CapsLock is suppressed by the IME and cannot be detected by AutoHotkey. However, the <kbd>Alt</kbd>+<kbd>CapsLock</kbd>, <kbd>Ctrl</kbd>+<kbd>CapsLock</kbd> and <kbd>Shift</kbd>+<kbd>CapsLock</kbd> shortcuts can be disabled with a workaround. Specifically, send a key-up to modify the state of the IME, but prevent any other effects by signalling the keyboard hook to suppress the event. The following function can be used for this purpose:</p>
+<pre filename="SendSuppressedKeyUp.ahk">
+<em>; Requires AutoHotkey v1.1.26+, and the keyboard hook must be installed.</em>
+#InstallKeybdHook
+SendSuppressedKeyUp(key) {
+    DllCall("keybd_event"
+        , "char", GetKeyVK(key)
+        , "char", GetKeySC(key)
+        , "uint", KEYEVENTF_KEYUP := 0x2
+        , "uptr", KEY_BLOCK_THIS := 0xFFC3D450)
+}
+</pre>
+<p>After copying the function into a script or saving it as <em>SendSuppressedKeyUp.ahk</em> in a <a href="Functions.htm#lib">function library</a>, it can be used as follows:</p>
+<pre>
+<em>; Disable Alt+key shortcuts for the IME.</em>
+~LAlt::SendSuppressedKeyUp("LAlt")
+
+<em>; Test hotkey:</em>
+!CapsLock::MsgBox % A_ThisHotkey
+
+<em>; Remap CapsLock to LCtrl in a way compatible with IME.</em>
+*CapsLock::
+    Send {Blind}{LCtrl DownR}
+    SendSuppressedKeyUp("LCtrl")
+    return
+*CapsLock up::
+    Send {Blind}{LCtrl Up}
+    return
+</pre>
+
 </body>
 </html>
