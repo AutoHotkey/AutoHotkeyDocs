@@ -123,7 +123,6 @@ indexData = [
   ["A_IsCritical","Variables.htm#IsCritical",1],
   ["A_IsPaused","Variables.htm#IsPaused",1],
   ["A_IsSuspended","Variables.htm#IsSuspended",1],
-  ["A_IsUnicode","Variables.htm#IsUnicode",1],
   ["A_KeyDelay","Variables.htm#KeyDelay",1],
   ["A_KeyDelayPlay","Variables.htm#KeyDelayPlay",1],
   ["A_KeyDuration","Variables.htm#KeyDelay",1],
