@@ -16,8 +16,8 @@ $^2::
 SetWinDelay 10
 SetKeyDelay 0
 
-C_ClipboardPrev := Clipboard
-Clipboard := ""
+C_ClipboardPrev := A_Clipboard
+A_Clipboard := ""
 ; Use the highlighted word if there is one (since sometimes the user might
 ; intentionally highlight something that isn't a function):
 Send "^c"
@@ -27,12 +27,12 @@ if !ClipWait(0.1)
     Send "{home}+{end}^c"
     if !ClipWait(0.2)  ; Rare, so no error is reported.
     {
-        Clipboard := C_ClipboardPrev
+        A_Clipboard := C_ClipboardPrev
         return
     }
 }
 C_Cmd := Trim(Clipboard)  ; This will trim leading and trailing tabs & spaces.
-Clipboard := C_ClipboardPrev  ; Restore the original clipboard for the user.
+A_Clipboard := C_ClipboardPrev  ; Restore the original clipboard for the user.
 Loop Parse, C_Cmd, "`s"  ; The first space is the end of the function.
 {
     C_Cmd := A_LoopField
