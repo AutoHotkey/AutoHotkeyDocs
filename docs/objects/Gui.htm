@@ -17,7 +17,6 @@
 <p><strong>Properties:</strong></p>
 <ul>
   <li><a href="#BackColor">BackColor</a>: Retrieves or sets the background color of the window.</li>
-  <li><a href="#ClientPos">ClientPos</a>: Retrieves the position and size of the window&#39;s client area.</li>
   <li><a href="#__Item">__Item</a>: Retrieves the <a href="GuiControl.htm">GuiControl object</a> associated with the specified name, text, ClassNN or HWND.</li>
   <li><a href="#FocusedCtrl">FocusedCtrl</a>: Retrieves the <a href="GuiControl.htm">GuiControl object</a> of the GUI's focused control.</li>
   <li><a href="#Hwnd">Hwnd</a>: Retrieves the window handle (HWND) of the GUI window.</li>
@@ -25,7 +24,6 @@
   <li><a href="#MarginY">MarginY</a>: Retrieves or sets the size of vertical margins between sides and subsequently created controls.</li>
   <li><a href="#MenuBar">MenuBar</a>: Retrieves or sets the window's menu bar.</li>
   <li><a href="#Name">Name</a>: Retrieves or sets a custom name for the GUI window.</li>
-  <li><a href="#Pos">Pos</a>: Retrieves the position and size of the window.</li>
   <li><a href="#Title">Title</a>: Retrieves or sets the GUI's title.</li>
 </ul>
 <p><strong>Methods:</strong></p>
@@ -33,6 +31,8 @@
   <li><a href="#Add">Add</a>: Creates a control such as text, button, or checkbox.</li>
   <li><a href="#Destroy">Destroy</a>: Deletes the window.</li>
   <li><a href="#Flash">Flash</a>: Blinks the window and its taskbar button.</li>
+  <li><a href="#GetClientPos">GetClientPos</a>: Retrieves the position and size of the window&#39;s client area.</li>
+  <li><a href="#GetPos">GetPos</a>: Retrieves the position and size of the window.</li>
   <li><a href="#Hide">Hide</a>: Hides the window.</li>
   <li><a href="#Maximize">Maximize</a>: Unhides and maximizes the window.</li>
   <li><a href="#Minimize">Minimize</a>: Unhides and minimizes the window.</li>
@@ -284,7 +284,7 @@ WinSetTransColor("EEAA99")</pre>
   <p><strong>Caption</strong> (present by default): Provides a title bar and a thick window border/edge. When removing the caption from a window that will use <a href="../commands/WinSetTransColor.htm">WinSetTransColor</a>, remove it only after setting the TransColor.</p>
   <p id="Delimiter"><strong>Delimiter</strong>: Specifies that the window should use a field separator other than pipe (|) whenever controls' contents are added via <a href="#Add">Gui.Add</a> or modified via <a href="GuiControl.htm">GuiControl object</a>. Specify a single character immediately after the word Delimiter. For example, <code>Gui.Opt("+Delimiter`n")</code> would use a linefeed character, which might be especially appropriate with <a href="../Scripts.htm#continuation">continuation sections</a>. Similarly, <code>Gui.Opt("+Delimiter|")</code> would revert to the default delimiter. To use space or tab, specify <code>Gui.Opt("+DelimiterSpace")</code> or <code>Gui.Opt("+DelimiterTab")</code>. Once the delimiter is changed, it affects all existing and subsequent <a href="../misc/Threads.htm">threads</a> that operate on this particular window.</p>
   <p><strong>Disabled</strong>: Disables the window, which prevents the user from interacting with its controls. This is often used on a window that owns other windows (see <a href="#Owner">Owner</a>).</p>
-  <p id="DPIScale"><strong>DPIScale</strong>: Use <code>Gui.Opt("-DPIScale")</code> to disable DPI scaling, which is enabled by default. If DPI scaling is enabled on a system with a non-standard DPI setting, the Gui object and <a href="GuiControl.htm">GuiControl object</a> automatically scale coordinates and sizes to give controls roughly the same apparent size (but higher resolution). For example, with a DPI of 144 (150%), <code>E := Gui.Add("Edit", "w100")</code> would make the GUI control 150 pixels wide, but <a href="GuiControl.htm#Pos">E.Pos.W</a> would still return 100. <a href="../Variables.htm#ScreenDPI">A_ScreenDPI</a> contains the system's current DPI.</p>
+  <p id="DPIScale"><strong>DPIScale</strong>: Use <code>Gui.Opt("-DPIScale")</code> to disable DPI scaling, which is enabled by default. If DPI scaling is enabled on a system with a non-standard DPI setting, the Gui object and <a href="GuiControl.htm">GuiControl object</a> automatically scale coordinates and sizes to give controls roughly the same apparent size (but higher resolution). For example, with a DPI of 144 (150%), <code>E := Gui.Add("Edit", "w100")</code> would make the GUI control 150 pixels wide, but <a href="GuiControl.htm#GetPos">E.GetPos(,,W)</a> would still set <em>W</em> to 100. <a href="../Variables.htm#ScreenDPI">A_ScreenDPI</a> contains the system's current DPI.</p>
   <p>DPI scaling only applies to the Gui object and <a href="GuiControl.htm">GuiControl object</a>, so coordinates coming directly from other sources such as ControlGetPos or WinGetPos will not work. There are a number of ways to deal with this:</p>
   <ul>
     <li>Avoid using hard-coded coordinates wherever possible.  For example, use the <a href="#xp">xp</a>, <a href="#xs">xs</a>, <a href="#xm">xm</a> and <a href="#PosPlusMargin">x+m</a> options for positioning controls and specify height in <a href="#R">rows of text</a> instead of pixels.</li>
@@ -364,18 +364,42 @@ Gui.Show "w300 h200"</pre>
 <pre class="Syntax">Gui.<span class="func">Restore</span>()</pre>
 </div>
 
-<div class="methodShort" id="Pos">
-<h2>Pos</h2>
-<p>Retrieves the position and size of the window.</p>
-<pre class="Syntax">PosSizeObj := Gui.Pos</pre>
-<p><em>PosSizeObj</em> is an <a href="../Objects.htm">object</a> with the keys <strong>X</strong> (x coordinate), <strong>Y</strong> (y coordinate), <strong>W</strong> (width) and <strong>H</strong> (height). The coordinates are the upper left corner of the window. Width is the horizontal distance between the left and right side of the window, and height the vertical distance between the top and bottom side (in pixels).</p>
+<div class="methodShort" id="Move">
+<h2>Move</h2>
+<p>Moves and/or resizes the GUI window.</p>
+<pre class="Syntax">Gui.<span class="func">Move</span>(<span class="optional">X, Y, Width, Height</span>)</pre>
+<dl>
+  <dt>X, Y</dt><dd>
+    <p>Type: <a href="../Concepts.htm#numbers">Integer</a></p>
+    <p>The new position, in screen coordinates.</p></dd>
+  <dt>Width, Height</dt><dd>
+    <p>Type: <a href="../Concepts.htm#numbers">Integer</a></p>
+    <p>The new size.</p></dd>
+</dl>
+<p>Unlike <a href="../commands/WinMove.htm">WinMove</a>, this method applies <a href="Gui.htm#DPIScale">DPI scaling</a> to <em>Width</em> and <em>Height</em> (unless the <code>-DPIScale</code> option was used).</p>
+<h3>Examples</h3>
+<pre>MyGui.Move(10, 20, 200, 100)
+MyGui.Move(VarX+10, VarY+5, VarW*2, VarH*1.5)
+
+<em>; Expand to the sides by 10 pixels on each side.</em>
+MyGui.GetPos(x,, w)
+MyGui.Move(x-10,, w+20)</pre>
 </div>
 
-<div class="methodShort" id="ClientPos">
-<h2>ClientPos</h2>
+<div class="methodShort" id="GetPos">
+<h2>GetPos</h2>
+<p>Retrieves the position and size of the window.</p>
+<pre class="Syntax">Gui.<span class="func">GetPos</span>(<span class="optional">X, Y, Width, Height</span>)</pre>
+<p>Each parameter should be a variable in which to store the respective coordinate. The coordinates are the upper left corner of the window. X and Y are in screen coordinates. Width is the horizontal distance between the left and right side of the window, and height the vertical distance between the top and bottom side (in pixels).</p>
+<p>Unlike <a href="../commands/WinGetPos.htm">WinGetPos</a>, GetPos applies <a href="#DPIScale">DPI scaling</a> to <em>Width</em> and <em>Height</em> (unless the <code>-DPIScale</code> option was used).</p>
+</div>
+
+<div class="methodShort" id="GetClientPos">
+<h2>GetClientPos</h2>
 <p>Retrieves the position and size of the window's client area.</p>
-<pre class="Syntax">PosSizeObj := Gui.ClientPos</pre>
-<p><em>PosSizeObj</em> is an <a href="../Objects.htm">object</a> with the keys <strong>X</strong> (x coordinate), <strong>Y</strong> (y coordinate), <strong>W</strong> (width) and <strong>H</strong> (height). The coordinates are the upper left corner of the window's client area, which is the area not including title bar, menu bar, and borders. Width is the horizontal distance between the left and right side of the client area, and height the vertical distance between the top and bottom side (in pixels).</p>
+<pre class="Syntax">Gui.<span class="func">GetClientPos</span>(<span class="optional">X, Y, Width, Height</span>)</pre>
+<p>Each parameter should be a variable in which to store the respective coordinate. The coordinates are the upper left corner of the window's client area, which is the area not including title bar, menu bar, and borders. X and Y are in screen coordinates. Width is the horizontal distance between the left and right side of the client area, and height the vertical distance between the top and bottom side (in pixels).</p>
+<p>Unlike <a href="../commands/WinGetClientPos.htm">WinGetClientPos</a>, GetPos applies <a href="#DPIScale">DPI scaling</a> to <em>Width</em> and <em>Height</em> (unless the <code>-DPIScale</code> option was used).</p>
 </div>
 
 <div class="methodShort" id="Flash">
