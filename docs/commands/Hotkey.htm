@@ -31,7 +31,7 @@
     <p>Type: <a href="../Concepts.htm#strings">String</a></p>
     <p>Name of the hotkey's activation key, including any <a href="../Hotkeys.htm#Symbols">modifier symbols</a>. For example, specify <code>#c</code> for the <kbd>Win</kbd>+<kbd>C</kbd> hotkey.</p>
     <p>If <em>KeyName</em> already exists as a hotkey, that hotkey will be updated with the values of the function's other parameters.</p>
-    <p><em>KeyName</em> can also be the name of an existing hotkey label (i.e. a double-colon label), which will cause that hotkey to be updated with the values of the function's other parameters.</p>
+    <p><em>KeyName</em> can also be the name of an existing hotkey (created with a double-colon), which will cause that hotkey to be updated with the values of the function's other parameters.</p>
     <p>When specifying an <em>existing</em> hotkey, <em>KeyName</em> is not case sensitive. However, the names of keys must be spelled the same as in the existing hotkey (e.g. Esc is not the same as Escape for this purpose). Also, the order of <a href="../Hotkeys.htm#Symbols">modifier symbols</a> such as ^!+# does not matter. <a href="GetKeyName.htm">GetKeyName</a> can be used to retrieve the standard spelling of a key name.</p>
     <p>When a hotkey is first created -- either by the Hotkey function or a <a href="../Hotkeys.htm">double-colon label</a> in the script -- its key name and the ordering of its modifier symbols becomes the permanent name of that hotkey as reflected by <a href="../Variables.htm#ThisHotkey">A_ThisHotkey</a>. This name is shared by all <a href="_If.htm#variant">variants</a> of the hotkey, and does not change even if the Hotkey function later accesses the hotkey with a different symbol ordering.</p>
     <p>If the hotkey variant already exists, its behavior is updated according to whether <em>KeyName</em> includes or excludes the <a href="../Hotkeys.htm#Tilde">tilde (~) prefix</a>.</p>
@@ -42,8 +42,8 @@
   <dd>
       <p>Type: <a href="../Concepts.htm#strings">String</a> or <a href="../Concepts.htm#objects">Object</a></p>
       <p>The subroutine to execute (as a new <a href="../misc/Threads.htm">thread</a>) when the hotkey is pressed. This can be a <a href="../misc/Labels.htm">label</a> name, function name or <a href="../objects/Functor.htm">function object</a>.</p>
-  <p>Literal label and function names must be enclosed in quote marks. Both normal global labels and <a href="../Hotkeys.htm">hotkey</a>/<a href="../Hotstrings.htm">hotstring</a> labels can be used, but not local labels (use a <a href="../Functions.htm#nested">nested function</a> instead). The trailing colon(s) should not be included.</p>
-  <p>If <em>Callback</em> is a function, it is called without parameters. To specify a function when a label with the same name exists, pass it by reference instead of name. For example: <code>Hotkey "#c", Func("<i>FunctionName</i>")</code>. Hotkeys can also be <a href="../Hotkeys.htm#Function">defined as functions</a> without the Hotkey function.</p>
+  <p>Literal label and function names must be enclosed in quote marks. Both normal global labels and <a href="../Hotkeys.htm">hotkey</a>/<a href="../Hotstrings.htm">hotstring</a> names can be used, but not local labels (use a <a href="../Functions.htm#nested">nested function</a> instead). The trailing colon(s) should not be included.</p>
+  <p>If <em>Callback</em> is a function, it is called with one parameter, the <a href="../Hotkeys.htm#HotBraces">name</a> of the hotkey. To specify a function when a label with the same name exists, pass it by reference instead of name. For example: <code>Hotkey "#c", Func("<i>FunctionName</i>")</code>. Hotkeys can also be <a href="../Hotkeys.htm#Function">defined as functions</a> without the Hotkey function.</p>
       <p>This parameter can be left blank if <em>KeyName</em> already exists as a hotkey, in which case its label will not be changed. This is useful to change only the hotkey's <em>Options</em>.</p>
       <p class="note"><strong>Note</strong>: If the label or function is specified but the hotkey is disabled from a previous use of this function, the hotkey will remain disabled. To prevent this, include the word ON in <em>Options</em>.</p>
       <p>This parameter can also be one of the following special values:</p>
@@ -143,7 +143,7 @@ catch
   
   <dt id="if-func">"If", FunctionObject</dt>
   <dd>
-    <p>Sets the criteria to a given <a href="../objects/Functor.htm">function object</a>. Subsequently-created hotkeys will only execute if calling the given function object yields a non-zero number. This is like <code>Hotkey "If", "Expression"</code>, except that each hotkey can have many <a href="#variant">variants</a> (one per object). <em>FunctionObject</em> must be an object with a <em>call</em> method. The function or <em>call</em> method can accept one parameter: the <a href="../Variables.htm#ThisHotkey">name</a> of the hotkey.</p>
+    <p>Sets the criteria to a given <a href="../objects/Functor.htm">function object</a>. Subsequently-created hotkeys will only execute if calling the given function object yields a non-zero number. This is like <code>Hotkey "If", "Expression"</code>, except that each hotkey can have many <a href="#variant">variants</a> (one per object). <em>FunctionObject</em> must be an object with a <em>call</em> method. The function or <em>call</em> method can accept one parameter: the <a href="../Hotkeys.htm#HotBraces">name</a> of the hotkey.</p>
     <p>Once passed to the Hotkey function, the object will never be deleted (but memory will be reclaimed by the OS when the process exits).</p>
     <p>The <a href="#ExampleIfFn">"three-key combination" example</a> below uses this sub-command.</p>
   </dd>
@@ -214,10 +214,11 @@ Gui.OnEvent("Close", (*) =&gt; ExitApp())
 Gui.OnEvent("Escape", (*) =&gt; ExitApp())
 Gui.Show()
 
-RegisterHotkey(this, *) {
+RegisterHotkey(this, *)
+{
     Saved := this.Gui.Submit(false)
     Hotkey "If", (*) =&gt; GetKeyState(Saved.Prefix)
-    Hotkey Saved.Suffix, (*) =&gt; MsgBox(A_ThisHotkey)
+    Hotkey Saved.Suffix, (ThisHotkey) =&gt; MsgBox(ThisHotkey)
 }</pre>
 </div>
 

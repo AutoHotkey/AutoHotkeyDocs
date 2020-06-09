@@ -238,17 +238,28 @@ MsgBox &quot;Elapsed QPC time is &quot; . (CounterAfter - CounterBefore) / freq 
 
 <div class="ex" id="ExMouseSpeed">
 <p><a href="#ExMouseSpeed">#6</a>: This is a hotkey that temporarily reduces the mouse cursor's speed, which facilitates precise positioning. Hold down <kbd>F1</kbd> to slow down the cursor. Release it to return to original speed.</p>
-<pre>F1::
-SPI_GETMOUSESPEED := 0x70
-SPI_SETMOUSESPEED := 0x71
-<em>; Retrieve the current speed so that it can be restored later:</em>
-DllCall(&quot;SystemParametersInfo&quot;, &quot;UInt&quot;, SPI_GETMOUSESPEED, &quot;UInt&quot;, 0, &quot;Ptr*&quot;, OrigMouseSpeed := 0, &quot;UInt&quot;, 0)
-<em>; Now set the mouse to the slower speed specified in the next-to-last parameter (the range is 1-20, 10 is default):</em>
-DllCall(&quot;SystemParametersInfo&quot;, &quot;UInt&quot;, SPI_SETMOUSESPEED, &quot;UInt&quot;, 0, &quot;Ptr&quot;, <strong>3</strong>, &quot;UInt&quot;, 0)
-KeyWait "F1"  <em>; This prevents keyboard auto-repeat from doing the DllCall repeatedly.</em>
-return
 
-F1 up::DllCall(&quot;SystemParametersInfo&quot;, &quot;UInt&quot;, SPI_SETMOUSESPEED, &quot;UInt&quot;, 0, &quot;Ptr&quot;, OrigMouseSpeed, &quot;UInt&quot;, 0)  <em>; Restore the original speed.</em></pre>
+<pre>
+F1::
+F1 up::
+{
+    static SPI_GETMOUSESPEED := 0x70
+    static SPI_SETMOUSESPEED := 0x71
+    static OrigMouseSpeed := 0
+    
+    switch ThisHotkey
+    {
+    case "F1":
+        <em>; Retrieve the current speed so that it can be restored later:</em>
+        DllCall("SystemParametersInfo", "UInt", SPI_GETMOUSESPEED, "UInt", 0, "Ptr*", OrigMouseSpeed, "UInt", 0)
+        <em>; Now set the mouse to the slower speed specified in the next-to-last parameter (the range is 1-20, 10 is default):</em>
+        DllCall("SystemParametersInfo", "UInt", SPI_SETMOUSESPEED, "UInt", 0, "Ptr", 3, "UInt", 0)
+        KeyWait "F1"  <em>; This prevents keyboard auto-repeat from doing the DllCall repeatedly.</em>
+        
+    case "F1 up":
+        DllCall("SystemParametersInfo", "UInt", SPI_SETMOUSESPEED, "UInt", 0, "Ptr", OrigMouseSpeed, "UInt", 0)  <em>; Restore the original speed.</em>
+    }
+}</pre>
 </div>
 
 <div class="ex" id="ExWatchScrollBar">
@@ -329,10 +340,10 @@ SystemCursor(cmd)  <em>; cmd = "Show|Hide|Toggle|Reload"</em>
     }
     switch cmd
     {
-      case "Show": visible := true
-      case "Hide": visible := false
-      case "Toggle": visible := !visible
-      default: return
+    case "Show": visible := true
+    case "Hide": visible := false
+    case "Toggle": visible := !visible
+    default: return
     }
     for id, handles in c
     {

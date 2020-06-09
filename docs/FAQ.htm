@@ -90,10 +90,11 @@
 <p>Any lines you want to execute immediately when the script starts should appear at the top of the script, prior to the first <a href="Hotkeys.htm">hotkey</a>, <a href="Hotstrings.htm">hotstring</a>, or <a href="commands/Return.htm">Return</a>. For details, see <a href="Scripts.htm#auto">auto-execute section</a>.</p>
 <p>Also, a <a href="Hotkeys.htm">hotkey</a> that executes more than one line must list its first line <em>beneath</em> the hotkey, not on the same line. For example:</p>
 <pre>#space::  <em>; Win+Spacebar</em>
-Run "Notepad"
-WinWaitActive "Untitled - Notepad"
-WinMaximize
-return</pre>
+{
+    Run "Notepad"
+    WinWaitActive "Untitled - Notepad"
+    WinMaximize
+}</pre>
 <h3 id="vista">Why doesn't my script work on Windows <em>xxx</em> even though it worked on a previous version?</h3>
 <p>There are many variations of this problem, such as:</p>
 <ul>
@@ -213,27 +214,29 @@ PostMessage 0x111, 65303,,, "Script's File Name.ahk - AutoHotkey"  <em>; Reload.
 <p>To stop an action that is repeating inside a <a href="commands/Loop.htm">Loop</a>, consider the following working example, which is a hotkey that both starts and stops its own repeating action. In other words, pressing the hotkey once will start the Loop. Pressing the same hotkey again will stop it.</p>
 <pre>#MaxThreadsPerHotkey 3
 <strong>#z::  <em>; Win+Z hotkey (change this hotkey to suit your preferences).</em></strong>
-#MaxThreadsPerHotkey 1
-if KeepWinZRunning  <em>; This means an underlying <a href="misc/Threads.htm">thread</a> is already running the loop below.</em>
 {
-    KeepWinZRunning := false  <em>; Signal that thread's loop to stop.</em>
-    return  <em>; End this thread so that the one underneath will resume and see the change made by the line above.</em>
+    static KeepWinZRunning := false
+    if KeepWinZRunning  <em>; This means an underlying <a href="misc/Threads.htm">thread</a> is already running the loop below.</em>
+    {
+        KeepWinZRunning := false  <em>; Signal that thread's loop to stop.</em>
+        return  <em>; End this thread so that the one underneath will resume and see the change made by the line above.</em>
+    }
+    <em>; Otherwise:</em>
+    KeepWinZRunning := true
+    Loop
+    {
+        <strong><em>; The next four lines are the action you want to repeat (update them to suit your preferences):</em></strong>
+        ToolTip "Press Win-Z again to stop this from flashing."
+        Sleep 1000
+        ToolTip
+        Sleep 1000
+        <strong><em>; But leave the rest below unchanged.</em></strong>
+        if not KeepWinZRunning  <em>; The user signaled the loop to stop by pressing Win-Z again.</em>
+            break  <em>; Break out of this loop.</em>
+    }
+    KeepWinZRunning := false  <em>; Reset in preparation for the next press of this hotkey.</em>
 }
-<em>; Otherwise:</em>
-KeepWinZRunning := true
-Loop
-{
-    <strong><em>; The next four lines are the action you want to repeat (update them to suit your preferences):</em></strong>
-    ToolTip "Press Win-Z again to stop this from flashing."
-    Sleep 1000
-    ToolTip
-    Sleep 1000
-    <strong><em>; But leave the rest below unchanged.</em></strong>
-    if not KeepWinZRunning  <em>; The user signaled the loop to stop by pressing Win-Z again.</em>
-        break  <em>; Break out of this loop.</em>
-}
-KeepWinZRunning := false  <em>; Reset in preparation for the next press of this hotkey.</em>
-return</pre>
+#MaxThreadsPerHotkey 1</pre>
 <h3 id="help">How can context sensitive help for AutoHotkey functions be used in any editor?</h3>
 <p>Rajat created <a href="scripts/ContextSensitiveHelp.htm">this script</a>.</p>
 <h3 id="load">How to detect when a web page is finished loading?</h3>
@@ -299,9 +302,10 @@ Submit(Btn, *)
 <h3 id="DoublePress">How do I detect the double press of a key or button?</h3>
 <p>Use <a href="Variables.htm#h">built-in variables for hotkeys</a> as follows:</p>
 <pre>~Ctrl::
-    if (A_ThisHotkey = A_PriorHotkey &amp;&amp; A_TimeSincePriorHotkey &lt; 200)
+{
+    if (ThisHotkey = A_PriorHotkey &amp;&amp; A_TimeSincePriorHotkey &lt; 200)
         MsgBox "double-press"
-return</pre>
+}</pre>
 <h3 id="HotContext">How can a <a href="Hotkeys.htm">hotkey</a> or <a href="Hotstrings.htm">hotstring</a> be made exclusive to  certain program(s)? In other words, I want a certain key to act as it normally does except when a specific window is active.</h3>
 <p>The preferred method is <a href="commands/_If.htm">#If</a>. For example:</p>
 <pre>#if WinActive("ahk_class Notepad")
