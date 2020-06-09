@@ -1,5 +1,5 @@
 ; Changing MsgBox's Button Names
-; http://www.autohotkey.com
+; https://www.autohotkey.com
 ; This is a working example script that uses a timer to change
 ; the names of the buttons in a MsgBox dialog. Although the button
 ; names are changed, the IfMsgBox command still requires that the

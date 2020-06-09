@@ -1,5 +1,5 @@
 ; Volume On-Screen-Display (OSD) -- by Rajat
-; http://www.autohotkey.com
+; https://www.autohotkey.com
 ; This script assigns hotkeys of your choice to raise and lower the
 ; master and/or wave volume.  Both volumes are displayed as different
 ; color bar graphs.

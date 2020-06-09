@@ -1,5 +1,5 @@
 ; Easy Window Dragging -- KDE style (requires XP/2k/NT) -- by Jonny
-; http://www.autohotkey.com
+; https://www.autohotkey.com
 ; This script makes it much easier to move or resize a window: 1) Hold down
 ; the ALT key and LEFT-click anywhere inside a window to drag it to a new
 ; location; 2) Hold down ALT and RIGHT-click-drag anywhere inside a window
