@@ -41,7 +41,7 @@ ul.list_of_p li { margin: 1em 0; }
   <li><a href="#Extended_Usage">Extended Usage</a> - <a href="#Function_References">Function References</a>, <a href="#Usage_Arrays_of_Arrays">Arrays of Arrays</a></li>
   <li><a href="#Custom_Objects">Custom Objects</a> - <a href="#creating-a-base-object">Creating a Base Object</a>, <a href="#Custom_Classes">Classes</a>, <a href="#Custom_NewDelete">Construction and Destruction</a>, <a href="#Meta_Functions">Meta-Functions</a></li>
   <li><a href="#primitive">Primitive Values</a></li>
-  <li><a href="#Implementation">Implementation</a> - <a href="#Reference_Counting">Reference-Counting</a>, <a href="#Implementation_Pointers">Pointers to Objects</a></li>
+  <li><a href="#Implementation">Implementation</a> - <a href="#Reference_Counting">Reference-Counting</a>, <a href="#ObjPtr">Pointers to Objects</a></li>
 </ul>
 
 <span id="Syntax"></span><h2 id="Usage">Basic Usage</h2>
@@ -519,7 +519,7 @@ MsgBox "".test  <em>; 1</em>
 
 <h2 id="Implementation">Implementation</h2>
 <span id="Refs"></span><h3 id="Reference_Counting">Reference-Counting</h3>
-<p>AutoHotkey uses a basic reference-counting mechanism to automatically free the resources used by an object when it is no longer referenced by the script.  Script authors should not invoke this mechanism explicitly, except when dealing directly with unmanaged <a href="#Implementation_Pointers">pointers to objects</a>.</p>
+<p>AutoHotkey uses a basic reference-counting mechanism to automatically free the resources used by an object when it is no longer referenced by the script.  Script authors should not invoke this mechanism explicitly, except when dealing directly with unmanaged <a href="#ObjPtr">pointers to objects</a>.</p>
 <p>Temporary references returned by functions, methods or operators within an expression are released after evaluation of that expression has completed or been aborted. In the following example, the new <a href="#GMem">GMem</a> object is freed only after MsgBox has returned:</p>
 <pre>MsgBox <a href="commands/DllCall.htm">DllCall</a>("GlobalSize", "ptr", GMem.new(0, 20).ptr, "ptr")  <em>; 20</em></pre>
 <p class="note"><strong>Note:</strong> In this example, <code>.ptr</code> could have been omitted since the <a href="commands/DllCall.htm#ptr">Ptr</a> arg type permits objects with a <code>Ptr</code> property. However, the pattern shown above will work even with other property names.</p>
@@ -531,15 +531,22 @@ MsgBox "".test  <em>; 1</em>
 </ul>
 <p>Although memory used by the object is reclaimed by the operating system when the program exits, <a href="#Custom_NewDelete">__Delete</a> will not be called unless all references to the object are freed.  This can be important if it frees other resources which are not automatically reclaimed by the operating system, such as temporary files.</p>
 
-<span id="AddressCast"></span><h3 id="Implementation_Pointers">Pointers to Objects</h3>
-<p>In some rare cases it may be necessary to pass an object to external code via DllCall or store it in a binary data structure for later retrieval. An object's address can be retrieved via <code>address := &amp;object</code>; however, this effectively makes two references to the object, but the program only knows about the one in <em>object</em>. If the last <em>known</em> reference to the object was released, the object would be deleted. Therefore, the script must inform the object that it has gained a reference. This can be done as follows:</p>
-<pre><a href="commands/ObjAddRef.htm">ObjAddRef</a>(address := &amp;object)</pre>
+<h3 id="ObjPtr">Pointers to Objects</h3>
+<p>In some rare cases it may be necessary to pass an object to external code via DllCall or store it in a binary data structure for later retrieval. An object's address can be retrieved via <code>address := ObjPtr(myObject)</code>; however, this effectively makes two references to the object, but the program only knows about the one in <em>myObject</em>. If the last <em>known</em> reference to the object was released, the object would be deleted. Therefore, the script must inform the object that it has gained a reference. This can be done as follows (the two lines below are equivalent):</p>
+<pre>
+ObjAddRef(address := ObjPtr(myObject))
+address := ObjPtrAddRef(myObject)
+</pre>
 <p>The script must also inform the object when it is finished with that reference:</p>
-<pre><a href="commands/ObjAddRef.htm">ObjRelease</a>(address)</pre>
+<pre>ObjRelease(address)</pre>
 <p>Generally each new copy of an object's address should be treated as another reference to the object, so the script should call ObjAddRef when it gains a copy and ObjRelease immediately before losing one. For example, whenever an address is copied via something like <code>x := address</code>, ObjAddRef should be called. Similarly, when the script is finished with <em>x</em> (or is about to overwrite <em>x</em>'s value), it should call ObjRelease.</p>
-<p>To convert an address to a proper reference, use the Object function:</p>
-<pre>MyObject := Object(address)</pre>
-<p>Note that the Object function can be used even on objects which it did not create, such as <a href="commands/ComObjCreate.htm">COM objects</a> and <a href="objects/File.htm">File objects</a>.</p>
+<p id="ObjFromPtr">To convert an address to a proper reference, use the ObjFromPtr function:</p>
+<pre>myObject := ObjFromPtr(address)</pre>
+<p>ObjFromPtr assumes that <em>address</em> is a counted reference, and claims ownership of it. In other words, <code>myObject := ""</code> would cause the reference originally represented by <em>address</em> to be released. After that, <em>address</em> must be considered invalid. To instead make a new reference, use one of the following:</p>
+<pre>
+ObjAddRef(address), myObject := ObjFromPtr(address)
+myObject := ObjFromPtrAddRef(address)
+</pre>
 
 </body>
 </html>
