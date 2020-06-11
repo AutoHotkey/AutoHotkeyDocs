@@ -272,6 +272,7 @@ indexData = [
   ["CaretGetPos","commands/CaretGetPos.htm",2],
   ["Case","commands/Switch.htm",3,"E"],
   ["case sensitive strings","commands/StringCaseSense.htm"],
+  ["CaseSense property (Map)","objects/Map.htm#CaseSense"],
   ["Catch","commands/Catch.htm",3,"O"],
   ["Ceil","commands/Math.htm#Ceil",2],
   ["Changelog","ChangeLog.htm"],
