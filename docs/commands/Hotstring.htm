@@ -29,7 +29,7 @@ OldValue := <span class="func">Hotstring</span>("<a href="#MouseReset">MouseRese
     <p>The hotstring's trigger string, preceded by <a href="../Hotstrings.htm">the usual colons</a> and <a href="../Hotstrings.htm#Options">option characters</a>. For example, <code>"::btw"</code> or <code>":*:]d"</code>.</p>
     <p><em>String</em> may be matched to an existing hotstring by considering <a href="../Hotstrings.htm#C">case-sensitivity (C)</a>, <a href="../Hotstrings.htm#Question">word-sensitivity (?)</a>, activation criteria (as set by <a href="_If.htm">#If</a> or <a href="Hotkey.htm#if">Hotkey "If"</a>) and the trigger string. For example, <code>"::btw"</code> and <code>"::BTW"</code> match unless the case-sensitive mode was enabled as a default, while <code>":C:btw"</code> and <code>":C:BTW"</code> never match. The <code>C</code> and <code>?</code> options may be included in <em>String</em> or set as defaults by the <a href="_Hotstring.htm">#Hotstring</a> directive or a previous call to <a href="#NewOptions">this function</a>.</p>
     <p>If the hotstring already exists, any options specified in <em>String</em> are put into effect, while all other options are left as is. However, since hotstrings with <code>C</code> or <code>?</code> are considered distinct from other hotstrings, it is not possible to add or remove these options. Instead, turn off the existing hotstring and create a new one.</p>
-    <p>When a hotstring is first created -- either by the Hotstring function or a <a href="../Hotstrings.htm">double-colon label</a> in the script -- its trigger string and sequence of option characters becomes the permanent name of that hotstring as reflected by <a href="../Variables.htm#ThisHotkey">A_ThisHotkey</a>. This name does not change even if the Hotstring function later accesses the hotstring with different option characters.</p>
+    <p>When a hotstring is first created -- either by the Hotstring function or the <a href="../Hotstrings.htm">double-colon syntax</a> in the script -- its trigger string and sequence of option characters becomes the permanent name of that hotstring as reflected by <a href="Hotkeys.htm#HotBraces">ThisHotkey</a>. This name does not change even if the Hotstring function later accesses the hotstring with different option characters.</p>
     <p>If the <a href="../Hotstrings.htm#X">X (execute) option</a> is present in <em>String</em> (not just set as a default), the <em>Replacement</em> parameter is interpreted as a label or function name instead of replacement text. This has no effect if <em>Replacement</em> is an object.</p>
   </dd>
 
@@ -37,7 +37,7 @@ OldValue := <span class="func">Hotstring</span>("<a href="#MouseReset">MouseRese
   <dd>
     <p>Type: <a href="../Concepts.htm#strings">String</a> or <a href="../Concepts.htm#objects">Object</a></p>
     <p>The replacement string, or a <a href="../misc/Labels.htm">label</a>, <a href="../Functions.htm">function</a> or <a href="../objects/Functor.htm">function object</a> to call (as a new <a href="../misc/Threads.htm">thread</a>) when the hotstring triggers.</p>
-    <p>By default, all strings are treated as replacement text. To specify a label or function by name, include the <a href="../Hotstrings.htm#X">X (execute)</a> option in <em>String</em>. Both normal global labels and <a href="../Hotkeys.htm">hotkey</a>/<a href="../Hotstrings.htm">hotstring</a> labels can be used, but not local labels. The trailing colon(s) should not be included. If a function and a label exist with the same name, the label takes precedence. To use the function instead, pass a <a href="../objects/Func.htm">function reference</a>.</p>
+    <p>By default, all strings are treated as replacement text. To specify a label or function by name, include the <a href="../Hotstrings.htm#X">X (execute)</a> option in <em>String</em>. Both normal global labels and <a href="../Hotkeys.htm">hotkey</a>/<a href="../Hotstrings.htm">hotstring</a> names can be used, but not local labels. The trailing colon(s) in should not be included. If a function and a label exist with the same name, the label takes precedence. To use the function instead, pass a <a href="../objects/Func.htm">function reference</a>.</p>
     <p>This parameter can be left blank if the hotstring already exists, in which case its replacement will not be changed. This is useful to change only the hotstring's options, or to turn it on or off.</p>
     <p class="note"><strong>Note</strong>: If this parameter is specified but the hotstring is disabled from a previous use of this function, the hotstring will remain disabled. To prevent this, include the word <code>"On"</code> in <em>OnOffToggle</em>.</p>
   </dd>
@@ -111,27 +111,31 @@ MsgBox "The previous value was: " prev_chars</pre>
 <div class="ex" id="ExHelper">
 <p><a href="#ExHelper">#1</a>: Hotstring Helper. The following script might be useful if you are a heavy user of hotstrings. It's based on the v1 script created by Andreas Borutta. By pressing <kbd>Win</kbd>+<kbd>H</kbd> (or another hotkey of your choice), the currently selected text can be turned into a hotstring.  For example, if you have &quot;by the way&quot; selected in a word processor, pressing <kbd>Win</kbd>+<kbd>H</kbd> will prompt you for its abbreviation (e.g. btw), add the new hotstring to the script and activate it.</p>
 <pre>#h::  <em>; Win+H hotkey
-; Get the text currently selected. The clipboard is used instead of
-; ControlGetSelected because it works in a greater variety of editors
-; (namely word processors).  Save the current clipboard contents to be
-; restored later. Although this handles only plain text, it seems better
-; than nothing:</em>
-ClipboardOld := A_Clipboard
-A_Clipboard := "" <em>; Must start off blank for detection to work.</em>
-Send "^c"
-if !ClipWait(1)  <em>; ClipWait timed out.</em>
-    return
-<em>; Replace CRLF and/or LF with `n for use in a "send-raw" hotstring:
-; The same is done for any other characters that might otherwise
-; be a problem in raw mode:</em>
-ClipContent := StrReplace(A_Clipboard, "``", "````")  <em>; Do this replacement first to avoid interfering with the others below.</em>
-ClipContent := StrReplace(ClipContent, "`r`n", "``r")  <em>; Using `r works better than `n in MS Word, etc.</em>
-ClipContent := StrReplace(ClipContent, "`n", "``r")
-ClipContent := StrReplace(ClipContent, "`t", "``t")
-ClipContent := StrReplace(ClipContent, "`;", "```;")
-A_Clipboard := ClipboardOld  <em>; Restore previous contents of clipboard.</em>
-ShowInputBox(":T:`::" ClipContent)
-return
+{
+    ; Get the text currently selected. The clipboard is used instead of
+    ; ControlGetSelected because it works in a greater variety of editors
+    ; (namely word processors).  Save the current clipboard contents to be
+    ; restored later. Although this handles only plain text, it seems better
+    ; than nothing:</em>
+    ClipboardOld := A_Clipboard
+    A_Clipboard := "" <em>; Must start off blank for detection to work.</em>
+    Send "^c"
+    if !ClipWait(1)  <em>; ClipWait timed out.</em>
+    {
+        A_Clipboard := ClipboardOld <em>; Restore previous contents of clipboard before returning.</em>
+        return
+    }
+    <em>; Replace CRLF and/or LF with `n for use in a "send-raw" hotstring:
+    ; The same is done for any other characters that might otherwise
+    ; be a problem in raw mode:</em>
+    ClipContent := StrReplace(A_Clipboard, "``", "````")  <em>; Do this replacement first to avoid interfering with the others below.</em>
+    ClipContent := StrReplace(ClipContent, "`r`n", "``r")  <em>; Using `r works better than `n in MS Word, etc.</em>
+    ClipContent := StrReplace(ClipContent, "`n", "``r")
+    ClipContent := StrReplace(ClipContent, "`t", "``t")
+    ClipContent := StrReplace(ClipContent, "`;", "```;")
+    A_Clipboard := ClipboardOld  <em>; Restore previous contents of clipboard.</em>
+    ShowInputBox(":T:`::" ClipContent)
+}
 
 ShowInputBox(DefaultValue)
 {

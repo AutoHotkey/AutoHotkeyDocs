@@ -24,20 +24,24 @@
   <li><a href="#Wheel">Mouse Wheel Hotkeys</a></li>
   <li><a href="#Remarks">Hotkey Tips and Remarks</a></li>
   <li><a href="#AltTabDetail">Alt-Tab Hotkeys</a></li>
-  <li><a href="#Function">Function Hotkeys</a></li>
+  <li><a href="#Function">Named Function Hotkeys</a></li>
 </ul>
 
 <h2 id="Intro">Introduction and Simple Examples</h2>
 <p>Hotkeys are sometimes referred to as shortcut keys because of their ability to easily trigger an action (such as launching a program or <a href="misc/Macros.htm">keyboard macro</a>). In the following example, the hotkey <kbd>Win</kbd>+<kbd>N</kbd> is configured to launch Notepad. The pound sign [#] stands for the <kbd>Win</kbd> key, which is known as a <em>modifier</em>:</p>
 <pre>#n::
-Run "notepad"
-return</pre>
-<p>In the final line above,  <code><a href="commands/Return.htm">return</a></code> serves to finish the hotkey. However, if a hotkey needs to execute only a single line, that line can be listed to the right of the double-colon. In other words, the <code>return</code> is implicit:</p>
+{
+    Run "notepad"
+}
+</pre>
+<p id="HotBraces">In the above, the braces serves to define a <a href="Functions.htm">function body</a> for the hotkey. When the hotkey is triggered, the function is called and passed the name of the hotkey (which excludes the trailing colons), as its first parameter, <code>ThisHotkey</code>. If a hotkey needs to execute only a single line, that line can be listed to the right of the double-colon. In other words, braces are implicit:</p>
 <pre>#n::Run "notepad"</pre>
+<p id="otb">The opening brace may also be specified on the same line as the double-colon. See <a href="Blocks.htm#otb">Blocks (One True Brace)</a>.</p>
 <p>To use more than one modifier with a hotkey, list them consecutively (the order does not matter). The following example uses <code>^!s</code> to indicate <kbd>Control</kbd>+<kbd>Alt</kbd>+<kbd>S</kbd>:</p>
 <pre>^!s::
-<a href="commands/Send.htm">Send</a> "Sincerely,{enter}John Smith"  <em>; This line sends keystrokes to the active (foremost) window.</em>
-return</pre>
+{
+    <a href="commands/Send.htm">Send</a> "Sincerely,{enter}John Smith"  <em>; This line sends keystrokes to the active (foremost) window.</em>
+}</pre>
 <h2 id="Symbols">Hotkey Modifier Symbols</h2>
 <p>You can use the following modifier symbols to define hotkeys:</p>
 <table class="info fixed">
@@ -137,9 +141,8 @@ LControl::MsgBox "You released LControl without having used it to modify any oth
 <p><br>
 Multiple hotkeys can be stacked vertically to have them perform the same action. For example:</p>
 <pre>^Numpad0::
-^Numpad1::
-MsgBox "Pressing either Control+Numpad0 or Control+Numpad1 will display this message."
-return</pre>
+^Numpad1::MsgBox "Pressing either Control+Numpad0 or Control+Numpad1 will display this message."
+</pre>
 <p>A key or key-combination can be disabled for the entire system by having it do nothing. The following example disables the right-side <kbd>Win</kbd> key:</p>
 <pre>RWin::return</pre>
 
@@ -201,22 +204,23 @@ RControl &amp; Enter::ShiftAltTab  <em>; Without even having to release right-co
 </ul>
 <p>Some of the most useful hotkeys for the mouse wheel involve alternate modes of scrolling a window's text. For example, the following pair of hotkeys scrolls horizontally instead of vertically when you turn the wheel while holding down the left <kbd>Control</kbd> key:</p>
 <pre>~LControl &amp; WheelUp::  <em>; Scroll left.</em>
-Loop 2  <em>; &lt;-- Increase this value to scroll faster.</em>
-    SendMessage 0x114, 0, 0, ControlGetFocus("A")  <em>; 0x114 is WM_HSCROLL and the 0 after it is SB_LINELEFT.</em>
-return
+{
+    Loop 2  <em>; &lt;-- Increase this value to scroll faster.</em>
+        SendMessage 0x114, 0, 0, ControlGetFocus("A")  <em>; 0x114 is WM_HSCROLL and the 0 after it is SB_LINELEFT.</em>
+}
 
 ~LControl &amp; WheelDown::  <em>; Scroll right.</em>
-Loop 2  <em>; &lt;-- Increase this value to scroll faster.</em>
-    SendMessage 0x114, 1, 0, ControlGetFocus("A")  <em>; 0x114 is WM_HSCROLL and the 1 after it is SB_LINERIGHT.</em>
-return</pre>
+{
+    Loop 2  <em>; &lt;-- Increase this value to scroll faster.</em>
+        SendMessage 0x114, 1, 0, ControlGetFocus("A")  <em>; 0x114 is WM_HSCROLL and the 1 after it is SB_LINERIGHT.</em>
+}</pre>
 <p>Finally, since mouse wheel hotkeys generate only down-events (never up-events), they cannot be used as <a href="#keyup">key-up hotkeys</a>.</p>
 
 <h2 id="Remarks">Hotkey Tips and Remarks</h2>
 <p>Each numpad key can be made to launch two different hotkey subroutines depending on the state of <kbd>NumLock</kbd>. Alternatively, a numpad key can be made to launch the same subroutine regardless of the <kbd>NumLock</kbd> state. For example:</p>
 <pre>NumpadEnd::
-Numpad1::
-MsgBox "This hotkey is launched regardless of whether NumLock is on."
-return</pre>
+Numpad1::MsgBox "This hotkey is launched regardless of whether NumLock is on."
+</pre>
 <p>If the <a href="#Tilde">tilde (~) operator</a> is used with a <a href="#prefix">prefix key</a> even once, it changes the behavior of that prefix key for all combinations. For example, in both of the below hotkeys, the active window will receive all right-clicks even though only one of the definitions contains a tilde:</p>
 <pre>~RButton &amp; LButton::MsgBox "You pressed the left mouse button while holding down the right."
 RButton &amp; WheelUp::MsgBox "You turned the mouse wheel up while holding down the right button."</pre>
@@ -224,20 +228,23 @@ RButton &amp; WheelUp::MsgBox "You turned the mouse wheel up while holding down 
 <p>By means of the <a href="commands/Hotkey.htm">Hotkey</a> function, hotkeys can be created dynamically while the script is running. The Hotkey function can also modify, disable, or enable the script's existing hotkeys individually.</p>
 <p>Joystick hotkeys do not currently support modifier prefixes such as ^ (<kbd>Control</kbd>) and # (<kbd>Win</kbd>). However, you can use <a href="commands/GetKeyState.htm">GetKeyState</a> to mimic this effect as shown in the following example:</p>
 <pre>Joy2::
-if not GetKeyState(&quot;Control&quot;)  <em>; Neither the left nor right Control key is down.</em>
-    return  <em>; i.e. Do nothing.</em>
-MsgBox "You pressed the first joystick's second button while holding down the Control key."
-return</pre>
+{
+    if not GetKeyState(&quot;Control&quot;)  <em>; Neither the left nor right Control key is down.</em>
+        return  <em>; i.e. Do nothing.</em>
+    MsgBox "You pressed the first joystick's second button while holding down the Control key."
+}</pre>
 <p>There may be times when a hotkey should wait for its own modifier keys to be released before continuing. Consider the following example:</p>
 <pre>^!s::Send "{Delete}"</pre>
 <p>Pressing <kbd>Control</kbd>+<kbd>Alt</kbd>+<kbd>S</kbd> would cause the system to behave as though you pressed <kbd>Control</kbd>+<kbd>Alt</kbd>+<kbd>Delete</kbd> (due to the system's aggressive detection of <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>Delete</kbd>). To work around this, use <a href="commands/KeyWait.htm">KeyWait</a> to wait for the keys to be released; for example:</p>
 <pre>^!s::
-KeyWait "Control"
-KeyWait "Alt"
-Send "{Delete}"
-return</pre>
-<p>If a hotkey label like <code>#z::</code> produces an error like &quot;Invalid Hotkey&quot;, your system's keyboard layout/language might not have the specified character (&quot;Z&quot; in this case). Try using a different character that you know exists in your keyboard layout.</p>
-<p>A hotkey label can be used as the target of a <a href="commands/Gosub.htm">Gosub</a> or <a href="commands/Goto.htm">Goto</a>. For example: <code>Gosub "^!s"</code>.</p>
+{
+    KeyWait "Control"
+    KeyWait "Alt"
+    Send "{Delete}"
+}
+</pre>
+<p>If a hotkey like <code>#z::</code> produces an error like &quot;Invalid Hotkey&quot;, your system's keyboard layout/language might not have the specified character (&quot;Z&quot; in this case). Try using a different character that you know exists in your keyboard layout.</p>
+<p>A hotkey's function can be called explicitly by the script only if the function has been named, see <a href="#Function">Named Function Hotkeys</a>.</p>
 <p>One common use for hotkeys is to start and stop a repeating action, such as a series of keystrokes or mouse clicks. For an example of this, see <a href="FAQ.htm#repeat">this FAQ topic</a>.</p>
 <p>Finally, each script is <a href="misc/Threads.htm">quasi multi-threaded</a>, which allows a new hotkey to be launched even when a previous hotkey subroutine is still running. For example, new hotkeys can be launched even while a <a href="commands/MsgBox.htm">MsgBox</a> is being displayed by the current hotkey.</p>
 
@@ -258,36 +265,39 @@ WheelUp::ShiftAltTab</pre>
 <p>To cancel a hotkey-invoked Alt-tab menu without activating the selected window, use a hotkey such as the following. It might require adjustment depending on: 1) the means by which the alt-tab menu was originally displayed; and 2) whether the script has the <a href="commands/_InstallKeybdHook.htm">keyboard hook</a> installed.</p>
 <pre>LCtrl &amp; CapsLock::AltTab
 <strong>!</strong>MButton::  <em>; Middle mouse button. The <strong>!</strong> prefix makes it fire while the Alt key is down (which it is if the alt-tab menu is visible).</em>
-if WinExist("ahk_class #32771")  <em>; Indicates that the alt-tab menu is present on the screen.</em>
-    Send "<strong>!</strong>{Escape}{Alt up}"
-return</pre>
+{
+    if WinExist("ahk_class #32771")  <em>; Indicates that the alt-tab menu is present on the screen.</em>
+        Send "<strong>!</strong>{Escape}{Alt up}"
+}</pre>
 <p>Currently, all special Alt-tab actions must be assigned directly to a hotkey as in the examples above (i.e. they cannot be used as though they were functions). They are <span class="red">not affected by <a href="commands/_If.htm">#If</a></span>.</p>
 <p>Custom alt-tab actions can also be created via hotkeys. In the following example, you would press <kbd>F1</kbd> to display the menu and advance forward in it. Then you would press <kbd>F2</kbd> to activate the selected window (or press <kbd>Escape</kbd> to cancel):</p>
 <pre>*F1::Send "{Alt down}{tab}" <em>; Asterisk is required in this case.</em>
 !F2::Send "{Alt up}"  <em>; Release the Alt key, which activates the selected window.</em>
 ~*Escape::
-if WinExist("ahk_class #32771")
-    Send "{Escape}{Alt up}"  <em>; Cancel the menu without activating the selected window.</em>
-return</pre>
+{
+    if WinExist("ahk_class #32771")
+        Send "{Escape}{Alt up}"  <em>; Cancel the menu without activating the selected window.</em>
+}</pre>
 
-<h2 id="Function">Function Hotkeys</h2>
-<p>One or more hotkeys can be assigned a <a href="Functions.htm">function</a> by simply defining it immediately after the hotkey label as in this example:</p>
+<h2 id="Function">Named Function Hotkeys</h2>
+<p>If the function of a hotkey is ever needed to be called without triggering the hotkey itself, one or more hotkeys can be assigned a named <a href="Functions.htm">function</a> by simply defining it immediately after the hotkey's double-colon as in this example:</p>
 <pre><em>; Ctrl+Shift+O to open containing folder in Explorer.
 ; Ctrl+Shift+E to open folder with current file selected.
 ; Supports SciTE and Notepad++.</em>
 ^+o::
 ^+e::
-    editor_open_folder() {
+    editor_open_folder(ThisHotkey)
+    {
         path := WinGetTitle("A")
         if RegExMatch(path, "\*?\K(.*)\\[^\\]+(?= [-*] )", path)
-            if (FileExist(path[0]) &amp;&amp; A_ThisHotkey = "^+e")
+            if (FileExist(path[0]) &amp;&amp; ThisHotkey = "^+e")
                 Run Format('explorer.exe /select,"{1}"', path[0])
             else
                 Run Format('explorer.exe "{1}"', path[1])
     }</pre>
 <p id="function-details">Hotstrings can also be defined this way. Multiple hotkeys or hotstrings can be stacked together to call the same function.</p>
-<p>There must only be whitespace, comments or directives between the hotkey/hotstring labels or label and the function. Hotkey/hotstring labels defined this way are not visible to <a href="commands/IsLabel.htm">IsLabel</a>, <a href="commands/Gosub.htm">Gosub</a> or other commands; however, the <a href="Scripts.htm#auto">auto-execute section</a> ends at the first hotkey/hotstring even if it is assigned a function.</p>
-<p>The main benefit of using a function is that local variables can be used, which avoids conflicts when two or more hotkeys use the same variable names for different purposes. It also encourages self-documenting hotkeys, like in the code above where the function name describes the hotkey.</p>
+<p>There must only be whitespace or comments between the hotkey/hotstring and the function.</p>
+<p>Naming the function also encourages self-documenting hotkeys, like in the code above where the function name describes the hotkey.</p>
 <p>The <a href="commands/Hotkey.htm">Hotkey</a> function can also be used to assign a function or function object to a hotkey.</p>
 
 </body>
