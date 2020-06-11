@@ -36,7 +36,7 @@
 </pre>
 <p id="HotBraces">In the above, the braces serves to define a <a href="Functions.htm">function body</a> for the hotkey. When the hotkey is triggered, the function is called and passed the name of the hotkey (which excludes the trailing colons), as its first parameter, <code>ThisHotkey</code>. If a hotkey needs to execute only a single line, that line can be listed to the right of the double-colon. In other words, braces are implicit:</p>
 <pre>#n::Run "notepad"</pre>
-<p id="otb">The opening brace may also be specified on the same line as the double-colon. See <a href="Blocks.htm#otb">Blocks (One True Brace)</a>.</p>
+<p id="otb">The opening brace may also be specified on the same line as the double-colon. See <a href="commands/Block.htm#otb">Blocks (One True Brace)</a>.</p>
 <p>To use more than one modifier with a hotkey, list them consecutively (the order does not matter). The following example uses <code>^!s</code> to indicate <kbd>Control</kbd>+<kbd>Alt</kbd>+<kbd>S</kbd>:</p>
 <pre>^!s::
 {
@@ -104,7 +104,7 @@
     <td><p>When the hotkey fires, its key's native function will not be blocked (hidden from the system). In both of the below examples, the user's click of the mouse button will be sent to the active window:</p>
       <pre>~RButton::MsgBox "You clicked the right mouse button."
 ~RButton &amp; C::MsgBox "You pressed C while holding down the right mouse button."</pre>
-      <p>Unlike the other prefix symbols, the tilde prefix is allowed to be present on some of a hotkey's <a href="commands/_If.htm#variant">variants</a> but absent on others. However, if a tilde is applied to the <a href="#prefix">prefix key</a> of any custom combination which has not been turned off or suspended, it affects the behavior of that prefix key for <em>all</em> combinations.</p>
+      <p>Unlike the other prefix symbols, the tilde prefix is allowed to be present on some of a hotkey's <a href="commands/_HotIf.htm#variant">variants</a> but absent on others. However, if a tilde is applied to the <a href="#prefix">prefix key</a> of any custom combination which has not been turned off or suspended, it affects the behavior of that prefix key for <em>all</em> combinations.</p>
       <p>Special hotkeys that are substitutes for <a href="#alttab">alt-tab</a> always ignore the tilde prefix.</p>
       <p>If the tilde prefix is applied to a custom modifier key (<a href="#prefix">prefix key</a>) which is also used as its own hotkey, that hotkey will fire when the key is pressed instead of being delayed until the key is released.  For example, the <em>~RButton</em> hotkey above is fired as soon as the button is pressed.</p>
       <p>If the tilde prefix is applied only to the custom combination and not the non-combination hotkey, the key's native function will still be blocked. For example, in the script below, holding <kbd>Menu</kbd> will show the ToolTip and will not trigger a context menu:</p>
@@ -147,15 +147,15 @@ Multiple hotkeys can be stacked vertically to have them perform the same action.
 <pre>RWin::return</pre>
 
 <h2 id="Context">Context-sensitive Hotkeys</h2>
-<p>The <a href="commands/_If.htm">#If</a> directive can be used to make a hotkey perform a different action (or none at all) depending on a specific condition. For example:</p>
-<pre>#If WinActive("ahk_class Notepad")
+<p>The <a href="commands/_HotIf.htm">#HotIf</a> directive can be used to make a hotkey perform a different action (or none at all) depending on a specific condition. For example:</p>
+<pre>#HotIf WinActive("ahk_class Notepad")
 ^a::MsgBox "You pressed Ctrl-A while Notepad is active. Pressing Ctrl-A in any other window will pass the Ctrl-A keystroke to that window."
 #c::MsgBox "You pressed Win-C while Notepad is active."
 
-#If
+#HotIf
 #c::MsgBox "You pressed Win-C while any window except Notepad is active."
 
-#If MouseIsOver("ahk_class Shell_TrayWnd") <em>; For MouseIsOver, see <a href="commands/_If.htm#ExVolume">#If example 1</a>.</em>
+#HotIf MouseIsOver("ahk_class Shell_TrayWnd") <em>; For MouseIsOver, see <a href="commands/_HotIf.htm#ExVolume">#HotIf example 1</a>.</em>
 WheelUp::Send "{Volume_Up}"     <em>; Wheel over taskbar: increase/decrease volume.</em>
 WheelDown::Send "{Volume_Down}" <em>;</em>
 </pre>
@@ -170,17 +170,17 @@ Numpad0::Send "{Numpad0}"  <em>; Make the <i>release</i> of Numpad0 produce a Nu
 <p><strong>Fire on release:</strong> The presence of one of the above custom combination hotkeys causes the <em>release</em> of Numpad0 to perform the indicated action, but only if you did not press any other keys while Numpad0 was being held down.  This behaviour can be avoided by applying the <a href="#Tilde">tilde prefix</a> to either hotkey.</p>
 <p id="combo_mods"><strong>Modifiers:</strong> Unlike a normal hotkey, custom combinations act as though they have the <a href="#wildcard">wildcard (*)</a> modifier by default. For example, <code>1 &amp; 2::</code> will activate even if <kbd>Ctrl</kbd> or <kbd>Alt</kbd> is held down when <kbd>1</kbd> and <kbd>2</kbd> are pressed, whereas <code>^1::</code> would be activated only by <kbd>Ctrl</kbd>+<kbd>1</kbd> and not <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>1</kbd>.</p>
 <p>For standard modifier keys, normal hotkeys typically work as well or better than "custom" combinations. For example, <code>&lt;+s::</code> is recommended over <code>LShift &amp; s::</code>.</p>
-<p>Combinations of three or more keys are not supported. Combinations which your keyboard hardware supports can usually be detected by using <a href="commands/_If.htm">#If</a> and <a href="commands/GetKeyState.htm">GetKeyState</a>, but the results may be inconsistent. For example:</p>
+<p>Combinations of three or more keys are not supported. Combinations which your keyboard hardware supports can usually be detected by using <a href="commands/_HotIf.htm">#HotIf</a> and <a href="commands/GetKeyState.htm">GetKeyState</a>, but the results may be inconsistent. For example:</p>
 <pre><em>; Press AppsKey and Alt in any order, then slash (/).</em>
-#if GetKeyState("AppsKey", "P")
+#HotIf GetKeyState("AppsKey", "P")
 Alt &amp; /::MsgBox "Hotkey activated."
 
 <em>; If the keys are swapped, Alt must be pressed first (use one at a time):</em>
-#if GetKeyState("Alt", "P")
+#HotIf GetKeyState("Alt", "P")
 AppsKey &amp; /::MsgBox "Hotkey activated."
 
 <em>; [ &amp; ] &amp; \::</em>
-#if GetKeyState("[") &amp;&amp; GetKeyState("]")
+#HotIf GetKeyState("[") &amp;&amp; GetKeyState("]")
 \::MsgBox</pre>
 <p><strong>Keyboard hook:</strong> Custom combinations involving keyboard keys always use the keyboard hook, as do any hotkeys which use the prefix key as a suffix. For example, <code>a &amp; b::</code> causes <code>^a::</code> to always use the hook.</p>
 
@@ -224,7 +224,7 @@ Numpad1::MsgBox "This hotkey is launched regardless of whether NumLock is on."
 <p>If the <a href="#Tilde">tilde (~) operator</a> is used with a <a href="#prefix">prefix key</a> even once, it changes the behavior of that prefix key for all combinations. For example, in both of the below hotkeys, the active window will receive all right-clicks even though only one of the definitions contains a tilde:</p>
 <pre>~RButton &amp; LButton::MsgBox "You pressed the left mouse button while holding down the right."
 RButton &amp; WheelUp::MsgBox "You turned the mouse wheel up while holding down the right button."</pre>
-<p>The <a href="commands/Suspend.htm">Suspend</a> function can temporarily disable all hotkeys except for ones you make exempt. For greater selectivity, use <a href="commands/_If.htm">#If</a>.</p>
+<p>The <a href="commands/Suspend.htm">Suspend</a> function can temporarily disable all hotkeys except for ones you make exempt. For greater selectivity, use <a href="commands/_HotIf.htm">#HotIf</a>.</p>
 <p>By means of the <a href="commands/Hotkey.htm">Hotkey</a> function, hotkeys can be created dynamically while the script is running. The Hotkey function can also modify, disable, or enable the script's existing hotkeys individually.</p>
 <p>Joystick hotkeys do not currently support modifier prefixes such as ^ (<kbd>Control</kbd>) and # (<kbd>Win</kbd>). However, you can use <a href="commands/GetKeyState.htm">GetKeyState</a> to mimic this effect as shown in the following example:</p>
 <pre>Joy2::
@@ -269,7 +269,7 @@ WheelUp::ShiftAltTab</pre>
     if WinExist("ahk_class #32771")  <em>; Indicates that the alt-tab menu is present on the screen.</em>
         Send "<strong>!</strong>{Escape}{Alt up}"
 }</pre>
-<p>Currently, all special Alt-tab actions must be assigned directly to a hotkey as in the examples above (i.e. they cannot be used as though they were functions). They are <span class="red">not affected by <a href="commands/_If.htm">#If</a></span>.</p>
+<p>Currently, all special Alt-tab actions must be assigned directly to a hotkey as in the examples above (i.e. they cannot be used as though they were functions). They are <span class="red">not affected by <a href="commands/_HotIf.htm">#HotIf</a></span>.</p>
 <p>Custom alt-tab actions can also be created via hotkeys. In the following example, you would press <kbd>F1</kbd> to display the menu and advance forward in it. Then you would press <kbd>F2</kbd> to activate the selected window (or press <kbd>Escape</kbd> to cancel):</p>
 <pre>*F1::Send "{Alt down}{tab}" <em>; Asterisk is required in this case.</em>
 !F2::Send "{Alt up}"  <em>; Release the Alt key, which activates the selected window.</em>
