@@ -706,8 +706,6 @@ indexData = [
   ["Objects (general information)","Objects.htm"],
   ["ObjAddRef","commands/ObjAddRef.htm",2],
   ["ObjBindMethod","commands/ObjBindMethod.htm",2],
-  ["ObjClone","objects/Object.htm#Clone",2],
-  ["ObjDeleteProp","objects/Object.htm#DeleteProp",2],
   ["ObjFromPtr","Objects.htm#ObjFromPtr",2],
   ["ObjFromPtrAddRef","Objects.htm#ObjFromPtr",2],
   ["ObjGetBase","objects/Any.htm#GetBase",2],
