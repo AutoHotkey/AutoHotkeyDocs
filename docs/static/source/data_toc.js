@@ -48,7 +48,7 @@ tocData = [
   ]],
   ["Environment","",
   [
-    ["Clipboard","misc/Clipboard.htm"],
+    ["A_Clipboard","misc/Clipboard.htm"],
     ["ClipboardAll","commands/ClipboardAll.htm"],
     ["ClipWait","commands/ClipWait.htm"],
     ["EnvGet","commands/EnvGet.htm"],
