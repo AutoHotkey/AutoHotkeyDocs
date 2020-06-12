@@ -209,7 +209,7 @@ thing_test(this) {
 
 <h3 id="delegation">Delegation</h3>
 <p>Objects are <em>prototype-based</em>. That is, any properties or methods not defined in the object itself can instead be defined in the object's <a href="objects/Object.htm#Base">base</a>. This is known as <em>inheritance by delegation</em> or <em>differential inheritance</em>, because an object can implement only the parts that make it different, while delegating the rest to its base.</p>
-<p>Although a base object is also generally known as a prototype, we use "a class's <a href="objects/Class.htm#Prototype">Prototype</a>" to mean the object upon which every instance of the class is based, and "base" to mean the object upon which an instance is based (or sometimes the <a href="#Custom_Classes_base">base class/superclass</a> of the current class).</p>
+<p>Although a base object is also generally known as a prototype, we use "a class's <a href="objects/Class.htm#Prototype">Prototype</a>" to mean the object upon which every instance of the class is based, and "base" to mean the object upon which an instance is based.</p>
 <p class="note">AutoHotkey's object design was influenced primarily by JavaScript and Lua, with a little C#. We use <code><i>obj</i>.base</code> in place of JavaScript's <code><i>obj</i>.__proto__</code> and <code><i>cls</i>.Prototype</code> in place of JavaScript's <code><i>func</i>.prototype</code>. (Class objects are used in place of constructor functions.)</p>
 
 <p>An object's base is also used to identify its type or class. For example, <code>x := []</code> creates an object <em>based on</em> <code>Array.Prototype</code>, which means that the expressions <code>x is Array</code> and <code>x.HasBase(Array.Prototype)</code> are true, and <code>type(x)</code> returns "Array".</p>
@@ -287,7 +287,7 @@ other.test()</pre>
 <h4 id="Custom_Classes_var">Instance Variables</h4>
 <p>An <em>instance variable</em> is one that each instance of the class has its own copy of. They are declared like normal assignments, but the <code>this.</code> prefix is omitted (only directly within the class body):</p>
 <pre>InstanceVar := Expression</pre>
-<p>These declarations are evaluated each time a new instance of the class is created with <a href="objects/Class.htm#New"><em>ClassName</em>.new()</a>, after all base-class declarations are evaluated but before <a href="#Custom_NewDelete">__New</a> is called. This is achieved by automatically creating a method named <em>__Init</em> containing a call to <code>base.__Init()</code> and inserting each declaration into it. Therefore, a single class definition must not contain both an __Init method and an instance variable declaration.</p>
+<p>These declarations are evaluated each time a new instance of the class is created with <a href="objects/Class.htm#New"><em>ClassName</em>.new()</a>, after all base-class declarations are evaluated but before <a href="#Custom_NewDelete">__New</a> is called. This is achieved by automatically creating a method named <em>__Init</em> containing a call to <code>super.__Init()</code> and inserting each declaration into it. Therefore, a single class definition must not contain both an __Init method and an instance variable declaration.</p>
 <p><em>Expression</em> can access other instance variables and methods via <code>this</code>, but all other variable references are assumed to be global.</p>
 <p>To access an instance variable (even within a method), always specify the target object; for example, <code><b>this</b>.InstanceVar</code>.</p>
 <p>Declarations like <code>x.y := z</code> are also supported, provided that <code>x</code> was previously declared in this class. For example, <code>x := {}, x.y := 42</code> declares <code>x</code> and also initializes <code>this.x.y</code>.</p>
@@ -323,16 +323,18 @@ Method()
 }
 </pre>
 
-<p id="Custom_Classes_base">Inside a method, the pseudo-keyword <code>base</code> can be used to access the superclass versions of methods or properties which are overridden in a derived class. For example, <code>base.Method()</code> in the class defined above would call the version of <em>Method</em> which is defined by <em>BaseClassName</em>. <a href="#Meta_Functions">Meta-functions</a> are not called unless they are explicitly named. Note:</p>
-<ul>
-  <li><code>base.Method()</code> always invokes the base of the class where the current method was defined, even if <code>this</code> is derived from a <em>subclass</em> of that class or some other class entirely.</li>
-  <li><code>base.Method()</code> implicitly passes <code>this</code> as the first (hidden) parameter.</li>
-</ul>
-<p><code>base</code> only has special meaning if followed by a dot <code>.</code> or brackets <code>[]</code>, so code like <code>obj := base, obj.Method()</code> will not work. Scripts can disable the special behaviour of <i>base</i> by assigning it a non-empty value; however, this is not recommended.</p>
-
 <p><a href="Variables.htm#fat-arrow">Fat arrow syntax</a> can be used to define a single-line method which returns an expression:</p>
 <pre>Method() =&gt; <i>Expression</i></pre>
 <p>See also: <a href="objects/Object.htm#DefineMethod">DefineMethod</a></p>
+
+<h4 id="Custom_Classes_super">Super</h4>
+<p>Inside a method a property getter/setter, the keyword <code>super</code> can be used in place of <code>this</code> to access the superclass versions of methods or properties which are overridden in a derived class. For example, <code>super.Method()</code> in the class defined above would typically call the version of <em>Method</em> which was defined within <em>BaseClassName</em>. Note:</p>
+<ul>
+  <li><code>super.Method()</code> always invokes the base of the class or prototype object associated with the current method's original definition, even if <code>this</code> is derived from a <em>subclass</em> of that class or some other class entirely.</li>
+  <li><code>super.Method()</code> implicitly passes <code>this</code> as the first (hidden) parameter.</li>
+  <li>Since it is not known where (or whether) <em>ClassName</em> exists within the chain of base objects, <em>ClassName</em> itself is used as the starting point. Therefore, <code>super.x()</code> is mostly equivalent to <code><i>ClassName</i>.Prototype.base.GetMethod("x").Call(this)</code> (but without <em>Prototype</em> when <em>Method</em> is static). However, <code><i>ClassName</i>.Prototype</code> is resolved at load time.</li>
+</ul>
+<p>The keyword <code>super</code> must be followed by a dot <code>.</code> or brackets <code>[]</code>.</p>
 
 <h4 id="Custom_Classes_property">Properties</h4>
 <p>A property definition creates a <a href="objects/Object.htm#DefineProp">dynamic property</a>, which calls a method instead of simply storing or returning a value.</p>
@@ -351,7 +353,7 @@ Method()
 <p>If a property cannot accept parameters (the square brackets are omitted or empty), parameters are automatically forwarded to the <a href="#__Item">__Item</a> property of the object returned by <em>get</em>. For example, <code>this.Property[x]</code> would have the same effect as <code>(this.Property)[x]</code> or <code>y := this.Property, y[x]</code>.</p>
 <p>Static properties can be defined by preceding the property name with the separate keyword <code>static</code>. In that case, <code>this</code> refers to the class itself or a subclass.</p>
 <p>The return value of <em>set</em> is ignored. For example, <code>val := obj.Property := 42</code> always assigns <code>val := 42</code> regardless of what the property does, unless it throws an exception or exits the thread.</p>
-<p>Each class can define one or both halves of a property. If a class overrides a property, it can use <code><a href="#Custom_Classes_base">base.Property</a></code> to access the property defined by its base class. If <em>Get</em> or <em>Set</em> is not defined, it can be inherited from a base object. If <em>Get</em> is undefined, the property can return a value inherited from a base. If <em>Set</em> is undefined in this and all base objects, the property is read-only (attempting to set the property throws an exception).</p>
+<p>Each class can define one or both halves of a property. If a class overrides a property, it can use <code><a href="#Custom_Classes_super">super.Property</a></code> to access the property defined by its base class. If <em>Get</em> or <em>Set</em> is not defined, it can be inherited from a base object. If <em>Get</em> is undefined, the property can return a value inherited from a base. If <em>Set</em> is undefined in this and all base objects, the property is read-only (attempting to set the property throws an exception).</p>
 <p>Internally, <em>get</em> and <em>set</em> are two separate methods, so cannot share variables (except by storing them in <code>this</code>).</p>
 <p>See also: <a href="objects/Object.htm#DefineProp">DefineProp</a></p>
 <p><a href="#Meta_Functions">Meta-functions</a> provide a broader way of controlling access to properties and methods of an object, but are more complicated and error-prone.</p>

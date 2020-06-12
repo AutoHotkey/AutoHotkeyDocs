@@ -913,6 +913,7 @@ indexData = [
   ["structures, via DllCall","commands/DllCall.htm#struct"],
   ["styles for GUI methods","misc/Styles.htm"],
   ["SubStr","commands/SubStr.htm",2],
+  ["super","Objects.htm#Custom_Classes_super",4],
   ["Super-global variables","Functions.htm#SuperGlobal"],
   ["Suspend","commands/Suspend.htm",2],
   ["suspend or hibernate","commands/Shutdown.htm#ExSuspend"],
