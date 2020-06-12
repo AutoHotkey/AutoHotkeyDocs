@@ -1,5 +1,5 @@
 ; On-Screen Keyboard (requires XP/2k/NT) -- by Jon
-; http://www.autohotkey.com
+; https://www.autohotkey.com
 ; This script creates a mock keyboard at the bottom of your screen that shows
 ; the keys you are pressing in real time. I made it to help me to learn to
 ; touch-type (to get used to not looking at the keyboard).  The size of the
