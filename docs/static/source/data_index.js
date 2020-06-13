@@ -960,6 +960,7 @@ indexData = [
   ["Try","commands/Try.htm",3,""],
   ["Tutorial","Tutorial.htm"],
   ["Type","commands/Type.htm",2],
+  ["unset","Functions.htm#unset",4],
   ["Until","commands/Until.htm",3,"E"],
   ["UpDown controls (GUI)","commands/GuiControls.htm#UpDown"],
   ["UseHook","commands/_UseHook.htm"],
