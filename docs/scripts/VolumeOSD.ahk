@@ -39,7 +39,7 @@ config.MasterDown := "#Down"
 #SingleInstance
 
 ; Create the Progress window:
-global G := GuiCreate("+ToolWindow -Caption -Border +Disabled")
+global G := Gui.New("+ToolWindow -Caption -Border +Disabled")
 G.MarginX := 0, G.MarginY := 0
 opt := "w" config.Width " h" config.Thick " background" config.CW
 G.Add("Progress", opt " vMaster c" config.CBM)

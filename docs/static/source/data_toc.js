@@ -168,7 +168,6 @@ tocData = [
     ["Gui control types","commands/GuiControls.htm"],
     ["Gui object","objects/Gui.htm"],
     ["GuiControl object","objects/GuiControl.htm"],
-    ["GuiCreate","commands/GuiCreate.htm"],
     ["GuiCtrlFromHwnd","commands/GuiCtrlFromHwnd.htm"],
     ["GuiFromHwnd","commands/GuiFromHwnd.htm"],
     ["Gui ListView control","commands/ListView.htm"],

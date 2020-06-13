@@ -27,14 +27,14 @@ k_Monitor := ""
 ;---- End of configuration section. Don't change anything below this point
 ; unless you want to alter the basic nature of the script.
 
-;---- Create a GUI window for the on-screen keyboard:
-Gui := GuiCreate("-Caption +ToolWindow +AlwaysOnTop +Disabled")
-Gui.SetFont("s" k_FontSize " " k_FontStyle, k_FontName)
-Gui.MarginY := 0, Gui.MarginX := 0
+;---- Create a Gui window for the on-screen keyboard:
+MyGui := Gui.New("-Caption +ToolWindow +AlwaysOnTop +Disabled")
+MyGui.SetFont("s" k_FontSize " " k_FontStyle, k_FontName)
+MyGui.MarginY := 0, MyGui.MarginX := 0
 
 ;---- Alter the tray icon menu:
 A_TrayMenu.Delete
-A_TrayMenu.Add k_MenuItemHide, (*) => k_ShowHide(Gui, k_MenuItemHide, k_MenuItemShow)
+A_TrayMenu.Add k_MenuItemHide, (*) => k_ShowHide(MyGui, k_MenuItemHide, k_MenuItemShow)
 A_TrayMenu.Add "&Exit", (*) => ExitApp()
 A_TrayMenu.Default := k_MenuItemHide
 
@@ -78,25 +78,26 @@ for n, k_Row in k_Layout
         if (i = 1)
             opt .= " y+m xm"
         ; Add the button:
-        Btn := Gui.Add("Button", opt, k_KeyNameText)
+        Btn := MyGui.Add("Button", opt, k_KeyNameText)
         ; When a key is pressed by the user, click the corresponding button on-screen:
         Hotkey("~*" k_Key, Func("k_KeyPress").bind(Btn))
     }
 
 ;---- Position the keyboard at the bottom of the screen (taking into account
 ; the position of the taskbar):
-Gui.Show("Hide") ; Required to get the window's calculated width and height.
+MyGui.Show("Hide") ; Required to get the window's calculated width and height.
 ; Calculate window's X-position:
 MonitorGetWorkArea(k_Monitor, WL,, WR, WB)
-k_xPos := (WR - WL - Gui.Pos.W) / 2 ; Calculate position to center it horizontally.
+MyGui.GetPos(,, k_width, k_height)
+k_xPos := (WR - WL - k_width) / 2 ; Calculate position to center it horizontally.
 ; The following is done in case the window will be on a non-primary monitor
 ; or if the taskbar is anchored on the left side of the screen:
 k_xPos += WL
 ; Calculate window's Y-position:
-k_yPos := WB - Gui.Pos.H
+k_yPos := WB - k_height
 
 ;---- Show the window:
-Gui.Show("x" k_xPos " y" k_yPos " NA")
+MyGui.Show("x" k_xPos " y" k_yPos " NA")
 
 ;---- Function definitions:
 k_KeyPress(BtnCtrl)

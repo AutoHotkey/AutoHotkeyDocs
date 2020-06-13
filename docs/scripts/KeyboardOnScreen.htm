@@ -41,14 +41,14 @@ k_Monitor := ""
 <em>;---- End of configuration section. Don't change anything below this point
 ; unless you want to alter the basic nature of the script.</em>
 
-<em>;---- Create a GUI window for the on-screen keyboard:</em>
-Gui := GuiCreate("-Caption +ToolWindow +AlwaysOnTop +Disabled")
-Gui.SetFont("s" k_FontSize " " k_FontStyle, k_FontName)
-Gui.MarginY := 0, Gui.MarginX := 0
+<em>;---- Create a Gui window for the on-screen keyboard:</em>
+MyGui := Gui.New("-Caption +ToolWindow +AlwaysOnTop +Disabled")
+MyGui.SetFont("s" k_FontSize " " k_FontStyle, k_FontName)
+MyGui.MarginY := 0, MyGui.MarginX := 0
 
 <em>;---- Alter the tray icon menu:</em>
 A_TrayMenu.Delete
-A_TrayMenu.Add k_MenuItemHide, (*) =&gt; k_ShowHide(Gui, k_MenuItemHide, k_MenuItemShow)
+A_TrayMenu.Add k_MenuItemHide, (*) =&gt; k_ShowHide(MyGui, k_MenuItemHide, k_MenuItemShow)
 A_TrayMenu.Add "&amp;Exit", (*) =&gt; ExitApp()
 A_TrayMenu.Default := k_MenuItemHide
 
@@ -58,7 +58,7 @@ A_TrayMenu.Default := k_MenuItemHide
 k_Layout := [
     ["``", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "-", "=", "Backspace:3"],
     ["Tab:3", "Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P", "[", "]", "\"],
-    ["CapsLock:3", "A", "S", "D", "F", "G", "H", "J", "K", "L", ";", "'", "Enter:2"],
+    ["CapsLock:3", "A", "S", "D", "F", "G", "H", "J", "K", "L", "<em>;", "'", "Enter:2"],</em>
     ["LShift:3", "Z", "X", "C", "V", "B", "N", "M", ",", ".", "/", "Shift:3"],
     ["LCtrl:2", "LWin:2", "LAlt:2", "Space:2", "RAlt:2", "RWin:2", "AppsKey:2", "RCtrl:2"]
 ]
@@ -92,25 +92,26 @@ for n, k_Row in k_Layout
         if (i = 1)
             opt .= " y+m xm"
         <em>; Add the button:</em>
-        Btn := Gui.Add("Button", opt, k_KeyNameText)
+        Btn := MyGui.Add("Button", opt, k_KeyNameText)
         <em>; When a key is pressed by the user, click the corresponding button on-screen:</em>
         Hotkey("~*" k_Key, Func("k_KeyPress").bind(Btn))
     }
 
 <em>;---- Position the keyboard at the bottom of the screen (taking into account
 ; the position of the taskbar):</em>
-Gui.Show("Hide") <em>; Required to get the window's calculated width and height.
+MyGui.Show("Hide") <em>; Required to get the window's calculated width and height.
 ; Calculate window's X-position:</em>
 MonitorGetWorkArea(k_Monitor, WL,, WR, WB)
-k_xPos := (WR - WL - Gui.Pos.W) / 2 <em>; Calculate position to center it horizontally.
+MyGui.GetPos(,, k_width, k_height)
+k_xPos := (WR - WL - k_width) / 2 <em>; Calculate position to center it horizontally.
 ; The following is done in case the window will be on a non-primary monitor
 ; or if the taskbar is anchored on the left side of the screen:</em>
 k_xPos += WL
 <em>; Calculate window's Y-position:</em>
-k_yPos := WB - Gui.Pos.H
+k_yPos := WB - k_height
 
 <em>;---- Show the window:</em>
-Gui.Show("x" k_xPos " y" k_yPos " NA")
+MyGui.Show("x" k_xPos " y" k_yPos " NA")
 
 <em>;---- Function definitions:</em>
 k_KeyPress(BtnCtrl)
@@ -144,6 +145,7 @@ GetKeyNameText(Key, Extended := false, DoNotCare := false)
     KeyNameText := BufferAlloc(64, 0)
     DllCall("User32.dll\GetKeyNameText", "Int", Params, "Ptr", KeyNameText, "Int", 32)
     return StrGet(KeyNameText)
-}</pre>
+}
+</pre>
 </body>
 </html>

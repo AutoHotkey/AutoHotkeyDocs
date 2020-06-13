@@ -35,13 +35,13 @@
 <p>A list view usually looks like this:</p>
 <img src="../static/ctrl_listview.png" alt="ListView" />
 <p>Though it may be elaborate, a ListView's basic features are easy to use. The syntax for creating a ListView is:</p>
-<pre class="Syntax" id="GuiAdd">LV := Gui.<span class="func">Add</span>("ListView", Options, ["ColumnTitle1","ColumnTitle2","..."])</pre>
+<pre class="Syntax" id="GuiAdd">LV := GuiObj.<span class="func">Add</span>("ListView", Options, ["ColumnTitle1","ColumnTitle2","..."])</pre>
 <p>Here is a working script that creates and displays a ListView containing a list of files in the user's &quot;My Documents&quot; folder:</p>
 <pre><em>; Create the window.</em>
-Gui := GuiCreate()
+MyGui := Gui.New()
 
 <em>; Create the ListView with two columns, Name and Size:</em>
-LV := Gui.Add("ListView", "r20 w700", "Name|Size (KB)")
+LV := MyGui.Add("ListView", "r20 w700", "Name|Size (KB)")
 
 <em>; Notify the script whenever the user double clicks a row:</em>
 LV.OnEvent("DoubleClick", "LV_DoubleClick")
@@ -54,7 +54,7 @@ Loop Files, A_MyDocuments "\*.*"
 LV.ModifyCol(2, "Integer")  <em>; For sorting purposes, indicate that column 2 is an integer.</em>
 
 <em>; Display the window.</em>
-Gui.Show
+MyGui.Show
 
 LV_DoubleClick(LV, RowNumber)
 {
@@ -272,10 +272,10 @@ LV_DoubleClick(LV, RowNumber)
         LV.Modify(A_Index, &quot;Select&quot;)  <em>; Select each row whose first field contains the filter-text.</em>
 }</pre>
     <p>To retrieve the widths of a ListView's columns -- for uses such as saving them to an INI file to be remembered between sessions -- follow this example:</p>
-    <pre>Gui.Opt("+LastFound")
+    <pre>
 Loop LV.GetCount("Column")
 {
-    ColWidth := SendMessage(4125, A_Index - 1, 0, "SysListView321")  <em>; 4125 is LVM_GETCOLUMNWIDTH.</em>
+    ColWidth := SendMessage(4125, A_Index - 1, 0, LV)  <em>; 4125 is LVM_GETCOLUMNWIDTH.</em>
     MsgBox("Column " A_Index "'s width is " ColWidth ".")
 }</pre>
   </div>
@@ -306,8 +306,8 @@ Loop
     MsgBox('The next selected row is #' RowNumber ', whose first field is &quot;' Text '&quot;.')
 }</pre>
     <p>An alternate method to find out if a particular row number is checked is the following:</p>
-    <pre>Gui.Opt("+LastFound")
-ItemState := SendMessage(4140, RowNumber - 1, 0xF000, "SysListView321")  <em>; 4140 is LVM_GETITEMSTATE. 0xF000 is LVIS_STATEIMAGEMASK.</em>
+    <pre>
+ItemState := SendMessage(4140, RowNumber - 1, 0xF000, LV)  <em>; 4140 is LVM_GETITEMSTATE. 0xF000 is LVIS_STATEIMAGEMASK.</em>
 IsChecked := (ItemState &gt;&gt; 12) - 1  <em>; This sets IsChecked to true if <i>RowNumber</i> is checked or false otherwise.</em></pre>
   </div>
   <div class="methodShort" id="GetText">
@@ -370,8 +370,8 @@ IsChecked := (ItemState &gt;&gt; 12) - 1  <em>; This sets IsChecked to true if <
 
 <h2 id="IL">ImageList <span class="headnote">(the means by which icons are added to a ListView)</span></h2>
 <p>An Image-List is a group of identically sized icons stored in memory. Upon creation, each ImageList is empty. The script calls IL_Add repeatedly to add icons to the list, and each icon is assigned a sequential number starting at 1. This is the number to which the script refers to display a particular icon in a row or column header. Here is a working example that demonstrates how to put icons into a ListView's rows:</p>
-<pre>Gui := GuiCreate()  <em>; Create a GUI window.</em>
-LV := Gui.Add("ListView", "h200 w180", "Icon &amp; Number|Description")  <em>; Create a ListView.</em>
+<pre>MyGui := Gui.New()  <em>; Create a MyGui window.</em>
+LV := MyGui.Add("ListView", "h200 w180", "Icon &amp; Number|Description")  <em>; Create a ListView.</em>
 ImageListID := <a href="#IL_Create">IL_Create</a>(10)  <em>; Create an ImageList to hold 10 small icons.</em>
 LV.<a href="#SetImageList">SetImageList</a>(ImageListID)  <em>; Assign the above ImageList to the current ListView.</em>
 Loop 10  <em>; Load the ImageList with a series of icons from the DLL.</em>
@@ -379,7 +379,7 @@ Loop 10  <em>; Load the ImageList with a series of icons from the DLL.</em>
 Loop 10  <em>; Add rows to the ListView (for demonstration purposes, one for each icon).</em>
     LV.Add(&quot;Icon&quot; . A_Index, A_Index, &quot;n/a&quot;)
 LV.ModifyCol(&quot;Hdr&quot;)  <em>; Auto-adjust the column widths.</em>
-Gui.Show</pre>
+MyGui.Show</pre>
 <h3 id="IL_Create">IL_Create</h3>
   <p>Creates a new ImageList, initially empty, and returns the unique ID of the ImageList (or 0 upon failure).</p>
   <pre class="Syntax">UniqueID := <span class="func">IL_Create</span>(<span class="optional">InitialCount := 2, GrowCount := 5, LargeIcons := false</span>)</pre>
@@ -442,11 +442,11 @@ Gui.Show</pre>
 <p><a href="../objects/Gui.htm#Submit">Gui.Submit</a> has no effect on a ListView control.</p>
 <p>After a column is sorted -- either by means of the user clicking its header or the script calling <code>LV.<a href="#ModifyCol">ModifyCol</a>(1, &quot;Sort&quot;)</code> -- any subsequently added rows will appear at the bottom of the list rather than obeying the sort order. The exception to this is the <a href="#Sort">Sort</a> and <a href="#SortDesc">SortDesc</a> styles, which move newly added rows into the correct positions.</p>
 <p id="Enter">To detect when the user has pressed <kbd>Enter</kbd> while a ListView has focus, use a <a href="GuiControls.htm#DefaultButton">default button</a> (which can be hidden if desired). For example:</p>
-<pre>Gui.Add("Button", "Hidden Default", "OK").OnEvent("Click", "LV_Enter")
+<pre>MyGui.Add("Button", "Hidden Default", "OK").OnEvent("Click", "LV_Enter")
 ...
 LV_Enter(*) {
     global
-    if Gui.FocusedCtrl != LV
+    if MyGui.FocusedCtrl != LV
         return
     MsgBox("Enter was pressed. The focused row number is " LV.GetNext(0, "Focused"))
 }</pre>
@@ -459,7 +459,7 @@ LV_Enter(*) {
 <p>To perform actions such as resizing, hiding, or changing the font of a ListView, see <a href="../objects/GuiControl.htm">GuiControl object</a>.</p>
 <p>To extract text from external ListViews (those not owned by the script), use <a href="ControlGetList.htm">ControlGetList</a>.</p>
 <h2>Related</h2>
-<p><a href="TreeView.htm">TreeView</a>, <a href="GuiControls.htm">Other Control Types</a>, <a href="GuiCreate.htm">GuiCreate</a>, <a href="../objects/GuiOnEvent.htm#ContextMenu">ContextMenu event</a>, <a href="../objects/Gui.htm">Gui object</a>, <a href="../objects/GuiControl.htm">GuiControl object</a>, <a href="../misc/Styles.htm#ListView">ListView styles table</a></p>
+<p><a href="TreeView.htm">TreeView</a>, <a href="GuiControls.htm">Other Control Types</a>, <a href="../objects/Gui.htm#New">Gui.New</a>, <a href="../objects/GuiOnEvent.htm#ContextMenu">ContextMenu event</a>, <a href="../objects/Gui.htm">Gui object</a>, <a href="../objects/GuiControl.htm">GuiControl object</a>, <a href="../misc/Styles.htm#ListView">ListView styles table</a></p>
 <h2 id="Examples">Examples</h2>
 
 <div class="ex" id="ExBasic">
@@ -476,15 +476,15 @@ LV.<a href="#ModifyCol">ModifyCol</a>  <em>; There are no parameters in this mod
 <div class="ex" id="ExAdvanced">
 <p><a href="#ExAdvanced">#2</a>: The following is a working script that is more elaborate than the one near the top of this page. It displays the files in a folder chosen by the user, with each file assigned the icon associated with its type. The user can double-click a file, or right-click one or more files to display a context menu:</p>
 <pre><em>; Create a GUI window:</em>
-Gui := GuiCreate("+Resize")  <em>; Allow the user to maximize or drag-resize the window.</em>
+MyGui := Gui.New("+Resize")  <em>; Allow the user to maximize or drag-resize the window.</em>
 
 <em>; Create some buttons:</em>
-B1 := Gui.Add("Button", "Default", "Load a folder")
-B2 := Gui.Add("Button", "x+20", "Clear List")
-B3 := Gui.Add("Button", "x+20", "Switch View")
+B1 := MyGui.Add("Button", "Default", "Load a folder")
+B2 := MyGui.Add("Button", "x+20", "Clear List")
+B3 := MyGui.Add("Button", "x+20", "Switch View")
 
-<em>; Create the ListView and its columns via <a href="#GuiAdd">Gui.Add</a>:</em>
-LV := Gui.Add("ListView", "xm r20 w700 vLV", ["Name","In Folder","Size (KB)","Type"])
+<em>; Create the ListView and its columns via <a href="#GuiAdd">MyGui.Add</a>:</em>
+LV := MyGui.Add("ListView", "xm r20 w700 vLV", ["Name","In Folder","Size (KB)","Type"])
 <a href="#ModifyCol">LV.ModifyCol</a>(3, "Integer")  <em>; For sorting, indicate that the Size column is an integer.</em>
 
 <em>; Create an ImageList so that the ListView can display some icons:</em>
@@ -503,10 +503,10 @@ B2.OnEvent("Click", (*) =&gt; <a href="#Delete">LV.Delete</a>())
 B3.OnEvent("Click", "SwitchView")
 
 <em>; Apply window events:</em>
-Gui.OnEvent("Size", "Gui_Size")
+MyGui.OnEvent("Size", "Gui_Size")
 
 <em>; Display the window:</em>
-Gui.Show()
+MyGui.Show()
 
 LoadFolder(ImageListID1, ImageListID2, this, *)
 {

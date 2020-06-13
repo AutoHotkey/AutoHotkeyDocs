@@ -32,10 +32,10 @@
 <p>A tree view usually looks like this:</p>
 <img src="../static/ctrl_treeview.png" alt="TreeView" />
 <p>The syntax for creating a TreeView is:</p>
-<pre class="Syntax" id="GuiAdd">TV := Gui.<span class="func">Add</span>("TreeView", Options)</pre>
+<pre class="Syntax" id="GuiAdd">TV := GuiObj.<span class="func">Add</span>("TreeView", Options)</pre>
 <p>Here is a working script that creates and displays a simple hierarchy of items:</p>
-<pre>Gui := GuiCreate()
-TV := Gui.Add("TreeView")
+<pre>MyGui := Gui.New()
+TV := MyGui.Add("TreeView")
 <span class="red">P1</span> := <a href="#Add">TV.Add</a>("First parent")
 P1C1 := TV.Add("Parent 1's first child", <span class="red">P1</span>)  <em>; Specify P1 to be this item's parent.</em>
 P2 := TV.Add("Second parent")
@@ -43,7 +43,7 @@ P2C1 := TV.Add("Parent 2's first child", P2)
 P2C2 := TV.Add("Parent 2's second child", P2)
 P2C2C1 := TV.Add("Child 2's first child", P2C2)
 
-Gui.Show  <em>; Show the window and its TreeView.</em></pre>
+MyGui.Show  <em>; Show the window and its TreeView.</em></pre>
 <h2 id="Options">Options and Styles for the <em>Options</em> parameter</h2>
 <p><strong>Background:</strong> Specify the word Background followed immediately by a color name (see <a href="../misc/Colors.htm">color chart</a>) or RGB value (the 0x prefix is optional). Examples: <code>BackgroundSilver</code>, <code>BackgroundFFDD99</code>. If this option is not present, the TreeView initially defaults to the system's default background color. Specifying <code>BackgroundDefault</code> or <code>-Background</code> applies the system's default background color (usually white). For example, a TreeView can be restored to the default color via <code>TV.Opt("+BackgroundDefault")</code>.</p>
 <p><strong>Buttons</strong>: Specify <code>-Buttons</code> (minus Buttons) to avoid displaying a plus or minus button to the left of each item that has children.</p>
@@ -51,16 +51,16 @@ Gui.Show  <em>; Show the window and its TreeView.</em></pre>
 <p id="Checked"><strong>Checked:</strong> Provides a checkbox at the left side of each item. When <a href="#Add">adding</a> an item, specify the word <em>Check</em> in its options to have the box to start off checked instead of unchecked. The user may either click the checkbox or press the spacebar to check or uncheck an item. To discover which items in a TreeView are currently checked, call <a href="#GetNext">TV.GetNext</a> or <a href="#Get">TV.Get</a>.</p>
 <p><strong>HScroll</strong>: Specify <code>-HScroll</code> (minus HScroll) to disable horizontal scrolling in the control (in addition, the control will not display any horizontal scroll bar).</p>
 <p id="ImageList"><strong>ImageList</strong>: This is the means by which icons are added to a TreeView. Specify the word <em>ImageList</em> followed immediately by the ImageListID returned from a previous call to <a href="ListView.htm#IL_Create">IL_Create</a>. This option has an effect only when creating a TreeView (however, <a href="#SetImageList">TV.SetImageList</a> does not have this limitation). Here is a working example:</p>
-<pre>Gui := GuiCreate()
+<pre>MyGui := Gui.New()
 ImageListID := <a href="ListView.htm#IL_Create">IL_Create</a>(10)  <em>; Create an ImageList with initial capacity for 10 icons.</em>
 Loop 10  <em>; Load the ImageList with some standard system icons.</em>
     <a href="ListView.htm#IL_Add">IL_Add</a>(ImageListID, "shell32.dll", A_Index)
-TV := Gui.Add("TreeView", "ImageList" . ImageListID)
+TV := MyGui.Add("TreeView", "ImageList" . ImageListID)
 <a href="#Add">TV.Add</a>("Name of Item", 0, "Icon4")  <em>; Add an item to the TreeView and give it a folder icon.</em>
-Gui.Show</pre>
+MyGui.Show</pre>
 <p><strong>Lines</strong>: Specify <code>-Lines</code> (minus Lines) to avoid displaying a network of lines connecting parent items to their children. However, removing these lines also prevents the plus/minus buttons from being shown for top-level items.</p>
 <p id="ReadOnly"><strong>ReadOnly:</strong> Specify <code>-ReadOnly</code> (minus ReadOnly) to allow editing of the text/name of each item. To edit an item, select it then press the <kbd>F2</kbd> key (see the <a href="#WantF2">WantF2</a> option below). Alternatively, you can click an item once to select it, wait at least half a second, then click the same item again to edit it. After being edited, an item can be alphabetically repositioned among its siblings via the following example:</p>
-<pre>TV := Gui.Add("TreeView", "-ReadOnly")
+<pre>TV := MyGui.Add("TreeView", "-ReadOnly")
 TV.OnEvent("ItemEdit", "MyTree_Edit")  <em>; Call MyTree_Edit whenever a user has finished editing an item.</em>
 <em>; ...</em>
 MyTree_Edit(TV, Item)
@@ -281,11 +281,11 @@ Loop
 
 <h2 id="Remarks">Remarks</h2>
 <p id="Enter">To detect when the user has pressed <kbd>Enter</kbd> while a TreeView has focus, use a <a href="GuiControls.htm#DefaultButton">default button</a> (which can be hidden if desired). For example:</p>
-<pre>Gui.Add("Button", "Hidden Default", "OK").OnEvent("Click", "ButtonOK")
+<pre>MyGui.Add("Button", "Hidden Default", "OK").OnEvent("Click", "ButtonOK")
 ...
 ButtonOK(*) {
     global
-    if Gui.FocusedCtrl != TV
+    if MyGui.FocusedCtrl != TV
         return
     MsgBox("Enter was pressed. The selected item ID is " TV.GetSelection())
 }</pre>
@@ -297,7 +297,7 @@ ButtonOK(*) {
 <p>To perform actions such as resizing, hiding, or changing the font of a TreeView, see <a href="../objects/GuiControl.htm">GuiControl object</a>.</p>
 <p>Tree View eXtension (TVX) extends TreeViews to support moving, inserting and deleting. It is demonstrated at <a href="https://www.autohotkey.com/forum/topic19021.html">www.autohotkey.com/forum/topic19021.html</a></p>
 <h2>Related</h2>
-<p><a href="ListView.htm">ListView</a>, <a href="GuiControls.htm">Other Control Types</a>, <a href="GuiCreate.htm">GuiCreate</a>, <a href="../objects/GuiOnEvent.htm#ContextMenu">ContextMenu event</a>, <a href="../objects/GuiControl.htm">Gui object</a>, <a href="../objects/GuiControl.htm">GuiControl object</a>, <a href="../misc/Styles.htm#TreeView">TreeView styles table</a></p>
+<p><a href="ListView.htm">ListView</a>, <a href="GuiControls.htm">Other Control Types</a>, <a href="../objects/Gui.htm#New">Gui.New</a>, <a href="../objects/GuiOnEvent.htm#ContextMenu">ContextMenu event</a>, <a href="../objects/GuiControl.htm">Gui object</a>, <a href="../objects/GuiControl.htm">GuiControl object</a>, <a href="../misc/Styles.htm#TreeView">TreeView styles table</a></p>
 
 <h2 id="Examples">Examples</h2>
 
@@ -309,23 +309,23 @@ TreeRoot := A_MyDocuments
 TreeViewWidth := 280
 ListViewWidth := A_ScreenWidth/2 - TreeViewWidth - 30
 
-<em>; Create the GUI window and display the source directory (TreeRoot) in the title bar:</em>
-Gui := GuiCreate("+Resize", TreeRoot)  <em>; Allow the user to maximize or drag-resize the window.</em>
+<em>; Create the MyGui window and display the source directory (TreeRoot) in the title bar:</em>
+MyGui := Gui.New("+Resize", TreeRoot)  <em>; Allow the user to maximize or drag-resize the window.</em>
 
 <em>; Create an ImageList and put some standard system icons into it:</em>
 ImageListID := <a href="ListView.htm#IL_Create">IL_Create</a>(5)
 Loop 5 
     <a href="ListView.htm#IL_Add">IL_Add</a>(ImageListID, "shell32.dll", A_Index)
 <em>; Create a <a href="#GuiAdd">TreeView</a> and a ListView side-by-side to behave like Windows Explorer:</em>
-TV := <a href="#GuiAdd">Gui.Add</a>("TreeView", "r20 w" TreeViewWidth " <a href="#ImageList">ImageList</a>" ImageListID " vTV")
-LV := Gui.Add("ListView", "r20 w" ListViewWidth " x+10 vLV", "Name|Modified")
+TV := <a href="#GuiAdd">MyGui.Add</a>("TreeView", "r20 w" TreeViewWidth " <a href="#ImageList">ImageList</a>" ImageListID " vTV")
+LV := MyGui.Add("ListView", "r20 w" ListViewWidth " x+10 vLV", "Name|Modified")
 
 <em>; Create a <a href="GuiControls.htm#StatusBar">Status Bar</a> to give info about the number of files and their total size:</em>
-SB := Gui.Add("StatusBar", "vSB")
+SB := MyGui.Add("StatusBar", "vSB")
 <a href="GuiControls.htm#SB_SetParts">SB.SetParts</a>(60, 85)  <em>; Create three parts in the bar (the third part fills all the remaining width).</em>
 
 <em>; Add folders and their subfolders to the tree. Display the status in case loading takes a long time:</em>
-M := GuiCreate("ToolWindow -SysMenu", "Loading the tree..."), M.Show()
+M := Gui.New("ToolWindow -SysMenu", "Loading the tree..."), M.Show()
 DirList := AddSubFoldersToTree(TV, TreeRoot, {})
 M.Hide()
 
@@ -333,7 +333,7 @@ M.Hide()
 TV.OnEvent("ItemSelect", Func("TV_ItemSelect").bind(DirList))
 
 <em>; Call Gui_Size whenever the window is resized:</em>
-Gui.OnEvent("Size", "Gui_Size")
+MyGui.OnEvent("Size", "Gui_Size")
 
 <em>; Set the ListView's column widths (this is optional):</em>
 Col2Width := 70  <em>; Narrow to reveal only the YYYYMMDD part.</em>
@@ -341,7 +341,7 @@ LV.ModifyCol(1, ListViewWidth - Col2Width - 30)  <em>; Allows room for vertical 
 LV.ModifyCol(2, Col2Width)
 
 <em>; Display the window. The OS will notify the script whenever the user performs an eligible action:</em>
-Gui.Show
+MyGui.Show
 
 AddSubFoldersToTree(TV, Folder, DirList, ParentItemID := 0)
 {
