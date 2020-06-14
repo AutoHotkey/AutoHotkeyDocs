@@ -729,8 +729,6 @@ indexData = [
   ["ObjOwnProps","objects/Object.htm#OwnProps",2],
   ["ObjPtr","Objects.htm#ObjPtr",2],
   ["ObjPtrAddRef","Objects.htm#ObjPtr",2],
-  ["ObjRawSet","objects/Object.htm#RawSet",2],
-  ["ObjRawGet","objects/Object.htm#RawGet",2],
   ["ObjRelease","commands/ObjAddRef.htm",2],
   ["ObjSetBase","objects/Object.htm#SetBase",2],
   ["ObjSetCapacity","objects/Object.htm#SetCapacity",2],

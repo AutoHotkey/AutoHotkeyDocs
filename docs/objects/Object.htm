@@ -43,7 +43,6 @@
 	<li><a href="#SetBase">ObjSetBase</a>: Set the object's <a href="../Objects.htm#delegation">base object</a>.</li>
   <li><a href="#GetCapacity">ObjGetCapacity</a>, <a href="#SetCapacity">ObjSetCapacity</a>: Retrieve or set an Object's capacity to contain properties.</li>
   <li><a href="#OwnPropCount">ObjOwnPropCount</a>: Retrieve the number of own properties contained by an object.</li>
-	<li>Deprecated: <a href="#RawGet">ObjRawGet</a>, <a href="#RawSet">ObjRawSet</a>: Retrieve or set an object's own value property, bypassing any meta-functions and potentially overwriting property accessor functions.</li>
   <li>ObjHasOwnProp, ObjOwnMethods, ObjOwnProps: Equivalent to the corresponding predefined method, but cannot be overridden.</li>
 </ul>
 
@@ -76,7 +75,7 @@
 </div>
 
 <div class="methodShort" id="DefineProp"><h2>DefineProp</h2>
-<p>Defines a new dynamic property.</p>
+<p>Defines a new own property.</p>
 <pre class="Syntax">Obj.<span class="func">DefineProp</span>(Name, Desc)</pre>
 <dl>
   <dt>Name</dt>
@@ -87,12 +86,14 @@
   <dt>Desc</dt>
   <dd>
     <p>Type: Object</p>
-    <p>An object with zero or more of the following own properties:</p>
+    <p>An object with one of the following own properties, or both <em>Get</em> and <em>Set</em>:</p>
     <p><code>Get</code>: The <a href="Functor.htm">function object</a> to call when the property's value is retrieved.</p>
     <p><code>Set</code>: The <a href="Functor.htm">function object</a> to call when the property is assigned a value. Its second parameter is the value being assigned.</p>
+    <p><code>Value</code>: Any value to assign to the property.</p>
   </dd>
 </dl>
-<p>If <em>Get</em> or <em>Set</em> is not defined, it can be inherited from a base object. If <em>Get</em> is undefined, the property can return a value inherited from a base. If <em>Set</em> is undefined in this and all base objects, the property is read-only (attempting to set the property throws an exception).</p>
+<p>This method can be used to convert a value property to a dynamic property or vice versa, but it is not possible to specify both a value and a getter/setter.</p>
+<p>If only <em>Get</em> or <em>Set</em> is defined, its counterpart can be inherited from a base object. If <em>Get</em> is undefined, the property can return a value inherited from a base. If <em>Set</em> is undefined in this and all base objects, the property is read-only (attempting to set the property throws an exception).</p>
 <p>As with methods, the first parameter of <em>Get</em> or <em>Set</em> is <code>this</code> (the target object). For <em>Set</em>, the second parameter is <code>value</code> (the value being assigned). These parameters are defined automatically by method and property definitions within a class, but must be defined explicitly if using normal functions.</p>
 <p>The <code>MaxParams</code> and <code>IsVariadic</code> properties of the function objects are evaluated to determine whether the property may accept parameters. If <code>MaxParams</code> is 1 for <em>get</em> or 2 for <em>set</em> and <code>IsVariadic</code> is false or undefined, the property cannot accept parameters; they are instead forwarded to the <a href="../Objects.htm#__Item">__Item</a> property of the object returned by <em>get</em>.</p>
 </div>
@@ -124,7 +125,7 @@
 </div>
 
 <div class="methodShort" id="GetOwnPropDesc"><h2>GetOwnPropDesc</h2>
-<p>Returns a descriptor for a given property, compatible with <a href="#DefineProp">DefineProp</a>.</p>
+<p>Returns a descriptor for a given own property, compatible with <a href="#DefineProp">DefineProp</a>.</p>
 <pre class="Syntax">Obj.<span class="func">GetOwnPropDesc</span>(Name)</pre>
 <dl>
   <dt>Name</dt>
@@ -135,13 +136,15 @@
   <dt>Return Value</dt>
   <dd>
     <p>Type: Object</p>
-    <p>A new object with zero or more of the following own properties:</p>
-    <p><code>Get</code>: The <a href="Functor.htm">function object</a> which is called when the property's value is retrieved, if defined in <em>Obj</em>.</p>
-    <p><code>Set</code>: The <a href="Functor.htm">function object</a> which is called when the property is assigned a value, if defined in <em>Obj</em>.</p>
-    <p>If the property is a value property, the return value is an empty string.</p>
+    <p>For a dynamic property, the return value is a new object with one or both of the following own properties:<br>
+    <code>Get</code>: The <a href="Functor.htm">function object</a> which is called when the property's value is retrieved, if defined in <em>Obj</em>.<br>
+    <code>Set</code>: The <a href="Functor.htm">function object</a> which is called when the property is assigned a value, if defined in <em>Obj</em>.</p>
+    <p>For a value property, the return value is a new object with a property named <code>Value</code>. In such cases, <code>Obj.GetOwnPropDesc(Name).Value == Obj.%Name%</code>.</p>
   </dd>
 </dl>
+<p></p>
 <p>Modifying the returned object has no effect on <em>Obj</em> unless <a href="#DefineProp">DefineProp</a> is called.</p>
+<p>An exception is thrown if <em>Obj</em> does not own a property by that name. The script can determine whether a property is dynamic by checking <code>not desc.HasProp("Value")</code> where <em>desc</em> is the return value of GetOwnPropDesc.</p>
 </div>
 
 <div class="methodShort" id="HasOwnMethod"><h2>HasOwnMethod</h2>
@@ -207,23 +210,6 @@
 </div>
 
 <h2>Functions</h2>
-
-<div class="methodShort" id="RawGet"><h2>ObjRawGet</h2>
-<p>Retrieves the value of an object's own property.</p>
-<p class="warning"><strong>Deprecated:</strong> This function may be removed or replaced in a future release.</p>
-<pre class="Syntax">Value := <span class="func">ObjRawGet</span>(Obj, Name)</pre>
-<p>If the object does not own a property by this name or it is a dynamic property, the return value is an empty string. No <a href="../Objects.htm#Meta_Functions">meta-functions</a> or <a href="../Objects.htm#Custom_Classes_property">property functions</a> are called. Inherited properties are not considered.</p>
-<p>An exception is thrown if <em>Obj</em> is of an incorrect type.</p>
-</div>
-
-<div class="methodShort" id="RawSet"><h2>ObjRawSet</h2>
-<p>Creates a new value property or sets the value of an existing one.</p>
-<p class="warning"><strong>Deprecated:</strong> This function may be removed or replaced in a future release.</p>
-<pre class="Syntax"><span class="func">ObjRawSet</span> Obj, Name, Value</pre>
-<p>This function is provided to allow scripts to bypass the __Set <a href="../Objects.htm#Meta_Functions">meta-function</a> and <a href="../Objects.htm#Custom_Classes_property">properties</a>. If that isn't required, a normal assignment should be used instead. For example: <code>Obj.%Name% := Value</code></p>
-<p>Since the purpose is to bypass meta-functions, this is a function only, not a method. Calling a built-in method generally causes the __Call meta-function to be called.</p>
-<p>An exception is thrown if <em>Obj</em> is of an incorrect type.</p>
-</div>
 
 <div class="methodShort" id="SetBase"><h2>ObjSetBase</h2>
 <p>Sets the object's <a href="../Objects.htm#delegation">base object</a>.</p>
