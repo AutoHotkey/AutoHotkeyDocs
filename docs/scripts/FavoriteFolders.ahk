@@ -64,7 +64,7 @@ else  ; Read the menu items directly from this script file.
 f_AtStartingPos := false
 f_MenuItemCount := 0
 f_Paths := []
-f_Menu := MenuCreate()
+f_Menu := Menu.New()
 Loop Read, f_FavoritesFile
 {
     if f_FileExt != "Exe"

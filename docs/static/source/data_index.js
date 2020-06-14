@@ -677,8 +677,6 @@ indexData = [
   ["MaxThreadsPerHotkey","commands/_MaxThreadsPerHotkey.htm"],
   ["Menu object","objects/Menu.htm"],
   ["MenuBar object","objects/Menu.htm"],
-  ["MenuBarCreate","commands/MenuBarCreate.htm",2],
-  ["MenuCreate","commands/MenuCreate.htm",2],
   ["MenuFromHandle","commands/MenuFromHandle.htm",2],
   ["MenuSelect","commands/MenuSelect.htm",2],
   ["message list (WM_*)","misc/SendMessageList.htm"],

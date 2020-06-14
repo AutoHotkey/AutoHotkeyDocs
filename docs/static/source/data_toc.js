@@ -176,8 +176,6 @@ tocData = [
     ["InputBox","commands/InputBox.htm"],
     ["LoadPicture","commands/LoadPicture.htm"],
     ["Menu/MenuBar object","objects/Menu.htm"],
-    ["MenuBarCreate","commands/MenuBarCreate.htm"],
-    ["MenuCreate","commands/MenuCreate.htm"],
     ["MenuFromHandle","commands/MenuFromHandle.htm"],
     ["MsgBox","commands/MsgBox.htm"],
     ["OnMessage","commands/OnMessage.htm"],
