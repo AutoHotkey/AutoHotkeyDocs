@@ -603,29 +603,32 @@ LaunchFile(this, *)
 
 <div class="ex" id="ExToolTip">
 <p><a href="#ExToolTip">#5</a>: Displays a context-sensitive help (via ToolTip) whenever the user moves the mouse over a particular control:</p>
-<pre>MyGui := Gui.New()
-MyGui.Add("Edit", "v<strong>MyEdit</strong>")
-<strong>MyEdit</strong>_TT := "This is a tooltip for the control whose name is MyEdit."
-MyGui.Add("DropDownList", "v<strong>MyDDL</strong>", ["Red","Green","Blue"])
-<strong>MyDDL</strong>_TT := "Choose a color from the drop-down list."
+<pre>
+MyGui := Gui.New()
+MyEdit := MyGui.Add("Edit")
+<em>; Store the tooltip text in a custom property:</em>
+MyEdit.ToolTip := "This is a tooltip for the control whose name is MyEdit."
+MyDDL := MyGui.Add("DropDownList", "", ["Red","Green","Blue"])
+MyDDL.ToolTip := "Choose a color from the drop-down list."
 MyGui.Add("Checkbox", "vMyCheckBox", "This control has no tooltip.")
-MyGui.OnEvent("Close", (*) =&gt; ExitApp())
+MyGui.OnEvent("Close", (*) => ExitApp())
 MyGui.Show()
-<a href="../commands/OnMessage.htm">OnMessage</a>(0x200, "WM_MOUSEMOVE")
+OnMessage(0x200, "WM_MOUSEMOVE")
 
 WM_MOUSEMOVE(wParam, lParam, msg, Hwnd)
 {
-    global  
-    static PrevHwnd
+    static PrevHwnd := 0
     if (Hwnd != PrevHwnd)
     {
-        Text := "", <a href="../commands/ToolTip.htm">ToolTip</a>() <em>; Turn off any previous tooltip.</em>
+        Text := "", ToolTip() <em>; Turn off any previous tooltip.</em>
         CurrControl := GuiCtrlFromHwnd(Hwnd)
         if CurrControl
         {
-            Text := %CurrControl.Name%_TT
-            SetTimer () =&gt; ToolTip(Text), -1000
-            SetTimer () =&gt; ToolTip(), -4000 <em>; Remove the tooltip.</em>
+            if !CurrControl.HasProp("ToolTip")
+                return <em>; No tooltip for this control.</em>
+            Text := CurrControl.ToolTip
+            SetTimer () => ToolTip(Text), -1000
+            SetTimer () => ToolTip(), -4000 <em>; Remove the tooltip.</em>
         }
         PrevHwnd := Hwnd
     }
