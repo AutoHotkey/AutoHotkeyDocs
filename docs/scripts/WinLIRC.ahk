@@ -1,4 +1,4 @@
-; WinLIRC Client
+﻿; WinLIRC Client
 ; https://www.autohotkey.com
 ; This script receives notifications from WinLIRC whenever you press
 ; a button on your remote control. It can be used to automate Winamp,

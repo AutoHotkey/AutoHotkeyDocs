@@ -1,8 +1,8 @@
-; Numpad 000 Key
+ï»¿; Numpad 000 Key
 ; https://www.autohotkey.com
 ; This example script makes the special 000 key that appears on certain
 ; keypads into an equals key.  You can change the action by replacing the
-; “Send, =” line with line(s) of your choice.
+; â€œSend, =â€ line with line(s) of your choice.
 
 #MaxThreadsPerHotkey 5  ; Allow multiple threads for this hotkey.
 $Numpad0::

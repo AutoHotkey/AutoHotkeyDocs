@@ -1,4 +1,4 @@
-; Using a Joystick as a Mouse
+﻿; Using a Joystick as a Mouse
 ; https://www.autohotkey.com
 ; This script converts a joystick into a three-button mouse.  It allows each
 ; button to drag just like a mouse button and it uses virtually no CPU time.

@@ -1,4 +1,4 @@
-; Minimize Window to Tray Menu
+﻿; Minimize Window to Tray Menu
 ; https://www.autohotkey.com
 ; This script assigns a hotkey of your choice to hide any window so that
 ; it becomes an entry at the bottom of the script's tray menu.  Hidden

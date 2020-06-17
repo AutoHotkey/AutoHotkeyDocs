@@ -1,4 +1,4 @@
-; On-Screen Keyboard (requires XP/2k/NT) -- by Jon
+﻿; On-Screen Keyboard (requires XP/2k/NT) -- by Jon
 ; https://www.autohotkey.com
 ; This script creates a mock keyboard at the bottom of your screen that shows
 ; the keys you are pressing in real time. I made it to help me to learn to
@@ -156,7 +156,7 @@ Loop
 {
 	Transform, k_char, Chr, %k_ASCII%
 	StringUpper, k_char, k_char
-	if k_char not in <,>,^,~,�,`,
+	if k_char not in <,>,^,~,,`,
 		Hotkey, ~*%k_char%, k_KeyPress
 		; In the above, the asterisk prefix allows the key to be detected regardless
 		; of whether the user is holding down modifier keys such as Control and Shift.
