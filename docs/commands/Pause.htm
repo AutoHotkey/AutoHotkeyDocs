@@ -15,53 +15,51 @@
 <p>Pauses the script's <a href="../misc/Threads.htm">current thread</a>.</p>
 
 <pre class="Syntax">
-<span class="func">#p</span>::Pause <em>; Pressing Win+P once will pause the script. Pressing it again will unpause.</em>
-<span class="func">Pause</span> <span class="optional">OnOffToggle, OperateOnUnderlyingThread</span>
+<span class="func">Pause</span> <span class="optional">NewState</span>
 </pre>
 <h2>Parameters</h2>
 <dl>
 
-  <dt>OnOffToggle</dt>
+  <dt>NewState</dt>
   <dd>
-    <p>Type: <a href="../Concepts.htm#strings">String</a> or <a href="../Concepts.htm#numbers">Integer</a></p>
-    <p>If blank or omitted, it defaults to Toggle. Otherwise, specify one of the following words:</p>
-    <p><strong>Toggle</strong> or -1: Pauses the <a href="../misc/Threads.htm">current thread</a> unless the thread beneath it is paused, in which case the underlying thread is unpaused.</p>
-    <p><strong>On</strong> or 1 (<a href="../Variables.htm#True">true</a>): Pauses the current thread.</p>
-    <p><strong>Off</strong> or 0 (<a href="../Variables.htm#False">false</a>): If the thread beneath the current thread is paused, it will be in an unpaused state when resumed. Otherwise, the function has no effect.</p>
-  </dd>
-
-  <dt>OperateOnUnderlyingThread</dt>
-  <dd>
-    <p>Type: <a href="../Concepts.htm#boolean">Integer (boolean)</a></p>
-    <p>This parameter is ignored for <code>Pause "Off"</code> because that always operates on the underlying thread. For the others, it is ignored unless Pause is being turned on (including via Toggle).</p>
-    <p>Specify one of the following numbers:</p>
-    <p><strong>0</strong> (or omitted): The function pauses the current thread; that is, the one now running the Pause function.</p>
-    <p><strong>1</strong>: The function marks the thread beneath the current thread as paused so that when it resumes, it will finish the function it was running (if any) and then enter a paused state. If there is no thread beneath the current thread, the script itself is paused, which prevents <a href="SetTimer.htm">timers</a> from running (this effect is the same as having used the menu item &quot;Pause Script&quot; while the script has no threads).</p>
-    <p class="note"><strong>Note</strong>: <a href="../Variables.htm#IsPaused">A_IsPaused</a> contains the pause state of the underlying thread.</p>
+    <p>Type: <a href="../Concepts.htm#numbers">Integer</a> or <a href="../Concepts.htm#strings">String</a></p>
+    <p>If blank or omitted, the <a href="../misc/Threads.htm">current thread</a> is paused. Otherwise, specify one of the following values:</p>
+    <p><code>1</code> (<a href="../Variables.htm#True">true</a>): Marks the thread beneath the current thread as paused so that when it resumes, it will finish the function it was running (if any) and then enter a paused state. If there is no thread beneath the current thread, the script itself is paused, which prevents <a href="SetTimer.htm">timers</a> from running (this effect is the same as having used the menu item &quot;Pause Script&quot; while the script has no threads).</p>
+    <p><code>0</code> (<a href="../Variables.htm#False">false</a>): Unpauses the underlying thread.</p>
+    <p><code>-1</code>: Toggles the pause state of the underlying thread.</p>
   </dd>
 
 </dl>
 
 <h2>Remarks</h2>
+<p><a href="../Variables.htm#IsPaused">A_IsPaused</a> contains the pause state of the underlying thread.</p>
 <p>By default, the script can also be paused via its <a href="../Program.htm#tray-icon">tray icon</a> or <a href="../Program.htm#main-window">main window</a>.</p>
-<p>Unlike <a href="Suspend.htm">Suspend</a> -- which disables <a href="../Hotkeys.htm">hotkeys</a> and <a href="../Hotstrings.htm">hotstrings</a> -- turning on pause will freeze the <a href="../misc/Threads.htm"> current thread</a>. As a side-effect, any interrupted threads beneath it will lie dormant.</p>
+<p>Unlike <a href="Suspend.htm">Suspend</a> -- which disables <a href="../Hotkeys.htm">hotkeys</a> and <a href="../Hotstrings.htm">hotstrings</a> -- turning on pause will freeze the thread (the <a href="../misc/Threads.htm">current thread</a> if <em>NewState</em> was omitted, otherwise the underlying thread). As a side-effect, any interrupted threads beneath it will lie dormant.</p>
 <p>Whenever any thread is paused, <a href="SetTimer.htm">timers</a> will not run. By contrast, explicitly launched threads such as <a href="../Hotkeys.htm">hotkeys</a> and <a href="../objects/Menu.htm">menu items</a> can still be launched; but when their <a href="../misc/Threads.htm">threads</a> finish, the underlying thread will still be paused. In other words, each thread can be paused independently of the others.</p>
-<p>The color of the tray icon changes from green to red whenever the script's <a href="../misc/Threads.htm">current thread</a> is in a paused state. This color change can be avoided by freezing the icon, which is achieved by specifying 1 for the last parameter of the Menu function. For example:</p>
-  <pre><a href="TraySetIcon.htm">TraySetIcon</a> "C:\My Icon.ico", , 1</pre>
+<p>With the default icons, the color of the tray icon changes from green to red whenever the script's <a href="../misc/Threads.htm">current thread</a> is in a paused state. This color change can be avoided by freezing the icon, which is achieved by specifying 1 for the last parameter of TraySetIcon. For example:</p>
+<pre><a href="TraySetIcon.htm">TraySetIcon</a> ,, 1</pre>
 <p>To disable <a href="SetTimer.htm">timers</a> without pausing the script, use <a href="Thread.htm">Thread "NoTimers"</a>.</p>
 <p>A script is always halted (though not officially paused) while it is displaying any kind of <a href="../objects/Menu.htm">menu</a> (tray menu, menu bar, GUI context menu, etc.)</p>
 
 <h2>Related</h2>
 <p><a href="Suspend.htm">Suspend</a>, <a href="../objects/Menu.htm">Menu object</a>, <a href="ExitApp.htm">ExitApp</a>, <a href="../misc/Threads.htm">Threads</a>, <a href="SetTimer.htm">SetTimer</a></p>
+
 <h2>Examples</h2>
+<div class="ex" id="ExHalt">
+<p><a href="#ExHalt">#1</a>: Use Pause to halt the script, such as to inspect variables.</p>
+<pre>ListVars
+Pause
+ExitApp <em>; This line will not execute until the user unpauses the script.</em></pre>
+</div>
+
 <div class="ex" id="ExHotkey">
-<p><a href="#ExHotkey">#1</a></p>
-<pre>Pause::Pause  <em>; Assign the toggle-pause function to the &quot;pause&quot; key...</em>
-#p::Pause  <em>; ... or assign it to Win+p or some other hotkey.</em></pre>
+<p><a href="#ExHotkey">#2</a>: Press a hotkey once to pause the script. Press it again to unpause.</p>
+<pre>Pause::Pause -1  <em>; The Pause/Break key.</em>
+#p::Pause -1  <em>; Win+P</em></pre>
 </div>
 
 <div class="ex" id="ExPostMessage">
-<p><a href="#ExPostMessage">#2</a>: Send a Pause command to another script.</p>
+<p><a href="#ExPostMessage">#3</a>: Send a Pause command to another script.</p>
 <pre>DetectHiddenWindows True
 WM_COMMAND := 0x111
 ID_FILE_PAUSE := 65403
