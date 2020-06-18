@@ -1,4 +1,4 @@
-; Seek -- by Phi
+﻿; Seek -- by Phi
 ; https://www.autohotkey.com
 ; Navigating the Start Menu can be a hassle, especially
 ; if you have installed many programs over time. 'Seek'

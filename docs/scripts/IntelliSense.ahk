@@ -1,4 +1,4 @@
-; IntelliSense -- by Rajat (requires XP/2k/NT)
+﻿; IntelliSense -- by Rajat (requires XP/2k/NT)
 ; https://www.autohotkey.com
 ; This script watches while you edit an AutoHotkey script.  When it sees you
 ; type a command followed by a comma or space, it displays that command's

@@ -1,4 +1,4 @@
-; Using Keyboard Numpad as a Mouse -- by deguix
+ï»¿; Using Keyboard Numpad as a Mouse -- by deguix
 ; https://www.autohotkey.com
 ; This script makes mousing with your keyboard almost as easy
 ; as using a real mouse (maybe even easier for some tasks).
@@ -55,7 +55,7 @@ o------------------------------------------------------------o
 | ^Numpad9/^Numpad3     | Inc./dec. wheel maximum speed per  |
 |                       | button press*.                     |
 | Numpad4/Numpad6       | Inc./dec. rotation angle to        |
-|                       | right in degrees. (i.e. 180° =     |
+|                       | right in degrees. (i.e. 180Â° =     |
 |                       | = inversed controls).              |
 |------------------------------------------------------------|
 | * = These options are affected by the mouse wheel speed    |
@@ -71,7 +71,7 @@ o------------------------------------------------------------o
 
 ; Using the keyboard hook to implement the Numpad hotkeys prevents
 ; them from interfering with the generation of ANSI characters such
-; as à.  This is because AutoHotkey generates such characters
+; as Ã .  This is because AutoHotkey generates such characters
 ; by holding down ALT and sending a series of Numpad keystrokes.
 ; Hook hotkeys are smart enough to ignore such keystrokes.
 #UseHook
@@ -100,11 +100,11 @@ Temp = 0
 Temp2 = 0
 
 MouseRotationAnglePart = %MouseRotationAngle%
-;Divide by 45º because MouseMove only supports whole numbers,
-;and changing the mouse rotation to a number lesser than 45º
+;Divide by 45Âº because MouseMove only supports whole numbers,
+;and changing the mouse rotation to a number lesser than 45Âº
 ;could make strange movements.
 ;
-;For example: 22.5º when pressing NumpadUp:
+;For example: 22.5Âº when pressing NumpadUp:
 ;  First it would move upwards until the speed
 ;  to the side reaches 1.
 MouseRotationAnglePart /= 45
@@ -376,7 +376,7 @@ If MouseRotationAnglePart >= 8
 	MouseRotationAnglePart = 0
 MouseRotationAngle = %MouseRotationAnglePart%
 MouseRotationAngle *= 45
-ToolTip, Mouse rotation angle: %MouseRotationAngle%°
+ToolTip, Mouse rotation angle: %MouseRotationAngle%Â°
 SetTimer, RemoveToolTip, 1000
 return
 ButtonRotationAngleDown:
@@ -385,7 +385,7 @@ If MouseRotationAnglePart < 0
 	MouseRotationAnglePart = 7
 MouseRotationAngle = %MouseRotationAnglePart%
 MouseRotationAngle *= 45
-ToolTip, Mouse rotation angle: %MouseRotationAngle%°
+ToolTip, Mouse rotation angle: %MouseRotationAngle%Â°
 SetTimer, RemoveToolTip, 1000
 return
 
@@ -553,7 +553,8 @@ else if Button = NumpadLeft
 	}
 
 	MouseCurrentSpeedToSide *= -1
-	MouseCurrentSpeedToDirection *= -1
+	MouseCurrentSpeedToDirection *= -1
+
 	MouseMove, %MouseCurrentSpeedToDirection%, %MouseCurrentSpeedToSide%, 0, R
 }
 else if Button = NumpadRight

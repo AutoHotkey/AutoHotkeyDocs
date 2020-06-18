@@ -1,4 +1,4 @@
-; Context Sensitive Help in Any Editor -- by Rajat
+﻿; Context Sensitive Help in Any Editor -- by Rajat
 ; https://www.autohotkey.com
 ; This script makes Ctrl+2 (or another hotkey of your choice) show the help file
 ; page for the selected AutoHotkey command or keyword. If nothing is selected,
