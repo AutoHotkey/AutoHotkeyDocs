@@ -1,5 +1,5 @@
 ﻿; Numpad 000 Key
-; http://www.autohotkey.com
+; https://www.autohotkey.com
 ; This example script makes the special 000 key that appears on certain
 ; keypads into an equals key.  You can change the action by replacing the
 ; Send "=" line with line(s) of your choice.

@@ -1,5 +1,5 @@
 ﻿; Window Shading (roll up a window to its title bar) -- by Rajat
-; http://www.autohotkey.com
+; https://www.autohotkey.com
 ; This script reduces a window to its title bar and then back to its
 ; original size by pressing a single hotkey.  Any number of windows
 ; can be reduced in this fashion (the script remembers each).  If the

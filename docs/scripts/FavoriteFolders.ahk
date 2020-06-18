@@ -1,5 +1,5 @@
 ﻿; Easy Access to Favorite Folders -- by Savage
-; http://www.autohotkey.com
+; https://www.autohotkey.com
 ; When you click the middle mouse button while certain types of
 ; windows are active, this script displays a menu of your favorite
 ; folders.  Upon selecting a favorite, the script will instantly

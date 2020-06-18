@@ -1,5 +1,5 @@
 ﻿; WinLIRC Client
-; http://www.autohotkey.com
+; https://www.autohotkey.com
 ; This script receives notifications from WinLIRC whenever you press
 ; a button on your remote control. It can be used to automate Winamp,
 ; Windows Media Player, etc. It's easy to configure. For example, if
@@ -96,7 +96,7 @@ return
 
 ; The examples above give a feel for how to accomplish common tasks.
 ; To learn the basics of AutoHotkey, check out the Quick-start Tutorial
-; at http://www.autohotkey.com/docs/Tutorial.htm
+; at https://www.autohotkey.com/docs/Tutorial.htm
 
 ; ----------------------------
 ; END OF CONFIGURATION SECTION

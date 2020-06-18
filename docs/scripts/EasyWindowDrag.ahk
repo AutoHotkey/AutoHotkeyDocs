@@ -1,5 +1,5 @@
 ﻿; Easy Window Dragging
-; http://www.autohotkey.com
+; https://www.autohotkey.com
 ; Normally, a window can only be dragged by clicking on its title bar.
 ; This script extends that so that any point inside a window can be dragged.
 ; To activate this mode, hold down CapsLock or the middle mouse button while

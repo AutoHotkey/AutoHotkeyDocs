@@ -1,6 +1,6 @@
 ﻿/*
 Volume On-Screen-Display (based on the v1 script by Rajat)
-http://www.autohotkey.com
+https://www.autohotkey.com
 This script assigns hotkeys of your choice to raise and lower the master wave volume.
 */
 

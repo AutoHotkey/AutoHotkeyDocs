@@ -1,5 +1,5 @@
 ﻿; IntelliSense (based on the v1 script by Rajat)
-; http://www.autohotkey.com
+; https://www.autohotkey.com
 ; This script watches while you edit an AutoHotkey script.  When it sees you
 ; type a command followed by a comma or space, it displays that command's
 ; parameter list to guide you.  In addition, you can press Ctrl+F1 (or

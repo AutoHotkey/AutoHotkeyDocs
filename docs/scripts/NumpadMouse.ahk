@@ -1,5 +1,5 @@
 ﻿; Using Keyboard Numpad as a Mouse -- by deguix
-; http://www.autohotkey.com
+; https://www.autohotkey.com
 ; This script makes mousing with your keyboard almost as easy
 ; as using a real mouse (maybe even easier for some tasks).
 ; It supports up to five mouse buttons and the turning of the

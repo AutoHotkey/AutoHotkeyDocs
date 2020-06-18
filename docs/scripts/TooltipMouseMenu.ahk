@@ -1,5 +1,5 @@
 ﻿; ToolTip Mouse Menu -- by Rajat
-; http://www.autohotkey.com
+; https://www.autohotkey.com
 ; This script displays a popup menu in response to briefly holding down
 ; the middle mouse button.  Select a menu item by left-clicking it.
 ; Cancel the menu by left-clicking outside of it.  A recent improvement

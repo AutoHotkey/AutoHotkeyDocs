@@ -1,5 +1,5 @@
 ﻿; Joystick Test Script
-; http://www.autohotkey.com
+; https://www.autohotkey.com
 ; This script helps determine the button numbers and other attributes
 ; of your joystick. It might also reveal if your joystick is in need
 ; of calibration; that is, whether the range of motion of each of its
