@@ -90,6 +90,7 @@ var structure = new ctor_structure;
 var toc = new ctor_toc;
 var index = new ctor_index;
 var search = new ctor_search;
+var features = new ctor_features;
 
 scriptElement.insertAdjacentHTML('afterend', structure.metaViewport);
 var isPhone = (document.documentElement.clientWidth <= 600);
@@ -127,10 +128,10 @@ var isPhone = (document.documentElement.clientWidth <= 600);
         if (!cache.translate)
           loadScript(structure.dataPath, function() {
             cache.set('translate', translateData);
-            addFeatures();
+            features.add();
           });
         else
-          addFeatures();
+          features.add();
       });
       $(window).on('message onmessage', function(event) {
         var data = JSON.parse(event.originalEvent.data);
@@ -244,12 +245,12 @@ var isPhone = (document.documentElement.clientWidth <= 600);
       cache.set('translate', translateData);
       structure.modify();
       if (!isFrameCapable)
-        $(document).ready(addFeatures);
+        $(document).ready(features.add);
     });
   else {
     structure.modify();
     if (!isFrameCapable)
-      $(document).ready(addFeatures);
+      $(document).ready(features.add);
   }
   if (!cache.toc_data)
     loadScript(toc.dataPath, function() {
@@ -1344,23 +1345,25 @@ function ctor_structure()
 
 // --- Modify elements provided by the HTML site ---
 
-function addFeatures()
+function ctor_features()
 {
+  var self = this;
+  self.add = function() {
   var content = document.querySelectorAll('#right .area, #right body')[0];
-
-  $.queueFunc.add(modifyTables);
-  $.queueFunc.add(modifyHeaders);
-  $.queueFunc.add(modifyLinks);
-  $.queueFunc.add(modifyVersions);
-  $.queueFunc.add(modifyCodes);
-  addFooter();
-  $.queueFunc.add(addBackButton);
-  scrollToPos();
-  $.queueFunc.add(highlightWords);
+    $.queueFunc.add(self.modifyTables(content));
+    $.queueFunc.add(self.modifyHeaders(content));
+    $.queueFunc.add(self.modifyLinks(content));
+    $.queueFunc.add(self.modifyVersions(content));
+    $.queueFunc.add(self.modifyCodeBoxes(content));
+    self.addFooter(content);
+    $.queueFunc.add(self.addBackButton(content));
+    self.scrollToPos();
+    $.queueFunc.add(self.highlightWords);
+  };
 
   // --- Responsive tables (mobile) ---
 
-  function modifyTables() {
+  self.modifyTables = function(content) {
     if (!isPhone)
       return;
     var tables = content.querySelectorAll('table.info');
@@ -1391,11 +1394,11 @@ function addFeatures()
       newTable += '</table>';
       table.outerHTML = newTable;
     }
-  }
+  };
 
   // --- Generate anchors for anchor-less head lines ---
 
-  function modifyHeaders() {
+  self.modifyHeaders = function(content) {
     if (isInsideCHM)
       return;
     var hs = content.querySelectorAll('h2, h3, h4, h5, h6');
@@ -1432,11 +1435,11 @@ function addFeatures()
       }
       h.innerHTML = headLink + innerHTML + '</a>';
     }
-  }
+  };
 
   // --- Open external links in a new tab/window ---
 
-  function modifyLinks() {
+  self.modifyLinks = function(content) {
     var as = content.querySelectorAll("a[href^='http']");
     for(var i = 0; i < as.length; i++) {
       var a = as[i];
@@ -1445,11 +1448,11 @@ function addFeatures()
         a.target = "_blank";
       }
     }
-  }
+  };
 
   // --- Add links for version annotations ---
 
-  function modifyVersions() {
+  self.modifyVersions = function(content) {
     var spans = content.querySelectorAll("span.ver");
     for(var i = 0; i < spans.length; i++) {
       var span = spans[i], m, title, href;
@@ -1472,14 +1475,27 @@ function addFeatures()
       // outerHTML/innerHTML not possible here because IE8 doesn't allow nested links:
       $(span).html('<a href="' + workingDir + href + '" title="' + title + '">' + text + '</a>');
     }
-  }
+  };
 
-  // --- Useful features for code boxes ---
+  // --- Add useful features for code boxes ---
   
-  function modifyCodes() {
+  self.modifyCodeBoxes = function(content) {
     var pres = content.querySelectorAll("pre, code");
+    // Add select and download buttons:
+    self.addCodeBoxButtons(pres);
+    // Add syntax highlighting:
+    if (!isIE8) {
+      if (cache.index_data) {
+        self.addSyntaxColors(pres);
+      } else {
+        loadScript(index.dataPath, function() {cache.set('index_data', indexData); self.addSyntaxColors(pres);});
+      }
+    }
+  };
 
-    // Provide select and download buttons:
+  // --- Add select and download buttons for code boxes ---
+
+  self.addCodeBoxButtons = function(pres) {
     for(var i = 0; i < pres.length; i++) {
       var pre = pres[i];
       if (pre.tagName == 'CODE')
@@ -1553,16 +1569,11 @@ function addFeatures()
         }
       });
     }
+  };
 
-    // Syntax highlighting:
-    if (!isIE8) {
-      if (cache.index_data) {
-          addSyntaxColors(pres);
-      } else {
-        loadScript(index.dataPath, function() { cache.set('index_data', indexData); addSyntaxColors(pres); });
-      }
-    }
-    function addSyntaxColors(pres) {
+  // --- Add syntax highlighting for code boxes ---
+
+  self.addSyntaxColors = function(pres) {
       // Create lists of syntax elements by using index data to reduce code size.
       // An index entry counts as syntax element, if its third field is one of the following digits:
       /* 
@@ -1875,21 +1886,20 @@ function addFeatures()
         out += wrap(param.slice(lastIndex), 'str', false);
         return out;
       }
-    }
-  }
+  };
 
   // --- Add footer at the bottom of the site ---
 
-  function addFooter() {
+  self.addFooter = function(content) {
     var div = document.createElement('div');
     div.className = 'footer';
     div.innerHTML = 'Copyright &copy; 2003-' + new Date().getFullYear() + ' ' + location.host + ' - LIC: <a href="' + scriptDir + '/../license.htm" class="no-ext">GNU GPLv2</a>';
     content.appendChild(div);
-  }
+  };
 
   // --- Add back-to-top button ---
 
-  function addBackButton() {
+  self.addBackButton = function(content) {
     var div = document.createElement('div');
     div.className = 'back-to-top';
     div.title = T('Back to top');
@@ -1910,22 +1920,23 @@ function addFeatures()
     $('div.back-to-top').on('click', function() {
       $(document.body).add(document.documentElement).add('#right').animate({scrollTop: 0}, 100);
     });
-  }
+  };
 
   // --- Ensure setting right scroll position when traversing history ---
 
-  function scrollToPos() {
+  self.scrollToPos = function() {
     if (supportsHistory && history.state)
       document.getElementById('right').scrollTop = history.state.scrollTop;
-  }
+  };
 
   // --- Highlight search words with jQuery Highlight plugin ---
 
-  function highlightWords() {
+  self.highlightWords = function() {
     if (cache.search_highlightWords && cache.clickTab == 2)
       search.highlightWords(cache.search_input);
+  };
+
   }
-}
 
 // --- Get the working directory of the site ---
 
