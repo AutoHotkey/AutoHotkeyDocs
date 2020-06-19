@@ -3,7 +3,7 @@ loadIE8Polyfill();
 
 // --- Get infos about this script file ---
 
-var scriptElement = document.scripts[document.scripts.length-1];
+var scriptElement = document.querySelector('script[src$="static/content.js"]');
 var scriptDir = scriptElement.src.substr(0, scriptElement.src.lastIndexOf('/'));
 
 // --- User data ---
@@ -68,6 +68,7 @@ var cache = {
 // --- Main Execute Area ---
 
 // Set global variables:
+var forceNoScript = forceNoScript || false;
 var isCacheLoaded = cache.load();
 var workingDir = getWorkingDir();
 var relPath = location.href.replace(workingDir, '');
@@ -103,7 +104,7 @@ var isPhone = (document.documentElement.clientWidth <= 600);
     return;
 
   // Exit the script on sites which doesn't need the sidebar:
-  if (/(search)\.htm/.test(location.href) || cache.forceNoScript)
+  if (forceNoScript || cache.forceNoScript)
     return;
 
   // Special treatments for pages inside a frame:
@@ -1481,16 +1482,8 @@ function ctor_features()
   
   self.modifyCodeBoxes = function() {
     var pres = self.content.querySelectorAll("pre, code");
-    // Add select and download buttons:
     self.addCodeBoxButtons(pres);
-    // Add syntax highlighting:
-    if (!isIE8) {
-      if (cache.index_data) {
-        self.addSyntaxColors(pres);
-      } else {
-        loadScript(index.dataPath, function() {cache.set('index_data', indexData); self.addSyntaxColors(pres);});
-      }
-    }
+    self.addSyntaxColors(pres);
   };
 
   // --- Add select and download buttons for code boxes ---
@@ -1586,6 +1579,15 @@ function ctor_features()
         6 - command
         99 - Ahk2Exe compiler
     */
+    if (isIE8) // Exclude old browsers.
+      return;
+    if (!cache.index_data) { // Load index data if not already done.
+      loadScript(index.dataPath, function() {
+        cache.set('index_data', indexData);
+        self.addSyntaxColors(pres);
+      });
+      return;
+    }
     var syntax = [], dict = {}, entry = '', type = '';
     var assignOp = "(?:&lt;&lt;|<<|&gt;&gt;|>>|\\/\\/|\\^|&amp;|&|\\||\\.|\\/|\\*|-|\\+|:|)=";
     for (var i = cache.index_data.length - 1; i >= 0; i--) {
