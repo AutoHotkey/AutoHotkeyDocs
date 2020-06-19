@@ -1,4 +1,4 @@
-﻿; ToolTip Mouse Menu -- by Rajat
+﻿; ToolTip Mouse Menu (based on the v1 script by Rajat)
 ; https://www.autohotkey.com
 ; This script displays a popup menu in response to briefly holding down
 ; the middle mouse button.  Select a menu item by left-clicking it.

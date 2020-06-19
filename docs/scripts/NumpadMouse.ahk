@@ -1,4 +1,4 @@
-﻿; Using Keyboard Numpad as a Mouse -- by deguix
+﻿; Using Keyboard Numpad as a Mouse (based on the v1 script by deguix)
 ; https://www.autohotkey.com
 ; This script makes mousing with your keyboard almost as easy
 ; as using a real mouse (maybe even easier for some tasks).
