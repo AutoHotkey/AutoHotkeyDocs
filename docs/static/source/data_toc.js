@@ -279,7 +279,7 @@ tocData = [
     ["HasBase","commands/HasBase.htm"],
     ["HasMethod","commands/HasMethod.htm"],
     ["HasProp","commands/HasProp.htm"],
-    ["Is Functions","commands/is.htm"],
+    ["Is Functions","commands/Is.htm"],
     ["IsByRef","commands/IsByRef.htm"],
     ["IsFunc","commands/IsFunc.htm"],
     ["IsLabel","commands/IsLabel.htm"],
