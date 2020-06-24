@@ -521,8 +521,9 @@ function ctor_search()
     // --- Hook up events ---
 
     // Refresh the search list and show color indicator on input:
-    $searchInput.on('keyup input', function(e) {
+    $searchInput.on('input', function(e) {
       var $this = $(this);
+      var prevInput = cache.search_input; // defaults to undefined
       var input = cache.set('search_input', $this.val());
       // if no input, empty the search list, remove color indicator and return:
       if (!input) {
@@ -530,8 +531,8 @@ function ctor_search()
         $this.removeAttr('class');
         return;
       }
-      // Skip subsequent lines if no keyup event to prevent double execution:
-      if (e.type != "keyup")
+      // Skip subsequent search if we have the same query as the last search, to prevent double execution:
+      if (input == prevInput)
         return;
       // Otherwise fill the search list:
       cache.set('search_data', self.create(input));
