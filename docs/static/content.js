@@ -450,14 +450,15 @@ function ctor_index()
     // Select closest index entry and show color indicator on input:
     $indexInput.on('keyup input', function(e) {
       var $this = $(this);
+      var prevInput = cache.index_input; // defaults to undefined
       var input = cache.set('index_input', $this.val().toLowerCase());
       // if no input, remove color indicator and return:
       if (!input) {
         $this.removeAttr('class');
         return;
       }
-      // Skip subsequent lines if no keyup event to prevent double execution:
-      if (e.type != "keyup")
+      // Skip subsequent index-matching if we have the same query as the last search, to prevent double execution:
+      if (input == prevInput)
         return;
       // Otherwise find the first item which matches the input value:
       var indexListChildren = $indexList.children();
@@ -521,7 +522,7 @@ function ctor_search()
     // --- Hook up events ---
 
     // Refresh the search list and show color indicator on input:
-    $searchInput.on('input', function(e) {
+    $searchInput.on('keyup input', function(e) {
       var $this = $(this);
       var prevInput = cache.search_input; // defaults to undefined
       var input = cache.set('search_input', $this.val());
