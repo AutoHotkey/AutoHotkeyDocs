@@ -28,7 +28,7 @@ indexData = [
   ["#CommentFlag","commands/_CommentFlag.htm",0,"S"],
   ["#Delimiter","commands/_EscapeChar.htm#Delimiter",0,"S"],
   ["#DerefChar","commands/_EscapeChar.htm#DerefChar",0,"S"],
-  ["#ErrorStdOut","commands/_ErrorStdOut.htm",0,""],
+  ["#ErrorStdOut","commands/_ErrorStdOut.htm",0,"S"],
   ["#EscapeChar","commands/_EscapeChar.htm",0,"S"],
   ["#HotkeyInterval","commands/_HotkeyInterval.htm",0,"S"],
   ["#HotkeyModifierTimeout","commands/_HotkeyModifierTimeout.htm",0,"S"],
