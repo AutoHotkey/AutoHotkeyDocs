@@ -55,6 +55,7 @@ indexData = [
   ["#NoEnv","commands/_NoEnv.htm",0,""],
   ["#NoTrayIcon","commands/_NoTrayIcon.htm",0,""],
   ["#Persistent","commands/_Persistent.htm",0,""],
+  ["#Requires","commands/_Requires.htm",0,"S"],
   ["#SingleInstance","commands/_SingleInstance.htm",0,"S"],
   ["#UseHook","commands/_UseHook.htm",0,"S"],
   ["#Warn","commands/_Warn.htm",0,"SS"],
