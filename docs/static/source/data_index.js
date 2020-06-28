@@ -46,6 +46,7 @@ indexData = [
   ["#MenuMaskKey","commands/_MenuMaskKey.htm",0,"S"],
   ["#NoTrayIcon","commands/_NoTrayIcon.htm",0,""],
   ["#Persistent","commands/_Persistent.htm",0,""],
+  ["#Requires","commands/_Requires.htm",0,"S"],
   ["#SingleInstance","commands/_SingleInstance.htm",0,"S"],
   ["#SuspendExempt","commands/_SuspendExempt.htm",0,"E"],
   ["#UseHook","commands/_UseHook.htm",0,"S"],
