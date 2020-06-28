@@ -3,7 +3,7 @@ loadIE8Polyfill();
 
 // --- Get infos about this script file ---
 
-var scriptElement = document.scripts[document.scripts.length-1];
+var scriptElement = document.querySelector('script[src$="static/content.js"]');
 var scriptDir = scriptElement.src.substr(0, scriptElement.src.lastIndexOf('/'));
 
 // --- User data ---
@@ -68,6 +68,7 @@ var cache = {
 // --- Main Execute Area ---
 
 // Set global variables:
+var forceNoScript = forceNoScript || false;
 var isCacheLoaded = cache.load();
 var workingDir = getWorkingDir();
 var relPath = location.href.replace(workingDir, '');
@@ -103,7 +104,7 @@ var isPhone = (document.documentElement.clientWidth <= 600);
     return;
 
   // Exit the script on sites which doesn't need the sidebar:
-  if (/(search)\.htm/.test(location.href) || cache.forceNoScript)
+  if (forceNoScript || cache.forceNoScript)
     return;
 
   // Special treatments for pages inside a frame:
@@ -1349,24 +1350,24 @@ function ctor_features()
 {
   var self = this;
   self.add = function() {
-  var content = document.querySelectorAll('#right .area, #right body')[0];
-    $.queueFunc.add(self.modifyTables(content));
-    $.queueFunc.add(self.modifyHeaders(content));
-    $.queueFunc.add(self.modifyLinks(content));
-    $.queueFunc.add(self.modifyVersions(content));
-    $.queueFunc.add(self.modifyCodeBoxes(content));
-    self.addFooter(content);
-    $.queueFunc.add(self.addBackButton(content));
+    self.content = document.querySelectorAll('#right .area, #right body')[0];
+    $.queueFunc.add(self.modifyTables);
+    $.queueFunc.add(self.modifyHeaders);
+    $.queueFunc.add(self.modifyLinks);
+    $.queueFunc.add(self.modifyVersions);
+    $.queueFunc.add(self.modifyCodeBoxes);
+    self.addFooter();
+    $.queueFunc.add(self.addBackButton);
     self.scrollToPos();
     $.queueFunc.add(self.highlightWords);
   };
 
   // --- Responsive tables (mobile) ---
 
-  self.modifyTables = function(content) {
+  self.modifyTables = function() {
     if (!isPhone)
       return;
-    var tables = content.querySelectorAll('table.info');
+    var tables = self.content.querySelectorAll('table.info');
     for(var i = 0; i < tables.length; i++) {
       var table = tables[i], th = {}, newTable = "";
       var id = table.getAttribute('id');
@@ -1398,10 +1399,10 @@ function ctor_features()
 
   // --- Generate anchors for anchor-less head lines ---
 
-  self.modifyHeaders = function(content) {
+  self.modifyHeaders = function() {
     if (isInsideCHM)
       return;
-    var hs = content.querySelectorAll('h2, h3, h4, h5, h6');
+    var hs = self.content.querySelectorAll('h2, h3, h4, h5, h6');
     for(var i = 0; i < hs.length; i++) {
       var h = hs[i];
       var id = h.getAttribute('id');
@@ -1409,7 +1410,7 @@ function ctor_features()
       if(!id) // If head line doesn't have anchor...
       {
         // As first child, try to use the id of its parent such as .methodShort:
-        if (h.parentNode != content && h.parentNode.getAttribute('id') && !$(h).prev().length)
+        if (h.parentNode != self.content && h.parentNode.getAttribute('id') && !$(h).prev().length)
           id = h.parentNode.getAttribute('id');
         // Otherwise, generate an id:
         else
@@ -1439,8 +1440,8 @@ function ctor_features()
 
   // --- Open external links in a new tab/window ---
 
-  self.modifyLinks = function(content) {
-    var as = content.querySelectorAll("a[href^='http']");
+  self.modifyLinks = function() {
+    var as = self.content.querySelectorAll("a[href^='http']");
     for(var i = 0; i < as.length; i++) {
       var a = as[i];
       if (!a.querySelector('img') && a.className.indexOf('no-ext') == -1) {
@@ -1452,8 +1453,8 @@ function ctor_features()
 
   // --- Add links for version annotations ---
 
-  self.modifyVersions = function(content) {
-    var spans = content.querySelectorAll("span.ver");
+  self.modifyVersions = function() {
+    var spans = self.content.querySelectorAll("span.ver");
     for(var i = 0; i < spans.length; i++) {
       var span = spans[i], m, title, href;
       var text = span.textContent || span.innerText;
@@ -1479,18 +1480,10 @@ function ctor_features()
 
   // --- Add useful features for code boxes ---
   
-  self.modifyCodeBoxes = function(content) {
-    var pres = content.querySelectorAll("pre, code");
-    // Add select and download buttons:
+  self.modifyCodeBoxes = function() {
+    var pres = self.content.querySelectorAll("pre, code");
     self.addCodeBoxButtons(pres);
-    // Add syntax highlighting:
-    if (!isIE8) {
-      if (cache.index_data) {
         self.addSyntaxColors(pres);
-      } else {
-        loadScript(index.dataPath, function() {cache.set('index_data', indexData); self.addSyntaxColors(pres);});
-      }
-    }
   };
 
   // --- Add select and download buttons for code boxes ---
@@ -1585,6 +1578,15 @@ function ctor_features()
           5 - declaration
           99 - Ahk2Exe compiler
       */
+    if (isIE8) // Exclude old browsers.
+      return;
+    if (!cache.index_data) { // Load index data if not already done.
+      loadScript(index.dataPath, function() {
+        cache.set('index_data', indexData);
+        self.addSyntaxColors(pres);
+      });
+      return;
+    }
       var syntax = [], dict = {}, entry = '', type = '';
       var assignOp = "(?:&lt;&lt;|<<|&gt;&gt;|>>|\\/\\/|\\^|&amp;|&|\\||\\.|\\/|\\*|-|\\+|:)=";
       for (var i = cache.index_data.length - 1; i >= 0; i--) {
@@ -1890,20 +1892,20 @@ function ctor_features()
 
   // --- Add footer at the bottom of the site ---
 
-  self.addFooter = function(content) {
+  self.addFooter = function() {
     var div = document.createElement('div');
     div.className = 'footer';
     div.innerHTML = 'Copyright &copy; 2003-' + new Date().getFullYear() + ' ' + location.host + ' - LIC: <a href="' + scriptDir + '/../license.htm" class="no-ext">GNU GPLv2</a>';
-    content.appendChild(div);
+    self.content.appendChild(div);
   };
 
   // --- Add back-to-top button ---
 
-  self.addBackButton = function(content) {
+  self.addBackButton = function() {
     var div = document.createElement('div');
     div.className = 'back-to-top';
     div.title = T('Back to top');
-    content.appendChild(div);
+    self.content.appendChild(div);
 
     var isVisible = false;
     $('#right').add(window).on('scroll', function() {
