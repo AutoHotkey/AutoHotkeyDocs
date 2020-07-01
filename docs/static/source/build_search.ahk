@@ -1,4 +1,9 @@
-; requires AHK v2 32-bit
+#Requires AutoHotkey v2.0-a113
+if (A_PtrSize != 4)
+{
+    MsgBox "This script only works with the 32-bit version of AutoHotkey."
+    ExitApp
+}
 #Warn
 SetWorkingDir A_ScriptDir "\..\.."
 FileEncoding "UTF-8"
