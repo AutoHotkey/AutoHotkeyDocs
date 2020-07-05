@@ -21,17 +21,19 @@
 
   <dt>Options</dt>
   <dd>
-      <p>Type: <a href="../Concepts.htm#strings">String</a></p>
+      <p>Type: <a href="../Concepts.htm#strings">String</a> or <a href="../Concepts.htm#numbers">Integer</a></p>
       <p>If omitted, it will default to zero, which is the same as having none of the options below.</p>
-      <p><strong>M</strong>: Multi-select. Specify the letter M to allow the user to select more than one file via shift-click, control-click, or other means. <strong>M</strong> may optionally be followed by a number as described below (for example, both M and M1 are valid). To extract the individual files, see the example at the bottom of this page.</p>
-      <p><strong>S</strong>: Save button. Specify the letter S to cause the dialog to always contain a Save button instead of an Open button. <strong>S</strong> may optionally be followed by a number (or sum of numbers) as described below (for example, both S and S24 are valid).</p>
-      <p>Even if <strong>M</strong> and <strong>S</strong> are absent, the following numbers can be used. To put more than one of them into effect, add them up. For example, to use 8 and 16, specify the number 24.</p>
+      <p>Otherwise, it can be a number or one of the letters listed below, optionally followed by a number. For example, <code>"M"</code>, <code>1</code> and <code>"M1"</code> are all valid (but not equivalent).</p>
+      <p id="D"><strong>D</strong>: Select Folder (Directory). Specify the letter D to allow the user to select a folder rather than a file. The dialog has most of the same features as when selecting a file, but does not support filters (<em>Filter</em> must be omitted or blank).</p>
+      <p id="M"><strong>M</strong>: Multi-select. Specify the letter M to allow the user to select more than one file via shift-click, control-click, or other means. In this case, the return value is an <a href="../objects/Array.htm">Array</a> instead of a string. To extract the individual files, see the example at the bottom of this page.</p>
+      <p id="S"><strong>S</strong>: Save dialog. Specify the letter S to cause the dialog to always contain a Save button instead of an Open button.</p>
+      <p>The following numbers can be used. To put more than one of them into effect, add them up. For example, to use 1 and 2, specify the number 3.</p>
       <p><strong>1</strong>: File Must Exist<br>
         <strong>2</strong>: Path Must Exist<br>
         <strong>8</strong>: Prompt to Create New File<br>
         <strong>16</strong>: Prompt to Overwrite File<br>
         <strong>32</strong>: Shortcuts (.lnk files) are selected as-is rather than being resolved to their targets. This option also prevents navigation into a folder via a folder shortcut.</p>
-      <p>If the &quot;Prompt to Overwrite&quot; option is present without the &quot;Prompt to Create&quot; option, the dialog will contain a Save button rather than an Open button. This behavior is due to a quirk in Windows.</p>
+      <p>As the "Prompt to Overwrite" option is supported only by the Save dialog, specifying that option without the "Prompt to Create" option also puts the "S" option into effect. Similarly, the "Prompt to Create" option has no effect when the "S" option is present. Specifying the number 24 enables whichever type of prompt is supported by the dialog.</p>
   </dd>
 
   <dt>RootDir\Filename</dt>
@@ -50,7 +52,7 @@
   <dt>Title</dt>
   <dd>
       <p>Type: <a href="../Concepts.htm#strings">String</a></p>
-      <p>The title of the file-selection window. If omitted or blank, it will default to <code>"Select File - " <a href="../Variables.htm#ScriptName">A_ScriptName</a></code> (i.e. the name of the current script).</p>
+      <p>The title of the file-selection window. If omitted or blank, it will default to <code>"Select File - " <a href="../Variables.htm#ScriptName">A_ScriptName</a></code> (i.e. the name of the current script), unless the "D" option is present, in which case the word "File" is replaced with "Folder".</p>
   </dd>
 
   <dt>Filter</dt>
@@ -59,23 +61,16 @@
       <p>Indicates which types of files are shown by the dialog.</p>
       <p>Example: Documents (*.txt)<br>
         Example: Audio (*.wav; *.mp2; *.mp3)</p>
-      <p>If omitted, the filter defaults to All Files (*.*). An option for Text Documents (*.txt) will also be available in the dialog's &quot;files of type&quot; menu.</p>
+      <p>If omitted, the filter defaults to All Files (*.*).</p>
     <p>Otherwise, the filter uses the indicated string but also provides an option for All Files (*.*) in the dialog's &quot;files of type&quot; drop-down list. To include more than one file extension in the filter, separate them with semicolons as illustrated in the example above.</p>
   </dd>
 
 </dl>
 
 <h2>Return Value</h2>
-<p>Type: <a href="../Concepts.htm#strings">String</a></p>
-<p>If multi-select is not in effect, this function returns the full path and name of the single file chosen by the user.</p>
-<p>If the M option (multi-select) is in effect, this function returns a list of items, each of which except the last is followed by a linefeed (`n) character. The first item in the list is the path that contains all the selected files (this path will end in a backslash only if it is a root folder such as C:\). The other items are the selected filenames (without path). For example:</p>
-<pre>C:\My Documents\New Folder [this is the path in which all the files below reside]
-test1.txt [these are the naked filenames: no path info]
-test2.txt
-... etc.</pre>
-<p>(The example at the bottom of this page demonstrates how to extract the files one by one.)</p>
-<p>When multi-select is in effect, the sum of the lengths of the selected filenames is limited to 64 KB. Although this is typically enough to hold several thousand files, an empty string is returned if the limit is exceeded.</p>
-<p>In both cases, if the user cancels the dialog (i.e. does not wish to select a file), an empty string is returned.</p>
+<p>Type: <a href="../Concepts.htm#strings">String</a> or <a href="../objects/Array.htm">Array</a></p>
+<p>If multi-select is not in effect, this function returns the full path and name of the single file or folder chosen by the user, or an empty string if the user cancels the dialog.</p>
+<p>If the M option (multi-select) is in effect, this function returns an array of items, where each item is the full path and name of a single file. The example at the bottom of this page demonstrates how to extract the files one by one. If the user cancels the dialog, the array is empty (has zero items).</p>
 
 <h2>Remarks</h2>
 <p>A file-selection dialog usually looks like this:</p>
@@ -94,31 +89,37 @@ Thread "NoTimers", false</pre>
 <p><a href="#ExBasic">#1</a></p>
 <pre>SelectedFile := FileSelect(3, , "Open a file", "Text Documents (*.txt; *.doc)")
 if SelectedFile = ""
-    MsgBox "The user didn't select anything."
+    MsgBox "The dialog was canceled."
 else
-    MsgBox "The user selected the following:`n" SelectedFile</pre>
+    MsgBox "The following file was selected:`n" SelectedFile</pre>
 </div>
 
 <div class="ex" id="ExMulti">
 <p><a href="#ExMulti">#2</a>: Multi-select example.</p>
 <pre>files := FileSelect("M3")  <em>; M3 = Multiselect existing files.</em>
-if files = ""
+if files.Length = 0
 {
-    MsgBox "The user pressed cancel."
+    MsgBox "The dialog was canceled."
     return
 }
-Loop parse, files, "`n"
+for file in files
 {
-    if A_Index = 1
-        MsgBox "The selected files are all contained in " A_LoopField
-    else
-    {
-        Result := MsgBox("The next file is " A_LoopField ". Continue?",, 4)
-        if Result = "No"
-            break
-    }
+    Result := MsgBox("File #" A_Index " of " files.Length ":`n" file "`n`nContinue?",, "YN")
+    if Result = "No"
+        break
 }
-return</pre>
+</pre>
+</div>
+
+<div class="ex" id="ExFolder">
+<p><a href="#ExFolder">#3</a>: Select Folder.</p>
+<pre>
+SelectedFolder := FileSelect("D", , "Select a folder")
+if SelectedFolder = ""
+    MsgBox "The dialog was canceled."
+else
+    MsgBox "The following folder was selected:`n" SelectedFolder
+</pre>
 </div>
 
 </body>
