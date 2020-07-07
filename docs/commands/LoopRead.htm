@@ -77,7 +77,8 @@ Loop read, "C:\Docs\Address List.txt", "C:\Docs\Family Addresses.txt"
 
 <div class="ex" id="ExURL">
 <p><a href="#ExURL">#3</a>: A working script that attempts to extract all FTP and HTTP URLs from a text or HTML file:</p>
-<pre>SourceFile := FileSelect(3,, "Pick a text or HTML file to analyze.")
+<pre>
+SourceFile := FileSelect(3,, "Pick a text or HTML file to analyze.")
 if SourceFile = ""
     return  <em>; This will exit in this case.</em>
 
@@ -94,67 +95,60 @@ if FileExist(DestFile)
 LinkCount := 0
 Loop read, SourceFile, DestFile
 {
-    URLSearchString := A_LoopReadLine
-    Gosub URLSearch
+    URLSearch(A_LoopReadLine)
 }
 MsgBox LinkCount ' links were found and written to "' DestFile '".'
 return
 
 
-URLSearch:
-<em>; It's done this particular way because some URLs have other URLs embedded inside them:</em>
-URLStart1 := InStr(URLSearchString, "https://")
-URLStart2 := InStr(URLSearchString, "http://")
-URLStart3 := InStr(URLSearchString, "ftp://")
-URLStart4 := InStr(URLSearchString, "www.")
-
-<em>; Find the left-most starting position:</em>
-URLStart := URLStart1  <em>; Set starting default.</em>
-Loop
+URLSearch(URLSearchString)
 {
-    <em>; It helps performance (at least in a script with many variables) to resolve</em>
-    <em>; &quot;URLStart%A_Index%&quot; only once:</em>
-    ArrayElement := URLStart%A_Index%
-    if ArrayElement = ""  <em>; End of the <a href="../misc/Arrays.htm#pseudo">pseudo-array</a> has been reached.</em>
-        break
-    if !ArrayElement  <em>; This element is disqualified.</em>
-        continue
-    if !URLStart
-        URLStart := ArrayElement
-    else <em>; URLStart has a valid position in it, so compare it with ArrayElement.</em>
+    <em>; It's done this particular way because some URLs have other URLs embedded inside them:
+    ; Find the left-most starting position:</em>
+    URLStart := 0  <em>; Set starting default.</em>
+    for URLPrefix in ["https://", "http://", "ftp://", "www."]
     {
-        if ArrayElement
-            if ArrayElement &lt; URLStart
-                URLStart := ArrayElement
+        ThisPos := InStr(URLSearchString, URLPrefix)
+        if !ThisPos  <em>; This prefix is disqualified.</em>
+            continue
+        if !URLStart
+            URLStart := ThisPos
+        else <em>; URLStart has a valid position in it, so compare it with ThisPos.</em>
+        {
+            if ThisPos &amp;&amp; ThisPos &lt; URLStart
+                URLStart := ThisPos
+        }
     }
+
+    if !URLStart  <em>; No URLs exist in URLSearchString.</em>
+        return
+
+    <em>; Otherwise, extract this URL:</em>
+    URL := SubStr(URLSearchString, URLStart)  <em>; Omit the beginning/irrelevant part.</em>
+    Loop parse, URL, " `t&lt;&gt;"  <em>; Find the first space, tab, or angle bracket (if any).</em>
+    {
+        URL := A_LoopField
+        break  <em>; i.e. perform only one loop iteration to fetch the first "field".</em>
+    }
+    <em>; If the above loop had zero iterations because there were no ending characters found,
+    ; leave the contents of the URL var untouched.
+
+    ; If the URL ends in a double quote, remove it.  For now, StrReplace is used, but
+    ; note that it seems that double quotes can legitimately exist inside URLs, so this
+    ; might damage them:</em>
+    URLCleansed := StrReplace(URL, '"')
+    FileAppend URLCleansed "`n"
+    global LinkCount += 1
+
+    <em>; See if there are any other URLs in this line:</em>
+    CharactersToOmit := StrLen(URL)
+    CharactersToOmit += URLStart
+    URLSearchString := SubStr(URLSearchString, CharactersToOmit)
+    
+    <em>; Recursive call to self:</em>
+    URLSearch(URLSearchString)
 }
-
-if !URLStart  <em>; No URLs exist in URLSearchString.</em>
-    return
-
-<em>; Otherwise, extract this URL:</em>
-URL := SubStr(URLSearchString, URLStart)  <em>; Omit the beginning/irrelevant part.</em>
-Loop parse, URL, " `t&lt;&gt;"  <em>; Find the first space, tab, or angle bracket (if any).</em>
-{
-    URL := A_LoopField
-    break  <em>; i.e. perform only one loop iteration to fetch the first &quot;field&quot;.</em>
-}
-<em>; If the above loop had zero iterations because there were no ending characters found,
-; leave the contents of the URL var untouched.</em>
-
-<em>; If the URL ends in a double quote, remove it.  For now, StrReplace is used, but
-; note that it seems that double quotes can legitimately exist inside URLs, so this
-; might damage them:</em>
-URLCleansed := StrReplace(URL, '"')
-FileAppend URLCleansed "`n"
-LinkCount += 1
-
-<em>; See if there are any other URLs in this line:</em>
-CharactersToOmit := StrLen(URL)
-CharactersToOmit += URLStart
-URLSearchString := SubStr(URLSearchString, CharactersToOmit)
-Gosub URLSearch  <em>; Recursive call to self.</em>
-return</pre>
+</pre>
 </div>
 
 </body>

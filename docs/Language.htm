@@ -40,7 +40,6 @@
   <li><a href="#structure-of-a-script">Structure of a Script</a>
   <ul>
     <li><a href="#auto-execute-section">Auto-execute Section</a></li>
-    <li><a href="#subroutines">Subroutines</a></li>
     <li><a href="#user-defined-functions">User-Defined Functions</a></li>
     <li><a href="#-include">#Include</a></li>
   </ul></li>
@@ -202,8 +201,7 @@ Run("notepad.exe", , , notepadPID)
   <li>A <a href="commands/Block.htm">block</a> (denoted by a pair of braces) groups zero or more statements to act as a single statement.</li>
   <li>An <a href="commands/If.htm">If statement</a> causes its body to be executed or not depending on a condition. It can be followed by an <a href="commands/Else.htm">Else</a> statement, which executes only if the condition was not met.</li>
   <li><a href="commands/Goto.htm">Goto</a> jumps to the specified label and continues execution.</li>
-  <li><a href="commands/Gosub.htm">Gosub</a> calls a <a href="#subroutines">subroutine</a>.</li>
-  <li><a href="commands/Return.htm">Return</a> returns from a <a href="#subroutines">subroutine</a> or function.</li>
+  <li><a href="commands/Return.htm">Return</a> returns from a function.</li>
   <li>A <a href="#loop-statement">Loop statement</a> (<a href="commands/Loop.htm">Loop</a>, <a href="commands/While.htm">While</a> or <a href="commands/For.htm">For</a>) executes its body repeatedly.
   <ul>
     <li><a href="commands/Break.htm">Break</a> exits (terminates) a loop.</li>
@@ -225,7 +223,7 @@ Run("notepad.exe", , , notepadPID)
 <ul>
   <li>The opening brace of a <a href="commands/Block.htm">block</a> can be written at the end of the same line as an <a href="commands/If.htm">If</a>, <a href="commands/Else.htm">Else</a>, <a href="#loop-statement">Loop</a>, <a href="commands/While.htm">While</a>, <a href="commands/For.htm">For</a>, <a href="commands/Try.htm">Try</a>, <a href="commands/Catch.htm">Catch</a> or <a href="commands/Finally.htm">Finally</a> statement (basically any control flow statement which has a <a href="Concepts.htm#cf-body">body</a>). This is referred to as the One True Brace (OTB) style.</li>
   <li><a href="commands/Else.htm">Else</a>, <a href="commands/Try.htm">Try</a> and <a href="commands/Finally.htm">Finally</a> allow any valid statement to their right, as they require a <a href="Concepts.htm#cf-body">body</a> but have no parameters.</li>
-  <li><a href="commands/If.htm">If</a>, <a href="commands/While.htm">While</a>, <a href="commands/Return.htm">Return</a>, <a href="commands/Until.htm">Until</a>, <a href="commands/Loop.htm">Loop <em>Count</em></a>, <a href="commands/Goto.htm">Goto</a> and <a href="commands/Gosub.htm">Gosub</a> allow an open parenthesis to be used immediately after the name, to enclose the entire parameter list. Although these look like function calls, they are not, and cannot be used mid-expression. For example, <code>if(expression)</code>.</li>
+  <li><a href="commands/If.htm">If</a>, <a href="commands/While.htm">While</a>, <a href="commands/Return.htm">Return</a>, <a href="commands/Until.htm">Until</a>, <a href="commands/Loop.htm">Loop <em>Count</em></a> and <a href="commands/Goto.htm">Goto</a> allow an open parenthesis to be used immediately after the name, to enclose the entire parameter list. Although these look like function calls, they are not, and cannot be used mid-expression. For example, <code>if(expression)</code>.</li>
   <li>Control flow statements cannot be overridden by defining a function with the same name.</li>
 </ul>
 
@@ -257,7 +255,7 @@ Loop Parse t, "`n"
     }
 }
 </pre>
-<p>Loop variables can also be used outside the body of a loop, such as in a function or subroutine which is called from within a loop.</p>
+<p>Loop variables can also be used outside the body of a loop, such as in a function which is called from within a loop.</p>
 
 <h3 id="not-control-flow">Not Control Flow</h3>
 <p>As directives, labels, double-colon hotkey and hotstring tags, and declarations without assignments are processed when the script is loaded from file, they are not subject to control flow. In other words, they take effect unconditionally, before the script ever executes any control flow statements. Similarly, the <a href="commands/_HotIf.htm">#HotIf</a> directive cannot affect control flow; it merely sets the criteria for any hotkeys and hotstrings specified in the code. A hotkey's criteria is evaluated each time it is pressed, not when the #HotIf directive is encountered in the code.</p>
@@ -265,41 +263,57 @@ Loop Parse t, "`n"
 <h2 id="structure-of-a-script">Structure of a Script</h2>
 
 <h3 id="auto-execute-section">Auto-execute Section</h3>
-<p>After the script has been loaded, it begins executing at the top line, continuing until a <a href="commands/Return.htm">Return</a>, <a href="commands/ExitApp.htm">Exit</a>, or the physical end of the script is encountered (whichever comes first). This top portion of the script is referred to as the <em>auto-execute section</em>, but it is really just a <a href="#subroutines">subroutine</a> which is called after program startup.</p>
-<p>The auto-execute section is often used to configure settings which apply to every newly launched <a href="misc/Threads.htm">thread</a>. For details, see <a href="Scripts.htm#auto">The Top of the Script</a>.</p>
+<p>After the script has been loaded, it begins executing at the top line, continuing until a <a href="commands/Return.htm">Return</a>, <a href="commands/ExitApp.htm">Exit</a>, or the physical end of the script is encountered (whichever comes first). This top portion of the script is referred to as the <em>auto-execute section</em>.</p>
+<p>The auto-execute section is often used to configure settings which apply to every newly launched <a href="misc/Threads.htm">thread</a>, or to <a href="Concepts.htm#uninitialised-variables">initialize</a> global variables used by hotkeys and other functions. For details, see <a href="Scripts.htm#auto">The Top of the Script</a>.</p>
 
 <h3 id="subroutines">Subroutines</h3>
-<p class="note"><strong>Note:</strong> Functions should generally be used instead of label subroutines.</p>
-<p>A <em>subroutine</em> (or sub) is a reusable block of code which can be <em>called</em> to perform some task.</p>
-<p>Scripts use subroutines to define what should happen when a particular hotkey is pressed or some other event occurs. Scripts can also call subroutines directly, by using <a href="commands/Gosub.htm">Gosub</a>.</p>
-<p>Any <a href="#labels">label</a> can be used as the starting point of a subroutine. A subroutine has no explicitly marked ending point, but instead ends if and when control is returned to the subroutine's caller by <a href="commands/Return.htm">Return</a> or when the thread is exited.  For example:</p>
-<pre>gosub Label1
+<p>A <em>subroutine</em> (also <em>sub</em> or <em>procedure</em>) is a reusable block of code which can be executed on demand. A subroutine is created by defining a <em>function</em> (see below). These terms are generally interchangeable for AutoHotkey v2, where functions are the only type of subroutine.</p>
 
-Label1:
-MsgBox A_ThisLabel
-return
-</pre>
-<p>Note that as labels have no effect when reached during normal execution, in this example a MsgBox would be shown twice: once while the subroutine is running and again after it returns. One important consequence is that you cannot define one subroutine inside another subroutine, because the &quot;body&quot; of the inner subroutine would execute automatically and then <em>return</em>, effectively terminating the outer subroutine.</p>
-<p>Subroutines should typically be defined separately to any other block of code, but can also be <a href="Functions.htm#gosub">defined inside a function</a>, allowing the subroutine access to that function's static variables (and local variables, but only while the function is running).</p>
-<p class="warning"><strong>Note:</strong> Subroutines defined inside a function have certain limitations regarding the use of local variables and <a href="#dynamic-variables">dynamic variable references</a>. For details, see <a href="Functions.htm#gosub">Using Subroutines Within a Function</a>. Generally a <a href="Functions.htm#nested">nested function</a> should be used instead.
-</p>
+<h3 id="functions">Functions</h3>
+<p><strong>Related:</strong> <a href="Functions.htm">Functions</a> (all about defining functions)</p>
+<p>Aside from calling the many useful <a href="commands/index.htm">predefined functions</a>, a script can define its own functions. These functions can generally be used two ways:</p>
+<ol>
+  <li>A function can be called by the script itself. This kind of function might be used to avoid repetition, to make the code more managable, or perhaps for other purposes.</li>
+  <li>A function can be called by the program in response to some event, such as the user pressing a hotkey. For instance, each hotkey is associated with a function to execute whenever the hotkey is pressed.</li>
+</ol>
+<p>There are multiple ways to define a function. They are as follows:</p>
+<ul>
+  <li>A <a href="Functions.htm">function definition</a> combining a name, parentheses and a <a href="commands/Block.htm">block</a> of code. This defines a function which can be executed by name with a <a href="#function-calls">function call</a> or <a href="#function-call-statements">function call statement</a>. For example:
+<pre>SayHello()  <em>; Define the SayHello function.</em>
+{
+    MsgBox "Hello!"
+}
 
-<h3 id="user-defined-functions">User-Defined Functions</h3>
-<p>Generally speaking, a <a href="Functions.htm">function</a> is a kind of subroutine. However, within the AutoHotkey documentation, &quot;subroutine&quot; typically refers to the kind of subroutine defined by a label (described above).</p>
-<p>User-defined functions differ from subroutines in that they can <em>accept parameters</em> and <em>return a value</em>, and they can have <a href="Functions.htm#Local">local variables</a>. They can be called either by a <a href="#function-calls">function call</a> within the script or by the program itself, such as if a function was passed to <a href="commands/Hotkey.htm">Hotkey</a> or <a href="commands/SetTimer.htm">SetTimer</a>.</p>
-<p>Functions are defined using syntax resembling a function call followed by a block of code enclosed in braces:</p>
+SayHello  <em>; Call the SayHello function.</em></pre>
+  </li>
+  <li>A <a href="Hotkeys.htm">hotkey</a> or <a href="Hotstrings.htm">hotstring</a> definition, combining a hotkey or hotstring with a single <a href="Concepts.htm#statement">statement</a> or a <a href="commands/Block.htm">block</a> of code. This type of function cannot be called directly, but is executed whenever the hotkey or hotstring is activated. For example:
+<pre>#w::Run "wordpad"  <em>; Press Win-W to run Wordpad.</em>
+#n::  <em>; Press Win-N to run Notepad.</em>
+{
+    Run "notepad"
+}</pre>
+  </li>
+  <li>A <a href="Variables.htm#fat-arrow">fat arrow expression</a> defines a function which evaluates an <a href="#expressions">expression</a> and <a href="Concepts.htm#return-a-value">returns</a> its result, instead of executing a block of code. Such functions usually have no name as they are are passed directly to another function. For example:
+    <pre>SetTimer () => MsgBox("Hello!"), -1000  <em>; Says hello after 1 second.</em></pre></pre>
+  </li>
+  <li>The fat arrow syntax can also be used outside of expressions as shorthand for a normal function or method definition. For example, the following is equivalent to the SayHello definition above, except that this one returns "OK":
+    <pre>SayHello() => MsgBox("Hello!")</pre>
+  </li>
+</ul>
+<p>Variables in functions are <a href="Functions.htm#Local">local</a> to that function by default, except when referring to a local variable of an outer function inside a <a href="Functions.htm#nested">nested function</a>, or any variable when <code>=&gt;</code> is used in the global scope (not inside a class or another function).</p>
+<p>A function can optionally <a href="Concepts.htm#parameters">accept parameters</a>. Parameters are defined by listing them inside the parentheses. For example:</p>
 <pre>MyFunction(FirstParameter, Second, ByRef Third, Fourth:=&quot;&quot;)
 {
-    ...
+    <em>;...</em>
     return &quot;a value&quot;
 }
 </pre>
 <p>As with function calls, there must be no space between the function name and open-parenthesis.</p>
 <p>The line break between the close-parenthesis and open-brace is optional. There can be any amount of whitespace or comments between the two.</p>
 <p><a href="Functions.htm#ByRef">ByRef</a> indicates that the parameter accepts a variable reference, making that parameter an alias for whichever variable the caller passes. If the caller does not pass a variable, the parameter acts as a normal local variable. ByRef parameters can also be optional.</p>
-<p><a href="Functions.htm#optional">Optional</a> parameters are specified by following the parameter name with <code>:=</code> and a default value, which must be a literal quoted string, a number, <code>true</code> or <code>false</code>.</p>
+<p><a href="Functions.htm#optional">Optional</a> parameters are specified by following the parameter name with <code>:=</code> and a default value, which must be a literal quoted string, a number, <code>true</code>, <code>false</code> or <code>unset</code>.</p>
 <p>The function can <a href="Functions.htm#return">return a value</a>. If it does not, the default return value is an empty string.</p>
-<p>A function cannot be defined inside another function. Otherwise, the position of a function definition does not matter; any function defined within the script can be called from anywhere else.</p>
+<p>A function definition does not need to precede calls to that function.</p>
 <p class="note">See <a href="Functions.htm">Functions</a> for much more detail.</p>
 
 <h3 id="-include">#Include</h3>
@@ -309,10 +323,10 @@ return
 <p>When using #Include, it is important to consider what effect the file's contents would have if placed at that position, since #Include will have the same effect. For instance:</p>
 <ul>
   <li>
-<p>#Include generally should not be used in the middle of a subroutine or function.</p>
+<p>#Include generally should not be used in the middle of a function.</p>
 </li>
   <li>
-<p>The use of #Include in the script's <a href="#auto-execute-section">auto-execute section</a> requires special consideration, because the auto-execute section is essentially just a subroutine. Execution of a subroutine halts if it reaches a <code>return</code>, regardless of which file that <code>return</code> is in. Similarly, if the file contains a hotkey/hotstring, it may be considered the script's <em>first</em> hotkey/hotstring, which would act like <code>return</code>.</p>
+<p>The use of #Include in the script's <a href="#auto-execute-section">auto-execute section</a> requires special consideration, because the auto-execute section is essentially just a subroutine. Execution of a subroutine halts if it reaches a <code>return</code>, regardless of which file that <code>return</code> is in.</p>
 </li>
   <li>
 <p>The script only has one <a href="#auto-execute-section">auto-execute section</a>, not one per file.</p>
@@ -355,7 +369,7 @@ Loop 3
 <p>The &quot;index&quot; used to form the final variable name does not have to be numeric; it could instead be a letter or keyword, making the pseudo-array similar to an <a href="Objects.htm#Usage_Associative_Arrays">associative array</a> or an <a href="Objects.htm">object</a>.</p>
 
 <h3 id="labels">Labels</h3>
-<p>A label identifies a line of code, and can be used as a <a href="commands/Goto.htm">Goto</a> target, to form a <a href="#subroutines">subroutine</a>, or to <a href="#named-loops">specify a loop</a> to break out of or continue. A label consist of a name followed by a colon:</p>
+<p>A label identifies a line of code, and can be used as a <a href="commands/Goto.htm">Goto</a> target or to <a href="#named-loops">specify a loop</a> to break out of or continue. A label consist of a name followed by a colon:</p>
 <pre>this_is_a_label:
 </pre>
 <p>Aside from whitespace and comments, no other code can be written on the same line as a label. For more details, see <a href="misc/Labels.htm">Labels</a>.</p>

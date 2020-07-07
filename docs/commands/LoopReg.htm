@@ -121,56 +121,52 @@ Until Result = "No"</pre>
 <div class="ex" id="ExRegSearch">
 <p><a href="#ExRegSearch">#3</a>: A working example to recursively search the entire registry for particular value(s).</p>
 <pre>
-RegSearch(&quot;Notepad&quot;)
-return
+RegSearch("Notepad")
 
 RegSearch(Target)
 {
-    ContinueRegSearch := true
     Loop Reg, "HKEY_LOCAL_MACHINE", "KVR"
     {
-        Gosub CheckThisRegItem
-        if !ContinueRegSearch  <em>; It told us to stop.</em>
+        if !CheckThisRegItem()  <em>; It told us to stop.</em>
             return
     }
     Loop Reg, "HKEY_USERS", "KVR"
     {
-        Gosub CheckThisRegItem
-        if !ContinueRegSearch  <em>; It told us to stop.</em>
+        if !CheckThisRegItem()  <em>; It told us to stop.</em>
             return
     }
     Loop Reg, "HKEY_CURRENT_CONFIG", "KVR"
     {
-        Gosub CheckThisRegItem
-        if !ContinueRegSearch  <em>; It told us to stop.</em>
+        if !CheckThisRegItem()  <em>; It told us to stop.</em>
             return
     }
     <em>; Note: I believe HKEY_CURRENT_USER does not need to be searched if HKEY_USERS is
     ; being searched.  Similarly, HKEY_CLASSES_ROOT provides a combined view of keys from
     ; HKEY_LOCAL_MACHINE and HKEY_CURRENT_USER, so searching all three isn't necessary.</em>
-    return
 
-CheckThisRegItem:
-    if A_LoopRegType = &quot;KEY&quot;  <em>; Remove these two lines if you want to check key names too.</em>
-        return
-    try
-        RegValue := RegRead()
-    catch
-        return
-    if InStr(RegValue, Target)
+    CheckThisRegItem()
     {
-        Result := MsgBox(
-        (
-        "The following match was found:
-        " A_LoopRegKey "\" A_LoopRegName "
-        Value = " RegValue "
-        
-        Continue?"
-        ),, "y/n")
-        if Result = "No"
-            ContinueRegSearch := false  <em>; Tell our caller to stop searching.</em>
+        if A_LoopRegType = "KEY"  <em>; Remove these two lines if you want to check key names too.</em>
+            return true
+        try
+            RegValue := RegRead()
+        catch
+            return true
+        if InStr(RegValue, Target)
+        {
+            Result := MsgBox(
+            (
+            "The following match was found:
+            " A_LoopRegKey "\" A_LoopRegName "
+            Value = " RegValue "
+            
+            Continue?"
+            ),, "y/n")
+            if Result = "No"
+                return false  <em>; Tell our caller to stop searching.</em>
+        }
+        return true
     }
-    return
 }
 </pre>
 </div>
