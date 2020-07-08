@@ -39,7 +39,7 @@
   </ul></li>
   <li><a href="#structure-of-a-script">Structure of a Script</a>
   <ul>
-    <li><a href="#auto-execute-section">Auto-execute Section</a></li>
+    <li><a href="#global-code">Global Code</a></li>
     <li><a href="#user-defined-functions">User-Defined Functions</a></li>
     <li><a href="#-include">#Include</a></li>
   </ul></li>
@@ -264,9 +264,11 @@ Loop Parse t, "`n"
 
 <h2 id="structure-of-a-script">Structure of a Script</h2>
 
-<h3 id="auto-execute-section">Auto-execute Section</h3>
-<p>After the script has been loaded, it begins executing at the top line, continuing until a <a href="commands/Return.htm">Return</a>, <a href="commands/ExitApp.htm">Exit</a>, or the physical end of the script is encountered (whichever comes first). This top portion of the script is referred to as the <em>auto-execute section</em>.</p>
-<p>The auto-execute section is often used to configure settings which apply to every newly launched <a href="misc/Threads.htm">thread</a>, or to <a href="Concepts.htm#uninitialised-variables">initialize</a> global variables used by hotkeys and other functions. For details, see <a href="Scripts.htm#auto">The Top of the Script</a>.</p>
+<h3 id="global-code">Global Code</h3>
+<p>After the script has been loaded, the <em>auto-execute thread</em> begins executing at the script's top line, and continues until instructed to stop, such as by <a href="commands/Return.htm">Return</a>, <a href="commands/ExitApp.htm">ExitApp</a> or <a href="commands/Exit.htm">Exit</a>. The physical end of the script also acts as <a href="commands/Exit.htm">Exit</a>.</p>
+<p>Global code, or code in the global <a href="Concepts.htm#scope">scope</a>, is any executable code that is not inside a function or class definition. Any variable references there are said to be <a href="Functions.htm#Global">global</a>, since they can be accessed by any function (with the proper declaration). Such code is often used to configure settings which apply to every newly launched <a href="misc/Threads.htm">thread</a>, or to <a href="Concepts.htm#uninitialised-variables">initialize</a> global variables used by hotkeys and other functions.</p>
+<p>Code to be executed at startup (immediately when the script starts) is often placed at the top of the file. However, such code can be placed throughout the file, in between (but not inside) function and class definitions. This is because the body of each function or class definition is skipped whenever it is encountered during execution. In some cases, the entire purpose of the script may be carried out with global code.</p>
+<p><strong>Related:</strong> <a href="Scripts.htm#auto">Script Startup (the Auto-execute Thread)</a></p>
 
 <h3 id="subroutines">Subroutines</h3>
 <p>A <em>subroutine</em> (also <em>sub</em> or <em>procedure</em>) is a reusable block of code which can be executed on demand. A subroutine is created by defining a <em>function</em> (see below). These terms are generally interchangeable for AutoHotkey v2, where functions are the only type of subroutine.</p>
@@ -320,21 +322,7 @@ SayHello  <em>; Call the SayHello function.</em></pre>
 
 <h3 id="-include">#Include</h3>
 <p>The <a href="commands/_Include.htm">#Include</a> directive causes the script to behave as though the specified file's contents are present at this exact position. This is often used to organise code into separate files, or to make use of script libraries written by other users.</p>
-<p class="warning"><strong>Note:</strong> The following paragraphs detail some common points of confusion.
-</p>
-<p>When using #Include, it is important to consider what effect the file's contents would have if placed at that position, since #Include will have the same effect. For instance:</p>
-<ul>
-  <li>
-<p>#Include generally should not be used in the middle of a function.</p>
-</li>
-  <li>
-<p>The use of #Include in the script's <a href="#auto-execute-section">auto-execute section</a> requires special consideration, because the auto-execute section is essentially just a subroutine. Execution of a subroutine halts if it reaches a <code>return</code>, regardless of which file that <code>return</code> is in.</p>
-</li>
-  <li>
-<p>The script only has one <a href="#auto-execute-section">auto-execute section</a>, not one per file.</p>
-</li>
-</ul>
-<p>#Include can be safely used within the <a href="#auto-execute-section">auto-execute section</a> to include files which contain only function definitions, since function definitions (but not function calls) are skipped over during execution. If a file contains other code, one can avoid breaking the auto-execute section by skipping over the file's contents with <a href="commands/Goto.htm">Goto</a>.</p>
+<p>An #Include file can contain <a href="#global-code">global code</a> to be executed during <a href="Scripts.htm#auto">script startup</a>, but as with code in the main script file, such code will be executed only if the auto-execute thread is not terminated (such as with an unconditional <code>Return</code>) prior to the #Include directive. A <a href="commands/_Warn.htm#Unreachable">warning</a> is displayed by default if any code cannot be executed due to a prior <code>Return</code>.</p>
 <p>Unlike in C/C++, #Include does nothing if the file has already been included by a previous directive. To include the contents of the same file multiple times, use <a href="commands/_Include.htm">#IncludeAgain</a>.</p>
 <p>Script files containing functions can be <em>automatically</em> included without having to use #Include, if they are saved in a standard location and named appropriately. The effect is similar to using #Include at the end of the main script file. For details, see <a href="Functions.htm#lib">Libraries of Functions</a>.</p>
 
