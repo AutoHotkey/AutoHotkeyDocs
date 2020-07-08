@@ -136,7 +136,6 @@ tocData = [
     ["ExitApp","commands/ExitApp.htm"],
     ["Finally","commands/Finally.htm"],
     ["For-loop","commands/For.htm"],
-    ["Gosub","commands/Gosub.htm"],
     ["Goto","commands/Goto.htm"],
     ["If","commands/If.htm"],
     ["Loop","commands/Loop.htm",
