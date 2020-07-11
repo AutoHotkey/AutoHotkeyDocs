@@ -57,9 +57,9 @@ ScriptPID := ProcessExist()  <em>; The PID of this running script.</em>
 <em>; Get the handle of this script with PROCESS_QUERY_INFORMATION (0x0400):</em>
 h := DllCall("OpenProcess", "UInt", 0x0400, "Int", false, "UInt", ScriptPID, "Ptr")
 <em>; Open an adjustable access token with this process (TOKEN_ADJUST_PRIVILEGES = 32):</em>
-DllCall("Advapi32.dll\OpenProcessToken", "Ptr", h, "UInt", 32, "PtrP", t)
+DllCall("Advapi32.dll\OpenProcessToken", "Ptr", h, "UInt", 32, "PtrP", t := 0)
 <em>; Retrieves the locally unique identifier of the debug privilege:</em>
-DllCall("Advapi32.dll\LookupPrivilegeValue", "Ptr", 0, "Str", "SeDebugPrivilege", "Int64P", luid)
+DllCall("Advapi32.dll\LookupPrivilegeValue", "Ptr", 0, "Str", "SeDebugPrivilege", "Int64P", luid := 0)
 ti := BufferAlloc(16, 0)  <em>; structure of privileges</em>
 NumPut( "UInt", 1  <em>; one entry in the privileges array...</em>
       , "Int64", luid
@@ -73,6 +73,7 @@ DllCall("CloseHandle", "Ptr", h)  <em>; Close this process handle to save memory
 hModule := DllCall("LoadLibrary", "Str", "Psapi.dll")  <em>; Increase performance by preloading the library.</em>
 a := BufferAlloc(s)  <em>; An array that receives the list of process identifiers:</em>
 c := 0  <em>; counter for process idendifiers</em>
+l := ""
 DllCall("Psapi.dll\EnumProcesses", "Ptr", a, "UInt", s, "UIntP", r)
 Loop r // 4  <em>; Parse array for identifiers as DWORDs (32 bits):</em>
 {
