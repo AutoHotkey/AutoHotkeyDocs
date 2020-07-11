@@ -111,7 +111,7 @@ MsgBox(1.00)  <em>; Shows 1.0</em></pre>
       <p><strong>Unary minus (-)</strong>: Inverts the sign of its operand.</p>
       <p><strong>Unary plus (+)</strong>: <code>+N</code> is equivalent to <code>-(-N)</code>. This has no effect when applied to a pure number, but can be used to convert numeric strings to pure numbers.</p>
       <p><strong>Logical-not (!)</strong>: If the operand is blank or 0, the result of applying logical-not is 1, which means &quot;true&quot;. Otherwise, the result is 0 (false). For example: <code>!x or !(y and z)</code>. Note: The word NOT is synonymous with <strong>!</strong> except that <strong>!</strong> has a higher precedence. Consecutive unary operators such as <code><strong>!!</strong>Var</code> are allowed because they are evaluated in right-to-left order.</p>
-      <p><strong>Bitwise-not (~)</strong>: This inverts each bit of its operand. If the operand is a floating point value, it is truncated to an integer prior to the calculation. As 64-bit signed integers are used, a positive input value will always give a negative result and vice versa. For example, <code>~0xf0f</code> evaluates to -0xf10 (-3856), which is binary equivalent to 0xfffffffffffff0f0. If an unsigned 32-bit value is intended, the result can be truncated with <code><i>result</i> &amp; 0xffffffff</code>.</p>
+      <p><strong>Bitwise-not (~)</strong>: This inverts each bit of its operand. As 64-bit signed integers are used, a positive input value will always give a negative result and vice versa. For example, <code>~0xf0f</code> evaluates to -0xf10 (-3856), which is binary equivalent to 0xfffffffffffff0f0. If an unsigned 32-bit value is intended, the result can be truncated with <code><i>result</i> &amp; 0xffffffff</code>. If the operand is a floating point value, an exception is thrown.</p>
     </td>
   </tr>
   <tr id="MulDiv">
@@ -122,7 +122,7 @@ MsgBox(1.00)  <em>; Shows 1.0</em></pre>
     <td><p><strong>Multiply (*)</strong>: The result is an integer if both inputs are integers; otherwise, it is a floating point number.</p>
       <p><strong>Other uses</strong>: The asterisk (*) symbol is also used in <a href="Functions.htm#VariadicCall">variadic function calls</a>.</p>
       <p id="divide"><strong>True divide (/)</strong>: True division yields a floating point result even when both inputs are integers. For example, <code>3/2</code> yields 1.5 rather than 1, and <code>4/2</code> yields 2.0 rather than 2.</p>
-      <p id="FloorDivide"><strong>Floor divide (//)</strong>: The double-slash operator uses high-performance integer division if the two inputs are integers. For example, <code>5//3</code> is 1 and <code>5//-3</code> is -1. If either of the inputs is in floating point format, floating point division is performed and the result is truncated to the nearest integer to the left. For example, <code>5//3.0</code> is 1.0 and <code>5.0//-3</code> is -2.0. Although the result of this floating point division is an integer, it is stored in floating point format so that anything else that uses it will see it as such. For modulo, see <a href="commands/Math.htm#Mod">Mod</a>.</p>
+      <p id="IntegerDivide"><strong>Integer divide (//)</strong>: The double-slash operator uses high-performance integer division. For example, <code>5//3</code> is 1 and <code>5//-3</code> is -1. If either of the inputs is in floating point format, an exception is thrown. For modulo, see <a href="commands/Math.htm#Mod">Mod</a>.</p>
     <p>The <a href="#AssignOp">*= and /= operators</a> are a shorthand way to multiply or divide the value in a variable by another value. For example, <code>Var*=2</code> produces the same result as <code>Var:=Var*2</code> (though the former performs better).</p>
     <p>Division by zero causes an exception to be thrown.</p></td>
   </tr>
@@ -136,7 +136,10 @@ MsgBox(1.00)  <em>; Shows 1.0</em></pre>
   <tr id="bitshift">
     <td style="text-align:center"><strong>&lt;&lt;<br>
     &gt;&gt;</strong></td>
-    <td><strong>Bit shift left (&lt;&lt;)</strong> and <strong>right (&gt;&gt;)</strong>. Example usage: <code>Value1 &lt;&lt; Value2</code>. Any floating point input is truncated to an integer prior to the calculation. Shift left (<strong>&lt;&lt;</strong>) is equivalent to multiplying <em>Value1</em> by &quot;2 to the <em>Value2</em>th power&quot;. Shift right (<strong>&gt;&gt;</strong>) is equivalent to dividing <em>Value1</em> by &quot;2 to the <em>Value2</em>th power&quot; and rounding the result to the nearest integer leftward on the number line; for example, <code>-3&gt;&gt;1</code> is -2. If <em>Value2</em> is less than 0 or greater than 63 (after truncation) an exception is thrown.</td>
+    <td>
+      <p><strong>Bit shift left (&lt;&lt;)</strong> and <strong>right (&gt;&gt;)</strong>. Example usage: <code>Value1 &lt;&lt; Value2</code>. Shift left (<strong>&lt;&lt;</strong>) is equivalent to multiplying <em>Value1</em> by &quot;2 to the <em>Value2</em>th power&quot;. Shift right (<strong>&gt;&gt;</strong>) is equivalent to dividing <em>Value1</em> by &quot;2 to the <em>Value2</em>th power&quot; and rounding the result to the nearest integer leftward on the number line; for example, <code>-3&gt;&gt;1</code> is -2. If <em>Value2</em> is less than 0 or greater than 63 (after truncation) an exception is thrown.</p>
+      <p>If either of the inputs is a floating-point number, an exception is thrown.</p>
+    </td>
   </tr>
   <tr id="bitwise">
     <td style="text-align:center"><strong>&amp;<br>
@@ -144,9 +147,9 @@ MsgBox(1.00)  <em>; Shows 1.0</em></pre>
       |
     </strong></td>
     <td>
-      <p><strong>Bitwise-and (&amp;)</strong>, <strong>bitwise-exclusive-or (^)</strong>, and <strong>bitwise-or (|)</strong>. Of the three, <strong>&amp;</strong> has the highest precedence and <strong>|</strong> has the lowest. Any floating point input is truncated to an integer prior to the calculation.</p>
+      <p><strong>Bitwise-and (&amp;)</strong>, <strong>bitwise-exclusive-or (^)</strong>, and <strong>bitwise-or (|)</strong>. Of the three, <strong>&amp;</strong> has the highest precedence and <strong>|</strong> has the lowest.</p>
+      <p>If either of the inputs is a floating-point number, an exception is thrown.</p>
       <p>Related: <a href="#unary">Bitwise-not (~)</a></p>
-      <p><strong>Other uses</strong>: If the &amp; symbol is not preceded by a value (or a sub-expression which yields a value), it is interpreted as the <a href="#unary">address operator</a> instead.</p>
     </td>
   </tr>
   <tr id="concat">
@@ -235,7 +238,7 @@ MsgBox(A || B || C) <em>; The <strong>last</strong> falsey operand is returned (
         &gt;&gt;=<br>
         &lt;&lt;=</strong>
     </td>
-    <td><p><strong>Assign</strong>. Performs an operation on the contents of a variable and stores the result back in the same variable. The simplest assignment operator is <a href="commands/SetExpression.htm">colon-equals (:=)</a>, which stores the result of an expression in a variable. For a description of what the other operators do, see their related entries in this table. For example, <code>Var //= 2</code> performs <a href="#FloorDivide">floor division</a> to divide <em>Var</em> by 2, then stores the result back in <em>Var</em>. Similarly, <code>Var <strong>.=</strong> &quot;abc&quot;</code> is a shorthand way of writing <code>Var := Var <strong>.</strong> &quot;abc&quot;</code>.</p>
+    <td><p><strong>Assign</strong>. Performs an operation on the contents of a variable and stores the result back in the same variable. The simplest assignment operator is <a href="commands/SetExpression.htm">colon-equals (:=)</a>, which stores the result of an expression in a variable. For a description of what the other operators do, see their related entries in this table. For example, <code>Var //= 2</code> performs <a href="#IntegerDivide">integer division</a> to divide <em>Var</em> by 2, then stores the result back in <em>Var</em>. Similarly, <code>Var <strong>.=</strong> &quot;abc&quot;</code> is a shorthand way of writing <code>Var := Var <strong>.</strong> &quot;abc&quot;</code>.</p>
       <p>Unlike most other operators, assignments are evaluated from right to left. Consequently, a line such as <code>Var1 := Var2 := 0</code> first assigns 0 to <em>Var2</em> then assigns <em>Var2</em> to <em>Var1</em>.</p>
     <p>If an assignment is used as the input for some other operator, its value is the variable itself. For example,  the expression <code>(Var+=2) &gt; 50</code> is true if the newly-increased value in <em>Var</em> is greater than 50. This also allows an assignment to be passed <a href="Functions.htm#ByRef">ByRef</a>, or its address taken; for example: <code>StrPtr(x:=&quot;abc&quot;)</code>.</p>
     <p>The precedence of the assignment operators is automatically raised when it would avoid a syntax error or provide more intuitive behavior. For example: <code>not x:=y</code> is evaluated as <code>not (x:=y)</code>. Similarly, <code>++Var := X</code> is evaluated as <code>++(Var := X)</code>; and <code>Z&gt;0 ? X:=2 : Y:=2</code> is evaluated as <code>Z&gt;0 ? (X:=2) : (Y:=2)</code>.</p>
