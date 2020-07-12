@@ -90,10 +90,10 @@ MsgBox "Class name: " name
 
 <div class="ex" id="ExIE">
 <p><a href="#ExIE">#2</a>: Automate an existing Internet Explorer window.</p>
-<pre>sURL := "https://www.autohotkey.com/boards/"
+<pre>
+sURL := "https://www.autohotkey.com/boards/"
 if WebBrowser := GetWebBrowser()
     WebBrowser.Navigate(sURL)
-return
 
 GetWebBrowser()
 {
@@ -102,9 +102,11 @@ GetWebBrowser()
     lResult := SendMessage(msg, 0, 0, "Internet Explorer_Server1", "ahk_class IEFrame")
     if !lResult
         return  <em>; IE not found.</em>
+    static IID_IHTMLDocument2 := GUID("{332C4425-26CB-11D0-B483-00C04FD90119}")
+    static VT_UNKNOWN := 13
     DllCall("oleacc\ObjectFromLresult", "Ptr", lResult
-        , "Ptr", GUID(IID_IHTMLDocument2,"{332C4425-26CB-11D0-B483-00C04FD90119}")
-        , "Ptr", 0, "Ptr*", pdoc)
+        , "Ptr", IID_IHTMLDocument2, "Ptr", 0
+        , "Ptr*", pdoc := ComObject(VT_UNKNOWN, 0))
     
     <em>; Query for the WebBrowserApp service. In this particular case,
     ; the SID and IID are the same, but it isn't always this way.</em>
@@ -112,18 +114,20 @@ GetWebBrowser()
     static SID_SWebBrowserApp := IID_IWebBrowserApp
     pweb := ComObjQuery(pdoc, SID_SWebBrowserApp, IID_IWebBrowserApp)
     
-    <em>; Release the document object pointer.</em>
-    ObjRelease(pdoc)
-    
-    <em>; Return the WebBrowser object, wrapped for usability:</em>
-    static VT_DISPATCH := 9, F_OWNVALUE := 1
-    return ComObject(VT_DISPATCH, pweb, F_OWNVALUE)
+    <em>; Return the WebBrowser object as IDispatch for usability.
+    ; This works only because IWebBrowserApp is derived from IDispatch.
+    ; pweb will release its ptr automatically, so AddRef to counter that.</em>
+    ObjAddRef(pweb.ptr)
+    static VT_DISPATCH := 9
+    return ComObject(VT_DISPATCH, pweb.ptr)
 }
 
-GUID(ByRef GUID, sGUID) <em>; Converts a string to a binary GUID and returns its address.</em>
+GUID(sGUID) <em>; Converts a string to a binary GUID and returns it in a Buffer.</em>
 {
     GUID := BufferAlloc(16, 0)
-    return DllCall("ole32\CLSIDFromString", "WStr", sGUID, "Ptr", GUID) &gt;= 0 ? GUID : ""
+    if DllCall("ole32\CLSIDFromString", "WStr", sGUID, "Ptr", GUID) &lt; 0
+        throw Exception("Invalid parameter #1", -1, sGUID)
+    return GUID
 }
 </pre>
 </div>
