@@ -100,7 +100,7 @@ k_yPos := WB - k_height
 MyGui.Show("x" k_xPos " y" k_yPos " NA")
 
 ;---- Function definitions:
-k_KeyPress(BtnCtrl)
+k_KeyPress(BtnCtrl, *)
 { 
     BtnCtrl.Opt("Default") ; Highlight the last pressed key.
     ControlClick(, "ahk_id " BtnCtrl.Hwnd,,,, "D")
