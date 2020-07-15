@@ -229,10 +229,10 @@ MsgBox Format("{:010}", 432)
 
 <div class="ex" id="ExQPC">
 <p><a href="#ExQPC">#5</a>: Demonstrates QueryPerformanceCounter(), which gives more precision than <a href="../Variables.htm#TickCount">A_TickCount's</a> 10ms.</p>
-<pre>DllCall(&quot;QueryPerformanceFrequency&quot;, &quot;Int64*&quot;, freq)
-DllCall(&quot;QueryPerformanceCounter&quot;, &quot;Int64*&quot;, CounterBefore)
+<pre>DllCall(&quot;QueryPerformanceFrequency&quot;, &quot;Int64*&quot;, freq := 0)
+DllCall(&quot;QueryPerformanceCounter&quot;, &quot;Int64*&quot;, CounterBefore := 0)
 Sleep 1000
-DllCall(&quot;QueryPerformanceCounter&quot;, &quot;Int64*&quot;, CounterAfter)
+DllCall(&quot;QueryPerformanceCounter&quot;, &quot;Int64*&quot;, CounterAfter := 0)
 MsgBox &quot;Elapsed QPC time is &quot; . (CounterAfter - CounterBefore) / freq * 1000 &quot; ms&quot;</pre>
 </div>
 
@@ -268,7 +268,8 @@ F1 up::
 
 WatchScrollBar()
 {
-    FocusedHwnd := ControlGetFocus("A")
+    FocusedHwnd := 0
+    try FocusedHwnd := ControlGetFocus("A")
     if !FocusedHwnd  <em>; No focused control.</em>
         return
     <em>; Display the vertical or horizontal scroll bar's position in a ToolTip:</em>
@@ -335,7 +336,7 @@ SystemCursor(cmd)  <em>; cmd = "Show|Hide|Toggle|Reload"</em>
                 , "Int", 32, "Int", 32
                 , "Ptr", BufferAlloc(32*4, 0xFF)
                 , "Ptr", BufferAlloc(32*4, 0))
-            c[id] := {"default": h_default, "blank": h_blank}
+            c[id] := {default: h_default, blank: h_blank}
         }
     }
     switch cmd
@@ -436,18 +437,18 @@ SetSystemTime(YYYYMMDDHHMISS)
 IID_ITaskbarList  := "{56FDF342-FD6D-11d0-958A-006097C9A090}"
 CLSID_TaskbarList := "{56FDF344-FD6D-11d0-958A-006097C9A090}"
 
-<em>; Create the TaskbarList object and store its address in tbl.</em>
+<em>; Create the TaskbarList object.</em>
 tbl := <a href="ComObjCreate.htm">ComObjCreate</a>(CLSID_TaskbarList, IID_ITaskbarList)
 
 activeHwnd := WinExist("A")
 
-DllCall(vtable(tbl,3), "ptr", tbl)                     <em>; tbl.<a href="http://msdn.microsoft.com/en-us/library/bb774650.aspx">HrInit</a>()</em>
-DllCall(vtable(tbl,5), "ptr", tbl, "ptr", activeHwnd)  <em>; tbl.<a href="http://msdn.microsoft.com/en-us/library/bb774648.aspx">DeleteTab</a>(activeHwnd)</em>
+DllCall(vtable(tbl.ptr,3), "ptr", tbl)                     <em>; tbl.<a href="http://msdn.microsoft.com/en-us/library/bb774650.aspx">HrInit</a>()</em>
+DllCall(vtable(tbl.ptr,5), "ptr", tbl, "ptr", activeHwnd)  <em>; tbl.<a href="http://msdn.microsoft.com/en-us/library/bb774648.aspx">DeleteTab</a>(activeHwnd)</em>
 Sleep 3000
-DllCall(vtable(tbl,4), "ptr", tbl, "ptr", activeHwnd)  <em>; tbl.<a href="http://msdn.microsoft.com/en-us/library/bb774646.aspx">AddTab</a>(activeHwnd)</em>
+DllCall(vtable(tbl.ptr,4), "ptr", tbl, "ptr", activeHwnd)  <em>; tbl.<a href="http://msdn.microsoft.com/en-us/library/bb774646.aspx">AddTab</a>(activeHwnd)</em>
 
 <em>; Non-wrapped interface pointers must be manually freed.</em>
-ObjRelease(tbl)
+ObjRelease(tbl.ptr)
 
 vtable(ptr, n) {
     <em>; NumGet(ptr, "ptr") returns the address of the object's virtual function
