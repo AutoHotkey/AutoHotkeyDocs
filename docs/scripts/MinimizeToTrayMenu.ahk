@@ -161,8 +161,8 @@ RestoreFromTrayMenu(ThisMenuItem, *)
         if WindowTitle = ThisMenuItem  ; Match found.
         {
             IDToRestore := g_WindowIDs[A_Index]
-            WinShow "ahk_id " IDToRestore
-            WinActivate "ahk_id " IDToRestore  ; Sometimes needed.
+            WinShow IDToRestore
+            WinActivate IDToRestore  ; Sometimes needed.
             g_WindowIDs.RemoveAt(A_Index)  ; Remove it to free up a slot.
             g_WindowTitles.RemoveAt(A_Index)
             break
@@ -179,8 +179,8 @@ UnMinimize(*)
     {
         ; Get the id of the last window minimized and unhide it
         IDToRestore := g_WindowIDs[-1]
-        WinShow "ahk_id " IDToRestore
-        WinActivate "ahk_id " IDToRestore
+        WinShow IDToRestore
+        WinActivate IDToRestore
         
         ; Get the menu name of the last window minimized and remove it
         MenuToRemove := g_WindowTitles[-1]
@@ -205,8 +205,8 @@ RestoreAll(*)
     for WindowID in g_WindowIDs
     {
         IDToRestore := WindowID
-        WinShow "ahk_id " IDToRestore
-        WinActivate "ahk_id " IDToRestore  ; Sometimes needed.
+        WinShow IDToRestore
+        WinActivate IDToRestore  ; Sometimes needed.
         ; Do it this way vs. DeleteAll so that the sep. line and first
         ; item are retained:
         MenuToRemove := g_WindowTitles[A_Index]

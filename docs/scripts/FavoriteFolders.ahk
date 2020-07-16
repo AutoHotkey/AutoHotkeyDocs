@@ -112,31 +112,31 @@ OpenFavorite(ItemName, ItemPos, *)
     {
         ; Activate the window so that if the user is middle-clicking
         ; outside the dialog, subsequent clicks will also work:
-        WinActivate "ahk_id " g_window_id
+        WinActivate g_window_id
         ; Retrieve any filename that might already be in the field so
         ; that it can be restored after the switch to the new folder:
-        text := ControlGetText("Edit1", "ahk_id " g_window_id)
-        ControlSetText path, "Edit1", "ahk_id " g_window_id
-        ControlFocus "Edit1", "ahk_id " g_window_id
-        ControlSend "{Enter}", "Edit1", "ahk_id " g_window_id
+        text := ControlGetText("Edit1", g_window_id)
+        ControlSetText path, "Edit1", g_window_id
+        ControlFocus "Edit1", g_window_id
+        ControlSend "{Enter}", "Edit1", g_window_id
         Sleep 100  ; It needs extra time on some dialogs or in some cases.
-        ControlSetText text, "Edit1", "ahk_id " g_window_id
+        ControlSetText text, "Edit1", g_window_id
         return
     }
     else if g_class = "CabinetWClass"  ; In Explorer, switch folders.
     {
-        ControlClick "ToolbarWindow323", "ahk_id " g_window_id,,,, "NA x1 y1"
-        ControlFocus "Edit1", "ahk_id " g_window_id
-        ControlSetText path, "Edit1", "ahk_id " g_window_id
+        ControlClick "ToolbarWindow323", g_window_id,,,, "NA x1 y1"
+        ControlFocus "Edit1", g_window_id
+        ControlSetText path, "Edit1", g_window_id
         ; Tekl reported the following: "If I want to change to Folder L:\folder
         ; then the addressbar shows http://www.L:\folder.com. To solve this,
         ; I added a {right} before {Enter}":
-        ControlSend "{Right}{Enter}", "Edit1", "ahk_id " g_window_id
+        ControlSend "{Right}{Enter}", "Edit1", g_window_id
         return
     }
     else if g_class = "ConsoleWindowClass" ; In a console window, CD to that directory
     {
-        WinActivate "ahk_id " g_window_id ; Because sometimes the mclick deactivates it.
+        WinActivate g_window_id ; Because sometimes the mclick deactivates it.
         SetKeyDelay 0  ; This will be in effect only for the duration of this thread.
         if InStr(path, ":")  ; It contains a drive letter
         {
@@ -156,8 +156,8 @@ OpenFavorite(ItemName, ItemPos, *)
 DisplayMenu(*)
 {
     ; These first few variables are set here and used by OpenFavorite:
-    g_window_id := WinGetID("A")
-    g_class := WinGetClass("ahk_id " g_window_id)
+    try g_window_id := WinGetID("A")
+    try g_class := WinGetClass(g_window_id)
     if g_AlwaysShowMenu = false  ; The menu should be shown only selectively.
     {
         if !(g_class ~= "#32770|ExploreWClass|CabinetWClass|ConsoleWindowClass")

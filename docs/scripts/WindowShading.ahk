@@ -34,14 +34,14 @@ global Windows := Map()
         {
             ; Match found, so this window should be restored (unrolled):
             Height := Windows[ActiveID]
-            WinMove ,,, Height, "ahk_id " ActiveID
+            WinMove ,,, Height, ActiveID
             IDs.RemoveAt(A_Index)
             return
         }
     }
     WinGetPos ,,, Height, "A"
     Windows.Set(ActiveID, Height)
-    WinMove ,,, g_MinHeight, "ahk_id " ActiveID
+    WinMove ,,, g_MinHeight, ActiveID
     IDs.Push(ActiveID)
 }
 
@@ -50,7 +50,7 @@ ExitSub(*)
     for ID in IDs
     {
         Height := Windows[ID]
-        WinMove ,,, Height, "ahk_id " ID
+        WinMove ,,, Height, ID
     }
     ExitApp  ; Must do this for the OnExit subroutine to actually Exit the script.
 }
