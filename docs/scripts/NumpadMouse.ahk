@@ -10,7 +10,7 @@
 o------------------------------------------------------------o
 |Using Keyboard Numpad as a Mouse                            |
 (------------------------------------------------------------)
-| By deguix           / A Script file for AutoHotkey         |
+|                     / A Script file for AutoHotkey         |
 |                    ----------------------------------------|
 |                                                            |
 |    This script is an example of use of AutoHotkey. It uses |
@@ -76,18 +76,18 @@ o------------------------------------------------------------o
 ; Hook hotkeys are smart enough to ignore such keystrokes.
 #UseHook
 
-MouseSpeed := 1
-MouseAccelerationSpeed := 1
-MouseMaxSpeed := 5
+global g_MouseSpeed := 1
+global g_MouseAccelerationSpeed := 1
+global g_MouseMaxSpeed := 5
 
 ;Mouse wheel speed is also set on Control Panel. As that
 ;will affect the normal mouse behavior, the real speed of
 ;these three below are times the normal mouse wheel speed.
-MouseWheelSpeed := 1
-MouseWheelAccelerationSpeed := 1
-MouseWheelMaxSpeed := 5
+global g_MouseWheelSpeed := 1
+global g_MouseWheelAccelerationSpeed := 1
+global g_MouseWheelMaxSpeed := 5
 
-MouseRotationAngle := 0
+global g_MouseRotationAngle := 0
 
 ;END OF CONFIG SECTION
 
@@ -96,10 +96,9 @@ MouseRotationAngle := 0
 ;screen.
 #InstallKeybdHook
 
-Temp := 0
-Temp2 := 0
+global g_Temp := 0
+global g_Temp2 := 0
 
-MouseRotationAnglePart := MouseRotationAngle
 ;Divide by 45° because MouseMove only supports whole numbers,
 ;and changing the mouse rotation to a number lesser than 45°
 ;could make strange movements.
@@ -107,13 +106,20 @@ MouseRotationAnglePart := MouseRotationAngle
 ;For example: 22.5° when pressing NumpadUp:
 ;  First it would move upwards until the speed
 ;  to the side reaches 1.
-MouseRotationAnglePart /= 45
+global g_MouseRotationAnglePart := g_MouseRotationAngle / 45
 
-MouseCurrentAccelerationSpeed := 0
-MouseCurrentSpeed := MouseSpeed
+global g_MouseCurrentAccelerationSpeed := 0
+global g_MouseCurrentSpeed := g_MouseSpeed
+global g_MouseCurrentSpeedToDirection := 0
+global g_MouseCurrentSpeedToSide := 0
 
-MouseWheelCurrentAccelerationSpeed := 0
-MouseWheelCurrentSpeed := MouseSpeed
+global g_MouseWheelCurrentAccelerationSpeed := 0
+global g_MouseWheelCurrentSpeed := g_MouseSpeed
+global g_MouseWheelAccelerationSpeedReal := 0
+global g_MouseWheelMaxSpeedReal := 0
+global g_MouseWheelSpeedReal := 0
+
+global g_Button := 0
 
 SetKeyDelay -1
 SetMouseDelay -1
@@ -127,17 +133,17 @@ Hotkey "*NumpadDel", "ButtonRightClickDel"
 Hotkey "*NumpadDiv", "ButtonX1Click"
 Hotkey "*NumpadMult", "ButtonX2Click"
 
-Hotkey "*NumpadSub", "ButtonWheelUp"
-Hotkey "*NumpadAdd", "ButtonWheelDown"
+Hotkey "*NumpadSub", "ButtonWheelAcceleration"
+Hotkey "*NumpadAdd", "ButtonWheelAcceleration"
 
-Hotkey "*NumpadUp", "ButtonUp"
-Hotkey "*NumpadDown", "ButtonDown"
-Hotkey "*NumpadLeft", "ButtonLeft"
-Hotkey "*NumpadRight", "ButtonRight"
-Hotkey "*NumpadHome", "ButtonUpLeft"
-Hotkey "*NumpadEnd", "ButtonUpRight"
-Hotkey "*NumpadPgUp", "ButtonDownLeft"
-Hotkey "*NumpadPgDn", "ButtonDownRight"
+Hotkey "*NumpadUp", "ButtonAcceleration"
+Hotkey "*NumpadDown", "ButtonAcceleration"
+Hotkey "*NumpadLeft", "ButtonAcceleration"
+Hotkey "*NumpadRight", "ButtonAcceleration"
+Hotkey "*NumpadHome", "ButtonAcceleration"
+Hotkey "*NumpadEnd", "ButtonAcceleration"
+Hotkey "*NumpadPgUp", "ButtonAcceleration"
+Hotkey "*NumpadPgDn", "ButtonAcceleration"
 
 Hotkey "Numpad8", "ButtonSpeedUp"
 Hotkey "Numpad2", "ButtonSpeedDown"
@@ -156,159 +162,180 @@ Hotkey "!Numpad1", "ButtonWheelAccelerationSpeedDown"
 Hotkey "!Numpad9", "ButtonWheelMaxSpeedUp"
 Hotkey "!Numpad3", "ButtonWheelMaxSpeedDown"
 
-Gosub ~ScrollLock  ; Initialize based on current ScrollLock state.
+ToggleKeyActivationSupport  ; Initialize based on current ScrollLock state.
 return
 
 ;Key activation support
 
 ~ScrollLock::
-; Wait for it to be released because otherwise the hook state gets reset
-; while the key is down, which causes the up-event to get suppressed,
-; which in turn prevents toggling of the ScrollLock state/light:
-KeyWait "ScrollLock"
-if GetKeyState("ScrollLock", "T")
+ToggleKeyActivationSupport(*)
 {
-    Hotkey "*Numpad0", "On"
-    Hotkey "*NumpadIns", "On"
-    Hotkey "*Numpad5", "On"
-    Hotkey "*NumpadDot", "On"
-    Hotkey "*NumpadDel", "On"
-    Hotkey "*NumpadDiv", "On"
-    Hotkey "*NumpadMult", "On"
+    ; Wait for it to be released because otherwise the hook state gets reset
+    ; while the key is down, which causes the up-event to get suppressed,
+    ; which in turn prevents toggling of the ScrollLock state/light:
+    KeyWait "ScrollLock"
+    if GetKeyState("ScrollLock", "T")
+    {
+        Hotkey "*Numpad0", "On"
+        Hotkey "*NumpadIns", "On"
+        Hotkey "*Numpad5", "On"
+        Hotkey "*NumpadDot", "On"
+        Hotkey "*NumpadDel", "On"
+        Hotkey "*NumpadDiv", "On"
+        Hotkey "*NumpadMult", "On"
 
-    Hotkey "*NumpadSub", "On"
-    Hotkey "*NumpadAdd", "On"
+        Hotkey "*NumpadSub", "On"
+        Hotkey "*NumpadAdd", "On"
 
-    Hotkey "*NumpadUp", "On"
-    Hotkey "*NumpadDown", "On"
-    Hotkey "*NumpadLeft", "On"
-    Hotkey "*NumpadRight", "On"
-    Hotkey "*NumpadHome", "On"
-    Hotkey "*NumpadEnd", "On"
-    Hotkey "*NumpadPgUp", "On"
-    Hotkey "*NumpadPgDn", "On"
+        Hotkey "*NumpadUp", "On"
+        Hotkey "*NumpadDown", "On"
+        Hotkey "*NumpadLeft", "On"
+        Hotkey "*NumpadRight", "On"
+        Hotkey "*NumpadHome", "On"
+        Hotkey "*NumpadEnd", "On"
+        Hotkey "*NumpadPgUp", "On"
+        Hotkey "*NumpadPgDn", "On"
 
-    Hotkey "Numpad8", "On"
-    Hotkey "Numpad2", "On"
-    Hotkey "Numpad7", "On"
-    Hotkey "Numpad1", "On"
-    Hotkey "Numpad9", "On"
-    Hotkey "Numpad3", "On"
+        Hotkey "Numpad8", "On"
+        Hotkey "Numpad2", "On"
+        Hotkey "Numpad7", "On"
+        Hotkey "Numpad1", "On"
+        Hotkey "Numpad9", "On"
+        Hotkey "Numpad3", "On"
 
-    Hotkey "Numpad6", "On"
-    Hotkey "Numpad4", "On"
+        Hotkey "Numpad6", "On"
+        Hotkey "Numpad4", "On"
 
-    Hotkey "!Numpad8", "On"
-    Hotkey "!Numpad2", "On"
-    Hotkey "!Numpad7", "On"
-    Hotkey "!Numpad1", "On"
-    Hotkey "!Numpad9", "On"
-    Hotkey "!Numpad3", "On"
+        Hotkey "!Numpad8", "On"
+        Hotkey "!Numpad2", "On"
+        Hotkey "!Numpad7", "On"
+        Hotkey "!Numpad1", "On"
+        Hotkey "!Numpad9", "On"
+        Hotkey "!Numpad3", "On"
+    }
+    else
+    {
+        Hotkey "*Numpad0", "Off"
+        Hotkey "*NumpadIns", "Off"
+        Hotkey "*Numpad5", "Off"
+        Hotkey "*NumpadDot", "Off"
+        Hotkey "*NumpadDel", "Off"
+        Hotkey "*NumpadDiv", "Off"
+        Hotkey "*NumpadMult", "Off"
+
+        Hotkey "*NumpadSub", "Off"
+        Hotkey "*NumpadAdd", "Off"
+
+        Hotkey "*NumpadUp", "Off"
+        Hotkey "*NumpadDown", "Off"
+        Hotkey "*NumpadLeft", "Off"
+        Hotkey "*NumpadRight", "Off"
+        Hotkey "*NumpadHome", "Off"
+        Hotkey "*NumpadEnd", "Off"
+        Hotkey "*NumpadPgUp", "Off"
+        Hotkey "*NumpadPgDn", "Off"
+
+        Hotkey "Numpad8", "Off"
+        Hotkey "Numpad2", "Off"
+        Hotkey "Numpad7", "Off"
+        Hotkey "Numpad1", "Off"
+        Hotkey "Numpad9", "Off"
+        Hotkey "Numpad3", "Off"
+
+        Hotkey "Numpad6", "Off"
+        Hotkey "Numpad4", "Off"
+
+        Hotkey "!Numpad8", "Off"
+        Hotkey "!Numpad2", "Off"
+        Hotkey "!Numpad7", "Off"
+        Hotkey "!Numpad1", "Off"
+        Hotkey "!Numpad9", "Off"
+        Hotkey "!Numpad3", "Off"
+    }
 }
-else
-{
-    Hotkey "*Numpad0", "Off"
-    Hotkey "*NumpadIns", "Off"
-    Hotkey "*Numpad5", "Off"
-    Hotkey "*NumpadDot", "Off"
-    Hotkey "*NumpadDel", "Off"
-    Hotkey "*NumpadDiv", "Off"
-    Hotkey "*NumpadMult", "Off"
-
-    Hotkey "*NumpadSub", "Off"
-    Hotkey "*NumpadAdd", "Off"
-
-    Hotkey "*NumpadUp", "Off"
-    Hotkey "*NumpadDown", "Off"
-    Hotkey "*NumpadLeft", "Off"
-    Hotkey "*NumpadRight", "Off"
-    Hotkey "*NumpadHome", "Off"
-    Hotkey "*NumpadEnd", "Off"
-    Hotkey "*NumpadPgUp", "Off"
-    Hotkey "*NumpadPgDn", "Off"
-
-    Hotkey "Numpad8", "Off"
-    Hotkey "Numpad2", "Off"
-    Hotkey "Numpad7", "Off"
-    Hotkey "Numpad1", "Off"
-    Hotkey "Numpad9", "Off"
-    Hotkey "Numpad3", "Off"
-
-    Hotkey "Numpad6", "Off"
-    Hotkey "Numpad4", "Off"
-
-    Hotkey "!Numpad8", "Off"
-    Hotkey "!Numpad2", "Off"
-    Hotkey "!Numpad7", "Off"
-    Hotkey "!Numpad1", "Off"
-    Hotkey "!Numpad9", "Off"
-    Hotkey "!Numpad3", "Off"
-}
-return
 
 ;Mouse click support
 
-ButtonLeftClick:
-if GetKeyState("LButton")
-    return
-Button2 := "Numpad0"
-ButtonClick := "Left"
-Goto ButtonClickStart
-ButtonLeftClickIns:
-if GetKeyState("LButton")
-    return
-Button2 := "NumpadIns"
-ButtonClick := "Left"
-Goto ButtonClickStart
-
-ButtonMiddleClick:
-if GetKeyState("MButton")
-    return
-Button2 := "Numpad5"
-ButtonClick := "Middle"
-Goto ButtonClickStart
-ButtonMiddleClickClear:
-if GetKeyState("MButton")
-    return
-Button2 := "NumpadClear"
-ButtonClick := "Middle"
-Goto ButtonClickStart
-
-ButtonRightClick:
-if GetKeyState("RButton")
-    return
-Button2 := "NumpadDot"
-ButtonClick := "Right"
-Goto ButtonClickStart
-ButtonRightClickDel:
-if GetKeyState("RButton")
-    return
-Button2 := "NumpadDel"
-ButtonClick := "Right"
-Goto ButtonClickStart
-
-ButtonX1Click:
-if GetKeyState("XButton1")
-    return
-Button2 := "NumpadDiv"
-ButtonClick := "X1"
-Goto ButtonClickStart
-
-ButtonX2Click:
-if GetKeyState("XButton2")
-    return
-Button2 := "NumpadMult"
-ButtonClick := "X2"
-Goto ButtonClickStart
-
-ButtonClickStart:
-MouseClick ButtonClick,,, 1, 0, "D"
-SetTimer "ButtonClickEnd", 10
-return
-
-ButtonClickEnd()
+ButtonLeftClick(*)
 {
-    global
+    if GetKeyState("LButton")
+        return
+    Button2 := "Numpad0"
+    ButtonClick := "Left"
+    ButtonClickStart Button2, ButtonClick
+}
+
+ButtonLeftClickIns(*)
+{
+    if GetKeyState("LButton")
+        return
+    Button2 := "NumpadIns"
+    ButtonClick := "Left"
+    ButtonClickStart Button2, ButtonClick
+}
+
+ButtonMiddleClick(*)
+{
+    if GetKeyState("MButton")
+        return
+    Button2 := "Numpad5"
+    ButtonClick := "Middle"
+    ButtonClickStart Button2, ButtonClick
+}
+
+ButtonMiddleClickClear(*)
+{
+    if GetKeyState("MButton")
+        return
+    Button2 := "NumpadClear"
+    ButtonClick := "Middle"
+    ButtonClickStart Button2, ButtonClick
+}
+
+ButtonRightClick(*)
+{
+    if GetKeyState("RButton")
+        return
+    Button2 := "NumpadDot"
+    ButtonClick := "Right"
+    ButtonClickStart Button2, ButtonClick
+}
+
+ButtonRightClickDel(*)
+{
+    if GetKeyState("RButton")
+        return
+    Button2 := "NumpadDel"
+    ButtonClick := "Right"
+    ButtonClickStart Button2, ButtonClick
+}
+
+ButtonX1Click(*)
+{
+    if GetKeyState("XButton1")
+        return
+    Button2 := "NumpadDiv"
+    ButtonClick := "X1"
+    ButtonClickStart Button2, ButtonClick
+}
+
+ButtonX2Click(*)
+{
+    if GetKeyState("XButton2")
+        return
+    Button2 := "NumpadMult"
+    ButtonClick := "X2"
+    ButtonClickStart Button2, ButtonClick
+}
+
+ButtonClickStart(Button2, ButtonClick)
+{
+    MouseClick ButtonClick,,, 1, 0, "D"
+    SetTimer () => ButtonClickEnd(Button2, ButtonClick), 10
+}
+
+ButtonClickEnd(Button2, ButtonClick)
+{
     if GetKeyState(Button2, "P")
         return
 
@@ -318,427 +345,456 @@ ButtonClickEnd()
 
 ;Mouse movement support
 
-ButtonSpeedUp:
-MouseSpeed++
-ToolTip "Mouse speed: " MouseSpeed " pixels"
-SetTimer () => ToolTip(), -1000
-return
-ButtonSpeedDown:
-if MouseSpeed > 1
-    MouseSpeed--
-if MouseSpeed = 1
-    ToolTip "Mouse speed: " MouseSpeed " pixel"
-else
-    ToolTip "Mouse speed: " MouseSpeed " pixels"
-SetTimer () => ToolTip(), -1000
-return
-ButtonAccelerationSpeedUp:
-MouseAccelerationSpeed++
-ToolTip "Mouse acceleration speed: " MouseAccelerationSpeed " pixels"
-SetTimer () => ToolTip(), -1000
-return
-ButtonAccelerationSpeedDown:
-if MouseAccelerationSpeed > 1
-    MouseAccelerationSpeed--
-if MouseAccelerationSpeed = 1
-    ToolTip "Mouse acceleration speed: " MouseAccelerationSpeed " pixel"
-else
-    ToolTip "Mouse acceleration speed: " MouseAccelerationSpeed " pixels"
-SetTimer () => ToolTip(), -1000
-return
-
-ButtonMaxSpeedUp:
-MouseMaxSpeed++
-ToolTip "Mouse maximum speed: " MouseMaxSpeed " pixels"
-SetTimer () => ToolTip(), -1000
-return
-ButtonMaxSpeedDown:
-if MouseMaxSpeed > 1
-    MouseMaxSpeed--
-if MouseMaxSpeed = 1
-    ToolTip "Mouse maximum speed: " MouseMaxSpeed " pixel"
-else
-    ToolTip "Mouse maximum speed: " MouseMaxSpeed " pixels"
-SetTimer () => ToolTip(), -1000
-return
-
-ButtonRotationAngleUp:
-MouseRotationAnglePart++
-if MouseRotationAnglePart >= 8
-    MouseRotationAnglePart := 0
-MouseRotationAngle := MouseRotationAnglePart
-MouseRotationAngle *= 45
-ToolTip "Mouse rotation angle: " MouseRotationAngle "°"
-SetTimer () => ToolTip(), -1000
-return
-ButtonRotationAngleDown:
-MouseRotationAnglePart--
-if MouseRotationAnglePart < 0
-    MouseRotationAnglePart := 7
-MouseRotationAngle := MouseRotationAnglePart
-MouseRotationAngle *= 45
-ToolTip "Mouse rotation angle: " MouseRotationAngle "°"
-SetTimer () => ToolTip(), -1000
-return
-
-ButtonUp:
-ButtonDown:
-ButtonLeft:
-ButtonRight:
-ButtonUpLeft:
-ButtonUpRight:
-ButtonDownLeft:
-ButtonDownRight:
-if Button != 0
+ButtonSpeedUp(*)
 {
-    if !InStr(A_ThisHotkey, Button)
-    {
-        MouseCurrentAccelerationSpeed := 0
-        MouseCurrentSpeed := MouseSpeed
-    }
-}
-Button := StrReplace(A_ThisHotkey, "*")
-
-ButtonAccelerationStart:
-if MouseAccelerationSpeed >= 1
-{
-    if MouseMaxSpeed > MouseCurrentSpeed
-    {
-        Temp := 0.001
-        Temp *= MouseAccelerationSpeed
-        MouseCurrentAccelerationSpeed += Temp
-        MouseCurrentSpeed += MouseCurrentAccelerationSpeed
-    }
+    g_MouseSpeed++
+    ToolTip "Mouse speed: " g_MouseSpeed " pixels"
+    SetTimer () => ToolTip(), -1000
 }
 
-;MouseRotationAngle convertion to speed of button direction
+ButtonSpeedDown(*)
 {
-    MouseCurrentSpeedToDirection := MouseRotationAngle
-    MouseCurrentSpeedToDirection /= 90.0
-    Temp := MouseCurrentSpeedToDirection
+    if g_MouseSpeed > 1
+        g_MouseSpeed--
+    if g_MouseSpeed = 1
+        ToolTip "Mouse speed: " g_MouseSpeed " pixel"
+    else
+        ToolTip "Mouse speed: " g_MouseSpeed " pixels"
+    SetTimer () => ToolTip(), -1000
+}
 
-    if Temp >= 0
+ButtonAccelerationSpeedUp(*)
+{
+    g_MouseAccelerationSpeed++
+    ToolTip "Mouse acceleration speed: " g_MouseAccelerationSpeed " pixels"
+    SetTimer () => ToolTip(), -1000
+}
+
+ButtonAccelerationSpeedDown(*)
+{
+    if g_MouseAccelerationSpeed > 1
+        g_MouseAccelerationSpeed--
+    if g_MouseAccelerationSpeed = 1
+        ToolTip "Mouse acceleration speed: " g_MouseAccelerationSpeed " pixel"
+    else
+        ToolTip "Mouse acceleration speed: " g_MouseAccelerationSpeed " pixels"
+    SetTimer () => ToolTip(), -1000
+}
+
+ButtonMaxSpeedUp(*)
+{
+    g_MouseMaxSpeed++
+    ToolTip "Mouse maximum speed: " g_MouseMaxSpeed " pixels"
+    SetTimer () => ToolTip(), -1000
+}
+
+ButtonMaxSpeedDown(*)
+{
+    if g_MouseMaxSpeed > 1
+        g_MouseMaxSpeed--
+    if g_MouseMaxSpeed = 1
+        ToolTip "Mouse maximum speed: " g_MouseMaxSpeed " pixel"
+    else
+        ToolTip "Mouse maximum speed: " g_MouseMaxSpeed " pixels"
+    SetTimer () => ToolTip(), -1000
+}
+
+ButtonRotationAngleUp(*)
+{
+    g_MouseRotationAnglePart++
+    if g_MouseRotationAnglePart >= 8
+        g_MouseRotationAnglePart := 0
+    g_MouseRotationAngle := g_MouseRotationAnglePart
+    g_MouseRotationAngle *= 45
+    ToolTip "Mouse rotation angle: " g_MouseRotationAngle "°"
+    SetTimer () => ToolTip(), -1000
+}
+
+ButtonRotationAngleDown(*)
+{
+    g_MouseRotationAnglePart--
+    if g_MouseRotationAnglePart < 0
+        g_MouseRotationAnglePart := 7
+    g_MouseRotationAngle := g_MouseRotationAnglePart
+    g_MouseRotationAngle *= 45
+    ToolTip "Mouse rotation angle: " g_MouseRotationAngle "°"
+    SetTimer () => ToolTip(), -1000
+}
+
+ButtonAcceleration(ThisHotkey)
+{
+    if g_Button != 0
     {
-        if Temp < 1
+        if !InStr(ThisHotkey, g_Button)
         {
-            MouseCurrentSpeedToDirection := 1
-            MouseCurrentSpeedToDirection -= Temp
-            Goto EndMouseCurrentSpeedToDirectionCalculation
+            g_MouseCurrentAccelerationSpeed := 0
+            g_MouseCurrentSpeed := g_MouseSpeed
         }
     }
-    if Temp >= 1
+    g_Button := StrReplace(ThisHotkey, "*")
+    ButtonAccelerationStart
+}
+
+ButtonAccelerationStart()
+{
+    if g_MouseAccelerationSpeed >= 1
     {
-        if Temp < 2
+        if g_MouseMaxSpeed > g_MouseCurrentSpeed
         {
-            MouseCurrentSpeedToDirection := 0
-            Temp -= 1
-            MouseCurrentSpeedToDirection -= Temp
-            Goto EndMouseCurrentSpeedToDirectionCalculation
+            g_Temp := 0.001
+            g_Temp *= g_MouseAccelerationSpeed
+            g_MouseCurrentAccelerationSpeed += g_Temp
+            g_MouseCurrentSpeed += g_MouseCurrentAccelerationSpeed
         }
     }
-    if Temp >= 2
+
+    ;g_MouseRotationAngle convertion to speed of button direction
+    g_MouseCurrentSpeedToDirection := g_MouseRotationAngle
+    g_MouseCurrentSpeedToDirection /= 90.0
+    g_Temp := g_MouseCurrentSpeedToDirection
+
+    if g_Temp >= 0
     {
-        if Temp < 3
+        if g_Temp < 1
         {
-            MouseCurrentSpeedToDirection := -1
-            Temp -= 2
-            MouseCurrentSpeedToDirection += Temp
-            Goto EndMouseCurrentSpeedToDirectionCalculation
+            g_MouseCurrentSpeedToDirection := 1
+            g_MouseCurrentSpeedToDirection -= g_Temp
+            EndMouseCurrentSpeedToDirectionCalculation
+            return
         }
     }
-    if Temp >= 3
+    if g_Temp >= 1
     {
-        if Temp < 4
+        if g_Temp < 2
         {
-            MouseCurrentSpeedToDirection := 0
-            Temp -= 3
-            MouseCurrentSpeedToDirection += Temp
-            Goto EndMouseCurrentSpeedToDirectionCalculation
+            g_MouseCurrentSpeedToDirection := 0
+            g_Temp -= 1
+            g_MouseCurrentSpeedToDirection -= g_Temp
+            EndMouseCurrentSpeedToDirectionCalculation
+            return
         }
     }
-}
-EndMouseCurrentSpeedToDirectionCalculation:
-
-;MouseRotationAngle convertion to speed of 90 degrees to right
-{
-    MouseCurrentSpeedToSide := MouseRotationAngle
-    MouseCurrentSpeedToSide /= 90.0
-    Temp := Mod(MouseCurrentSpeedToSide, 4)
-
-    if Temp >= 0
+    if g_Temp >= 2
     {
-        if Temp < 1
+        if g_Temp < 3
         {
-            MouseCurrentSpeedToSide := 0
-            MouseCurrentSpeedToSide += Temp
-            Goto EndMouseCurrentSpeedToSideCalculation
+            g_MouseCurrentSpeedToDirection := -1
+            g_Temp -= 2
+            g_MouseCurrentSpeedToDirection += g_Temp
+            EndMouseCurrentSpeedToDirectionCalculation
+            return
         }
     }
-    if Temp >= 1
+    if g_Temp >= 3
     {
-        if Temp < 2
+        if g_Temp < 4
         {
-            MouseCurrentSpeedToSide := 1
-            Temp -= 1
-            MouseCurrentSpeedToSide -= Temp
-            Goto EndMouseCurrentSpeedToSideCalculation
+            g_MouseCurrentSpeedToDirection := 0
+            g_Temp -= 3
+            g_MouseCurrentSpeedToDirection += g_Temp
+            EndMouseCurrentSpeedToDirectionCalculation
+            return
         }
     }
-    if Temp >= 2
+    EndMouseCurrentSpeedToDirectionCalculation
+}
+
+EndMouseCurrentSpeedToDirectionCalculation()
+{
+    ;g_MouseRotationAngle convertion to speed of 90 degrees to right
+    g_MouseCurrentSpeedToSide := g_MouseRotationAngle
+    g_MouseCurrentSpeedToSide /= 90.0
+    g_Temp := Mod(g_MouseCurrentSpeedToSide, 4)
+
+    if g_Temp >= 0
     {
-        if Temp < 3
+        if g_Temp < 1
         {
-            MouseCurrentSpeedToSide := 0
-            Temp -= 2
-            MouseCurrentSpeedToSide -= Temp
-            Goto EndMouseCurrentSpeedToSideCalculation
+            g_MouseCurrentSpeedToSide := 0
+            g_MouseCurrentSpeedToSide += g_Temp
+            EndMouseCurrentSpeedToSideCalculation
+            return
         }
     }
-    if Temp >= 3
+    if g_Temp >= 1
     {
-        if Temp < 4
+        if g_Temp < 2
         {
-            MouseCurrentSpeedToSide := -1
-            Temp -= 3
-            MouseCurrentSpeedToSide += Temp
-            Goto EndMouseCurrentSpeedToSideCalculation
+            g_MouseCurrentSpeedToSide := 1
+            g_Temp -= 1
+            g_MouseCurrentSpeedToSide -= g_Temp
+            EndMouseCurrentSpeedToSideCalculation
+            return
         }
     }
-}
-EndMouseCurrentSpeedToSideCalculation:
-
-MouseCurrentSpeedToDirection *= MouseCurrentSpeed
-MouseCurrentSpeedToSide *= MouseCurrentSpeed
-
-Temp := Mod(MouseRotationAnglePart, 2)
-
-if Button = "NumpadUp"
-{
-    if Temp = 1
+    if g_Temp >= 2
     {
-        MouseCurrentSpeedToSide *= 2
-        MouseCurrentSpeedToDirection *= 2
+        if g_Temp < 3
+        {
+            g_MouseCurrentSpeedToSide := 0
+            g_Temp -= 2
+            g_MouseCurrentSpeedToSide -= g_Temp
+            EndMouseCurrentSpeedToSideCalculation
+            return
+        }
+    }
+    if g_Temp >= 3
+    {
+        if g_Temp < 4
+        {
+            g_MouseCurrentSpeedToSide := -1
+            g_Temp -= 3
+            g_MouseCurrentSpeedToSide += g_Temp
+            EndMouseCurrentSpeedToSideCalculation
+            return
+        }
+    }
+    EndMouseCurrentSpeedToSideCalculation
+}
+
+EndMouseCurrentSpeedToSideCalculation()
+{
+    g_MouseCurrentSpeedToDirection *= g_MouseCurrentSpeed
+    g_MouseCurrentSpeedToSide *= g_MouseCurrentSpeed
+
+    g_Temp := Mod(g_MouseRotationAnglePart, 2)
+
+    if g_Button = "NumpadUp"
+    {
+        if g_Temp = 1
+        {
+            g_MouseCurrentSpeedToSide *= 2
+            g_MouseCurrentSpeedToDirection *= 2
+        }
+
+        g_MouseCurrentSpeedToDirection *= -1
+        MouseMove g_MouseCurrentSpeedToSide, g_MouseCurrentSpeedToDirection, 0, "R"
+    }
+    else if g_Button = "NumpadDown"
+    {
+        if g_Temp = 1
+        {
+            g_MouseCurrentSpeedToSide *= 2
+            g_MouseCurrentSpeedToDirection *= 2
+        }
+
+        g_MouseCurrentSpeedToSide *= -1
+        MouseMove g_MouseCurrentSpeedToSide, g_MouseCurrentSpeedToDirection, 0, "R"
+    }
+    else if g_Button = "NumpadLeft"
+    {
+        if g_Temp = 1
+        {
+            g_MouseCurrentSpeedToSide *= 2
+            g_MouseCurrentSpeedToDirection *= 2
+        }
+
+        g_MouseCurrentSpeedToSide *= -1
+        g_MouseCurrentSpeedToDirection *= -1
+
+        MouseMove g_MouseCurrentSpeedToDirection, g_MouseCurrentSpeedToSide, 0, "R"
+    }
+    else if g_Button = "NumpadRight"
+    {
+        if g_Temp = 1
+        {
+            g_MouseCurrentSpeedToSide *= 2
+            g_MouseCurrentSpeedToDirection *= 2
+        }
+
+        MouseMove g_MouseCurrentSpeedToDirection, g_MouseCurrentSpeedToSide, 0, "R"
+    }
+    else if g_Button = "NumpadHome"
+    {
+        g_Temp := g_MouseCurrentSpeedToDirection
+        g_Temp -= g_MouseCurrentSpeedToSide
+        g_Temp *= -1
+        g_Temp2 := g_MouseCurrentSpeedToDirection
+        g_Temp2 += g_MouseCurrentSpeedToSide
+        g_Temp2 *= -1
+        MouseMove g_Temp, g_Temp2, 0, "R"
+    }
+    else if g_Button = "NumpadPgUp"
+    {
+        g_Temp := g_MouseCurrentSpeedToDirection
+        g_Temp += g_MouseCurrentSpeedToSide
+        g_Temp2 := g_MouseCurrentSpeedToDirection
+        g_Temp2 -= g_MouseCurrentSpeedToSide
+        g_Temp2 *= -1
+        MouseMove g_Temp, g_Temp2, 0, "R"
+    }
+    else if g_Button = "NumpadEnd"
+    {
+        g_Temp := g_MouseCurrentSpeedToDirection
+        g_Temp += g_MouseCurrentSpeedToSide
+        g_Temp *= -1
+        g_Temp2 := g_MouseCurrentSpeedToDirection
+        g_Temp2 -= g_MouseCurrentSpeedToSide
+        MouseMove g_Temp, g_Temp2, 0, "R"
+    }
+    else if g_Button = "NumpadPgDn"
+    {
+        g_Temp := g_MouseCurrentSpeedToDirection
+        g_Temp -= g_MouseCurrentSpeedToSide
+        g_Temp2 *= -1
+        g_Temp2 := g_MouseCurrentSpeedToDirection
+        g_Temp2 += g_MouseCurrentSpeedToSide
+        MouseMove g_Temp, g_Temp2, 0, "R"
     }
 
-    MouseCurrentSpeedToDirection *= -1
-    MouseMove MouseCurrentSpeedToSide, MouseCurrentSpeedToDirection, 0, "R"
+    SetTimer "ButtonAccelerationEnd", 10
 }
-else if Button = "NumpadDown"
-{
-    if Temp = 1
-    {
-        MouseCurrentSpeedToSide *= 2
-        MouseCurrentSpeedToDirection *= 2
-    }
-
-    MouseCurrentSpeedToSide *= -1
-    MouseMove MouseCurrentSpeedToSide, MouseCurrentSpeedToDirection, 0, "R"
-}
-else if Button = "NumpadLeft"
-{
-    if Temp = 1
-    {
-        MouseCurrentSpeedToSide *= 2
-        MouseCurrentSpeedToDirection *= 2
-    }
-
-    MouseCurrentSpeedToSide *= -1
-    MouseCurrentSpeedToDirection *= -1
-
-    MouseMove MouseCurrentSpeedToDirection, MouseCurrentSpeedToSide, 0, "R"
-}
-else if Button = "NumpadRight"
-{
-    if Temp = 1
-    {
-        MouseCurrentSpeedToSide *= 2
-        MouseCurrentSpeedToDirection *= 2
-    }
-
-    MouseMove MouseCurrentSpeedToDirection, MouseCurrentSpeedToSide, 0, "R"
-}
-else if Button = "NumpadHome"
-{
-    Temp := MouseCurrentSpeedToDirection
-    Temp -= MouseCurrentSpeedToSide
-    Temp *= -1
-    Temp2 := MouseCurrentSpeedToDirection
-    Temp2 += MouseCurrentSpeedToSide
-    Temp2 *= -1
-    MouseMove Temp, Temp2, 0, "R"
-}
-else if Button = "NumpadPgUp"
-{
-    Temp := MouseCurrentSpeedToDirection
-    Temp += MouseCurrentSpeedToSide
-    Temp2 := MouseCurrentSpeedToDirection
-    Temp2 -= MouseCurrentSpeedToSide
-    Temp2 *= -1
-    MouseMove Temp, Temp2, 0, "R"
-}
-else if Button = "NumpadEnd"
-{
-    Temp := MouseCurrentSpeedToDirection
-    Temp += MouseCurrentSpeedToSide
-    Temp *= -1
-    Temp2 := MouseCurrentSpeedToDirection
-    Temp2 -= MouseCurrentSpeedToSide
-    MouseMove Temp, Temp2, 0, "R"
-}
-else if Button = "NumpadPgDn"
-{
-    Temp := MouseCurrentSpeedToDirection
-    Temp -= MouseCurrentSpeedToSide
-    Temp2 *= -1
-    Temp2 := MouseCurrentSpeedToDirection
-    Temp2 += MouseCurrentSpeedToSide
-    MouseMove Temp, Temp2, 0, "R"
-}
-
-SetTimer "ButtonAccelerationEnd", 10
-return
 
 ButtonAccelerationEnd()
 {
-    global
-    if GetKeyState(Button, "P")
+    if GetKeyState(g_Button, "P")
     {
-        Gosub ButtonAccelerationStart
+        ButtonAccelerationStart
         return
     }
 
     SetTimer , 0
-    MouseCurrentAccelerationSpeed := 0
-    MouseCurrentSpeed := MouseSpeed
-    Button := 0
+    g_MouseCurrentAccelerationSpeed := 0
+    g_MouseCurrentSpeed := g_MouseSpeed
+    g_Button := 0
 }
 
 ;Mouse wheel movement support
 
-ButtonWheelSpeedUp:
-MouseWheelSpeed++
-MouseWheelSpeedMultiplier := RegRead("HKCU\Control Panel\Desktop", "WheelScrollLines")
-if MouseWheelSpeedMultiplier <= 0
-    MouseWheelSpeedMultiplier := 1
-MouseWheelSpeedReal := MouseWheelSpeed
-MouseWheelSpeedReal *= MouseWheelSpeedMultiplier
-ToolTip "Mouse wheel speed: " MouseWheelSpeedReal " lines"
-SetTimer () => ToolTip(), -1000
-return
-ButtonWheelSpeedDown:
-MouseWheelSpeedMultiplier := RegRead("HKCU\Control Panel\Desktop", "WheelScrollLines")
-if MouseWheelSpeedMultiplier <= 0
-    MouseWheelSpeedMultiplier := 1
-if MouseWheelSpeedReal > MouseWheelSpeedMultiplier
+ButtonWheelSpeedUp(*)
 {
-    MouseWheelSpeed--
-    MouseWheelSpeedReal := MouseWheelSpeed
-    MouseWheelSpeedReal *= MouseWheelSpeedMultiplier
+    g_MouseWheelSpeed++
+    MouseWheelSpeedMultiplier := RegRead("HKCU\Control Panel\Desktop", "WheelScrollLines")
+    if MouseWheelSpeedMultiplier <= 0
+        MouseWheelSpeedMultiplier := 1
+    g_MouseWheelSpeedReal := g_MouseWheelSpeed
+    g_MouseWheelSpeedReal *= MouseWheelSpeedMultiplier
+    ToolTip "Mouse wheel speed: " g_MouseWheelSpeedReal " lines"
+    SetTimer () => ToolTip(), -1000
 }
-if MouseWheelSpeedReal = 1
-    ToolTip "Mouse wheel speed: " MouseWheelSpeedReal " line"
-else
-    ToolTip "Mouse wheel speed: " MouseWheelSpeedReal " lines"
-SetTimer () => ToolTip(), -1000
-return
 
-ButtonWheelAccelerationSpeedUp:
-MouseWheelAccelerationSpeed++
-MouseWheelSpeedMultiplier := RegRead("HKCU\Control Panel\Desktop", "WheelScrollLines")
-if MouseWheelSpeedMultiplier <= 0
-    MouseWheelSpeedMultiplier := 1
-MouseWheelAccelerationSpeedReal := MouseWheelAccelerationSpeed
-MouseWheelAccelerationSpeedReal *= MouseWheelSpeedMultiplier
-ToolTip "Mouse wheel acceleration speed: " MouseWheelAccelerationSpeedReal " lines"
-SetTimer () => ToolTip(), -1000
-return
-ButtonWheelAccelerationSpeedDown:
-MouseWheelSpeedMultiplier := RegRead("HKCU\Control Panel\Desktop", "WheelScrollLines")
-if MouseWheelSpeedMultiplier <= 0
-    MouseWheelSpeedMultiplier := 1
-if MouseWheelAccelerationSpeed > 1
+ButtonWheelSpeedDown(*)
 {
-    MouseWheelAccelerationSpeed--
-    MouseWheelAccelerationSpeedReal := MouseWheelAccelerationSpeed
-    MouseWheelAccelerationSpeedReal *= MouseWheelSpeedMultiplier
-}
-if MouseWheelAccelerationSpeedReal = 1
-    ToolTip "Mouse wheel acceleration speed: " MouseWheelAccelerationSpeedReal " line"
-else
-    ToolTip "Mouse wheel acceleration speed: " MouseWheelAccelerationSpeedReal " lines"
-SetTimer () => ToolTip(), -1000
-return
-
-ButtonWheelMaxSpeedUp:
-MouseWheelMaxSpeed++
-MouseWheelSpeedMultiplier := RegRead("HKCU\Control Panel\Desktop", "WheelScrollLines")
-if MouseWheelSpeedMultiplier <= 0
-    MouseWheelSpeedMultiplier := 1
-MouseWheelMaxSpeedReal := MouseWheelMaxSpeed
-MouseWheelMaxSpeedReal *= MouseWheelSpeedMultiplier
-ToolTip "Mouse wheel maximum speed: " MouseWheelMaxSpeedReal " lines"
-SetTimer () => ToolTip(), -1000
-return
-ButtonWheelMaxSpeedDown:
-MouseWheelSpeedMultiplier := RegRead("HKCU\Control Panel\Desktop", "WheelScrollLines")
-if MouseWheelSpeedMultiplier <= 0
-    MouseWheelSpeedMultiplier := 1
-if MouseWheelMaxSpeed > 1
-{
-    MouseWheelMaxSpeed--
-    MouseWheelMaxSpeedReal := MouseWheelMaxSpeed
-    MouseWheelMaxSpeedReal *= MouseWheelSpeedMultiplier
-}
-if MouseWheelMaxSpeedReal = 1
-    ToolTip "Mouse wheel maximum speed: " MouseWheelMaxSpeedReal " line"
-else
-    ToolTip "Mouse wheel maximum speed: " MouseWheelMaxSpeedReal " lines"
-SetTimer () => ToolTip(), -1000
-return
-
-ButtonWheelUp:
-ButtonWheelDown:
-
-if Button != 0
-{
-    if Button != A_ThisHotkey
+    MouseWheelSpeedMultiplier := RegRead("HKCU\Control Panel\Desktop", "WheelScrollLines")
+    if MouseWheelSpeedMultiplier <= 0
+        MouseWheelSpeedMultiplier := 1
+    if g_MouseWheelSpeedReal > MouseWheelSpeedMultiplier
     {
-        MouseWheelCurrentAccelerationSpeed := 0
-        MouseWheelCurrentSpeed := MouseWheelSpeed
+        g_MouseWheelSpeed--
+        g_MouseWheelSpeedReal := g_MouseWheelSpeed
+        g_MouseWheelSpeedReal *= MouseWheelSpeedMultiplier
     }
+    if g_MouseWheelSpeedReal = 1
+        ToolTip "Mouse wheel speed: " g_MouseWheelSpeedReal " line"
+    else
+        ToolTip "Mouse wheel speed: " g_MouseWheelSpeedReal " lines"
+    SetTimer () => ToolTip(), -1000
 }
-Button := StrReplace(A_ThisHotkey, "*")
 
-ButtonWheelAccelerationStart:
-if MouseWheelAccelerationSpeed >= 1
+ButtonWheelAccelerationSpeedUp(*)
 {
-    if MouseWheelMaxSpeed > MouseWheelCurrentSpeed
-    {
-        Temp := 0.001
-        Temp *= MouseWheelAccelerationSpeed
-        MouseWheelCurrentAccelerationSpeed += Temp
-        MouseWheelCurrentSpeed += MouseWheelCurrentAccelerationSpeed
-    }
+    g_MouseWheelAccelerationSpeed++
+    MouseWheelSpeedMultiplier := RegRead("HKCU\Control Panel\Desktop", "WheelScrollLines")
+    if MouseWheelSpeedMultiplier <= 0
+        MouseWheelSpeedMultiplier := 1
+    g_MouseWheelAccelerationSpeedReal := g_MouseWheelAccelerationSpeed
+    g_MouseWheelAccelerationSpeedReal *= MouseWheelSpeedMultiplier
+    ToolTip "Mouse wheel acceleration speed: " g_MouseWheelAccelerationSpeedReal " lines"
+    SetTimer () => ToolTip(), -1000
 }
 
-if Button = "NumpadSub"
-    MouseClick "WheelUp",,, MouseWheelCurrentSpeed, 0, "D"
-else if Button = "NumpadAdd"
-    MouseClick "WheelDown",,, MouseWheelCurrentSpeed, 0, "D"
+ButtonWheelAccelerationSpeedDown(*)
+{
+    MouseWheelSpeedMultiplier := RegRead("HKCU\Control Panel\Desktop", "WheelScrollLines")
+    if MouseWheelSpeedMultiplier <= 0
+        MouseWheelSpeedMultiplier := 1
+    if g_MouseWheelAccelerationSpeed > 1
+    {
+        g_MouseWheelAccelerationSpeed--
+        g_MouseWheelAccelerationSpeedReal := g_MouseWheelAccelerationSpeed
+        g_MouseWheelAccelerationSpeedReal *= MouseWheelSpeedMultiplier
+    }
+    if g_MouseWheelAccelerationSpeedReal = 1
+        ToolTip "Mouse wheel acceleration speed: " g_MouseWheelAccelerationSpeedReal " line"
+    else
+        ToolTip "Mouse wheel acceleration speed: " g_MouseWheelAccelerationSpeedReal " lines"
+    SetTimer () => ToolTip(), -1000
+}
 
-SetTimer "ButtonWheelAccelerationEnd", 100
-return
+ButtonWheelMaxSpeedUp(*)
+{
+    g_MouseWheelMaxSpeed++
+    MouseWheelSpeedMultiplier := RegRead("HKCU\Control Panel\Desktop", "WheelScrollLines")
+    if MouseWheelSpeedMultiplier <= 0
+        MouseWheelSpeedMultiplier := 1
+    g_MouseWheelMaxSpeedReal := g_MouseWheelMaxSpeed
+    g_MouseWheelMaxSpeedReal *= MouseWheelSpeedMultiplier
+    ToolTip "Mouse wheel maximum speed: " g_MouseWheelMaxSpeedReal " lines"
+    SetTimer () => ToolTip(), -1000
+}
+
+ButtonWheelMaxSpeedDown(*)
+{
+    MouseWheelSpeedMultiplier := RegRead("HKCU\Control Panel\Desktop", "WheelScrollLines")
+    if MouseWheelSpeedMultiplier <= 0
+        MouseWheelSpeedMultiplier := 1
+    if g_MouseWheelMaxSpeed > 1
+    {
+        g_MouseWheelMaxSpeed--
+        g_MouseWheelMaxSpeedReal := g_MouseWheelMaxSpeed
+        g_MouseWheelMaxSpeedReal *= MouseWheelSpeedMultiplier
+    }
+    if g_MouseWheelMaxSpeedReal = 1
+        ToolTip "Mouse wheel maximum speed: " g_MouseWheelMaxSpeedReal " line"
+    else
+        ToolTip "Mouse wheel maximum speed: " g_MouseWheelMaxSpeedReal " lines"
+    SetTimer () => ToolTip(), -1000
+}
+
+ButtonWheelAcceleration(ThisHotkey)
+{
+    if g_Button != 0
+    {
+        if g_Button != ThisHotkey
+        {
+            g_MouseWheelCurrentAccelerationSpeed := 0
+            g_MouseWheelCurrentSpeed := g_MouseWheelSpeed
+        }
+    }
+    g_Button := StrReplace(ThisHotkey, "*")
+    ButtonWheelAccelerationStart
+}
+
+ButtonWheelAccelerationStart()
+{
+    if g_MouseWheelAccelerationSpeed >= 1
+    {
+        if g_MouseWheelMaxSpeed > g_MouseWheelCurrentSpeed
+        {
+            g_Temp := 0.001
+            g_Temp *= g_MouseWheelAccelerationSpeed
+            g_MouseWheelCurrentAccelerationSpeed += g_Temp
+            g_MouseWheelCurrentSpeed += g_MouseWheelCurrentAccelerationSpeed
+        }
+    }
+
+    if g_Button = "NumpadSub"
+        MouseClick "WheelUp",,, g_MouseWheelCurrentSpeed, 0, "D"
+    else if g_Button = "NumpadAdd"
+        MouseClick "WheelDown",,, g_MouseWheelCurrentSpeed, 0, "D"
+
+    SetTimer "ButtonWheelAccelerationEnd", 100
+}
 
 ButtonWheelAccelerationEnd()
 {
-    global
-    if GetKeyState(Button, "P")
+    if GetKeyState(g_Button, "P")
     {
-        Gosub ButtonWheelAccelerationStart
+        ButtonWheelAccelerationStart
         return
     }
 
-    MouseWheelCurrentAccelerationSpeed := 0
-    MouseWheelCurrentSpeed := MouseWheelSpeed
-    Button := 0
+    g_MouseWheelCurrentAccelerationSpeed := 0
+    g_MouseWheelCurrentSpeed := g_MouseWheelSpeed
+    g_Button := 0
 }

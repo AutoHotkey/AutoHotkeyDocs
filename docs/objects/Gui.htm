@@ -459,7 +459,7 @@ MyGui.Move(x-10,, w+20)</pre>
 <h2>Hwnd</h2>
 <p>Retrieves the window handle (HWND) of the GUI window.</p>
 <pre class="Syntax">CurrentHwnd := MyGui.Hwnd</pre>
-<p>A GUI's HWND is often used with <a href="../commands/PostMessage.htm">PostMessage</a>, <a href="../commands/SendMessage.htm">SendMessage</a>, and <a href="../commands/DllCall.htm">DllCall</a>. It can also be used directly as an <a href="../misc/WinTitle.htm#ahk_id">ahk_id WinTitle</a>.</p></div>
+<p>A GUI's HWND is often used with <a href="../commands/PostMessage.htm">PostMessage</a>, <a href="../commands/SendMessage.htm">SendMessage</a>, and <a href="../commands/DllCall.htm">DllCall</a>. It can also be used directly in a <a href="../misc/WinTitle.htm#ahk_id">WinTitle parameter</a>.</p></div>
 
 <div class="methodShort" id="Title">
 <h2>Title</h2>
@@ -548,9 +548,9 @@ MyGui.Add("Button", "default", "OK").OnEvent("Click", (*) =&gt; ProcessUserInput
 MyGui.OnEvent("Close", "ProcessUserInput")
 MyGui.Show()
 
-ProcessUserInput(this, *)
+ProcessUserInput(thisGui, *)
 {
-    Saved := this.Submit()  <em>; Save the contents of named controls into an object.</em>
+    Saved := thisGui.Submit()  <em>; Save the contents of named controls into an object.</em>
     MsgBox("You entered '" Saved.FirstName " " Saved.LastName "'.")
 }</pre>
 </div>
@@ -572,9 +572,9 @@ MyGui.OnEvent("Close", "ProcessUserInput")
 MyGui.OnEvent("Escape", "ProcessUserInput")
 MyGui.Show()
 
-ProcessUserInput(this, *)
+ProcessUserInput(thisGui, *)
 {
-    Saved := this.Submit()  <em>; Save the contents of named controls into an object.</em>
+    Saved := thisGui.Submit()  <em>; Save the contents of named controls into an object.</em>
     MsgBox("You entered:`n" Saved.MyCheckbox "`n" Saved.MyRadio "`n" Saved.MyEdit)
 }</pre>
 </div>
@@ -586,13 +586,13 @@ MyGui.Add("Text",, "Pick a file to launch from the list below.")
 LB := MyGui.Add("ListBox", "w640 r10 vFile")
 LB.OnEvent("DoubleClick", "LaunchFile")
 Loop Files, "C:\*.*"  <em>; Change this folder and wildcard pattern to suit your preferences.</em>
-    LB.Add(A_LoopFilePath)
+    LB.Add([A_LoopFilePath])
 MyGui.Add("Button", "Default", "OK").OnEvent("Click", "LaunchFile")
 MyGui.Show()
 
-LaunchFile(this, *)
+LaunchFile(thisCtrl, *)
 {
-    Saved := this.Gui.Submit()
+    Saved := thisCtrl.Gui.Submit()
     if MsgBox("Would you like to launch the file or document below?`n`n" Saved.File,, 4) = "No"
         return
     <em>; Otherwise, try to launch it:</em>
@@ -609,9 +609,9 @@ MyGui := Gui.New()
 MyEdit := MyGui.Add("Edit")
 <em>; Store the tooltip text in a custom property:</em>
 MyEdit.ToolTip := "This is a tooltip for the control whose name is MyEdit."
-MyDDL := MyGui.Add("DropDownList", "", ["Red","Green","Blue"])
+MyDDL := MyGui.Add("DropDownList",, ["Red","Green","Blue"])
 MyDDL.ToolTip := "Choose a color from the drop-down list."
-MyGui.Add("Checkbox", "vMyCheckBox", "This control has no tooltip.")
+MyGui.Add("Checkbox",, "This control has no tooltip.")
 MyGui.OnEvent("Close", (*) =&gt; ExitApp())
 MyGui.Show()
 OnMessage(0x200, "WM_MOUSEMOVE")
@@ -667,10 +667,10 @@ MyGui.Add("Progress", "w416 vMyProgress")
 MyGui.Add("Text", "wp vMyText")  <em>; wp means "use width of previous".</em>
 MyGui.Show()
 
-MoveBar(this, *)
+MoveBar(thisCtrl, *)
 {
-    ProgressCtrl := this.Gui["MyProgress"]
-    TextCtrl := this.Gui["MyText"]
+    ProgressCtrl := thisCtrl.Gui["MyProgress"]
+    TextCtrl := thisCtrl.Gui["MyText"]
     Loop Files, A_WinDir "\*.*"
     {
         if (A_Index &gt; 100)
@@ -693,10 +693,10 @@ MyGui.Add("Radio", "ym+5 x+10", "Load to &amp;fit screen")
 MyGui.Add("Pic", "xm vMyPic")
 MyGui.Show()
 
-LoadNewImage(this, *)
+LoadNewImage(thisCtrl, *)
 {
-    RadioCtrl := this.Gui["MyRadio"]
-    PicCtrl := this.Gui["MyPic"]
+    RadioCtrl := thisCtrl.Gui["MyRadio"]
+    PicCtrl := thisCtrl.Gui["MyPic"]
     File := FileSelect(,, "Select an image:", "Images (*.gif; *.jpg; *.bmp; *.png; *.tif; *.ico; *.cur; *.ani; *.exe; *.dll)")
     if File = ""
         return
@@ -711,8 +711,8 @@ LoadNewImage(this, *)
         Height := -1  <em>; "Keep aspect ratio" seems best.</em>
     }
     PicCtrl.Value := Format("*w{1} *h{2} {3}", Width, Height, File)  <em>; Load the image.</em>
-    this.Gui.Title := File
-    this.Gui.Show("xCenter y0 AutoSize")  <em>; Resize the window to match the picture size.</em>
+    thisCtrl.Gui.Title := File
+    thisCtrl.Gui.Show("xCenter y0 AutoSize")  <em>; Resize the window to match the picture size.</em>
 }</pre>
 </div>
 
@@ -838,12 +838,12 @@ About_Close(*)
     About.Destroy()  <em>; Destroy the about box.</em>
 }
 
-Gui_DropFiles(ThisGui, Ctrl, FileArray, *)  <em>; Support drag &amp; drop.</em>
+Gui_DropFiles(thisGui, Ctrl, FileArray, *)  <em>; Support drag &amp; drop.</em>
 {
     CurrentFileName := readContent(FileArray[1])  <em>; Read the first file only (in case there's more than one).</em>
 }
 
-Gui_Size(ThisGui, MinMax, Width, Height)
+Gui_Size(thisGui, MinMax, Width, Height)
 {
     if MinMax = -1  <em>; The window has been minimized. No action needed.</em>
         return

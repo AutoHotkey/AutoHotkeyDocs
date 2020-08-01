@@ -7,10 +7,10 @@
 ; window is active (Notepad and Word are used as examples here).
 
 ; You can set any title here for the menu:
-MenuTitle := "-=-=-=-=-=-=-=-"
+global g_MenuTitle := "-=-=-=-=-=-=-=-"
 
 ; This is how long the mouse button must be held to cause the menu to appear:
-UMDelay := 20
+global g_UMDelay := 20
 
 #SingleInstance
 
@@ -23,17 +23,19 @@ UMDelay := 20
 
 ; Don't worry about the order, the menu will be sorted.
 
-MenuItems := "Notepad/Calculator/Section 3/Section 4/Section 5"
+global g_MenuItems := "Notepad/Calculator/Section 3/Section 4/Section 5"
 
 
 ;___________________________________________
 ;______Dynamic menuitems here_______________
 
 ; Syntax:
-;     Dyn[#] := "MenuItem|Window title"
+;     "MenuItem|Window title"
 
-Dyn := [ "MS Word|- Microsoft Word"
-       , "Notepad II|- Notepad" ]
+global g_Dyn := [
+    "MS Word|- Microsoft Word",
+    "Notepad II|- Notepad",
+]
 
 ;___________________________________________
 
@@ -45,94 +47,100 @@ Exit
 
 ; Create / Edit Menu Sections here.
 
-Notepad:
-Run "Notepad.exe"
-return
+Notepad()
+{
+    Run "Notepad.exe"
+}
 
-Calculator:
-Run "Calc"
-return
+Calculator()
+{
+    Run "Calc"
+}
 
-Section3:
-MsgBox "You selected 3"
-return
+Section3()
+{
+    MsgBox "You selected 3"
+}
 
-Section4:
-MsgBox "You selected 4"
-return
+Section4()
+{
+    MsgBox "You selected 4"
+}
 
-Section5:
-MsgBox "You selected 5"
-return
+Section5()
+{
+    MsgBox "You selected 5"
+}
 
-MSWord:
-MsgBox "this is a dynamic entry (word)"
-return
+MSWord()
+{
+    MsgBox "this is a dynamic entry (word)"
+}
 
-NotepadII:
-MsgBox "this is a dynamic entry (notepad)"
-return
+NotepadII()
+{
+    MsgBox "this is a dynamic entry (notepad)"
+}
 
 
 ;___________________________________________
 ;_____Hotkey Section________________________
 
 ~MButton::
-HowLong := 0
-Loop
 {
-    HowLong++
-    Sleep 10
-    if !GetKeyState("MButton", "P")
-        Break
+    HowLong := 0
+    Loop
+    {
+        HowLong++
+        Sleep 10
+        if !GetKeyState("MButton", "P")
+            Break
+    }
+    if HowLong < g_UMDelay
+        return
+
+
+    ; Prepares dynamic menu:
+    DynMenu := ""
+    For i, item in g_Dyn
+    {
+        mp := StrSplit(item, "|")
+        if WinActive(mp[2])
+            DynMenu .= "/" mp[1]
+    }
+
+
+    ; Joins sorted main menu and dynamic menu, and
+    ; clears earlier entries and creates new entries:
+    MenuItem := StrSplit(Sort(g_MenuItems, "D/") DynMenu, "/")
+
+    ; Creates the menu:
+    ToolTipMenu := g_MenuTitle
+    For i, item in MenuItem
+        ToolTipMenu .= "`n" item
+
+    MouseGetPos mX, mY
+    HotKey "~LButton", "MenuClick"
+    HotKey "~LButton", "On"
+    ToolTip ToolTipMenu, mX, mY
+    WinActivate g_MenuTitle
+    WinGetPos ,,, tH, g_MenuTitle
+    
+    MenuClick(*)
+    {
+        HotKey "~LButton", "Off"
+        if !WinActive(g_MenuTitle)
+        {
+            ToolTip
+            return
+        }
+
+        MouseGetPos mX, mY
+        ToolTip
+        mY /= tH / (MenuItem.Length + 1)  ; Space taken by each line.
+        if mY < 1
+            return
+        TargetSection := MenuItem[Integer(mY)]
+        %StrReplace(TargetSection, "`s")%()
+    }
 }
-if HowLong < UMDelay
-    return
-
-
-; Prepares dynamic menu:
-DynMenu := ""
-For i, item in Dyn
-{
-    mp := StrSplit(item, "|")
-    if WinActive(mp[2])
-        DynMenu .= "/" mp[1]
-}
-
-
-; Joins sorted main menu and dynamic menu, and
-; clears earlier entries and creates new entries:
-MenuItem := StrSplit(Sort(MenuItems, "D/") DynMenu, "/")
-
-; Creates the menu:
-Menu := MenuTitle
-For i, item in MenuItem
-    Menu .= "`n" item
-
-MouseGetPos mX, mY
-HotKey "~LButton", "MenuClick"
-HotKey "~LButton", "On"
-ToolTip Menu, mX, mY
-WinActivate MenuTitle
-return
-
-
-MenuClick:
-HotKey "~LButton", "Off"
-if !WinActive(MenuTitle)
-{
-    ToolTip
-    return
-}
-
-MouseGetPos mX, mY
-ToolTip
-mY -= 3   ; Space after which first line starts.
-mY /= 13  ; Space taken by each line.
-if mY < 1
-    return
-if mY > MenuItem.Length
-    return
-TargetSection := MenuItem[Round(mY)]
-Gosub(StrReplace(TargetSection, "`s"))
-return

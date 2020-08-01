@@ -6,31 +6,29 @@ This script assigns hotkeys of your choice to raise and lower the master wave vo
 
 ; --- User Settings ---
 
-global config := {}
-
 ; The percentage by which to raise or lower the volume each time:
-config.Step := 4
+global g_Step := 4
 
 ; How long to display the volume level bar graphs:
-config.DisplayTime := 2000
+global g_DisplayTime := 2000
 
 ; Master Volume Bar color (see the help file to use more precise shades):
-config.CBM := "Red"
+global g_CBM := "Red"
 
 ; Background color:
-config.CW := "Silver"
+global g_CW := "Silver"
 
 ; Bar's screen position. Use "center" to center the bar in that dimension:
-config.PosX := "center"
-config.PosY := "center"
-config.Width := 150  ; width of bar
-config.Thick := 12   ; thickness of bar
+global g_PosX := "center"
+global g_PosY := "center"
+global g_Width := 150  ; width of bar
+global g_Thick := 12   ; thickness of bar
 
 ; If your keyboard has multimedia buttons for Volume, you can
 ; try changing the below hotkeys to use them by specifying
 ; Volume_Up and Volume_Down:
-config.MasterUp := "#Up"      ; Win+UpArrow
-config.MasterDown := "#Down"
+global g_MasterUp := "#Up"      ; Win+UpArrow
+global g_MasterDown := "#Down"
 
 ; --- Auto Execute Section ---
 
@@ -41,21 +39,21 @@ config.MasterDown := "#Down"
 ; Create the Progress window:
 global G := Gui.New("+ToolWindow -Caption -Border +Disabled")
 G.MarginX := 0, G.MarginY := 0
-opt := "w" config.Width " h" config.Thick " background" config.CW
-G.Add("Progress", opt " vMaster c" config.CBM)
+opt := "w" g_Width " h" g_Thick " background" g_CW
+G.Add("Progress", opt " vMaster c" g_CBM)
 
 ; Register hotkeys:
-Hotkey config.MasterUp,   () => ChangeVolume("+")
-Hotkey config.MasterDown, () => ChangeVolume("-")
+Hotkey g_MasterUp,   (*) => ChangeVolume("+")
+Hotkey g_MasterDown, (*) => ChangeVolume("-")
 
 ; --- Function Definitions ---
 
 ChangeVolume(Prefix)
 {
-    SoundSetVolume(Prefix config.Step)
+    SoundSetVolume(Prefix g_Step)
     G["Master"].Value := Round(SoundGetVolume())
-    G.Show("x" config.PosX " y" config.PosY)
-    SetTimer "HideWindow", -config.DisplayTime
+    G.Show("x" g_PosX " y" g_PosY)
+    SetTimer "HideWindow", -g_DisplayTime
 }
 
 HideWindow()

@@ -47,6 +47,9 @@
 <p>For example, if the return value is assigned to a variable named <code>Controls</code> and two controls are present, <code>Controls[1]</code> contains the name of the first control, <code>Controls[2]</code> contains the name of the second control, and <code>Controls.<a href="../objects/Array.htm#Length">Length</a></code> returns the number 2.</p>
 <p>Controls are sorted according to their Z-order, which is usually the same order as the navigation order via <kbd>Tab</kbd> key if the window supports tabbing.</p>
 
+<h2>Error Handling</h2>
+<p>An exception is thrown if the window could not be found or there was an error retrieving the names of its controls.</p>
+
 <h2>Remarks</h2>
 <p>The ID of the window or control under the mouse cursor can be retrieved with <a href="MouseGetPos.htm">MouseGetPos</a>.</p>
 <p>Window titles and text are case sensitive. Hidden windows are not detected unless <a href="DetectHiddenWindows.htm">DetectHiddenWindows</a> has been turned on.</p>
@@ -69,20 +72,21 @@
 <p><a href="#ExRealTime">#2</a>: Display in real time the active window's control list:</p>
 <pre>SetTimer "WatchActiveWindow", 200
 
-WatchActiveWindow() {
-    ControlList := ""
-    Controls := WinGetControls("A")
-    if !Controls {
+WatchActiveWindow()
+{
+    try
+    {
+        Controls := WinGetControls("A")
+        ControlList := ""
+        for ClassNN in Controls
+            ControlList .= ClassNN . "`n"
+        if (ControlList = "")
+            ToolTip "The active window has no controls."
+        else
+            ToolTip ControlList
+    }
+    catch
         ToolTip "No visible window is active."
-        return
-    }
-    if !Controls.Length {
-        ToolTip "The active window has no controls."
-        return
-    }
-    Loop Controls.Length
-        ControlList .= Controls[A_Index] . "`n"
-    ToolTip ControlList
 }</pre>
 </div>
 
