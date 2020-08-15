@@ -540,7 +540,7 @@ indexData = [
   ["GuiControl object","objects/GuiControl.htm"],
   ["GuiCtrlFromHwnd","commands/GuiCtrlFromHwnd.htm",2],
   ["GuiFromHwnd","commands/GuiFromHwnd.htm",2],
-  ["Handle property (File)","objects/File.htm#Handle",2],
+  ["Handle property (File)","objects/File.htm#Handle"],
   ["Has method (Array)","objects/Array.htm#Has"],
   ["Has method (Map)","objects/Map.htm#Has"],
   ["HasBase","commands/HasBase.htm",2],
