@@ -39,39 +39,6 @@
 <p>New scripts should use a function instead of a subroutine -- this reduces the risk of accidentally creating a script which can't be exited, and ensures that the exit code passed to Exit or ExitApp is preserved.</p>
 <p>Any number of OnExit functions can be registered. If a label (subroutine) is also registered, the functions are called after the subroutine calls <a href="ExitApp.htm">ExitApp</a>. An OnExit function usually should not call ExitApp; if it does, the script terminates immediately.</p>
 
-<h3 id="Examples">Examples</h3>
-<pre class="NoIndent"><em>; After running this script, right click the tray icon and click Exit to test the OnExit callback function.</em>
-<a href="_Persistent.htm">#Persistent</a>  <em>; Prevent the script from exiting automatically.</em>
-
-<em>; Register a function to be called on exit:</em>
-OnExit("ExitFunc")
-
-<em>; Register an object to be called on exit:</em>
-OnExit(<a href="ObjBindMethod.htm">ObjBindMethod</a>(MyObject, "Exiting"))
-
-ExitFunc(ExitReason, ExitCode)
-{
-    if ExitReason not in Logoff,Shutdown
-    {
-        MsgBox, 4, , Are you sure you want to exit?
-        IfMsgBox, No
-            return 1  <em>; OnExit functions must return non-zero to prevent exit.</em>
-    }
-    <em>; Do not call ExitApp -- that would prevent other OnExit functions from being called.</em>
-}
-
-class MyObject
-{
-    Exiting()
-    {
-        MsgBox, MyObject is cleaning up prior to exiting...
-        <em>/*
-        this.SayGoodbye()
-        this.CloseNetworkConnections()
-        */</em>
-    }
-}</pre>
-
 <h2 id="command">OnExit</h2>
 <p class="warning"><strong>Deprecated:</strong> This command is not recommended for use in new scripts. Use the <a href="#function">OnExit</a> function instead.</p>
 <pre class="Syntax"><span class="func">OnExit</span> <span class="optional">, Label</span></pre>
@@ -87,21 +54,6 @@ class MyObject
 <h3>Remarks</h3>
 <p><strong>IMPORTANT:</strong> Since the specified subroutine is called instead of terminating the script, that subroutine must use the <a href="ExitApp.htm">ExitApp</a> command if termination is desired.</p>
 <p>The built-in variable <strong>A_ExitReason</strong> is blank unless the OnExit subroutine  is currently running or has been called at least once by a prior exit attempt. If not blank, it is one of the words from the <a href="#ExitReason">table below</a>.</p>
-
-<h3>Examples</h3>
-<pre class="NoIndent"><em>; After running this script, right click the tray icon and click Exit to test the OnExit subroutine.</em>
-<a href="_Persistent.htm">#Persistent</a>  <em>; Prevent the script from exiting automatically.</em>
-OnExit, ExitSub  
-return
-
-ExitSub:
-if A_ExitReason not in Logoff,Shutdown  <em>; Avoid spaces around the comma in this line.</em>
-{
-    MsgBox, 4, , Are you sure you want to exit?
-    IfMsgBox, No
-        return
-}
-ExitApp  <em>; A script with an OnExit subroutine will not terminate unless the subroutine uses ExitApp.</em></pre>
 
 <h2>Remarks</h2>
 <p>The OnExit callback function or subroutine is called when the script exits by any means (except when it is killed by something like &quot;End Task&quot;). It is also called whenever the <a href="_SingleInstance.htm">#SingleInstance</a> and <a href="Reload.htm">Reload</a> commands ask a previous instance to terminate.</p>
@@ -149,6 +101,55 @@ ExitApp  <em>; A script with an OnExit subroutine will not terminate unless the 
 
 <h2>Related</h2>
 <p><a href="OnError.htm">OnError()</a>, <a href="OnMessage.htm">OnMessage()</a>, <a href="RegisterCallback.htm">RegisterCallback()</a>, <a href="OnClipboardChange.htm">OnClipboardChange</a>, <a href="ExitApp.htm">ExitApp</a>, <a href="Shutdown.htm">Shutdown</a>, <a href="_Persistent.htm">#Persistent</a>, <a href="../misc/Threads.htm">Threads</a>, <a href="Gosub.htm">Gosub</a>, <a href="Return.htm">Return</a>, <a href="Menu.htm">Menu</a></p>
+
+<h2>Examples</h2>
+<div class="ex" id="ExFnVsCmd">
+<p><a href="#ExFnVsCmd">#1</a>: Function vs. command.</p>
+<p>Despite the different approach, both examples have the same effect; that is, they ask the user before exiting the script. To test them, right-click the tray icon and click Exit.</p>
+<pre class="NoIndent"><a href="_Persistent.htm">#Persistent</a>  <em>; Prevent the script from exiting automatically.</em>
+OnExit("ExitFunc")
+
+ExitFunc(ExitReason, ExitCode)
+{
+    if ExitReason not in Logoff,Shutdown
+    {
+        MsgBox, 4, , Are you sure you want to exit?
+        IfMsgBox, No
+            return 1  <em>; OnExit functions must return non-zero to prevent exit.</em>
+    }
+    <em>; Do not call ExitApp -- that would prevent other OnExit functions from being called.</em>
+}</pre>
+<pre><a href="_Persistent.htm">#Persistent</a>  <em>; Prevent the script from exiting automatically.</em>
+OnExit, ExitSub  
+return
+
+ExitSub:
+if A_ExitReason not in Logoff,Shutdown  <em>; Avoid spaces around the comma in this line.</em>
+{
+    MsgBox, 4, , Are you sure you want to exit?
+    IfMsgBox, No
+        return
+}
+ExitApp  <em>; A script with an OnExit subroutine will not terminate unless the subroutine uses ExitApp.</em></pre>
+</div>
+
+<div class="ex" id="ExFnObj">
+<p><a href="#ExFnObj">#2</a>: Registers an object to be called on exit.</p>
+<pre><a href="_Persistent.htm">#Persistent</a>  <em>; Prevent the script from exiting automatically.</em>
+OnExit(<a href="ObjBindMethod.htm">ObjBindMethod</a>(MyObject, "Exiting"))
+
+class MyObject
+{
+    Exiting()
+    {
+        MsgBox, MyObject is cleaning up prior to exiting...
+        <em>/*
+        this.SayGoodbye()
+        this.CloseNetworkConnections()
+        */</em>
+    }
+}</pre>
+</div>
 
 </body>
 </html>

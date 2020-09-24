@@ -49,18 +49,6 @@
   <dd><p>If this is the last or only OnClipboardChange function, the return value is ignored. Otherwise, the function can return a non-zero integer to prevent subsequent functions from being called.</p></dd>
 </dl>
 
-<h3 id="FunctionExample">Example</h3>
-<p>This example is equivalent to <a href="#LabelExample">the one below</a>, except that the function is not called when the script first starts; only when the content of the Clipboard changes.</p>
-<pre>#Persistent
-OnClipboardChange("ClipChanged")
-return
-
-ClipChanged(Type) {
-    ToolTip Clipboard data type: %Type%
-    Sleep 1000
-    ToolTip  <em>; Turn off the tip.</em>
-}</pre>
-
 <h2 id="label">OnClipboardChange Label</h2>
 <p class="warning"><strong>Deprecated:</strong> This approach is not recommended for use in new scripts. Use the <a href="#function">OnClipboardChange</a> function instead.</p>
 <p>A label named OnClipboardChange (if it exists) is launched automatically whenever any application (even the script itself) has changed the contents of the clipboard. The label also runs once when the script first starts.</p>
@@ -70,7 +58,27 @@ ClipChanged(Type) {
   <li>1 = Clipboard contains something that can be expressed as text (this includes <a href="../misc/Clipboard.htm#CopiedFiles">files copied</a> from an Explorer window).</li>
   <li>2 = Clipboard contains something entirely non-text such as a picture.</li>
 </ul>
-<p>The following example is a working script. Whenever it is running, it will briefly display a tooltip for each clipboard change.</p>
+
+<h2>Remarks</h2>
+<p>If the clipboard changes while an OnClipboardChange function or label is already running, that notification event is lost. If this is undesirable,  specify <a href="Critical.htm">Critical</a> as the label's first line. However, this will also buffer/defer other <a href="../misc/Threads.htm">threads</a> (such as the press of a hotkey) that occur while the OnClipboardChange thread is running.</p>
+<p>If the script itself changes the clipboard, its OnClipboardChange function or label is typically not executed immediately; that is, commands immediately below the command that changed the clipboard are likely to execute beforehand. To force the function or label to execute immediately, use a short delay such as <code><a href="Sleep.htm">Sleep</a> 20</code> after changing the clipboard.</p>
+
+<h2>Related</h2>
+<p><a href="../misc/Clipboard.htm">Clipboard</a>, <a href="OnExit.htm">OnExit</a>, <a href="OnMessage.htm">OnMessage()</a>, <a href="RegisterCallback.htm">RegisterCallback()</a></p>
+
+<h2>Examples</h2>
+<div class="ex" id="ExFnVsLabel">
+<p><a href="#ExFnVsLabel">#1</a>: Function vs. Label.</p>
+<p>Despite the different approach, both examples have the same effect; that is, they briefly display a tooltip for each clipboard change. Note that the function is not called when the script first starts; only when the contents of the clipboard changes.</p>
+<pre id="FunctionExample">#Persistent
+OnClipboardChange("ClipChanged")
+return
+
+ClipChanged(Type) {
+    ToolTip Clipboard data type: %Type%
+    Sleep 1000
+    ToolTip  <em>; Turn off the tip.</em>
+}</pre>
 <pre id="LabelExample">#Persistent
 return
 
@@ -79,13 +87,7 @@ ToolTip Clipboard data type: %A_EventInfo%
 Sleep 1000
 ToolTip  <em>; Turn off the tip.</em>
 return</pre>
-
-<h2>Remarks</h2>
-<p>If the clipboard changes while an OnClipboardChange function or label is already running, that notification event is lost. If this is undesirable,  specify <a href="Critical.htm">Critical</a> as the label's first line. However, this will also buffer/defer other <a href="../misc/Threads.htm">threads</a> (such as the press of a hotkey) that occur while the OnClipboardChange thread is running.</p>
-<p>If the script itself changes the clipboard, its OnClipboardChange function or label is typically not executed immediately; that is, commands immediately below the command that changed the clipboard are likely to execute beforehand. To force the function or label to execute immediately, use a short delay such as <code><a href="Sleep.htm">Sleep</a> 20</code> after changing the clipboard.</p>
-
-<h2>Related</h2>
-<p><a href="../misc/Clipboard.htm">Clipboard</a>, <a href="OnExit.htm">OnExit</a>, <a href="OnMessage.htm">OnMessage()</a>, <a href="RegisterCallback.htm">RegisterCallback()</a></p>
+</div>
 
 </body>
 </html>
