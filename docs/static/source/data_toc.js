@@ -130,8 +130,8 @@ tocData = [
       ["If[Not]Exist","commands/IfExist.htm"],
       ["If[Not]InString","commands/IfInString.htm"],
       ["IfMsgBox","commands/IfMsgBox.htm"],
-      ["IfWin[Not]Active","commands/WinActive.htm"],
-      ["IfWin[Not]Exist","commands/WinExist.htm"]
+      ["IfWin[Not]Active","commands/IfWinActive.htm"],
+      ["IfWin[Not]Exist","commands/IfWinExist.htm"]
     ]],
     ["Loop","commands/Loop.htm",
     [
@@ -346,10 +346,10 @@ tocData = [
     ["StringSplit","commands/StringSplit.htm"],
     ["StringTrimLeft/StringTrimRight","commands/StringTrimLeft.htm"],
     ["StrGet()","commands/StrGet.htm"],
-    ["StrLen()","commands/StringLen.htm"],
+    ["StrLen()","commands/StrLen.htm"],
     ["StrPut()","commands/StrPut.htm"],
-    ["StrReplace()","commands/StringReplace.htm"],
-    ["StrSplit()","commands/StringSplit.htm"],
+    ["StrReplace()","commands/StrReplace.htm"],
+    ["StrSplit()","commands/StrSplit.htm"],
     ["SubStr()","commands/SubStr.htm"],
     ["Trim() / LTrim() / RTrim()","commands/Trim.htm"]
   ]],
@@ -383,8 +383,8 @@ tocData = [
     ["#WinActivateForce","commands/_WinActivateForce.htm"],
     ["DetectHiddenText","commands/DetectHiddenText.htm"],
     ["DetectHiddenWindows","commands/DetectHiddenWindows.htm"],
-    ["IfWin[Not]Active","commands/WinActive.htm"],
-    ["IfWin[Not]Exist","commands/WinExist.htm"],
+    ["IfWin[Not]Active","commands/IfWinActive.htm"],
+    ["IfWin[Not]Exist","commands/IfWinExist.htm"],
     ["SetTitleMatchMode","commands/SetTitleMatchMode.htm"],
     ["SetWinDelay","commands/SetWinDelay.htm"],
     ["StatusBarGetText","commands/StatusBarGetText.htm"],
