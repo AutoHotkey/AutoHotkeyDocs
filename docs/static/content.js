@@ -1,5 +1,5 @@
 loadJQuery();
-loadIE8Polyfill();
+addPrototypeMethods();
 
 // --- Get infos about this script file ---
 
@@ -92,6 +92,8 @@ var toc = new ctor_toc;
 var index = new ctor_index;
 var search = new ctor_search;
 var features = new ctor_features;
+var translate = {dataPath: scriptDir + '/source/data_translate.js'};
+var deprecate = {dataPath: scriptDir + '/source/data_deprecate.js'};
 
 scriptElement.insertAdjacentHTML('afterend', structure.metaViewport);
 var isPhone = (document.documentElement.clientWidth <= 600);
@@ -126,13 +128,7 @@ var isPhone = (document.documentElement.clientWidth <= 600);
       structure.saveCacheBeforeLeaving();
       $(document).ready(function() {
         $('html').attr({ id: 'right'});
-        if (!cache.translate)
-          loadScript(structure.dataPath, function() {
-            cache.set('translate', translateData);
-            features.add();
-          });
-        else
-          features.add();
+        features.add();
       });
       $(window).on('message onmessage', function(event) {
         var data = JSON.parse(event.originalEvent.data);
@@ -240,42 +236,13 @@ var isPhone = (document.documentElement.clientWidth <= 600);
       structure.openSite(scriptDir + '/../' + (getUrlParameter('frame') || relPath));
     });
 
-  // Get the data if needed and modify the site:
-  if (!cache.translate)
-    loadScript(structure.dataPath, function() {
-      cache.set('translate', translateData);
-      structure.modify();
-      if (!isFrameCapable)
-        $(document).ready(features.add);
-    });
-  else {
-    structure.modify();
-    if (!isFrameCapable)
-      $(document).ready(features.add);
-  }
-  if (!cache.toc_data)
-    loadScript(toc.dataPath, function() {
-      cache.set('toc_data', tocData);
-      toc.modify();
-    });
-  else
-    toc.modify();
-  if (!cache.index_data)
-    loadScript(index.dataPath, function() {
-      cache.set('index_data', indexData);
-      index.modify();
-    });
-  else
-    index.modify();
-  if (!cache.search_index || !cache.search_files || !cache.search_titles)
-    loadScript(search.dataPath, function() {
-      cache.set('search_index', SearchIndex);
-      cache.set('search_files', SearchFiles);
-      cache.set('search_titles', SearchTitles);
-      search.modify();
-    });
-  else
-    search.modify();
+  // Modify the site:
+  structure.modify();
+  if (!isFrameCapable)
+    $(document).ready(features.add);
+  toc.modify();
+  index.modify();
+  search.modify();
 })();
 
 // --- Constructor: Table of content ---
@@ -285,28 +252,51 @@ function ctor_toc()
   var self = this;
   self.dataPath = scriptDir + '/source/data_toc.js';
   self.create = function(input) { // Create and add TOC items.
-    var output = '';
-    output += '<ul>';
-    for(var i = 0; i < input.length; i++) {
-      var li = input[i][0];
-      if (input[i][1] != '')
-        li = '<a href="' + workingDir + input[i][1] + '"' + (isIE8 ? '>' + li : ' data-content="' + li + '">') + '</a>';
-      else
-        li = '<span' + (isIE8 ? '>' + li : ' data-content="' + li + '">') + '</span>';
-      li = '<span>' + li + '</span>';
-      if(input[i][2] != undefined && input[i][2].length > 0) {
-        output += '<li class ="closed" title="' + input[i][0] + '">' + li;
-        output += self.create(input[i][2]);
+    var ul = document.createElement("ul");
+    for(var i = 0; i < input.length; i++)
+    {
+      var text = input[i][0];
+      var path = input[i][1];
+      var subitems = input[i][2];
+      if (path != '')
+      {
+        var el = document.createElement("a");
+        el.href = workingDir + path;
+        if (cache.deprecate_data[path])
+          el.className = "deprecated";
       }
       else
-        output += '<li  title="' + input[i][0] + '">' + li;
-      output += '</li>';
+       var el = document.createElement("span");
+      if (isIE8)
+        el.innerHTML = text;
+      else
+        el.setAttribute("data-content", text);
+      var span = document.createElement("span");
+      span.innerHTML = el.outerHTML;
+      var li = document.createElement("li");
+      li.title = text;
+      if (cache.deprecate_data[path])
+        li.title += "\n\n" + T("Deprecated. New scripts should use {0} instead.").format(cache.deprecate_data[path]);
+      if (subitems != undefined && subitems.length > 0)
+      {
+        li.className = "closed";
+        li.innerHTML = span.outerHTML;
+        li.innerHTML += self.create(subitems).outerHTML;
+      }
+      else
+        li.innerHTML = span.outerHTML;
+      ul.innerHTML += li.outerHTML;
     }
-    output += '</ul>';
-    return output;
+    return ul;
   };
   // --- Modify the elements of the TOC tab ---
   self.modify = function() {
+
+    if (!retrieveData(self.dataPath, "toc_data", "tocData", self.modify))
+      return;
+    if (!retrieveData(deprecate.dataPath, "deprecate_data", "deprecateData", self.modify))
+      return;
+
     $toc = $('#left div.toc').html(self.create(cache.toc_data));
     $tocList = $toc.find('li > span');
     // --- Fold items with subitems ---
@@ -424,11 +414,22 @@ function ctor_index()
     {
       if (filter != -1 && input[i][2] != filter)
         continue;
-      output += '<a href="' + workingDir + input[i][1] + '" tabindex="-1"' + (isIE8 ? '>' + input[i][0] : ' data-content="' + input[i][0] + '">') + '</a>';
+      var a = document.createElement("a");
+      a.href = workingDir + input[i][1];
+      a.setAttribute("tabindex", "-1");
+      if (isIE8)
+        a.innerHTML = input[i][0];
+      else
+        a.setAttribute("data-content", input[i][0]);
+      output += a.outerHTML;
     }
     return output;
   };
   self.modify = function() { // Modify the elements of the index tab.
+
+    if (!retrieveData(self.dataPath, "index_data", "indexData", self.modify))
+      return;
+
     var $index = $('#left div.index');
     var $indexSelect = $index.find('.select select');
     var $indexInput = $index.find('.input input');
@@ -514,6 +515,14 @@ function ctor_search()
   var self = this;
   self.dataPath = scriptDir + '/source/data_search.js';
   self.modify = function() { // Modify the elements of the search tab.
+
+    if (!retrieveData(self.dataPath, "search_index", "SearchIndex", self.modify))
+      return;
+    if (!retrieveData(self.dataPath, "search_files", "SearchFiles", self.modify))
+      return;
+    if (!retrieveData(self.dataPath, "search_titles", "SearchTitles", self.modify))
+      return;
+
     var $search = $('#left div.search');
     var $searchList = $search.find('div.list');
     var $searchInput = $search.find('.input input');
@@ -802,7 +811,6 @@ function ctor_search()
 function ctor_structure()
 {
   var self = this;
-  self.dataPath = scriptDir + '/source/data_translate.js';
   self.metaViewport = '<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">';
   self.template = '<div id="body">' +
   '<div id="head"><div class="h-area"><div class="h-tabs"><ul><li data-translate title="Shortcut: ALT+C" data-content="C̲ontent"></li><li data-translate title="Shortcut: ALT+N" data-content="In̲dex"></li><li data-translate title="Shortcut: ALT+S" data-content="S̲earch"></li></ul></div><div class="h-tools sidebar"><ul><li class="sidebar" title="Hide or show the sidebar" data-translate>&#926;</li></ul></div><div class="h-tools online"><ul><li class="home" title="Go to the homepage" data-translate><a href="' + location.protocol + '//' + location.host + '">&#916;</a></li><li class="language" title="Change the language" data-translate=2><span data-translate data-content="en"></span><ul class="dropdown languages selected"><li><a title="English" data-content="en"></a></li><li><a title="Deutsch (German)" data-content="de"></a></li><li><a title="&#xD55C;&#xAD6D;&#xC5B4 (Korean)" data-content="ko"></a></li><li><a title="&#x4E2D;&#x6587; (Chinese)" data-content="zh"></a></li></ul></li><li class="version" title="Change the version" data-translate=2><span data-translate data-content="v1"></span><ul class="dropdown versions selected"><li><a title="AHK v1.1" data-content="v1"></a></li><li><a title="AHK v2.0" data-content="v2"></a></li></ul></li><li class="edit" title="Edit this document on GitHub" data-translate=2><a data-content="E"></a></li></ul></div><div class="h-tools chm"><ul><li class="back" title="Go back" data-translate=2>&#9668;</li><li class="forward" title="Go forward" data-translate=2>&#9658;</li><li class="zoom" title="Change the font size" data-translate=2 data-content="Z"></li><li class="print" title="Print this document" data-translate=2 data-content="P"></li><li class="browser" title="Open this document in the default browser (requires internet connection). Middle-click to copy the link address." data-translate><a target="_blank">¬</a></li></ul></div><div class="h-tools main visible"><ul><li class="color" title="Use the dark or light theme" data-translate=2 data-content="C"></li><li class="settings" title="Open the help settings" data-translate=2>&#1029;</li></ul></div></div></div>' +
@@ -810,6 +818,9 @@ function ctor_structure()
   self.template = isIE8 ? self.template.replace(/ data-content="(.*?)">/g, '>$1') : self.template;
   self.build = function() { document.write(self.template); }; // Write HTML before DOM is loaded to prevent flickering.
   self.modify = function() { // Modify elements added via build.
+
+    if (!retrieveData(translate.dataPath, "translate_data", "translateData", self.modify))
+      return;
 
     // --- If phone, hide and overlap sidebar ---
 
@@ -839,7 +850,7 @@ function ctor_structure()
       var attrDataTranslateValue = $this.attr('data-translate');
       if(!attrDataTranslateValue || attrDataTranslateValue == 1)
       {
-        if(typeof elContent != '')
+        if(elContent != '')
           $this.text(T(elContent));
         if(typeof attrDataContentValue !== 'undefined')
           $this.attr('data-content', T(attrDataContentValue));
@@ -1352,10 +1363,13 @@ function ctor_features()
 {
   var self = this;
   self.add = function() {
+    if (!retrieveData(translate.dataPath, "translate_data", "translateData", self.add))
+      return;
     self.content = document.querySelectorAll('#right .area, #right body')[0];
     $.queueFunc.add(self.modifyTables);
     $.queueFunc.add(self.modifyHeaders);
-    $.queueFunc.add(self.modifyLinks);
+    $.queueFunc.add(self.modifyExternalLinks);
+    $.queueFunc.add(self.modifyDeprecatedLinks);
     $.queueFunc.add(self.modifyVersions);
     $.queueFunc.add(self.modifyCodeBoxes);
     self.addFooter();
@@ -1442,13 +1456,32 @@ function ctor_features()
 
   // --- Open external links in a new tab/window ---
 
-  self.modifyLinks = function() {
+  self.modifyExternalLinks = function() {
     var as = self.content.querySelectorAll("a[href^='http']");
     for(var i = 0; i < as.length; i++) {
       var a = as[i];
       if (!a.querySelector('img') && a.className.indexOf('no-ext') == -1) {
         a.className = "extLink";
         a.target = "_blank";
+      }
+    }
+  };
+
+  // --- Add "Deprecated" icon ---
+
+  self.modifyDeprecatedLinks = function() {
+    if (!retrieveData(deprecate.dataPath, "deprecate_data", "deprecateData", self.modifyDeprecatedLinks))
+      return;
+    var as = self.content.querySelectorAll("a");
+    for (var i = 0; i < as.length; i++) {
+      var a = as[i];
+      var href = a.getAttribute("href");
+      if (!href || href.charAt(0) == "#")
+        continue;
+      var path = a.href.replace(workingDir, '');
+      if (cache.deprecate_data[path]) {
+        a.className = "deprecated";
+        a.title = T("Deprecated. New scripts should use {0} instead.").format(cache.deprecate_data[path]);
       }
     }
   };
@@ -1583,13 +1616,8 @@ function ctor_features()
     */
     if (isIE8) // Exclude old browsers.
       return;
-    if (!cache.index_data) { // Load index data if not already done.
-      loadScript(index.dataPath, function() {
-        cache.set('index_data', indexData);
-        self.addSyntaxColors(pres);
-      });
+    if (!retrieveData(index.dataPath, "index_data", "indexData", function() {self.addSyntaxColors(pres);}))
       return;
-    }
     var syntax = [], dict = {}, entry = '', type = '';
     var assignOp = "(?:&lt;&lt;|<<|&gt;&gt;|>>|\\/\\/|\\^|&amp;|&|\\||\\.|\\/|\\*|-|\\+|:|)=";
     for (var i = cache.index_data.length - 1; i >= 0; i--) {
@@ -2022,13 +2050,6 @@ function isScrolledIntoView(el, container)
   return ((container.offset().top < bounds.top) && (viewport.bottom > bounds.bottom));
 }
 
-// --- Apply a string method similar to printf ---
-
-String.prototype.format = function() {
-  var args = arguments;
-  return this.replace(/\{(\d+)\}/g, function(m, n) { return args[n]; });
-};
-
 // --- Load scripts dynamically ---
 
 function loadScript(url, callback) {
@@ -2054,10 +2075,23 @@ function loadScript(url, callback) {
     document.getElementsByTagName("head")[0].appendChild(script);
 }
 
+// --- Retrieve data if not already done ---
+
+function retrieveData(path, propName, varName, callback) {
+  if (!cache[propName]) {
+    loadScript(path, function() {
+      cache.set(propName, window[varName]);
+      callback();
+    });
+    return false;
+  }
+  return true;
+}
+
 // --- Use a translation for the given string if available ---
 
 function T(original) {
-  translation = cache.translate[original];
+  translation = cache.translate_data[original];
   if (translation == true) { translation = original; }
   return translation;
 }
@@ -2157,7 +2191,8 @@ padding:"inner"+a,content:b,"":"outer"+a},function(c,d){n.fn[d]=function(d,e){va
   };
 }
 
-function loadIE8Polyfill() {
+function addPrototypeMethods() {
+  // IE8 polyfill
   if (!Array.prototype.indexOf) {
     Array.prototype.indexOf = function(searchElement, fromIndex) {
       // Use string search instead of looping the array to avoid long-running-script warning:
@@ -2168,4 +2203,10 @@ function loadIE8Polyfill() {
         return -1;
     };
   }
+  // Apply a string method similar to printf
+  String.prototype.format = function()
+  {
+    var args = arguments;
+    return this.replace(/\{(\d+)\}/g, function(m, n) {return args[n];});
+  };
 }

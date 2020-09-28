@@ -1,0 +1,21 @@
+deprecateData = {
+  "commands/EnvDiv.htm":"Var /= Value",
+  "commands/EnvMult.htm":"Var *= Value",
+  "commands/GetKeyState.htm#command":"GetKeyState()",
+  "commands/IfEqual.htm":"If (expression)",
+  "commands/IfExist.htm":"FileExist()",
+  "commands/IfInString.htm":"InStr()",
+  "commands/IfWinActive.htm":"WinActive()",
+  "commands/IfWinExist.htm":"WinExist()",
+  "commands/OnClipboardChange.htm#label":"OnClipboardChange()",
+  "commands/OnExit.htm#command":"OnExit()",
+  "commands/SetEnv.htm":"Var := Value",
+  "commands/SetFormat.htm":"Format()",
+  "commands/StringGetPos.htm":"InStr()",
+  "commands/StringLeft.htm":"SubStr()",
+  "commands/StringLen.htm":"StrLen()",
+  "commands/StringMid.htm":"SubStr()",
+  "commands/StringReplace.htm":"StrReplace()",
+  "commands/StringSplit.htm":"StrSplit()",
+  "commands/StringTrimLeft.htm":"SubStr()"
+};

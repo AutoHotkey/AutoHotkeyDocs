@@ -42,5 +42,6 @@ translateData = {
   "Download code":true,
   "Back to top":true,
   "Applies to:\nAutoHotkey_L Revision {0} and later\nAutoHotkey v1.0.90.00 and later":true,
-  "Applies to AutoHotkey {0} and later":true
+  "Applies to AutoHotkey {0} and later":true,
+  "Deprecated. New scripts should use {0} instead.":true
 };
