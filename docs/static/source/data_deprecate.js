@@ -1,4 +1,8 @@
 deprecateData = {
+  "commands/_CommentFlag.htm":"the default comment flag (semicolon)",
+  "commands/_EscapeChar.htm":"the default escape character (accent)",
+  "commands/_EscapeChar.htm#Delimiter":"the default delimiter character (comma)",
+  "commands/_EscapeChar.htm#DerefChar":"the default dereference character (percent)",
   "commands/EnvDiv.htm":"Var /= Value",
   "commands/EnvMult.htm":"Var *= Value",
   "commands/GetKeyState.htm#command":"GetKeyState()",
