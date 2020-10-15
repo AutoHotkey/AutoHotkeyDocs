@@ -1563,10 +1563,22 @@ function ctor_features()
       parent.appendChild(pre);
       var buttons = document.createElement('div'); buttons.className = 'buttons';
       parent.appendChild(buttons);
-      var sel = document.createElement('a'); sel.className = 'selectCode'; sel.title = T("Select code"); sel.innerHTML = 'S';
+      var sel = document.createElement('a');
+      sel.className = 'selectCode';
+      sel.title = T("Select code");
+      if (isIE8)
+        sel.innerHTML = 'S';
+      else
+        sel.setAttribute("data-content", 'S');
       buttons.appendChild(sel);
       if (!isSyntax && !isNoHighlight) {
-        var dwn = document.createElement('a'); dwn.className = 'downloadCode'; dwn.title = T("Download code"); dwn.innerHTML = '&#8595;';
+        var dwn = document.createElement('a');
+        dwn.className = 'downloadCode';
+        dwn.title = T("Download code");
+        if (isIE8)
+          dwn.innerHTML = '↓';
+        else
+          dwn.setAttribute("data-content", '↓');
         buttons.appendChild(dwn);
       }
       $(parent) // Show these buttons on hover:
