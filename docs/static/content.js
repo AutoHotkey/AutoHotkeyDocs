@@ -1823,7 +1823,7 @@ function ctor_features()
         var types = cache.index_data[dict[DIR.toLowerCase()]][3];
         // Temporary exclude (...), {...} and [...]:
         sub = [];
-        PARAMS = PARAMS.replace(/[({\[].*[\]})]/g, function(c) {
+        PARAMS = PARAMS.replace(/[({\[][^({\[]*[\]})]/g, function(c) {
           index = sub.push(c) - 1;
           return '<sub ' + index + '></sub>';
         });
@@ -1855,7 +1855,7 @@ function ctor_features()
         var types = cache.index_data[dict[CMD.toLowerCase()]][3];
         // Temporary exclude (...), {...} and [...]:
         sub = [];
-        PARAMS = PARAMS.replace(/[({\[].*[\]})]/g, function(c) {
+        PARAMS = PARAMS.replace(/[({\[][^({\[]*[\]})]/g, function(c) {
           index = sub.push(c) - 1;
           return '<sub ' + index + '></sub>';
         });
@@ -1924,7 +1924,7 @@ function ctor_features()
             }
           // Temporary exclude (...), {...} and [...]:
           sub = [];
-          PARAMS = PARAMS.replace(/[({\[].*[\]})]/g, function(c) {
+          PARAMS = PARAMS.replace(/[({\[][^({\[]*[\]})]/g, function(c) {
             index = sub.push(c) - 1;
             return '<sub ' + index + '></sub>';
           });
