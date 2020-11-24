@@ -918,7 +918,8 @@ function ctor_structure()
                          'ko': 'https://ahkscript.github.io/ko/docs/',
                          'zh': 'https://wyagd001.github.io/zh-cn/docs/' },
                  'v2': { 'en': 'https://lexikos.github.io/v2/docs/',
-                         'de': 'https://ahkde.github.io/v2/docs/' } }
+                         'de': 'https://ahkde.github.io/v2/docs/',
+                         'zh': 'https://wyagd001.github.io/v2/docs/' } }
 
     var $langList = $online.find('ul.languages')
     var $verList = $online.find('ul.versions')
