@@ -123,6 +123,7 @@ var isPhone = (document.documentElement.clientWidth <= 600);
         cache.set('toc_clickItem', 0);
       }
       normalizeParentURL(); $(window).on('hashchange', normalizeParentURL);
+      structure.setTheme(cache.colorTheme);
       structure.addShortcuts();
       structure.addAnchorFlash();
       structure.saveCacheBeforeLeaving();
@@ -146,6 +147,10 @@ var isPhone = (document.documentElement.clientWidth <= 600);
 
           case 'scrollToMatch':
           search.scrollToMatch(data[1]);
+          break;
+
+          case 'setTheme':
+          structure.setTheme(data[1]);
           break;
         }
       });
@@ -226,7 +231,7 @@ var isPhone = (document.documentElement.clientWidth <= 600);
     $('head').append('<style>#right .area {font-size:' + cache.fontSize + 'em}</style>');
     // color theme
     if(cache.colorTheme)
-      structure.changeTheme();
+      structure.setTheme(cache.colorTheme);
   }
 
   // Load current URL into frame:
@@ -901,11 +906,17 @@ function ctor_structure()
 
     var $main = $('#head .h-tools.sidebar').add('#head .h-tools.main');
     $main.find('li.sidebar').on('click', function() {
-      self.displaySidebar(!cache.displaySidebar); });
+      self.displaySidebar(!cache.displaySidebar);
+    });
     $main.find('li.settings').on('click', function() {
       structure.openSite(scriptDir + '/../settings.htm');
     });
-    $main.find('li.color').on('click', self.changeTheme);
+    $main.find('li.color').on('click', function() {
+      cache.set('colorTheme', cache.colorTheme ? 0 : 1);
+      structure.setTheme(cache.colorTheme);
+      if (isFrameCapable)
+        postMessageToFrame('setTheme', [cache.colorTheme]);
+    });
 
     // --- Online tools (only visible if help is not CHM) ---
 
@@ -1311,27 +1322,22 @@ function ctor_structure()
       window.location = url;
     }
   }
-  // Invert colors of the website:
-  self.changeTheme = function() {
-    if($('#dark-theme').length) {
-      cache.set('colorTheme', 0);
-      $('#dark-theme').remove();
-      return;
+  // Set color theme:
+  self.setTheme = function(id) {
+    switch (id)
+    {
+      case 0:
+        $('#current-theme').remove();
+        break;
+      case 1:
+        var link = document.createElement('link');
+        link.href = workingDir + 'static/dark.css';
+        link.rel = 'stylesheet';
+        link.type = 'text/css';
+        link.id = 'current-theme';
+        $('head').append(link);
+        break;
     }
-    cache.set('colorTheme', 1);
-    var style = document.createElement('style');
-    style.type = 'text/css';
-    style.id = 'dark-theme';
-    if(isIE) {
-      var css = ':before { content:""; position:fixed; top:50%; left:50%; z-index:9999; width:0; height:0; outline:2999px solid invert }';
-      if(isIE8)
-        style.styleSheet.cssText = '#head' + css + '\n#head { z-index:1000 }';
-      else
-        style.innerHTML = '#body' + css;
-    }
-    else
-      style.innerHTML = '#body { filter:invert(90%); }\nhtml { background:#191919 }';
-    $('head').append(style);
   };
   // Add events for ListBox items such as double-click:
   self.addEventsForListBoxItems = function(ListBox) {
