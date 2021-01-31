@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <title>WinTitle &amp; Last Found Window | AutoHotkey</title>
-<meta name="description" content="This page describes criteria such as ahk_class for the WinTitle parameter used by some commands and functions to identify which window(s) to operate on." />
+<meta name="description" content="This page lists criteria that can be used in the WinTitle parameter of commands etc. to determine the target window(s)." />
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <link href="../static/theme.css" rel="stylesheet" type="text/css" />
@@ -20,14 +20,14 @@
   padding: .2em .5em;
 }
 #QuickRef tr:nth-child(even) {
-  background-color: #f4f4f4;
+  background: rgba(150, 150, 150, 0.1);
 }
 </style>
 </head>
 <body>
-<h1>The <em>WinTitle</em> Parameter &amp; the Last Found Window</h1>
+<h1><var>WinTitle</var> Parameter &amp; Last Found Window</h1>
 
-<p>Many commands and a few functions have a <em>WinTitle</em> parameter, used to identify which window (or windows) to operate on. This parameter can be the title or partial title of the window, and/or any other criteria described on this page.</p>
+<p>Various commands, functions and control flow statements have a <var>WinTitle</var> parameter, used to identify which window (or windows) to operate on. This parameter can be the title or partial title of the window, and/or any other criteria described on this page.</p>
 
 <strong>Quick Reference:</strong>
 <table id="QuickRef">
@@ -43,72 +43,66 @@
 </table>
 
 <h2 id="Matching">Matching Behaviour</h2>
-<p><a href="../commands/SetTitleMatchMode.htm">SetTitleMatchMode</a> controls how a partial or complete title is compared against the title of each window. Depending on the setting, <em>WinTitle</em> can be an exact title, or it can contain a prefix, a substring which occurs anywhere in the title, or a <a href="RegEx-QuickRef.htm">RegEx pattern</a>. This setting also controls whether <a href="#ahk_class">ahk_class</a> and <a href="#ahk_exe">ahk_exe</a> are interpreted as RegEx patterns.</p>
-<p>Window titles are case sensitive, except when using <a href="RegEx-QuickRef.htm#opt_i">the i) modifier</a> in a RegEx pattern.</p>
-<p>Hidden windows are only detected if <a href="../commands/DetectHiddenWindows.htm">DetectHiddenWindows</a> is On, except with <a href="../commands/WinShow.htm">WinShow</a>, which always detects hidden windows.</p>
-<p>If multiple windows match the <em>WinTitle</em> and any other criteria, the topmost matching window is used. If the active window matches the criteria, it usually takes precedence since it is usually above all other windows. However, if an <a href="../commands/WinSet.htm#AlwaysOnTop">always-on-top</a> window also matches (and the active window is not always-on-top), it may be used instead.</p>
+<p><a href="../commands/SetTitleMatchMode.htm">SetTitleMatchMode</a> controls how a partial or complete title is compared against the title of each window. Depending on the setting, <var>WinTitle</var> can be an exact title, or it can contain a prefix, a substring which occurs anywhere in the title, or a <a href="RegEx-QuickRef.htm">RegEx pattern</a>. This setting also controls whether the <a href="#ahk_class">ahk_class</a> and <a href="#ahk_exe">ahk_exe</a> criteria are interpreted as RegEx patterns.</p>
+<p>Window titles are case sensitive, except when using the <a href="RegEx-QuickRef.htm#opt_i">i) modifier</a> in a RegEx pattern.</p>
+<p>Hidden windows are only detected if <a href="../commands/DetectHiddenWindows.htm">DetectHiddenWindows</a> is turned on, except with <a href="../commands/WinShow.htm">WinShow</a>, which always detects hidden windows.</p>
+<p>If multiple windows match <var>WinTitle</var> and any other criteria, the topmost matching window is used. If the active window matches the criteria, it usually takes precedence since it is usually above all other windows. However, if an <a href="../commands/WinSet.htm#AlwaysOnTop">always-on-top</a> window also matches (and the active window is not always-on-top), it may be used instead.</p>
 
-<h2 id="ActiveWindow">Active Window (A)</h2>
-<p>If <em>WinTitle</em> is the letter <code>A</code> and the other 3 window parameters (<em>WinText</em>, <em>ExcludeTitle</em> and <em>ExcludeText</em>) are blank or omitted, the active window will be used.</p>
-<pre>
-<em>; Retrieve the ID/HWND of the active window</em>
-id := WinExist("A")
-MsgBox % id
+<h2 id="ActiveWindow">A (Active Window)</h2>
+<p>Use the letter <code>A</code> for <var>WinTitle</var> and omit the other three window parameters (<em>WinText</em>, <em>ExcludeTitle</em> and <em>ExcludeText</em>), to operate on the active window.</p>
+<p>The following example retrieves and reports the unique ID (HWND) of the active window:</p>
+<pre>MsgBox % WinExist("A")</pre>
+<p>The following example creates a hotkey which can be pressed to maximize the active window:</p>
+<pre>#Up::WinMaximize, A  <em>; Win+Up</em></pre>
 
-<em>; Press Win+&uarr; to maximize the active window</em>
-#Up::WinMaximize, A</pre>
+<h2 id="ahk_">ahk_ Criteria</h2>
+<p>Specify one or more of the following ahk_ criteria (optionally in addition to a window's title). An ahk_ criterion always consists of an _ahk keyword and its criterion value, both separated by zero or more spaces or tabs. For example, <code>ahk_class Notepad</code> represents a Notepad window.</p>
+<p>The ahk_ keyword and its criterion value do not need to be separated by spaces or tabs. This is primarily useful when specifying ahk_ criteria as expressions in combination with variables. For example, you could specify <code>"ahk_pid" PID</code> instead of <code>"ahk_pid " PID</code>. In all other cases, however, it is recommended to use at least one space or tab as a separation to improve readability.</p>
 
-<h2 id="ahk_class">ahk_class Window Class</h2>
-<p>A window class is a set of attributes that the system uses as a template to create a window. In other words, the class name of the window identifies what <em>type</em> of window it is. To use a window class, specify <code>ahk_class ExactClassName</code> as shown by Window Spy. <em>ExactClassName</em> can be retrieved by <a href="../commands/WinGetClass.htm">WinGetClass</a>.</p>
-<p>If the RegEx <a href="../commands/SetTitleMatchMode.htm">title matching mode</a> is active, ahk_class accepts a <a href="RegEx-QuickRef.htm">regular expression</a>.</p>
-<pre>
-<em>; Activate a console window (e.g. cmd.exe)</em>
-WinActivate, ahk_class ConsoleWindowClass
-</pre>
+<h3 id="ahk_class">ahk_class (Window Class)</h3>
+<p>Use <code>ahk_class <var>ClassName</var></code> in <var>WinTitle</var> to identify a window by its window class.</p>
+<p>A window class is a set of attributes that the system uses as a template to create a window. In other words, the class name of the window identifies what <em>type</em> of window it is. A window class can be revealed via Window Spy or retrieved by <a href="../commands/WinGetClass.htm">WinGetClass</a>. If the RegEx <a href="../commands/SetTitleMatchMode.htm">title matching mode</a> is active, <var>ClassName</var> accepts a <a href="RegEx-QuickRef.htm">regular expression</a>.</p>
+<p>The following example activates a console window (e.g. cmd.exe):</p>
+<pre>WinActivate, ahk_class ConsoleWindowClass</pre>
+<p>The following example does the same as above, but uses a <a href="RegEx-QuickRef.htm">regular expression</a> (note that the RegEx <a href="../commands/SetTitleMatchMode.htm">title matching mode</a> must be turned on beforehand to make it work):</p>
+<pre>WinActivate, ahk_class i)^ConsoleWindowClass$</pre>
 
-<h2 id="ahk_id">ahk_id Unique ID / HWND</h2>
-<p>Each window or control has a unique ID, also known as a HWND (short for handle to window). This ID can be used to identify the window or control even if its title changes. The ID of a window is typically retrieved via <a href="../commands/WinExist.htm">WinExist()</a> or <a href="../commands/WinGet.htm">WinGet</a>. The ID of a control is typically retrieved via <a href="../commands/ControlGet.htm#Hwnd">ControlGet Hwnd</a>, <a href="../commands/MouseGetPos.htm">MouseGetPos</a>, or <a href="../commands/DllCall.htm">DllCall()</a>. Also, ahk_id will operate on controls even if they are hidden; that is, the setting of <a href="../commands/DetectHiddenWindows.htm">DetectHiddenWindows</a> does not matter for controls.</p>
-<pre>
-WinActivate, ahk_id %VarContainingID%
-</pre>
+<h3 id="ahk_id">ahk_id (Unique ID / HWND)</h3>
+<p>Use <code>ahk_id <var>HWND</var></code> in <var>WinTitle</var> to identify a window or control by its unique ID.</p>
+<p>Each window or control has a unique ID, also known as a HWND (short for handle to window). This ID can be used to identify the window or control even if its title changes. The ID of a window is typically retrieved via <a href="../commands/WinExist.htm">WinExist()</a> or <a href="../commands/WinGet.htm">WinGet</a>. The ID of a control is typically retrieved via <a href="../commands/ControlGet.htm#Hwnd">ControlGet Hwnd</a>, <a href="../commands/MouseGetPos.htm">MouseGetPos</a>, or <a href="../commands/DllCall.htm">DllCall()</a>. Also, the ahk_id criterion will operate on controls even if they are hidden; that is, the setting of <a href="../commands/DetectHiddenWindows.htm">DetectHiddenWindows</a> does not matter for controls.</p>
+<p>The following example activates a window by an unique ID stored in <var>VarContainingID</var>:</p>
+<pre>WinActivate, ahk_id %VarContainingID%</pre>
 
-<h2 id="ahk_pid">ahk_pid Process ID</h2>
-<p>Use ahk_pid to identify a window belonging to a specific process. The process identifier (PID) is typically retrieved by <a href="../commands/WinGet.htm">WinGet</a>, <a href="../commands/Run.htm">Run</a> or <a href="../commands/Process.htm">Process</a>.</p>
-<pre>
-WinActivate, ahk_pid %VarContainingPID%
-</pre>
+<h3 id="ahk_pid">ahk_pid (Process ID)</h3>
+<p>Use <code>ahk_pid <var>PID</var></code> in <var>WinTitle</var> to identify a window belonging to a specific process. The process identifier (PID) is typically retrieved by <a href="../commands/WinGet.htm">WinGet</a>, <a href="../commands/Run.htm">Run</a> or <a href="../commands/Process.htm">Process</a>. The ID of a window's process can be revealed via Window Spy.</p>
+<p>The following example activates a window by a process ID stored in <var>VarContainingPID</var>:</p>
+<pre>WinActivate, ahk_pid %VarContainingPID%</pre>
 
-<h2 id="ahk_exe">ahk_exe Process Name/Path <span class="ver">[v1.1.01+]</span></h2>
-<p>Use ahk_exe to identify a window belonging to any process with the given name or path.</p>
-<p>While <a href="#ahk_pid">ahk_pid</a> is limited to one specific process, ahk_exe considers all processes with name or full path matching a given string. If the RegEx <a href="../commands/SetTitleMatchMode.htm">title matching mode</a> is active, ahk_exe accepts a <a href="RegEx-QuickRef.htm">regular expression</a> which must match the full path of the process. Otherwise, ahk_exe accepts a case-insensitive name or full path; for example, <code>ahk_exe notepad.exe</code> covers <code>ahk_exe C:\Windows\Notepad.exe</code>, <code>ahk_exe C:\Windows\System32\Notepad.exe</code> and other variations.</p>
-<pre>
-<em>; Activate an existing notepad.exe window, or open a new one</em>
-if WinExist("ahk_exe notepad.exe")
-    WinActivate, ahk_exe notepad.exe
-else
-    Run, notepad.exe
-</pre>
-<pre>SetTitleMatchMode RegEx
-WinActivate ahk_exe i)\\notepad\.exe$  <em>; Match the name part of the full path.</em></pre>
+<h3 id="ahk_exe">ahk_exe (Process Name/Path) <span class="ver">[v1.1.01+]</span></h3>
+<p>Use <code>ahk_exe <var>ProcessNameOrPath</var></code> in <var>WinTitle</var> to identify a window belonging to any process with the given name or path.</p>
+<p>While the <a href="#ahk_pid">ahk_pid criterion</a> is limited to one specific process, the ahk_exe criterion considers all processes with name or full path matching a given string. If the RegEx <a href="../commands/SetTitleMatchMode.htm">title matching mode</a> is active, <var>ProcessNameOrPath</var> accepts a <a href="RegEx-QuickRef.htm">regular expression</a> which must match the full path of the process. Otherwise, it accepts a case-insensitive name or full path; for example, <code>ahk_exe notepad.exe</code> covers <code>ahk_exe C:\Windows\Notepad.exe</code>, <code>ahk_exe C:\Windows\System32\Notepad.exe</code> and other variations. The name of a window's process can be revealed via Window Spy.</p>
+<p>The following example activates a Notepad window by its process name:</p>
+<pre>WinActivate, ahk_exe notepad.exe</pre>
+<p>The following example does the same as above, but uses a <a href="RegEx-QuickRef.htm">regular expression</a> (note that the RegEx <a href="../commands/SetTitleMatchMode.htm">title matching mode</a> must be turned on beforehand to make it work):</p>
+<pre>WinActivate, ahk_exe i)\\notepad\.exe$  <em>; Match the name part of the full path.</em></pre>
 
-<h2 id="ahk_group">ahk_group Window Group</h2>
-<p>Use ahk_group to identify a window or windows matching the rules contained by a previously defined <a href="../commands/GroupAdd.htm">window group</a>.</p>
-<p>The commands <a href="../commands/WinMinimize.htm">WinMinimize</a>, <a href="../commands/WinMaximize.htm">WinMaximize</a>, <a href="../commands/WinRestore.htm">WinRestore</a>, <a href="../commands/WinHide.htm">WinHide</a>, <a href="../commands/WinShow.htm">WinShow</a>, <a href="../commands/WinClose.htm">WinClose</a>, and <a href="../commands/WinKill.htm">WinKill</a> will act on <strong>all</strong> the group's windows. By contrast, the other window commands such as <a href="../commands/WinActivate.htm">WinActivate</a> and <a href="../commands/WinExist.htm">WinExist() / IfWinExist</a> will operate only on the topmost window of the group.</p>
-<pre>
-<em>; Define the group: Windows Explorer windows</em>
+<h3 id="ahk_group">ahk_group (Window Group)</h3>
+<p>Use <code>ahk_group <var>GroupName</var></code> in <var>WinTitle</var> to identify a window or windows matching the rules contained by a previously defined <a href="../commands/GroupAdd.htm">window group</a>.</p>
+<p><a href="../commands/WinMinimize.htm">WinMinimize</a>, <a href="../commands/WinMaximize.htm">WinMaximize</a>, <a href="../commands/WinRestore.htm">WinRestore</a>, <a href="../commands/WinHide.htm">WinHide</a>, <a href="../commands/WinShow.htm">WinShow</a>, <a href="../commands/WinClose.htm">WinClose</a>, and <a href="../commands/WinKill.htm">WinKill</a> will act on <strong>all</strong> the group's windows. By contrast, other window commands, functions and control flow statements such as <a href="../commands/WinActivate.htm">WinActivate</a>, <a href="../commands/WinExist.htm">WinExist()</a> and <a href="../commands/IfWinExist.htm">IfWinExist</a> will operate only on the topmost window of the group.</p>
+<p>The following example activates any window matching the criteria defined by a window group:</p>
+<pre><em>; Define the group: Windows Explorer windows</em>
 GroupAdd, Explorer, ahk_class ExploreWClass <em>; Unused on Vista and later</em>
 GroupAdd, Explorer, ahk_class CabinetWClass
 
 <em>; Activate any window matching the above criteria</em>
-WinActivate, ahk_group Explorer
-</pre>
+WinActivate, ahk_group Explorer</pre>
 
 <h2 id="multi">Multiple Criteria</h2>
-<p>By contrast with <a href="#ahk_group">ahk_group</a> (which broadens the search), the search may be narrowed by specifying more than one criterion within the WinTitle parameter. In the following example, the script waits for a window whose title contains <em>My File.txt</em> <strong>and</strong> whose class is <em>Notepad</em>:</p>
+<p>By contrast with the <a href="#ahk_group">ahk_group criterion</a> (which broadens the search), the search may be narrowed by specifying more than one criterion within the <var>WinTitle</var> parameter. In the following example, the script waits for a window whose title contains <em>My File.txt</em> <strong>and</strong> whose class is <em>Notepad</em>:</p>
 <pre>WinWait <strong>My File.txt</strong> ahk_class <strong>Notepad</strong>
 WinActivate  <em>; Activate the window it found.</em></pre>
 <p>When using this method, the text of the title (if any is desired) should be listed first, followed by one or more additional criteria. Criteria beyond the first should be separated from the previous with exactly one space or tab (any other spaces or tabs are treated as a literal part of the previous criterion).</p>
-<p><a href="#ahk_id">ahk_id</a> can be combined with other criteria to test a window's title, class or other attributes:</p>
+<p>The <a href="#ahk_id">ahk_id criterion</a> can be combined with other criteria to test a window's title, class or other attributes:</p>
 <pre>
 MouseGetPos,,, id
 if WinExist("ahk_class Notepad ahk_id " id)
@@ -116,30 +110,33 @@ if WinExist("ahk_class Notepad ahk_id " id)
 </pre>
 
 
-<h2 id="LastFoundWindow">The &quot;Last Found&quot; Window</h2>
+<h2 id="LastFoundWindow">Last Found Window</h2>
 
-<p>This is the window most recently found by <a href="../commands/WinExist.htm">IfWin[Not]Exist</a>, <a href="../commands/WinExist.htm">WinExist()</a>, <a href="../commands/WinActive.htm">IfWin[Not]Active</a>, <a href="../commands/WinActive.htm">WinActive()</a>, <a href="../commands/WinWaitActive.htm">WinWait[Not]Active</a>, or <a href="../commands/WinWait.htm">WinWait</a>. It can make scripts easier to create and maintain since the WinTitle and WinText of the target window do not need to be repeated for every windowing command. In addition, scripts perform better  because they don't need to search for the target window again after it has been found the first time.</p>
-<p>The &quot;last found&quot; window can be used by all of the windowing commands except <a href="../commands/WinWait.htm">WinWait</a>, <a href="../commands/WinActivateBottom.htm">WinActivateBottom</a>, <a href="../commands/GroupAdd.htm">GroupAdd</a>, <a href="../commands/WinGet.htm#Count">WinGet Count</a>, and <a href="../commands/WinGet.htm#List">WinGet List</a>. To use it, simply omit all four window parameters (WinTitle, WinText, ExcludeTitle, and ExcludeText).</p>
-<p>Each <a href="Threads.htm">thread</a> retains its own value of the &quot;last found&quot; window, meaning that if the <a href="Threads.htm">current thread</a> is interrupted by another, when the original thread is resumed it will still have its original value of the &quot;last found&quot; window, not that of the interrupting thread.</p>
-<p>If the last found window is a hidden <a href="../commands/Gui.htm">Gui window</a>, it can be used even when <a href="../commands/DetectHiddenWindows.htm">DetectHiddenWindows</a> is Off. This is often used in conjunction with <code>Gui +<a href="../commands/Gui.htm#LastFound">LastFound</a></code>.</p>
-<pre class="NoIndent">Run Notepad
+<p>This is the window most recently found by <a href="../commands/IfWinExist.htm">IfWinExist</a>, <a href="../commands/IfWinExist.htm">IfWinNotExist</a>, <a href="../commands/WinExist.htm">WinExist()</a>, <a href="../commands/IfWinActive.htm">IfWinActive</a>, <a href="../commands/IfWinActive.htm">IfWinNotActive</a>, <a href="../commands/WinActive.htm">WinActive()</a>, <a href="../commands/WinWaitActive.htm">WinWaitActive</a>, <a href="../commands/WinWaitActive.htm">WinWaitNotActive</a>, or <a href="../commands/WinWait.htm">WinWait</a>. It can make scripts easier to create and maintain since <var>WinTitle</var> and <var>WinText</var> of the target window do not need to be repeated for every windowing command, function or control flow statement. In addition, scripts perform better because they don't need to search for the target window again after it has been found the first time.</p>
+<p>The last found window can be used by all of the windowing commands, functions and control flow statements except <a href="../commands/WinWait.htm">WinWait</a>, <a href="../commands/WinActivateBottom.htm">WinActivateBottom</a>, <a href="../commands/GroupAdd.htm">GroupAdd</a>, <a href="../commands/WinGet.htm#Count">WinGet Count</a>, and <a href="../commands/WinGet.htm#List">WinGet List</a>. To use it, simply omit all four window parameters (<var>WinTitle</var>, <var>WinText</var>, <var>ExcludeTitle</var>, and <var>ExcludeText</var>).</p>
+<p>Each <a href="Threads.htm">thread</a> retains its own value of the last found window, meaning that if the <a href="Threads.htm">current thread</a> is interrupted by another, when the original thread is resumed it will still have its original value of the last found window, not that of the interrupting thread.</p>
+<p>If the last found window is a hidden <a href="../commands/Gui.htm">Gui window</a>, it can be used even when <a href="../commands/DetectHiddenWindows.htm">DetectHiddenWindows</a> is turned off. This is often used in conjunction with <a href="../commands/Gui.htm#LastFound">Gui +LastFound</a>.</p>
+<p>The following example opens Notepad, waits until it exists and activates it:</p>
+<pre>Run Notepad
 WinWait Untitled - Notepad
-WinActivate  <em>; Uses the last found window.</em>
+WinActivate <em>; Use the window found by WinWait.</em></pre>
 
-if WinExist("Untitled - Notepad")
+<p>The following example activates and maximizes the Notepad window found by the WinExist function above:</p>
+<pre>if WinExist("Untitled - Notepad")
 {
-    WinActivate  <em>; Automatically uses the window found above.</em>
-    WinMaximize  <em>; same</em>
+    WinActivate <em>; Use the window found by WinExist.</em>
+    WinMaximize <em>; Same as above.</em>
     Send, Some text.{Enter}
     return
-}
+}</pre>
 
-if not WinExist("Calculator")
+<p>The following example returns if the calculator does not exist, otherwise the calculator will be activated and moved to a new position:</p>
+<pre>if not WinExist("Calculator")
     return
 else
 {
-    WinActivate  <em>; The above &quot;IfWinNotExist&quot; also set the &quot;last found&quot; window for us.</em>
-    WinMove, 40, 40  <em>; Move it to a new position.</em>
+    WinActivate <em>; Use the window found by WinExist.</em>
+    WinMove, 40, 40 <em>; Same as above.</em>
     return
 }</pre>
 

@@ -17,7 +17,7 @@
 <h2 id="new">New Syntax <span class="ver">[v1.1.21+]</span></h2>
 <pre class="Syntax"><span class="func">Loop, Files</span>, FilePattern <span class="optional">, Mode</span></pre>
 
-<h3>Parameters</h3>
+<h3 id="New_Parameters">Parameters</h3>
 <dl>
 
   <dt>Files</dt>
@@ -26,13 +26,16 @@
   <dt>FilePattern</dt>
   <dd><p>The name of a single file or folder, or a wildcard pattern such as <code>C:\Temp\*.tmp</code>. <em>FilePattern</em> is assumed to be in <a href="../Variables.htm#WorkingDir">A_WorkingDir</a> if an absolute path isn't specified.</p>
       <p>Both asterisks and question marks are supported as wildcards. A match occurs when the pattern appears in either the file's long/normal name or its <a href="#LoopFileShortName">8.3 short name</a>.</p>
-      <p>If this parameter is a single file or folder (i.e. no wildcards) and <em>Mode</em> includes <code>R</code>, more than one match will be found if the specified file name appears in more than one of the folders being searched.</p></dd>
+      <p>If this parameter is a single file or folder (i.e. no wildcards) and <em>Mode</em> includes R, more than one match will be found if the specified file name appears in more than one of the folders being searched.</p></dd>
 
   <dt>Mode</dt>
-  <dd><p>Zero or more of the following letters:</p>
-      <p><code>D</code>: Include directories (folders).<br>
-      <code>F</code>: Include files. If both F and D are omitted, files are included but not folders.<br>
-      <code>R</code>: Recurse into subdirectories (subfolders). If R is omitted, files and folders in subfolders are not included.</p></dd>
+  <dd><p>If blank or omitted, only files are included and subdirectories are not recursed into. Otherwise, specify one or more of the following letters:</p>
+    <ul>
+      <li>D = Include directories (folders).</li>
+      <li>F = Include files. If both F and D are omitted, files are included but not folders.</li>
+      <li>R = Recurse into subdirectories (subfolders). If R is omitted, files and folders in subfolders are not included.</li>
+    </ul>
+  </dd>
 
 </dl>
 
@@ -40,7 +43,7 @@
 <p class="warning"><strong>Deprecated:</strong> This syntax is not recommended for use in new scripts. Use the <a href="#new">new syntax</a> instead.</p>
 <pre class="Syntax"><span class="func">Loop</span>, FilePattern <span class="optional">, IncludeFolders?, Recurse?</span></pre>
 
-<h3>Parameters</h3>
+<h3 id="Old_Parameters">Parameters</h3>
 <dl>
 
   <dt>FilePattern</dt>
@@ -49,19 +52,25 @@
       <p>If this parameter is a single file or folder (i.e. no wildcards) and <em>Recurse</em> is set to 1, more than one match will be found if the specified file name appears in more than one of the folders being searched.</p></dd>
 
   <dt>IncludeFolders?</dt>
-  <dd><p>One of the following digits, or blank to use the default:<br>
-      0 (default) Folders are not retrieved (only files).<br>
-      1 All files and folders that match the wildcard pattern are retrieved.<br>
-      2 Only folders are retrieved (no files).</p></dd>
+  <dd><p>If blank or omitted, it defaults to 0 (only files are retrieved). Otherwise, specify one of the following digits:</p>
+    <ul>
+      <li>0 = Folders are not retrieved (only files).</li>
+      <li>1 = All files and folders that match the wildcard pattern are retrieved.</li>
+      <li>2 = Only folders are retrieved (no files).</li>
+    </ul>
+  </dd>
 
   <dt>Recurse?</dt>
-  <dd>One of the following digits, or blank to use the default:<br>
-      0 (default) Subfolders are not recursed into.<br>
-      1 Subfolders are recursed into so that files and folders contained therein are retrieved if they match <em>FilePattern</em>. All subfolders will be recursed into, not just those whose names match <em>FilePattern</em>.</dd>
+  <dd><p>If blank or omitted, it defaults to 0 (subfolders are not recursed into). Otherwise, specify one of the following digits:</p>
+    <ul>
+      <li>0 = Subfolders are not recursed into.</li>
+      <li>1 = Subfolders are recursed into so that files and folders contained therein are retrieved if they match <em>FilePattern</em>. All subfolders will be recursed into, not just those whose names match <em>FilePattern</em>.</li>
+    </ul>
+  </dd>
 
 </dl>
 
-<h2>Special Variables Available Inside a File-Loop</h2>
+<h2 id="Special_Variables">Special Variables Available Inside a File-Loop</h2>
 <p>The following variables exist within any file-loop. If an inner file-loop is enclosed by an outer file-loop, the innermost loop's file will take precedence:</p>
 <table class="info">
   <tr id="LoopFileName">
@@ -128,10 +137,10 @@
   </tr>
 </table>
 
-<h2>Remarks</h2>
+<h2 id="Remarks">Remarks</h2>
 <p>A file-loop is useful when you want to operate on a collection of files and/or folders, one at a time.</p>
 <p>All matching files are retrieved, including hidden files. By contrast, OS features such as the DIR command omit hidden files by default. To avoid processing hidden, system, and/or read-only files, use something like the following inside the loop:</p>
-<pre>if A_LoopFileAttrib contains H,R,S  <em>; Skip any file that is either H (Hidden), R (Read-only), or S (System). Note: No spaces in &quot;H,R,S&quot;.</em>
+<pre>if A_LoopFileAttrib contains H,R,S  <em>; Skip any file that is either H (Hidden), R (Read-only), or S (System). Note: No spaces in "H,R,S".</em>
     continue  <em>; Skip this file and move on to the next one.</em></pre>
 <p>To retrieve files' relative paths instead of absolute paths during a recursive search, use <a href="SetWorkingDir.htm">SetWorkingDir</a> to change to the base folder prior to the loop, and then omit the path from the Loop (e.g. <code>Loop, *.*, 0, 1</code>). That will cause <a href="#LoopFileFullPath">A_LoopFileFullPath</a> to contain the file's path relative to the base folder.</p>
 <p>A file-loop can disrupt itself if it creates or renames files or folders within its own purview. For example, if it renames files via <a href="FileMove.htm">FileMove</a> or other means, each such file might be found twice: once as its old name and again as its new name. To work around this, rename the files only after creating a list of them. For example:</p>
@@ -144,12 +153,12 @@ Loop, Parse, FileList, `n
 <p>Files and folders with a complete path name longer than 259 characters are skipped over as though they do not exist. Such files are rare because normally, the operating system does not allow their creation.</p>
 <p>See <a href="Loop.htm">Loop</a> for information about <a href="Block.htm">Blocks</a>, <a href="Break.htm">Break</a>, <a href="Continue.htm">Continue</a>, and the A_Index variable (which exists in every type of loop).</p>
 
-<h2>Related</h2>
+<h2 id="Related">Related</h2>
 <p><a href="Loop.htm">Loop</a>, <a href="Break.htm">Break</a>, <a href="Continue.htm">Continue</a>, <a href="Block.htm">Blocks</a>, <a href="SplitPath.htm">SplitPath</a>, <a href="FileSetAttrib.htm">FileSetAttrib</a>, <a href="FileSetTime.htm">FileSetTime</a></p>
 
-<h2>Examples</h2>
+<h2 id="Examples">Examples</h2>
 <div class="ex" id="ExBasic">
-<p><a href="#ExBasic">#1</a></p>
+<p><a href="#ExBasic">#1</a>: Reports the full path of each text file located in a directory and in its subdirectories.</p>
 <pre>Loop Files, %A_ProgramFiles%\*.txt, R  <em>; Recurse into subfolders.</em>
 {
     MsgBox, 4, , Filename = %A_LoopFileFullPath%`n`nContinue?
@@ -159,7 +168,7 @@ Loop, Parse, FileList, `n
 </div>
 
 <div class="ex" id="ExSize">
-<p><a href="#ExSize">#2</a>: Calculate the size of a folder, including the files in all its subfolders:</p>
+<p><a href="#ExSize">#2</a>: Calculates the size of a folder, including the files in all its subfolders.</p>
 <pre>SetBatchLines, -1  <em>; Make the operation run at maximum speed.</em>
 FolderSizeKB := 0
 FileSelectFolder, WhichFolder  <em>; Ask the user to pick a folder.</em>
@@ -169,7 +178,7 @@ MsgBox Size of %WhichFolder% is %FolderSizeKB% KB.</pre>
 </div>
 
 <div class="ex" id="ExSortName">
-<p><a href="#ExSortName">#3</a>: Retrieve file names sorted by name (see next example to sort by date):</p>
+<p><a href="#ExSortName">#3</a>: Retrieves file names sorted by name (see next example to sort by date).</p>
 <pre>FileList := ""  <em>; Initialize to be blank.</em>
 Loop, C:\*.*
     FileList .= A_LoopFileName "`n"
@@ -185,7 +194,7 @@ Loop, parse, FileList, `n
 </div>
 
 <div class="ex" id="ExSortDate">
-<p><a href="#ExSortDate">#4</a>: Retrieve file names sorted by modification date:</p>
+<p><a href="#ExSortDate">#4</a>: Retrieves file names sorted by modification date.</p>
 <pre>FileList := ""
 Loop, Files, %A_MyDocuments%\Photos\*.*, FD  <em>; Include Files and Directories</em>
     FileList .= A_LoopFileTimeModified "`t" A_LoopFileName "`n"
@@ -202,7 +211,7 @@ Loop, Parse, FileList, `n
 </div>
 
 <div class="ex" id="ExFileCopy">
-<p><a href="#ExFileCopy">#5</a>: Copy only the source files that are newer than their counterparts in the destination:</p>
+<p><a href="#ExFileCopy">#5</a>: Copies only the source files that are newer than their counterparts in the destination.</p>
 <pre>CopyIfNewer:
 <em>; Caller has set the variables CopySourcePattern and CopyDest for us.</em>
 Loop, Files, %CopySourcePattern%
@@ -221,14 +230,14 @@ Loop, Files, %CopySourcePattern%
     {
         FileCopy, %A_LoopFileFullPath%, %CopyDest%\%A_LoopFileName%, 1   <em>; Copy with overwrite=yes</em>
         if ErrorLevel
-            MsgBox, Could not copy &quot;%A_LoopFileFullPath%&quot; to &quot;%CopyDest%\%A_LoopFileName%&quot;.
+            MsgBox, Could not copy "%A_LoopFileFullPath%" to "%CopyDest%\%A_LoopFileName%".
     }
 }
 Return</pre>
 </div>
 
 <div class="ex" id="ExLongPath">
-<p><a href="#ExLongPath">#6</a>: Convert filenames passed in via command-line parameters to long names, complete path, and correct uppercase/lowercase characters as stored in the file system.</p>
+<p><a href="#ExLongPath">#6</a>: Converts filenames passed in via command-line parameters to long names, complete path, and correct uppercase/lowercase characters as stored in the file system.</p>
 <pre>Loop %0%  <em>; For each file dropped onto the script (or passed as a parameter).</em>
 {
     GivenPath := %A_Index%  <em>; Retrieve the next command line parameter.</em>

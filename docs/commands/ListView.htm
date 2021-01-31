@@ -12,41 +12,34 @@
 <body>
 <h1>ListView</h1>
 
-<h2>Table of Contents</h2>
+<h2 id="toc">Table of Contents</h2>
 <ul>
   <li><a href="#Intro">Introduction and Simple Example</a></li>
-  <li><a href="#Options">Options and Styles</a></li>
-  <li><a href="#View">View Modes</a>: Report (default), Icon, Tile, Small-Icon, and List.</li>
-  <li><a href="#BuiltIn">Built-in Functions</a>:
-    <ul>
-      <li><a href="#bifRow">Row Functions</a></li>
-      <li><a href="#bifCol">Column Functions</a></li>
-      <li><a href="#bifGet">Getting Data Out of a ListView</a></li>
-      <li><a href="#bifIcon">Setting Icons</a></li>
-    </ul>
-  </li>
+  <li><a href="#Options">Options and Styles for the Options Parameter</a></li>
+  <li><a href="#View">View Modes</a>: Report (default), Icon, Tile, IconSmall, and List.</li>
+  <li><a href="#BuiltIn">Built-in Functions for ListViews</a></li>
   <li><a href="#notify">G-Label Notifications</a></li>
-  <li><a href="#IL">ImageList</a> (the means by which icons are added to a ListView)</li>
-  <li><a href="#Remarks">ListView Remarks</a></li>
+  <li><a href="#IL">ImageLists</a> (the means by which icons are added to a ListView)</li>
+  <li><a href="#Remarks">Remarks</a></li>
   <li><a href="#Examples">Examples</a></li>
 </ul>
 
 <h2 id="Intro">Introduction and Simple Example</h2>
 <p>A List-View is one of the most elaborate controls provided by the operating system. In its most recognizable form, it displays a tabular view of rows and columns, the most common example of which is Explorer's list of files and folders (detail view).</p>
-<p>A list view usually looks like this:</p>
+<p>A ListView usually looks like this:</p>
 <img src="../static/ctrl_listview.png" alt="ListView" />
 <p>Though it may be elaborate, a ListView's basic features are easy to use. The syntax for creating a ListView is:</p>
 <pre class="Syntax" id="GuiAdd"><span class="func">Gui</span>, Add, ListView, Options, ColumnTitle1|ColumnTitle2|...</pre>
-<p>Here is a working script that creates and displays a ListView containing a list of files in the user's &quot;My Documents&quot; folder:</p>
+<p>Here is a working script that creates and displays a ListView containing a list of files in the user's "My Documents" folder:</p>
 <pre><em>; Create the ListView with two columns, Name and Size:</em>
 Gui, Add, ListView, r20 w700 gMyListView, Name|Size (KB)
 
 <em>; Gather a list of file names from a folder and put them into the ListView:</em>
 Loop, %A_MyDocuments%\*.*
-    <a href="#LV_Add">LV_Add</a>(&quot;&quot;, A_LoopFileName, A_LoopFileSizeKB)
+    <a href="#LV_Add">LV_Add</a>("", A_LoopFileName, A_LoopFileSizeKB)
 
 <a href="#LV_ModifyCol">LV_ModifyCol</a>()  <em>; Auto-size each column to fit its contents.</em>
-LV_ModifyCol(2, &quot;Integer&quot;)  <em>; For sorting purposes, indicate that column 2 is an integer.</em>
+LV_ModifyCol(2, "Integer")  <em>; For sorting purposes, indicate that column 2 is an integer.</em>
 
 <em>; Display the window and return. The script will be notified whenever the user double clicks a row.</em>
 Gui, Show
@@ -56,14 +49,14 @@ MyListView:
 if (A_GuiEvent = "DoubleClick")
 {
     <a href="#LV_GetText">LV_GetText</a>(RowText, A_EventInfo)  <em>; Get the text from the row's first field.</em>
-    ToolTip You double-clicked row number %A_EventInfo%. Text: &quot;%RowText%&quot;
+    ToolTip You double-clicked row number %A_EventInfo%. Text: "%RowText%"
 }
 return
 
 GuiClose:  <em>; Indicate that the script should exit automatically when the window is closed.</em>
 ExitApp</pre>
 
-<h2 id="Options">Options and Styles for &quot;<em>Gui, Add, ListView, <u>Options</u></em>&quot;</h2>
+<h2 id="Options">Options and Styles for the Options Parameter</h2>
 <p id="AltSubmit"><strong>AltSubmit:</strong> Notifies the script for more types of ListView events than normal. In other words, the g-label is launched more often. See <a href="#notify">ListView Notifications</a> for details.</p>
 <p><strong>Background:</strong> Specify the word Background followed immediately by a color name (see <a href="Progress.htm#colors">color chart</a>) or RGB value (the 0x prefix is optional). Examples: <code>BackgroundSilver</code>, <code>BackgroundFFDD99</code>. If this option is not present, the ListView initially defaults to the background color set by the last parameter of <a href="Gui.htm#Color">Gui Color</a> (or if none, the system's default background color). Specifying <code>BackgroundDefault</code> applies the system's default background color (usually white). For example, a ListView can be restored to the default color via <code>GuiControl, +BackgroundDefault, MyListView</code>.</p>
 <p><strong>C</strong>: Text color. Specify the letter C followed immediately by a color name (see <a href="Progress.htm#colors">color chart</a>) or RGB value (the 0x prefix is optional). Examples: <code>cRed</code>, <code>cFF2211</code>, <code>c0xFF2211</code>, <code>cDefault</code>.</p>
@@ -77,11 +70,11 @@ ExitApp</pre>
 <p><strong>Multi:</strong> Specify <code>-Multi</code> (minus Multi) to prevent the user from selecting more than one row at a time.</p>
 <p><strong>NoSortHdr:</strong> Prevents the header from being clickable. It will take on a flat appearance rather than its normal button-like appearance. Unlike most other ListView styles, this one cannot be changed after the ListView is created.</p>
 <p id="NoSort"><strong>NoSort:</strong> Turns off the automatic sorting that occurs when the user clicks a column header. However, the header will still behave visually like a button (unless NoSortHdr has been specified). In addition, the g-label will still receive the <a href="#ColClick">ColClick notification</a>, to which it can respond with a custom sort or other action.</p>
-<p id="ReadOnly"><strong>ReadOnly:</strong>  Specify <code>-ReadOnly</code> (minus ReadOnly) to allow editing of the text in the first column of each row. To edit a row, select it then press the <kbd>F2</kbd> key (see the <a href="#WantF2">WantF2</a> option below). Alternatively, you can click a row once to select it, wait at least half a second, then click the same row again to edit it.</p>
+<p id="ReadOnly"><strong>ReadOnly:</strong>  Specify <code>-ReadOnly</code> (minus ReadOnly) to allow editing of the text in the first column of each row. To edit a row, select it then press <kbd>F2</kbd> (see the <a href="#WantF2">WantF2</a> option below). Alternatively, you can click a row once to select it, wait at least half a second, then click the same row again to edit it.</p>
 <p><strong>R</strong>: Rows of height (upon creation). Specify the letter R followed immediately by the number of rows for which to make room inside the control. For example, <code>R10</code> would make the control 10 rows tall. If the ListView is created with a <a href="#View">view mode</a> other than report view, the control is sized to fit rows of icons instead of rows of text. Note: adding <a href="#IL">icons</a> to a ListView's rows will increase the height of each row, which will make this option inaccurate.</p>
 <p id="Sort"><strong>Sort:</strong> The control is kept alphabetically sorted according to the contents of the first column.</p>
 <p id="SortDesc"><strong>SortDesc:</strong> Same as above except in descending order.</p>
-<p id="WantF2"><strong>WantF2</strong> <span class="ver">[v1.0.44+]:</span> Specify <code>-WantF2</code> (minus WantF2) to prevent an <kbd>F2</kbd> keystroke from <a href="#ReadOnly">editing</a> the currently focused row. This setting is ignored unless <code>-<a href="#ReadOnly">ReadOnly</a></code> is also in effect. Regardless of this setting, the g-label still receives <kbd>F2</kbd> <a href="#NotifyK">notifications</a>.</p>
+<p id="WantF2"><strong>WantF2</strong> <span class="ver">[v1.0.44+]:</span> Specify <code>-WantF2</code> (minus WantF2) to prevent <kbd>F2</kbd> from <a href="#ReadOnly">editing</a> the currently focused row. This setting is ignored unless <code>-<a href="#ReadOnly">ReadOnly</a></code> is also in effect. Regardless of this setting, the g-label still receives <kbd>F2</kbd> <a href="#NotifyK">notifications</a>.</p>
 <p><strong>(Unnamed numeric styles):</strong> Since styles other than the above are rarely used, they do not have names. See the <a href="../misc/Styles.htm#ListView">ListView styles table</a> for a list.</p>
 
 <h2 id="View">View Modes</h2>
@@ -95,52 +88,52 @@ ExitApp</pre>
 <h2 id="BuiltIn">Built-in Functions for ListViews</h2>
 <p>All of the ListView functions operate upon the current thread's <a href="Gui.htm#DefaultWin">default GUI window</a> (which can be changed via <code><a href="Gui.htm#Default">Gui, 2:Default</a></code>). If the default window does not exist or has no ListView controls, all functions return zero to indicate the problem.</p>
 <p id="GuiLV">If the window has more than one ListView control, by default the functions operate upon the one most recently added. To change this, specify <code>Gui, ListView, ListViewName</code>, where <em>ListViewName</em> is the name of the ListView's <a href="Gui.htm#var">associated variable</a>, its ClassNN as shown by Window Spy or <span class="ver">[in v1.1.04+]</span> its HWND. Once changed, all existing and future <a href="../misc/Threads.htm">threads</a> will use the indicated ListView. <span class="ver">[v1.1.23+]:</span> <a href="../Variables.htm#DefaultListView">A_DefaultListView</a> contains the current setting.</p>
-<p id="RowNumber">When the phrase &quot;row number&quot; is used on this page, it refers to a row's current position within the ListView. The top row is 1, the second row is 2, and so on. After a row is added, its row number tends to change due to sorting, deleting, and inserting of other rows. Therefore, to locate specific row(s) based on their contents, it is usually best to use <a href="#LV_GetText">LV_GetText()</a> in a loop.</p>
+<p id="RowNumber">When the phrase "row number" is used on this page, it refers to a row's current position within the ListView. The top row is 1, the second row is 2, and so on. After a row is added, its row number tends to change due to sorting, deleting, and inserting of other rows. Therefore, to locate specific row(s) based on their contents, it is usually best to use <a href="#LV_GetText">LV_GetText()</a> in a loop.</p>
 
-<p id="bifRow"><strong>Adding, Modifying, and Deleting Rows</strong></p>
+<p id="bifRow"><strong>Row functions:</strong></p>
 <ul>
     <li><a href="#LV_Add">LV_Add</a>: Adds a new row to the bottom of the list.</li>
-    <li><a href="#LV_Insert">LV_Insert</a>: Inserts a new row before the specified row.</li>
+    <li><a href="#LV_Insert">LV_Insert</a>: Inserts a new row at the specified row number.</li>
     <li><a href="#LV_Modify">LV_Modify</a>: Modifies the attributes and/or text of a row.</li>
     <li><a href="#LV_Delete">LV_Delete</a>: Deletes the specified row or all rows.</li>
 </ul>
 
-<p id="bifCol"><strong>Column Functions</strong></p>
+<p id="bifCol"><strong>Column functions:</strong></p>
 <ul>
     <li><a href="#LV_ModifyCol">LV_ModifyCol</a>: Modifies the attributes and/or text of the specified column and its header.</li>
-    <li><a href="#LV_InsertCol">LV_InsertCol</a>: Inserts a new column before the specified column.</li>
+    <li><a href="#LV_InsertCol">LV_InsertCol</a>: Inserts a new column at the specified column number.</li>
     <li><a href="#LV_DeleteCol">LV_DeleteCol</a>: Deletes the specified column and all of the contents beneath it.</li>
 </ul>
 
-<p id="bifGet"><strong>Getting Data Out of a ListView</strong></p>
+<p id="bifGet"><strong>Retrieval functions:</strong></p>
 <ul>
-    <li><a href="#LV_GetCount">LV_GetCount</a>: Returns the total number of rows or columns, or the number of selected rows only.</li>
+    <li><a href="#LV_GetCount">LV_GetCount</a>: Returns the total number of rows or columns.</li>
     <li><a href="#LV_GetNext">LV_GetNext</a>: Returns the row number of the next selected, checked, or focused row.</li>
     <li><a href="#LV_GetText">LV_GetText</a>: Retrieves the text at the specified row and column.</li>
 </ul>
 
-<p id="bifIcon"><strong>Setting Icons</strong></p>
+<p id="bifIcon"><strong>Other functions:</strong></p>
 <ul>
-    <li><a href="#LV_SetImageList">LV_SetImageList</a>: Sets an ImageList created beforehand which is used to display icons.</li>
+    <li><a href="#LV_SetImageList">LV_SetImageList</a>: Sets or replaces an ImageList for displaying icons.</li>
 </ul>
 
 <h3 id="LV_Add">LV_Add</h3>
 <p>Adds a new row to the bottom of the list.</p>
 <pre class="Syntax"><span class="func">LV_Add</span>(<span class="optional">Options, Field1, Field2, ...</span>)</pre>
-<p>The parameters <em>Field1</em> and beyond are the columns of the new row, which can be text or numeric (including numeric <a href="../Variables.htm#Expressions">expression</a> results). To make any field blank, specify &quot;&quot; or the equivalent. If there are too few fields to fill all the columns, the columns at the end are left blank. If there are too many fields, the fields at the end are completely ignored.</p>
+<p>The parameters <em>Field1</em> and beyond are the columns of the new row, which can be text or numeric (including numeric <a href="../Variables.htm#Expressions">expression</a> results). To make any field blank, specify "" or the equivalent. If there are too few fields to fill all the columns, the columns at the end are left blank. If there are too many fields, the fields at the end are completely ignored.</p>
 <p>Upon failure, LV_Add() returns 0. Upon success, it returns the new <a href="#RowNumber">row number</a>, which is not necessarily the last row if the ListView has the <a href="#Sort">Sort</a> or <a href="#SortDesc">SortDesc</a> style.</p>
 
 <h4 id="RowOptions">Row Options</h4>
 <p>The <em>Options</em> parameter is a string containing zero or more words from the list below (not case sensitive). Separate each word from the next with a space or tab. To remove an option, precede it with a minus sign. To add an option, a plus sign is permitted but not required.</p>
-<p><strong>Check</strong>: Shows a checkmark in the row (if the ListView has <a href="#Checked">checkboxes</a>). To later uncheck it, use <code>LV_Modify(RowNumber, &quot;-Check&quot;)</code>.</p>
+<p><strong>Check</strong>: Shows a checkmark in the row (if the ListView has <a href="#Checked">checkboxes</a>). To later uncheck it, use <code>LV_Modify(RowNumber, "-Check")</code>.</p>
 <p id="ColN"><strong>Col</strong>: Specify the word Col followed immediately by the column number at which to begin applying the parameters <em>Col1</em> and beyond. This is most commonly used with <a href="#LV_Modify">LV_Modify()</a> to alter individual fields in a row without affecting those that lie to their left.</p>
-<p id="Focus"><strong>Focus</strong>: Sets keyboard focus to the row (often used in conjunction with Select). To later de-focus it, use <code>LV_Modify(RowNumber, &quot;-Focus&quot;)</code>.</p>
+<p id="Focus"><strong>Focus</strong>: Sets keyboard focus to the row (often used in conjunction with Select). To later de-focus it, use <code>LV_Modify(RowNumber, "-Focus")</code>.</p>
 <p><strong>Icon</strong>: Specify the word Icon followed immediately by the number of this row's icon, which is displayed in the left side of the first column. If this option is absent, the first icon in the <a href="#IL">ImageList</a> is used. To display a blank icon, specify a number that is larger than the number of icons in the ImageList. If the control lacks a small-icon ImageList, no icon is displayed nor is any space reserved for one in <a href="#View">report view</a>.</p>
-<p><strong>Select</strong>: Selects the row. To later deselect it, use <code>LV_Modify(RowNumber, &quot;-Select&quot;)</code>. When selecting rows, it is usually best to ensure that at least one row always has the <a href="#Focus">focus property</a> because that allows the Apps key to display its <a href="Gui.htm#GuiContextMenu">context menu</a> (if any) near the focused row. The word <em>Select</em> may optionally be followed immediately by a 0 or 1 to indicate the starting state. In other words, both <code>&quot;Select&quot;</code> and <code>&quot;Select&quot; <strong>.</strong> VarContainingOne</code> are the same (the period used here is the <a href="../Variables.htm#concat">concatenation operator</a>). This technique also works with <em>Focus</em> and <em>Check</em> above.</p>
-<p id="Vis"><strong>Vis</strong> <span class="ver">[v1.0.44+]</span>: Ensures that the specified row is completely visible by scrolling the ListView, if necessary. This has an effect only for <a href="#LV_Modify">LV_Modify()</a>; for example: <code>LV_Modify(RowNumber, &quot;Vis&quot;)</code>.</p>
+<p><strong>Select</strong>: Selects the row. To later deselect it, use <code>LV_Modify(RowNumber, "-Select")</code>. When selecting rows, it is usually best to ensure that at least one row always has the <a href="#Focus">focus property</a> because that allows the Apps key to display its <a href="Gui.htm#GuiContextMenu">context menu</a> (if any) near the focused row. The word <em>Select</em> may optionally be followed immediately by a 0 or 1 to indicate the starting state. In other words, both <code>"Select"</code> and <code>"Select" <strong>.</strong> VarContainingOne</code> are the same (the period used here is the <a href="../Variables.htm#concat">concatenation operator</a>). This technique also works with <em>Focus</em> and <em>Check</em> above.</p>
+<p id="Vis"><strong>Vis</strong> <span class="ver">[v1.0.44+]</span>: Ensures that the specified row is completely visible by scrolling the ListView, if necessary. This has an effect only for <a href="#LV_Modify">LV_Modify()</a>; for example: <code>LV_Modify(RowNumber, "Vis")</code>.</p>
 
 <h3 id="LV_Insert">LV_Insert</h3>
-<p>Inserts a new row before the specified row.</p>
+<p>Inserts a new row at the specified row number.</p>
 <pre class="Syntax"><span class="func">LV_Insert</span>(RowNumber <span class="optional">, Options, Col1, Col2, ...</span>)</pre>
 <p>Behaves identically to <a href="#LV_Add">LV_Add()</a> except for its different first parameter, which specifies the row number for the newly inserted row. Any rows at or beneath <em>RowNumber</em> are shifted downward to make room for the new row. If <em>RowNumber</em> is greater than the number of rows in the list (even as high as 2147483647), the new row is added to the end of the list. For <em>Options</em>, see <a href="#RowOptions">row options</a>.</p>
 
@@ -162,35 +155,35 @@ ExitApp</pre>
 <h4 id="ColOptions">Column Options</h4>
 <p>The <em>Options</em> parameter is a string containing zero or more words from the list below (not case sensitive). Separate each word from the next with a space or tab. To remove an option, precede it with a minus sign. To add an option, a plus sign is permitted but not required.</p>
 
-<h4>Column Options: General</h4>
-<p><strong>N</strong>: Specify for N the new width of the column, in pixels. This number can be unquoted if is the only option. For example, the following are both valid: <code>LV_ModifyCol(1, 50)</code> and <code>LV_ModifyCol(1, &quot;50 Integer&quot;)</code>.</p>
+<h4 id="Column_Options_General">Column Options: General</h4>
+<p><strong>N</strong>: Specify for N the new width of the column, in pixels. This number can be unquoted if is the only option. For example, the following are both valid: <code>LV_ModifyCol(1, 50)</code> and <code>LV_ModifyCol(1, "50 Integer")</code>.</p>
 <p><strong>Auto</strong>: Adjusts the column's width to fit its contents. This has no effect when not in Report (Details) view.</p>
 <p><strong>AutoHdr</strong>: Adjusts the column's width to fit its contents and the column's header text, whichever is wider. If applied to the last column, it will be made at least as wide as all the remaining space in the ListView. It is usually best to apply this setting only after the rows have been added because that allows any newly-arrived vertical scroll bar to be taken into account when sizing the last column. This option has no effect when not in Report (Details) view.</p>
 <p><strong>Icon</strong>: Specify the word Icon followed immediately by the number of the <a href="#IL">ImageList's</a> icon to display next to the column header's text. Specify <code>-Icon</code> (minus icon) to remove any existing icon.</p>
 <p><strong>IconRight</strong>: Puts the icon on the right side of the column rather than the left.</p>
 
-<h4>Column Options: Data Type</h4>
+<h4 id="Column_Options_Data_Type">Column Options: Data Type</h4>
 <p><strong>Float</strong>: For sorting purposes, indicates that this column contains floating point numbers (hexadecimal format is not supported). Sorting performance for Float and Text columns is up to 25 times slower than it is for integers.</p>
 <p id="Integer"><strong>Integer</strong>: For sorting purposes, indicates that this column contains integers. To be sorted properly, each integer must be 32-bit; that is, within the range -2147483648 to 2147483647. If any of the values are not integers, they will be considered zero when sorting (unless they start with a number, in which case that number is used). Numbers may appear in either decimal or hexadecimal format (e.g. <code>0xF9E0</code>).</p>
 <p id="Text"><strong>Text</strong>: Changes the column back to text-mode sorting, which is the initial default for every column. Only the first 8190 characters of text are significant for sorting purposes (except for the <a href="#Logical"><em>Logical</em> option</a>, in which case the limit is 4094).</p>
 
-<h4>Column Options: Alignment / Justification</h4>
+<h4 id="Column_Options_Alignment">Column Options: Alignment</h4>
 <p><strong>Center</strong>: Centers the text in the column. To center an Integer or Float column, specify the word Center after the word Integer or Float.</p>
-<p><strong>Left</strong>: Left-justifies the column's text, which is the initial default for every column. On older operating systems, the first column might have a forced left-justification.</p>
-<p><strong>Right</strong>: Right-justifies the column's text. This attribute need not be specified for Integer and Float columns because they are right-justified by default. That default can be overridden by specifying something such as <code>&quot;Integer Left&quot;</code> or <code>&quot;Float Center&quot;</code>.</p>
+<p><strong>Left</strong>: Left-aligns the column's text, which is the initial default for every column. On older operating systems, the first column might have a forced left-alignment.</p>
+<p><strong>Right</strong>: Right-aligns the column's text. This attribute need not be specified for Integer and Float columns because they are right-aligned by default. That default can be overridden by specifying something such as <code>"Integer Left"</code> or <code>"Float Center"</code>.</p>
 
-<h4>Column Options: Sorting</h4>
+<h4 id="Column_Options_Sorting">Column Options: Sorting</h4>
 <p id="Case"><strong>Case</strong>: The sorting of the column is case sensitive (affects only <a href="#Text">text</a> columns). If the options <em>Case</em>, <em>CaseLocale</em>, and <em>Logical</em> are all omitted, the uppercase letters A-Z are considered identical to their lowercase counterparts for the purpose of the sort.</p>
-<p><strong>CaseLocale</strong> <span class="ver">[v1.0.43.03+]:</span> The sorting of the column is case insensitive based on the current user's locale (affects only <a href="#Text">text</a> columns). For example, most English and Western European locales treat the letters A-Z and ANSI letters like &Auml; and &Uuml; as identical to their lowercase counterparts. This method also uses a &quot;word sort&quot;, which treats hyphens and apostrophes in such a way that words like &quot;coop&quot; and &quot;co-op&quot; stay together.</p>
+<p><strong>CaseLocale</strong> <span class="ver">[v1.0.43.03+]:</span> The sorting of the column is case insensitive based on the current user's locale (affects only <a href="#Text">text</a> columns). For example, most English and Western European locales treat the letters A-Z and ANSI letters like &Auml; and &Uuml; as identical to their lowercase counterparts. This method also uses a "word sort", which treats hyphens and apostrophes in such a way that words like "coop" and "co-op" stay together.</p>
 <p id="Desc"><strong>Desc</strong>: Descending order. The column starts off in descending order the first time the user sorts it.</p>
-<p id="Logical"><strong>Logical</strong> <span class="ver">[v1.0.44.12+]:</span> Same as <em>CaseLocale</em> except that any sequences of digits in the text are treated as true numbers rather than mere characters. For example, the string &quot;T33&quot; would be considered greater than &quot;T4&quot;. <em>Logical</em> requires Windows XP or later (on older OSes, <em>CaseLocale</em> is automatically used instead). In addition, <em>Logical</em> and <em>Case</em> are currently mutually exclusive: only the one most recently specified will be in effect.</p>
+<p id="Logical"><strong>Logical</strong> <span class="ver">[v1.0.44.12+]:</span> Same as <em>CaseLocale</em> except that any sequences of digits in the text are treated as true numbers rather than mere characters. For example, the string "T33" would be considered greater than "T4". <em>Logical</em> requires Windows XP or later (on older OSes, <em>CaseLocale</em> is automatically used instead). In addition, <em>Logical</em> and <em>Case</em> are currently mutually exclusive: only the one most recently specified will be in effect.</p>
 <p><strong>NoSort</strong>: Prevents a user's click on this column from having any automatic sorting effect. To disable sorting for all columns rather than only a subset, include <a href="#NoSort">NoSort</a> in the ListView's options. If the ListView has a g-label, the <a href="#ColClick">ColClick notification</a> will still be received when the user clicks a no-sort column.</p>
 <p><strong>Sort</strong>: Immediately sorts the column in ascending order (even if it has the <a href="#Desc">Desc</a> option).</p>
 <p><strong>SortDesc</strong>: Immediately sorts the column in descending order.</p>
 <p><strong>Uni</strong>: Unidirectional sort. This prevents a second click on the same column from reversing the sort direction.</p>
 
 <h3 id="LV_InsertCol">LV_InsertCol</h3>
-<p>Inserts a new column before the specified column.</p>
+<p>Inserts a new column at the specified column number.</p>
 <pre class="Syntax"><span class="func">LV_InsertCol</span>(ColumnNumber <span class="optional">, Options, ColumnTitle</span>)</pre>
 <p>Creates a new column, inserting it as the specified <em>ColumnNumber</em> (shifting any other columns to the right to make room). The first column is 1 (not 0). If <em>ColumnNumber</em> is larger than the number of columns currently in the control, the new column is added to the end of the list. The newly inserted column starts off with empty contents beneath it unless it is the first column, in which case it inherits the old first column's contents and the old first column acquires blank contents. The new column's attributes -- such as whether or not it uses <a href="#Integer">integer sorting</a> -- always start off at their defaults unless changed via <em><a href="#ColOptions">Options</a></em>. This function returns the new column's position number (or 0 upon failure). The maximum number of columns in a ListView is 200.</p>
 
@@ -202,17 +195,17 @@ ExitApp</pre>
 <h3 id="LV_GetCount">LV_GetCount</h3>
 <p>Returns the total number of rows or columns, or the number of selected rows only.</p>
 <pre class="Syntax"><span class="func">LV_GetCount</span>(<span class="optional">Mode</span>)</pre>
-<p>When the parameter is omitted, the function returns the total number of rows in the control. When the parameter is &quot;S&quot; or &quot;Selected&quot;, the count includes only the selected/highlighted rows. When the parameter is &quot;Col&quot; or &quot;Column&quot;, the function returns the number of columns in the control. This function is always instantaneous because the control keeps track of these counts.</p>
+<p>When the parameter is omitted, the function returns the total number of rows in the control. When the parameter is "S" or "Selected", the count includes only the selected/highlighted rows. When the parameter is "Col" or "Column", the function returns the number of columns in the control. This function is always instantaneous because the control keeps track of these counts.</p>
 <p>This function is often used in the top line of a Loop, in which case the function would get called only once (prior to the first iteration). For example:</p>
 <pre>Loop % LV_GetCount()
 {
     LV_GetText(RetrievedText, A_Index)
-    if InStr(RetrievedText, &quot;some filter text&quot;)
-        LV_Modify(A_Index, &quot;Select&quot;)  <em>; Select each row whose first field contains the filter-text.</em>
+    if InStr(RetrievedText, "some filter text")
+        LV_Modify(A_Index, "Select")  <em>; Select each row whose first field contains the filter-text.</em>
 }</pre>
 <p>To retrieve the widths of a ListView's columns -- for uses such as saving them to an INI file to be remembered between sessions -- follow this example:</p>
 <pre>Gui +LastFound
-Loop % LV_GetCount(&quot;Column&quot;)
+Loop % LV_GetCount("Column")
 {
     SendMessage, 4125, A_Index - 1, 0, SysListView321  <em>; 4125 is LVM_GETCOLUMNWIDTH.</em>
     MsgBox Column %A_Index%'s width is %ErrorLevel%.
@@ -221,7 +214,7 @@ Loop % LV_GetCount(&quot;Column&quot;)
 <h3 id="LV_GetNext">LV_GetNext</h3>
 <p>Returns the row number of the next selected, checked, or focused row.</p>
 <pre class="Syntax"><span class="func">LV_GetNext</span>(<span class="optional">StartingRowNumber, RowType</span>)</pre>
-<p>If none is found, zero is returned. If <em>StartingRowNumber</em> is omitted or less than 1, the search begins at the top of the list. Otherwise, the search begins at the row after <em>StartingRowNumber</em>. If <em>RowType</em> is omitted, the function searches for the next selected/highlighted row. Otherwise, specify &quot;C&quot; or &quot;Checked&quot; to find the next checked row; or &quot;F&quot; or &quot;Focused&quot; to find the focused row (there is never more than one focused row in the entire list, and sometimes there is none at all). The following example reports all selected rows in the ListView:</p>
+<p>If none is found, zero is returned. If <em>StartingRowNumber</em> is omitted or less than 1, the search begins at the top of the list. Otherwise, the search begins at the row after <em>StartingRowNumber</em>. If <em>RowType</em> is omitted, the function searches for the next selected/highlighted row. Otherwise, specify "C" or "Checked" to find the next checked row; or "F" or "Focused" to find the focused row (there is never more than one focused row in the entire list, and sometimes there is none at all). The following example reports all selected rows in the ListView:</p>
 <pre>RowNumber := 0  <em>; This causes the first loop iteration to start the search at the top of the list.</em>
 Loop
 {
@@ -229,7 +222,7 @@ Loop
     if not RowNumber  <em>; The above returned zero, so there are no more selected rows.</em>
         break
     LV_GetText(Text, RowNumber)
-    MsgBox The next selected row is #%RowNumber%, whose first field is &quot;%Text%&quot;.
+    MsgBox The next selected row is #%RowNumber%, whose first field is "%Text%".
 }</pre>
 <p>An alternate method to find out if a particular row number is checked is the following:</p>
 <pre>Gui +LastFound
@@ -243,7 +236,7 @@ IsChecked := (ErrorLevel &gt;&gt; 12) - 1  <em>; This sets IsChecked to true if 
 <p>Column numbers seen by the script are not altered by any dragging and dropping of columns the user may have done. For example, the original first column is still number 1 even if the user drags it to the right of other columns.</p>
 
 <h3 id="LV_SetImageList">LV_SetImageList</h3>
-<p>Sets or replaces the ListView's <a href="#IL">ImageList</a>.</p>
+<p>Sets or replaces an <a href="#IL">ImageList</a> for displaying icons.</p>
 <pre class="Syntax"><span class="func">LV_SetImageList</span>(ImageListID <span class="optional">, IconType</span>)</pre>
 <p>This function is normally called prior to adding any rows to the ListView. It sets the <a href="#IL">ImageList</a> whose icons will be displayed by the ListView's rows (and optionally, its columns). <em>ImageListID</em> is the number returned from a previous call to <a href="#IL_Create">IL_Create()</a>. If <em>IconType</em> is omitted, the type of icons in the ImageList is detected automatically as large or small. Otherwise, specify 0 for large icons, 1 for small icons, and 2 for state icons (state icons are not yet directly supported, but they could be used via <a href="PostMessage.htm">SendMessage</a>).</p>
 <p>A ListView may have up to two ImageLists: small-icon and/or large-icon. This is useful when the script allows the user to switch to and from the large-icon view. To add more than one ImageList to a ListView, call LV_SetImageList() a second time, specifying the <em>ImageListID</em> of the second list. A ListView with both a large-icon and small-icon ImageList should ensure that both lists contain the icons in the same order. This is because the same ID number is used to reference both the large and small versions of a particular icon.</p>
@@ -254,12 +247,12 @@ IsChecked := (ErrorLevel &gt;&gt; 12) - 1  <em>; This sets IsChecked to true if 
 <p>A <a href="Gui.htm#label">g-label</a> such as <code><strong>g</strong>MySubroutine</code> may be listed in the control's options. This would cause the <em>MySubroutine</em> label to be launched automatically whenever the user performs an action in the control. This subroutine may consult the built-in variables <a href="../Variables.htm#Gui">A_Gui</a> and <a href="../Variables.htm#GuiControl">A_GuiControl</a> to find out which window and ListView generated the event. More importantly, it may consult <strong>A_GuiEvent</strong>, which contains one of the following strings or letters (for compatibility with future versions, a script should not assume these are the only possible values):</p>
 <p><strong>DoubleClick</strong>: The user has double-clicked within the control. The variable A_EventInfo contains the focused row number. <a href="#LV_GetNext">LV_GetNext()</a> can be used to instead get the first <em>selected</em> row number, which is 0 if the user double-clicked on empty space.</p>
 <p><strong>R</strong>: The user has <em>double-right</em>-clicked within the control. The variable A_EventInfo contains the focused row number.</p>
-<p id="ColClick"><strong>ColClick</strong>: The user has clicked a column header. The variable A_EventInfo contains the column number, which is the original number assigned when the column was created; that is, it does not reflect any dragging and dropping of columns done by the user. One possible response to a column click is to sort by a hidden column (zero width) that contains data in a sort-friendly format (such as a YYYYMMDD integer date). Such a hidden column can mirror some other column that displays the same data in a more friendly format (such as MM/DD/YY). For example, a script could hide column 3 via <code><a href="#LV_ModifyCol">LV_ModifyCol</a>(3, 0)</code>, then disable automatic sorting in the visible column 2 via <code>LV_ModifyCol(2, &quot;NoSort&quot;)</code>. Then in response to the ColClick notification for column 2, the script would sort the ListView by the hidden column via <code>LV_ModifyCol(3, &quot;Sort&quot;)</code>.</p>
+<p id="ColClick"><strong>ColClick</strong>: The user has clicked a column header. The variable A_EventInfo contains the column number, which is the original number assigned when the column was created; that is, it does not reflect any dragging and dropping of columns done by the user. One possible response to a column click is to sort by a hidden column (zero width) that contains data in a sort-friendly format (such as a YYYYMMDD integer date). Such a hidden column can mirror some other column that displays the same data in a more friendly format (such as MM/DD/YY). For example, a script could hide column 3 via <code><a href="#LV_ModifyCol">LV_ModifyCol</a>(3, 0)</code>, then disable automatic sorting in the visible column 2 via <code>LV_ModifyCol(2, "NoSort")</code>. Then in response to the ColClick notification for column 2, the script would sort the ListView by the hidden column via <code>LV_ModifyCol(3, "Sort")</code>.</p>
 <p id="Drag"><strong>D</strong>: The user has attempted to start dragging a row or icon (there is currently no built-in support for dragging rows or icons). The variable A_EventInfo contains the focused row number. <span class="ver">[v1.0.44+]</span>: This notification occurs even without <a href="#AltSubmit">AltSubmit</a>.</p>
 <p><strong>d</strong> (lowercase D): Same as above except a right-click-drag rather than a left-drag.</p>
 <p><strong>e</strong> (lowercase E): The user has finished editing the first field of a row (the user may edit it only when the ListView has <code><a href="#ReadOnly"><strong>-</strong>ReadOnly</a></code> in its options). The variable A_EventInfo contains the row number.</p>
 
-<h2>G-Label Notifications (Secondary)</h2>
+<h2 id="G-Label_Notifications_Secondary">G-Label Notifications (Secondary)</h2>
 <p>If the ListView has the word AltSubmit in its <a href="#Options">options</a>, its g-label is launched more often and <strong>A_GuiEvent</strong> may contain the following additional values:</p>
 <p><strong>Normal</strong>: The user has left-clicked a row. The variable A_EventInfo contains the focused row number.</p>
 <p><strong>RightClick</strong>: The user has right-clicked a row. The variable A_EventInfo contains the focused row number. In most cases, it is best not to display a menu in response to this. Instead, use the <a href="Gui.htm#GuiContextMenu">GuiContextMenu label</a> because it also recognizes the Apps key. For example:</p>
@@ -275,22 +268,22 @@ return</pre>
 <p><strong>E</strong>: The user has begun editing the first field of a row (the user may edit it only when the ListView has <code>-<a href="#ReadOnly">ReadOnly</a></code> in its options). The variable A_EventInfo contains the row number.</p>
 <p><strong>F</strong>: The ListView has received keyboard focus.</p>
 <p><strong>f</strong> (lowercase F): The ListView has lost keyboard focus.</p>
-<p id="ItemChanged"><strong>I</strong>: Item changed. A row has changed by becoming selected/deselected, checked/unchecked, etc. If the user selects a new row, at least two such notifications are received: one for the de-selection of the previous row, and one for the selection of the new row. <span class="ver">[v1.0.44+]</span>: The variable A_EventInfo contains the row number. <span class="ver">[v1.0.46.10+]</span>: ErrorLevel contains zero or more of the following letters to indicate how the item changed: S (select) or s (de-select), and/or F (focus) or f (de-focus), and/or C (checkmark) or c (uncheckmark). For example, SF means that the row has been selected and focused. To detect whether a particular letter is present, use a <a href="LoopParse.htm">parsing loop</a> or the case-sensitive option of <a href="InStr.htm">InStr()</a>; for example: <code>InStr(ErrorLevel, &quot;S&quot;, true)</code>. Note: For compatibility with future versions, a script should not assume that &quot;SsFfCc&quot; are the only possible letters. Also, specifying <a href="Critical.htm">Critical</a> as the <a href="Gui.htm#label">g-label</a>'s first line ensures that all &quot;I&quot; notifications are received (otherwise, some might be lost if the script cannot keep up with them).</p>
-<p id="NotifyK"><strong>K</strong>: The user has pressed a key while the ListView has focus. A_EventInfo contains the virtual key code of the key, which is a number between 1 and 255. This can be translated to a key name or character via <a href="GetKey.htm">GetKeyName()</a>. For example, <code>key := GetKeyName(<a href="Format.htm">Format</a>("vk{:x}", A_EventInfo))</code>. On most keyboard layouts, keys A-Z can be translated to the corresponding character via <code><a href="Chr.htm">Chr</a>(A_EventInfo)</code>. <kbd>F2</kbd> keystrokes are received regardless of <a href="#WantF2">WantF2</a>. However, the <kbd>Enter</kbd> keystroke is not received; to receive it, use a default button as described <a href="#Enter">below</a>.</p>
+<p id="ItemChanged"><strong>I</strong>: Item changed. A row has changed by becoming selected/deselected, checked/unchecked, etc. If the user selects a new row, at least two such notifications are received: one for the de-selection of the previous row, and one for the selection of the new row. <span class="ver">[v1.0.44+]</span>: The variable A_EventInfo contains the row number. <span class="ver">[v1.0.46.10+]</span>: ErrorLevel contains zero or more of the following letters to indicate how the item changed: S (select) or s (de-select), and/or F (focus) or f (de-focus), and/or C (checkmark) or c (uncheckmark). For example, SF means that the row has been selected and focused. To detect whether a particular letter is present, use a <a href="LoopParse.htm">parsing loop</a> or the case-sensitive option of <a href="InStr.htm">InStr()</a>; for example: <code>InStr(ErrorLevel, "S", true)</code>. Note: For compatibility with future versions, a script should not assume that "SsFfCc" are the only possible letters. Also, specifying <a href="Critical.htm">Critical</a> as the <a href="Gui.htm#label">g-label</a>'s first line ensures that all "I" notifications are received (otherwise, some might be lost if the script cannot keep up with them).</p>
+<p id="NotifyK"><strong>K</strong>: The user has pressed a key while the ListView has focus. A_EventInfo contains the virtual key code of the key, which is a number between 1 and 255. This can be translated to a key name or character via <a href="GetKey.htm">GetKeyName()</a>. For example, <code>key := GetKeyName(<a href="Format.htm">Format</a>("vk{:x}", A_EventInfo))</code>. On most keyboard layouts, keys A-Z can be translated to the corresponding character via <code><a href="Chr.htm">Chr</a>(A_EventInfo)</code>. <kbd>F2</kbd> is received regardless of <a href="#WantF2">WantF2</a>. However, <kbd>Enter</kbd> is not received; to receive it, use a default button as described <a href="#Enter">below</a>.</p>
 <p><strong>M</strong>: Marquee. The user has started to drag a selection-rectangle around a group of rows or icons.</p>
 <p><strong>S</strong>: The user has begun scrolling the ListView.</p>
 <p><strong>s</strong> (lowercase S): The user has finished scrolling the ListView.</p>
 
-<h2 id="IL">ImageList <span class="headnote">(the means by which icons are added to a ListView)</span></h2>
+<h2 id="IL">ImageLists</h2>
 <p>An Image-List is a group of identically sized icons stored in memory. Upon creation, each ImageList is empty. The script calls <a href="#IL_Add">IL_Add()</a> repeatedly to add icons to the list, and each icon is assigned a sequential number starting at 1. This is the number to which the script refers to display a particular icon in a row or column header. Here is a working example that demonstrates how to put icons into a ListView's rows:</p>
 <pre>Gui, Add, ListView, h200 w180, Icon &amp; Number|Description  <em>; Create a ListView.</em>
 ImageListID := <a href="#IL_Create">IL_Create</a>(10)  <em>; Create an ImageList to hold 10 small icons.</em>
 <a href="#LV_SetImageList">LV_SetImageList</a>(ImageListID)  <em>; Assign the above ImageList to the current ListView.</em>
 Loop 10  <em>; Load the ImageList with a series of icons from the DLL.</em>
-    <a href="#IL_Add">IL_Add</a>(ImageListID, &quot;shell32.dll&quot;, A_Index) 
+    <a href="#IL_Add">IL_Add</a>(ImageListID, "shell32.dll", A_Index) 
 Loop 10  <em>; Add rows to the ListView (for demonstration purposes, one for each icon).</em>
-    LV_Add(&quot;Icon&quot; . A_Index, A_Index, &quot;n/a&quot;)
-LV_ModifyCol(&quot;Hdr&quot;)  <em>; Auto-adjust the column widths.</em>
+    LV_Add("Icon" . A_Index, A_Index, "n/a")
+LV_ModifyCol("Hdr")  <em>; Auto-adjust the column widths.</em>
 Gui Show
 return
 
@@ -305,7 +298,7 @@ ExitApp</pre>
 <h3 id="IL_Add">IL_Add</h3>
 <p>Adds an icon or picture to the specified <em>ImageListID</em> and returns the new icon's index (1 is the first icon, 2 is the second, and so on).</p>
 <pre class="Syntax"><span class="func">IL_Add</span>(ImageListID, Filename <span class="optional">, IconNumber, ResizeNonIcon</span>)</pre>
-<p><em>Filename</em> is the name of an icon (.ICO), cursor (.CUR), or animated cursor (.ANI) file (animated cursors will not actually be animated when displayed in a ListView). Other sources of icons include the following types of files: EXE, DLL, CPL, SCR, and other types that contain icon resources. To use an icon group other than the first one in the file, specify its number for <em>IconNumber</em>. If <em>IconNumber</em> is negative, its absolute value is assumed to be the resource ID of an icon within an executable file. In the following example, the default icon from the second icon group would be used: <code>IL_Add(ImageListID, &quot;C:\My Application.exe&quot;, 2)</code>.</p>
+<p><em>Filename</em> is the name of an icon (.ICO), cursor (.CUR), or animated cursor (.ANI) file (animated cursors will not actually be animated when displayed in a ListView). Other sources of icons include the following types of files: EXE, DLL, CPL, SCR, and other types that contain icon resources. To use an icon group other than the first one in the file, specify its number for <em>IconNumber</em>. If <em>IconNumber</em> is negative, its absolute value is assumed to be the resource ID of an icon within an executable file. In the following example, the default icon from the second icon group would be used: <code>IL_Add(ImageListID, "C:\My Application.exe", 2)</code>.</p>
 <p>Non-icon images such as BMP, GIF and JPG may also be loaded. However, in this case the last two parameters should be specified to ensure correct behavior: <em>IconNumber</em> should be the mask/transparency color number (0xFFFFFF [the color white] might be best for most pictures); and <em>ResizeNonIcon</em> should be non-zero to cause the picture to be scaled to become a single icon, or zero to divide up the image into however many icons can fit into its actual width.</p>
 <p>All operating systems support GIF, JPG, BMP, ICO, CUR, and ANI images. On Windows XP or later, additional image formats such as PNG, TIF, Exif, WMF, and EMF are supported. Operating systems older than XP can be given support by copying Microsoft's free GDI+ DLL into the AutoHotkey.exe folder (but in the case of a <a href="../Scripts.htm#ahk2exe">compiled script</a>, copy the DLL into the script's folder). To download the DLL, search for the following phrase at <a href="https://www.microsoft.com">www.microsoft.com</a>: gdi redistributable</p>
 <p><span class="ver">[v1.1.23+]:</span> A <a href="../misc/ImageHandles.htm">bitmap or icon handle</a> can be used instead of a filename. For example, <code>HBITMAP:%handle%</code>.</p>
@@ -315,9 +308,9 @@ ExitApp</pre>
 <pre class="Syntax"><span class="func">IL_Destroy</span>(ImageListID)</pre>
 <p>It is normally not necessary to destroy ImageLists because once attached to a ListView, they are destroyed automatically when the ListView or its parent window is destroyed. However, if the ListView shares ImageLists with other ListViews (by having <code>0x40</code> in its options), the script should explicitly destroy the ImageList after destroying all the ListViews that use it. Similarly, if the script replaces one of a ListView's old ImageLists with a new one, it should explicitly destroy the old one.</p>
 
-<h2 id="Remarks">ListView Remarks</h2>
+<h2 id="Remarks">Remarks</h2>
 <p>The <a href="Gui.htm#Submit">Gui Submit</a> command has no effect on a ListView control. Therefore, the script may use the ListView's <a href="Gui.htm#var">associated variable</a> (if any) to store other data without concern that it will ever be overwritten.</p>
-<p>After a column is sorted -- either by means of the user clicking its header or the script calling <code><a href="#LV_ModifyCol">LV_ModifyCol</a>(1, &quot;Sort&quot;)</code> -- any subsequently added rows will appear at the bottom of the list rather than obeying the sort order. The exception to this is the <a href="#Sort">Sort</a> and <a href="#SortDesc">SortDesc</a> styles, which move newly added rows into the correct positions.</p>
+<p>After a column is sorted -- either by means of the user clicking its header or the script calling <code><a href="#LV_ModifyCol">LV_ModifyCol</a>(1, "Sort")</code> -- any subsequently added rows will appear at the bottom of the list rather than obeying the sort order. The exception to this is the <a href="#Sort">Sort</a> and <a href="#SortDesc">SortDesc</a> styles, which move newly added rows into the correct positions.</p>
 <p id="Enter">To detect when the user has pressed <kbd>Enter</kbd> while a ListView has focus, use a <a href="GuiControls.htm#DefaultButton">default button</a> (which can be hidden if desired). For example:</p>
 <pre>Gui, Add, Button, Hidden Default, OK
 ...
@@ -325,35 +318,36 @@ ButtonOK:
 GuiControlGet, FocusedControl, FocusV
 if (FocusedControl != "MyListView")
     return
-MsgBox % &quot;Enter was pressed. The focused row number is &quot; . LV_GetNext(0, &quot;Focused&quot;)
+MsgBox % "Enter was pressed. The focused row number is " . LV_GetNext(0, "Focused")
 return</pre>
 <p>In addition to navigating from row to row with the keyboard, the user may also perform incremental search by typing the first few characters of an item in the first column. This causes the selection to jump to the nearest matching row.</p>
 <p>Although any length of text can be stored in each field of a ListView, only the first 260 characters are displayed.</p>
 <p>Although the maximum number of rows in a ListView is limited only by available system memory, row-adding performance can be greatly improved as described in the <a href="#Count">Count</a> option.</p>
 <p>A picture may be used as a background around a ListView (that is, to frame the ListView). To do this, create the <a href="GuiControls.htm#Picture">picture control</a> after the ListView and include <code>0x4000000</code> (which is WS_CLIPSIBLINGS) in the picture's <em>Options</em>.</p>
 <p>A script may create more than one ListView per window. To operate upon a ListView other than the default one, see <a href="#BuiltIn">built-in functions</a>.</p>
-<p>It is best not to insert or delete columns directly with <a href="PostMessage.htm">SendMessage</a>. This is because the program maintains a collection of <a href="#Integer">sorting preferences</a> for each column, which would then get out of sync. Instead, use the <a href="#bifCol">built-in column functions</a>.</p>
+<p>It is best not to insert or delete columns directly with <a href="PostMessage.htm">SendMessage</a>. This is because the program maintains a collection of <a href="#Integer">sorting preferences</a> for each column, which would then get out of sync. Instead, use the <a href="#BuiltIn">built-in column functions</a>.</p>
 <p>To perform actions such as resizing, hiding, or changing the font of a ListView, use <a href="GuiControl.htm">GuiControl</a>.</p>
 <p>To extract text from external ListViews (those not owned by the script), use <a href="ControlGet.htm#List">ControlGet List</a>.</p>
 
-<h2>Related</h2>
+<h2 id="Related">Related</h2>
 <p><a href="TreeView.htm">TreeView</a>, <a href="GuiControls.htm">Other Control Types</a>, <a href="Gui.htm">Gui</a>, <a href="Gui.htm#GuiContextMenu">GuiContextMenu</a>, <a href="GuiControl.htm">GuiControl</a>, <a href="GuiControlGet.htm">GuiControlGet</a>, <a href="../misc/Styles.htm#ListView">ListView styles table</a></p>
 
 <h2 id="Examples">Examples</h2>
 
-<div class="ex" id="ExBasic">
-<p><a href="#ExBasic">#1</a></p>
-<pre><em>; Select or de-select all rows by specifying 0 as the row number:</em>
-<a href="#LV_Modify">LV_Modify</a>(0, &quot;Select&quot;)   <em>; Select all.</em>
-LV_Modify(0, &quot;-Select&quot;)  <em>; De-select all.</em>
-LV_Modify(0, &quot;-Check&quot;)  <em>; Uncheck all the <a href="#Checked">checkboxes</a>.</em>
+<div class="ex" id="ExAllRows">
+<p><a href="#ExAllRows">#1</a>: Selects or de-selects all rows by specifying 0 as the row number.</p>
+<pre><a href="#LV_Modify">LV_Modify</a>(0, "Select")   <em>; Select all.</em>
+LV_Modify(0, "-Select")  <em>; De-select all.</em>
+LV_Modify(0, "-Check")  <em>; Uncheck all the <a href="#Checked">checkboxes</a>.</em></pre>
+</div>
 
-<em>; Auto-size all columns to fit their contents:</em>
-<a href="#LV_ModifyCol">LV_ModifyCol</a>()  <em>; There are no parameters in this mode.</em></pre>
+<div class="ex" id="ExAutoSize">
+<p><a href="#ExAutoSize">#2</a>: Auto-sizes all columns to fit their contents.</p>
+<pre><a href="#LV_ModifyCol">LV_ModifyCol</a>()  <em>; There are no parameters in this mode.</em></pre>
 </div>
 
 <div class="ex" id="ExAdvanced">
-<p><a href="#ExAdvanced">#2</a>: The following is a working script that is more elaborate than the one near the top of this page. It displays the files in a folder chosen by the user, with each file assigned the icon associated with its type. The user can double-click a file, or right-click one or more files to display a context menu:</p>
+<p><a href="#ExAdvanced">#3</a>: The following is a working script that is more elaborate than the one near the top of this page. It displays the files in a folder chosen by the user, with each file assigned the icon associated with its type. The user can double-click a file, or right-click one or more files to display a context menu.</p>
 <pre><em>; Allow the user to maximize or drag-resize the window:</em>
 Gui +Resize
 
@@ -364,7 +358,7 @@ Gui, Add, Button, x+20, Switch View
 
 <em>; Create the ListView and its columns via <a href="#GuiAdd">Gui Add</a>:</em>
 Gui, Add, ListView, xm r20 w700 vMyListView gMyListView, Name|In Folder|Size (KB)|Type
-<a href="#LV_ModifyCol">LV_ModifyCol</a>(3, &quot;Integer&quot;)  <em>; For sorting, indicate that the Size column is an integer.</em>
+<a href="#LV_ModifyCol">LV_ModifyCol</a>(3, "Integer")  <em>; For sorting, indicate that the Size column is an integer.</em>
 
 <em>; Create an ImageList so that the ListView can display some icons:</em>
 ImageListID1 := <a href="#IL_Create">IL_Create</a>(10)
@@ -378,7 +372,7 @@ LV_SetImageList(ImageListID2)
 <a href="Menu.htm">Menu</a>, MyContextMenu, Add, Open, ContextOpenFile
 Menu, MyContextMenu, Add, Properties, ContextProperties
 Menu, MyContextMenu, Add, Clear from ListView, ContextClearRows
-Menu, MyContextMenu, Default, Open  <em>; Make &quot;Open&quot; a bold font to indicate that double-click does the same thing.</em>
+Menu, MyContextMenu, Default, Open  <em>; Make "Open" a bold font to indicate that double-click does the same thing.</em>
 
 <em>; Display the window and return. The OS will notify the script whenever the user
 ; performs an eligible action:</em>
@@ -436,8 +430,8 @@ Loop %Folder%\*.*
     if not IconNumber  <em>; There is not yet any icon for this extension, so load it.</em>
     {
         <em>; Get the high-quality small-icon associated with this file extension:</em>
-        if not DllCall(&quot;Shell32\SHGetFileInfo&quot; . (A_IsUnicode ? &quot;W&quot;:&quot;A&quot;), &quot;Str&quot;, FileName
-            , &quot;UInt&quot;, 0, &quot;Ptr&quot;, &amp;sfi, &quot;UInt&quot;, sfi_size, &quot;UInt&quot;, 0x101)  <em>; 0x101 is SHGFI_ICON+SHGFI_SMALLICON</em>
+        if not DllCall("Shell32\SHGetFileInfo" . (A_IsUnicode ? "W":"A"), "Str", FileName
+            , "UInt", 0, "Ptr", &amp;sfi, "UInt", sfi_size, "UInt", 0x101)  <em>; 0x101 is SHGFI_ICON+SHGFI_SMALLICON</em>
             IconNumber := 9999999  <em>; Set it out of bounds to display a blank icon.</em>
         else <em>; Icon successfully loaded.</em>
         {
@@ -445,17 +439,17 @@ Loop %Folder%\*.*
             hIcon := NumGet(sfi, 0)
             <em>; Add the HICON directly to the small-icon and large-icon lists.</em>
             <em>; Below uses +1 to convert the returned index from zero-based to one-based:</em>
-            IconNumber := DllCall(&quot;ImageList_ReplaceIcon&quot;, &quot;Ptr&quot;, ImageListID1, &quot;Int&quot;, -1, &quot;Ptr&quot;, hIcon) + 1
-            DllCall(&quot;ImageList_ReplaceIcon&quot;, &quot;Ptr&quot;, ImageListID2, &quot;Int&quot;, -1, &quot;Ptr&quot;, hIcon)
+            IconNumber := DllCall("ImageList_ReplaceIcon", "Ptr", ImageListID1, "Int", -1, "Ptr", hIcon) + 1
+            DllCall("ImageList_ReplaceIcon", "Ptr", ImageListID2, "Int", -1, "Ptr", hIcon)
             <em>; Now that it's been copied into the ImageLists, the original should be destroyed:</em>
-            DllCall(&quot;DestroyIcon&quot;, &quot;Ptr&quot;, hIcon)
+            DllCall("DestroyIcon", "Ptr", hIcon)
             <em>; Cache the icon to save memory and improve loading performance:</em>
             IconArray%ExtID% := IconNumber
         }
     }
 
     <em>; Create the new row in the ListView and assign it the icon number determined above:</em>
-    <a href="#LV_Add">LV_Add</a>(&quot;Icon&quot; . IconNumber, A_LoopFileName, A_LoopFileDir, A_LoopFileSizeKB, FileExt)
+    <a href="#LV_Add">LV_Add</a>("Icon" . IconNumber, A_LoopFileName, A_LoopFileDir, A_LoopFileSizeKB, FileExt)
 }
 GuiControl, +Redraw, MyListView  <em>; Re-enable redrawing (it was disabled above).</em>
 LV_ModifyCol()  <em>; Auto-size each column to fit its contents.</em>
@@ -482,7 +476,7 @@ if (A_GuiEvent = "DoubleClick")  <em>; There are many other possible values the 
     LV_GetText(FileDir, A_EventInfo, 2)  <em>; Get the text of the second field.</em>
     Run %FileDir%\%FileName%,, UseErrorLevel
     if ErrorLevel
-        MsgBox Could not open &quot;%FileDir%\%FileName%&quot;.
+        MsgBox Could not open "%FileDir%\%FileName%".
 }
 return
 
@@ -494,23 +488,23 @@ if (A_GuiControl != "MyListView")  <em>; Display the menu only for clicks inside
 Menu, MyContextMenu, Show, %A_GuiX%, %A_GuiY%
 return
 
-ContextOpenFile:  <em>; The user selected &quot;Open&quot; in the context menu.</em>
-ContextProperties:  <em>; The user selected &quot;Properties&quot; in the context menu.
+ContextOpenFile:  <em>; The user selected "Open" in the context menu.</em>
+ContextProperties:  <em>; The user selected "Properties" in the context menu.
 ; For simplicitly, operate upon only the focused row rather than all selected rows:</em>
-FocusedRowNumber := <a href="#LV_GetNext">LV_GetNext</a>(0, &quot;F&quot;)  <em>; Find the focused row.</em>
+FocusedRowNumber := <a href="#LV_GetNext">LV_GetNext</a>(0, "F")  <em>; Find the focused row.</em>
 if not FocusedRowNumber  <em>; No row is focused.</em>
     return
 LV_GetText(FileName, FocusedRowNumber, 1) <em>; Get the text of the first field.</em>
 LV_GetText(FileDir, FocusedRowNumber, 2)  <em>; Get the text of the second field.</em>
-if InStr(A_ThisMenuItem, "Open")  <em>; User selected &quot;Open&quot; from the context menu.</em>
+if InStr(A_ThisMenuItem, "Open")  <em>; User selected "Open" from the context menu.</em>
     Run %FileDir%\%FileName%,, UseErrorLevel
-else  <em>; User selected &quot;Properties&quot; from the context menu.</em>
-    Run Properties &quot;%FileDir%\%FileName%&quot;,, UseErrorLevel
+else  <em>; User selected "Properties" from the context menu.</em>
+    Run Properties "%FileDir%\%FileName%",, UseErrorLevel
 if ErrorLevel
-    MsgBox Could not perform requested action on &quot;%FileDir%\%FileName%&quot;.
+    MsgBox Could not perform requested action on "%FileDir%\%FileName%".
 return
 
-ContextClearRows:  <em>; The user selected &quot;Clear&quot; in the context menu.</em>
+ContextClearRows:  <em>; The user selected "Clear" in the context menu.</em>
 RowNumber := 0  <em>; This causes the first iteration to start the search at the top.</em>
 Loop
 {
@@ -528,7 +522,7 @@ GuiSize:  <em>; Expand or shrink the ListView in response to the user's resizing
 if (A_EventInfo = 1)  <em>; The window has been minimized. No action needed.</em>
     return
 <em>; Otherwise, the window has been resized or maximized. Resize the ListView to match.</em>
-GuiControl, Move, MyListView, % &quot;W&quot; . (A_GuiWidth - 20) . &quot; H&quot; . (A_GuiHeight - 40)
+GuiControl, Move, MyListView, % "W" . (A_GuiWidth - 20) . " H" . (A_GuiHeight - 40)
 return
 
 GuiClose:  <em>; When the window is closed, exit the script automatically:</em>

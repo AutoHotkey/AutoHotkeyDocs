@@ -15,71 +15,74 @@
 <p>Changes the attributes of one or more files or folders. Wildcards are supported.</p>
 
 <pre class="Syntax"><span class="func">FileSetAttrib</span>, Attributes <span class="optional">, FilePattern, OperateOnFolders?, Recurse?</span></pre>
-<h2>Parameters</h2>
+<h2 id="Parameters">Parameters</h2>
 <dl>
 
   <dt>Attributes</dt>
-  <dd><p>The attributes to change (see Remarks).</p></dd>
+  <dd><p>The attributes to change. For example, <code>+HA-R</code>.</p>
+    <p>To easily turn on, turn off or toggle attributes, prefix one or more of the following attribute letters with a plus sign (+), minus sign (-) or caret (^), respectively:</p>
+    <ul>
+      <li>R = READONLY</li>
+      <li>A = ARCHIVE</li>
+      <li>S = SYSTEM</li>
+      <li>H = HIDDEN</li>
+      <li>N = NORMAL (this is valid only when used without any other attributes)</li>
+      <li>O = OFFLINE</li>
+      <li>T = TEMPORARY</li>
+    </ul>
+    <p class="note"><strong>Note</strong>: Currently, the compression state of files cannot be changed with this command.</p>
+  </dd>
 
   <dt>FilePattern</dt>
   <dd>The name of a single file or folder, or a wildcard pattern such as <code>C:\Temp\*.tmp</code>. <em>FilePattern</em> is assumed to be in <a href="../Variables.htm#WorkingDir">%A_WorkingDir%</a> if an absolute path isn't specified.
     <p>If omitted, the current file of the innermost enclosing <a href="LoopFile.htm">File-Loop</a> will be used instead.</p></dd>
 
   <dt>OperateOnFolders?</dt>
-  <dd><p>0 (default) Folders are not operated upon (only files). <br>
-1 All files and folders that match the wildcard pattern are operated upon.<br>
-2 Only folders are operated upon (no files).</p>
+  <dd><p>If blank or omitted, it defaults to 0 (only files are operated upon). Otherwise, specify one of the following digits:</p>
+    <ul>
+      <li>0 = Folders are not operated upon (only files).</li>
+      <li>1 = All files and folders that match the wildcard pattern are operated upon.</li>
+      <li>2 = Only folders are operated upon (no files).</li>
+    </ul>
       <p class="note"><strong>Note</strong>: If <em>FilePattern</em> is a single folder rather than a wildcard pattern, it will always be operated upon regardless of this setting.</p>
       <p>This parameter can be an <a href="../Variables.htm#Expressions">expression</a>.</p></dd>
 
   <dt>Recurse?</dt>
-  <dd><p>0 (default) Subfolders are not recursed into.<br>
-      1 Subfolders are recursed into so that files and folders contained therein are operated upon if they match <em>FilePattern</em>. All subfolders will be recursed into, not just those whose names match <em>FilePattern</em>.  However, files and folders with a complete path name longer than 259 characters are skipped over as though they do not exist. Such files are rare because normally, the operating system does not allow their creation.</p>
+  <dd><p>If blank or omitted, it defaults to 0 (subfolders are not recursed into). Otherwise, specify one of the following digits:</p>
+    <ul>
+      <li>0 = Subfolders are not recursed into.</li>
+      <li>1 = Subfolders are recursed into so that files and folders contained therein are operated upon if they match <em>FilePattern</em>. All subfolders will be recursed into, not just those whose names match <em>FilePattern</em>. However, files and folders with a complete path name longer than 259 characters are skipped over as though they do not exist. Such files are rare because normally, the operating system does not allow their creation.</li>
+    </ul>
       <p>This parameter can be an <a href="../Variables.htm#Expressions">expression</a>.</p></dd>
 
 </dl>
 
-<h2>Error Handling</h2>
+<h2 id="Error_Handling">Error Handling</h2>
 <p><span class="ver">[v1.1.04+]</span>: This command is able to throw an exception on failure. For more information, see <a href="Catch.htm#RuntimeErrors">Runtime Errors</a>.</p>
 <p><a href="../misc/ErrorLevel.htm">ErrorLevel</a> is set to the number of files that <u>failed</u> to be changed or 0 otherwise.</p>
 <p>If files were found, <a href="../Variables.htm#LastError">A_LastError</a> is set to 0 (zero) or the result of the operating system's GetLastError() function immediately after the last failure. Otherwise A_LastError contains an error code that might indicate why no files were found.</p>
 
-<h2>Remarks</h2>
-<p>The <em>Attributes</em> parameter consists of a collection of operators and attribute letters.</p>
-<p><em>Operators</em>:</p>
-<table class="info">
-  <tr>
-    <td>+</td>
-    <td>Turn on the attribute</td>
-  </tr>
-  <tr>
-    <td>-</td>
-    <td>Turn off the attribute</td>
-  </tr>
-  <tr>
-    <td>^</td>
-    <td>Toggle the attribute (set it to the opposite value of what it is now)</td>
-  </tr>
-</table>
-<p><br>
-  <em>Attribute letters</em>:<br>
-  R = READONLY<br>
-  A = ARCHIVE<br>
-  S = SYSTEM<br>
-  H = HIDDEN<br>
-  N = NORMAL (this is valid only when used without any other attributes)<br>
-  O = OFFLINE<br>
-T = TEMPORARY</p>
-<p class="note"><strong>Note</strong>: Currently, the compression state of files cannot be changed with this command.</p>
-<h2>Related</h2>
+<h2 id="Related">Related</h2>
 <p><a href="FileGetAttrib.htm">FileGetAttrib</a>, <a href="FileGetTime.htm">FileGetTime</a>, <a href="FileSetTime.htm">FileSetTime</a>, <a href="FileGetSize.htm">FileGetSize</a>, <a href="FileGetVersion.htm">FileGetVersion</a>, <a href="LoopFile.htm">File-loop</a></p>
-<h2>Examples</h2>
-<div class="ex" id="ExBasic">
-<p><a href="#ExBasic">#1</a></p>
-<pre>FileSetAttrib, +RH, C:\MyFiles\*.*, 1  <em>; +RH is identical to +R+H</em>
-FileSetAttrib, ^H, C:\MyFiles  <em>; Toggle the folder's &quot;hidden&quot; attribute.</em>
-FileSetAttrib, -R+A, C:\New Text File.txt
-FileSetAttrib, +A, C:\*.ini, , 1  <em>; Recurse through all .ini files on the C drive.</em></pre>
+<h2 id="Examples">Examples</h2>
+<div class="ex" id="ExTurnOnMultiple">
+<p><a href="#ExTurnOnMultiple">#1</a>: Turns on the "read-only" and "hidden" attributes of all files and directories (subdirectories are not recursed into).</p>
+<pre>FileSetAttrib, +RH, C:\MyFiles\*.*, 1  <em>; +RH is identical to +R+H</em></pre>
+</div>
+
+<div class="ex" id="ExToggle">
+<p><a href="#ExToggle">#2</a>: Toggles the "hidden" attribute of a single directory.</p>
+<pre>FileSetAttrib, ^H, C:\MyFiles</pre>
+</div>
+
+<div class="ex" id="ExMixed">
+<p><a href="#ExMixed">#3</a>: Turns off the "read-only" attribute and turns on the "archive" attribute of a single file.</p>
+<pre>FileSetAttrib, -R+A, C:\New Text File.txt</pre>
+</div>
+
+<div class="ex" id="ExRecurse">
+<p><a href="#ExRecurse">#4</a>: Recurses through all .ini files on the C drive and turns on their "archive" attribute.</p>
+<pre>FileSetAttrib, +A, C:\*.ini, , 1</pre>
 </div>
 
 </body>
