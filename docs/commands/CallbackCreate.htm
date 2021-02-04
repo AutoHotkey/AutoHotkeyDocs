@@ -16,7 +16,7 @@
 <p>Creates a machine-code address that when called, redirects the call to a <a href="../Functions.htm">function</a> in the script.</p>
 
 <pre class="Syntax">Address := <span class="func">CallbackCreate</span>(Function <span class="optional">, Options := "", ParamCount := Function.MinParams</span>)</pre>
-<h2>Parameters</h2>
+<h2 id="Parameters">Parameters</h2>
 <dl>
 
   <dt>Function</dt>
@@ -32,7 +32,7 @@
     <p>Type: <a href="../Concepts.htm#strings">String</a></p>
     <p>Specify zero or more of the following words or characters. Separate each option from the next with a space (e.g. <code>"C Fast"</code>).</p>
     <p id="Fast"><strong>Fast</strong> or <strong>F</strong>: Avoids starting a new <a href="../misc/Threads.htm">thread</a> each time <em>FunctionName</em> is called. Although this performs better, it must be avoided whenever the thread from which <em>Address</em> is called varies (e.g. when the callback is triggered by an incoming message). This is because <em>FunctionName</em> will be able to change global settings such as <a href="../Variables.htm#LastError">A_LastError</a> and the <a href="../misc/WinTitle.htm#LastFoundWindow">last-found window</a> for whichever thread happens to be running at the time it is called. For more information, see <a href="#Threads">Remarks</a>.</p>
-    <p><strong>CDecl</strong> or <strong>C</strong>: Makes <em>Address</em> conform to the &quot;C&quot; calling convention. This is typically omitted because the standard calling convention is much more common for callbacks. This option is ignored by 64-bit versions of AutoHotkey, which use the x64 calling convention.</p>
+    <p><strong>CDecl</strong> or <strong>C</strong>: Makes <em>Address</em> conform to the "C" calling convention. This is typically omitted because the standard calling convention is much more common for callbacks. This option is ignored by 64-bit versions of AutoHotkey, which use the x64 calling convention.</p>
     <p><strong>&amp;</strong>: Causes the address of the parameter list (a single integer) to be passed to <em>Function</em> instead of the individual parameters. Parameter values can be retrieved by using <a href="NumGet.htm">NumGet</a>. When using the standard 32-bit calling convention, <em>ParamCount</em> must specify the size of the parameter list in DWORDs (the number of bytes divided by 4).</p>
   </dd>
 
@@ -44,11 +44,11 @@
 
 </dl>
 
-<h2>Return Value</h2>
+<h2 id="Return_Value">Return Value</h2>
 <p>Type: <a href="../Concepts.htm#numbers">Integer</a></p>
 <p>CallbackCreate returns a machine-code address. This address is typically passed to an external function via <a href="DllCall.htm">DllCall</a> or placed in a struct using <a href="NumPut.htm">NumPut</a>, but can also be called directly by DllCall. Passing the address to <a href="#CallbackFree">CallbackFree</a> will delete the callback.</p>
 
-<h2>Error Handling</h2>
+<h2 id="Error_Handling">Error Handling</h2>
 <p>This function fails and throws an exception under any of the following conditions:</p>
 <ul>
   <li><em>Function</em> is not an object or a valid function name, or has neither a <code>MinParams</code> property nor a <code>Call</code> method.</li>
@@ -57,7 +57,7 @@
   <li><em>ParamCount</em> is omitted and: 1) <em>Function</em> has no <code>MinParams</code> property; or 2) the <code>&amp;</code> option is used with the standard 32-bit calling convention.</li>
 </ul>
 
-<h2>The Callback Function's Parameters</h2>
+<h2 id="The_Callback_Functions_Parameters">The Callback Function's Parameters</h2>
 <p>A <a href="../Functions.htm">function</a> assigned to a callback address may accept up to 31 parameters. <a href="../Functions.htm#optional">Optional parameters</a> are permitted, which is useful when the function is called by more than one caller.</p>
 <p>Interpreting the parameters correctly requires some understanding of how the x86 calling conventions work. Since AutoHotkey does not have typed parameters, the callback's parameter list is assumed to consist of integers, and some reinterpretation may be required.</p>
 
@@ -86,14 +86,14 @@ wParam := wParam &lt;&lt; 32 &gt;&gt; 32</pre>
 <p id="Indirect"><strong>Receiving parameters by address:</strong> If the <code>&amp;</code> option is used, the function receives the <i>address</i> of the first callback parameter. For example:</p>
 <pre>
 callback := CallbackCreate("TheFunc", "F&amp;", 3)  <em>; Parameter list size must be specified for 32-bit.</em>
-DllCall(callback, &quot;float&quot;, 10.5, &quot;int64&quot;, 42)
+DllCall(callback, "float", 10.5, "int64", 42)
 TheFunc(params) {
     MsgBox <a href="NumGet.htm">NumGet</a>(params, 0, "float") ", " NumGet(params, A_PtrSize, "int64")
 }</pre>
 <p>Most callbacks in 32-bit programs use the <em>stdcall</em> calling convention, which requires a fixed number of parameters. In those cases, <em>ParamCount</em> must be set to the size of the parameter list, where Int64 and Double count as two 32-bit parameters. With <em>Cdecl</em> or the 64-bit calling convention, <em>ParamCount</em> has no effect.</p>
 
-<h2>What the Function Should <em>Return</em></h2>
-<p>If the function uses <a href="Return.htm">Return</a> without any parameters, or it specifies a blank value such as &quot;&quot; (or it never uses Return at all), 0 is returned to the caller of the callback. Otherwise, the function should return an integer, which is then returned to the caller. AutoHotkey 32-bit truncates return values to 32-bit, while AutoHotkey 64-bit supports 64-bit return values. Returning structs larger than this (by value) is not supported.</p>
+<h2 id="What_the_Function_Should_Return">What the Function Should <em>Return</em></h2>
+<p>If the function uses <a href="Return.htm">Return</a> without any parameters, or it specifies a blank value such as "" (or it never uses Return at all), 0 is returned to the caller of the callback. Otherwise, the function should return an integer, which is then returned to the caller. AutoHotkey 32-bit truncates return values to 32-bit, while AutoHotkey 64-bit supports 64-bit return values. Returning structs larger than this (by value) is not supported.</p>
 
 <h2 id="Threads">Fast vs. Slow</h2>
 <p>The default/slow mode causes the function to start off fresh with the default values for settings such as <a href="SendMode.htm">SendMode</a> and <a href="DetectHiddenWindows.htm">DetectHiddenWindows</a>. These defaults can be changed during <a href="../Scripts.htm#auto">script startup</a>.</p>
@@ -105,18 +105,18 @@ TheFunc(params) {
 <pre>CallbackFree(Address)</pre>
 <p>This also releases the callback's reference to the script's function object.</p>
 
-<h2>Related</h2>
+<h2 id="Related">Related</h2>
 <p><a href="DllCall.htm">DllCall</a>, <a href="OnMessage.htm">OnMessage</a>, <a href="OnExit.htm">OnExit</a>, <a href="OnClipboardChange.htm">OnClipboardChange</a>, <a href="Sort.htm#callback">Sort's callback</a>, <a href="Critical.htm">Critical</a>, <a href="PostMessage.htm">PostMessage</a>, <a href="SendMessage.htm">SendMessage</a>, <a href="../Functions.htm">Functions</a>, <a href="../misc/SendMessageList.htm">List of Windows Messages</a>, <a href="../misc/Threads.htm">Threads</a></p>
 
-<h2>Examples</h2>
+<h2 id="Examples">Examples</h2>
 <div class="ex" id="ExWinList">
-<p><a href="#ExWinList">#1</a>: The following is a working script that displays a summary of all top-level windows.</p>
-<pre>EnumAddress := <strong>CallbackCreate</strong>(&quot;EnumWindowsProc&quot;, &quot;Fast&quot;)  <em>; Fast-mode is okay because it will be called only from this thread.</em>
+<p><a href="#ExWinList">#1</a>: Displays a summary of all top-level windows.</p>
+<pre>EnumAddress := CallbackCreate("EnumWindowsProc", "Fast")  <em>; Fast-mode is okay because it will be called only from this thread.</em>
 
 DetectHiddenWindows True  <em>; Due to fast-mode, this setting will go into effect for the callback too.</em>
 
 <em>; Pass control to EnumWindows(), which calls the callback repeatedly:</em>
-DllCall(&quot;EnumWindows&quot;, &quot;Ptr&quot;, EnumAddress, &quot;Ptr&quot;, 0)
+DllCall("EnumWindows", "Ptr", EnumAddress, "Ptr", 0)
 MsgBox Output  <em>; Display the information accumulated by the callback.</em>
     
 EnumWindowsProc(hwnd, lParam)
@@ -125,15 +125,15 @@ EnumWindowsProc(hwnd, lParam)
     win_title := WinGetTitle(hwnd)
     win_class := WinGetClass(hwnd)
     if win_title
-        Output .= &quot;HWND: &quot; hwnd &quot;`tTitle: &quot; win_title &quot;`tClass: &quot; win_class &quot;`n&quot;
+        Output .= "HWND: " hwnd "`tTitle: " win_title "`tClass: " win_class "`n"
     return true  <em>; Tell EnumWindows() to continue until all windows have been enumerated.</em>
 }</pre>
 </div>
 
 <div class="ex" id="ExSubclassGUI">
-<p><a href="#ExSubclassGUI">#2</a>: The following is a working script that demonstrates how to subclass a GUI window by redirecting its WindowProc to a new WindowProc in the script. In this case, the background color of a text control is changed to a custom color.</p>
+<p><a href="#ExSubclassGUI">#2</a>: Demonstrates how to subclass a GUI window by redirecting its WindowProc to a new WindowProc in the script. In this case, the background color of a text control is changed to a custom color.</p>
 <pre>TextBackgroundColor := 0xFFBBBB  <em>; A custom color in BGR format.</em>
-TextBackgroundBrush := DllCall(&quot;CreateSolidBrush&quot;, &quot;UInt&quot;, TextBackgroundColor)
+TextBackgroundBrush := DllCall("CreateSolidBrush", "UInt", TextBackgroundColor)
 
 MyGui := Gui.New()
 Text := MyGui.Add("Text",, "Here is some text that is given`na custom background color.")
@@ -141,9 +141,9 @@ Text := MyGui.Add("Text",, "Here is some text that is given`na custom background
 <em>; 64-bit scripts must call SetWindowLongPtr instead of SetWindowLong:</em>
 SetWindowLong := A_PtrSize=8 ? "SetWindowLongPtr" : "SetWindowLong"
 
-WindowProcNew := <strong>CallbackCreate</strong>("WindowProc")  <em>; Avoid fast-mode for subclassing.</em>
-WindowProcOld := DllCall(SetWindowLong, &quot;Ptr&quot;, MyGui.Hwnd, &quot;Int&quot;, -4  <em>; -4 is GWL_WNDPROC</em>
-    , &quot;Ptr&quot;, WindowProcNew, &quot;Ptr&quot;) <em>; Return value must be set to &quot;Ptr&quot; or &quot;UPtr&quot; vs. &quot;Int&quot;.</em>
+WindowProcNew := CallbackCreate("WindowProc")  <em>; Avoid fast-mode for subclassing.</em>
+WindowProcOld := DllCall(SetWindowLong, "Ptr", MyGui.Hwnd, "Int", -4  <em>; -4 is GWL_WNDPROC</em>
+    , "Ptr", WindowProcNew, "Ptr") <em>; Return value must be set to "Ptr" or "UPtr" vs. "Int".</em>
 
 MyGui.Show
 
@@ -153,11 +153,11 @@ WindowProc(hwnd, uMsg, wParam, lParam)
     global Text, TextBackgroundColor, TextBackgroundBrush, WindowProcOld
     if (uMsg = 0x138 &amp;&amp; lParam = Text.Hwnd)  <em>; 0x138 is WM_CTLCOLORSTATIC.</em>
     {
-        DllCall(&quot;SetBkColor&quot;, &quot;Ptr&quot;, wParam, &quot;UInt&quot;, TextBackgroundColor)
+        DllCall("SetBkColor", "Ptr", wParam, "UInt", TextBackgroundColor)
         return TextBackgroundBrush  <em>; Return the HBRUSH to notify the OS that we altered the HDC.</em>
     }
     <em>; Otherwise (since above didn't return), pass all unhandled events to the original WindowProc.</em>
-    return DllCall(&quot;CallWindowProc&quot;, &quot;Ptr&quot;, WindowProcOld, &quot;Ptr&quot;, hwnd, &quot;UInt&quot;, uMsg, &quot;Ptr&quot;, wParam, &quot;Ptr&quot;, lParam)
+    return DllCall("CallWindowProc", "Ptr", WindowProcOld, "Ptr", hwnd, "UInt", uMsg, "Ptr", wParam, "Ptr", lParam)
 }</pre>
 
 </div>

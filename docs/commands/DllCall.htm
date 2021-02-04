@@ -15,14 +15,14 @@
 <p>Calls a function inside a DLL, such as a standard Windows API function.</p>
 
 <pre class="Syntax">Result := <span class="func">DllCall</span>("<span class="optional">DllFile\</span>Function" <span class="optional">, Type1, Arg1, Type2, Arg2, "Cdecl ReturnType"</span>)</pre>
-<h2>Parameters</h2>
+<h2 id="Parameters">Parameters</h2>
 <dl>
 
   <dt>[DllFile\]Function</dt>
   <dd>
       <p>Type: <a href="../Concepts.htm#strings">String</a> or <a href="../Concepts.htm#numbers">Integer</a></p>
-      <p>The DLL or EXE file name followed by a backslash and the name of the function. For example: <code>&quot;MyDLL\MyFunction&quot;</code> (the file extension &quot;.dll&quot; is the default when omitted). If an absolute path isn't specified, <em>DllFile</em> is assumed to be in the system's PATH or <a href="../Variables.htm#WorkingDir">A_WorkingDir</a>.</p>
-      <p id="std"><em>DllFile</em> may be omitted when calling a function that resides in User32.dll, Kernel32.dll, ComCtl32.dll, or Gdi32.dll. For example, <code>&quot;User32\IsWindowVisible&quot;</code> produces the same result as <code>&quot;IsWindowVisible&quot;</code>.</p>
+      <p>The DLL or EXE file name followed by a backslash and the name of the function. For example: <code>"MyDLL\MyFunction"</code> (the file extension ".dll" is the default when omitted). If an absolute path isn't specified, <em>DllFile</em> is assumed to be in the system's PATH or <a href="../Variables.htm#WorkingDir">A_WorkingDir</a>.</p>
+      <p id="std"><em>DllFile</em> may be omitted when calling a function that resides in User32.dll, Kernel32.dll, ComCtl32.dll, or Gdi32.dll. For example, <code>"User32\IsWindowVisible"</code> produces the same result as <code>"IsWindowVisible"</code>.</p>
       <p>If no function can be found by the given name, a "W" (Unicode) suffix is automatically appended. For example, <code>"MessageBox"</code> is the same as <code>"MessageBoxW"</code>.</p>
       <p>Performance can be dramatically improved when making <em>repeated</em> calls to a DLL by <a href="#load">loading it beforehand</a>.</p>
       <p>This parameter may also consist solely of an integer, which is interpreted as the address of the function to call. Sources of such addresses include <a href="#COM">COM</a> and <a href="CallbackCreate.htm">CallbackCreate</a>.</p>
@@ -37,8 +37,8 @@
   <dt>Cdecl ReturnType</dt>
   <dd>
       <p>Type: <a href="../Concepts.htm#strings">String</a></p>
-      <p id="cdecl">The word <em>Cdecl</em> is normally omitted because most functions use the standard calling convention rather than the &quot;C&quot; calling convention (functions such as wsprintf that accept a varying number of arguments are one exception to this). Note that most object-oriented C++ functions use the <i>thiscall</i> convention, which is not supported.</p>
-      <p>If present, the word <em>Cdecl</em> should be listed before the return type (if any). Separate each word from the next with a space or tab. For example: <code>&quot;Cdecl Str&quot;</code>.</p>
+      <p id="cdecl">The word <em>Cdecl</em> is normally omitted because most functions use the standard calling convention rather than the "C" calling convention (functions such as wsprintf that accept a varying number of arguments are one exception to this). Note that most object-oriented C++ functions use the <i>thiscall</i> convention, which is not supported.</p>
+      <p>If present, the word <em>Cdecl</em> should be listed before the return type (if any). Separate each word from the next with a space or tab. For example: <code>"Cdecl Str"</code>.</p>
       <p>Since a separate "C" calling convention does not exist in 64-bit code, <i>Cdecl</i> may be specified but has no effect on 64-bit builds of AutoHotkey.</p>
       <p><em>ReturnType</em>: If the function returns a 32-bit signed integer (Int), BOOL, or nothing at all, <em>ReturnType</em> may be omitted. Otherwise, specify one of the argument types from the <a href="#types">types table</a> below. The <a href="#asterisk">asterisk suffix</a> is also supported.</p>
   </dd>
@@ -53,12 +53,12 @@
 <table class="info">
 <tr id="str">
 <td>Str</td>
-<td><p>A string such as &quot;Blue&quot; or MyVar. If the called function modifies the string and the argument is a naked variable, its contents will be updated. For example, the following call would convert the contents of <em>MyVar</em> to uppercase: <code>DllCall(&quot;CharUpper&quot;, &quot;Str&quot;, <i>MyVar</i>)</code>.</p>
+<td><p>A string such as "Blue" or MyVar. If the called function modifies the string and the argument is a naked variable, its contents will be updated. For example, the following call would convert the contents of <em>MyVar</em> to uppercase: <code>DllCall("CharUpper", "Str", <i>MyVar</i>)</code>.</p>
   <p>If the function is designed to store a string longer than the parameter's input value (or if the parameter is for output only), the recommended approach is to use <a href="BufferAlloc.htm">BufferAlloc</a> to allocate a buffer, the <a href="#ptr">Ptr</a> type to pass it, and <a href="StrGet.htm">StrGet</a> to retrieve the string after the function returns. </p>
   <p>Otherwise, ensure that the variable is large enough before calling the function. This can be achieved by calling <code><a href="VarSetStrCapacity.htm">VarSetStrCapacity</a>(MyVar, 123)</code>, where 123 is the number of 16-bit units (loosely referred to as characters) that <em>MyVar</em> must be able to hold. If the variable is not null-terminated upon return, an error message is shown and the program exits as it is likely that memory has been corrupted via buffer overrun. This would typically indicate that the variable's capacity was insufficient.</p>
   <p></p>
   <p>A <em>Str</em> argument must not be an <a href="../Variables.htm#Expressions">expression</a> that evaluates to a number (such as <code>i+1</code>). If it is, the function is not called and throws an <a href="Catch.htm#RuntimeErrors">exception</a>.</p>
-  <p id="strp">The rarely-used <a href="#asterisk">Str*</a> arg type passes the address of a temporary variable containing the address of the string. If the function writes a new address into the temporary variable, the new string is copied into the script's variable, if one was passed. This can be used with functions that expect something like &quot;TCHAR **&quot; or &quot;LPTSTR *&quot;. However, if the function allocates memory and expects the caller to free it (such as by calling <a href="https://docs.microsoft.com/en-us/windows/win32/api/combaseapi/nf-combaseapi-cotaskmemfree">CoTaskMemFree</a>), the <code>Ptr*</code> arg type must be used instead.</p>
+  <p id="strp">The rarely-used <a href="#asterisk">Str*</a> arg type passes the address of a temporary variable containing the address of the string. If the function writes a new address into the temporary variable, the new string is copied into the script's variable, if one was passed. This can be used with functions that expect something like "TCHAR **" or "LPTSTR *". However, if the function allocates memory and expects the caller to free it (such as by calling <a href="https://docs.microsoft.com/en-us/windows/win32/api/combaseapi/nf-combaseapi-cotaskmemfree">CoTaskMemFree</a>), the <code>Ptr*</code> arg type must be used instead.</p>
   <p class="note"><strong>Note</strong>: When passing a string to a function, be aware what <a href="../Compat.htm#DllCall"><i>type</i> of string</a> the function expects.</p></td>
 </tr>
 <tr>
@@ -83,7 +83,7 @@ str := StrGet(buf, "cp0")  <em>; Retrieve ANSI string from buffer.</em>
 </tr>
 <tr id="Int">
   <td>Int</td>
-  <td><p>A 32-bit integer (the most common integer type), whose range is -2147483648 (-0x80000000) to 2147483647 (0x7FFFFFFF). An Int is sometimes called a &quot;Long&quot;.</p>
+  <td><p>A 32-bit integer (the most common integer type), whose range is -2147483648 (-0x80000000) to 2147483647 (0x7FFFFFFF). An Int is sometimes called a "Long".</p>
     <p>An Int should also be used for each BOOL argument expected by a function (a BOOL value should be either 1 or 0).</p>
     <p>An <a href="#unsigned">unsigned</a> Int (UInt) is also used quite frequently, such as for DWORD.</p></td>
 </tr>
@@ -105,7 +105,7 @@ str := StrGet(buf, "cp0")  <em>; Retrieve ANSI string from buffer.</em>
 </tr>
 <tr id="ptr">
   <td>Ptr</td>
-  <td><p>A <a href="../Variables.htm#PtrSize">pointer-sized</a> integer, equivalent to Int or Int64 depending on whether the exe running the script is 32-bit or 64-bit. <i>Ptr</i> should be used for pointers to arrays or structures (such as RECT* or LPPOINT) and almost all handles (such as HWND, HBRUSH or HBITMAP). If the parameter is a pointer to a single numeric value such as LPDWORD or int*, generally the * or P suffix should be used instead of &quot;Ptr&quot;.</p>
+  <td><p>A <a href="../Variables.htm#PtrSize">pointer-sized</a> integer, equivalent to Int or Int64 depending on whether the exe running the script is 32-bit or 64-bit. <i>Ptr</i> should be used for pointers to arrays or structures (such as RECT* or LPPOINT) and almost all handles (such as HWND, HBRUSH or HBITMAP). If the parameter is a pointer to a single numeric value such as LPDWORD or int*, generally the * or P suffix should be used instead of "Ptr".</p>
   <p>If an object is passed to a Ptr parameter, the value of the object's <code>Ptr</code> property is used. If no such property exists, an exception is thrown. Typically the object would be a <a href="../objects/Buffer.htm">Buffer</a> object created by <a href="BufferAlloc.htm">BufferAlloc</a>.</p>
   <p>If an object is passed to a Ptr* parameter, the value of the object's <code>Ptr</code> property is retrieved before the call and the address of a temporary variable containing this value is passed to the function. After the function returns, the new value is assigned back to the object's <code>Ptr</code> property.</p>
   <p><i>Ptr</i> can also be used with the * or P suffix; it should be used with functions that output a pointer via LPVOID* or similar.</p>
@@ -115,9 +115,9 @@ str := StrGet(buf, "cp0")  <em>; Retrieve ANSI string from buffer.</em>
 <tr id="asterisk">
   <td>* or P<br>
     (suffix)</td>
-  <td><p>Append an asterisk (with optional preceding space) to any of the above types to cause the address of the argument to be passed rather than the value itself (the called function must be designed to accept it). Since the value of such an argument might be modified by the function, whenever a naked variable is passed as the argument, that variable's contents will be updated. For example, the following call would pass the contents of MyVar to MyFunction by address, but would also update MyVar to reflect any changes made to it by MyFunction: <code>DllCall(&quot;MyDll\MyFunction&quot;, &quot;Int*&quot;, MyVar)</code>.</p>
-    <p>In general, an asterisk is used whenever a function has an argument type or return type that starts with &quot;LP&quot;. The most common example is LPDWORD, which is a pointer to a DWORD. Since a DWORD is an unsigned 32-bit integer, use &quot;UInt*&quot; or &quot;UIntP&quot; to represent LPDWORD. An asterisk should not be used for string types such as LPTSTR, pointers to structures such as LPRECT, or arrays; for these, <a href="#str">&quot;Str&quot;</a> or &quot;Ptr&quot; should be used, depending on whether you pass a variable or its address.</p>
-    <p class="note"><strong>Note</strong>: &quot;Char*&quot; is not the same as <a href="#str">&quot;Str&quot;</a> because &quot;Char*&quot; passes the address of an 8-bit number, whereas <a href="#str">&quot;Str&quot;</a> passes the address of a series of characters, which may be either 16-bit (Unicode) or 8-bit (for "AStr"), depending on the version of AutoHotkey. Similarly, &quot;UInt*&quot; passes the address of a 32-bit number, so should not be used if the function expects an array of values or a structure larger than 32 bits.</p>
+  <td><p>Append an asterisk (with optional preceding space) to any of the above types to cause the address of the argument to be passed rather than the value itself (the called function must be designed to accept it). Since the value of such an argument might be modified by the function, whenever a naked variable is passed as the argument, that variable's contents will be updated. For example, the following call would pass the contents of MyVar to MyFunction by address, but would also update MyVar to reflect any changes made to it by MyFunction: <code>DllCall("MyDll\MyFunction", "Int*", MyVar)</code>.</p>
+    <p>In general, an asterisk is used whenever a function has an argument type or return type that starts with "LP". The most common example is LPDWORD, which is a pointer to a DWORD. Since a DWORD is an unsigned 32-bit integer, use "UInt*" or "UIntP" to represent LPDWORD. An asterisk should not be used for string types such as LPTSTR, pointers to structures such as LPRECT, or arrays; for these, <a href="#str">"Str"</a> or "Ptr" should be used, depending on whether you pass a variable or its address.</p>
+    <p class="note"><strong>Note</strong>: "Char*" is not the same as <a href="#str">"Str"</a> because "Char*" passes the address of an 8-bit number, whereas <a href="#str">"Str"</a> passes the address of a series of characters, which may be either 16-bit (Unicode) or 8-bit (for "AStr"), depending on the version of AutoHotkey. Similarly, "UInt*" passes the address of a 32-bit number, so should not be used if the function expects an array of values or a structure larger than 32 bits.</p>
     <p>Since variables in AutoHotkey have no fixed type, the address passed to the function points to temporary memory rather than the variable itself. It is not necessary to call <a href="VarSetStrCapacity.htm">VarSetStrCapacity</a> on the variable as DllCall will update it correctly after the function returns.</p>
     </td>
 </tr>
@@ -146,25 +146,25 @@ str := StrGet(buf, "cp0")  <em>; Retrieve ANSI string from buffer.</em>
   <li>An argument was passed a value of an unexpected type. For instance, an <a href="../Variables.htm#Expressions">expression</a> that evaluates to a number was passed to a string (<a href="#str">str</a>) argument, a non-numeric string was passed to a numeric argument, or an object was passed to an argument <em>not</em> of type <a href="#ptr">Ptr</a>.</li>
   <li>The specified <em>DllFile</em> could not be accessed or loaded. If no explicit path was specified for <em>DllFile</em>, the file must exist in the system's PATH or <a href="../Variables.htm#WorkingDir">A_WorkingDir</a>. This error might also occur if the user lacks permission to access the file, or if AutoHotkey is 32-bit and the DLL is 64-bit or vice versa.</li>
   <li>The specified function could not be found inside the DLL.</li>
-  <li>The function was called but it aborted with a fatal exception. <code>Exception.Extra</code> contains the exception code. For example, 0xC0000005 means &quot;access violation&quot;. In such cases, the thread is aborted (if <a href="Try.htm">try</a> is not used), but any <a href="#asterisk">asterisk variables</a> are still updated. An example of a fatal exception is dereferencing an invalid pointer such as NULL (0). Since a <a href="#cdecl">Cdecl</a> function never produces the error described in the next paragraph, it may generate an exception when too few arguments are passed to it.</li>
+  <li>The function was called but it aborted with a fatal exception. <code>Exception.Extra</code> contains the exception code. For example, 0xC0000005 means "access violation". In such cases, the thread is aborted (if <a href="Try.htm">try</a> is not used), but any <a href="#asterisk">asterisk variables</a> are still updated. An example of a fatal exception is dereferencing an invalid pointer such as NULL (0). Since a <a href="#cdecl">Cdecl</a> function never produces the error described in the next paragraph, it may generate an exception when too few arguments are passed to it.</li>
   <li>The function was called but was passed too many or too few arguments. <code>Exception.Extra</code> contains the number of bytes by which the argument list was incorrect. If it is positive, too many arguments (or arguments that were too large) were passed, or the call requires <a href="#cdecl">CDecl</a>. If it is negative, too few arguments were passed. This situation should be corrected to ensure reliable operation of the function. The presence of this error may also indicate that an exception occurred. Note that due to the x64 calling convention, 64-bit builds never raise this error.</li>
 </ul>
 
 <h2 id="except">Native Exceptions and A_LastError</h2>
-<p>In spite of the built-in exception handling, it is still possible to crash a script with DllCall. This can happen when a function does not directly generate an exception but yields something inappropriate, such as a bad pointer or a string that is not terminated. This might not be the function's fault if the script passed it an unsuitable value such as a bad pointer or a <a href="#str">&quot;str&quot;</a> with insufficient capacity. A script can also crash when it specifies an inappropriate argument type or return type, such as claiming that an ordinary integer yielded by a function is an <a href="#asterisk">asterisk variable</a> or <a href="#str">str</a>.</p>
+<p>In spite of the built-in exception handling, it is still possible to crash a script with DllCall. This can happen when a function does not directly generate an exception but yields something inappropriate, such as a bad pointer or a string that is not terminated. This might not be the function's fault if the script passed it an unsuitable value such as a bad pointer or a <a href="#str">"str"</a> with insufficient capacity. A script can also crash when it specifies an inappropriate argument type or return type, such as claiming that an ordinary integer yielded by a function is an <a href="#asterisk">asterisk variable</a> or <a href="#str">str</a>.</p>
 <p>The built-in variable <a href="../Variables.htm#LastError">A_LastError</a> contains the result of the operating system's GetLastError() function.</p>
 
 <h2 id="load">Performance</h2>
 <p>When making repeated calls to a DLL, performance can be dramatically improved by loading it explicitly (<em>this is not necessary for a <a href="#std">standard DLL</a> such as User32 because it is always resident</em>). This practice avoids the need for DllCall to internally call LoadLibrary and FreeLibrary each time. For example:</p>
-<pre>hModule := DllCall(&quot;<strong>LoadLibrary</strong>&quot;, &quot;Str&quot;, &quot;MyFunctions.dll&quot;, &quot;Ptr&quot;)  <em>; Avoids the need for DllCall in the loop to load the library.</em>
+<pre>hModule := DllCall("<strong>LoadLibrary</strong>", "Str", "MyFunctions.dll", "Ptr")  <em>; Avoids the need for DllCall in the loop to load the library.</em>
 Loop Files, "C:\My Documents\*.*", "R"
-    result := DllCall(&quot;MyFunctions\BackupFile&quot;, &quot;Str&quot;, A_LoopFilePath)
-DllCall(&quot;<strong>FreeLibrary</strong>&quot;, &quot;Ptr&quot;, hModule)  <em>; To conserve memory, the DLL may be unloaded after using it.</em></pre>
+    result := DllCall("MyFunctions\BackupFile", "Str", A_LoopFilePath)
+DllCall("<strong>FreeLibrary</strong>", "Ptr", hModule)  <em>; To conserve memory, the DLL may be unloaded after using it.</em></pre>
 <p>Even faster performance can be achieved by looking up the function's address beforehand. For example:</p>
 <pre><em>; In the following example, if the DLL isn't yet loaded, use LoadLibrary in place of GetModuleHandle.</em>
-<strong>MulDivProc</strong> := DllCall(&quot;GetProcAddress&quot;, &quot;Ptr&quot;, DllCall(&quot;GetModuleHandle&quot;, &quot;Str&quot;, &quot;<strong>kernel32</strong>&quot;, &quot;Ptr&quot;), &quot;AStr&quot;, &quot;<strong>MulDiv</strong>&quot;, &quot;Ptr&quot;)
+<strong>MulDivProc</strong> := DllCall("GetProcAddress", "Ptr", DllCall("GetModuleHandle", "Str", "<strong>kernel32</strong>", "Ptr"), "AStr", "<strong>MulDiv</strong>", "Ptr")
 Loop 500
-    DllCall(<strong>MulDivProc</strong>, &quot;Int&quot;, 3, &quot;Int&quot;, 4, &quot;Int&quot;, 3)</pre>
+    DllCall(<strong>MulDivProc</strong>, "Int", 3, "Int", 4, "Int", 3)</pre>
 <p>If DllCall's first parameter is a literal string such as <code>"MulDiv"</code> and the DLL containing the function is ordinarily loaded before the script starts, or has been successfully loaded with <a href="_DllLoad.htm">#DllLoad</a>, the string is automatically resolved to a function address. This built-in optimization is more effective than the example shown above.</p>
 <p>Finally, when passing a string-variable to a function that will not change the length of the string, performance is improved by passing the variable <a href="StrPtr.htm">by address</a> (e.g. <code>StrPtr(MyVar)</code>) rather than as a "<a href="#str">str</a>" (especially when the string is very long). The following example converts a string to uppercase: <code>DllCall("CharUpper", "<strong>Ptr</strong>", StrPtr(MyVar), "Ptr")</code>.</p>
 
@@ -182,8 +182,8 @@ Loop 500
 <p>Any binary zero stored in a variable by a function may act as a terminator, preventing all data to the right of the zero from being accessed or changed by most built-in functions. However, such data can be manipulated by retrieving the string's address with <a href="StrPtr.htm">StrPtr</a> and passing it to other functions, such as <a href="NumPut.htm">NumPut</a>, <a href="NumGet.htm">NumGet</a>, <a href="StrGet.htm">StrGet</a>, <a href="StrPut.htm">StrPut</a>, and DllCall itself.</p>
 <p>A function that returns the address of one of the strings that was passed into it might return an identical string in a different memory address than expected. For example calling <code>CharLower(CharUpper(MyVar))</code> in a programming language would convert <em>MyVar</em>'s contents to lowercase. But when the same is done with DllCall, <em>MyVar</em> would be uppercase after the following call because CharLower would have operated on a different/temporary string whose contents were identical to <em>MyVar</em>:</p>
 <pre>MyVar := "ABC"
-result := DllCall(&quot;CharLower&quot;, &quot;<strong><u>Str</u></strong>&quot;, DllCall(&quot;CharUpper&quot;, &quot;Str&quot;, MyVar, &quot;<strong><u>Str</u></strong>&quot;), &quot;Str&quot;)</pre>
-<p>To work around this, change the two underlined &quot;Str&quot; values above to Ptr. This interprets CharUpper's return value as a pure address that will get passed as an integer to CharLower.</p>
+result := DllCall("CharLower", "<strong><u>Str</u></strong>", DllCall("CharUpper", "Str", MyVar, "<strong><u>Str</u></strong>"), "Str")</pre>
+<p>To work around this, change the two underlined "Str" values above to Ptr. This interprets CharUpper's return value as a pure address that will get passed as an integer to CharLower.</p>
 <p>Certain limitations may be encountered when dealing with strings. For details, see <a href="../Compat.htm#DllCall">Script Compatibility</a>.</p>
 
 <h2 id="COM">Component Object Model (COM)</h2>
@@ -194,32 +194,32 @@ result := DllCall(&quot;CharLower&quot;, &quot;<strong><u>Str</u></strong>&quot;
 <p>.NET Framework libraries are executed by a "virtual machine" known as the Common Language Runtime, or CLR. That being the case, .NET DLL files are formatted differently to normal DLL files, and generally do not contain any functions which DllCall is capable of calling.</p>
 <p>However, AutoHotkey can utilize the CLR through <a href="https://docs.microsoft.com/en-us/dotnet/standard/native-interop/com-callable-wrapper">COM callable wrappers</a>. Unless the library is also registered as a general COM component, the CLR itself must first be manually initialized via DllCall. For details, see <a href="https://www.autohotkey.com/forum/topic26191.html">.NET Framework Interop</a> (which currently utilizes DllCall and is not compatible with AutoHotkey v2).</p>
 
-<h2>Related</h2>
+<h2 id="Related">Related</h2>
 <p><a href="../Compat.htm#DllCall">Script Compatibility</a>, <a href="BufferAlloc.htm">BufferAlloc</a>, <a href="../objects/Buffer.htm">Buffer object</a>, <a href="ComCall.htm">ComCall</a>, <a href="PostMessage.htm">PostMessage</a>, <a href="OnMessage.htm">OnMessage</a>, <a href="CallbackCreate.htm">CallbackCreate</a>, <a href="Run.htm">Run</a>, <a href="VarSetStrCapacity.htm">VarSetStrCapacity</a>, <a href="../Functions.htm">Functions</a>, <a href="SysGet.htm">SysGet</a>, <a href="_DllLoad.htm">#DllLoad</a>, <a href="https://docs.microsoft.com/en-au/windows/win32/apiindex/windows-api-list">Windows API Index</a></p>
 
-<h2>Examples</h2>
+<h2 id="Examples">Examples</h2>
 <div class="ex" id="ExMessageBox">
-<p><a href="#ExMessageBox">#1</a>: Calls the Windows API function &quot;MessageBox&quot; and report which button the user presses.</p>
-<pre>WhichButton := DllCall(&quot;MessageBox&quot;, &quot;Int&quot;, 0, &quot;Str&quot;, &quot;Press Yes or No&quot;, &quot;Str&quot;, &quot;Title of box&quot;, &quot;Int&quot;, 4)
+<p><a href="#ExMessageBox">#1</a>: Calls the Windows API function "MessageBox" and reports which button the user presses.</p>
+<pre>WhichButton := DllCall("MessageBox", "Int", 0, "Str", "Press Yes or No", "Str", "Title of box", "Int", 4)
 MsgBox "You pressed button #" WhichButton</pre>
 </div>
 
 <div class="ex" id="ExWallpaper">
 <p><a href="#ExWallpaper">#2</a>: Changes the desktop wallpaper to the specified bitmap (.bmp) file.</p>
-<pre>DllCall(&quot;SystemParametersInfo&quot;, &quot;UInt&quot;, 0x14, &quot;UInt&quot;, 0, &quot;Str&quot;, A_WinDir <strong>.</strong> &quot;\winnt.bmp&quot;, &quot;UInt&quot;, 2)</pre>
+<pre>DllCall("SystemParametersInfo", "UInt", 0x14, "UInt", 0, "Str", A_WinDir <strong>.</strong> "\winnt.bmp", "UInt", 2)</pre>
 </div>
 
 <div class="ex" id="ExIsWindowVisible">
-<p><a href="#ExIsWindowVisible">#3</a>: Calls the API function &quot;IsWindowVisible&quot; to find out if a Notepad window is visible.</p>
+<p><a href="#ExIsWindowVisible">#3</a>: Calls the API function "IsWindowVisible" to finds out if a Notepad window is visible.</p>
 <pre>DetectHiddenWindows True
-if not DllCall(&quot;IsWindowVisible&quot;, &quot;Ptr&quot;, WinExist(&quot;Untitled - Notepad&quot;))  <em>; WinExist returns an HWND.</em>
+if not DllCall("IsWindowVisible", "Ptr", WinExist("Untitled - Notepad"))  <em>; WinExist returns an HWND.</em>
     MsgBox "The window is not visible."</pre>
 </div>
 
 <div class="ex" id="ExWsprintf">
 <p><a href="#ExWsprintf">#4</a>: Calls the API's wsprintf() to pad the number 432 with leading zeros to make it 10 characters wide (0000000432).</p>
 <pre>ZeroPaddedNumber := BufferAlloc(20)  <em>; Ensure the buffer is large enough to accept the new string.</em>
-DllCall(&quot;wsprintf&quot;, &quot;Ptr&quot;, ZeroPaddedNumber, &quot;Str&quot;, &quot;%010d&quot;, &quot;Int&quot;, 432, &quot;Cdecl&quot;)  <em>; Requires the Cdecl calling convention.</em>
+DllCall("wsprintf", "Ptr", ZeroPaddedNumber, "Str", "%010d", "Int", 432, "Cdecl")  <em>; Requires the Cdecl calling convention.</em>
 MsgBox StrGet(ZeroPaddedNumber)
 
 <em>; Alternatively, use the <a href="Format.htm">Format</a> function in conjunction with the zero flag:</em>
@@ -229,15 +229,15 @@ MsgBox Format("{:010}", 432)
 
 <div class="ex" id="ExQPC">
 <p><a href="#ExQPC">#5</a>: Demonstrates QueryPerformanceCounter(), which gives more precision than <a href="../Variables.htm#TickCount">A_TickCount's</a> 10ms.</p>
-<pre>DllCall(&quot;QueryPerformanceFrequency&quot;, &quot;Int64*&quot;, freq := 0)
-DllCall(&quot;QueryPerformanceCounter&quot;, &quot;Int64*&quot;, CounterBefore := 0)
+<pre>DllCall("QueryPerformanceFrequency", "Int64*", freq := 0)
+DllCall("QueryPerformanceCounter", "Int64*", CounterBefore := 0)
 Sleep 1000
-DllCall(&quot;QueryPerformanceCounter&quot;, &quot;Int64*&quot;, CounterAfter := 0)
-MsgBox &quot;Elapsed QPC time is &quot; . (CounterAfter - CounterBefore) / freq * 1000 &quot; ms&quot;</pre>
+DllCall("QueryPerformanceCounter", "Int64*", CounterAfter := 0)
+MsgBox "Elapsed QPC time is " . (CounterAfter - CounterBefore) / freq * 1000 " ms"</pre>
 </div>
 
 <div class="ex" id="ExMouseSpeed">
-<p><a href="#ExMouseSpeed">#6</a>: This is a hotkey that temporarily reduces the mouse cursor's speed, which facilitates precise positioning. Hold down <kbd>F1</kbd> to slow down the cursor. Release it to return to original speed.</p>
+<p><a href="#ExMouseSpeed">#6</a>: Press a hotkey to temporarily reduce the mouse cursor's speed, which facilitates precise positioning. Hold down <kbd>F1</kbd> to slow down the cursor. Release it to return to original speed.</p>
 
 <pre>
 F1::
@@ -263,7 +263,7 @@ F1 up::
 </div>
 
 <div class="ex" id="ExWatchScrollBar">
-<p><a href="#ExWatchScrollBar">#7</a>: Monitors the focused control and displays the position of its vertical scroll bar (with real-time updates).</p>
+<p><a href="#ExWatchScrollBar">#7</a>: Monitors the active window and displays the position of its vertical scroll bar in its focused control (with real-time updates).</p>
 <pre>SetTimer "WatchScrollBar", 100
 
 WatchScrollBar()
@@ -278,14 +278,14 @@ WatchScrollBar()
 </div>
 
 <div class="ex" id="ExFile">
-<p><a href="#ExFile">#8</a>: This is a working script that writes some text to a file then reads it back into memory. This method can be used to help performance in cases where multiple files are being read or written simultaneously. Alternatively, <a href="FileOpen.htm">FileOpen</a> can be used to achieve the <a href="FileOpen.htm#ExWriteRead">same effect</a>.</p>
+<p><a href="#ExFile">#8</a>: Writes some text to a file then reads it back into memory. This method can be used to help performance in cases where multiple files are being read or written simultaneously. Alternatively, <a href="FileOpen.htm">FileOpen</a> can be used to achieve the <a href="FileOpen.htm#ExWriteRead">same effect</a>.</p>
 <pre>
 FileName := FileSelect("S16",, "Create a new file:")
 if FileName = ""
     return
 GENERIC_WRITE := 0x40000000  <em>; Open the file for writing rather than reading.</em>
 CREATE_ALWAYS := 2  <em>; Create new file (overwriting any existing file).</em>
-hFile := DllCall(&quot;CreateFile&quot;, &quot;Str&quot;, FileName, &quot;UInt&quot;, GENERIC_WRITE, &quot;UInt&quot;, 0, &quot;Ptr&quot;, 0, &quot;UInt&quot;, CREATE_ALWAYS, &quot;UInt&quot;, 0, &quot;Ptr&quot;, 0, &quot;Ptr&quot;)
+hFile := DllCall("CreateFile", "Str", FileName, "UInt", GENERIC_WRITE, "UInt", 0, "Ptr", 0, "UInt", CREATE_ALWAYS, "UInt", 0, "Ptr", 0, "Ptr")
 if !hFile
 {
     MsgBox "Can't open '" FileName "' for writing."
@@ -294,14 +294,14 @@ if !hFile
 TestString := "This is a test string.`r`n"  <em>; When writing a file this way, use `r`n rather than `n to start a new line.</em>
 StrSize := StrLen(TestString) * 2
 DllCall("WriteFile", "Ptr", hFile, "Str", TestString, "UInt", StrSize, "UIntP", BytesActuallyWritten := 0, "Ptr", 0)
-DllCall(&quot;CloseHandle&quot;, &quot;Ptr&quot;, hFile)  <em>; Close the file.</em>
+DllCall("CloseHandle", "Ptr", hFile)  <em>; Close the file.</em>
 
 <em>; Now that the file was written, read its contents back into memory.</em>
 GENERIC_READ := 0x80000000  <em>; Open the file for reading rather than writing.</em>
 OPEN_EXISTING := 3  <em>; This mode indicates that the file to be opened must already exist.</em>
 FILE_SHARE_READ := 0x1 <em>; This and the next are whether other processes can open the file while we have it open.</em>
 FILE_SHARE_WRITE := 0x2
-hFile := DllCall(&quot;CreateFile&quot;, &quot;Str&quot;, FileName, &quot;UInt&quot;, GENERIC_READ, &quot;UInt&quot;, FILE_SHARE_READ|FILE_SHARE_WRITE, &quot;Ptr&quot;, 0, &quot;UInt&quot;, OPEN_EXISTING, &quot;UInt&quot;, 0, &quot;Ptr&quot;, 0)
+hFile := DllCall("CreateFile", "Str", FileName, "UInt", GENERIC_READ, "UInt", FILE_SHARE_READ|FILE_SHARE_WRITE, "Ptr", 0, "UInt", OPEN_EXISTING, "UInt", 0, "Ptr", 0)
 if !hFile
 {
     MsgBox "Can't open '" FileName "' for reading."
@@ -309,8 +309,8 @@ if !hFile
 }
 <em>; Allocate a block of memory for the string to read:</em>
 Buf := BufferAlloc(StrSize)
-DllCall(&quot;ReadFile&quot;, &quot;Ptr&quot;, hFile, &quot;Ptr&quot;, Buf, &quot;UInt&quot;, Buf.Size, &quot;UIntP&quot;, BytesActuallyRead := 0, &quot;Ptr&quot;, 0)
-DllCall(&quot;CloseHandle&quot;, &quot;Ptr&quot;, hFile)  <em>; Close the file.</em>
+DllCall("ReadFile", "Ptr", hFile, "Ptr", Buf, "UInt", Buf.Size, "UIntP", BytesActuallyRead := 0, "Ptr", 0)
+DllCall("CloseHandle", "Ptr", hFile)  <em>; Close the file.</em>
 MsgBox "The following string was read from the file: " StrGet(Buf)</pre>
 </div>
 
@@ -359,9 +359,9 @@ SystemCursor(cmd)  <em>; cmd = "Show|Hide|Toggle|Reload"</em>
 <div class="ex" id="ExStruct">
 <p><a href="#ExStruct">#10</a>: Structure example. Pass the address of a RECT structure to GetWindowRect(), which sets the structure's members to the positions of the left, top, right, and bottom sides of a window (relative to the screen).</p>
 <pre>Run "Notepad"
-WinWait "Untitled - Notepad"  <em>; This also sets the &quot;<a href="../misc/WinTitle.htm#LastFoundWindow">last found window</a>&quot; for use with WinExist below.</em>
+WinWait "Untitled - Notepad"  <em>; This also sets the "<a href="../misc/WinTitle.htm#LastFoundWindow">last found window</a>" for use with WinExist below.</em>
 Rect := BufferAlloc(16)  <em>; A RECT is a struct consisting of four 32-bit integers (i.e. 4*4=16).</em>
-DllCall(&quot;GetWindowRect&quot;, &quot;Ptr&quot;, WinExist(), &quot;Ptr&quot;, Rect)  <em>; WinExist returns an HWND.</em>
+DllCall("GetWindowRect", "Ptr", WinExist(), "Ptr", Rect)  <em>; WinExist returns an HWND.</em>
 L := NumGet(Rect, 0, "Int"), T := NumGet(Rect, 4, "Int")
 R := NumGet(Rect, 8, "Int"), B := NumGet(Rect, 12, "Int")
 MsgBox Format("Left {1} Top {2} Right {3} Bottom {4}", L, T, R, B)</pre>
@@ -375,16 +375,16 @@ MsgBox Format("Left {1} Top {2} Right {3} Bottom {4}", L, T, R, B)</pre>
       , "Int", A_ScreenWidth//2   <em>; right</em>
       , "Int", A_ScreenHeight//2  <em>; bottom</em>
       , Rect)
-hDC := DllCall(&quot;GetDC&quot;, "Ptr", 0, "Ptr")  <em>; Pass zero to get the desktop's device context.</em>
-hBrush := DllCall(&quot;CreateSolidBrush&quot;, "UInt", 0x0000FF, "Ptr")  <em>; Create a red brush (0x0000FF is in BGR format).</em>
-DllCall(&quot;FillRect&quot;, "Ptr", hDC, "Ptr", Rect, "Ptr", hBrush)  <em>; Fill the specified rectangle using the brush above.</em>
-DllCall(&quot;ReleaseDC&quot;, "Ptr", 0, "Ptr", hDC)  <em>; Clean-up.</em>
-DllCall(&quot;DeleteObject&quot;, "Ptr", hBrush)  <em>; Clean-up.</em></pre>
+hDC := DllCall("GetDC", "Ptr", 0, "Ptr")  <em>; Pass zero to get the desktop's device context.</em>
+hBrush := DllCall("CreateSolidBrush", "UInt", 0x0000FF, "Ptr")  <em>; Create a red brush (0x0000FF is in BGR format).</em>
+DllCall("FillRect", "Ptr", hDC, "Ptr", Rect, "Ptr", hBrush)  <em>; Fill the specified rectangle using the brush above.</em>
+DllCall("ReleaseDC", "Ptr", 0, "Ptr", hDC)  <em>; Clean-up.</em>
+DllCall("DeleteObject", "Ptr", hBrush)  <em>; Clean-up.</em></pre>
 </div>
 
 <div class="ex" id="ExSystemTime">
-<p><a href="#ExSystemTime">#12</a>: Structure example. Change the system's clock to the specified date and time. Use caution when changing to a date in the future as it may cause scheduled tasks to run prematurely!</p>
-<pre>SetSystemTime(&quot;20051008142211&quot;)  <em>; Pass it a <a href="FileSetTime.htm#YYYYMMDD">timestamp</a> (local, not UTC).</em>
+<p><a href="#ExSystemTime">#12</a>: Structure example. Changes the system's clock to the specified date and time. Use caution when changing to a date in the future as it may cause scheduled tasks to run prematurely!</p>
+<pre>SetSystemTime("20051008142211")  <em>; Pass it a <a href="FileSetTime.htm#YYYYMMDD">timestamp</a> (local, not UTC).</em>
 
 SetSystemTime(YYYYMMDDHHMISS)
 <em>; Sets the system clock to the specified date and time.
@@ -408,7 +408,7 @@ SetSystemTime(YYYYMMDDHHMISS)
           , "UShort", 0                             <em>; Unused (millisecond)</em>
           , SystemTime)
 
-    return DllCall(&quot;SetSystemTime&quot;, &quot;Ptr&quot;, SystemTime)
+    return DllCall("SetSystemTime", "Ptr", SystemTime)
 }</pre>
 <p>More structure examples:</p>
 <ul>
@@ -420,7 +420,7 @@ SetSystemTime(YYYYMMDDHHMISS)
 </div>
 
 <div class="ex" id="ExTaskbar">
-<p><a href="#ExTaskbar">#13</a>: Remove the active window from the taskbar for 3 seconds. Compare this to the <a href="ComCall.htm#ExTaskbar">equivalent ComCall example</a>.</p>
+<p><a href="#ExTaskbar">#13</a>: Removes the active window from the taskbar for 3 seconds. Compare this to the <a href="ComCall.htm#ExTaskbar">equivalent ComCall example</a>.</p>
 <pre><em>/*
   Methods in <a href="http://msdn.microsoft.com/en-us/library/bb774652.aspx">ITaskbarList</a>'s VTable:
     IUnknown:

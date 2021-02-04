@@ -1,7 +1,7 @@
 ﻿; Changing MsgBox's Button Names
 ; https://www.autohotkey.com
 ; This is a working example script that uses a timer to change
-; the names of the buttons in a MsgBox dialog. Although the button
+; the names of the buttons in a message box. Although the button
 ; names are changed, the MsgBox's return value still requires that the
 ; buttons be referred to by their original names.
 

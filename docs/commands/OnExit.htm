@@ -15,7 +15,7 @@
 <p>Specifies a <a href="../Functions.htm">function</a> to call automatically when the script exits.</p>
 
 <pre class="Syntax"><span class="func">OnExit</span> Func <span class="optional">, AddRemove</span></pre>
-<h2>Parameters</h2>
+<h2 id="Parameters">Parameters</h2>
 <dl>
 
   <dt>Func</dt>
@@ -28,18 +28,20 @@
   <dt>AddRemove</dt>
   <dd>
     <p>Type: <a href="../Concepts.htm#numbers">Integer</a></p>
-    <p>One of the following values:<br>
-  <strong>1</strong> (the default): Call the function after any previously registered functions.<br>
-  <strong>-1</strong>: Call the function before any previously registered functions.<br>
-  <strong>0</strong>: Do not call the function.</p>
+    <p>If blank or omitted, it defaults to 1 (call the function after any previously registered functions). Otherwise, specify one of the following numbers:</p>
+    <ul>
+      <li>1 = Call the function after any previously registered functions.</li>
+      <li>-1 = Call the function before any previously registered functions.</li>
+      <li>0 = Do not call the function.</li>
+    </ul>
   </dd>
 
 </dl>
 
-<h2>Remarks</h2>
+<h2 id="Remarks">Remarks</h2>
 <p>Any number of OnExit functions can be registered. An OnExit function usually should not call ExitApp; if it does, the script terminates immediately.</p>
-<p>OnExit functions are called when the script exits by any means (except when it is killed by something like &quot;End Task&quot;). It is also called whenever <a href="_SingleInstance.htm">#SingleInstance</a> and <a href="Reload.htm">Reload</a> ask a previous instance to terminate.</p>
-<p>A script can detect and optionally abort a system shutdown or logoff via <code>OnMessage(0x11, &quot;WM_QUERYENDSESSION&quot;)</code> (see <a href="OnMessage.htm#ExShutdown">OnMessage example #2</a> for a working script).</p>
+<p>OnExit functions are called when the script exits by any means (except when it is killed by something like "End Task"). It is also called whenever <a href="_SingleInstance.htm">#SingleInstance</a> and <a href="Reload.htm">Reload</a> ask a previous instance to terminate.</p>
+<p>A script can detect and optionally abort a system shutdown or logoff via <code>OnMessage(0x11, "WM_QUERYENDSESSION")</code> (see <a href="OnMessage.htm#ExShutdown">OnMessage example #2</a> for a working script).</p>
 <p>The OnExit <a href="../misc/Threads.htm">thread</a> does not obey <a href="_MaxThreads.htm">#MaxThreads</a> (it will always launch when needed). In addition, while it is running, it cannot be interrupted by any <a href="../misc/Threads.htm">thread</a>, including <a href="../Hotkeys.htm">hotkeys</a>, <a href="../objects/Menu.htm">custom menu items</a>, and <a href="SetTimer.htm">timed subroutines</a>. However, it will be interrupted (and the script will terminate) if the user chooses Exit from the tray menu or main menu, or the script is asked to terminate as a result of <a href="Reload.htm">Reload</a> or <a href="_SingleInstance.htm">#SingleInstance</a>. Because of this, an OnExit function should be designed to finish quickly unless the user is aware of what it is doing.</p>
 <p>If the OnExit <a href="../misc/Threads.htm">thread</a> encounters a failure condition such as a runtime error, the script will terminate.</p>
 <p>If the OnExit <a href="../misc/Threads.htm">thread</a> was launched due to an <a href="Exit.htm">Exit</a> or <a href="ExitApp.htm">ExitApp</a> function that specified an exit code, that exit code is used unless an OnExit function returns true (preventing exit) or calls ExitApp.</p>
@@ -84,15 +86,10 @@
 <p><a href="OnError.htm">OnError</a>, <a href="OnMessage.htm">OnMessage</a>, <a href="CallbackCreate.htm">CallbackCreate</a>, <a href="OnClipboardChange.htm">OnClipboardChange</a>, <a href="ExitApp.htm">ExitApp</a>, <a href="Shutdown.htm">Shutdown</a>, <a href="_Persistent.htm">#Persistent</a>, <a href="../misc/Threads.htm">Threads</a>, <a href="Return.htm">Return</a></p>
 
 <h2 id="Examples">Examples</h2>
-<div class="ex" id="ExAdvanced">
-<p><a href="#ExAdvanced">#1</a>: The following example uses <a href="_Persistent.htm">#Persistent</a> to prevent the script from exiting automatically. After running the script, right click the tray icon and click <em>Exit</em> to test the OnExit function. Then click "Yes" to terminate the script or "No" to keep it running.</p>
-<pre>#Persistent
-
-<em>; Register a function to be called on exit:</em>
+<div class="ex" id="ExBasic">
+<p><a href="#ExBasic">#1</a>: Asks the user before exiting the script. To test this example, right-click the tray icon and click Exit.</p>
+<pre class="NoIndent"><a href="_Persistent.htm">#Persistent</a>  <em>; Prevent the script from exiting automatically.</em>
 OnExit("ExitFunc")
-
-<em>; Register an object to be called on exit:</em>
-OnExit(<a href="ObjBindMethod.htm">ObjBindMethod</a>(MyObject, "Exiting"))
 
 ExitFunc(ExitReason, ExitCode)
 {
@@ -103,7 +100,13 @@ ExitFunc(ExitReason, ExitCode)
             return 1  <em>; OnExit functions must return non-zero to prevent exit.</em>
     }
     <em>; Do not call ExitApp -- that would prevent other OnExit functions from being called.</em>
-}
+}</pre>
+</div>
+
+<div class="ex" id="ExFnObj">
+<p><a href="#ExFnObj">#2</a>: Registers an object to be called on exit.</p>
+<pre><a href="_Persistent.htm">#Persistent</a>  <em>; Prevent the script from exiting automatically.</em>
+OnExit(<a href="ObjBindMethod.htm">ObjBindMethod</a>(MyObject, "Exiting"))
 
 class MyObject
 {

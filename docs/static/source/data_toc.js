@@ -358,7 +358,7 @@ tocData = [
     ["Sort","commands/Sort.htm"],
     ["StrCompare","commands/StrCompare.htm"],
     ["String","commands/String.htm"],
-    ["StrLower/StrUpper","commands/StrLower.htm"],
+    ["StrLower/Upper","commands/StrLower.htm"],
     ["StrLen","commands/StrLen.htm"],
     ["StrGet","commands/StrGet.htm"],
     ["StrPut","commands/StrPut.htm"],

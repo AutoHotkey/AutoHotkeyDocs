@@ -15,7 +15,7 @@
 <p>Specifies a <a href="../Functions.htm">function</a> or <a href="../objects/Functor.htm">function object</a> to call automatically when the script receives the specified message.</p>
 
 <pre class="Syntax"><span class="func">OnMessage</span> MsgNumber <span class="optional">, Function, MaxThreads</span></pre>
-<h2>Parameters</h2>
+<h2 id="Parameters">Parameters</h2>
 <dl>
 
   <dt>MsgNumber</dt>
@@ -58,30 +58,32 @@
   <li>is known to require more than four parameters.</li>
 </ol>
 
-<h2>The Function's Parameters</h2>
+<h2 id="The_Functions_Parameters">The Function's Parameters</h2>
 <p>A <a href="../Functions.htm">function</a> assigned to monitor one or more messages can accept up to four parameters:</p>
 <pre>MyMessageMonitor(wParam, lParam, msg, hwnd)
 {
     ... body of function...
 }</pre>
 <p>Although the names you give the parameters do not matter, the following information is sequentially assigned to them:</p>
-<p>Parameter #1: The message's WPARAM value.<br>
-Parameter #2: The message's LPARAM value.<br>
-Parameter #3: The message number, which is useful in cases where a function monitors more than one message.<br>
-Parameter #4: The HWND (unique ID) of the window or control to which the message was sent. The HWND can be used directly in a <a href="../misc/WinTitle.htm#ahk_id">WinTitle parameter</a>.</p>
+<ul>
+  <li>Parameter #1: The message's WPARAM value.</li>
+  <li>Parameter #2: The message's LPARAM value.</li>
+  <li>Parameter #3: The message number, which is useful in cases where a function monitors more than one message.</li>
+  <li>Parameter #4: The HWND (unique ID) of the window or control to which the message was sent. The HWND can be used directly in a <a href="../misc/WinTitle.htm#ahk_id">WinTitle parameter</a>.</li>
+</ul>
 <p>WPARAM and LPARAM are unsigned 32-bit integers (from 0 to 2<sup>32</sup>-1) or signed 64-bit integers (from -2<sup>63</sup> to 2<sup>63</sup>-1) depending on whether the exe running the script is 32-bit or 64-bit. For 32-bit scripts, if an incoming parameter is intended to be a signed integer, any negative numbers can be revealed by following this example:</p>
 <pre>if (A_PtrSize = 4 &amp;&amp; wParam &gt; 0x7FFFFFFF)  <em>; Checking <a href="../Variables.htm#PtrSize">A_PtrSize</a> ensures the script is 32-bit.</em>
     wParam := -(~wParam) - 1</pre>
 <p>You can omit one or more parameters from the end of the list if the corresponding information is not needed, but in this case an asterisk must be specified as the final parameter. For example, a function defined as <code>MyMsgMonitor(wParam, lParam, *)</code> would receive only the first two parameters, and one defined as <code>MyMsgMonitor(*)</code> would receive none of them.</p>
 
-<h2>Additional Information Available to the Function</h2>
+<h2 id="Additional_Information_Available_to_the_Function">Additional Information Available to the Function</h2>
 <p>In addition to the parameters received above, the function may also consult the built-in variable <a href="../Variables.htm#EventInfo">A_EventInfo</a>, which contains 0 if the message was sent via SendMessage. If sent via PostMessage, it contains the <a href="../Variables.htm#TickCount">tick-count time</a> the message was posted.</p>
 <p>A monitor function's <a href="../misc/WinTitle.htm#LastFoundWindow">last found window</a> starts off as the parent window to which the message was sent (even if it was sent to a control). If the window is hidden but not a GUI window (such as the script's main window), turn on <a href="DetectHiddenWindows.htm">DetectHiddenWindows</a> before using it. For example:</p>
 <pre>DetectHiddenWindows True
 MsgParentWindow := WinExist()  <em>; This stores the unique ID of the window to which the message was sent.</em></pre>
 
-<h2>What the Function Should <em>Return</em></h2>
-<p>If a monitor function uses <a href="Return.htm">Return</a> without any parameters, or it specifies a blank value such as &quot;&quot; (or it never uses Return at all), the incoming message goes on to be processed normally when the function finishes. The same thing happens if the function <a href="Exit.htm">Exits</a> or causes a runtime error such as <a href="Run.htm">running</a> a nonexistent file. By contrast, returning an integer causes it to be sent immediately as a reply; that is, the program does not process the message any further. For example, a function monitoring WM_LBUTTONDOWN (0x201) may return an integer to prevent the target window from being notified that a mouse click has occurred. In many cases (such as a message arriving via <a href="PostMessage.htm">PostMessage</a>), it does not matter which integer is returned; but if in doubt, 0 is usually safest.</p>
+<h2 id="What_the_Function_Should_Return">What the Function Should <em>Return</em></h2>
+<p>If a monitor function uses <a href="Return.htm">Return</a> without any parameters, or it specifies a blank value such as "" (or it never uses Return at all), the incoming message goes on to be processed normally when the function finishes. The same thing happens if the function <a href="Exit.htm">Exits</a> or causes a runtime error such as <a href="Run.htm">running</a> a nonexistent file. By contrast, returning an integer causes it to be sent immediately as a reply; that is, the program does not process the message any further. For example, a function monitoring WM_LBUTTONDOWN (0x201) may return an integer to prevent the target window from being notified that a mouse click has occurred. In many cases (such as a message arriving via <a href="PostMessage.htm">PostMessage</a>), it does not matter which integer is returned; but if in doubt, 0 is usually safest.</p>
 <p>The range of valid return values depends on whether the exe running the script is 32-bit or 64-bit. Non-empty return values must be between -2<sup>31</sup> and 2<sup>32</sup>-1 for 32-bit scripts (<code><a href="../Variables.htm#PtrSize">A_PtrSize</a> = 4</code>) and between -2<sup>63</sup> and 2<sup>63</sup>-1 for 64-bit scripts (<code><a href="../Variables.htm#PtrSize">A_PtrSize</a> = 8</code>).</p>
 <p>If there are multiple functions monitoring a given message number, they are called one by one until one returns a non-empty value.</p>
 
@@ -94,13 +96,13 @@ MsgParentWindow := WinExist()  <em>; This stores the unique ID of the window to 
 <p>If a monitored message numerically less than 0x312 arrives while the script is uninterruptible merely due to the settings of <a href="Thread.htm">Thread Interrupt</a> or <a href="Critical.htm">Critical</a>, the current thread will be interrupted so that the function can be called. By contrast, a monitored message of 0x312 or higher will be buffered until the thread finishes or becomes interruptible.</p>
 <p>The <a href="../misc/Threads.htm">priority</a> of OnMessage threads is always 0. Consequently, no messages are monitored or buffered when the current thread's priority is higher than 0.</p>
 <p>Caution should be used when monitoring system messages (those below 0x400). For example, if a monitor function does not finish quickly, the response to the message might take longer than the system expects, which might cause side-effects. Unwanted behavior may also occur if a monitor function returns an integer to suppress further processing of a message, but the system expected different processing or a different response.</p>
-<p>When the script is displaying a system dialog such as <a href="MsgBox.htm">MsgBox</a>, any message posted to a control is not monitored. For example, if the script is displaying a MsgBox and the user clicks a button in a GUI window, the WM_LBUTTONDOWN message is sent directly to the button without calling the monitor function.</p>
-<p>Although an external program may post messages directly to a script's thread via PostThreadMessage() or other API call, this is not recommended because the messages would be lost if the script is displaying a system window such as a <a href="MsgBox.htm">MsgBox</a>. Instead, it is usually best to post or send the messages to the script's main window or one of its GUI windows.</p>
-<h2>Related</h2>
+<p>When the script is displaying a system dialog such as <a href="MsgBox.htm">MsgBox</a>, any message posted to a control is not monitored. For example, if the script is displaying a message box and the user clicks a button in a GUI window, the WM_LBUTTONDOWN message is sent directly to the button without calling the monitor function.</p>
+<p>Although an external program may post messages directly to a script's thread via PostThreadMessage() or other API call, this is not recommended because the messages would be lost if the script is displaying a system window such as a <a href="MsgBox.htm">message box</a>. Instead, it is usually best to post or send the messages to the script's main window or one of its GUI windows.</p>
+<h2 id="Related">Related</h2>
 <p><a href="CallbackCreate.htm">CallbackCreate</a>, <a href="OnExit.htm">OnExit</a>, <a href="OnClipboardChange.htm">OnClipboardChange</a>, <a href="PostMessage.htm">PostMessage</a>, <a href="SendMessage.htm">SendMessage</a>, <a href="../Functions.htm">Functions</a>, <a href="../misc/SendMessageList.htm">List of Windows Messages</a>, <a href="../misc/Threads.htm">Threads</a>, <a href="Critical.htm">Critical</a>, <a href="DllCall.htm">DllCall</a></p>
-<h2>Examples</h2>
+<h2 id="Examples">Examples</h2>
 <div class="ex" id="ExLButtonDown">
-<p><a href="#ExLButtonDown">#1</a>: The following is a working script that monitors mouse clicks in a GUI window. Related topic: <a href="../objects/GuiOnEvent.htm#ContextMenu">ContextMenu</a> event</p>
+<p><a href="#ExLButtonDown">#1</a>: Monitors mouse clicks in a GUI window. Related topic: <a href="../objects/GuiOnEvent.htm#ContextMenu">ContextMenu</a> event</p>
 <pre>MyGui := Gui.New(, "Example Window")
 MyGui.Add("Text",, "Click anywhere in this window.")
 MyGui.Add("Edit", "w200")
@@ -125,7 +127,7 @@ WM_LBUTTONDOWN(wParam, lParam, msg, hwnd)
 </div>
 
 <div class="ex" id="ExShutdown">
-<p><a href="#ExShutdown">#2</a>: The following script detects system shutdown/logoff and allows the user to abort it. On Windows Vista and later, the system displays a user interface showing which program is blocking shutdown/logoff and allowing the user to force shutdown/logoff. On older OSes, the script displays a confirmation prompt. Related topic: <a href="OnExit.htm">OnExit</a></p>
+<p><a href="#ExShutdown">#2</a>: Detects system shutdown/logoff and allows the user to abort it. On Windows Vista and later, the system displays a user interface showing which program is blocking shutdown/logoff and allowing the user to force shutdown/logoff. On older OSes, the script displays a confirmation prompt. Related topic: <a href="OnExit.htm">OnExit</a></p>
 <pre><em>; The following DllCall is optional: it tells the OS to shut down this script first (prior to all other applications).</em>
 DllCall("kernel32.dll\SetProcessShutdownParameters", "UInt", 0x4FF, "UInt", 0)
 OnMessage(0x11, "WM_QUERYENDSESSION")
@@ -174,13 +176,13 @@ StopBlockingShutdown(*)
 </div>
 
 <div class="ex" id="ExCustom">
-<p><a href="#ExCustom">#3</a>: Have a script receive a custom message and up to two numbers from some other script or program (to send strings rather than numbers, see the example after this one).</p>
-<pre>OnMessage 0x5555, &quot;MsgMonitor&quot;
-OnMessage 0x5556, &quot;MsgMonitor&quot;
+<p><a href="#ExCustom">#3</a>: Receives a custom message and up to two numbers from some other script or program (to send strings rather than numbers, see the example after this one).</p>
+<pre>OnMessage 0x5555, "MsgMonitor"
+OnMessage 0x5556, "MsgMonitor"
 
 MsgMonitor(wParam, lParam, msg, *)
 {
-    <em>; Since returning quickly is often important, it is better to use a ToolTip than</em>
+    <em>; Since returning quickly is often important, it is better to use ToolTip than</em>
     <em>; something like MsgBox that would prevent the function from finishing:</em>
     ToolTip "Message " msg " arrived:`nWPARAM: " wParam "`nLPARAM: " lParam
 }
@@ -188,16 +190,16 @@ MsgMonitor(wParam, lParam, msg, *)
 <em>; The following could be used inside some other script to run the function inside the above script:</em>
 SetTitleMatchMode 2
 DetectHiddenWindows True
-if WinExist(&quot;Name of Receiving Script.ahk ahk_class AutoHotkey&quot;)
-    PostMessage 0x5555, 11, 22  <em>; The message is sent  to the &quot;<a href="../misc/WinTitle.htm#LastFoundWindow">last found window</a>&quot; due to WinExist above.</em>
+if WinExist("Name of Receiving Script.ahk ahk_class AutoHotkey")
+    PostMessage 0x5555, 11, 22  <em>; The message is sent  to the "<a href="../misc/WinTitle.htm#LastFoundWindow">last found window</a>" due to WinExist above.</em>
 DetectHiddenWindows False  <em>; Must not be turned off until after PostMessage.</em></pre>
 </div>
 
 <div class="ex" id="ExSendString">
-<p><a href="#ExSendString">#4</a>: Send a string of any length from one script to another. Both scripts must use the same <a href="../Concepts.htm#native-encoding">native encoding</a>. This is a working example. To use it, save and run both of the following scripts then press <kbd>Win</kbd>+<kbd>Space</kbd> to show an InputBox that will prompt you to type in a string.</p>
-<p>Save the following script as <strong>Receiver.ahk</strong> then launch it:</p>
+<p><a href="#ExSendString">#4</a>: Sends a string of any length from one script to another. To use this, save and run both of the following scripts then press <kbd>Win</kbd>+<kbd>Space</kbd> to show an input box that will prompt you to type in a string. Both scripts must use the same <a href="../Concepts.htm#native-encoding">native encoding</a>.</p>
+<p>Save the following script as <strong>Receiver.ahk</strong> then launch it.</p>
 <pre filename="Receiver.ahk">#SingleInstance
-OnMessage 0x4a, &quot;Receive_WM_COPYDATA&quot;  <em>; 0x4a is WM_COPYDATA</em>
+OnMessage 0x4a, "Receive_WM_COPYDATA"  <em>; 0x4a is WM_COPYDATA</em>
 return
 
 Receive_WM_COPYDATA(wParam, lParam, msg, hwnd)
@@ -211,7 +213,7 @@ Receive_WM_COPYDATA(wParam, lParam, msg, hwnd)
 <p>Save the following script as <strong>Sender.ahk</strong> then launch it. After that, press the <kbd>Win</kbd>+<kbd>Space</kbd> hotkey.</p>
 <pre filename="Sender.ahk">TargetScriptTitle := "Receiver.ahk ahk_class AutoHotkey"
 
-#space::  <em>; Win+Space hotkey. Press it to show an InputBox for entry of a message string.</em>
+#space::  <em>; Win+Space hotkey. Press it to show an input box for entry of a message string.</em>
 {
     global TargetScriptTitle
     ib := InputBox("Enter some text to Send:", "Send text via WM_COPYDATA")

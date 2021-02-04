@@ -15,13 +15,24 @@
 <p>Changes the attributes of one or more files or folders. Wildcards are supported.</p>
 
 <pre class="Syntax"><span class="func">FileSetAttrib</span> Attributes <span class="optional">, FilePattern, Mode</span></pre>
-<h2>Parameters</h2>
+<h2 id="Parameters">Parameters</h2>
 <dl>
 
   <dt>Attributes</dt>
   <dd>
     <p>Type: <a href="../Concepts.htm#strings">String</a></p>
-    <p>The attributes to change (see Remarks).</p>
+    <p>The attributes to change. For example, <code>+HA-R</code>.</p>
+    <p>To easily turn on, turn off or toggle attributes, prefix one or more of the following attribute letters with a plus sign (+), minus sign (-) or caret (^), respectively:</p>
+    <ul>
+      <li>R = READONLY</li>
+      <li>A = ARCHIVE</li>
+      <li>S = SYSTEM</li>
+      <li>H = HIDDEN</li>
+      <li>N = NORMAL (this is valid only when used without any other attributes)</li>
+      <li>O = OFFLINE</li>
+      <li>T = TEMPORARY</li>
+    </ul>
+    <p class="note"><strong>Note</strong>: Currently, the compression state of files cannot be changed with this function.</p>
   </dd>
 
   <dt>FilePattern</dt>
@@ -34,59 +45,41 @@
   <dt>Mode</dt>
   <dd>
     <p>Type: <a href="../Concepts.htm#strings">String</a></p>
-    <p>Zero or more of the following letters:</p>
-    <p><code>D</code>: Include directories (folders).<br>
-    <code>F</code>: Include files. If both F and D are omitted, files are included but not folders.<br>
-    <code>R</code>: Subfolders are recursed into so that files and folders contained therein are operated upon if they match <em>FilePattern</em>. All subfolders will be recursed into, not just those whose names match <em>FilePattern</em>. If R is omitted, files and folders in subfolders are not included.</p>
-    <p class="note"><strong>Note</strong>: If <em>FilePattern</em> is a single folder rather than a wildcard pattern, it will always be operated upon regardless of this setting.</p>
+    <p>If blank or omitted, only files are operated upon and subdirectories are not recursed into. Otherwise, specify zero or more of the following letters:</p>
+    <ul>
+      <li>D = Include directories (folders).</li>
+      <li>F = Include files. If both F and D are omitted, files are included but not folders.</li>
+      <li>R = Subfolders are recursed into so that files and folders contained therein are operated upon if they match <em>FilePattern</em>. All subfolders will be recursed into, not just those whose names match <em>FilePattern</em>. If R is omitted, files and folders in subfolders are not included.</li>
+    </ul>
   </dd>
 
 </dl>
 
-<h2>Error Handling</h2>
+<h2 id="Error_Handling">Error Handling</h2>
 <p>An exception is thrown if any files failed to be changed, and <a href="Throw.htm#Exception">Exception.Extra</a> is set to the number of failures.</p>
 <p>If files were found, <a href="../Variables.htm#LastError">A_LastError</a> is set to 0 (zero) or the result of the operating system's GetLastError() function immediately after the last failure. Otherwise A_LastError contains an error code that might indicate why no files were found.</p>
 
-<h2>Remarks</h2>
-<p>The <em>Attributes</em> parameter consists of a collection of operators and attribute letters.</p>
-<p><em>Operators</em>:</p>
-<table class="info">
-  <tr>
-    <td>+</td>
-    <td>Turn on the attribute</td>
-  </tr>
-  <tr>
-    <td>-</td>
-    <td>Turn off the attribute</td>
-  </tr>
-  <tr>
-    <td>^</td>
-    <td>Toggle the attribute (set it to the opposite value of what it is now)</td>
-  </tr>
-  <tr>
-    <td></td>
-    <td>If no operator precedes the attribute letters, the file's attributes are replaced with the given attributes. To remove all attributes, use "N" on its own.</td>
-  </tr>
-</table>
-<p><br>
-  <em>Attribute letters</em>:<br>
-  R = READONLY<br>
-  A = ARCHIVE<br>
-  S = SYSTEM<br>
-  H = HIDDEN<br>
-  N = NORMAL (this is valid only when used without any other attributes)<br>
-  O = OFFLINE<br>
-T = TEMPORARY</p>
-<p class="note"><strong>Note</strong>: Currently, the compression state of files cannot be changed with this function.</p>
-<h2>Related</h2>
+<h2 id="Related">Related</h2>
 <p><a href="FileGetAttrib.htm">FileGetAttrib</a>, <a href="FileGetTime.htm">FileGetTime</a>, <a href="FileSetTime.htm">FileSetTime</a>, <a href="FileGetSize.htm">FileGetSize</a>, <a href="FileGetVersion.htm">FileGetVersion</a>, <a href="LoopFiles.htm">File-loop</a></p>
-<h2>Examples</h2>
-<div class="ex" id="ExBasic">
-<p><a href="#ExBasic">#1</a></p>
-<pre>FileSetAttrib "+RH", "C:\MyFiles\*.*", "DF"  <em>; +RH is identical to +R+H</em>
-FileSetAttrib "^H", "C:\MyFiles"  <em>; Toggle the folder's &quot;hidden&quot; attribute.</em>
-FileSetAttrib "-R+A", "C:\New Text File.txt"
-FileSetAttrib "+A", "C:\*.ini", "R"  <em>; Recurse through all .ini files on the C drive.</em></pre>
+<h2 id="Examples">Examples</h2>
+<div class="ex" id="ExTurnOnMultiple">
+<p><a href="#ExTurnOnMultiple">#1</a>: Turns on the "read-only" and "hidden" attributes of all files and directories (subdirectories are not recursed into).</p>
+<pre>FileSetAttrib "+RH", "C:\MyFiles\*.*", "DF"  <em>; +RH is identical to +R+H</em></pre>
+</div>
+
+<div class="ex" id="ExToggle">
+<p><a href="#ExToggle">#2</a>: Toggles the "hidden" attribute of a single directory.</p>
+<pre>FileSetAttrib "^H", "C:\MyFiles"</pre>
+</div>
+
+<div class="ex" id="ExMixed">
+<p><a href="#ExMixed">#3</a>: Turns off the "read-only" attribute and turns on the "archive" attribute of a single file.</p>
+<pre>FileSetAttrib "-R+A", "C:\New Text File.txt"</pre>
+</div>
+
+<div class="ex" id="ExRecurse">
+<p><a href="#ExRecurse">#4</a>: Recurses through all .ini files on the C drive and turns on their "archive" attribute.</p>
+<pre>FileSetAttrib "+A", "C:\*.ini", "R"</pre>
 </div>
 
 </body>
