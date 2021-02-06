@@ -54,10 +54,13 @@ if !(pci := ComObjQuery(obj, IID_IProvideClassInfo))
 DllCall(vtable(pci, 3), "ptr", pci, "ptr*", ti)
 
 <em>; Call GetDocumentation to get the object's full type name.</em>
-DllCall(vtable(ti, 12), "ptr", ti, "int", -1, "ptr*", name, "ptr", 0, "ptr", 0, "ptr", 0)
+DllCall(vtable(ti, 12), "ptr", ti, "int", -1, "ptr*", pname, "ptr", 0, "ptr", 0, "ptr", 0)
 
 <em>; Convert the BSTR pointer to a usable string.</em>
-name := StrGet(name, "UTF-16")
+name := StrGet(pname, "UTF-16")
+
+<em>; Free the BSTR referenced by pname.</em>
+DllCall("OleAut32\SysFreeString", "ptr", pname)
 
 <em>; Release raw interface pointers.</em>
 ObjRelease(ti)
