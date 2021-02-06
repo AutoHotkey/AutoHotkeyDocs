@@ -231,6 +231,7 @@ tocData = [
       ["#MenuMaskKey","commands/_MenuMaskKey.htm"],
       ["#SuspendExempt","commands/_SuspendExempt.htm"],
       ["#UseHook","commands/_UseHook.htm"],
+      ["HotIf / HotIfWin...","commands/HotIf.htm"],
       ["Hotkey","commands/Hotkey.htm"],
       ["Hotstring","commands/Hotstring.htm"],
       ["Hotstrings & auto-replace","Hotstrings.htm"],
