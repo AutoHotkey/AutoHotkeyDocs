@@ -16,7 +16,7 @@
 
 <pre class="Syntax"><span class="func">Loop Files</span> FilePattern <span class="optional">, Mode</span></pre>
 
-<h2>Parameters</h2>
+<h2 id="Parameters">Parameters</h2>
 <dl>
 
   <dt>FilePattern</dt>
@@ -24,21 +24,23 @@
       <p>Type: <a href="../Concepts.htm#strings">String</a></p>
       <p>The name of a single file or folder, or a wildcard pattern such as "C:\Temp\*.tmp". <em>FilePattern</em> is assumed to be in <a href="../Variables.htm#WorkingDir">A_WorkingDir</a> if an absolute path isn't specified.</p>
       <p>Both asterisks and question marks are supported as wildcards. A match occurs when the pattern appears in either the file's long/normal name or its <a href="#LoopFileShortName">8.3 short name</a>.</p>
-      <p>If this parameter is a single file or folder (i.e. no wildcards) and <em>Mode</em> includes <code>R</code>, more than one match will be found if the specified file name appears in more than one of the folders being searched.</p>
+      <p>If this parameter is a single file or folder (i.e. no wildcards) and <em>Mode</em> includes R, more than one match will be found if the specified file name appears in more than one of the folders being searched.</p>
   </dd>
 
   <dt>Mode</dt>
   <dd>
-      <p>Type: <a href="../Concepts.htm#strings">String</a></p>
-      <p>An optional string containing zero or more of the following letters:</p>
-      <p><code>D</code>: Include directories (folders).<br>
-      <code>F</code>: Include files. If both F and D are omitted, files are included but not folders.<br>
-      <code>R</code>: Recurse into subdirectories (subfolders). All subfolders will be recursed into, not just those whose names match <em>FilePattern</em>. If R is omitted, files and folders in subfolders are not included.</p>
+    <p>Type: <a href="../Concepts.htm#strings">String</a></p>
+    <p>If blank or omitted, only files are included and subdirectories are not recursed into. Otherwise, specify one or more of the following letters:</p>
+    <ul>
+      <li>D = Include directories (folders).</li>
+      <li>F = Include files. If both F and D are omitted, files are included but not folders.</li>
+      <li>R = Recurse into subdirectories (subfolders). All subfolders will be recursed into, not just those whose names match <em>FilePattern</em>. If R is omitted, files and folders in subfolders are not included.</li>
+    </ul>
   </dd>
-  
+
 </dl>
 
-<h2>Special Variables Available Inside a File-Loop</h2>
+<h2 id="Special_Variables">Special Variables Available Inside a File-Loop</h2>
 <p>The following variables exist within any file-loop. If an inner file-loop is enclosed by an outer file-loop, the innermost loop's file will take precedence:</p>
 <table class="info">
   <tr id="LoopFileName">
@@ -103,28 +105,28 @@
   </tr>
 </table>
 
-<h2>Remarks</h2>
+<h2 id="Remarks">Remarks</h2>
 <p>A file-loop is useful when you want to operate on a collection of files and/or folders, one at a time.</p>
 <p>All matching files are retrieved, including hidden files. By contrast, OS features such as the DIR command omit hidden files by default. To avoid processing hidden, system, and/or read-only files, use something like the following inside the loop:</p>
 <pre>if A_LoopFileAttrib ~= "[HRS]"  <em>; Skip any file that is either H (Hidden), R (Read-only), or S (System). See <a href="../Variables.htm#regex">~= operator</a>.</em>
     continue  <em>; Skip this file and move on to the next one.</em></pre>
 <p>To retrieve files' relative paths instead of absolute paths during a recursive search, use <a href="SetWorkingDir.htm">SetWorkingDir</a> to change to the base folder prior to the loop, and then omit the path from the Loop (e.g. <code>Loop Files, "*.*", "R"</code>). That will cause <a href="#LoopFilePath">A_LoopFilePath</a> to contain the file's path relative to the base folder.</p>
 <p>A file-loop can disrupt itself if it creates or renames files or folders within its own purview. For example, if it renames files via <a href="FileMove.htm">FileMove</a> or other means, each such file might be found twice: once as its old name and again as its new name. To work around this, rename the files only after creating a list of them. For example:</p>
-<pre>FileList := &quot;&quot;
+<pre>FileList := ""
 Loop Files, "*.jpg"
-    FileList .= A_LoopFileName &quot;`n&quot;
+    FileList .= A_LoopFileName "`n"
 Loop Parse, FileList, "`n"
     FileMove A_LoopField, "renamed_" A_LoopField</pre>
 <p>Files in an NTFS file system are probably always retrieved in alphabetical order. Files in other file systems are retrieved in no particular order. To ensure a particular ordering, use the <a href="Sort.htm">Sort</a> function as shown in the Examples section below.</p>
 <p>Files and folders with a complete path name longer than 259 characters are skipped over as though they do not exist. Such files are rare because normally, the operating system does not allow their creation.</p>
 <p>See <a href="Loop.htm">Loop</a> for information about <a href="Block.htm">Blocks</a>, <a href="Break.htm">Break</a>, <a href="Continue.htm">Continue</a>, and the A_Index variable (which exists in every type of loop).</p>
 
-<h2>Related</h2>
+<h2 id="Related">Related</h2>
 <p><a href="Loop.htm">Loop</a>, <a href="Break.htm">Break</a>, <a href="Continue.htm">Continue</a>, <a href="Block.htm">Blocks</a>, <a href="SplitPath.htm">SplitPath</a>, <a href="FileSetAttrib.htm">FileSetAttrib</a>, <a href="FileSetTime.htm">FileSetTime</a></p>
 
-<h2>Examples</h2>
+<h2 id="Examples">Examples</h2>
 <div class="ex" id="ExBasic">
-<p><a href="#ExBasic">#1</a></p>
+<p><a href="#ExBasic">#1</a>: Reports the full path of each text file located in a directory and in its subdirectories.</p>
 <pre>Loop Files, A_ProgramFiles "\*.txt", "R"  <em>; Recurse into subfolders.</em>
 {
     Result := MsgBox("Filename = " A_LoopFilePath "`n`nContinue?",, "y/n")
@@ -134,7 +136,7 @@ Loop Parse, FileList, "`n"
 </div>
 
 <div class="ex" id="ExSize">
-<p><a href="#ExSize">#2</a>: Calculate the size of a folder, including the files in all its subfolders:</p>
+<p><a href="#ExSize">#2</a>: Calculates the size of a folder, including the files in all its subfolders.</p>
 <pre>FolderSizeKB := 0
 WhichFolder := DirSelect()  <em>; Ask the user to pick a folder.</em>
 Loop Files, WhichFolder "\*.*", "R"
@@ -143,14 +145,14 @@ MsgBox "Size of " WhichFolder " is " FolderSizeKB " KB."</pre>
 </div>
 
 <div class="ex" id="ExSortName">
-<p><a href="#ExSortName">#3</a>: Retrieve file names sorted by name (see next example to sort by date):</p>
+<p><a href="#ExSortName">#3</a>: Retrieves file names sorted by name (see next example to sort by date).</p>
 <pre>FileList := ""  <em>; Initialize to be blank.</em>
 Loop Files, "C:\*.*"
-    FileList .= A_LoopFileName &quot;`n&quot;
+    FileList .= A_LoopFileName "`n"
 FileList := Sort(FileList, "R")  <em>; The R option sorts in reverse order. See <a href="Sort.htm">Sort</a> for other options.</em>
 Loop Parse, FileList, "`n"
 {
-    if A_LoopField = &quot;&quot;  <em>; Ignore the blank item at the end of the list.</em>
+    if A_LoopField = ""  <em>; Ignore the blank item at the end of the list.</em>
         continue
     Result := MsgBox("File number " A_Index " is " A_LoopField ".  Continue?",, "y/n")
     if Result = "No"
@@ -159,14 +161,14 @@ Loop Parse, FileList, "`n"
 </div>
 
 <div class="ex" id="ExSortDate">
-<p><a href="#ExSortDate">#4</a>: Retrieve file names sorted by modification date:</p>
+<p><a href="#ExSortDate">#4</a>: Retrieves file names sorted by modification date.</p>
 <pre>FileList := ""
 Loop Files, A_MyDocuments "\Photos\*.*", "FD"  <em>; Include Files and Directories</em>
-    FileList .= A_LoopFileTimeModified &quot;`t&quot; A_LoopFileName &quot;`n&quot;
+    FileList .= A_LoopFileTimeModified "`t" A_LoopFileName "`n"
 FileList := Sort(FileList)  <em>; Sort by date.</em>
 Loop Parse, FileList, "`n"
 {
-    if A_LoopField = &quot;&quot; <em>; Omit the last linefeed (blank item) at the end of the list.</em>
+    if A_LoopField = "" <em>; Omit the last linefeed (blank item) at the end of the list.</em>
         continue
     FileItem := StrSplit(A_LoopField, A_Tab)  <em>; Split into two parts at the tab char.</em>
     Result := MsgBox("The next file (modified at " FileItem[1] ") is:`n" FileItem[2] "`n`nContinue?",, "y/n")
@@ -176,18 +178,18 @@ Loop Parse, FileList, "`n"
 </div>
 
 <div class="ex" id="ExFileCopy">
-<p><a href="#ExFileCopy">#5</a>: Copy only the source files that are newer than their counterparts in the destination:</p>
+<p><a href="#ExFileCopy">#5</a>: Copies only the source files that are newer than their counterparts in the destination.</p>
 <pre>CopyIfNewer:
 <em>; Caller has set the variables CopySourcePattern and CopyDest for us.</em>
 Loop Files, CopySourcePattern
 {
     copy_it := false
-    if !FileExist(CopyDest &quot;\&quot; A_LoopFileName)  <em>; Always copy if target file doesn't yet exist.</em>
+    if !FileExist(CopyDest "\" A_LoopFileName)  <em>; Always copy if target file doesn't yet exist.</em>
         copy_it := true
     else
     {
         time := FileGetTime(CopyDest "\" A_LoopFileName)
-        time := DateDiff(A_Now, A_LoopFileTimeModified, &quot;Seconds&quot;)  <em>; Subtract the source file's time from the destination's.</em>
+        time := DateDiff(A_Now, A_LoopFileTimeModified, "Seconds")  <em>; Subtract the source file's time from the destination's.</em>
         if time &lt; 0  <em>; Source file is newer than destination file.</em>
             copy_it := true
     }
@@ -203,7 +205,7 @@ Return</pre>
 </div>
 
 <div class="ex" id="ExLongPath">
-<p><a href="#ExLongPath">#6</a>: Convert filenames passed in via command-line parameters to long names, complete path, and correct uppercase/lowercase characters as stored in the file system.</p>
+<p><a href="#ExLongPath">#6</a>: Converts filenames passed in via command-line parameters to long names, complete path, and correct uppercase/lowercase characters as stored in the file system.</p>
 <pre>for GivenPath in A_Args  <em>; For each parameter (or file dropped onto a script):</em>
 {
     Loop Files, GivenPath, "FD"  <em>; Include files and directories.</em>
