@@ -289,7 +289,7 @@ tocData = [
     ["ListVars","commands/ListVars.htm"],
     ["OutputDebug","commands/OutputDebug.htm"]
   ]],
-  ["Object Types","",
+  ["Object Types","objects/index.htm",
   [
     ["Object","objects/Object.htm"],
     ["Array Object","objects/Array.htm"],
