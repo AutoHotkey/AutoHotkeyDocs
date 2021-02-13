@@ -296,7 +296,7 @@ tocData = [
     ["Buffer Object","objects/Buffer.htm"],
     ["Class Object","objects/Class.htm"],
     ["Enumerator Object","objects/Enumerator.htm"],
-    ["Exception Object","commands/Throw.htm#Exception"],
+    ["Error Object","objects/Error.htm"],
     ["File Object","objects/File.htm"],
     ["Func Object","objects/Func.htm"],
     ["Function Objects","objects/Functor.htm"],
