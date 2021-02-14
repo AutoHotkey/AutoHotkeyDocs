@@ -457,7 +457,7 @@ indexData = [
   ["ErrorStdOut","commands/_ErrorStdOut.htm"],
   ["escape sequence","misc/EscapeChar.htm"],
   ["Escape (Gui event)","objects/GuiOnEvent.htm#Escape"],
-  ["Exception","commands/Throw.htm#Exception",2],
+  ["Exception","objects/Error.htm#new",2],
   ["ExeName directive (Ahk2Exe)","misc/Ahk2ExeDirectives.htm#ExeName",99],
   ["Exit","commands/Exit.htm",2],
   ["ExitApp","commands/ExitApp.htm",2],
