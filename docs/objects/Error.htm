@@ -14,14 +14,24 @@
 <h1>Error Object</h1>
 
 <p>Error objects are <a href="../commands/Throw.htm">thrown</a> by built-in code when a runtime error occurs, and may also be thrown explicitly by the script.</p>
+<p>The Error class extends <a href="Object.htm">Object</a>.</p>
 
 <p id="Message"><strong>Message:</strong> An error message.</p>
 <p id="What"><strong>What:</strong> What threw the exception. This is usually the name of a function, but is blank for exceptions thrown due to an error in an expression (such as using a math operator on a non-numeric value).</p>
 <p id="Extra"><strong>Extra:</strong> A string value relating to the error, if available. If this value can be converted to a non-empty string, the standard error dialog displays a line with "Specifically:" followed by this string.</p>
 <p id="File"><strong>File:</strong> The full path of the script file which contains the line at which the error occurred, or at which the Error object was constructed.</p>
 <p id="Line"><strong>Line:</strong> The line number at which the error occurred, or at which the Error object was constructed.</p>
+<p id="Stack"><strong>Stack:</strong> A string representing the call stack at the time the Error object was constructed. Each line may be formatted as follows:</p>
+<dl>
+  <dt><code><i>File</i> (<i>Line</i>) : [<i>What</i>] <i>SourceCode</i>`r`n</code></dt>
+  <dd>Represents a call to the function <em>What</em>. <em>File</em> and <em>Line</em> indicate the current script line at this stack depth. <em>SourceCode</em> is an approximation of the source code at that line, as it would be shown in <a href="../commands/ListLines.htm">ListLines</a>.</dd>
+  <dt><code>&gt; <i>What</i>`r`n</code></dt>
+  <dd>Represents the launching of a thread, typically the direct cause of the function call above it.</dd>
+  <dt><code>... <i>N</i> more</code></dt>
+  <dd>Indicates that the stack trace was truncated, and there are <em>N</em> more stack entries not shown. Currently the <code>Stack</code> property cannot exceed 2047 characters.</dd>
+</dl>
 
-<p>The standard error dialog requires these to be value properties, and not inherited from a base object.</p>
+<p class="warning"><strong>Note:</strong> The standard error dialog requires <em>Message</em>, <em>Extra</em>, <em>File</em> and <em>Line</em> to be <a href="Object.htm">own value properties</a>.</p>
 
 <h2 id="new">Error.New() / Exception()</h2>
 <p>Creates an <a href="../objects/Error.htm">Error</a> object.</p>
@@ -29,9 +39,29 @@
 NewError := <span class="func">Exception</span>(Message <span class="optional">, What, Extra</span>)</pre>
 <p><em><strong>Error</strong></em> may be replaced with one of the subclasses listed under <a href="#error-types">Error Types</a>.</p>
 <p>The parameters directly correspond to properties described above, but may differ for Error subclasses which override the __New method.</p>
-<p>If <em>What</em> is omitted, it defaults to the name of the current function. Otherwise it can be a string or a negative offset from the top of the call stack. For example, a value of -1 sets <code>NewError.What</code> to the current function, and <code>NewError.Line</code> and <code>NewError.File</code> to the line and file which called it. However, if the script is <a href="../Scripts.htm#ahk2exe">compiled</a> or the offset is invalid, <em>What</em> is simply converted to a string.</p>
-<p>If an exception is thrown automatically due to an error in the script (and not by a named built-in function), <em>What</em> is usually blank.</p>
 <p><em>Message</em> and <em>Extra</em> are converted to strings. These are displayed by an error dialog if the exception is thrown and not caught.</p>
+<p><em>What</em> indicates the source of the error. It can be an arbitrary string, but should be a negative integer or the name of a running function. Specifying -1 indicates the current function, -2 indicates the function which called it, and so on. If the script is <a href="../Scripts.htm#ahk2exe">compiled</a> or the value does not identify a valid stack frame, the value is merely converted to a string and assigned to <code>NewError.What</code>. Otherwise, the identified stack frame is used as follows to determine the other properties:</p>
+<ul>
+  <li><code>NewError.What</code> contains the name of the function.</li>
+  <li><code>NewError.Line</code> and <code>NewError.File</code> indicate the line which <em>called</em> the function.</li>
+  <li><code>NewError.Stack</code> contains a partial stack trace, with the indicated stack frame at the top.</li>
+</ul>
+<p>Use of the <em>What</em> parameter can allow a complex function to use helper functions to perform its work or parameter validation, while omitting those internal details from any reported error information. For example:</p>
+<pre>MyFunction(a, b) {
+    CheckArg "a", a
+    CheckArg "b", b
+    <em>;...</em>
+    CheckArg(name, value) {
+        if value &lt; 0
+            throw ValueError.new(name " is negative", "myfunction", value)
+    }
+}
+
+try
+    MyFunction(1, -1)  <em>; err.Line indicates this line.</em>
+catch err
+    MsgBox Format("{1}: {2}.`n`nFile:`t{3}`nLine:`t{4}`nWhat:`t{5}`nStack:`n{6}"
+        , type(err), err.Message, err.File, err.Line, err.What, err.Stack)</pre>
 <pre>try
     SomeFunction()
 catch e
