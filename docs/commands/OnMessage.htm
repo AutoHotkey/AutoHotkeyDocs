@@ -21,7 +21,7 @@
   <dt>MsgNumber</dt>
   <dd>
     <p>Type: <a href="../Concepts.htm#numbers">Integer</a></p>
-    <p>The number of the message to monitor or query, which should be between 0 and 4294967295 (0xFFFFFFFF). If you do not wish to monitor a <a href="../misc/SendMessageList.htm">system message</a> (that is, one below 0x400), it is best to choose a number greater than 4096 (0x1000) to the extent you have a choice. This reduces the chance of interfering with messages used internally by current and future versions of AutoHotkey.</p>
+    <p>The number of the message to monitor or query, which should be between 0 and 4294967295 (0xFFFFFFFF). If you do not wish to monitor a <a href="../misc/SendMessageList.htm">system message</a> (that is, one below 0x0400), it is best to choose a number greater than 4096 (0x1000) to the extent you have a choice. This reduces the chance of interfering with messages used internally by current and future versions of AutoHotkey.</p>
   </dd>
 
   <dt>Function</dt>
@@ -76,7 +76,7 @@
 MsgParentWindow := WinExist()  <em>; This stores the unique ID of the window to which the message was sent.</em></pre>
 
 <h2 id="What_the_Function_Should_Return">What the Function Should <em>Return</em></h2>
-<p>If a monitor function uses <a href="Return.htm">Return</a> without any parameters, or it specifies a blank value such as "" (or it never uses Return at all), the incoming message goes on to be processed normally when the function finishes. The same thing happens if the function <a href="Exit.htm">Exits</a> or causes a runtime error such as <a href="Run.htm">running</a> a nonexistent file. By contrast, returning an integer causes it to be sent immediately as a reply; that is, the program does not process the message any further. For example, a function monitoring WM_LBUTTONDOWN (0x201) may return an integer to prevent the target window from being notified that a mouse click has occurred. In many cases (such as a message arriving via <a href="PostMessage.htm">PostMessage</a>), it does not matter which integer is returned; but if in doubt, 0 is usually safest.</p>
+<p>If a monitor function uses <a href="Return.htm">Return</a> without any parameters, or it specifies a blank value such as "" (or it never uses Return at all), the incoming message goes on to be processed normally when the function finishes. The same thing happens if the function <a href="Exit.htm">Exits</a> or causes a runtime error such as <a href="Run.htm">running</a> a nonexistent file. By contrast, returning an integer causes it to be sent immediately as a reply; that is, the program does not process the message any further. For example, a function monitoring WM_LBUTTONDOWN (0x0201) may return an integer to prevent the target window from being notified that a mouse click has occurred. In many cases (such as a message arriving via <a href="PostMessage.htm">PostMessage</a>), it does not matter which integer is returned; but if in doubt, 0 is usually safest.</p>
 <p>The range of valid return values depends on whether the exe running the script is 32-bit or 64-bit. Non-empty return values must be between -2<sup>31</sup> and 2<sup>32</sup>-1 for 32-bit scripts (<code><a href="../Variables.htm#PtrSize">A_PtrSize</a> = 4</code>) and between -2<sup>63</sup> and 2<sup>63</sup>-1 for 64-bit scripts (<code><a href="../Variables.htm#PtrSize">A_PtrSize</a> = 8</code>).</p>
 <p>If there are multiple functions monitoring a given message number, they are called one by one until one returns a non-empty value.</p>
 
@@ -84,11 +84,11 @@ MsgParentWindow := WinExist()  <em>; This stores the unique ID of the window to 
 <p>Unlike a normal function-call, the arrival of a monitored message calls the function as a new <a href="../misc/Threads.htm">thread</a>. Because of this, the function starts off fresh with the default values for settings such as <a href="SendMode.htm">SendMode</a> and <a href="DetectHiddenWindows.htm">DetectHiddenWindows</a>. These defaults can be changed during <a href="../Scripts.htm#auto">script startup</a>.</p>
 <p>Messages sent to a control (rather than being posted) are not monitored because the system routes them directly to the control behind the scenes. This is seldom an issue for system-generated messages because most of them are posted.</p>
 <p>Any script with active message monitors is automatically <a href="../Scripts.htm#persistent">persistent</a>, which means that it will not exit until <a href="ExitApp.htm">ExitApp</a> is used.</p>
-<p id="Critical">If a message arrives while its function is still running due to a previous arrival of the same message, the function will not be called again (except if <a href="#MaxThreads">MaxThreads</a> is greater than 1); instead, the message will be treated as unmonitored. If this is undesirable, a message greater than or equal to 0x312 can be buffered until its function completes by specifying <a href="Critical.htm">Critical</a> as the first line of the function. Alternatively, <a href="Thread.htm">Thread Interrupt</a> can achieve the same thing as long as it lasts long enough for the function to finish. By contrast, a message less than 0x312 cannot be buffered by Critical or Thread Interrupt (however, Critical may help because it checks messages <a href="Critical.htm#Interval">less often</a>, which gives the function more time to finish). The only way to guarantee that no such messages are missed is to ensure the function finishes in under 6 milliseconds (though this limit can be raised via <a href="Critical.htm#Interval"><em>Critical 30</em></a>). One way to do this is to have it queue up a future thread by <a href="PostMessage.htm">posting</a> to its own script a monitored message number higher than 0x312. That message's function should use <a href="Critical.htm">Critical</a> as its first line to ensure that its messages are buffered.</p>
-<p>If a monitored message that is numerically less than 0x312 arrives while the script is absolutely uninterruptible -- such as while a <a href="../objects/Menu.htm#Show">menu</a> is displayed, a <a href="SetKeyDelay.htm">KeyDelay</a>/<a href="SetMouseDelay.htm">MouseDelay</a> is in progress, or the clipboard is being <a href="_ClipboardTimeout.htm">opened</a> -- the message's function will not be called and the message will be treated as unmonitored.  By contrast, a monitored message of 0x312 or higher will be buffered during  these uninterruptible periods; that is, its function will be called when the script becomes interruptible.</p>
-<p>If a monitored message numerically less than 0x312 arrives while the script is uninterruptible merely due to the settings of <a href="Thread.htm">Thread Interrupt</a> or <a href="Critical.htm">Critical</a>, the current thread will be interrupted so that the function can be called. By contrast, a monitored message of 0x312 or higher will be buffered until the thread finishes or becomes interruptible.</p>
+<p id="Critical">If a message arrives while its function is still running due to a previous arrival of the same message, the function will not be called again (except if <a href="#MaxThreads">MaxThreads</a> is greater than 1); instead, the message will be treated as unmonitored. If this is undesirable, a message greater than or equal to 0x0312 can be buffered until its function completes by specifying <a href="Critical.htm">Critical</a> as the first line of the function. Alternatively, <a href="Thread.htm">Thread Interrupt</a> can achieve the same thing as long as it lasts long enough for the function to finish. By contrast, a message less than 0x0312 cannot be buffered by Critical or Thread Interrupt (however, Critical may help because it checks messages <a href="Critical.htm#Interval">less often</a>, which gives the function more time to finish). The only way to guarantee that no such messages are missed is to ensure the function finishes in under 6 milliseconds (though this limit can be raised via <a href="Critical.htm#Interval"><em>Critical 30</em></a>). One way to do this is to have it queue up a future thread by <a href="PostMessage.htm">posting</a> to its own script a monitored message number higher than 0x0312. That message's function should use <a href="Critical.htm">Critical</a> as its first line to ensure that its messages are buffered.</p>
+<p>If a monitored message that is numerically less than 0x0312 arrives while the script is absolutely uninterruptible -- such as while a <a href="../objects/Menu.htm#Show">menu</a> is displayed, a <a href="SetKeyDelay.htm">KeyDelay</a>/<a href="SetMouseDelay.htm">MouseDelay</a> is in progress, or the clipboard is being <a href="_ClipboardTimeout.htm">opened</a> -- the message's function will not be called and the message will be treated as unmonitored.  By contrast, a monitored message of 0x0312 or higher will be buffered during  these uninterruptible periods; that is, its function will be called when the script becomes interruptible.</p>
+<p>If a monitored message numerically less than 0x0312 arrives while the script is uninterruptible merely due to the settings of <a href="Thread.htm">Thread Interrupt</a> or <a href="Critical.htm">Critical</a>, the current thread will be interrupted so that the function can be called. By contrast, a monitored message of 0x0312 or higher will be buffered until the thread finishes or becomes interruptible.</p>
 <p>The <a href="../misc/Threads.htm">priority</a> of OnMessage threads is always 0. Consequently, no messages are monitored or buffered when the current thread's priority is higher than 0.</p>
-<p>Caution should be used when monitoring system messages (those below 0x400). For example, if a monitor function does not finish quickly, the response to the message might take longer than the system expects, which might cause side-effects. Unwanted behavior may also occur if a monitor function returns an integer to suppress further processing of a message, but the system expected different processing or a different response.</p>
+<p>Caution should be used when monitoring system messages (those below 0x0400). For example, if a monitor function does not finish quickly, the response to the message might take longer than the system expects, which might cause side-effects. Unwanted behavior may also occur if a monitor function returns an integer to suppress further processing of a message, but the system expected different processing or a different response.</p>
 <p>When the script is displaying a system dialog such as <a href="MsgBox.htm">MsgBox</a>, any message posted to a control is not monitored. For example, if the script is displaying a message box and the user clicks a button in a GUI window, the WM_LBUTTONDOWN message is sent directly to the button without calling the monitor function.</p>
 <p>Although an external program may post messages directly to a script's thread via PostThreadMessage() or other API call, this is not recommended because the messages would be lost if the script is displaying a system window such as a <a href="MsgBox.htm">message box</a>. Instead, it is usually best to post or send the messages to the script's main window or one of its GUI windows.</p>
 <h2 id="Related">Related</h2>
@@ -101,7 +101,7 @@ MyGui.Add("Text",, "Click anywhere in this window.")
 MyGui.Add("Edit", "w200")
 MyGui.OnEvent("Close", (*) =&gt; ExitApp())
 MyGui.Show
-OnMessage 0x201, "WM_LBUTTONDOWN"
+OnMessage 0x0201, "WM_LBUTTONDOWN"
 
 WM_LBUTTONDOWN(wParam, lParam, msg, hwnd)
 {
@@ -123,7 +123,7 @@ WM_LBUTTONDOWN(wParam, lParam, msg, hwnd)
 <p><a href="#ExShutdown">#2</a>: Detects system shutdown/logoff and allows the user to abort it. On Windows Vista and later, the system displays a user interface showing which program is blocking shutdown/logoff and allowing the user to force shutdown/logoff. On older OSes, the script displays a confirmation prompt. Related topic: <a href="OnExit.htm">OnExit</a></p>
 <pre><em>; The following DllCall is optional: it tells the OS to shut down this script first (prior to all other applications).</em>
 DllCall("kernel32.dll\SetProcessShutdownParameters", "UInt", 0x4FF, "UInt", 0)
-OnMessage(0x11, "WM_QUERYENDSESSION")
+OnMessage(0x0011, "WM_QUERYENDSESSION")
 return
 
 WM_QUERYENDSESSION(wParam, lParam, *)
@@ -169,7 +169,7 @@ StopBlockingShutdown(*)
 </div>
 
 <div class="ex" id="ExCustom">
-<p><a href="#ExCustom">#3</a>: Receives a custom message and up to two numbers from some other script or program (to send strings rather than numbers, see the example after this one).</p>
+<p><a class="ex_number" href="#ExCustom"></a> Receives a custom message and up to two numbers from some other script or program (to send strings rather than numbers, see the example after this one).</p>
 <pre>OnMessage 0x5555, "MsgMonitor"
 OnMessage 0x5556, "MsgMonitor"
 
@@ -192,7 +192,7 @@ DetectHiddenWindows False  <em>; Must not be turned off until after PostMessage.
 <p><a href="#ExSendString">#4</a>: Sends a string of any length from one script to another. To use this, save and run both of the following scripts then press <kbd>Win</kbd>+<kbd>Space</kbd> to show an input box that will prompt you to type in a string. Both scripts must use the same <a href="../Concepts.htm#native-encoding">native encoding</a>.</p>
 <p>Save the following script as <strong>Receiver.ahk</strong> then launch it.</p>
 <pre filename="Receiver.ahk">#SingleInstance
-OnMessage 0x4a, "Receive_WM_COPYDATA"  <em>; 0x4a is WM_COPYDATA</em>
+OnMessage 0x004A, "Receive_WM_COPYDATA"  <em>; 0x004A is WM_COPYDATA</em>
 return
 
 Receive_WM_COPYDATA(wParam, lParam, msg, hwnd)
@@ -235,7 +235,7 @@ Send_WM_COPYDATA(ByRef StringToSend, ByRef TargetScriptTitle)  <em>; ByRef saves
     SetTitleMatchMode 2
     TimeOutTime := 4000  <em>; Optional. Milliseconds to wait for response from receiver.ahk. Default is 5000
     ; Must use SendMessage not PostMessage.</em>
-    RetValue := SendMessage(0x4a, 0, CopyDataStruct,, TargetScriptTitle,,,, TimeOutTime) <em>; 0x4a is WM_COPYDATA.</em>
+    RetValue := SendMessage(0x004A, 0, CopyDataStruct,, TargetScriptTitle,,,, TimeOutTime) <em>; 0x004A is WM_COPYDATA.</em>
     DetectHiddenWindows Prev_DetectHiddenWindows  <em>; Restore original setting for the caller.</em>
     SetTitleMatchMode Prev_TitleMatchMode         <em>; Same.</em>
     return RetValue  <em>; Return SendMessage's reply back to our caller.</em>
