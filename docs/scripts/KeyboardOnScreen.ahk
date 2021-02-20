@@ -586,28 +586,28 @@ flashButton()
 
     ; Change the color of the corresponding progress bar to red
     ; (beginning of the flashing's process).
-    guicontrol, +BackgroundRed, prg%index%
+    GuiControl, +BackgroundRed, prg%index%
 
     ; Wait for the release of the key.
     KeyWait, %k_ThisHotkey%
 
     ; Remove the flash color.
-    guicontrol, -Background, prg%index%
+    GuiControl, -Background, prg%index%
 
     ; Redraw the button on release (needed because the buttons' names differ from the hotkeys' names).
     global labels
     if (labels.HasKey(k_ThisHotkey))
     {
-        guicontrol, MoveDraw, % labels[k_ThisHotkey]
+        GuiControl, MoveDraw, % labels[k_ThisHotkey]
     }
     else
     {
-        guicontrol, MoveDraw, % k_ThisHotkey
+        GuiControl, MoveDraw, % k_ThisHotkey
     }
 }
 
 ;   Exit the script (via Escape when active, the window's x button, or system tray Exit option).
-GUIEscape:
+GuiEscape:
 GuiClose:
 k_MenuExit:
     ExitApp
