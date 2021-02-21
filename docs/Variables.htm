@@ -26,10 +26,11 @@
 <pre>MyNumber := 123
 MyString := "This is a literal string."
 CopyOfVar := Var</pre>
-<p>Variables which have not been assigned a value contain an empty string by default. Therefore, to erase the contents of a variable, simply assign an empty string:</p>
+<p>A variable cannot be explicitly deleted, but its previous value can be released by assigning a new value, such as an empty string:</p>
 <pre>MyVar := ""</pre>
-<p>A variable can also be assigned a value indirectly, by using it as an <em>output variable</em> of a function. For example:</p>
-<pre><a href="commands/MouseGetPos.htm">MouseGetPos</a> <strong>x</strong>, <strong>y</strong></pre>
+<p>A variable can also be assigned a value indirectly, by <a href="#ref">taking its reference</a> and using a <a href="#deref">double-deref</a> or passing it to a function. For example:</p>
+<pre><a href="commands/MouseGetPos.htm">MouseGetPos</a> &amp;x, &amp;y</pre>
+<p>Accessing a variable which has not been assigned a value is considered an error. <a href="commands/IsSet.htm">IsSet</a> can be used to detect this condition.</p>
 <p id="retrieving"><strong>Retrieving the contents of variables</strong>: To include the contents of a variable in a string, use <a href="#concat">concatenation</a> or <a href="commands/Format.htm">Format</a>. For example:</p>
 <pre><a href="commands/MsgBox.htm">MsgBox</a> "The value of Var is " . Var . "."
 MsgBox "The value in the variable named Var is " Var "."
@@ -70,15 +71,14 @@ MsgBox(1.00)  <em>; Shows 1.0</em></pre>
 
 <h3 id="operators">Expression Operators (in descending precedence order)</h3>
 <table class="info">
-  <tr id="ref">
+  <tr id="deref">
     <td style="text-align:center; white-space:nowrap"><strong>%Expr%</strong></td>
     <td>
-      <p>Evaluates the sub-expression <em>Expr</em> and uses its value as the name or partial name of a variable, function, property or method. This allows the script to refer to a variable, function, property or method whose name is not written literally in the script, but is determined by evaluating <em>Expr</em>, which is typically another variable. Percent signs cannot be used directly within <em>Expr</em> due to ambiguity, but can be nested within parentheses. Otherwise, <em>Expr</em> can be any expression.</p>
+      <p>Evaluates the sub-expression <em>Expr</em> and uses its value as the name or partial name of a variable or property. This allows the script to refer to a variable or property whose name is not written literally in the script, but is determined by evaluating <em>Expr</em>, which is typically another variable. Percent signs cannot be used directly within <em>Expr</em> due to ambiguity, but can be nested within parentheses. Otherwise, <em>Expr</em> can be any expression.</p>
       <p>If there are any adjoining <em>%Expr%</em> sequences and partial <a href="Concepts.htm#names">names</a> (without any spaces or other characters between them), they are combined to form a single name.</p>
-      <p><code>%Expr%()</code> performs a <a href="Functions.htm#DynCall">dynamic function call</a>.</p>
       <p><code>x.%Expr%</code> accesses a property of object <em>x</em> and <code>x.%Expr%()</code> calls a method.</p>
       <p>Otherwise, <code>%Expr%</code> dynamically retrieves a variable by name. The <u>result</u> of the sub-expression <em>Expr</em> must be the name or partial name of the variable to be retrieved.</p>
-      <p>If the variable does not already exist, a blank variable is created. An <a href="objects/Error.htm">Error</a> is thrown if the name is <a href="Concepts.htm#names">invalid</a>.</p>
+      <p>An <a href="objects/Error.htm">Error</a> is thrown if the name is <a href="Concepts.htm#names">invalid</a>, or if the variable is uninitialized (or does not already exist) and its value is being read.</p>
       <p>This is most commonly used to reference <a href="misc/Arrays.htm#pseudo">pseudo-array</a> elements.</p>
       <p>Although this is historically known as a "double-deref", this term is inaccurate when <em>Expr</em> does not contain a variable (first deref), and also when the resulting variable is the target of an assignment, not being dereferenced (second deref).</p>
     </td>
@@ -106,12 +106,14 @@ MsgBox(1.00)  <em>; Shows 1.0</em></pre>
   <tr id="unary">
     <td style="text-align:center"><strong>-<br>
     !<br>
-    ~</strong></td>
+    ~<br>
+    &amp;</strong></td>
     <td>
       <p><strong>Unary minus (-)</strong>: Inverts the sign of its operand.</p>
       <p><strong>Unary plus (+)</strong>: <code>+N</code> is equivalent to <code>-(-N)</code>. This has no effect when applied to a pure number, but can be used to convert numeric strings to pure numbers.</p>
       <p><strong>Logical-not (!)</strong>: If the operand is blank or 0, the result of applying logical-not is 1, which means "true". Otherwise, the result is 0 (false). For example: <code>!x or !(y and z)</code>. Note: The word NOT is synonymous with <strong>!</strong> except that <strong>!</strong> has a higher precedence. Consecutive unary operators such as <code><strong>!!</strong>Var</code> are allowed because they are evaluated in right-to-left order.</p>
       <p><strong>Bitwise-not (~)</strong>: This inverts each bit of its operand. As 64-bit signed integers are used, a positive input value will always give a negative result and vice versa. For example, <code>~0xf0f</code> evaluates to -0xf10 (-3856), which is binary equivalent to 0xfffffffffffff0f0. If an unsigned 32-bit value is intended, the result can be truncated with <code><i>result</i> &amp; 0xffffffff</code>. If the operand is a floating point value, a <a href="objects/Error.htm#TypeError">TypeError</a> is thrown.</p>
+      <p id="ref"><strong>Reference (&amp;)</strong>: Creates a VarRef, which is a value representing a reference to a variable. A VarRef can then be used to indirectly access the target variable. For example, <code>ref := &amp;target</code> followed by <code>%ref% := 1</code> would assign the value 1 to <em>target</em>. The VarRef would typically be passed to a function, but could be stored in an array or property. See also: <a href="#deref">double-deref</a>, <a href="Functions.htm#ByRef">ByRef</a>.</p>
     </td>
   </tr>
   <tr id="MulDiv">
@@ -190,7 +192,7 @@ Var := "The color is " FoundColor    <em>; Auto-concat</em>
   <tr>
     <td align="center"><strong>IS</strong><br><strong>IN</strong><br><strong>CONTAINS</strong></td>
     <td id="is">
-      <p><code><i>Value</i> <strong>is</strong> <i>Class</i></code> yields true (1) if <em>Value</em> is an instance of <em>Class</em> or false (0) otherwise. <em>Class</em> must be an <a href="objects/Object.htm">Object</a> with a <a href="objects/Class.htm#Prototype">Prototype</a> own property, but typically the property is defined implicitly by a class definition. This operation is generally equivalent to <code><i>Value</i>.HasBase(<i>Class</i>.Prototype)</code>, except that the value cannot override how it is handled, and the result is always false for COM objects.</p>
+      <p><code><i>Value</i> <strong>is</strong> <i>Class</i></code> yields true (1) if <em>Value</em> is an instance of <em>Class</em> or false (0) otherwise. <em>Class</em> must be an <a href="objects/Object.htm">Object</a> with a <a href="objects/Class.htm#Prototype">Prototype</a> own property, but typically the property is defined implicitly by a class definition. This operation is generally equivalent to <code>HasBase(<i>Value</i>, <i>Class</i>.Prototype)</code>.</p>
       <p><code id="in"><strong>in</strong></code> and <code id="contains"><strong>contains</strong></code> are reserved for future use.</p>
     </td>
   </tr>
@@ -243,7 +245,7 @@ MsgBox(A || B || C) <em>; The <strong>last</strong> falsey operand is returned (
     </td>
     <td><p><strong>Assign</strong>. Performs an operation on the contents of a variable and stores the result back in the same variable. The simplest assignment operator is <a href="commands/SetExpression.htm">colon-equals (:=)</a>, which stores the result of an expression in a variable. For a description of what the other operators do, see their related entries in this table. For example, <code>Var //= 2</code> performs <a href="#IntegerDivide">integer division</a> to divide <em>Var</em> by 2, then stores the result back in <em>Var</em>. Similarly, <code>Var <strong>.=</strong> "abc"</code> is a shorthand way of writing <code>Var := Var <strong>.</strong> "abc"</code>.</p>
       <p>Unlike most other operators, assignments are evaluated from right to left. Consequently, a line such as <code>Var1 := Var2 := 0</code> first assigns 0 to <em>Var2</em> then assigns <em>Var2</em> to <em>Var1</em>.</p>
-    <p>If an assignment is used as the input for some other operator, its value is the variable itself. For example,  the expression <code>(Var+=2) &gt; 50</code> is true if the newly-increased value in <em>Var</em> is greater than 50. This also allows an assignment to be passed <a href="Functions.htm#ByRef">ByRef</a>, or its address taken; for example: <code>StrPtr(x:="abc")</code>.</p>
+    <p>If an assignment is used as the input for some other operator, its value is the variable itself. For example,  the expression <code>(Var+=2) &gt; 50</code> is true if the newly-increased value in <em>Var</em> is greater than 50. It is also valid to combine an assignment with the <a href="#ref">reference operator</a>, as in <code>&amp;(Var := "initial value")</code>.</p>
     <p>The precedence of the assignment operators is automatically raised when it would avoid a syntax error or provide more intuitive behavior. For example: <code>not x:=y</code> is evaluated as <code>not (x:=y)</code>. Similarly, <code>++Var := X</code> is evaluated as <code>++(Var := X)</code>; and <code>Z&gt;0 ? X:=2 : Y:=2</code> is evaluated as <code>Z&gt;0 ? (X:=2) : (Y:=2)</code>.</p>
     <p>An assignment can also target a property of an object, such as <code>myArray.Length += n</code> or <code>myArray[i] .= t</code>. When assigning to a property, the result of the sub-expression is the value being assigned, not a variable reference.</p>
     </td>
@@ -257,11 +259,11 @@ MsgBox(A || B || C) <em>; The <strong>last</strong> falsey operand is returned (
       <pre>Sum(a, b) {
     return a + b
 }
-sumfn := Func("Sum")</pre>
+sumfn := Sum</pre>
       <p>In both cases, the function is defined <strong>unconditionally</strong> at the moment the script launches, but the function reference is stored in <em>sumfn</em> only if and when the assignment is evaluated.</p>
       <p>If the function name is omitted and the parameter list consists of only a single parameter name, the parentheses can be omitted. The example below defines an anonymous function with one parameter <code>a</code> and stores its reference in the variable <code>double</code>:</p>
       <pre>double := a =&gt; a * 2</pre>
-      <p>Variable references in <em>expr</em> are resolved in the same way as in the equivalent full function definition. For instance, <em>expr</em> may refer to an outer function's local variables (as in any <a href="Functions.htm#nested">nested function</a>), in which case a new <a href="Functions.htm#closures">closure</a> is created and returned each time the fat arrow expression is evaluated. The function is <a href="Functions.htm#AssumeLocal">assume-local</a> if it is nested inside another function, otherwise it is <a href="Functions.htm#AssumeGlobal">assume-global</a>.</p>
+      <p>Variable references in <em>expr</em> are resolved in the same way as in the equivalent full function definition. For instance, <em>expr</em> may refer to an outer function's local variables (as in any <a href="Functions.htm#nested">nested function</a>), in which case a new <a href="Functions.htm#closures">closure</a> is created and returned each time the fat arrow expression is evaluated. The function is always <a href="Functions.htm#AssumeLocal">assume-local</a>, since declarations cannot be used.</p>
       <p>Specifying a name for the function allows it to be called recursively or by other nested functions without storing a reference to the <a href="Functions.htm#closures">closure</a> within itself (thereby creating a problematic <a href="Objects.htm#Circular_References">circular reference</a>). It can also be helpful for debugging, such with <a href="objects/Func.htm#Name">Func.Name</a> or when displayed on the debugger's call stack.</p>
       <p>Fat arrow syntax can also be used to define shorthand <a href="Objects.htm#Custom_Classes_property_short">properties</a> and <a href="Objects.htm#Custom_Classes_method">methods</a>.</p>
     </td>
@@ -282,14 +284,15 @@ sumfn := Func("Sum")</pre>
     <td><p>Any sub-expression enclosed in parentheses. For example, <code>(3 + 2) * 2</code> forces <code>3 + 2</code> to be evaluated first.</p></td>
   </tr>
   <tr>
-    <td style="text-align:center; white-space:nowrap"><p><strong>Mod<br>
-        Round<br>
-    Abs</strong></p></td>
-    <td><strong>Function call</strong>. The function name must be immediately followed by an open-parenthesis, without any spaces or tabs in between. For details, see <a href="Functions.htm">Functions</a>.</td>
+    <td style="text-align:center; white-space:nowrap"><p>Mod<strong>()</strong><br>
+        Round<strong>()</strong><br>
+    Abs<strong>()</strong></p></td>
+    <td rowspan="2"><p><strong>Function call</strong>. There must be no space between the function name or expression and the open parenthesis which begins the parameter list. For details, see <a href="Language.htm#function-calls">Function Calls</a>.</p>
+    <p><em>(expression)</em> is not necessarily required to be enclosed in parentheses, but doing so may eliminate ambiguity. For example, <code>(x.y)()</code> retrieves a function from a property and then calls it with no parameters, whereas <code>x.y()</code> would implicitly pass <code>x</code> as the first parameter.</p>
+    </td>
   </tr>
   <tr>
-    <td style="text-align:center; white-space:nowrap"><p><strong>%</strong><em>func</em><strong>%()</strong></p></td>
-    <td>See <a href="Functions.htm#DynCall">Dynamically Calling a Function</a>.</td>
+    <td style="text-align:center; white-space:nowrap"><p><em>(expression)</em><strong>()</strong></p></td>
   </tr>
   <tr>
     <td style="text-align:center">Fn(<strong><em>Params</em>*</strong>)</td>
@@ -306,7 +309,7 @@ sumfn := Func("Sum")</pre>
   <tr id="curly-braces">
     <td style="text-align:center"><strong>{a: b, c: d}</strong></td>
     <td>
-      <p><strong>Object literal</strong>. Create an <a href="objects/Object.htm">Object</a>. Each pair consists of a literal property name <code>a</code> and a property value expression <code>b</code>. For example, <code>x := {a: b}</code> is equivalent to <code>x := Object("a", b)</code> or <code>x := Object(), x.a := b</code>. <a href="objects/Object.htm#Base">Base</a> may be set within the object literal, but all other properties are set as <em>own value properties</em>, potentially overriding properties inherited from the base object.</p>
+      <p><strong>Object literal</strong>. Create an <a href="objects/Object.htm">Object</a>. Each pair consists of a literal property name <code>a</code> and a property value expression <code>b</code>. For example, <code>x := {a: b}</code> is equivalent to <code>x := Object(), x.a := b</code>. <a href="objects/Object.htm#Base">Base</a> may be set within the object literal, but all other properties are set as <em>own value properties</em>, potentially overriding properties inherited from the base object.</p>
       <p>To use a dynamic property name, enclose the sub-expression in percent signs. For example: <code>{%nameVar%: valueVar}</code>.</p>
     </td>
   </tr>
@@ -391,7 +394,7 @@ sumfn := Func("Sum")</pre>
   </tr>
   <tr id="ThisFunc">
     <td>A_ThisFunc</td>
-    <td>The name of the <a href="Functions.htm">user-defined function</a> that is currently executing (blank if none); for example: MyFunction. See also: <a href="commands/IsFunc.htm">IsFunc</a></td>
+    <td>The name of the <a href="Functions.htm">user-defined function</a> that is currently executing (blank if none); for example: MyFunction. See also: <a href="objects/Func.htm#Name">Name property (Func)</a></td>
   </tr>
   <tr id="AhkVersion">
     <td>A_AhkVersion</td>

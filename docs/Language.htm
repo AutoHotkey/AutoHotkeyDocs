@@ -62,8 +62,8 @@ Methods?
 
 <h2 id="general-conventions">General Conventions</h2>
 <p><strong>Names:</strong> Variable and function names are not case sensitive (for example, <code>CurrentDate</code> is the same as <code>currentdate</code>). For details such as maximum length and usable characters, see <a href="Concepts.htm#names">Names</a>.</p>
-<p><strong>No typed variables:</strong> Variables have no explicitly defined type; instead, a value of any type can be stored in any variable (excluding built-in variables). Numbers may be automatically converted to strings (text) and vice versa, depending on the situation.</p>
-<p><strong>Declarations are optional:</strong> Except where noted on the <a href="Functions.htm">functions page</a>, variables do not need to be declared; they come into existence simply by using them (and each variable starts off empty/blank).</p>
+<p><strong>No typed variables:</strong> Variables have no explicitly defined type; instead, a value of any type can be stored in any variable (excluding constants and built-in variables). Numbers may be automatically converted to strings (text) and vice versa, depending on the situation.</p>
+<p><strong>Declarations are optional:</strong> Except where noted on the <a href="Functions.htm">functions page</a>, variables do not need to be declared. However, attempting to read a variable before it is given a value is considered an error.</p>
 <p><strong>Spaces are mostly ignored:</strong> Indentation (leading space) is important for writing readable code, but is not required by the program and is generally ignored. Spaces and tabs are <em>generally</em> ignored at the end of a line and within an expression (except between quotes). However, spaces are significant in some cases, including:</p>
 <ul>
   <li><a href="#function-calls">Function</a> and method calls require there to be no space between the function/method name and <code>(</code>.</li>
@@ -122,7 +122,7 @@ MsgBox "This line is not commented out."
 <pre>MsgBox Format("You are using AutoHotkey v{1} {2}-bit.", A_AhkVersion, A_PtrSize*8)
 </pre>
 <p>To assign a value to a variable, use the <code>:=</code> <a href="Variables.htm#AssignOp">assignment operator</a>, as in <code>MyVar := "Some text"</code>.</p>
-<p><em>Percent signs</em> within an expression are used to create <a href="#dynamic-variables">dynamic variable references</a> and <a href="Functions.htm#DynCall">dynamic function calls</a>, but these are rarely needed.</p>
+<p><em>Percent signs</em> within an expression are used to create <a href="#dynamic-variables">dynamic variable references</a>, but these are rarely needed.</p>
 
 <h3 id="constants">Keyword Constants</h3>
 <p>A constant is simply an unchangeable value, given a symbolic name. AutoHotkey currently has the following constants:</p>
@@ -145,18 +145,18 @@ MsgBox "This line is not commented out."
 
 <h3 id="function-calls">Function Calls</h3>
 <p class="note">For a general explanation of functions and related terminology, see <a href="Concepts.htm#functions">Functions</a>.</p>
-<p><em>Functions</em> take a varying number of inputs, perform some action or calculation, and then <a href="Concepts.htm#return-a-value"><em>return</em></a> a result. The inputs of a function are called <a href="Concepts.htm#parameters"><em>parameters</em></a> or <em>arguments</em>. A function is <a href="Concepts.htm#call"><em>called</em></a> simply by writing its name followed by its parameters enclosed in parentheses. For example, <code>GetKeyState("Shift")</code> returns (evaluates to) 1 if <kbd>Shift</kbd> is being held down or 0 otherwise.</p>
-<p class="warning"><strong>Note:</strong> There must not be any space between the function name and open parenthesis.
+<p><em>Functions</em> take a varying number of inputs, perform some action or calculation, and then <a href="Concepts.htm#return-a-value"><em>return</em></a> a result. The inputs of a function are called <a href="Concepts.htm#parameters"><em>parameters</em></a> or <em>arguments</em>. A function is <a href="Concepts.htm#call"><em>called</em></a> simply by writing the target function followed by parameters enclosed in parentheses. For example, <code>GetKeyState("Shift")</code> returns (evaluates to) 1 if <kbd>Shift</kbd> is being held down or 0 otherwise.</p>
+<p class="warning"><strong>Note:</strong> There must not be any space between the function and open parenthesis.
 </p>
 <p>For those new to programming, the requirement for parentheses may seem cryptic or verbose at first, but they are what allows a function call to be combined with other operations. For example, the expression <code>GetKeyState("Shift", "P") and GetKeyState("Ctrl", "P")</code> returns 1 only if both keys are being physically held down.</p>
-<p>Function names are separate to variable names. For example, <code>Round</code> can be both a variable name and a function name, and <code>Round := 1</code> will not affect <code>Round(n)</code> in any way.</p>
-<p>Unlike normal <a href="Functions.htm#Global">global variables</a>, functions can be called from inside other functions by default. However, <a href="Functions.htm#nested">nested functions</a> (that is, any function which is <em>defined</em> inside another function) are only accessible by name inside the function which encloses them.</p>
+<p>Although a function call expression usually begins with a literal function name, the target of the call can be any expression which produces a <a href="objects/Functor.htm">function object</a>. In the expression <code>GetKeyState("Shift")</code>, <em>GetKeyState</em> is actually a variable reference, although it usually refers to a read-only variable containing a built-in function.</p>
 
 <h4 id="function-call-statements">Function Call Statements</h4>
 <p>If the return value of the function is not needed and the function name is written at the start of the line (or in other contexts which allow a <a href="Concepts.htm#statement">statement</a>, such as following <code>else</code> or a <a href="Hotkeys.htm">hotkey</a>), the parentheses can be omitted. In this case, the remainder of the line is taken as the function's parameter list. For example:</p>
 <pre>result := MsgBox("This one requires parentheses.",, "OKCancel")
 MsgBox "This one doesn't. The result was " result "."</pre>
 <p>Parentheses can also be omitted when calling a <a href="Concepts.htm#methods">method</a> in this same context, but only when the target object is either a variable or a directly named property, such as <code>myVar.myMethod</code> or <code>myVar.myProp.myMethod</code>.</p>
+<p>As with function call expressions, the target of a function call statement does not have to be a predefined function; it can instead be a variable containing a <a href="objects/Functor.htm">function object</a>.</p>
 
 <h4 id="optional-parameters">Optional Parameters</h4>
 <p>Optional parameters can simply be left blank, but the delimiting comma is still required unless all subsequent parameters are also omitted. For example, the <a href="commands/Run.htm">Run</a> function can accept between one and four parameters. All of the following are valid:</p>
@@ -304,9 +304,14 @@ SayHello  <em>; Call the SayHello function.</em></pre>
     <pre>SayHello() =&gt; MsgBox("Hello!")</pre>
   </li>
 </ul>
-<p>Variables in functions are <a href="Functions.htm#Local">local</a> to that function by default, except when referring to a local variable of an outer function inside a <a href="Functions.htm#nested">nested function</a>, or any variable when <code>=&gt;</code> is used in the global scope (not inside a class or another function).</p>
+<p>Variables in functions are <a href="Functions.htm#Local">local</a> to that function by default, except in the following cases:</p>
+<ul>
+  <li>When the function is <a href="Functions.htm#AssumeGlobal">assume-global</a>.</li>
+  <li>When a variable is referenced but not used as the target of an <a href="Variables.htm#AssignOp">assignment</a> or the reference operator (<code>&amp;var</code>).</li>
+  <li>When referring to a local variable of an outer function inside a <a href="Functions.htm#nested">nested function</a>.</li>
+</ul>
 <p>A function can optionally <a href="Concepts.htm#parameters">accept parameters</a>. Parameters are defined by listing them inside the parentheses. For example:</p>
-<pre>MyFunction(FirstParameter, Second, ByRef Third, Fourth:="")
+<pre>MyFunction(FirstParameter, Second, &amp;Third, Fourth:="")
 {
     <em>;...</em>
     return "a value"
@@ -314,7 +319,7 @@ SayHello  <em>; Call the SayHello function.</em></pre>
 </pre>
 <p>As with function calls, there must be no space between the function name and open-parenthesis.</p>
 <p>The line break between the close-parenthesis and open-brace is optional. There can be any amount of whitespace or comments between the two.</p>
-<p><a href="Functions.htm#ByRef">ByRef</a> indicates that the parameter accepts a variable reference, making that parameter an alias for whichever variable the caller passes. If the caller does not pass a variable, the parameter acts as a normal local variable. ByRef parameters can also be optional.</p>
+<p>The <a href="Functions.htm#ByRef">ByRef marker (&amp;)</a> indicates that the caller must pass a variable reference. Inside the function, any reference to the parameter will actually access the caller's variable. This is similar to omitting <code>&amp;</code> and using <a href="Variables.htm#deref">double-derefs</a> (like <code>%Third%</code>) inside the function, but in this case the percent signs are omitted. If the parameter is optional and the caller omits it, the parameter acts as a normal local variable.</p>
 <p><a href="Functions.htm#optional">Optional</a> parameters are specified by following the parameter name with <code>:=</code> and a default value, which must be a literal quoted string, a number, <code>true</code>, <code>false</code> or <code>unset</code>.</p>
 <p>The function can <a href="Functions.htm#return">return a value</a>. If it does not, the default return value is an empty string.</p>
 <p>A function definition does not need to precede calls to that function.</p>

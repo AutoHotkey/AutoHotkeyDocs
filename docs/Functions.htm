@@ -46,23 +46,31 @@ Add 2, 3  <em>; Parentheses can be omitted if used at the start of a line.</em><
 
 <h2 id="param">Parameters</h2>
 <p>When a function is defined, its parameters are listed in parentheses next to its name (there must be no spaces between its name and the open-parenthesis). If a function does not accept any parameters, leave the parentheses empty; for example: <code>GetCurrentTimestamp()</code>.</p>
-<p id="ByRef"><strong>ByRef Parameters</strong>: From the function's point of view, parameters are essentially the same as <a href="#Local">local variables</a> unless they are defined as <em>ByRef</em> as in this example:</p>
-<pre>Swap(ByRef Left, ByRef Right)
+<p id="ByRef"><strong>ByRef Parameters</strong>: From the function's point of view, parameters are essentially the same as <a href="#Local">local variables</a> unless they are marked as <em>ByRef</em> as in this example:</p>
+<pre>a := 1, b := 2
+Swap(&amp;a, &amp;b)
+MsgBox a ',' b
+
+Swap(&amp;Left, &amp;Right)
 {
     temp := Left
     Left := Right
     Right := temp
 }</pre>
-<p>In the example above, the use of <em>ByRef</em> causes each parameter to become an alias for the variable passed in from the caller. In other words, the parameter and the caller's variable both refer to the same contents in memory. This allows the Swap function to alter the caller's variables by moving <em>Left</em>'s contents into <em>Right</em> and vice versa.</p>
-<p>By contrast, if <em>ByRef</em> were not used in the example above, <em>Left</em> and <em>Right</em> would be copies of the caller's variables and thus the Swap function would have no external effect.</p>
-<p>Since <a href="commands/Return.htm">return</a> can send back only one value to a function's caller, <em>ByRef</em> can be used to send back extra results. This is achieved by having the caller pass in a variable (usually empty) in which the function stores a value.</p>
+<p>In the example above, the use of <code>&amp;</code> requires the caller to pass a <a href="Concepts.htm#variable-references">VarRef</a>, which usually corresponds to one of the caller's variables. Each parameter becomes an alias for the variable represented by the VarRef. In other words, the parameter and the caller's variable both refer to the same contents in memory. This allows the Swap function to alter the caller's variables by moving <em>Left</em>'s contents into <em>Right</em> and vice versa.</p>
+<p>By contrast, if <em>ByRef</em> were not used in the example above, <em>Left</em> and <em>Right</em> would be copies of the caller's variables and thus the Swap function would have no external effect. However, the function could instead be changed to explicitly <a href="Variables.htm#deref">dereference</a> each VarRef. For example:</p>
+<pre>Swap(Left, Right)
+{
+    temp := %Left%
+    %Left% := %Right%
+    %Right% := temp
+}</pre>
+<p>Since <a href="commands/Return.htm">return</a> can send back only one value to a function's caller, VarRefs can be used to send back extra results. This is achieved by having the caller pass in a reference to a variable (usually empty) in which the function stores a value.</p>
 <p>When passing large strings to a function, <em>ByRef</em> enhances performance and conserves memory by avoiding the need to make a copy of the string. Similarly, using <em>ByRef</em> to send a long string back to the caller usually performs better than something like <code>Return HugeString</code>. However, what the function receives is not a reference to the string, but a reference to the <em>variable</em>. Future improvements might supersede the use of ByRef for these purposes.</p>
-<p>If something other than a modifiable variable is passed to a ByRef parameter, the function behaves as though the keyword "ByRef" is absent. For example, <code>Swap(A_Index, i)</code> stores the value of <i>A_Index</i> in <i>i</i>, but the value assigned to <i>Left</i> is discarded once the <i>Swap</i> function returns.</p>
-<p>The <a href="commands/IsByRef.htm">IsByRef</a> function can be used to determine whether the caller supplied a variable for a given ByRef parameter.</p>
 <p>Known limitations:</p>
 <ul>
-  <li>It is not possible to pass properties of objects (such as <code>foo.bar</code>), <a href="misc/A_Clipboard.htm">A_Clipboard</a> or other <a href="Variables.htm#BuiltIn">built-in variables</a> to a function by reference. Instead, the function acts as though <em>ByRef</em> was omitted.</li>
-  <li>If a parameter in a function-call resolves to a variable (e.g. <code>Var</code> or <code>++Var</code> or <code>Var*=2</code>), other parameters to its left or right can alter that variable before it is passed to the function. For example, <code>MyFunc(Var, Var++)</code> would unexpectedly pass 1 and 0 when <em>Var</em> is initially 0, even when the function's first parameter is not <em>ByRef</em>. Since this behavior is counterintuitive, it might change in a future release.</li>
+  <li>It is not possible to construct a VarRef for a property of an object (such as <code>foo.bar</code>), <a href="misc/A_Clipboard.htm">A_Clipboard</a> or any other <a href="Variables.htm#BuiltIn">built-in variable</a>, so those cannot be passed <em>ByRef</em>.</li>
+  <li>If a parameter in a function-call resolves to a variable (e.g. <code>Var</code> or <code>++Var</code> or <code>Var*=2</code>), other parameters to its left or right can alter that variable before it is passed to the function. For example, <code>MyFunc(Var, Var++)</code> would unexpectedly pass 1 and 0 when <em>Var</em> is initially 0, because the first <em>Var</em> is not dereferenced until the function call is executed. Since this behavior is counterintuitive, it might change in a future release.</li>
   <li>ByRef is not directly supported when calling COM methods. Instead, the script must pass a <a href="commands/ComObject.htm#ByRef">wrapper object</a> containing the <a href="commands/ComObjType.htm">VarType</a> and address of the value.</li>
 </ul>
 <h2 id="optional">Optional Parameters</h2>
@@ -77,7 +85,7 @@ Add 2, 3  <em>; Parentheses can be omitted if used at the start of a line.</em><
 MyFunc(X, Y:=2, Z:=0) {  <em>; Note that Z must still be optional in this case.</em>
     MsgBox X ", " Y ", " Z
 }</pre>
-<p id="OptionalByRef"><a href="#ByRef">ByRef parameters</a> also support default values; for example: <code>MyFunc(ByRef p1 := "")</code>. Whenever the caller omits such a parameter, the function creates a local variable to contain the default value; in other words, the function behaves as though the keyword "ByRef" is absent.</p>
+<p id="OptionalByRef"><a href="#ByRef">ByRef parameters</a> also support default values; for example: <code>MyFunc(&amp;p1 := "")</code>. Whenever the caller omits such a parameter, the function creates a local variable to contain the default value; in other words, the function behaves as though the symbol "&amp;" is absent.</p>
 <p id="unset"><strong>Unset:</strong> To accurately determine whether the caller omitted a parameter, specify <code>unset</code> as the parameter's default and use <a href="commands/IsSet.htm">IsSet</a> to determine whether the parameter has been given a value, as shown below:</p>
 <pre>
 MyFunc(p := unset) {
@@ -100,16 +108,16 @@ returnTest() {
     return 123
 }
 </pre>
-<p>If you want to return extra results from a function, you may also use <a href="#ByRef">ByRef</a>:</p>
+<p>If you want to return extra results from a function, you may also use <a href="#ByRef">ByRef (&amp;)</a>:</p>
 <pre>
-returnByRef(A,B,C)
+returnByRef(&amp;A,&amp;B,&amp;C)
 MsgBox A "," B "," C
 
-returnByRef(ByRef val1, ByRef val2, ByRef val3)
+returnByRef(&amp;val1, &amp;val2, val3)
 {
     val1 := "A"
     val2 := 100
-    val3 := 1.1
+    %val3% := 1.1  <em>; % is used because &amp; was omitted.</em>
     return
 }
 </pre>
@@ -170,29 +178,40 @@ MsgBox Join("`n", <b class="blue">substrings*</b>)</pre>
 </ul>
 <h2 id="Locals">Local and Global Variables</h2>
 <h3 id="Local">Local Variables</h3>
-<p>Local variables are specific to a single function and are visible only inside that function. Consequently, a local variable may have the same name as a global variable and both will have separate contents. Separate functions may also safely use the same variable names.</p>
-<p>All local variables which are not <a href="#static">static</a> are automatically freed (made empty) when the function returns, with the exception of variables which are bound to a <a href="#closures">closure</a>.</p>
-<p>Built-in variables such as <a href="misc/A_Clipboard.htm">A_Clipboard</a> and <a href="Variables.htm#TimeIdle">A_TimeIdle</a> are never local (they can be accessed from anywhere), and cannot be redeclared. (This does not apply to built-in classes such as <a href="objects/Object.htm">Object</a>; they are predefined as <a href="#SuperGlobal">super-global</a> variables.)</p>
+<p>Local variables are specific to a single function and are visible only inside that function. Consequently, a local variable may have the same name as a global variable but have separate contents. Separate functions may also safely use the same variable names.</p>
+<p>All local variables which are not <a href="#static">static</a> are automatically freed (made empty) when the function returns, with the exception of variables which are bound to a <a href="#closures">closure</a> or <a href="Concepts.htm#variable-references">VarRef</a> (such variables are freed at the same time as the closure or VarRef).</p>
+<p>Built-in variables such as <a href="misc/A_Clipboard.htm">A_Clipboard</a> and <a href="Variables.htm#TimeIdle">A_TimeIdle</a> are never local (they can be accessed from anywhere), and cannot be redeclared. (This does not apply to built-in classes such as <a href="objects/Object.htm">Object</a>; they are predefined as <a href="#Global">global</a> variables.)</p>
 <p id="AssumeLocal">Functions are <strong>assume-local</strong> by default. Variables accessed or created inside an assume-local function are local by default, with the following exceptions:</p>
 <ul>
-  <li><a href="#SuperGlobal">Super-global</a> variables, including <a href="Objects.htm#Custom_Classes">classes</a>.</li>
+  <li><a href="#SuperGlobal">Super-global</a> variables.</li>
+  <li><a href="#Global">Global</a> variables which are only read by the function, not assigned or used with the <a href="Variables.htm#ref">reference operator (&amp;)</a>.</li>
   <li>Inside a <a href="#nested">nested function</a>, non-dynamic local and static variables created by an enclosing function may be accessed.</li>
 </ul>
 <p>The default may also be overridden as shown below (by declaring the variable or by changing the mode of the function).</p>
 <p id="ForceLocal"><strong>Force-local mode</strong>: If the function's first line is the word "local", all variable references are assumed to be local unless they are declared as global <em>inside</em> the function. Unlike the default mode, force-local mode has the following behavior:</p>
 <ul>
-  <li>Super-global variables (including classes) cannot be accessed without declaring them inside the function.</li>
+  <li>Global variables of any kind cannot be read or assigned without declaring them inside the function.</li>
   <li>If the function is defined inside another function, the outer function's local and static variables cannot be accessed.</li>
   <li>The <em>LocalSameAsGlobal</em> <a href="commands/_Warn.htm">warning</a> is never raised for variables within a force-local function.</li>
 </ul>
+<p class="warning"><strong>Note:</strong> As functions are accessed through variables, functions which are not defined or declared inside a force-local function cannot be called (except indirectly, such as through a parameter).</p>
 
 <h3 id="Global">Global variables</h3>
-<p>To refer to an existing global variable inside a function (or create a new one), declare the variable as global prior to using it. For example:</p>
+<p id="AssignLocal">Any variable reference in an <a href="#AssumeLocal">assume-local</a> function may resolve to a global variable if it is only read. However, if a variable is used in an assignment or with the <a href="Variables.htm#ref">reference operator (&amp;)</a>, it is automatically local by default. This allows functions to read global variables or call global or built-in functions without declaring them inside the function, while protecting the script from unintended side-effects when the name of a local variable being assigned coincides with a global variable. For example:</p>
 <pre>LogToFile(TextToLog)
 {
-    <strong>global</strong> LogFileName  <em>; This global variable was previously given a value somewhere outside this function.</em>
+    <em>; LogFileName was previously given a value somewhere outside this function.
+    ; FileAppend is a predefined global variable containing a built-in function.</em>
     FileAppend TextToLog "`n", LogFileName
 }</pre>
+<p>Otherwise, to refer to an existing global variable inside a function (or create a new one), declare the variable as global prior to using it. For example:</p>
+<pre>SetDataDir(Dir)
+{
+    <strong>global</strong> LogFileName
+    LogFileName := Dir . "\My.log"
+    <strong>global</strong> DataDir := Dir  <em>; Declaration combined with assignment, described <a href="#DeclareInit">below</a>.</em>
+}
+</pre>
 <p id="AssumeGlobal"><strong>Assume-global mode</strong>: If a function needs to access or create a large number of global variables, it can be defined to assume that all its variables are global (except its parameters) by making its first line the word "global". For example:</p>
 <pre>SetDefaults()
 {
@@ -201,7 +220,9 @@ MsgBox Join("`n", <b class="blue">substrings*</b>)</pre>
     local x, y:=0, z  <em>; Local variables must be declared in this mode, otherwise they would be assumed global.</em>
 }</pre>
 <p>This assume-global mode can also be used by a function to create a global <a href="misc/Arrays.htm">pseudo-array</a>, such as a loop that assigns values to <code>Array%A_Index%</code>.</p>
-<p id="SuperGlobal"><strong>Super-global variables</strong>: If a global declaration appears outside of any function, it takes effect for all functions by default (excluding <a href="#ForceLocal">force-local</a> functions). This avoids the need to redeclare the variable in each function. However, if a function parameter or local variable with the same name is declared, it takes precedence over the global variable. Variables created by the <a href="Objects.htm#Custom_Classes">class</a> keyword are also super-global.</p>
+<p id="SuperGlobal"><strong>Super-global variables</strong>: If a global declaration appears outside of any function, it takes effect for all functions by default (excluding <a href="#ForceLocal">force-local</a> functions). However, if a function parameter or local variable with the same name is declared, it takes precedence over the global variable.</p>
+<p>As global variables generally only need to be declared if they are being assigned or used with the <a href="Variables.htm#ref">reference operator (&amp;)</a>, it is usually better to avoid super-global declarations. Super-global declarations can cause conflicts when combining scripts or using shared code, as a variable intended to be local might accidentally become global when a super-global declaration is introduced through the use of <a href="commands/_Include.htm">#Include</a> or copy-paste.</p>
+
 <h3 id="static">Static variables</h3>
 <p>Static variables are always implicitly local, but differ from locals because their values are remembered between calls. For example:</p>
 <pre>LogToFile(TextToLog)
@@ -212,7 +233,7 @@ MsgBox Join("`n", <b class="blue">substrings*</b>)</pre>
     FileAppend LoggedLines ": " TextToLog "`n", LogFileName
 }</pre>
 <p id="InitStatic">A static variable may be initialized on the same line as its declaration by following it with <code>:=</code> and any <a href="Variables.htm#Expressions">expression</a>. For example: <code>static X:=0, Y:="fox"</code>. Static declarations are evaluated the same as <a href="#Local">local</a> declarations, except that after a static initializer (or group of combined initializers) is successfully evaluated, it is effectively removed from the flow of control and will not execute a second time.</p>
-<p id="AssumeStatic"><strong>Assume-static mode</strong>: A function may be defined to assume that all its variables are static (except its parameters) by making its first line the word "static". For example:</p>
+<p id="AssumeStatic"><strong>Assume-static mode</strong>: A function may be defined to assume that all its undeclared local variables are static (except its parameters) by making its first line the word "static". For example:</p>
 <pre>GetFromStaticArray(WhichItemNumber)
 {
     <strong>static</strong>
@@ -235,10 +256,12 @@ DemonstrateForceStatic()
     local
     static
     MyVar := "This is static"
+    global ListVars, MsgBox
     ListVars
     MsgBox
 }
 </pre>
+
 <h3 id="More_about_locals_and_globals">More about locals and globals</h3>
 <p>Multiple variables may be declared on the same line by separating them with commas as in these examples:</p>
 <pre>global LogFileName, MaxRetries := 5
@@ -247,14 +270,17 @@ static TotalAttempts := 0, PrevResult</pre>
 <p>Because the words <em>local</em>, <em>global</em>, and <em>static</em> are processed immediately when the script launches, a variable cannot be conditionally declared by means of an <a href="commands/If.htm">IF statement</a>. In other words, a declaration inside an IF's or ELSE's <a href="commands/Block.htm">block</a> takes effect unconditionally for the entire function (but any initializers included in the declaration are still conditional). A dynamic declaration such as <code>global Array%i%</code> is not possible, since all non-dynamic references to variables such as <code>Array1</code> or <code>Array99</code> would have already been resolved to addresses.</p>
 
 <h2 id="DynCall">Dynamically Calling a Function</h2>
-<p>A function (even a <a href="#BuiltIn">built-in function</a>) may be called dynamically via percent signs. For example, <code>%Var%(x, "fox")</code> would call the function whose name or <a href="Objects.htm#Function_References">reference</a> is contained in <em>Var</em>. Similarly, <code>Func%A_Index%()</code> would call Func1() or Func2(), etc., depending on the current value of A_Index.</p>
-<p><em>Var</em> in <code>%Var%()</code> can contain a function name or a <a href="objects/Functor.htm">function object</a>. If <em>Var</em> contains a <a href="Objects.htm#primitive">primitive value</a> which is not a valid function name, the value itself is called. Usually the value has no Call method, so a <a href="objects/Error.htm#MethodError">MethodError</a> is thrown.</p>
-<p>If the function cannot be called due to one of the reasons below, an <a href="commands/Catch.htm#RuntimeErrors">exception</a> is thrown:</p>
+<p>Although a function call expression usually begins with a literal function name, the target of the call can be any expression which produces a <a href="objects/Functor.htm">function object</a>. In the expression <code>GetKeyState("Shift")</code>, <em>GetKeyState</em> is actually a variable reference, although it usually refers to a read-only variable containing a built-in function.</p>
+<p>A function call is said to be <em>dynamic</em> if the target of the call is determined while the script is running, instead of before the script starts. The same syntax is used as for normal function calls; the only apparent difference is that certain error-checking is performed at load time for non-dynamic calls but only at run time for dynamic calls.</p>
+<p>For example, <code>MyFunc()</code> would call the <a href="objects/Functor.htm">function object</a> contained by <em>MyFunc</em>, which could be either the actual name of a function, or just a variable which has been assigned a function.</p>
+<p>Other expressions can be used as the target of a function call, including <a href="Variables.htm#deref">double-derefs</a>. For example, <code>MyArray[1]()</code> would call the function contained by the first element of MyArray, while <code>%MyVar%()</code> would call the function contained by the <em>variable</em> whose <em>name</em> is contained by MyVar. In other words, the expression preceding the parameter list is first evaluated to get a <a href="objects/Functor.htm">function object</a>, then that object is called.</p>
+<p>If the target value cannot be called due to one of the reasons below, an <a href="objects/Error.htm">Error</a> is thrown:</p>
 <ul>
-  <li>Calling a nonexistent function, which can often be avoided by using <code>If <a href="commands/IsFunc.htm">IsFunc</a>(VarContainingFuncName)</code>. Except for <a href="#BuiltIn">built-in functions</a>, the called function's <a href="#define">definition</a> must exist explicitly in the script by means such as <a href="commands/_Include.htm">#Include</a> or a non-dynamic call to a <a href="#lib">library function</a>.</li>
-  <li>Passing too few or too many parameters, which can often be avoided by checking the function's <a href="objects/Func.htm#MinParams">MinParams</a>, <a href="objects/Func.htm#MaxParams">MaxParams</a> and <a href="objects/Func.htm#IsVariadic">IsVariadic</a> properties. However, the exception is thrown because this condition usually means that the function is being called incorrectly. The caller should generally know what each parameter means and how many there are before calling the function.</li>
+  <li>If the target value is not of a type that can be called, a <a href="objects/Error.htm#MethodError">MethodError</a> is thrown. Any value with a Call method can be called, so <code>HasMethod(value, "Call")</code> can be used to avoid this error.</li>
+  <li>Passing too few or too many parameters, which can often be avoided by checking the function's <a href="objects/Func.htm#MinParams">MinParams</a>, <a href="objects/Func.htm#MaxParams">MaxParams</a> and <a href="objects/Func.htm#IsVariadic">IsVariadic</a> properties.</li>
+  <li>Passing something other than a <a href="Concepts.htm#variable-references">variable reference (VarRef)</a> to a <a href="#ByRef">ByRef</a> or OutputVar parameter, which could be avoided through the use of the <a href="objects/Func.htm#IsByRef">IsByRef method</a>.</li>
 </ul>
-<p>Finally, a dynamic call to a function is slightly slower than a normal call because normal calls are resolved (looked up) before the script begins running.</p>
+<p>The caller of a function should generally know what each parameter means and how many there are before calling the function. However, for dynamic calls, the function is often written to suit the function call, and in such cases failure might be caused by a mistake in the function definition rather than incorrect parameter values.</p>
 
 <h2 id="ShortCircuit">Short-circuit Boolean Evaluation</h2>
 <p>When <em>AND, OR</em>, and the <a href="Variables.htm#ternary">ternary operator</a> are used within an <a href="Variables.htm#Expressions">expression</a>, they short-circuit to enhance performance (regardless of whether any function calls are present). Short-circuiting operates by refusing to evaluate parts of an expression that cannot possibly affect its final result. To illustrate the concept, consider this example:</p>
@@ -282,13 +308,14 @@ outer("title")
 </pre>
 <p>A nested function is not accessible outside of the function which immediately encloses it, but is accessible anywhere inside that function, including inside other nested functions.</p>
 <p>By default, a nested function may access any local variable of any function which encloses it, as long as the variable is <a href="#static">static</a> or is referenced non-dynamically by both the originating function and either the nested function or one of its own nested functions. <a href="#Global">Global</a> declarations in the outer function also affect nested functions, except where overridden by <a href="#ForceLocal">force-local</a>.</p>
+<p class="warning"><strong>Known limitation:</strong> Local variables which are read but not assigned in the outer function are currently inaccessible by nested functions unless they are declared, in which case there will be a VarUnset warning even if they are assigned by the nested function. To avoid this, initialize variables in the outer function. This does not apply to parameters.</p>
 <p>If a function is declared <a href="#ForceLocal">force-local</a> or <a href="#AssumeGlobal">assume-global</a>, any local or static variables created <em>outside</em> that function are not directly accessible to the function itself or any of its nested functions. By contrast, a nested function which is assume-static can still refer to variables from the outer function, unless it is also force-local.</p>
 <p>Functions are <a href="#AssumeLocal">assume-local</a> by default, and this is true even for nested functions, even those inside an <a href="#AssumeStatic">assume-static</a> function. However, if the outer function is <a href="#AssumeGlobal">assume-global</a>, nested functions behave as though assume-global by default, except that they can refer to local and static variables of the outer function.</p>
-<p><a href="commands/Func.htm">Func</a> can be used to retrieve a reference to a nested function, which can be called even after the outer function returns. Nested functions can also be passed by name to built-in functions such as <a href="commands/SetTimer.htm">SetTimer</a> and <a href="commands/Sort.htm">Sort</a>.</p>
+<p>Each function definition creates a read-only variable containing the function itself; that is, a <a href="objects/Func.htm">Func</a> or <a href="#closures">Closure</a> object. See below for examples of how this might be used.</p>
 
 <h3 id="closures">Closures</h3>
 <p>A <em>closure</em> is a nested function bound to a set of <em>free variables</em>. Free variables are local variables of the outer function which are also used by nested functions. Closures allow one or more nested functions to share variables with the outer function even after the outer function returns.</p>
-<p>To create a closure, pass the name of a nested function to <a href="commands/Func.htm">Func</a>. For example:</p>
+<p>To create a closure, simply define a nested function which refers to variables of the outer function. For example:</p>
 <pre>
 make_greeter(f)
 {
@@ -296,56 +323,53 @@ make_greeter(f)
     {
         MsgBox Format(f, subject)
     }
-    return Func("greet")  <em>; Create and return a closure.</em>
+    return greet  <em>; Return the closure.</em>
 }
 
 g := make_greeter("Hello, {}!")
-g.call(A_UserName)
-g.call("World")
+g(A_UserName)
+g("World")
 </pre>
-<p>A closure may also be created by passing the name of a nested function to a built-in function, such as <a href="commands/SetTimer.htm">SetTimer</a> or <a href="commands/Hotkey.htm">Hotkey</a>. For example:</p>
+<p>Closures may also be used with built-in functions, such as <a href="commands/SetTimer.htm">SetTimer</a> or <a href="commands/Hotkey.htm">Hotkey</a>. For example:</p>
 <pre>
-app_hotkey(hotkey, app_title, app_path)
+app_hotkey(keyname, app_title, app_path)
 {
-    activate()  <em>; This will be a closure due to app_title and app_path.</em>
+    activate(keyname)  <em>; This will be a closure due to app_title and app_path.</em>
     {
         if WinExist(app_title)
             WinActivate
         else
             Run app_path
     }
-    Hotkey hotkey, "activate"
+    Hotkey keyname, activate
 }
 <em>; Win+N activates or launches Notepad.</em>
 app_hotkey "#n", "ahk_class Notepad", "notepad.exe"
 <em>; Win+W activates or launches WordPad.</em>
 app_hotkey "#w", "ahk_class WordPadClass", "wordpad.exe"
 </pre>
-<p>If a function creates free variables (that is, if any of its local variables are referenced by nested functions), all of that function's nested functions become closures. This is because any nested function can call any other nested function or create a closure for it by name.</p>
-<p>Whenever a function name is resolved to a closure, a <em>new</em> closure is created even if one had already been created with the same set of free variables. Do not pass a closure by name to <a href="commands/SetTimer.htm">SetTimer</a>, <a href="commands/OnClipboardChange.htm">OnClipboardChange</a>, <a href="commands/OnExit.htm">OnExit</a>, <a href="commands/OnMessage.htm">OnMessage</a> or <a href="objects/GuiOnEvent.htm">Gui.OnEvent</a> if that closure needs to be later removed, since doing so requires passing the same object back. For example:</p>
+<p>A nested function is automatically a closure if it captures any non-static local variables of the outer function. The variable corresponding to the closure itself (such as <code>activate</code>) is also a non-static local variable, so any nested functions which refer to a closure are automatically closures.</p>
+<p>Each call to the outer function creates new closures, distinct from any previous calls. Named closures are created only once each time the outer function is called, while fat arrow expressions create a new closure each time they are evaluated.</p>
+<p id="circular-closure">It is best not to store a reference to a closure in any of the closure's own free variables, since that creates a <a href="Objects.htm#Circular_References">circular reference</a> which must be broken (such as by clearing the variable) before the closure can be freed. However, a closure may safely refer to itself and other closures by their original variables without creating a circular reference. For example:</p>
 <pre>
 timertest() {
     x := "tock!"
     tick() {
         MsgBox x           <em>; x causes this to become a closure.</em>
-        <em>;SetTimer t, 0     ; This would cause a circular reference.</em>
+        SetTimer tick, 0   <em>; Using the closure's original var is safe.</em>
+        ; SetTimer t, 0    <em>; Capturing t would create a circular reference.</em>
     }
-    SetTimer "tick", 1000  <em>; Creates a timer.</em>
-    SetTimer "tick", 0     <em>; Fails to delete the timer.</em>
-    t := Func("tick")
-    SetTimer t, 1000       <em>; Creates a second timer.</em>
-    SetTimer t, 0          <em>; Deletes the second timer.</em>
+    t := tick              <em>; This is okay because t isn't captured above.</em>
+    SetTimer t, 1000
 }
 timertest()
 </pre>
-<p id="circular-closure">It is best not to store a reference to a closure in any of the closure's own free variables, since that creates a <a href="Objects.htm#Circular_References">circular reference</a> which must be broken before the closure can be freed, such as by clearing the variable.</p>
 
 <h2 id="remarks">Return, Exit, and General Remarks</h2>
 <p>If the flow of execution within a function reaches the function's closing brace prior to encountering a <a href="commands/Return.htm">Return</a>, the function ends and returns a blank value (empty string) to its caller. A blank value is also returned whenever the function explicitly omits <a href="commands/Return.htm">Return</a>'s parameter.</p>
-<p>When a function uses <a href="commands/Exit.htm">Exit</a> to terminate the <a href="misc/Threads.htm">current thread</a>, its caller does not receive a return value at all. For example, the statement <code>Var := Add(2, 3)</code> would leave <code>Var</code> unchanged if <code>Add()</code> exits. The same thing happens if a function causes a runtime error such as <a href="commands/Run.htm">running</a> a nonexistent file (when this error is not caught by a <a href="commands/Try.htm">Try</a>/<a href="commands/Catch.htm">Catch</a> statement).</p>
+<p>When a function uses <a href="commands/Exit.htm">Exit</a> to terminate the <a href="misc/Threads.htm">current thread</a>, its caller does not receive a return value at all. For example, the statement <code>Var := Add(2, 3)</code> would leave <code>Var</code> unchanged if <code>Add()</code> exits. The same thing happens if the function is exited because of <a href="commands/Throw.htm">Throw</a> or a runtime error (such as <a href="commands/Run.htm">running</a> a nonexistent file).</p>
 <p>To call a function with one or more blank values (empty strings), use an empty pair of quotes as in this example: <code>FindColor(ColorName, "")</code>.</p>
 <p>Since calling a function does not start a new <a href="misc/Threads.htm">thread</a>, any changes made by a function to settings such as <a href="commands/SendMode.htm">SendMode</a> and <a href="commands/SetTitleMatchMode.htm">SetTitleMatchMode</a> will go into effect for its caller too.</p>
-<p>The caller of a function may pass a nonexistent variable or <a href="misc/Arrays.htm">array</a> element to it, which is useful when the function expects the corresponding parameter to be <a href="#ByRef">ByRef</a>. For example, calling <code>GetNextLine(BlankArray%i%)</code> would create the variable <code>BlankArray%i%</code> automatically as a <a href="#Local">local</a> or global (depending on whether the caller is inside a function and whether it has the <a href="#AssumeGlobal">assume-global mode</a> in effect).</p>
 <p>When used inside a function, <a href="commands/ListVars.htm">ListVars</a> displays a function's <a href="#Local">local variables</a> along with their contents. This can help debug a script.</p>
 <h2 id="Style_and_Naming_Conventions">Style and Naming Conventions</h2>
 <p>You might find that complex functions are more readable and maintainable if their special variables are given a distinct prefix. For example, naming each parameter in a function's parameter list with a leading "p" or "p_" makes their special nature easy to discern at a glance, especially when a function has several dozen <a href="#Local">local variables</a> competing for your attention. Similarly, the prefix "r" or "r_" could be used for <a href="#ByRef">ByRef parameters</a>, and "s" or "s_" could be used for <a href="#static">static variables</a>.</p>
