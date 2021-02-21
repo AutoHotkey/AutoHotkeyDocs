@@ -80,7 +80,7 @@ for n, k_Row in k_Layout
         ; Add the button:
         Btn := MyGui.Add("Button", opt, k_KeyNameText)
         ; When a key is pressed by the user, click the corresponding button on-screen:
-        Hotkey("~*" k_Key, Func("k_KeyPress").bind(Btn))
+        Hotkey("~*" k_Key, k_KeyPress.bind(Btn))
     }
 
 ;---- Position the keyboard at the bottom of the screen (taking into account
