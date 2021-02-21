@@ -13,26 +13,17 @@
 <h1>Object</h1>
 <pre class="NoIndent">class Object extends Any</pre>
 
-<p><strong>Object</strong> is the basic class from which other AutoHotkey object classes derive. Each instance of Object consists of the following:</p>
-<ul>
-  <li>Own properties: a set of properties which belong to this specific Object.</li>
-  <li>Own methods: a set of methods which belong to this specific Object.</li>
-  <li>A base object, from which properties and methods are inherited.</li>
-</ul>
-<p>There are value properties and dynamic properties. Value properties simply contain a value. Dynamic properties do not contain a value, but instead call a <em>getter</em> or <em>setter</em> function when accessed. The <em>getter</em> or <em>setter</em> can be overridden by a derived object (the easiest way is to define them within a class).</p>
+<p><strong>Object</strong> is the basic class from which other AutoHotkey object classes derive. Each instance of Object consists of a set of "own properties" and a base object, from which more properties are inherited. Objects also have methods, but these are just properties which can be called.</p>
+<p>There are value properties and dynamic properties. Value properties simply contain a value. Dynamic properties do not contain a value, but instead call an <em>accessor function</em> depending on how they are accessed (get, set or call).</p>
 <p>"Obj" is used below as a placeholder for any instance of the Object class.</p>
 <p>All instances of Object are based on <code>Object.Prototype</code>, which is based on <code>Any.Prototype</code>. In addition to the methods and property inherited from <a href="Any.htm">Any</a>, Objects have the following predefined methods and properties:</p>
 <p><strong>Methods:</strong></p>
 <ul>
 	<li><a href="#Clone">Clone</a></li>
-  <li><a href="#DefineMethod">DefineMethod</a></li>
   <li><a href="#DefineProp">DefineProp</a></li>
-  <li><a href="#DeleteMethod">DeleteMethod</a></li>
   <li><a href="#DeleteProp">DeleteProp</a></li>
   <li><a href="#GetOwnPropDesc">GetOwnPropDesc</a></li>
-  <li><a href="#HasOwnMethod">HasOwnMethod</a></li>
   <li><a href="#HasOwnProp">HasOwnProp</a></li>
-  <li><a href="#OwnMethods">OwnMethods</a></li>
   <li><a href="#OwnProps">OwnProps</a></li>
 </ul>
 <p><strong>Properties:</strong></p>
@@ -41,11 +32,10 @@
 </ul>
 <p><strong>Functions:</strong></p>
 <ul>
-  <li><a href="#Object">Object</a>: Creates an Object from a list of property "name, value" pairs.</li>
 	<li><a href="#SetBase">ObjSetBase</a>: Set the object's <a href="../Objects.htm#delegation">base object</a>.</li>
   <li><a href="#GetCapacity">ObjGetCapacity</a>, <a href="#SetCapacity">ObjSetCapacity</a>: Retrieve or set an Object's capacity to contain properties.</li>
   <li><a href="#OwnPropCount">ObjOwnPropCount</a>: Retrieve the number of own properties contained by an object.</li>
-  <li>ObjHasOwnProp, ObjOwnMethods, ObjOwnProps: Equivalent to the corresponding predefined method, but cannot be overridden.</li>
+  <li>ObjHasOwnProp, ObjOwnProps: Equivalent to the corresponding predefined method, but cannot be overridden.</li>
 </ul>
 
 <h2 id="Methods">Methods</h2>
@@ -56,28 +46,6 @@
 <p>Each property or method owned by the object is copied into the clone. Object <em>references</em> are copied (like with a normal assignment), not the objects themselves; in other words, if a property contains a reference to an object, the clone will contain a reference to the same object.</p>
 <p>Dynamic properties are copied, not invoked.</p>
 <p>The clone has the same base object as the original object.</p>
-</div>
-
-<div class="methodShort" id="DefineMethod"><h2>DefineMethod</h2>
-<p>Defines a new method.</p>
-<pre class="Syntax">Obj.<span class="func">DefineMethod</span>(Name, MethodFunc)</pre>
-<dl>
-  <dt>Name</dt>
-  <dd>
-    <p>Type: <a href="../Concepts.htm#strings">String</a></p>
-    <p>The name of the method.</p>
-  </dd>
-  <dt>MethodFunc</dt>
-  <dd>
-    <p>Type: <a href="Functor.htm">Function Object</a></p>
-    <p>The implementation of the method. The function must accept at least one parameter, which receives a reference to the target object of the method call. This parameter is defined automatically with the name <code>this</code> when the method is created by a class definition.</p>
-  </dd>
-  <dt>Return Value</dt>
-  <dd>
-    <p>The target object (<em>Obj</em>).</p>
-  </dd>
-</dl>
-<p>The new method is owned by <em>Obj</em>, but may be inherited by any objects which use <em>Obj</em> as a base. If <em>Obj</em> is a class, the new method only applies to the class itself and subclasses (i.e. it is static). To define a method for all instances of a class, let <em>Obj</em> be the class's <code>Prototype</code>.</p>
 </div>
 
 <div class="methodShort" id="DefineProp"><h2>DefineProp</h2>
@@ -95,6 +63,7 @@
     <p>An object with one of the following own properties, or both <em>Get</em> and <em>Set</em>:</p>
     <p><code>Get</code>: The <a href="Functor.htm">function object</a> to call when the property's value is retrieved.</p>
     <p><code>Set</code>: The <a href="Functor.htm">function object</a> to call when the property is assigned a value. Its second parameter is the value being assigned.</p>
+    <p><code>Call</code>: The <a href="Functor.htm">function object</a> to call when the property is called. </p>
     <p><code>Value</code>: Any value to assign to the property.</p>
   </dd>
   <dt>Return Value</dt>
@@ -102,22 +71,15 @@
     <p>The target object (<em>Obj</em>).</p>
   </dd>
 </dl>
-<p>This method can be used to convert a value property to a dynamic property or vice versa, but it is not possible to specify both a value and a getter/setter.</p>
-<p>If only <em>Get</em> or <em>Set</em> is defined, its counterpart can be inherited from a base object. If <em>Get</em> is undefined, the property can return a value inherited from a base. If <em>Set</em> is undefined in this and all base objects, the property is read-only (attempting to set the property throws an exception).</p>
-<p>As with methods, the first parameter of <em>Get</em> or <em>Set</em> is <code>this</code> (the target object). For <em>Set</em>, the second parameter is <code>value</code> (the value being assigned). These parameters are defined automatically by method and property definitions within a class, but must be defined explicitly if using normal functions.</p>
+<p>This method can be used to convert a value property to a dynamic property or vice versa, but it is not possible to specify both a value and accessor functions.</p>
+<p>If any one of the accessor functions is omitted, behavior is inherited from a base object.</p>
+<ul>
+  <li>An inherited value property is equivalent to a set of accessor functions which return or call the value, or store a new value in <code>this</code>. Note that a new value would overwrite any dynamic property in <code>this</code> itself, and override any inherited accessor functions.</li>
+  <li>If no <em>Set</em> or value is defined or inherited, attempting to set the property will throw an exception.</li>
+  <li>If no <em>Call</em> is defined or inherited, <em>Get</em> may be called to retrieve a function object, which is then called.</li>
+</ul>
+<p>As with methods, the first parameter of <em>Get</em>, <em>Set</em> or <em>Call</em> is <code>this</code> (the target object). For <em>Set</em>, the second parameter is <code>value</code> (the value being assigned). These parameters are defined automatically by method and property definitions within a class, but must be defined explicitly if using normal functions. Any other parameters passed by the caller are appended to the parameter list.</p>
 <p>The <code>MaxParams</code> and <code>IsVariadic</code> properties of the function objects are evaluated to determine whether the property may accept parameters. If <code>MaxParams</code> is 1 for <em>get</em> or 2 for <em>set</em> and <code>IsVariadic</code> is false or undefined, the property cannot accept parameters; they are instead forwarded to the <a href="../Objects.htm#__Item">__Item</a> property of the object returned by <em>get</em>.</p>
-</div>
-
-<div class="methodShort" id="DeleteMethod"><h2>DeleteMethod</h2>
-<p>Removes an own method from the object.</p>
-<pre class="Syntax">Obj.<span class="func">DeleteMethod</span>(Name)</pre>
-<dl>
-  <dt>Name</dt>
-  <dd>
-    <p>Type: <a href="../Concepts.htm#strings">String</a></p>
-    <p>A method name. If the object does not own a method by this name, a <a href="Error.htm#MethodError">MethodError</a> is thrown.</p>
-  </dd>
-</dl>
 </div>
 
 <div class="methodShort" id="DeleteProp"><h2>DeleteProp</h2>
@@ -146,9 +108,7 @@
   <dt>Return Value</dt>
   <dd>
     <p>Type: Object</p>
-    <p>For a dynamic property, the return value is a new object with one or both of the following own properties:</p>
-    <p><code>Get</code>: The <a href="Functor.htm">function object</a> which is called when the property's value is retrieved, if defined in <em>Obj</em>.</p>
-    <p><code>Set</code>: The <a href="Functor.htm">function object</a> which is called when the property is assigned a value, if defined in <em>Obj</em>.</p>
+    <p>For a dynamic property, the return value is a new object with an own property for each accessor function: <code>Get</code>, <code>Set</code>, <code>Call</code>. Each property is present only if the corresponding accessor function is defined in <em>Obj</em> itself.</p>
     <p>For a value property, the return value is a new object with a property named <code>Value</code>. In such cases, <code>Obj.GetOwnPropDesc(Name).Value == Obj.%Name%</code>.</p>
   </dd>
 </dl>
@@ -157,34 +117,10 @@
 <p>A <a href="Error.htm#PropertyError">PropertyError</a> is thrown if <em>Obj</em> does not own a property by that name. The script can determine whether a property is dynamic by checking <code>not desc.HasProp("Value")</code>, where <em>desc</em> is the return value of GetOwnPropDesc.</p>
 </div>
 
-<div class="methodShort" id="HasOwnMethod"><h2>HasOwnMethod</h2>
-<pre class="Syntax">Obj.<span class="func">HasOwnMethod</span>(Name)</pre>
-<p>Returns true if the object owns a method by this name, otherwise false.</p>
-</div>
-
 <div class="methodShort" id="HasOwnProp"><h2>HasOwnProp</h2>
 <pre class="Syntax">Obj.<span class="func">HasOwnProp</span>(Name)</pre>
 <p>Returns true if the object owns a property by this name, otherwise false.</p>
 <p>The default implementation of this method is also defined as a function: <code>ObjHasOwnProp(Obj, Name)</code>.</p>
-</div>
-
-<div class="methodShort" id="OwnMethods"><h2>OwnMethods</h2>
-<p>Enumerates the object's own methods.</p>
-<pre class="Syntax">For Name <span class="optional">, MethodFunc</span> in Obj.<span class="func">OwnMethods</span>()</pre>
-<p>Returns a new <a href="Enumerator.htm">enumerator</a>. The enumerator is typically passed directly to a <a href="../commands/For.htm">for-loop</a>, which calls the enumerator once for each iteration of the loop. Each call to the enumerator returns the next method name and/or implementation function. The for-loop's variables correspond to the enumerator's parameters, which are:</p>
-<dl>
-  <dt>Name</dt>
-  <dd>
-    <p>Type: <a href="../Concepts.htm#strings">String</a></p>
-    <p>The method's name.</p>
-  </dd>
-  <dt>MethodFunc</dt>
-  <dd>
-    <p>Type: <a href="Functor.htm">Function Object</a></p>
-    <p>The implementation of the method. This is either a <a href="Func.htm">Func</a> created by a class definition or an object previously passed to <a href="#DefineMethod">DefineMethod</a>.</p>
-  </dd>
-</dl>
-<p>The default implementation of this method is also defined as a function: <code>ObjOwnMethods(Obj)</code>.</p>
 </div>
 
 <div class="methodShort" id="OwnProps"><h2>OwnProps</h2>
@@ -210,7 +146,7 @@
   <li>If two variables were specified, the enumerator attempts to call the property's getter to retrieve the value.
     <ul>
       <li>If the getter requires parameters, the property is skipped.</li>
-      <li>If <em>Obj</em> contains only a setter and not a getter for this property, it is skipped.</li>
+      <li>If <em>Obj</em> itself does not define a getter for this property, it is skipped.</li>
       <li>If <em>Obj</em> is a class prototype object, the getter should not (and in some cases cannot) be called; so the property is skipped.</li>
       <li>If the getter throws an exception, it is propagated (not suppressed). The caller can continue enumeration at the next property only if it retained a reference to the enumerator (i.e. not if it passed the enumerator directly to a for-loop, since in that case the enumerator is freed when the for-loop aborts).</li>
     </ul>
@@ -234,13 +170,6 @@
 </div>
 
 <h2 id="Functions">Functions</h2>
-
-<div class="methodShort" id="Object"><h2>Object</h2>
-<p>Creates an Object from a list of property "name, value" pairs.</p>
-<pre class="Syntax">Obj := <span class="func">Object</span>(<span class="optional">Name, Value, Name2, Value2, ...</span>)</pre>
-<p>This is equivalent to creating an object with <code>Obj := Object()</code> and setting each property with <code>Obj.%Name% := Value</code>.</p>
-<p>If a function with this name is defined in the script, any object literals (such as <code>{}</code>) within the same scope will produce calls to that function instead of the default Object function. Property names within an object literal are not quoted, so for example, <code>{a: b}</code> is equivalent to <code>Object("a", b)</code>.</p>
-</div>
 
 <div class="methodShort" id="SetBase"><h2>ObjSetBase</h2>
 <p>Sets the object's <a href="../Objects.htm#delegation">base object</a>.</p>

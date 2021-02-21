@@ -28,6 +28,11 @@
   <li><a href="../commands/OnMessage.htm">OnMessage</a></li>
   <li><a href="../commands/SetTimer.htm">SetTimer</a></li>
 </ul>
+<p id="HasCall">To determine whether an object appears to be callable, use one of the following:</p>
+<ul>
+  <li><code>Value.HasMethod("Call")</code> works with all AutoHotkey values and objects by default, but allows HasMethod to be overridden for some objects or classes. For COM objects, this will typically fail (throw an exception or produce the wrong result) unless the COM object is actually an AutoHotkey object from another process.</li>
+  <li><code>HasMethod(Value, "Call")</code> works with all AutoHotkey values and objects and cannot be overridden, but will return false if the presence of a <em>Call</em> method cannot be determined (e.g. because <em>Value</em> is a COM object).</li>
+</ul>
 
 <h2 id="User-Defined">User-Defined</h2>
 <!-- TODO: Explain how a user-defined object could be useful -->
@@ -45,8 +50,8 @@
 <pre>class FuncArrayType extends Array {
     Call(params*) {
         <em>; Call a list of functions.</em>
-        Loop this.Length
-            %this[A_Index]%(params*)
+        for fn in this
+            fn(params*)
     }
 }
 
@@ -56,10 +61,11 @@ funcArray := FuncArrayType()
 funcArray.Push(One)
 funcArray.Push(Two)
 <em>; Create an object which uses the array as a method.</em>
-obj := {}
-obj.DefineMethod("method", funcArray)
-<em>; Call the method.</em>
-%obj.method%("foo", "bar")
+obj := {method: funcArray}
+<em>; Call the method (and consequently both One and Two).</em>
+obj.method("2nd")
+<em>; Call it as a function.</em>
+(obj.method)("1st", "2nd")
 
 One(param1, param2) {
     ListVars

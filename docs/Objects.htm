@@ -187,7 +187,7 @@ thing := {}
 <em>; Store a value.</em>
 thing.foo := "bar"
 <em>; Define a method.</em>
-thing.DefineMethod "test", thing_test
+thing.test := thing_test
 <em>; Call the method.</em>
 thing.test()
 
@@ -195,7 +195,7 @@ thing_test(this) {
     MsgBox this.foo
 }</pre>
 <p>When <code>thing.test()</code> is called, <i>thing</i> is automatically inserted at the beginning of the parameter list. By convention, the function is named by combining the "type" of object and the method name, but this is not a requirement.</p>
-<p>See also: <a href="objects/Object.htm#DefineMethod">DefineMethod</a>, <a href="objects/Object.htm#DefineProp">DefineProp</a></p>
+<p>See also: <a href="objects/Object.htm#DefineProp">DefineProp</a></p>
 
 <h3 id="delegation">Delegation</h3>
 <p>Objects are <em>prototype-based</em>. That is, any properties or methods not defined in the object itself can instead be defined in the object's <a href="objects/Object.htm#Base">base</a>. This is known as <em>inheritance by delegation</em> or <em>differential inheritance</em>, because an object can implement only the parts that make it different, while delegating the rest to its base.</p>
@@ -315,14 +315,13 @@ Method()
 
 <p><a href="Variables.htm#fat-arrow">Fat arrow syntax</a> can be used to define a single-line method which returns an expression:</p>
 <pre>Method() =&gt; <i>Expression</i></pre>
-<p>See also: <a href="objects/Object.htm#DefineMethod">DefineMethod</a></p>
 
 <h4 id="Custom_Classes_super">Super</h4>
 <p>Inside a method or a property getter/setter, the keyword <code>super</code> can be used in place of <code>this</code> to access the superclass versions of methods or properties which are overridden in a derived class. For example, <code>super.Method()</code> in the class defined above would typically call the version of <em>Method</em> which was defined within <em>BaseClassName</em>. Note:</p>
 <ul>
   <li><code>super.Method()</code> always invokes the base of the class or prototype object associated with the current method's original definition, even if <code>this</code> is derived from a <em>subclass</em> of that class or some other class entirely.</li>
   <li><code>super.Method()</code> implicitly passes <code>this</code> as the first (hidden) parameter.</li>
-  <li>Since it is not known where (or whether) <em>ClassName</em> exists within the chain of base objects, <em>ClassName</em> itself is used as the starting point. Therefore, <code>super.Method()</code> is mostly equivalent to <code><i>ClassName</i>.Prototype.base.GetMethod("Method").Call(this)</code> (but without <em>Prototype</em> when <em>Method</em> is static). However, <code><i>ClassName</i>.Prototype</code> is resolved at load time.</li>
+  <li>Since it is not known where (or whether) <em>ClassName</em> exists within the chain of base objects, <em>ClassName</em> itself is used as the starting point. Therefore, <code>super.Method()</code> is mostly equivalent to <code>(<i>ClassName</i>.Prototype.base.Method)(this)</code> (but without <em>Prototype</em> when <em>Method</em> is static). However, <code><i>ClassName</i>.Prototype</code> is resolved at load time.</li>
 </ul>
 <p>The keyword <code>super</code> must be followed by a dot <code>.</code> or brackets <code>[]</code>.</p>
 
@@ -440,7 +439,7 @@ class <i>ClassName</i> {
   <li><i>Get</i>: Throw a <a href="objects/Error.htm#PropertyError">PropertyError</a>.</li>
   <li><i>Set</i>: Define a new property with the given value, such as by calling <a href="objects/Object.htm#DefineProp">DefineProp</a>. </li>
 </ul>
-<p>Any <a href="objects/Functor.htm">callable object</a> can be used as a meta-function by passing it to <a href="objects/Object.htm#DefineMethod">DefineMethod</a>.</p>
+<p>Any <a href="objects/Functor.htm">callable object</a> can be used as a meta-function by assigning it to the relevant property.</p>
 <p>Meta-functions are not called in the following cases:</p>
 <ul>
   <li><code>x[y]</code>: Using square brackets without a property name only invokes the <a href="#__Item">__Item</a> property.</li>
@@ -468,9 +467,9 @@ class <i>ClassName</i> {
 <p>Note that <code>x is Any</code> would ordinarily be true for any value within AutoHotkey's type hierarchy, but false for COM objects.</p>
 
 <h3 id="primitive-extension">Adding Properties and Methods</h3>
-<p>Properties and methods can be added for all values of a given type by modifying that type's prototype object. However, since a primitive value is not an Object and cannot have its own properties or methods, the primitive prototype objects do not derive from <code>Object.Prototype</code>. In other words, methods such as <a href="objects/Object.htm#DefineProp">DefineProp</a> and <a href="objects/Object.htm#DefineMethod">DefineMethod</a> are not accessible by default. They can be called indirectly. For example:</p>
+<p>Properties and methods can be added for all values of a given type by modifying that type's prototype object. However, since a primitive value is not an Object and cannot have its own properties or methods, the primitive prototype objects do not derive from <code>Object.Prototype</code>. In other words, methods such as <a href="objects/Object.htm#DefineProp">DefineProp</a> and <a href="objects/Object.htm#HasOwnProp">HasOwnProp</a> are not accessible by default. They can be called indirectly. For example:</p>
 <pre>
-DefProp := {}.GetMethod("DefineProp")
+DefProp := {}.DefineProp
 DefProp( "".base, "Length", { get: StrLen } )
 MsgBox A_AhkPath.length " == " StrLen(A_AhkPath)
 </pre>
