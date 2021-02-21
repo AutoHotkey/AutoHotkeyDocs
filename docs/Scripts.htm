@@ -23,6 +23,7 @@
   <li><a href="#intro">Introduction</a></li>
   <li><a href="#auto">Script Startup (the Auto-execute Thread)</a>: Taking action immediately upon starting the script, and changing default settings.</li>
   <li><a href="#continuation">Splitting a Long Line into a Series of Shorter Ones</a>: This can improve a script's readability and maintainability.</li>
+  <li><a href="#lib">Script Library Folders</a></li>
   <li><a href="#ahk2exe">Convert a Script to an EXE (Ahk2Exe)</a>: Convert a .ahk script into a .exe file that can run on any PC.</li>
   <li><a href="#cmd">Passing Command Line Parameters to a Script</a>: The variable A_Args contains the incoming parameters.</li>
   <li><a href="#cp">Script File Codepage</a>: Using non-ASCII characters safely in scripts.</li>
@@ -127,6 +128,15 @@ By default, the hard carriage return (Enter) between the previous line and this 
 <p>Since a closing parenthesis indicates the end of a continuation section, to have a line start with literal closing parenthesis, precede it with an accent/backtick: <code>`)</code>. However, this cannot be combined with the <a href="#accent">accent (`) option</a>.</p>
 <p>A continuation section can be immediately followed by a line containing the open-parenthesis of another continuation section. This allows the options mentioned above to be varied during the course of building a single line.</p>
 <p>The piecemeal construction of a continuation section by means of <a href="commands/_Include.htm">#Include</a> is not supported.</p>
+
+<h2 id="lib">Script Library Folders</h2>
+<p>The library folders provide a few standard locations to keep shared scripts which other scripts utilise by means of <a href="commands/_Include.htm">#Include</a>. A library script typically contains a function or class which is designed to be used and reused in this manner. Placing library scripts in one of these locations makes it easier to write scripts that can be shared with others and work across multiple setups. The library locations are:</p>
+<pre><a href="Variables.htm#ScriptDir">A_ScriptDir</a> "\Lib\"  <em>; Local library.</em>
+<a href="Variables.htm#MyDocuments">A_MyDocuments</a> "\AutoHotkey\Lib\"  <em>; User library.</em>
+"directory-of-the-currently-running-AutoHotkey.exe\Lib\"  <em>; Standard library.</em></pre>
+<p>The library folders are searched in the order shown above.</p>
+<p>For example, if a script includes the line <code>#Include &lt;MyLib&gt;</code>, the program searches for a file named "MyLib.ahk" in the user library. If not found there, it searches for it in the standard library. If a match is still not found and the function's name contains an underscore (e.g. <code>MyPrefix_MyFunc</code>), the program searches both libraries for a file named <code>MyPrefix.ahk</code> and loads it if it exists. This allows <code>MyPrefix.ahk</code> to contain both the function <code>MyPrefix_MyFunc</code> and other related functions whose names start with <code>MyPrefix_</code>.</p>
+<p>Although by convention a library file generally contains only a single function or class of the same name as its filename, it may also contain private functions that are called only by it. However, such functions should have fairly distinct names because they will still be in the global namespace; that is, they will be callable from anywhere in the script.</p>
 
 <h2 id="ahk2exe">Convert a Script to an EXE (Ahk2Exe)</h2>
 <p>A script compiler (courtesy of fincs, with additions by TAC109) is included with the program.</p>
@@ -261,9 +271,8 @@ By default, the hard carriage return (Enter) between the previous line and this 
   <tr>
     <td>/iLib <em>"OutFile"</em></td>
     <td>
-      <p>AutoHotkey loads the script but does not run it. For each script file which is auto-included via <a href="Functions.htm#lib">the library mechanism</a>, two lines are written to the file specified by <em>OutFile</em>. These lines are written in the following format, where <em>LibDir</em> is the full path of the Lib folder and <em>LibFile</em> is the filename of the library:</p>
-<pre>#Include LibDir\
-#IncludeAgain LibDir\LibFile.ahk</pre>
+      <p><strong>Deprecated:</strong> This switch is likely to be replaced as the auto-include mechanism has been removed.</p>
+      <p>AutoHotkey loads the script but does not run it. In previous versions of AutoHotkey, filenames of auto-included files were written to the file specified by <em>OutFile</em>, formatted as #Include directives.</p>
       <p>If the output file exists, it is overwritten. <em>OutFile</em> can be <code>*</code> to write the output to stdout.</p>
       <p>If the script contains syntax errors, the output file may be empty. The process exit code can be used to detect this condition; if there is a syntax error, the exit code is 2. The /ErrorStdOut switch can be used to suppress or capture the error message.</p>
     </td>
@@ -279,7 +288,7 @@ By default, the hard carriage return (Enter) between the previous line and this 
 <p>The filename <code><i>AutoHotkey</i>.ahk</code> depends on the name of the executable used to run the script. For example, if you rename AutoHotkey.exe to MyScript.exe, it will attempt to find <code>MyScript.ahk</code>. If you run AutoHotkeyU32.exe without parameters, it will look for AutoHotkeyU32.ahk.</p>
 <p id="stdin">Specify an asterisk (*) for the filename to read the script text from standard input (stdin). This also puts the following into effect:</p>
 <ul>
-  <li>The <a href="Variables.htm#InitialWorkingDir">initial working directory</a> is used as <a href="Variables.htm#ScriptDir">A_ScriptDir</a> and to locate the <a href="Functions.htm#lib">local function library</a>.</li>
+  <li>The <a href="Variables.htm#InitialWorkingDir">initial working directory</a> is used as <a href="Variables.htm#ScriptDir">A_ScriptDir</a> and to locate the <a href="Scripts.htm#lib">local Lib folder</a>.</li>
   <li><a href="Variables.htm#ScriptName">A_ScriptName</a> and <a href="Variables.htm#ScriptFullPath">A_ScriptFullPath</a> both contain "*".</li>
   <li><a href="commands/_SingleInstance.htm">#SingleInstance</a> is off by default.</li>
 </ul>
