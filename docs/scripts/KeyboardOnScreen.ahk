@@ -28,7 +28,7 @@ k_Monitor := ""
 ; unless you want to alter the basic nature of the script.
 
 ;---- Create a Gui window for the on-screen keyboard:
-MyGui := Gui.New("-Caption +ToolWindow +AlwaysOnTop +Disabled")
+MyGui := Gui("-Caption +ToolWindow +AlwaysOnTop +Disabled")
 MyGui.SetFont("s" k_FontSize " " k_FontStyle, k_FontName)
 MyGui.MarginY := 0, MyGui.MarginX := 0
 
