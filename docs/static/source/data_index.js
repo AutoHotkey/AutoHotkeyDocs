@@ -613,7 +613,6 @@ indexData = [
   ["is","Variables.htm#is",4],
   ["IsAlnum","commands/Is.htm#alnum",2],
   ["IsAlpha","commands/Is.htm#alpha",2],
-  ["IsByRef","commands/IsByRef.htm",2],
   ["IsDigit","commands/Is.htm#digit",2],
   ["IsFloat","commands/Is.htm#float",2],
   ["IsInteger","commands/Is.htm#integer",2],
