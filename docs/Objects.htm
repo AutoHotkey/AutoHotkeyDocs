@@ -52,7 +52,7 @@ ul.list_of_p li { margin: 1em 0; }
 MyArray := Array(Item1, Item2, ..., ItemN)</pre>
 <p>Retrieve an item (or <em>array element</em>):</p>
 <pre>Value := MyArray[Index]</pre>
-<p>Change the value of an item (must already exist in the array):</p>
+<p>Change the value of an item (<code>Index</code> must be between 1 and Length, or an equivalent reverse index):</p>
 <pre>MyArray[Index] := Value</pre>
 <p>Insert one or more items at a given index using the <a href="objects/Array.htm#InsertAt">InsertAt</a> method:</p>
 <pre>MyArray.InsertAt(Index, Value, Value2, ...)</pre>
@@ -353,7 +353,7 @@ Method()
 <p>If a property cannot accept parameters (the square brackets are omitted or empty), parameters are automatically forwarded to the <a href="#__Item">__Item</a> property of the object returned by <em>get</em>. For example, <code>this.Property[x]</code> would have the same effect as <code>(this.Property)[x]</code> or <code>y := this.Property, y[x]</code>.</p>
 <p>Static properties can be defined by preceding the property name with the separate keyword <code>static</code>. In that case, <code>this</code> refers to the class itself or a subclass.</p>
 <p>The return value of <em>set</em> is ignored. For example, <code>val := obj.Property := 42</code> always assigns <code>val := 42</code> regardless of what the property does, unless it throws an exception or exits the thread.</p>
-<p>Each class can define one or both halves of a property. If a class overrides a property, it can use <code><a href="#Custom_Classes_super">super.Property</a></code> to access the property defined by its base class. If <em>Get</em> or <em>Set</em> is not defined, it can be inherited from a base object. If <em>Get</em> is undefined, the property can return a value inherited from a base. If <em>Set</em> is undefined in this and all base objects, the property is read-only (attempting to set the property throws an exception).</p>
+<p>Each class can define one or both halves of a property. If a class overrides a property, it can use <code><a href="#Custom_Classes_super">super.Property</a></code> to access the property defined by its base class. If <em>Get</em> or <em>Set</em> is not defined, it can be inherited from a base object. If <em>Get</em> is undefined, the property can return a value inherited from a base. If <em>Set</em> is undefined in this and all base objects (or is obscured by an inherited value property), attempting to set the property causes an exception to be thrown.</p>
 <p>Internally, <em>get</em> and <em>set</em> are two separate methods, so cannot share variables (except by storing them in <code>this</code>).</p>
 <p>See also: <a href="objects/Object.htm#DefineProp">DefineProp</a></p>
 <p><a href="#Meta_Functions">Meta-functions</a> provide a broader way of controlling access to properties and methods of an object, but are more complicated and error-prone.</p>
@@ -370,7 +370,7 @@ Method()
 
 <h3 id="__Enum">__Enum Method</h3>
 <pre class="Syntax">__Enum(NumberOfVars)</pre>
-<p>The __Enum method is called when the object is passed to a <a href="commands/For.htm">for-loop</a>. This method should return an <a href="objects/Enumerator.htm">enumerator</a> which will return items contained by the object, such as array elements. If left undefined, the object cannot be passed directly to a for-loop.</p>
+<p>The __Enum method is called when the object is passed to a <a href="commands/For.htm">for-loop</a>. This method should return an <a href="objects/Enumerator.htm">enumerator</a> which will return items contained by the object, such as array elements. If left undefined, the object cannot be passed directly to a for-loop unless it has an <a href="objects/Enumerator.htm#Call">enumerator-compatible Call method</a>.</p>
 <p><em>NumberOfVars</em> contains the number of variables passed to the for-loop. If <em>NumberOfVars</em> is 2, the enumerator is expected to assign the key or index of an item to the first parameter and the value to the second parameter. Each key or index should be accepted as a parameter of the <a href="#__Item">__Item</a> property. This enables <a href="AHKL_DBGPClients.htm">DBGp-based debuggers</a> to get or set a specific item after listing them by invoking the enumerator.</p>
 
 <h3 id="__Item">__Item Property</h3>
@@ -447,7 +447,7 @@ class <i>ClassName</i> {
 <ul>
   <li><i>Call</i>: Throw a <a href="objects/Error.htm#MethodError">MethodError</a>.</li>
   <li>If parameters were given, throw an exception (there's no object to forward the parameters to).</li>
-  <li><i>Get</i>: Return an empty string (functions do this by default when <code>return</code> is omitted).</li>
+  <li><i>Get</i>: Throw a <a href="objects/Error.htm#PropertyError">PropertyError</a>.</li>
   <li><i>Set</i>: Define a new property with the given value, such as by calling <a href="objects/Object.htm#DefineProp">DefineProp</a>. </li>
 </ul>
 <p>Any <a href="objects/Functor.htm">callable object</a> can be used as a meta-function by passing it to <a href="objects/Object.htm#DefineMethod">DefineMethod</a>.</p>
