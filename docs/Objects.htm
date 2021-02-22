@@ -463,48 +463,19 @@ class <i>ClassName</i> {
 <p>For example, a "proxy" object could be created which sends requests for properties over the network (or through some other channel). A remote server would send back a response containing the value of the property, and the proxy would return the value to its caller. Even if the name of each property was known in advance, it would not be logical to define each property individually in the proxy class since every property does the same thing (send a network request). Meta-functions receive the property name as a parameter, so are a good solution to this problem.</p>
 
 <h2 id="primitive">Primitive Values</h2>
-<p>Primitive values, such as strings and numbers, cannot have their own properties and methods. However, primitive values support the same kind of <a href="#delegation">delegation</a> as objects. That is, any property or method call on a primitive value is delegated to the <em>prototype object</em> corresponding to that value's type, or in other words, the value's <em>base object</em>. The following prototype objects exist:</p>
+<p>Primitive values, such as strings and numbers, cannot have their own properties and methods. However, primitive values support the same kind of <a href="#delegation">delegation</a> as objects. That is, any property or method call on a primitive value is delegated to a predefined prototype object, which is also accessible via the <a href="objects/Class.htm#Prototype">Prototype</a> property of the corresponding class. The following classes relate to primitive values:</p>
 <ul style="line-height: 1.5">
-  <li>Any <ul style="padding-left: 1.7em">
-    <li>Primitive <ul style="padding-left: 1.7em">
-      <li>Number <ul style="padding-left: 1.7em">
-        <li>Float</li>
-        <li>Integer</li>
-      </ul></li>
-      <li>String</li>
+  <li>Primitive (extends <a href="objects/Any.htm">Any</a>) <ul style="padding-left: 1.7em">
+    <li>Number <ul style="padding-left: 1.7em">
+      <li>Float</li>
+      <li>Integer</li>
     </ul></li>
+    <li>String</li>
   </ul></li>
 </ul>
-<p>However, these objects are currently only accessible through the <code>base</code> property of a primitive value (or a derived prototype object). <a href="objects/Object.htm">Object.Prototype</a> is also based on the Any prototype, so any methods or properties defined on that prototype are inherited by values of all types except ComObject. Similarly, all primitive values inherit from Primitive, and all numbers inherit from Number.</p>
-<p>Although checking the <a href="commands/Type.htm">Type</a> string is generally faster, the type of a value can be tested by checking whether it has a given base. For example, <code>n.HasBase(0.base.base)</code> is true if <em>n</em> is a pure Integer or Float, but not if <em>n</em> is a numeric string, since the String prototype does not derive from the Number prototype. By contrast, <code>IsNumber(n)</code> is true if <em>n</em> is a number or a numeric string.</p>
-<p>Rather than referring to the prototype objects via numbers and strings, the following code can be used to create the missing classes:</p>
-<pre><em>; Define primitive classes.</em>
-global Any := Class.new()
-     , Primitive := Class.new()
-     , String := Class.new()
-     , Number := Class.new()
-     , Integer := Class.new()
-     , Float := Class.new()
-
-<em>; Define hierarchy for primitive classes.</em>
-Primitive.base := Any
-  , Number.base := Primitive
-    , Integer.base := Number
-    , Float.base := Number
-  , String.base := Primitive
-
-<em>; Attach the existing prototype objects.</em>
-Any.Prototype := (
-    Primitive.Prototype := (
-      Number.Prototype := (
-        Integer.Prototype := 0.base,
-        Float.Prototype := 0.0.base
-      ).base,
-      String.Prototype := "".base
-    ).base
-  ).base
-</pre>
-<p>The <a href="Variables.htm#is"><code>is</code></a> operator can be used with these classes. For example, <code>n is Number</code> is equivalent to <code>n.HasBase(Number.Prototype)</code> except when the HasBase method has been overridden for <em>n</em>. Note that <code>x is Any</code> would ordinarily be true for any value within AutoHotkey's type hierarchy, but false for COM objects.</p>
+<p>Although checking the <a href="commands/Type.htm">Type</a> string is generally faster, the type of a value can be tested by checking whether it has a given base. For example, <code>n.HasBase(Number.Prototype)</code> or <code>n is Number</code> is true if <em>n</em> is a pure Integer or Float, but not if <em>n</em> is a numeric string, since String does not derive from Number. By contrast, <code>IsNumber(n)</code> is true if <em>n</em> is a number or a numeric string.</p>
+<p><a href="objects/Any.htm#GetBase">ObjGetBase</a> and the <a href="objects/Any.htm#Base">Base</a> property return one of the predefined prototype objects when appropriate.</p>
+<p>Note that <code>x is Any</code> would ordinarily be true for any value within AutoHotkey's type hierarchy, but false for COM objects.</p>
 
 <h3 id="primitive-extension">Adding Properties and Methods</h3>
 <p>Properties and methods can be added for all values of a given type by modifying that type's prototype object. However, since a primitive value is not an Object and cannot have its own properties or methods, the primitive prototype objects do not derive from <code>Object.Prototype</code>. In other words, methods such as <a href="objects/Object.htm#DefineProp">DefineProp</a> and <a href="objects/Object.htm#DefineMethod">DefineMethod</a> are not accessible by default. They can be called indirectly. For example:</p>
