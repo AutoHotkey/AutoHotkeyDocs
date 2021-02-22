@@ -98,7 +98,7 @@ TheFunc(params) {
 <h2 id="Threads">Fast vs. Slow</h2>
 <p>The default/slow mode causes the function to start off fresh with the default values for settings such as <a href="SendMode.htm">SendMode</a> and <a href="DetectHiddenWindows.htm">DetectHiddenWindows</a>. These defaults can be changed during <a href="../Scripts.htm#auto">script startup</a>.</p>
 <p>By contrast, the <a href="#Fast">fast mode</a> inherits global settings from whichever <a href="../misc/Threads.htm">thread</a> happens to be running at the time the function is called. Furthermore, any changes the function makes to global settings (including the <a href="../misc/WinTitle.htm#LastFoundWindow">last-found window</a>) will go into effect for the <a href="../misc/Threads.htm">current thread</a>. Consequently, the fast mode should be used only when it is known exactly which thread(s) the function will be called from.</p>
-<p>To avoid being interrupted by itself (or any other thread), a callback may use <a href="Critical.htm">Critical</a> as its first line. However, this is not completely effective when the function is called indirectly via the arrival of a message less than 0x312 (increasing Critical's <a href="Critical.htm#Interval">interval</a> may help). Furthermore, <a href="Critical.htm">Critical</a> does not prevent the function from doing something that might indirectly result in a call to itself, such as calling <a href="SendMessage.htm">SendMessage</a> or <a href="DllCall.htm">DllCall</a>.</p>
+<p>To avoid being interrupted by itself (or any other thread), a callback may use <a href="Critical.htm">Critical</a> as its first line. However, this is not completely effective when the function is called indirectly via the arrival of a message less than 0x0312 (increasing Critical's <a href="Critical.htm#Interval">interval</a> may help). Furthermore, <a href="Critical.htm">Critical</a> does not prevent the function from doing something that might indirectly result in a call to itself, such as calling <a href="SendMessage.htm">SendMessage</a> or <a href="DllCall.htm">DllCall</a>.</p>
 
 <h2 id="CallbackFree">Memory</h2>
 <p>Each use of CallbackCreate allocates a small amount of memory (32 bytes plus system overhead). Since the OS frees this memory automatically when the script exits, any script that allocates a small, <em>fixed</em> number of callbacks does not have to explicitly free the memory. By contrast, a script that calls CallbackCreate an indefinite/unlimited number of times should explicitly call the following on any unused callbacks:</p>
@@ -110,7 +110,7 @@ TheFunc(params) {
 
 <h2 id="Examples">Examples</h2>
 <div class="ex" id="ExWinList">
-<p><a href="#ExWinList">#1</a>: Displays a summary of all top-level windows.</p>
+<p><a class="ex_number" href="#ExWinList"></a> Displays a summary of all top-level windows.</p>
 <pre>EnumAddress := CallbackCreate("EnumWindowsProc", "Fast")  <em>; Fast-mode is okay because it will be called only from this thread.</em>
 
 DetectHiddenWindows True  <em>; Due to fast-mode, this setting will go into effect for the callback too.</em>
@@ -131,7 +131,7 @@ EnumWindowsProc(hwnd, lParam)
 </div>
 
 <div class="ex" id="ExSubclassGUI">
-<p><a href="#ExSubclassGUI">#2</a>: Demonstrates how to subclass a GUI window by redirecting its WindowProc to a new WindowProc in the script. In this case, the background color of a text control is changed to a custom color.</p>
+<p><a class="ex_number" href="#ExSubclassGUI"></a> Demonstrates how to subclass a GUI window by redirecting its WindowProc to a new WindowProc in the script. In this case, the background color of a text control is changed to a custom color.</p>
 <pre>TextBackgroundColor := 0xFFBBBB  <em>; A custom color in BGR format.</em>
 TextBackgroundBrush := DllCall("CreateSolidBrush", "UInt", TextBackgroundColor)
 
@@ -151,7 +151,7 @@ WindowProc(hwnd, uMsg, wParam, lParam)
 {
     Critical
     global Text, TextBackgroundColor, TextBackgroundBrush, WindowProcOld
-    if (uMsg = 0x138 &amp;&amp; lParam = Text.Hwnd)  <em>; 0x138 is WM_CTLCOLORSTATIC.</em>
+    if (uMsg = 0x0138 &amp;&amp; lParam = Text.Hwnd)  <em>; 0x0138 is WM_CTLCOLORSTATIC.</em>
     {
         DllCall("SetBkColor", "Ptr", wParam, "UInt", TextBackgroundColor)
         return TextBackgroundBrush  <em>; Return the HBRUSH to notify the OS that we altered the HDC.</em>

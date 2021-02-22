@@ -36,7 +36,7 @@ global g_DoubleAlt := false
         MouseGetPos ,, KDE_id
         ; This message is mostly equivalent to WinMinimize,
         ; but it avoids a bug with PSPad.
-        PostMessage 0x112, 0xf020,,, KDE_id
+        PostMessage 0x0112, 0xf020,,, KDE_id
         g_DoubleAlt := false
         return
     }
