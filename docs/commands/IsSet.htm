@@ -15,14 +15,15 @@
 
 <p>Returns a non-zero number if the specified variable has been assigned a value.</p>
 
-<pre class="Syntax">IsSet := <span class="func">IsSet</span>(Var)</pre>
+<pre class="Syntax">VarIsSet := <span class="func">IsSet</span>(&amp;Var)</pre>
 <h2 id="Parameters">Parameters</h2>
 <dl>
 
-  <dt>Var</dt>
+  <dt>&amp;Var</dt>
   <dd>
     <p>Type: <a href="../Concepts.htm#variable-references">VarRef</a></p>
     <p>A reference to the variable. For example: <code>IsSet(&amp;MyVar)</code>.</p>
+    <p class="note"><strong>Note:</strong> Use the <a href="../Variables.htm#ref">reference operator (&amp;)</a> when checking a variable directly, but not when passing a variable which <em>contains</em> a VarRef.</p>
   </dd>
 
 </dl>
@@ -41,11 +42,27 @@
 <h2 id="Examples">Examples</h2>
 <div class="ex" id="ExBasic">
 <p><a class="ex_number" href="#ExBasic"></a> Reports a non-zero number if <var>MyVar</var> has been assigned a value.</p>
-<pre>MsgBox Function(&amp;MyVar)
+<pre>
+Loop 2
+    if !IsSet(&amp;MyVar)  <em>; Is this the first "use" of MyVar?</em>
+        MyVar := A_Index  <em>; Initialize on first "use".</em>
+MsgBox Function1(&amp;MyVar)
+MsgBox Function2(&amp;MyVar)
 
-Function(&amp;Param)
+Function1(&amp;Param)  ; ByRef parameter.
 {
-    return IsSet(Param)
+    if IsSet(&amp;Param)  <em>; Pass a reference to the target of Param.</em>
+        return Param  <em>; ByRef parameters are automatically dereferenced.</em>
+    else
+        return "unset"
+}
+
+Function2(Param)
+{
+    if IsSet(Param)  <em>; Pass the VarRef contained by Param.</em>
+        return %Param%  ; Explicitly dereference Param.
+    else
+        return "unset"
 }</pre>
 </div>
 
