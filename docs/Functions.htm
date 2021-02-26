@@ -305,9 +305,22 @@ outer(x) {
 }
 outer("title")
 </pre>
-<p>A nested function is not accessible outside of the function which immediately encloses it, but is accessible anywhere inside that function, including inside other nested functions.</p>
-<p>By default, a nested function may access any local variable of any function which encloses it, as long as the variable is <a href="#static">static</a> or is referenced non-dynamically by both the originating function and either the nested function or one of its own nested functions. <a href="#Global">Global</a> declarations in the outer function also affect nested functions, except where overridden by <a href="#ForceLocal">force-local</a>.</p>
-<p class="warning"><strong>Known limitation:</strong> Local variables which are read but not assigned in the outer function are currently inaccessible by nested functions unless they are declared, in which case there will be a VarUnset warning even if they are assigned by the nested function. To avoid this, initialize variables in the outer function. This does not apply to parameters.</p>
+<p>A nested function is not accessible by name outside of the function which immediately encloses it, but is accessible anywhere inside that function, including inside other nested functions.</p>
+<p>By default, a nested function may access any <a href="#static">static</a> variable of any function which encloses it, even dynamically.</p>
+<p>By default, a nested function automatically "captures" a non-static local variable of an outer function when the following requirements are met:</p>
+<ol>
+  <li>The outer function must refer to the variable in at least one of the following ways:
+    <ol type="a">
+      <li>By declaring it with <code>local</code>.</li>
+      <li>By declaring it in the parameter list.</li>
+      <li>As the non-dynamic target of an assignment or the <a href="Variables.htm#ref">reference operator (&amp;)</a>.</li>
+    </ol>
+  </li>
+  <li>The inner function (or a function nested inside it) must refer to the variable non-dynamically.</li>
+</ol>
+<p>A nested function which has captured variables is known as a <a href="#closures">closure</a>.</p>
+<p>Non-static local variables of the outer function cannot be <a href="Language.htm#dynamic-variables">accessed dynamically</a> unless they have been captured.</p>
+<p>Explicit declarations always take precedence over local variables of the function which encloses them. For example, <code>local x</code> declares a variable local to the current function, independent of any <code>x</code> in the outer function. <a href="#Global">Global</a> declarations in the outer function also affect nested functions, except where overridden by force-local or an explicit declaration.</p>
 <p>If a function is declared <a href="#ForceLocal">force-local</a> or <a href="#AssumeGlobal">assume-global</a>, any local or static variables created <em>outside</em> that function are not directly accessible to the function itself or any of its nested functions. By contrast, a nested function which is assume-static can still refer to variables from the outer function, unless it is also force-local.</p>
 <p>Functions are <a href="#AssumeLocal">assume-local</a> by default, and this is true even for nested functions, even those inside an <a href="#AssumeStatic">assume-static</a> function. However, if the outer function is <a href="#AssumeGlobal">assume-global</a>, nested functions behave as though assume-global by default, except that they can refer to local and static variables of the outer function.</p>
 <p>Each function definition creates a read-only variable containing the function itself; that is, a <a href="objects/Func.htm">Func</a> or <a href="#closures">Closure</a> object. See below for examples of how this might be used.</p>
