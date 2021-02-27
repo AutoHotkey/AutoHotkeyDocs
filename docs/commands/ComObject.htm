@@ -70,6 +70,11 @@ vref := ComObject(0x400C, vbuf.ptr)  <em>; 0x400C is a combination of VT_BYREF a
 vref[] := "in value"
 sc.Run("Example", vref)  <em>; sc should be initialized as in the <a href="#ExByRef">example below</a>.</em>
 MsgBox vref[]</pre>
+<p>If the method accepts a combination of VT_BYREF and VT_VARIANT as shown above, a <a href="../Concepts.htm#variable-references">VarRef</a> can be used instead. For example:</p>
+<pre>some_var := "in value"
+sc.Run("Example", &amp;some_var)
+MsgBox some_var</pre>
+<p>However, some methods require a more specific variant type, such as <code>VT_BYREF | VT_I4</code>. In such cases, the first approach shown above must be used, replacing 0x400C with the appropriate variant type.</p>
 
 <h2 id="Remarks">General Remarks</h2>
 <p>When this function is used to wrap an <a href="http://msdn.microsoft.com/en-us/library/dd318520.aspx">IDispatch</a> or IUnknown interface pointer, the wrapper object assumes responsibility for automatically releasing the pointer when appropriate. If <em>VarType</em> was omitted, the object is <a href="ComObjQuery.htm">queried</a> for its IDispatch interface; if one is returned, <em>DispPtr</em> is immediately released. Therefore, if the script intends to use the pointer after calling this function, it must call <code><a href="ObjAddRef.htm">ObjAddRef</a>(DispPtr)</code> first.</p>
@@ -96,10 +101,15 @@ sc := <a href="ComObjCreate.htm">ComObjCreate</a>("ScriptControl"), sc.Language 
 
 
 <em>; Example: Pass a VARIANT ByRef to a COM method.</em>
-var := ComVar.new()
+var := ComVar()
 var[] := "in value"
 sc.Run("Example", var.ref)
 MsgBox var[]
+
+<em>; Above and below are equivalent in this case:</em>
+var := "in value"
+sc.Run("Example", &amp;var)
+MsgBox var
 
 
 <em>; ComVar: An object which can be used to pass a value ByRef.
