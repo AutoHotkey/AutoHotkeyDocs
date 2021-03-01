@@ -1443,7 +1443,7 @@ function ctor_features()
           var td = tds[k];
           var id = td.getAttribute('id');
           newTable += (id) ? '<tr id="'+id+'">' : '<tr>';
-          var first = (th.length) ? th[k].innerHTML : ""
+          var first = (th.length) ? (th[k].abbr || th[k].innerHTML) : "";
           newTable += '<td>'+first+'</td><td>'+td.innerHTML+'</td></tr>';
         }
         newTable += '</tbody>';
