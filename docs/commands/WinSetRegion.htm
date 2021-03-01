@@ -61,6 +61,22 @@
 <h2 id="Remarks">Remarks</h2>
 <p>The ID of the window under the mouse cursor can be retrieved with <a href="MouseGetPos.htm">MouseGetPos</a>.</p>
 <p>Window titles and text are case sensitive. Hidden windows are not detected unless <a href="DetectHiddenWindows.htm">DetectHiddenWindows</a> has been turned on.</p>
+<p>When a region is set for a window owned by the script, the system may automatically change the method it uses to render the window's frame, thereby altering its appearance. The effect is similar to workaround #2 shown below, but only affects the window until its region is reset.</p>
+<p><strong>Known limitation</strong>: Setting a region for a window not owned by the script may produce unexpected results if the window has a caption (title bar), and the system has desktop composition enabled. This is because the visible frame is not actually part of the window, but rendered by a separate system process known as the "desktop window manager". Note that desktop composition is <a href="https://docs.microsoft.com/en-us/windows/compatibility/desktop-window-manager-is-always-on">always enabled</a> on Windows 8 and later. One of the following two workarounds can be used:</p>
+<pre><em>; #1: Remove the window's caption.</em>
+WinSetStyle "-0xC00000", "Window Title"
+
+<em>; To undo it:</em>
+WinSetStyle "+0xC00000", "Window Title"</pre>
+<pre><em>; #2: Disable DWM rendering of the window's frame.</em>
+DllCall("dwmapi\DwmSetWindowAttribute", "ptr", WinExist("Window Title")
+  , "uint", DWMWA_NCRENDERING_POLICY := 2, "int*", DWMNCRP_DISABLED := 1, "uint", 4)
+  
+<em>; To undo it (this might also cause any set region to be ignored):</em>
+DllCall("dwmapi\DwmSetWindowAttribute", "ptr", WinExist("Window Title")
+  , "uint", DWMWA_NCRENDERING_POLICY := 2, "int*", DWMNCRP_ENABLED := 2, "uint", 4)
+</pre>
+
 
 <h2 id="Related">Related</h2>
 <p><a href="Win.htm">Win functions</a>, <a href="Control.htm">Control functions</a></p>
