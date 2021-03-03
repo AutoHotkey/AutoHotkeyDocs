@@ -182,18 +182,10 @@ MsgBox Join("`n", <b class="blue">substrings*</b>)</pre>
 <p>Built-in variables such as <a href="misc/A_Clipboard.htm">A_Clipboard</a> and <a href="Variables.htm#TimeIdle">A_TimeIdle</a> are never local (they can be accessed from anywhere), and cannot be redeclared. (This does not apply to built-in classes such as <a href="objects/Object.htm">Object</a>; they are predefined as <a href="#Global">global</a> variables.)</p>
 <p id="AssumeLocal">Functions are <strong>assume-local</strong> by default. Variables accessed or created inside an assume-local function are local by default, with the following exceptions:</p>
 <ul>
-  <li><a href="#SuperGlobal">Super-global</a> variables.</li>
   <li><a href="#Global">Global</a> variables which are only read by the function, not assigned or used with the <a href="Variables.htm#ref">reference operator (&amp;)</a>.</li>
   <li>Inside a <a href="#nested">nested function</a>, non-dynamic local and static variables created by an enclosing function may be accessed.</li>
 </ul>
 <p>The default may also be overridden as shown below (by declaring the variable or by changing the mode of the function).</p>
-<p id="ForceLocal"><strong>Force-local mode</strong>: If the function's first line is the word "local", all variable references are assumed to be local unless they are declared as global <em>inside</em> the function. Unlike the default mode, force-local mode has the following behavior:</p>
-<ul>
-  <li>Global variables of any kind cannot be read or assigned without declaring them inside the function.</li>
-  <li>If the function is defined inside another function, the outer function's local and static variables cannot be accessed.</li>
-  <li>The <em>LocalSameAsGlobal</em> <a href="commands/_Warn.htm">warning</a> is never raised for variables within a force-local function.</li>
-</ul>
-<p class="warning"><strong>Note:</strong> As functions are accessed through variables, functions which are not defined or declared inside a force-local function cannot be called (except indirectly, such as through a parameter).</p>
 
 <h3 id="Global">Global variables</h3>
 <p id="AssignLocal">Any variable reference in an <a href="#AssumeLocal">assume-local</a> function may resolve to a global variable if it is only read. However, if a variable is used in an assignment or with the <a href="Variables.htm#ref">reference operator (&amp;)</a>, it is automatically local by default. This allows functions to read global variables or call global or built-in functions without declaring them inside the function, while protecting the script from unintended side-effects when the name of a local variable being assigned coincides with a global variable. For example:</p>
@@ -219,8 +211,6 @@ MsgBox Join("`n", <b class="blue">substrings*</b>)</pre>
     local x, y:=0, z  <em>; Local variables must be declared in this mode, otherwise they would be assumed global.</em>
 }</pre>
 <p>This assume-global mode can also be used by a function to create a global <a href="misc/Arrays.htm">pseudo-array</a>, such as a loop that assigns values to <code>Array%A_Index%</code>.</p>
-<p id="SuperGlobal"><strong>Super-global variables</strong>: If a global declaration appears outside of any function, it takes effect for all functions by default (excluding <a href="#ForceLocal">force-local</a> functions). However, if a function parameter or local variable with the same name is declared, it takes precedence over the global variable.</p>
-<p>As global variables generally only need to be declared if they are being assigned or used with the <a href="Variables.htm#ref">reference operator (&amp;)</a>, it is usually better to avoid super-global declarations. Super-global declarations can cause conflicts when combining scripts or using shared code, as a variable intended to be local might accidentally become global when a super-global declaration is introduced through the use of <a href="commands/_Include.htm">#Include</a> or copy-paste.</p>
 
 <h3 id="static">Static variables</h3>
 <p>Static variables are always implicitly local, but differ from locals because their values are remembered between calls. For example:</p>
@@ -245,21 +235,7 @@ MsgBox Join("`n", <b class="blue">substrings*</b>)</pre>
     }
     return StaticArray%WhichItemNumber%
 }</pre>
-<p>In assume-static mode, any variable that should not be static must be declared as local or global (with the same exceptions as for <a href="#AssumeLocal">assume-local mode</a>, unless <a href="#ForceLocal">force-local mode</a> is also in effect).</p>
-<p><a href="#ForceLocal">Force-local mode</a> can be combined with assume-static mode by specifying <code>local</code> and then <code>static</code>, as shown below. This allows the function to use force-local rules but create variables as static by default.</p>
-<pre>global MyVar := "This is global"
-DemonstrateForceStatic()
-
-DemonstrateForceStatic()
-{
-    local
-    static
-    MyVar := "This is static"
-    global ListVars, MsgBox
-    ListVars
-    MsgBox
-}
-</pre>
+<p>In assume-static mode, any variable that should not be static must be declared as local or global (with the same exceptions as for <a href="#AssumeLocal">assume-local mode</a>).</p>
 
 <h3 id="More_about_locals_and_globals">More about locals and globals</h3>
 <p>Multiple variables may be declared on the same line by separating them with commas as in these examples:</p>
@@ -320,8 +296,8 @@ outer("title")
 </ol>
 <p>A nested function which has captured variables is known as a <a href="#closures">closure</a>.</p>
 <p>Non-static local variables of the outer function cannot be <a href="Language.htm#dynamic-variables">accessed dynamically</a> unless they have been captured.</p>
-<p>Explicit declarations always take precedence over local variables of the function which encloses them. For example, <code>local x</code> declares a variable local to the current function, independent of any <code>x</code> in the outer function. <a href="#Global">Global</a> declarations in the outer function also affect nested functions, except where overridden by force-local or an explicit declaration.</p>
-<p>If a function is declared <a href="#ForceLocal">force-local</a> or <a href="#AssumeGlobal">assume-global</a>, any local or static variables created <em>outside</em> that function are not directly accessible to the function itself or any of its nested functions. By contrast, a nested function which is assume-static can still refer to variables from the outer function, unless it is also force-local.</p>
+<p>Explicit declarations always take precedence over local variables of the function which encloses them. For example, <code>local x</code> declares a variable local to the current function, independent of any <code>x</code> in the outer function. <a href="#Global">Global</a> declarations in the outer function also affect nested functions, except where overridden by an explicit declaration.</p>
+<p>If a function is declared <a href="#AssumeGlobal">assume-global</a>, any local or static variables created <em>outside</em> that function are not directly accessible to the function itself or any of its nested functions. By contrast, a nested function which is assume-static can still refer to variables from the outer function.</p>
 <p>Functions are <a href="#AssumeLocal">assume-local</a> by default, and this is true even for nested functions, even those inside an <a href="#AssumeStatic">assume-static</a> function. However, if the outer function is <a href="#AssumeGlobal">assume-global</a>, nested functions behave as though assume-global by default, except that they can refer to local and static variables of the outer function.</p>
 <p>Each function definition creates a read-only variable containing the function itself; that is, a <a href="objects/Func.htm">Func</a> or <a href="#closures">Closure</a> object. See below for examples of how this might be used.</p>
 

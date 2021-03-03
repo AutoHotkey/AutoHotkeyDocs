@@ -939,7 +939,6 @@ indexData = [
   ["styles for GUI methods","misc/Styles.htm"],
   ["SubStr","commands/SubStr.htm",2],
   ["super","Objects.htm#Custom_Classes_super"],
-  ["Super-global variables","Functions.htm#SuperGlobal"],
   ["Suspend","commands/Suspend.htm",2],
   ["suspend or hibernate","commands/Shutdown.htm#ExSuspend"],
   ["Switch","commands/Switch.htm",3,"E"],
