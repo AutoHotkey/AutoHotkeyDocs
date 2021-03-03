@@ -241,7 +241,6 @@ indexData = [
   ["and","Variables.htm#and",4],
   ["append to file","commands/FileAppend.htm"],
   ["Array","objects/Array.htm",2],
-  ["Arrays","misc/Arrays.htm"],
   ["ASin","commands/Math.htm#ASin",2],
   ["assigning values to variables","Variables.htm#AssignOp"],
   ["ATan","commands/Math.htm#ATan",2],
