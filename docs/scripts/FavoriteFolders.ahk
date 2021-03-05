@@ -49,7 +49,7 @@ Program Files; %PROGRAMFILES%
 
 global g_AlwaysShowMenu := true
 global g_Paths := []
-global g_Menu := Menu.New()
+global g_Menu := Menu()
 global g_window_id := 0
 global g_class := ""
 

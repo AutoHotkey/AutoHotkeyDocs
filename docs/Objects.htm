@@ -38,7 +38,7 @@ ul.list_of_p li { margin: 1em 0; }
 <h2 id="toc">Table of Contents</h2>
 <ul>
   <li><a href="#Usage">Basic Usage</a> - <a href="#Usage_Simple_Arrays">Arrays</a>, <a href="#Usage_Associative_Arrays">Maps (Associative Arrays)</a>, <a href="#Usage_Objects">Objects</a>, <a href="#Usage_Freeing_Objects">Freeing Objects</a></li>
-  <li><a href="#Extended_Usage">Extended Usage</a> - <a href="#Function_References">Function References</a>, <a href="#Usage_Arrays_of_Arrays">Arrays of Arrays</a></li>
+  <li><a href="#Extended_Usage">Extended Usage</a> - <a href="#Usage_Arrays_of_Arrays">Arrays of Arrays</a></li>
   <li><a href="#Custom_Objects">Custom Objects</a> - <a href="#creating-a-base-object">Creating a Base Object</a>, <a href="#Custom_Classes">Classes</a>, <a href="#Custom_NewDelete">Construction and Destruction</a>, <a href="#Meta_Functions">Meta-Functions</a></li>
   <li><a href="#primitive">Primitive Values</a></li>
   <li><a href="#Implementation">Implementation</a> - <a href="#Reference_Counting">Reference-Counting</a>, <a href="#ObjPtr">Pointers to Objects</a></li>
@@ -129,16 +129,6 @@ x := "", y := ""             <em>; Without the above line, this would not free t
 <p>For more advanced usage and details, see <a href="#Reference_Counting">Reference Counting</a>.</p>
 
 <h2 id="Extended_Usage">Extended Usage</h2>
-<h3 id="Function_References">Function References</h3>
-<p>If the variable <i>func</i> contains a function name, the function can be called with the expression <code><a href="Functions.htm#DynCall">%func%()</a></code>. However, this requires the function name to be resolved each time, which is inefficient if the function is called more than once. To improve performance, the script can retrieve a reference to the function and store it for later use:</p>
-<pre>MyFuncRef := Func("MyFunc")</pre>
-<p>A function can be called by reference using the following syntax:</p>
-<pre>
-RetVal := <a href="Functions.htm#DynCall">%MyFuncRef%</a>(<i>Params</i>)
-RetVal := MyFuncRef.<a href="objects/Func.htm#Call">Call</a>(<i>Params</i>)
-</pre>
-<p>For details about additional properties of function references, see <a href="objects/Func.htm">Func Object</a>.</p>
-<p>In most cases, any <a href="objects/Functor.htm">callable object</a> can be used in place of a function reference.</p>
 
 <h3 id="Usage_Arrays_of_Arrays">Arrays of Arrays</h3>
 <p>Although "multi-dimensional" arrays are not supported, a script can combine multiple arrays or maps. For example:</p>
@@ -163,7 +153,7 @@ class Array2D extends Array {
     }
 }
 
-grid := Array2D.new(4, 3)
+grid := Array2D(4, 3)
 grid[4, 1] := "#"
 grid[3, 2] := "#"
 grid[2, 2] := "#"
@@ -197,7 +187,7 @@ thing := {}
 <em>; Store a value.</em>
 thing.foo := "bar"
 <em>; Define a method.</em>
-thing.DefineMethod "test", Func("thing_test")
+thing.test := thing_test
 <em>; Call the method.</em>
 thing.test()
 
@@ -205,7 +195,7 @@ thing_test(this) {
     MsgBox this.foo
 }</pre>
 <p>When <code>thing.test()</code> is called, <i>thing</i> is automatically inserted at the beginning of the parameter list. By convention, the function is named by combining the "type" of object and the method name, but this is not a requirement.</p>
-<p>See also: <a href="objects/Object.htm#DefineMethod">DefineMethod</a>, <a href="objects/Object.htm#DefineProp">DefineProp</a></p>
+<p>See also: <a href="objects/Object.htm#DefineProp">DefineProp</a></p>
 
 <h3 id="delegation">Delegation</h3>
 <p>Objects are <em>prototype-based</em>. That is, any properties or methods not defined in the object itself can instead be defined in the object's <a href="objects/Object.htm#Base">base</a>. This is known as <em>inheritance by delegation</em> or <em>differential inheritance</em>, because an object can implement only the parts that make it different, while delegating the rest to its base.</p>
@@ -232,7 +222,7 @@ other.test()</pre>
 <h3 id="Custom_Classes">Classes</h3>
 <blockquote>In object-oriented programming, a class is an extensible program-code-template for creating objects, providing initial values for state (member variables) and implementations of behavior (member functions or methods).
 <a href="https://en.wikipedia.org/wiki/Class_(computer_programming)" class="source">Wikipedia</a></blockquote>
-<p>In more general terms, a <em>class</em> is a set or category of things having some property or attribute in common. In AutoHotkey, a <code>class</code> defines properties and methods to be shared by instances of the class. An <em>instance</em> is just an object which inherits properties and methods from the class, and can typically also be identified as belonging to that class (such as with the expression <code><i>instance</i> is <i>ClassName</i></code>). Instances are typically created by calling <a href="objects/Class.htm#New"><em>ClassName</em>.new()</a>.</p>
+<p>In more general terms, a <em>class</em> is a set or category of things having some property or attribute in common. In AutoHotkey, a <code>class</code> defines properties and methods to be shared by instances of the class. An <em>instance</em> is just an object which inherits properties and methods from the class, and can typically also be identified as belonging to that class (such as with the expression <code><i>instance</i> is <i>ClassName</i></code>). Instances are typically created by calling <a href="objects/Class.htm#Call"><em>ClassName</em>()</a>.</p>
 <p>Since <a href="objects/Object.htm">Objects</a> are <a href="#ad-hoc">dynamic</a> and <a href="#delegation">prototype-based</a>, each class consists of two parts:</p>
 <ul>
   <li>The class has a <a href="objects/Class.htm#Prototype">Prototype</a> object, on which all instances of the class are based. All methods and properties that apply to a specific instance are contained by the prototype object. This includes all properties and methods which lack the <code>static</code> keyword.</li>
@@ -279,16 +269,16 @@ other.test()</pre>
     ShorterProperty[] =&gt; <i>Expression which calculates property value</i>
 }
 </pre>
-<p>When the script is loaded, this constructs a <a href="objects/Class.htm">Class</a> object and stores it in a <a href="Functions.htm#SuperGlobal">super-global</a> constant (read-only variable) with the name <i>ClassName</i>. To reference this class inside a <a href="Functions.htm#ForceLocal">force-local</a> function, a declaration such as <code>global ClassName</code> is required. If <code>extends BaseClassName</code> is present, <i>BaseClassName</i> must be the full name of another class. The full name of each class is stored in <code><i>ClassName</i>.Prototype.__Class</code>.</p>
-<p>Because of the ambiguity between class names and variables, the class name cannot be used to both reference the class and create a separate variable (such as to hold an instance of the class) in the same context. For example, <code>box := Box.new()</code> will not work, because <code>box</code> and <code>Box</code> both resolve to the same thing. Attempting to reassign a top-level (not nested) class in this manner results in a load time error.</p>
+<p>When the script is loaded, this constructs a <a href="objects/Class.htm">Class</a> object and stores it in a <a href="Functions.htm#Global">global</a> constant (read-only variable) with the name <i>ClassName</i>. If <code>extends BaseClassName</code> is present, <i>BaseClassName</i> must be the full name of another class. The full name of each class is stored in <code><i>ClassName</i>.Prototype.__Class</code>.</p>
+<p>Because of the ambiguity between class names and variables, the class name cannot be used to both reference the class and create a separate variable (such as to hold an instance of the class) in the same context. For example, <code>box := Box()</code> will not work, because <code>box</code> and <code>Box</code> both resolve to the same thing. Attempting to reassign a top-level (not nested) class in this manner results in a load time error.</p>
 <p>Within this documentation, the word "class" on its own usually means a class object constructed with the <code>class</code> keyword.</p>
 <p>Class definitions can contain variable declarations, method definitions and nested class definitions.</p>
 
 <h4 id="Custom_Classes_var">Instance Variables</h4>
 <p>An <em>instance variable</em> is one that each instance of the class has its own copy of. They are declared like normal assignments, but the <code>this.</code> prefix is omitted (only directly within the class body):</p>
 <pre>InstanceVar := Expression</pre>
-<p>These declarations are evaluated each time a new instance of the class is created with <a href="objects/Class.htm#New"><em>ClassName</em>.new()</a>, after all base-class declarations are evaluated but before <a href="#Custom_NewDelete">__New</a> is called. This is achieved by automatically creating a method named <em>__Init</em> containing a call to <code>super.__Init()</code> and inserting each declaration into it. Therefore, a single class definition must not contain both an __Init method and an instance variable declaration.</p>
-<p><em>Expression</em> can access other instance variables and methods via <code>this</code>, but all other variable references are assumed to be global.</p>
+<p>These declarations are evaluated each time a new instance of the class is created with <a href="objects/Class.htm#Call"><em>ClassName</em>()</a>, after all base-class declarations are evaluated but before <a href="#Custom_NewDelete">__New</a> is called. This is achieved by automatically creating a method named <em>__Init</em> containing a call to <code>super.__Init()</code> and inserting each declaration into it. Therefore, a single class definition must not contain both an __Init method and an instance variable declaration.</p>
+<p><em>Expression</em> can access other instance variables and methods via <code>this</code>. Global variables may be read, but not assigned. An additional assignment (or use of the <a href="Variables.htm#ref">reference operator</a>) within the expression will generally create a variable local to the __Init method. For example, <code>x := y := 1</code> would set <code>this.x</code> and a local variable <code>y</code> (which would be freed once all initializers have been evaluated).</p>
 <p>To access an instance variable (even within a method), always specify the target object; for example, <code><b>this</b>.InstanceVar</code>.</p>
 <p>Declarations like <code>x.y := z</code> are also supported, provided that <code>x</code> was previously declared in this class. For example, <code>x := {}, x.y := 42</code> declares <code>x</code> and also initializes <code>this.x.y</code>.</p>
 
@@ -296,12 +286,12 @@ other.test()</pre>
 <p>Static/class variables belong to the class itself, but their values can be inherited by subclasses. They are declared like instance variables, but using the static keyword:</p>
 <pre>static ClassVar := Expression</pre>
 <p>These declarations are evaluated only once, when the class is initialized. In the current release, classes are initialized in the order that they appear in the script, before <a href="Scripts.htm#auto">startup execution</a> begins at the top of the script. A static method named <em>__Init</em> is automatically defined for this purpose.</p>
-<p>Each declaration stores a value in the class object. Any variable references in <i>Expression</i> are assumed to be global.</p>
+<p>Each declaration stores a value in the class object. <em>Expression</em> has the same interpretation as for instance variables, except that <code>this</code> refers to the class itself.</p>
 <p>To assign to a class variable, always specify the class object; for example, <code><b>ClassName</b>.ClassVar := Value</code>. If a subclass does not own a property by that name, <code><i>Subclass</i>.ClassVar</code> can also be used to retrieve the value; so if the value is a reference to an object, subclasses will share that object by default. However, <code><i>Subclass</i>.ClassVar := y</code> would store the value in <em>Subclass</em>, not in <em>ClassName</em>.</p>
 <p>Declarations like <code>static x.y := z</code> are also supported, provided that <code>x</code> was previously declared in this class. For example, <code>static x := {}, x.y := 42</code> declares <code>x</code> and also initializes <code><i>ClassName</i>.x.y</code>.</p>
 
 <h4 id="Custom_Classes_class">Nested Classes</h4>
-<p>Nested class definitions allow a class object to be associated with a static/class variable of the outer class instead of a separate global variable. In the example above, <code>class NestedClass</code> constructs a <a href="objects/Class.htm">Class</a> object and stores it in <code>ClassName.NestedClass</code>. Subclasses could inherit <em>NestedClass</em> or override it with their own nested class (in which case <code><i>WhichClass</i>.NestedClass.new()</code> could be used to instantiate whichever class is appropriate).</p>
+<p>Nested class definitions allow a class object to be associated with a static/class variable of the outer class instead of a separate global variable. In the example above, <code>class NestedClass</code> constructs a <a href="objects/Class.htm">Class</a> object and stores it in <code>ClassName.NestedClass</code>. Subclasses could inherit <em>NestedClass</em> or override it with their own nested class (in which case <code>(<i>WhichClass</i>.NestedClass)()</code> could be used to instantiate whichever class is appropriate).</p>
 <pre>
 class NestedClass
 {
@@ -309,6 +299,7 @@ class NestedClass
 }
 </pre>
 <p>Nesting a class does not imply any particular relationship to the outer class. The nested class is not instantiated automatically, nor do instances of the nested class have any connection with an instance of the outer class, unless the script explicitly makes that connection.</p>
+<p>However, due to the way methods work for <a href="objects/Object.htm">Objects</a>, <code><i>WhichClass</i>.NestedClass()</code> implicitly passes <em>WhichClass</em> as the first parameter, equivalent to <code><i>WhichClass</i>.NestedClass.Call(<i>WhichClass</i>)</code>. Unless <code>static Call()</code> is overridden, this parameter is automatically passed to <a href="#Custom_NewDelete">__New</a>.</p>
 
 <h4 id="Custom_Classes_method">Methods</h4>
 <p>Method definitions look identical to function definitions. Each method has a hidden parameter named <code>this</code>, which contains a reference to the object on which the method was called. There are two types of methods:</p>
@@ -325,16 +316,16 @@ Method()
 
 <p><a href="Variables.htm#fat-arrow">Fat arrow syntax</a> can be used to define a single-line method which returns an expression:</p>
 <pre>Method() =&gt; <i>Expression</i></pre>
-<p>See also: <a href="objects/Object.htm#DefineMethod">DefineMethod</a></p>
 
 <h4 id="Custom_Classes_super">Super</h4>
 <p>Inside a method or a property getter/setter, the keyword <code>super</code> can be used in place of <code>this</code> to access the superclass versions of methods or properties which are overridden in a derived class. For example, <code>super.Method()</code> in the class defined above would typically call the version of <em>Method</em> which was defined within <em>BaseClassName</em>. Note:</p>
 <ul>
   <li><code>super.Method()</code> always invokes the base of the class or prototype object associated with the current method's original definition, even if <code>this</code> is derived from a <em>subclass</em> of that class or some other class entirely.</li>
   <li><code>super.Method()</code> implicitly passes <code>this</code> as the first (hidden) parameter.</li>
-  <li>Since it is not known where (or whether) <em>ClassName</em> exists within the chain of base objects, <em>ClassName</em> itself is used as the starting point. Therefore, <code>super.Method()</code> is mostly equivalent to <code><i>ClassName</i>.Prototype.base.GetMethod("Method").Call(this)</code> (but without <em>Prototype</em> when <em>Method</em> is static). However, <code><i>ClassName</i>.Prototype</code> is resolved at load time.</li>
+  <li>Since it is not known where (or whether) <em>ClassName</em> exists within the chain of base objects, <em>ClassName</em> itself is used as the starting point. Therefore, <code>super.Method()</code> is mostly equivalent to <code>(<i>ClassName</i>.Prototype.base.Method)(this)</code> (but without <em>Prototype</em> when <em>Method</em> is static). However, <code><i>ClassName</i>.Prototype</code> is resolved at load time.</li>
 </ul>
-<p>The keyword <code>super</code> must be followed by a dot <code>.</code> or brackets <code>[]</code>.</p>
+<p>The keyword <code>super</code> must be followed by one of the following symbols: <code>.[(</code></p>
+<p><code>super()</code> is equivalent to <code>super.call()</code>.</p>
 
 <h4 id="Custom_Classes_property">Properties</h4>
 <p>A property definition creates a <a href="objects/Object.htm#DefineProp">dynamic property</a>, which calls a method instead of simply storing or returning a value.</p>
@@ -400,8 +391,8 @@ MsgBox obj["base"]                  <em>; 10</em>
 <p class="note"><strong>Note:</strong> When an explicit property name is combined with empty brackets, as in <code>obj.prop[]</code>, it is handled as two separate operations: first retrieve <code>obj.prop</code>, then invoke the default property of the result. This is part of the language syntax, so is not dependent on the object.</p>
 
 <h3 id="Custom_NewDelete">Construction and Destruction</h3>
-<p>Whenever an object is created by the default implementation of <a href="objects/Class.htm#New"><em>ClassName</em>.new()</a>, the new object's <code>__New</code> method is called in order to allow custom initialization. Any parameters passed to <code>new</code> are forwarded to <code>__New</code>, so can affect the object's initial content or how it is constructed. When an object is destroyed, <code>__Delete</code> is called. For example:</p>
-<pre>m1 := GMem.new(0, 10)
+<p>Whenever an object is created by the default implementation of <a href="objects/Class.htm#Call"><em>ClassName</em>()</a>, the new object's <code>__New</code> method is called in order to allow custom initialization. Any parameters passed to <code><i>ClassName</i>()</code> are forwarded to <code>__New</code>, so can affect the object's initial content or how it is constructed. When an object is destroyed, <code>__Delete</code> is called. For example:</p>
+<pre>m1 := GMem(0, 10)
 m2 := {base: GMem.Prototype}, m2.__New(0, 30)
 
 <em>; Note: For general memory allocations, use <a href="commands/BufferAlloc.htm">BufferAlloc</a>() instead.</em>
@@ -450,11 +441,11 @@ class <i>ClassName</i> {
   <li><i>Get</i>: Throw a <a href="objects/Error.htm#PropertyError">PropertyError</a>.</li>
   <li><i>Set</i>: Define a new property with the given value, such as by calling <a href="objects/Object.htm#DefineProp">DefineProp</a>. </li>
 </ul>
-<p>Any <a href="objects/Functor.htm">callable object</a> can be used as a meta-function by passing it to <a href="objects/Object.htm#DefineMethod">DefineMethod</a>.</p>
+<p>Any <a href="objects/Functor.htm">callable object</a> can be used as a meta-function by assigning it to the relevant property.</p>
 <p>Meta-functions are not called in the following cases:</p>
 <ul>
   <li><code>x[y]</code>: Using square brackets without a property name only invokes the <a href="#__Item">__Item</a> property.</li>
-  <li><code>%x%()</code>: Calling the object itself only invokes the <code>Call</code> method. This includes internal calls made by built-in functions such as <a href="commands/SetTimer.htm">SetTimer</a> and <a href="commands/Hotkey.htm">Hotkey</a>.</li>
+  <li><code>x()</code>: Calling the object itself only invokes the <code>Call</code> method. This includes internal calls made by built-in functions such as <a href="commands/SetTimer.htm">SetTimer</a> and <a href="commands/Hotkey.htm">Hotkey</a>.</li>
   <li>Internal calls to other meta-functions or double-underscore methods do not trigger <code>__Call</code>.</li>
 </ul>
 
@@ -478,10 +469,10 @@ class <i>ClassName</i> {
 <p>Note that <code>x is Any</code> would ordinarily be true for any value within AutoHotkey's type hierarchy, but false for COM objects.</p>
 
 <h3 id="primitive-extension">Adding Properties and Methods</h3>
-<p>Properties and methods can be added for all values of a given type by modifying that type's prototype object. However, since a primitive value is not an Object and cannot have its own properties or methods, the primitive prototype objects do not derive from <code>Object.Prototype</code>. In other words, methods such as <a href="objects/Object.htm#DefineProp">DefineProp</a> and <a href="objects/Object.htm#DefineMethod">DefineMethod</a> are not accessible by default. They can be called indirectly. For example:</p>
+<p>Properties and methods can be added for all values of a given type by modifying that type's prototype object. However, since a primitive value is not an Object and cannot have its own properties or methods, the primitive prototype objects do not derive from <code>Object.Prototype</code>. In other words, methods such as <a href="objects/Object.htm#DefineProp">DefineProp</a> and <a href="objects/Object.htm#HasOwnProp">HasOwnProp</a> are not accessible by default. They can be called indirectly. For example:</p>
 <pre>
-DefProp := {}.GetMethod("DefineProp")
-%DefProp%( "".base, "Length", { get: Func("StrLen") } )
+DefProp := {}.DefineProp
+DefProp( "".base, "Length", { get: StrLen } )
 MsgBox A_AhkPath.length " == " StrLen(A_AhkPath)
 </pre>
 <p>Although primitive values can inherit value properties from their prototype, an exception is thrown if the script attempts to set a value property on a primitive value. For example:</p>
@@ -494,7 +485,7 @@ MsgBox "".test  <em>; 1</em>
 <span id="Refs"></span><h3 id="Reference_Counting">Reference-Counting</h3>
 <p>AutoHotkey uses a basic reference-counting mechanism to automatically free the resources used by an object when it is no longer referenced by the script.  Script authors should not invoke this mechanism explicitly, except when dealing directly with unmanaged <a href="#ObjPtr">pointers to objects</a>.</p>
 <p>Temporary references returned by functions, methods or operators within an expression are released after evaluation of that expression has completed or been aborted. In the following example, the new <a href="#GMem">GMem</a> object is freed only after MsgBox has returned:</p>
-<pre>MsgBox <a href="commands/DllCall.htm">DllCall</a>("GlobalSize", "ptr", GMem.new(0, 20).ptr, "ptr")  <em>; 20</em></pre>
+<pre>MsgBox <a href="commands/DllCall.htm">DllCall</a>("GlobalSize", "ptr", GMem(0, 20).ptr, "ptr")  <em>; 20</em></pre>
 <p class="note"><strong>Note:</strong> In this example, <code>.ptr</code> could have been omitted since the <a href="commands/DllCall.htm#ptr">Ptr</a> arg type permits objects with a <code>Ptr</code> property. However, the pattern shown above will work even with other property names.</p>
 <p>To run code when the last reference to an object is being released, implement the <a href="#Custom_NewDelete">__Delete</a> meta-function.</p>
 <p><b>Known Limitations:</b></p>

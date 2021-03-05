@@ -29,6 +29,7 @@
     <li><a href="#uninitialized-variables">Uninitialized Variables</a></li>
     <li><a href="#built-in-variables">Built-in Variables</a></li>
     <li><a href="#environment-variables">Environment Variables</a></li>
+    <li><a href="#variable-references">Variable References (VarRef)</a></li>
     <li><a href="#caching">Caching</a></li>
   </ul></li>
   <li><a href="#functions">Functions</a>
@@ -41,7 +42,6 @@
     <li><a href="#string-encoding">String Encoding</a></li>
     <li><a href="#pure-numbers">Pure Numbers</a></li>
     <li><a href="#names">Names</a></li>
-    <li><a href="#variable-references">Variable References vs Values</a></li>
     <li><a href="#references-to-objects">References to Objects</a></li>
   </ul></li>
 </ul>
@@ -145,7 +145,7 @@ myObj[arg1, arg2, ..., argN] := value
 
 <h2 id="variables">Variables</h2>
 <p>A variable allows you to use a name as a placeholder for a value. Which value that is could change repeatedly during the time your script is running. For example, a hotkey could use a variable <code>press_count</code> to count the number of times it is pressed, and send a different key whenever <code>press_count</code> is a multiple of 3 (every third press). Even a variable which is only assigned a value once can be useful. For example, a <code>WebBrowserTitle</code> variable could be used to make your code easier to update when and if you were to change your preferred web browser, or if the <a href="misc/WinTitle.htm">title</a> or <a href="misc/WinTitle.htm#ahk_class">window class</a> changes due to a software update.</p>
-<p>In AutoHotkey, variables are created simply by using them. Each variable is <em>not</em> permanently restricted to a single <a href="#values">data type</a>, but can instead hold a value of any type: string, number or object. Each variable starts off empty/blank; in other words, each newly created variable contains an empty string until it is assigned some other value.</p>
+<p>In AutoHotkey, variables are created simply by using them. Each variable is <em>not</em> permanently restricted to a single <a href="#values">data type</a>, but can instead hold a value of any type: string, number or object. Attempting to read a variable which has not been assigned a value is considered an error, so it is important to <a href="#uninitialized-variables">initialize variables</a>.</p>
 <p>A variable has three main aspects:</p>
 <ul>
   <li>The variable's <em>name</em>.</li>
@@ -153,15 +153,13 @@ myObj[arg1, arg2, ..., argN] := value
   <li>The variable's <em>value</em>.</li>
 </ul>
 <p>Certain restrictions apply to variable names - see <a href="#names">Names</a> for details. In short, it is safest to stick to names consisting of ASCII letters (which are case insensitive), digits and underscore, and to avoid using names that start with a digit.</p>
-<p id="scope">A variable name has <strong><em>scope</em></strong>, which defines where in the code that name can be used to refer to that particular variable; in other words, where the variable is <em>visible</em>. If a variable is not visible within a given scope, the same name can refer to a different variable. Both variables might exist at the same time, but only one is visible to each part of the script. <a href="Functions.htm#Global">Global variables</a> are visible in the "global scope" (that is, outside of functions), but must usually be <a href="Functions.htm#Global">declared</a> to make them visible inside a function. <a href="Functions.htm#Local">Local variables</a> are visible only inside the function which created them.</p>
+<p id="scope">A variable name has <strong><em>scope</em></strong>, which defines where in the code that name can be used to refer to that particular variable; in other words, where the variable is <em>visible</em>. If a variable is not visible within a given scope, the same name can refer to a different variable. Both variables might exist at the same time, but only one is visible to each part of the script. <a href="Functions.htm#Global">Global variables</a> are visible in the "global scope" (that is, outside of functions), and can be read by functions by default, but must be <a href="Functions.htm#Global">declared</a> if they are to be assigned a value inside a function. <a href="Functions.htm#Local">Local variables</a> are visible only inside the function which created them.</p>
 <p>A variable can be thought of as a container or storage location for a value, so you'll often find the documentation refers to a variable's value as <em>the contents of the variable</em>. For a variable <code>x := 42</code>, we can also say that the variable x has the number 42 as its value, or that the value of x is 42.</p>
 <p>It is important to note that a variable and its value are not the same thing. For instance, we might say "<code>myArray</code> is an array", but what we really mean is that myArray is a variable containing a reference to an array. We're taking a shortcut by using the name of the variable to refer to its value, but "myArray" is really just the name of the variable; the array object doesn't know that it has a name, and could be referred to by many different variables (and therefore many names).</p>
 
 <h3 id="uninitialized-variables"><span id="uninitialised-variables"></span>Uninitialized Variables</h3>
-<p>To <em>initialize</em> a variable is to assign it a starting value. Although the program automatically provides a default value (empty string) for all variables, it is generally considered good practice for the script to always explicitly assign a value to each variable before using it. This helps the author to detect errors such as mispelled names and forgotten assignments, and may help anyone reading the script to see what variables it uses and how.</p>
-<p>By default, a warning is displayed whenever a variable is accessed without having first been assigned a value. Currently this can be disabled with the <a href="commands/_Warn.htm">#Warn UseUnset</a> directive, but a future update will replace this warning with an error.</p>
-<p>It is usually necessary for the script to initialize any variable which is expected to hold a number. For example, <code>x := x + 1</code> will not work if x has never been assigned a value, since the <em>empty string</em> is considered to be non-numeric. The script should have assigned a starting value, such as <code>x := 0</code>. There are some cases where empty values are assumed to be 0 (such as for parameters of some built-in functions), but it is best not to rely on this as the detection of these errors will be improved in a future release.</p>
-<p><a href="commands/IsSet.htm">IsSet</a> can be used to determine whether a variable has been initialized.</p>
+<p>To <em>initialize</em> a variable is to assign it a starting value. A variable which has not yet been assigned a value is <em>uninitialized</em>. Attempting to read an uninitialized variable is considered an error. This helps to detect errors such as mispelled names and forgotten assignments.</p>
+<p><a href="commands/IsSet.htm">IsSet</a> can be used to determine whether a variable has been initialized, such as to initialize a global or static variable on first use.</p>
 
 <h3 id="built-in-variables">Built-in Variables</h3>
 <p>A number of useful variables are built into the program and can be referenced by any script. Except where noted, these variables are read-only; that is, their contents cannot be directly altered by the script. By convention, most of these variables start with the prefix <code>A_</code>, so it is best to avoid using this prefix for your own variables.</p>
@@ -174,6 +172,14 @@ myObj[arg1, arg2, ..., argN] := value
 <p>A script may create a new environment variable or change the contents of an existing one with <a href="commands/EnvSet.htm">EnvSet</a>. Such additions and changes are not seen by the rest of the system. However, any programs or scripts which the script launches by calling <a href="commands/Run.htm">Run</a> or <a href="commands/Run.htm">RunWait</a> usually inherit a copy of the parent script's environment variables.</p>
 <p>To retrieve an environment variable, use <a href="commands/EnvGet.htm">EnvGet</a>. For example:</p>
 <pre>Path := EnvGet("PATH")</pre>
+
+<h3 id="variable-references">Variable References (VarRef)</h3>
+<p>Within an expression, each variable reference is automatically resolved to its contents, unless it is the target of an <a href="Variables.htm#AssignOp">assignment</a> or the <a href="Variables.htm#ref">reference operator (&amp;)</a>. In other words, calling <code>myFunction(myVar)</code> would pass the value of <em>myVar</em> to <em>myFunction</em>, not the variable itself. The function would then have its own local variable (the parameter) with the same value as <em>myVar</em>, but would not be able to assign a new value to <em>myVar</em>. In short, the parameter is passed <em>by value</em>.</p>
+<p>The <a href="Variables.htm#ref">reference operator (&amp;)</a> allows a variable to be handled like a value. <code>&amp;myVar</code> produces a VarRef, which can be used like any other value: assigned to another variable or property, inserted into an array, passed to or returned from a function, etc. A VarRef can be used to assign to the original target variable or retrieve its value by <a href="Variables.htm#deref">dereferencing</a> it.</p>
+<p>For convenience, a function parameter can be declared <a href="Functions.htm#ByRef">ByRef</a> by prefixing the parameter name with ampersand (&amp;). This requires the caller to pass a VarRef, and allows the function itself to "dereference" the VarRef by just referring to the parameter (without percent signs).</p>
+<pre>class VarRef extends Any</pre>
+<p>The VarRef class currently has no predefined methods or properties, but <code>value is VarRef</code> can be used to test if a value is a VarRef.</p>
+<p>When a VarRef is used as a parameter of a COM method, the object itself is not passed. Instead, its value is copied into a temporary VARIANT, which is passed using the <a href="commands/ComObjType.htm#vt">variant type</a> <code>VT_BYREF|VT_VARIANT</code>. When the method returns, the new value is assigned to the VarRef.</p>
 
 <h3 id="caching">Caching</h3>
 <p>Although a variable is typically thought of as holding a single value, and that value having a distinct type (string, number or object), AutoHotkey automatically converts between numbers and strings in cases like <code>"Value is " myNumber</code> and <code>MsgBox myNumber</code>. As these conversions can happen very frequently, whenever a variable containing a number is converted to a string, the result is <em>cached</em> in the variable.</p>
@@ -323,12 +329,6 @@ MsgBox 0.1 + 0.2 = 0.3   <em>; 0 (not equal)</em>
 <p id="reserved-words"><strong>Reserved words:</strong> <code>and</code>, <code>contains</code>, <code>in</code>, <code>is</code>, <code>not</code>, <code>or</code>, <code>true</code>, <code>false</code>, <code>super</code>. These words are reserved as they have other uses in expressions.</p>
 <p>Declaration keywords and names of control flow statements are also reserved, primarily to detect mistakes. This includes: <code>Break</code>, <code>Catch</code>, <code>Continue</code>, <code>Else</code>, <code>Finally</code>, <code>For</code>, <code>Global</code>, <code>Goto</code>, <code>If</code>, <code>Local</code>, <code>Loop</code>, <code>Return</code>, <code>Static</code>, <code>Throw</code>, <code>Try</code>, <code>Until</code>, <code>While</code></p>
 <p>Names of properties, methods and window groups are permitted to be reserved words.</p>
-
-<h3 id="variable-references">Variable References vs Values</h3>
-<p>Variables have certain attributes that blur the line between a variable and its value, but it is important to make the distinction. In particular, consider <a href="#objects">objects</a> and ByRef parameters.</p>
-<p>Although we may say the variable <code>myArray</code> <em>contains</em> an array (which is a type of object), what the variable contains isn't the array itself but rather a <em>reference or pointer</em> to the array. Any number of variables can contain a reference to the same object. It may be helpful to think of a variable as just a name in that case. For instance, giving a person a nickname doesn't cause a clone of that person to come into existence.</p>
-<p>By default, variables are passed to user-defined functions <em>by value</em>. In other words, the value contained by the variable is copied into the variable which corresponds to the function's parameter. <strong>ByRef</strong> parameters allow you to pass a variable <em>by reference</em>, or in other words, to make one parameter of the function an <em>alias</em> for your variable, allowing the function to assign a new value to your variable.</p>
-<p>Because a variable only ever contains a <em>reference</em> to an object and not the object itself, when you pass such a variable to a non-ByRef parameter, what the function receives is a reference to the same object. This allows the function to modify the object, but it does not allow the function to modify the <em>variable</em> which the function's caller used, because the function only has a reference to the object, not the variable.</p>
 
 <h3 id="references-to-objects">References to Objects</h3>
 <p>Scripts interact with an object only indirectly, through a <em>reference</em> to the object. When you create an object, the object is created at some location you don't control, and you're given a reference. Passing this reference to a function or storing it in a variable or another object creates a new reference to the <em>same</em> object.</p>

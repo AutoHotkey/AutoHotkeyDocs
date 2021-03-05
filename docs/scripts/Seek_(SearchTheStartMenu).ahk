@@ -135,7 +135,7 @@ if (A_Args.Length && A_Args[1] = "-scex")
 }
 
 ; Create the GUI window:
-G := Gui.New(, g_ScriptTitle)
+G := Gui(, g_ScriptTitle)
 
 ; Add the text box for user to enter the query string:
 G.Add("Edit", "W600 vE_Search").OnEvent("Change", "FindMatches")

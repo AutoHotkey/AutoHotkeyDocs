@@ -28,6 +28,11 @@
   <li><a href="../commands/OnMessage.htm">OnMessage</a></li>
   <li><a href="../commands/SetTimer.htm">SetTimer</a></li>
 </ul>
+<p id="HasCall">To determine whether an object appears to be callable, use one of the following:</p>
+<ul>
+  <li><code>Value.HasMethod("Call")</code> works with all AutoHotkey values and objects by default, but allows HasMethod to be overridden for some objects or classes. For COM objects, this will typically fail (throw an exception or produce the wrong result) unless the COM object is actually an AutoHotkey object from another process.</li>
+  <li><code>HasMethod(Value, "Call")</code> works with all AutoHotkey values and objects and cannot be overridden, but will return false if the presence of a <em>Call</em> method cannot be determined (e.g. because <em>Value</em> is a COM object).</li>
+</ul>
 
 <h2 id="User-Defined">User-Defined</h2>
 <!-- TODO: Explain how a user-defined object could be useful -->
@@ -45,21 +50,22 @@
 <pre>class FuncArrayType extends Array {
     Call(params*) {
         <em>; Call a list of functions.</em>
-        Loop this.Length
-            %this[A_Index]%(params*)
+        for fn in this
+            fn(params*)
     }
 }
 
 <em>; Create an array of functions.</em>
-funcArray := FuncArrayType.new()
+funcArray := FuncArrayType()
 <em>; Add some functions to the array (can be done at any point).</em>
-funcArray.Push(Func("One"))
-funcArray.Push(Func("Two"))
+funcArray.Push(One)
+funcArray.Push(Two)
 <em>; Create an object which uses the array as a method.</em>
-obj := {}
-obj.DefineMethod("method", funcArray)
-<em>; Call the method.</em>
-%obj.method%("foo", "bar")
+obj := {method: funcArray}
+<em>; Call the method (and consequently both One and Two).</em>
+obj.method("2nd")
+<em>; Call it as a function.</em>
+(obj.method)("1st", "2nd")
 
 One(param1, param2) {
     ListVars
@@ -78,11 +84,11 @@ Two(param1, param2) {
   <li>By calling the <a href="../commands/ObjBindMethod.htm">ObjBindMethod</a> function, which binds parameter values and a method name to a target object.</li>
 </ul>
 <p>BoundFunc objects can be called as shown in the example below. When the BoundFunc is called, it calls the function or method to which it is bound, passing a combination of bound parameters and the caller's parameters. Unbound parameter positions are assigned positions from the caller's parameter list, left to right. For example:</p>
-<pre>fn := Func("RealFn").Bind(1)  <em>; Bind first parameter only</em>
+<pre>fn := RealFn.Bind(1)  <em>; Bind first parameter only</em>
 %fn%(2)    <em>; Shows "1, 2"</em>
 fn.Call(3) <em>; Shows "1, 3"</em>
 
-fn := Func("RealFn").Bind( , 1)  <em>; Bind second parameter only</em>
+fn := RealFn.Bind( , 1)  <em>; Bind second parameter only</em>
 %fn%(2)    <em>; Shows "2, 1"</em>
 fn.Call(3) <em>; Shows "3, 1"</em>
 %fn%(, 4)  <em>; Error: 'a' was omitted</em>

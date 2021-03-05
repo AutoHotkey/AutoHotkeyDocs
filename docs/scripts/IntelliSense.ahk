@@ -164,7 +164,7 @@ Loop
 ; Input() is a rough reproduction of the Input command.
 Input(Options:="", EndKeys:="", MatchList:="") {
     static ih
-    if IsSet(ih) && ih.InProgress
+    if IsSet(&amp;ih) && ih.InProgress
         ih.Stop()
     ih := InputHook(Options, EndKeys, MatchList)
     ih.Start()
