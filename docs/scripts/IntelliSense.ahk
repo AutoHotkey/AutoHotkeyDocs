@@ -36,7 +36,7 @@ global g_Cmds := []
 global g_FullCmds := []
 
 if g_HelpHotkey != ""
-    Hotkey g_HelpHotkey, "g_HelpHotkey"
+    Hotkey g_HelpHotkey, HelpHotkey
 
 ; Change tray icon (if one was specified in the configuration section above):
 if g_Icon != ""
@@ -137,8 +137,7 @@ Loop
     Index := ""
     for Cmd in g_Cmds
     {
-        ; The value put into g_ThisCmd is also used by the
-        ; g_HelpHotkey function:
+        ; The value put into g_ThisCmd is also used by the HelpHotkey function:
         g_ThisCmd := Cmd
         if (Word = g_ThisCmd)
         {
@@ -154,7 +153,7 @@ Loop
     
     ; Show matched command to guide the user:
     ThisFullCmd := g_FullCmds[Index]
-    CaretGetPos CaretX, CaretY
+    CaretGetPos &CaretX, &CaretY
     ToolTip ThisFullCmd, CaretX, CaretY + 20
 }
 
@@ -164,7 +163,7 @@ Loop
 ; Input() is a rough reproduction of the Input command.
 Input(Options:="", EndKeys:="", MatchList:="") {
     static ih
-    if IsSet(&amp;ih) && ih.InProgress
+    if IsSet(&ih) && ih.InProgress
         ih.Stop()
     ih := InputHook(Options, EndKeys, MatchList)
     ih.Start()
@@ -174,8 +173,10 @@ Input(Options:="", EndKeys:="", MatchList:="") {
 
 
 
-g_HelpHotkey(*)
+HelpHotkey(*)
 {
+    global g_ThisCmd  ; Declared because this function modifies it.
+    
     if !WinActive(g_Editor)
         return
 

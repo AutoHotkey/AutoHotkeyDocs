@@ -525,7 +525,7 @@ MyGui.Move(x-10,, w+20)</pre>
 <h2 id="Appear">Window Appearance</h2>
 <p>For its icon, a GUI window uses the tray icon that was in effect at the time the window was created. Thus, to have a different icon, change the tray icon before creating the window. For example: <code><a href="../commands/TraySetIcon.htm">TraySetIcon</a>("MyIcon.ico")</code>. It is also possible to have a different large icon for a window than its small icon (the large icon is displayed in the alt-tab task switcher). This can be done via <a href="../commands/LoadPicture.htm">LoadPicture</a> and <a href="../commands/SendMessage.htm">SendMessage</a>; for example:</p>
 <pre>iconsize := 32  <em>; Ideal size for alt-tab varies between systems and OS versions.</em>
-hIcon := LoadPicture("My Icon.ico", "Icon1 w" iconsize " h" iconsize, imgtype)
+hIcon := LoadPicture("My Icon.ico", "Icon1 w" iconsize " h" iconsize, &amp;imgtype)
 MyGui := Gui()
 SendMessage(0x0080, 1, hIcon, MyGui)  <em>; 0x0080 is WM_SETICON; and 1 means ICON_BIG (vs. 0 for ICON_SMALL).</em>
 MyGui.Show()</pre>
@@ -560,7 +560,7 @@ MyGui.Add("Text",, "Last name:")
 MyGui.Add("Edit", "vFirstName ym")  <em>; The ym option starts a new column of controls.</em>
 MyGui.Add("Edit", "vLastName")
 MyGui.Add("Button", "default", "OK").OnEvent("Click", (*) =&gt; ProcessUserInput(MyGui))
-MyGui.OnEvent("Close", "ProcessUserInput")
+MyGui.OnEvent("Close", ProcessUserInput)
 MyGui.Show()
 
 ProcessUserInput(thisGui, *)
@@ -583,8 +583,8 @@ MyGui.Add("Edit", "vMyEdit r5")  <em>; r5 means 5 rows tall.</em>
 Tab.UseTab()  <em>; i.e. subsequently-added controls will not belong to the tab control.</em>
 Btn := MyGui.Add("Button", "default xm", "OK")  <em>; xm puts it at the bottom left corner.</em>
 Btn.OnEvent("Click", (*) =&gt; ProcessUserInput(MyGui))
-MyGui.OnEvent("Close", "ProcessUserInput")
-MyGui.OnEvent("Escape", "ProcessUserInput")
+MyGui.OnEvent("Close", ProcessUserInput)
+MyGui.OnEvent("Escape", ProcessUserInput)
 MyGui.Show()
 
 ProcessUserInput(thisGui, *)
@@ -599,10 +599,10 @@ ProcessUserInput(thisGui, *)
 <pre>MyGui := Gui()
 MyGui.Add("Text",, "Pick a file to launch from the list below.")
 LB := MyGui.Add("ListBox", "w640 r10 vFile")
-LB.OnEvent("DoubleClick", "LaunchFile")
+LB.OnEvent("DoubleClick", LaunchFile)
 Loop Files, "C:\*.*"  <em>; Change this folder and wildcard pattern to suit your preferences.</em>
     LB.Add([A_LoopFilePath])
-MyGui.Add("Button", "Default", "OK").OnEvent("Click", "LaunchFile")
+MyGui.Add("Button", "Default", "OK").OnEvent("Click", LaunchFile)
 MyGui.Show()
 
 LaunchFile(thisCtrl, *)
@@ -629,9 +629,9 @@ MyDDL.ToolTip := "Choose a color from the drop-down list."
 MyGui.Add("Checkbox",, "This control has no tooltip.")
 MyGui.OnEvent("Close", (*) =&gt; ExitApp())
 MyGui.Show()
-OnMessage(0x0200, "WM_MOUSEMOVE")
+OnMessage(0x0200, On_WM_MOUSEMOVE)
 
-WM_MOUSEMOVE(wParam, lParam, msg, Hwnd)
+On_WM_MOUSEMOVE(wParam, lParam, msg, Hwnd)
 {
     static PrevHwnd := 0
     if (Hwnd != PrevHwnd)
@@ -666,7 +666,7 @@ MyGui.Show("x0 y400 NoActivate")  <em>; NoActivate avoids deactivating the curre
 
 UpdateOSD(GuiCtrl)
 {
-    MouseGetPos(MouseX, MouseY)
+    MouseGetPos &amp;MouseX, &amp;MouseY
     GuiCtrl.Value := "X" MouseX ", Y" MouseY
 }</pre>
 </div>
@@ -677,7 +677,7 @@ UpdateOSD(GuiCtrl)
 MyGui.BackColor := "White"
 MyGui.Add("Picture", "x0 y0 h350 w450", A_WinDir "\Web\Wallpaper\Windows\img0.jpg")
 MyBtn := MyGui.Add("Button", "Default xp+20 yp+250", "Start the Bar Moving")
-MyBtn.OnEvent("Click", "MoveBar")
+MyBtn.OnEvent("Click", MoveBar)
 MyGui.Add("Progress", "w416 vMyProgress")
 MyGui.Add("Text", "wp vMyText")  <em>; wp means "use width of previous".</em>
 MyGui.Show()
@@ -702,7 +702,7 @@ MoveBar(thisCtrl, *)
 <p><a class="ex_number" href="#ExImageViewer"></a> Creates a simple image viewer.</p>
 <pre>MyGui := Gui("+Resize")
 MyBtn := MyGui.Add("Button", "default", "&amp;Load New Image")
-MyBtn.OnEvent("Click", "LoadNewImage")
+MyBtn.OnEvent("Click", LoadNewImage)
 MyGui.Add("Radio", "ym+5 x+10 checked vMyRadio", "Load &amp;actual size")
 MyGui.Add("Radio", "ym+5 x+10", "Load to &amp;fit screen")
 MyGui.Add("Pic", "xm vMyPic")
@@ -733,22 +733,20 @@ LoadNewImage(thisCtrl, *)
 
 <div class="ex" id="ExEditor">
 <p><a class="ex_number" href="#ExEditor"></a> Creates a simple text editor with menu bar.</p>
-<pre><em>; Make these variables accessible for all the functions below:</em>
-global MyGui, FileMenu, MainEdit, CurrentFileName, About
-
+<pre>
 <em>; Create the MyGui window:</em>
 MyGui := Gui("+Resize", "Untitled")  <em>; Make the window resizable.</em>
 
 <em>; Create the submenus for the menu bar:</em>
 FileMenu := Menu()
-FileMenu.Add("&amp;New", "MenuFileNew")
-FileMenu.Add("&amp;Open", "MenuFileOpen")
-FileMenu.Add("&amp;Save", "MenuFileSave")
-FileMenu.Add("Save &amp;As", "MenuFileSaveAs")
+FileMenu.Add("&amp;New", MenuFileNew)
+FileMenu.Add("&amp;Open", MenuFileOpen)
+FileMenu.Add("&amp;Save", MenuFileSave)
+FileMenu.Add("Save &amp;As", MenuFileSaveAs)
 FileMenu.Add() <em>; Separator line.</em>
-FileMenu.Add("E&amp;xit", "MenuFileExit")
+FileMenu.Add("E&amp;xit", MenuFileExit)
 HelpMenu := Menu()
-HelpMenu.Add("&amp;About", "MenuHelpAbout")
+HelpMenu.Add("&amp;About", MenuHelpAbout)
 
 <em>; Create the menu bar by attaching the submenus to it:</em>
 MyMenuBar := MenuBar()
@@ -762,8 +760,8 @@ MyGui.MenuBar := MyMenuBar
 MainEdit := MyGui.Add("Edit", "WantTab W600 R20")
 
 <em>; Apply events:</em>
-MyGui.OnEvent("DropFiles", "Gui_DropFiles")
-MyGui.OnEvent("Size", "Gui_Size")
+MyGui.OnEvent("DropFiles", Gui_DropFiles)
+MyGui.OnEvent("Size", Gui_Size)
 
 MenuFileNew()  <em>; Apply default settings.</em>
 MyGui.Show()  <em>; Display the window.</em>
@@ -781,7 +779,7 @@ MenuFileOpen(*)
     SelectedFileName := FileSelect(3,, "Open File", "Text Documents (*.txt)")
     if SelectedFileName = "" <em>; No file selected.</em>
         return
-    CurrentFileName := readContent(SelectedFileName)
+    global CurrentFileName := readContent(SelectedFileName)
 }
 
 MenuFileSave(*)
@@ -795,7 +793,7 @@ MenuFileSaveAs(*)
     SelectedFileName := FileSelect("S16",, "Save File", "Text Documents (*.txt)")
     if SelectedFileName = "" <em>; No file selected.</em>
         return
-    CurrentFileName := saveContent(SelectedFileName)
+    global CurrentFileName := saveContent(SelectedFileName)
 }
 
 MenuFileExit(*)  <em>; User chose "Exit" from the File menu.</em>
@@ -805,12 +803,13 @@ MenuFileExit(*)  <em>; User chose "Exit" from the File menu.</em>
 
 MenuHelpAbout(*)
 {
+    global About
     About := Gui("+owner" MyGui.Hwnd)  <em>; Make the main window the owner of the "about box".</em>
     MyGui.Opt("+Disabled")  <em>; Disable main window.</em>
     About.Add("Text",, "Text for about box.")
-    About.Add("Button", "Default", "OK").OnEvent("Click", "About_Close")
-    About.OnEvent("Close", "About_Close")
-    About.OnEvent("Escape", "About_Close")
+    About.Add("Button", "Default", "OK").OnEvent("Click", About_Close)
+    About.OnEvent("Close", About_Close)
+    About.OnEvent("Escape", About_Close)
     About.Show()
 }
 

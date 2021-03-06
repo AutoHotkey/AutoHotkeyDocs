@@ -119,23 +119,23 @@ NotepadII()
     For i, item in MenuItem
         ToolTipMenu .= "`n" item
 
-    MouseGetPos mX, mY
-    HotKey "~LButton", "MenuClick"
-    HotKey "~LButton", "On"
+    MouseGetPos &mX, &mY
+    Hotkey "~LButton", MenuClick
+    Hotkey "~LButton", "On"
     ToolTip ToolTipMenu, mX, mY
     WinActivate g_MenuTitle
-    WinGetPos ,,, tH, g_MenuTitle
+    WinGetPos ,,, &tH, g_MenuTitle
     
     MenuClick(*)
     {
-        HotKey "~LButton", "Off"
+        Hotkey "~LButton", "Off"
         if !WinActive(g_MenuTitle)
         {
             ToolTip
             return
         }
 
-        MouseGetPos mX, mY
+        MouseGetPos &mX, &mY
         ToolTip
         mY /= tH / (MenuItem.Length + 1)  ; Space taken by each line.
         if mY < 1

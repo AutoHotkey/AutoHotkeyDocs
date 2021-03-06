@@ -40,9 +40,9 @@ JoystickNumber := 1
 #SingleInstance
 
 JoystickPrefix := JoystickNumber "Joy"
-Hotkey JoystickPrefix . ButtonLeft, "ButtonLeft"
-Hotkey JoystickPrefix . ButtonRight, "ButtonRight"
-Hotkey JoystickPrefix . ButtonMiddle, "ButtonMiddle"
+Hotkey JoystickPrefix . ButtonLeft, ButtonLeft
+Hotkey JoystickPrefix . ButtonRight, ButtonRight
+Hotkey JoystickPrefix . ButtonMiddle, ButtonMiddle
 
 ; Calculate the axis displacements that are needed to start moving the cursor:
 JoyThresholdUpper := 50 + JoyThreshold

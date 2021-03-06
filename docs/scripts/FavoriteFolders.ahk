@@ -23,7 +23,7 @@
 ; favorite while an unsupported window type is active, a new
 ; Explorer window will be opened to display the contents of that
 ; folder.
-global g_Hotkey := "~MButton"
+g_Hotkey := "~MButton"
 
 ; CONFIG: CHOOSE YOUR FAVORITES
 ; Update the special commented section below to list your favorite
@@ -47,19 +47,17 @@ Program Files; %PROGRAMFILES%
 
 #SingleInstance  ; Needed since the hotkey is dynamically created.
 
-global g_AlwaysShowMenu := true
-global g_Paths := []
-global g_Menu := Menu()
-global g_window_id := 0
-global g_class := ""
+g_AlwaysShowMenu := true
+g_Paths := []
+g_Menu := Menu()
+g_window_id := 0
+g_class := ""
 
-Hotkey g_Hotkey, "DisplayMenu"
+Hotkey g_Hotkey, DisplayMenu
 if SubStr(g_Hotkey, 1, 1) = "~"  ; Show menu only for certain window types.
     g_AlwaysShowMenu := false
 
-; Used to reliably determine whether script is compiled:
-SplitPath A_ScriptName,,, FileExt
-if FileExt = "Exe"  ; Read the menu items from an external file.
+if A_IsCompiled  ; Read the menu items from an external file.
     FavoritesFile := A_ScriptDir "\Favorites.ini"
 else  ; Read the menu items directly from this script file.
     FavoritesFile := A_ScriptFullPath
@@ -96,7 +94,7 @@ Loop Read, FavoritesFile
         ; Resolve any references to variables within either field, and
         ; create a new array element containing the path of this favorite:
         g_Paths.Push(line[2])
-        g_Menu.Add(line[1], "OpenFavorite")
+        g_Menu.Add(line[1], OpenFavorite)
     }
 }
 
@@ -156,8 +154,8 @@ OpenFavorite(ItemName, ItemPos, *)
 DisplayMenu(*)
 {
     ; These first few variables are set here and used by OpenFavorite:
-    try g_window_id := WinGetID("A")
-    try g_class := WinGetClass(g_window_id)
+    try global g_window_id := WinGetID("A")
+    try global g_class := WinGetClass(g_window_id)
     if g_AlwaysShowMenu = false  ; The menu should be shown only selectively.
     {
         if !(g_class ~= "#32770|ExploreWClass|CabinetWClass|ConsoleWindowClass")

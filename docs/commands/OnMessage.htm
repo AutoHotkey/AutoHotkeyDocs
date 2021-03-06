@@ -123,10 +123,10 @@ WM_LBUTTONDOWN(wParam, lParam, msg, hwnd)
 <p><a class="ex_number" href="#ExShutdown"></a> Detects system shutdown/logoff and allows the user to abort it. On Windows Vista and later, the system displays a user interface showing which program is blocking shutdown/logoff and allowing the user to force shutdown/logoff. On older OSes, the script displays a confirmation prompt. Related topic: <a href="OnExit.htm">OnExit</a></p>
 <pre><em>; The following DllCall is optional: it tells the OS to shut down this script first (prior to all other applications).</em>
 DllCall("kernel32.dll\SetProcessShutdownParameters", "UInt", 0x4FF, "UInt", 0)
-OnMessage(0x0011, "WM_QUERYENDSESSION")
+OnMessage(0x0011, On_WM_QUERYENDSESSION)
 return
 
-WM_QUERYENDSESSION(wParam, lParam, *)
+On_WM_QUERYENDSESSION(wParam, lParam, *)
 {
     ENDSESSION_LOGOFF := 0x80000000
     if (lParam &amp; ENDSESSION_LOGOFF)  <em>; User is logging off.</em>
@@ -158,12 +158,12 @@ BlockShutdown(Reason)
 {
     <em>; If your script has a visible GUI, use it instead of A_ScriptHwnd.</em>
     DllCall("ShutdownBlockReasonCreate", "ptr", A_ScriptHwnd, "wstr", Reason)
-    OnExit("StopBlockingShutdown")
+    OnExit StopBlockingShutdown
 }
 
 StopBlockingShutdown(*)
 {
-    OnExit(A_ThisFunc, 0)
+    OnExit StopBlockingShutdown, 0
     DllCall("ShutdownBlockReasonDestroy", "ptr", A_ScriptHwnd)
 }</pre>
 </div>
@@ -208,7 +208,6 @@ Receive_WM_COPYDATA(wParam, lParam, msg, hwnd)
 
 #space::  <em>; Win+Space hotkey. Press it to show an input box for entry of a message string.</em>
 {
-    global TargetScriptTitle
     ib := InputBox("Enter some text to Send:", "Send text via WM_COPYDATA")
     if ib.Result = "Cancel"  <em>; User pressed the Cancel button.</em>
         return
@@ -219,7 +218,7 @@ Receive_WM_COPYDATA(wParam, lParam, msg, hwnd)
         MsgBox "Message sent but the target window responded with 0, which may mean it ignored it."
 }
 
-Send_WM_COPYDATA(ByRef StringToSend, ByRef TargetScriptTitle)  <em>; ByRef saves a little memory in this case.
+Send_WM_COPYDATA(StringToSend, TargetScriptTitle)
 ; This function sends the specified string to the specified window and returns the reply.
 ; The reply is 1 if the target window processed the message, or 0 if it ignored it.</em>
 {

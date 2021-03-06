@@ -124,46 +124,45 @@ global g_Button := 0
 SetKeyDelay -1
 SetMouseDelay -1
 
-Hotkey "*Numpad0", "ButtonLeftClick"
-Hotkey "*NumpadIns", "ButtonLeftClickIns"
-Hotkey "*Numpad5", "ButtonMiddleClick"
-Hotkey "*NumpadClear", "ButtonMiddleClickClear"
-Hotkey "*NumpadDot", "ButtonRightClick"
-Hotkey "*NumpadDel", "ButtonRightClickDel"
-Hotkey "*NumpadDiv", "ButtonX1Click"
-Hotkey "*NumpadMult", "ButtonX2Click"
+Hotkey "*Numpad0", ButtonLeftClick
+Hotkey "*NumpadIns", ButtonLeftClickIns
+Hotkey "*Numpad5", ButtonMiddleClick
+Hotkey "*NumpadClear", ButtonMiddleClickClear
+Hotkey "*NumpadDot", ButtonRightClick
+Hotkey "*NumpadDel", ButtonRightClickDel
+Hotkey "*NumpadDiv", ButtonX1Click
+Hotkey "*NumpadMult", ButtonX2Click
 
-Hotkey "*NumpadSub", "ButtonWheelAcceleration"
-Hotkey "*NumpadAdd", "ButtonWheelAcceleration"
+Hotkey "*NumpadSub", ButtonWheelAcceleration
+Hotkey "*NumpadAdd", ButtonWheelAcceleration
 
-Hotkey "*NumpadUp", "ButtonAcceleration"
-Hotkey "*NumpadDown", "ButtonAcceleration"
-Hotkey "*NumpadLeft", "ButtonAcceleration"
-Hotkey "*NumpadRight", "ButtonAcceleration"
-Hotkey "*NumpadHome", "ButtonAcceleration"
-Hotkey "*NumpadEnd", "ButtonAcceleration"
-Hotkey "*NumpadPgUp", "ButtonAcceleration"
-Hotkey "*NumpadPgDn", "ButtonAcceleration"
+Hotkey "*NumpadUp", ButtonAcceleration
+Hotkey "*NumpadDown", ButtonAcceleration
+Hotkey "*NumpadLeft", ButtonAcceleration
+Hotkey "*NumpadRight", ButtonAcceleration
+Hotkey "*NumpadHome", ButtonAcceleration
+Hotkey "*NumpadEnd", ButtonAcceleration
+Hotkey "*NumpadPgUp", ButtonAcceleration
+Hotkey "*NumpadPgDn", ButtonAcceleration
 
-Hotkey "Numpad8", "ButtonSpeedUp"
-Hotkey "Numpad2", "ButtonSpeedDown"
-Hotkey "Numpad7", "ButtonAccelerationSpeedUp"
-Hotkey "Numpad1", "ButtonAccelerationSpeedDown"
-Hotkey "Numpad9", "ButtonMaxSpeedUp"
-Hotkey "Numpad3", "ButtonMaxSpeedDown"
+Hotkey "Numpad8", ButtonSpeedUp
+Hotkey "Numpad2", ButtonSpeedDown
+Hotkey "Numpad7", ButtonAccelerationSpeedUp
+Hotkey "Numpad1", ButtonAccelerationSpeedDown
+Hotkey "Numpad9", ButtonMaxSpeedUp
+Hotkey "Numpad3", ButtonMaxSpeedDown
 
-Hotkey "Numpad6", "ButtonRotationAngleUp"
-Hotkey "Numpad4", "ButtonRotationAngleDown"
+Hotkey "Numpad6", ButtonRotationAngleUp
+Hotkey "Numpad4", ButtonRotationAngleDown
 
-Hotkey "!Numpad8", "ButtonWheelSpeedUp"
-Hotkey "!Numpad2", "ButtonWheelSpeedDown"
-Hotkey "!Numpad7", "ButtonWheelAccelerationSpeedUp"
-Hotkey "!Numpad1", "ButtonWheelAccelerationSpeedDown"
-Hotkey "!Numpad9", "ButtonWheelMaxSpeedUp"
-Hotkey "!Numpad3", "ButtonWheelMaxSpeedDown"
+Hotkey "!Numpad8", ButtonWheelSpeedUp
+Hotkey "!Numpad2", ButtonWheelSpeedDown
+Hotkey "!Numpad7", ButtonWheelAccelerationSpeedUp
+Hotkey "!Numpad1", ButtonWheelAccelerationSpeedDown
+Hotkey "!Numpad9", ButtonWheelMaxSpeedUp
+Hotkey "!Numpad3", ButtonWheelMaxSpeedDown
 
 ToggleKeyActivationSupport  ; Initialize based on current ScrollLock state.
-return
 
 ;Key activation support
 
@@ -331,7 +330,7 @@ ButtonX2Click(*)
 ButtonClickStart(Button2, ButtonClick)
 {
     MouseClick ButtonClick,,, 1, 0, "D"
-    SetTimer () => ButtonClickEnd(Button2, ButtonClick), 10
+    SetTimer ButtonClickEnd.Bind(Button2, ButtonClick), 10
 }
 
 ButtonClickEnd(Button2, ButtonClick)
@@ -347,82 +346,91 @@ ButtonClickEnd(Button2, ButtonClick)
 
 ButtonSpeedUp(*)
 {
+    global
     g_MouseSpeed++
     ToolTip "Mouse speed: " g_MouseSpeed " pixels"
-    SetTimer () => ToolTip(), -1000
+    SetTimer ToolTip, -1000
 }
 
 ButtonSpeedDown(*)
 {
+    global
     if g_MouseSpeed > 1
         g_MouseSpeed--
     if g_MouseSpeed = 1
         ToolTip "Mouse speed: " g_MouseSpeed " pixel"
     else
         ToolTip "Mouse speed: " g_MouseSpeed " pixels"
-    SetTimer () => ToolTip(), -1000
+    SetTimer ToolTip, -1000
 }
 
 ButtonAccelerationSpeedUp(*)
 {
+    global
     g_MouseAccelerationSpeed++
     ToolTip "Mouse acceleration speed: " g_MouseAccelerationSpeed " pixels"
-    SetTimer () => ToolTip(), -1000
+    SetTimer ToolTip, -1000
 }
 
 ButtonAccelerationSpeedDown(*)
 {
+    global
     if g_MouseAccelerationSpeed > 1
         g_MouseAccelerationSpeed--
     if g_MouseAccelerationSpeed = 1
         ToolTip "Mouse acceleration speed: " g_MouseAccelerationSpeed " pixel"
     else
         ToolTip "Mouse acceleration speed: " g_MouseAccelerationSpeed " pixels"
-    SetTimer () => ToolTip(), -1000
+    SetTimer ToolTip, -1000
 }
 
 ButtonMaxSpeedUp(*)
 {
+    global
     g_MouseMaxSpeed++
     ToolTip "Mouse maximum speed: " g_MouseMaxSpeed " pixels"
-    SetTimer () => ToolTip(), -1000
+    SetTimer ToolTip, -1000
 }
 
 ButtonMaxSpeedDown(*)
 {
+    global
     if g_MouseMaxSpeed > 1
         g_MouseMaxSpeed--
     if g_MouseMaxSpeed = 1
         ToolTip "Mouse maximum speed: " g_MouseMaxSpeed " pixel"
     else
         ToolTip "Mouse maximum speed: " g_MouseMaxSpeed " pixels"
-    SetTimer () => ToolTip(), -1000
+    SetTimer ToolTip, -1000
 }
 
 ButtonRotationAngleUp(*)
 {
+    global
     g_MouseRotationAnglePart++
     if g_MouseRotationAnglePart >= 8
         g_MouseRotationAnglePart := 0
     g_MouseRotationAngle := g_MouseRotationAnglePart
     g_MouseRotationAngle *= 45
     ToolTip "Mouse rotation angle: " g_MouseRotationAngle "°"
-    SetTimer () => ToolTip(), -1000
+    SetTimer ToolTip, -1000
 }
 
 ButtonRotationAngleDown(*)
 {
+    global
     g_MouseRotationAnglePart--
     if g_MouseRotationAnglePart < 0
         g_MouseRotationAnglePart := 7
     g_MouseRotationAngle := g_MouseRotationAnglePart
     g_MouseRotationAngle *= 45
     ToolTip "Mouse rotation angle: " g_MouseRotationAngle "°"
-    SetTimer () => ToolTip(), -1000
+    SetTimer ToolTip, -1000
 }
 
 ButtonAcceleration(ThisHotkey)
 {
+    global
     if g_Button != 0
     {
         if !InStr(ThisHotkey, g_Button)
@@ -437,6 +445,8 @@ ButtonAcceleration(ThisHotkey)
 
 ButtonAccelerationStart()
 {
+    global
+
     if g_MouseAccelerationSpeed >= 1
     {
         if g_MouseMaxSpeed > g_MouseCurrentSpeed
@@ -501,6 +511,8 @@ ButtonAccelerationStart()
 
 EndMouseCurrentSpeedToDirectionCalculation()
 {
+    global
+
     ;g_MouseRotationAngle convertion to speed of 90 degrees to right
     g_MouseCurrentSpeedToSide := g_MouseRotationAngle
     g_MouseCurrentSpeedToSide /= 90.0
@@ -554,6 +566,8 @@ EndMouseCurrentSpeedToDirectionCalculation()
 
 EndMouseCurrentSpeedToSideCalculation()
 {
+    global
+
     g_MouseCurrentSpeedToDirection *= g_MouseCurrentSpeed
     g_MouseCurrentSpeedToSide *= g_MouseCurrentSpeed
 
@@ -647,6 +661,8 @@ EndMouseCurrentSpeedToSideCalculation()
 
 ButtonAccelerationEnd()
 {
+    global
+
     if GetKeyState(g_Button, "P")
     {
         ButtonAccelerationStart
@@ -663,19 +679,21 @@ ButtonAccelerationEnd()
 
 ButtonWheelSpeedUp(*)
 {
+    global
     g_MouseWheelSpeed++
-    MouseWheelSpeedMultiplier := RegRead("HKCU\Control Panel\Desktop", "WheelScrollLines")
+    local MouseWheelSpeedMultiplier := RegRead("HKCU\Control Panel\Desktop", "WheelScrollLines")
     if MouseWheelSpeedMultiplier <= 0
         MouseWheelSpeedMultiplier := 1
     g_MouseWheelSpeedReal := g_MouseWheelSpeed
     g_MouseWheelSpeedReal *= MouseWheelSpeedMultiplier
     ToolTip "Mouse wheel speed: " g_MouseWheelSpeedReal " lines"
-    SetTimer () => ToolTip(), -1000
+    SetTimer ToolTip, -1000
 }
 
 ButtonWheelSpeedDown(*)
 {
-    MouseWheelSpeedMultiplier := RegRead("HKCU\Control Panel\Desktop", "WheelScrollLines")
+    global
+    local MouseWheelSpeedMultiplier := RegRead("HKCU\Control Panel\Desktop", "WheelScrollLines")
     if MouseWheelSpeedMultiplier <= 0
         MouseWheelSpeedMultiplier := 1
     if g_MouseWheelSpeedReal > MouseWheelSpeedMultiplier
@@ -688,24 +706,26 @@ ButtonWheelSpeedDown(*)
         ToolTip "Mouse wheel speed: " g_MouseWheelSpeedReal " line"
     else
         ToolTip "Mouse wheel speed: " g_MouseWheelSpeedReal " lines"
-    SetTimer () => ToolTip(), -1000
+    SetTimer ToolTip, -1000
 }
 
 ButtonWheelAccelerationSpeedUp(*)
 {
+    global
     g_MouseWheelAccelerationSpeed++
-    MouseWheelSpeedMultiplier := RegRead("HKCU\Control Panel\Desktop", "WheelScrollLines")
+    local MouseWheelSpeedMultiplier := RegRead("HKCU\Control Panel\Desktop", "WheelScrollLines")
     if MouseWheelSpeedMultiplier <= 0
         MouseWheelSpeedMultiplier := 1
     g_MouseWheelAccelerationSpeedReal := g_MouseWheelAccelerationSpeed
     g_MouseWheelAccelerationSpeedReal *= MouseWheelSpeedMultiplier
     ToolTip "Mouse wheel acceleration speed: " g_MouseWheelAccelerationSpeedReal " lines"
-    SetTimer () => ToolTip(), -1000
+    SetTimer ToolTip, -1000
 }
 
 ButtonWheelAccelerationSpeedDown(*)
 {
-    MouseWheelSpeedMultiplier := RegRead("HKCU\Control Panel\Desktop", "WheelScrollLines")
+    global
+    local MouseWheelSpeedMultiplier := RegRead("HKCU\Control Panel\Desktop", "WheelScrollLines")
     if MouseWheelSpeedMultiplier <= 0
         MouseWheelSpeedMultiplier := 1
     if g_MouseWheelAccelerationSpeed > 1
@@ -718,24 +738,26 @@ ButtonWheelAccelerationSpeedDown(*)
         ToolTip "Mouse wheel acceleration speed: " g_MouseWheelAccelerationSpeedReal " line"
     else
         ToolTip "Mouse wheel acceleration speed: " g_MouseWheelAccelerationSpeedReal " lines"
-    SetTimer () => ToolTip(), -1000
+    SetTimer ToolTip, -1000
 }
 
 ButtonWheelMaxSpeedUp(*)
 {
+    global
     g_MouseWheelMaxSpeed++
-    MouseWheelSpeedMultiplier := RegRead("HKCU\Control Panel\Desktop", "WheelScrollLines")
+    local MouseWheelSpeedMultiplier := RegRead("HKCU\Control Panel\Desktop", "WheelScrollLines")
     if MouseWheelSpeedMultiplier <= 0
         MouseWheelSpeedMultiplier := 1
     g_MouseWheelMaxSpeedReal := g_MouseWheelMaxSpeed
     g_MouseWheelMaxSpeedReal *= MouseWheelSpeedMultiplier
     ToolTip "Mouse wheel maximum speed: " g_MouseWheelMaxSpeedReal " lines"
-    SetTimer () => ToolTip(), -1000
+    SetTimer ToolTip, -1000
 }
 
 ButtonWheelMaxSpeedDown(*)
 {
-    MouseWheelSpeedMultiplier := RegRead("HKCU\Control Panel\Desktop", "WheelScrollLines")
+    global
+    local MouseWheelSpeedMultiplier := RegRead("HKCU\Control Panel\Desktop", "WheelScrollLines")
     if MouseWheelSpeedMultiplier <= 0
         MouseWheelSpeedMultiplier := 1
     if g_MouseWheelMaxSpeed > 1
@@ -748,11 +770,12 @@ ButtonWheelMaxSpeedDown(*)
         ToolTip "Mouse wheel maximum speed: " g_MouseWheelMaxSpeedReal " line"
     else
         ToolTip "Mouse wheel maximum speed: " g_MouseWheelMaxSpeedReal " lines"
-    SetTimer () => ToolTip(), -1000
+    SetTimer ToolTip, -1000
 }
 
 ButtonWheelAcceleration(ThisHotkey)
 {
+    global
     if g_Button != 0
     {
         if g_Button != ThisHotkey
@@ -767,6 +790,8 @@ ButtonWheelAcceleration(ThisHotkey)
 
 ButtonWheelAccelerationStart()
 {
+    global
+
     if g_MouseWheelAccelerationSpeed >= 1
     {
         if g_MouseWheelMaxSpeed > g_MouseWheelCurrentSpeed
@@ -788,6 +813,8 @@ ButtonWheelAccelerationStart()
 
 ButtonWheelAccelerationEnd()
 {
+    global
+
     if GetKeyState(g_Button, "P")
     {
         ButtonWheelAccelerationStart

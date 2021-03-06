@@ -85,7 +85,7 @@ wParam := wParam &lt;&lt; 32 &gt;&gt; 32</pre>
 
 <p id="Indirect"><strong>Receiving parameters by address:</strong> If the <code>&amp;</code> option is used, the function receives the <i>address</i> of the first callback parameter. For example:</p>
 <pre>
-callback := CallbackCreate("TheFunc", "F&amp;", 3)  <em>; Parameter list size must be specified for 32-bit.</em>
+callback := CallbackCreate(TheFunc, "F&amp;", 3)  <em>; Parameter list size must be specified for 32-bit.</em>
 DllCall(callback, "float", 10.5, "int64", 42)
 TheFunc(params) {
     MsgBox <a href="NumGet.htm">NumGet</a>(params, 0, "float") ", " NumGet(params, A_PtrSize, "int64")
@@ -111,7 +111,7 @@ TheFunc(params) {
 <h2 id="Examples">Examples</h2>
 <div class="ex" id="ExWinList">
 <p><a class="ex_number" href="#ExWinList"></a> Displays a summary of all top-level windows.</p>
-<pre>EnumAddress := CallbackCreate("EnumWindowsProc", "Fast")  <em>; Fast-mode is okay because it will be called only from this thread.</em>
+<pre>EnumAddress := CallbackCreate(EnumWindowsProc, "Fast")  <em>; Fast-mode is okay because it will be called only from this thread.</em>
 
 DetectHiddenWindows True  <em>; Due to fast-mode, this setting will go into effect for the callback too.</em>
 
@@ -141,7 +141,7 @@ Text := MyGui.Add("Text",, "Here is some text that is given`na custom background
 <em>; 64-bit scripts must call SetWindowLongPtr instead of SetWindowLong:</em>
 SetWindowLong := A_PtrSize=8 ? "SetWindowLongPtr" : "SetWindowLong"
 
-WindowProcNew := CallbackCreate("WindowProc")  <em>; Avoid fast-mode for subclassing.</em>
+WindowProcNew := CallbackCreate(WindowProc)  <em>; Avoid fast-mode for subclassing.</em>
 WindowProcOld := DllCall(SetWindowLong, "Ptr", MyGui.Hwnd, "Int", -4  <em>; -4 is GWL_WNDPROC</em>
     , "Ptr", WindowProcNew, "Ptr") <em>; Return value must be set to "Ptr" or "UPtr" vs. "Int".</em>
 
@@ -150,7 +150,6 @@ MyGui.Show
 WindowProc(hwnd, uMsg, wParam, lParam)
 {
     Critical
-    global Text, TextBackgroundColor, TextBackgroundBrush, WindowProcOld
     if (uMsg = 0x0138 &amp;&amp; lParam = Text.Hwnd)  <em>; 0x0138 is WM_CTLCOLORSTATIC.</em>
     {
         DllCall("SetBkColor", "Ptr", wParam, "UInt", TextBackgroundColor)

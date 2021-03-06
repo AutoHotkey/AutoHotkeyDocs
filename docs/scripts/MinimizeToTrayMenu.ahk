@@ -39,21 +39,21 @@ SetKeyDelay 0
 global g_WindowIDs := []
 global g_WindowTitles := []
 
-Hotkey g_Hotkey, "Minimize"
-Hotkey g_UnHotkey, "UnMinimize"
+Hotkey g_Hotkey, Minimize
+Hotkey g_UnHotkey, UnMinimize
 
 ; If the user terminates the script by any means, unhide all the
 ; windows first:
-OnExit("RestoreAllThenExit")
+OnExit RestoreAllThenExit
 
 if g_StandardMenu = true
     A_TrayMenu.Add
 else
 {
     A_TrayMenu.Delete
-    A_TrayMenu.Add "E&xit and Unhide All", "RestoreAllThenExit"
+    A_TrayMenu.Add "E&xit and Unhide All", RestoreAllThenExit
 }
-A_TrayMenu.Add "&Unhide All Hidden Windows", "RestoreAll"
+A_TrayMenu.Add "&Unhide All Hidden Windows", RestoreAll
 A_TrayMenu.Add  ; Another separator line to make the above more special.
 
 global g_MaxLength := 260  ; Reduce this to restrict the width of the menu.
@@ -145,7 +145,7 @@ Minimize(*)
     ; Add the item to the array and to the menu:
     if AlreadyExists = false
     {
-        A_TrayMenu.Add ActiveTitle, "RestoreFromTrayMenu"
+        A_TrayMenu.Add ActiveTitle, RestoreFromTrayMenu
         g_WindowIDs.Push(ActiveID)
         g_WindowTitles.Push(ActiveTitle)
     }
@@ -178,17 +178,13 @@ UnMinimize(*)
     if g_WindowIDs.Length > 0 
     {
         ; Get the id of the last window minimized and unhide it
-        IDToRestore := g_WindowIDs[-1]
+        IDToRestore := g_WindowIDs.Pop()
         WinShow IDToRestore
         WinActivate IDToRestore
         
         ; Get the menu name of the last window minimized and remove it
-        MenuToRemove := g_WindowTitles[-1]
+        MenuToRemove := g_WindowTitles.Pop()
         A_TrayMenu.Delete MenuToRemove
-        
-        ; clean up our arrays
-        g_WindowIDs.Pop()
-        g_WindowTitles.Pop()
     }
 }
 
@@ -213,6 +209,6 @@ RestoreAll(*)
         A_TrayMenu.Delete MenuToRemove
     }
     ; Free up all slots:
-    g_WindowIDs := []
-    g_WindowTitles := []
+    global g_WindowIDs := []
+    global g_WindowTitles := []
 }

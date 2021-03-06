@@ -22,7 +22,7 @@
   <dt>TargetVar</dt>
   <dd>
     <p>Type: <a href="../Concepts.htm#variable-references">VarRef</a></p>
-    <p>A reference to a variable. For example: <code>VarSetStrCapacity(MyVar, 1000)</code>. This can also be a dynamic variable such as <code>Array%i%</code> or a <a href="../Functions.htm#ByRef">function's ByRef parameter</a>.</p>
+    <p>A reference to a variable. For example: <code>VarSetStrCapacity(&amp;MyVar, 1000)</code>. This can also be a dynamic variable such as <code>Array%i%</code> or a <a href="../Functions.htm#ByRef">function's ByRef parameter</a>.</p>
   </dd>
 
   <dt>RequestedCapacity</dt>
@@ -31,9 +31,9 @@
     <p>If omitted, the variable's current capacity will be returned and its contents will not be altered. Otherwise, anything currently in the variable is lost (the variable becomes blank).</p>
     <p>Specify for <em>RequestedCapacity</em> the number of characters that the variable should be able to hold after the adjustment. <em>RequestedCapacity</em> does not include the internal zero terminator. For example, specifying 1 would allow the variable to hold up to one character in addition to its internal terminator. Note: the variable will auto-expand if the script assigns it a larger value later.</p>
     <p>Since this function is often called simply to ensure the variable has a certain minimum capacity, for performance reasons, it shrinks the variable only when <em>RequestedCapacity</em> is 0. In other words, if the variable's capacity is already greater than <em>RequestedCapacity</em>, it will not be reduced (but the variable will still made blank for consistency).</p>
-    <p>Therefore, to explicitly shrink a variable, first free its memory with <code>VarSetStrCapacity(Var, 0)</code> and then use <code>VarSetStrCapacity(Var, NewCapacity)</code> -- or simply let it auto-expand from zero as needed.</p>
+    <p>Therefore, to explicitly shrink a variable, first free its memory with <code>VarSetStrCapacity(&amp;Var, 0)</code> and then use <code>VarSetStrCapacity(&amp;Var, NewCapacity)</code> -- or simply let it auto-expand from zero as needed.</p>
     <p>For performance reasons, freeing a variable whose previous capacity was less than 64 characters might have no effect because its memory is of a permanent type. In this case, the current capacity will be returned rather than 0.</p>
-    <p>For performance reasons, the memory of a variable whose capacity is less than 4096 bytes is not freed by storing an empty string in it (e.g. <code>Var := ""</code>). However, <code>VarSetStrCapacity(Var, 0)</code> does free it.</p>
+    <p>For performance reasons, the memory of a variable whose capacity is less than 4096 bytes is not freed by storing an empty string in it (e.g. <code>Var := ""</code>). However, <code>VarSetStrCapacity(&amp;Var, 0)</code> does free it.</p>
     <p id="neg1">Specify -1 for <em>RequestedCapacity</em> to update the variable's internally-stored string length to the length of its current contents. This is useful in cases where the string has been altered indirectly, such as by passing its <a href="StrPtr.htm">address</a> via <a href="DllCall.htm">DllCall</a> or <a href="SendMessage.htm">SendMessage</a>. In this mode, VarSetStrCapacity returns the length rather than the capacity.</p>
   </dd>
 
@@ -53,14 +53,14 @@
 
 <h2 id="Remarks">Remarks</h2>
 <p>The <a href="../objects/Buffer.htm">Buffer</a> object offers superior clarity and flexibility when dealing with binary data, structures, DllCall and similar. For instance, a Buffer object can be assigned to a property or array element or be passed to or returned from a function without copying its contents.</p>
-<p>This function can be used to enhance performance when building a string by means of gradual concatenation. This is because multiple automatic resizings can be avoided when you have some idea of what the string's final length will be. In such a case, <em>RequestedCapacity</em> need not be accurate: if the capacity is too small, performance is still improved and the variable will begin auto-expanding when the capacity has been exhausted. If the capacity is too large, some of the memory is wasted, but only temporarily because all the memory can be freed after the operation by means of <code>VarSetStrCapacity(Var, 0)</code> or <code>Var := ""</code>.</p>
+<p>This function can be used to enhance performance when building a string by means of gradual concatenation. This is because multiple automatic resizings can be avoided when you have some idea of what the string's final length will be. In such a case, <em>RequestedCapacity</em> need not be accurate: if the capacity is too small, performance is still improved and the variable will begin auto-expanding when the capacity has been exhausted. If the capacity is too large, some of the memory is wasted, but only temporarily because all the memory can be freed after the operation by means of <code>VarSetStrCapacity(&amp;Var, 0)</code> or <code>Var := ""</code>.</p>
 
 <h2 id="Related">Related</h2>
 <p><a href="BufferAlloc.htm">BufferAlloc</a>, <a href="../objects/Buffer.htm">Buffer object</a>, <a href="DllCall.htm">DllCall</a>, <a href="NumPut.htm">NumPut</a>, <a href="NumGet.htm">NumGet</a></p>
 <h2 id="Examples">Examples</h2>
 <div class="ex" id="ExConcat">
 <p><a class="ex_number" href="#ExConcat"></a> Optimize by ensuring <em>MyVar</em> has plenty of space to work with.</p>
-<pre>VarSetStrCapacity(MyVar, 5120000)  <em>; ~10 MB</em>
+<pre>VarSetStrCapacity(&amp;MyVar, 5120000)  <em>; ~10 MB</em>
 Loop
 {
     <em>; ...</em>
@@ -76,7 +76,7 @@ Loop
 Loop 2
 {
     <em>; Allocate space for use with DllCall.</em>
-    VarSetStrCapacity(buf, max_chars)
+    VarSetStrCapacity(&amp;buf, max_chars)
 
     if (A_Index = 1)
         <em>; Alter the variable indirectly via DllCall.</em>
@@ -90,7 +90,7 @@ Loop 2
     wrong_len := StrLen(buf)
 
     <em>; Update the variable's length.</em>
-    VarSetStrCapacity(buf, -1)
+    VarSetStrCapacity(&amp;buf, -1)
 
     right_str := buf . "&lt;end&gt;"
     right_len := StrLen(buf)

@@ -55,7 +55,7 @@ for n, k_Row in k_Layout
     {
         k_KeyWidthMultiplier := 1
         ; Get custom key width multiplier:
-        if RegExMatch(k_Key, "(.+):(\d)", m)
+        if RegExMatch(k_Key, "(.+):(\d)", &m)
         {
             k_Key := m[1]
             k_KeyWidthMultiplier := m[2]

@@ -13,7 +13,7 @@ global g_MinHeight := 25
 
 ; This line will unroll any rolled up windows if the script exits
 ; for any reason:
-OnExit("ExitSub")
+OnExit ExitSub
 
 global IDs := Array()
 global Windows := Map()
@@ -39,7 +39,7 @@ global Windows := Map()
             return
         }
     }
-    WinGetPos ,,, Height, "A"
+    WinGetPos ,,, &Height, "A"
     Windows.Set(ActiveID, Height)
     WinMove ,,, g_MinHeight, ActiveID
     IDs.Push(ActiveID)

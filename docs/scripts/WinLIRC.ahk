@@ -48,45 +48,48 @@ WinLIRC_Init(WinLIRC_Path, WinLIRC_Address, WinLIRC_Port)
 ; Below are some examples. Feel free to revise or delete them to suit
 ; your preferences.
 
-VolUp()
+class Actions
 {
-    SoundSetVolume "+5"  ; Increase master volume by 5%.
-}
-
-VolDown()
-{
-    SoundSetVolume "-5"  ; Reduce master volume by 5%.
-}
-
-ChUp()
-{
-    if WinGetClass("A") ~= "^(Winamp v1\.x|Winamp PE)$"  ; Winamp is active.
-        Send "{right}"  ; Send a right-arrow keystroke.
-    else  ; Some other type of window is active.
-        Send "{WheelUp}"  ; Rotate the mouse wheel up by one notch.
-}
-
-ChDown()
-{
-    if WinGetClass("A") ~= "^(Winamp v1\.x|Winamp PE)$"  ; Winamp is active.
-        Send "{left}"  ; Send a left-arrow keystroke.
-    else  ; Some other type of window is active.
-        Send "{WheelDown}"  ; Rotate the mouse wheel down by one notch.
-}
-
-Menu()
-{
-    if WinExist("Untitled - Notepad")
+    VolUp()
     {
-        WinActivate
+        SoundSetVolume "+5"  ; Increase master volume by 5%.
     }
-    else
+
+    VolDown()
     {
-        Run "Notepad"
-        WinWait "Untitled - Notepad"
-        WinActivate
+        SoundSetVolume "-5"  ; Reduce master volume by 5%.
     }
-    Send "Here are some keystrokes sent to Notepad.{Enter}"
+
+    ChUp()
+    {
+        if WinGetClass("A") ~= "^(Winamp v1\.x|Winamp PE)$"  ; Winamp is active.
+            Send "{right}"  ; Send a right-arrow keystroke.
+        else  ; Some other type of window is active.
+            Send "{WheelUp}"  ; Rotate the mouse wheel up by one notch.
+    }
+
+    ChDown()
+    {
+        if WinGetClass("A") ~= "^(Winamp v1\.x|Winamp PE)$"  ; Winamp is active.
+            Send "{left}"  ; Send a left-arrow keystroke.
+        else  ; Some other type of window is active.
+            Send "{WheelDown}"  ; Rotate the mouse wheel down by one notch.
+    }
+
+    Menu()
+    {
+        if WinExist("Untitled - Notepad")
+        {
+            WinActivate
+        }
+        else
+        {
+            Run "Notepad"
+            WinWait "Untitled - Notepad"
+            WinActivate
+        }
+        Send "Here are some keystrokes sent to Notepad.{Enter}"
+    }
 }
 
 ; The examples above give a feel for how to accomplish common tasks.
@@ -101,7 +104,7 @@ Menu()
 
 WinLIRC_Init(Path, IPAddress, Port)
 {
-    OnExit("ExitSub")  ; For connection cleanup purposes.
+    OnExit ExitSub  ; For connection cleanup purposes.
 
     ; Launch WinLIRC if it isn't already running:
     if not ProcessExist("winlirc.exe")  ; No PID for WinLIRC was found.
@@ -123,7 +126,7 @@ WinLIRC_Init(Path, IPAddress, Port)
     ; When the OS notifies the script that there is incoming data waiting to be received,
     ; the following causes a function to be launched to read the data:
     NotificationMsg := 0x5555  ; An arbitrary message number, but should be greater than 0x1000.
-    OnMessage(NotificationMsg, "ReceiveData")
+    OnMessage(NotificationMsg, ReceiveData)
 
     ; Set up the connection to notify this script via message whenever new data has arrived.
     ; This avoids the need to poll the connection and thus cuts down on resource usage.
@@ -217,8 +220,8 @@ ReceiveData(wParam, lParam, *)
         static PrevButtonName := "", PrevButtonTime := 0, RepeatCount := 0  ; These variables remember their values between calls.
         if (ButtonName != PrevButtonName || A_TickCount - PrevButtonTime > g_DelayBetweenButtonRepeats)
         {
-            if IsFunc(ButtonName)  ; There is a function associated with this button.
-                %ButtonName%()  ; Call the function.
+            if HasMethod(Actions.Prototype, ButtonName)  ; There is a method associated with this button.
+                Actions.Prototype.%ButtonName%()  ; Call the method.
             else ; Since there is no associated function, briefly display which button was pressed.
             {
                 if (ButtonName == PrevButtonName)
@@ -242,5 +245,4 @@ ExitSub(*)  ; This function is called automatically when the script exits for an
     ; MSDN: "Any sockets open when WSACleanup is called are reset and automatically
     ; deallocated as if closesocket was called."
     DllCall("Ws2_32\WSACleanup")
-    ExitApp
 }

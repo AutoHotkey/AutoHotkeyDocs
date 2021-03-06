@@ -37,7 +37,7 @@ MyGui := Gui()
 LV := MyGui.Add("ListView", "r20 w700", ["Name","Size (KB)"])
 
 <em>; Notify the script whenever the user double clicks a row:</em>
-LV.OnEvent("DoubleClick", "LV_DoubleClick")
+LV.OnEvent("DoubleClick", LV_DoubleClick)
 
 <em>; Gather a list of file names from a folder and put them into the ListView:</em>
 Loop Files, A_MyDocuments "\*.*"
@@ -459,7 +459,7 @@ MyGui.Show</pre>
 <p><a href="../objects/Gui.htm#Submit">Gui.Submit</a> has no effect on a ListView control.</p>
 <p>After a column is sorted -- either by means of the user clicking its header or the script calling <code>LV.<a href="#ModifyCol">ModifyCol</a>(1, "Sort")</code> -- any subsequently added rows will appear at the bottom of the list rather than obeying the sort order. The exception to this is the <a href="#Sort">Sort</a> and <a href="#SortDesc">SortDesc</a> styles, which move newly added rows into the correct positions.</p>
 <p id="Enter">To detect when the user has pressed <kbd>Enter</kbd> while a ListView has focus, use a <a href="GuiControls.htm#DefaultButton">default button</a> (which can be hidden if desired). For example:</p>
-<pre>MyGui.Add("Button", "Hidden Default", "OK").OnEvent("Click", "LV_Enter")
+<pre>MyGui.Add("Button", "Hidden Default", "OK").OnEvent("Click", LV_Enter)
 ...
 LV_Enter(*) {
     global
@@ -515,14 +515,14 @@ ImageListID2 := IL_Create(10, 10, true)  <em>; A list of large icons to go with 
 LV.SetImageList(ImageListID2)
 
 <em>; Apply control events:</em>
-LV.OnEvent("<a href="../objects/GuiOnEvent.htm#DoubleClick">DoubleClick</a>", "RunFile")
-LV.OnEvent("<a href="../objects/GuiOnEvent.htm#Ctrl-ContextMenu">ContextMenu</a>", "ShowContextMenu")
+LV.OnEvent("<a href="../objects/GuiOnEvent.htm#DoubleClick">DoubleClick</a>", RunFile)
+LV.OnEvent("<a href="../objects/GuiOnEvent.htm#Ctrl-ContextMenu">ContextMenu</a>", ShowContextMenu)
 B1.OnEvent("Click", LoadFolder.bind(ImageListID1, ImageListID2))
 B2.OnEvent("Click", (*) =&gt; <a href="#Delete">LV.Delete</a>())
-B3.OnEvent("Click", "SwitchView")
+B3.OnEvent("Click", SwitchView)
 
 <em>; Apply window events:</em>
-MyGui.OnEvent("Size", "Gui_Size")
+MyGui.OnEvent("Size", Gui_Size)
 
 <em>; Display the window:</em>
 MyGui.Show()
@@ -530,7 +530,7 @@ MyGui.Show()
 LoadFolder(ImageListID1, ImageListID2, this, *)
 {
     static IconMap := Map()
-    LV := this.Gui["LV"]
+    local LV := this.Gui["LV"]  <em>; Not strictly necessary in this case since the global LV is available.</em>
     this.Gui.Opt("+OwnDialogs")  <em>; Forces user to dismiss the following dialog before using main window.</em>
     Folder := DirSelect(, 3, "Select a folder to read:")
     if not Folder  <em>; The user canceled the dialog.</em>
@@ -554,7 +554,7 @@ LoadFolder(ImageListID1, ImageListID2, this, *)
         <em>; Build a unique extension ID to avoid characters that are illegal in variable names,
         ; such as dashes. This unique ID method also performs better because finding an item
         ; in the array does not require search-loop.</em>
-        SplitPath(FileName,,, FileExt)  <em>; Get the file's extension.</em>
+        SplitPath(FileName,,, &amp;FileExt)  <em>; Get the file's extension.</em>
         if FileExt ~= "^(EXE|ICO|ANI|CUR)$"
         {
             ExtID := FileExt  <em>; Special ID as a placeholder.</em>
@@ -608,7 +608,7 @@ LoadFolder(ImageListID1, ImageListID2, this, *)
 SwitchView(this, *)
 {
     static IconView := false
-    LV := this.Gui["LV"]
+    local LV := this.Gui["LV"]
     if not IconView
         LV.Opt("+Icon")        <em>; Switch to icon view.</em>
     else
@@ -618,7 +618,7 @@ SwitchView(this, *)
 
 RunFile(LV, RowNumber)
 {
-    FileName := <a href="#GetText">LV.GetText</a>(RowNumber, 1) <em>; Get the text of the first field.</em>
+    FileName := LV.GetText(RowNumber, 1) <em>; Get the text of the first field.</em>
     FileDir := LV.GetText(RowNumber, 2)  <em>; Get the text of the second field.</em>
     try Run(FileDir "\" FileName)
     if A_LastError
@@ -628,14 +628,14 @@ RunFile(LV, RowNumber)
 ShowContextMenu(LV, Item, IsRightClick, X, Y)  <em>; In response to right-click or Apps key.</em>
 {
     <em>; Create the popup menu to be used as the context menu:</em>
-    static ContextMenu := <a href="../objects/Menu.htm#Call">Menu()</a>()
-    <a href="../objects/Menu.htm#Add">ContextMenu.Add</a>("Open", "OpenOrProperties")
-    ContextMenu.Add("Properties", "OpenOrProperties")
-    ContextMenu.Add("Clear from ListView", "ClearRows")
-    <a href="../objects/Menu.htm#Default">ContextMenu.Default</a> := "Open"  <em>; Make "Open" a bold font to indicate that double-click does the same thing.
+    ContextMenu := Menu()
+    ContextMenu.Add("Open", OpenOrProperties)
+    ContextMenu.Add("Properties", OpenOrProperties)
+    ContextMenu.Add("Clear from ListView", ClearRows)
+    ContextMenu.Default := "Open"  <em>; Make "Open" a bold font to indicate that double-click does the same thing.
     ; Show the menu at the provided coordinates, X and Y.  These should be used
     ; because they provide correct coordinates even if the user pressed the Apps key:</em>
-    <a href="../objects/Menu.htm#Show">ContextMenu.Show</a>(X, Y)
+    ContextMenu.Show(X, Y)
 
     OpenOrProperties(ItemName, *)  <em>; The user selected "Open" or "Properties" in the context menu.</em>
     {
