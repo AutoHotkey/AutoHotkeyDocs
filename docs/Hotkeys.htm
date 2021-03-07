@@ -23,7 +23,7 @@
   <li><a href="#Features">Other Features</a></li>
   <li><a href="#Wheel">Mouse Wheel Hotkeys</a></li>
   <li><a href="#Remarks">Hotkey Tips and Remarks</a></li>
-  <li><a href="#AltTabDetail">Alt-Tab Hotkeys</a></li>
+  <li><a href="#alttab">Alt-Tab Hotkeys</a></li>
   <li><a href="#Function">Function Hotkeys</a> <span class="ver">[v1.1.20+]</span></li>
 </ul>
 
@@ -183,10 +183,10 @@ AppsKey &amp; /::MsgBox Hotkey activated.
 <h2 id="Features">Other Features</h2>
 <p><strong>NumLock, CapsLock, and ScrollLock:</strong> These keys may be forced to be "AlwaysOn" or "AlwaysOff". For example: <code><a href="commands/SetNumScrollCapsLockState.htm">SetNumLockState</a> AlwaysOn</code>.</p>
 <p><strong>Overriding Explorer's hotkeys:</strong> Windows' built-in hotkeys such as <kbd>Win</kbd>+<kbd>E</kbd> (#e) and <kbd>Win</kbd>+<kbd>R</kbd> (#r) can be individually overridden simply by assigning them to an action in the script. See the <a href="misc/Override.htm">override page</a> for details.</p>
-<p id="alttab"><strong>Substitutes for Alt-Tab:</strong> Hotkeys can provide an alternate means of alt-tabbing. For example, the following two hotkeys allow you to alt-tab with your right hand:</p>
+<p><strong>Substitutes for Alt-Tab:</strong> Hotkeys can provide an alternate means of alt-tabbing. For example, the following two hotkeys allow you to alt-tab with your right hand:</p>
 <pre>RControl &amp; RShift::AltTab  <em>; Hold down right-control then press right-shift repeatedly to move forward.</em>
 RControl &amp; Enter::ShiftAltTab  <em>; Without even having to release right-control, press Enter to reverse direction.</em></pre>
-<p>For more details, see <a href="#AltTabDetail">Alt-Tab</a>.</p>
+<p>For more details, see <a href="#alttab">Alt-Tab</a>.</p>
 
 <h2 id="Wheel">Mouse Wheel Hotkeys</h2>
 <p>Hotkeys that fire upon turning the mouse wheel are supported via the key names WheelDown and WheelUp. Here are some examples of mouse wheel hotkeys:</p>
@@ -242,12 +242,13 @@ return</pre>
 <p>One common use for hotkeys is to start and stop a repeating action, such as a series of keystrokes or mouse clicks. For an example of this, see <a href="FAQ.htm#repeat">this FAQ topic</a>.</p>
 <p>Finally, each script is <a href="misc/Threads.htm">quasi multi-threaded</a>, which allows a new hotkey to be launched even when a previous hotkey subroutine is still running. For example, new hotkeys can be launched even while a <a href="commands/MsgBox.htm">message box</a> is being displayed by the current hotkey.</p>
 
-<h2 id="AltTabDetail">Alt-Tab Hotkeys</h2>
-<p>Each Alt-Tab hotkey must be a combination of two keys, which is typically achieved via the ampersand symbol (&amp;). In the following example, you would hold down the right <kbd>Alt</kbd> and press <kbd>J</kbd> or <kbd>K</kbd> to navigate the alt-tab menu:</p>
+<h2 id="alttab"><span id="AltTabDetail"></span>Alt-Tab Hotkeys</h2>
+<p>Alt-Tab hotkeys simplify the mapping of new key combinations to the system's Alt-Tab hotkeys, which are used to invoke a menu for switching tasks (activating windows).</p>
+<p>Each Alt-Tab hotkey must be either a single key or a combination of two keys, which is typically achieved via the ampersand symbol (&amp;). In the following example, you would hold down the right <kbd>Alt</kbd> and press <kbd>J</kbd> or <kbd>K</kbd> to navigate the alt-tab menu:</p>
 <pre>RAlt &amp; j::AltTab
 RAlt &amp; k::ShiftAltTab</pre>
 <p><em>AltTab</em> and <em>ShiftAltTab</em> are two of the special commands that are only recognized when used on the same line as a hotkey. Here is the complete list:</p>
-<p><strong>AltTab</strong>: If the alt-tab menu is visible, move forward in it. Otherwise, display the menu (only if the hotkey is an "&amp;" combination of two keys; otherwise, it does nothing).</p>
+<p><strong>AltTab</strong>: If the alt-tab menu is visible, move forward in it. Otherwise, display the menu (only if the hotkey is a combination of two keys; otherwise, it does nothing).</p>
 <p><strong>ShiftAltTab</strong>: Same as above except move backward in the menu.</p>
 <p><strong>AltTabMenu</strong>: Show or hide the alt-tab menu.</p>
 <p><strong>AltTabAndMenu</strong>: If the alt-tab menu is visible, move forward in it. Otherwise, display the menu.</p>
@@ -256,20 +257,26 @@ RAlt &amp; k::ShiftAltTab</pre>
 <pre>MButton::AltTabMenu
 WheelDown::AltTab
 WheelUp::ShiftAltTab</pre>
-<p>To cancel a hotkey-invoked Alt-tab menu without activating the selected window, use a hotkey such as the following. It might require adjustment depending on: 1) the means by which the alt-tab menu was originally displayed; and 2) whether the script has the <a href="commands/_InstallKeybdHook.htm">keyboard hook</a> installed.</p>
+<p>To cancel the Alt-Tab menu without activating the selected window, press or send <kbd>Esc</kbd>. In the following example, you would hold <kbd>LCtrl</kbd> and press <kbd>CapsLock</kbd> to display the menu and advance forward in it. Then you would release <kbd>LCtrl</kbd> to activate the selected window, or press <kbd>MButton</kbd> to cancel. Define the <a href="#AltTabWindow">AltTabWindow</a> window group as shown below before running this example.</p>
 <pre>LCtrl &amp; CapsLock::AltTab
-<strong>!</strong>MButton::  <em>; Middle mouse button. The <strong>!</strong> prefix makes it fire while the Alt key is down (which it is if the alt-tab menu is visible).</em>
-if WinExist("ahk_class #32771")  <em>; Indicates that the alt-tab menu is present on the screen.</em>
-    Send <strong>!</strong>{Escape}{Alt up}
-return</pre>
+#IfWinExist ahk_group AltTabWindow  <em>; Indicates that the alt-tab menu is present on the screen.</em>
+*MButton::Send {Blind}{Escape}  <em>; The * prefix allows it to fire whether or not Alt is held down.</em>
+#If</pre>
+<p>If the script sent <code>{Alt Down}</code> (such as to invoke the Alt-Tab menu), it might also be necessary to send <code>{Alt Up}</code> as shown in the example further below.</p>
+
+<h3 id="AltTabRemarks">General Remarks</h3>
 <p>Currently, all special Alt-tab actions must be assigned directly to a hotkey as in the examples above (i.e. they cannot be used as though they were commands). They are <span class="red">not affected by <a href="commands/_IfWinActive.htm">#IfWin</a> or <a href="commands/_If.htm">#If</a></span>.</p>
-<p>Custom alt-tab actions can also be created via hotkeys. In the following example, you would press <kbd>F1</kbd> to display the menu and advance forward in it. Then you would press <kbd>F2</kbd> to activate the selected window (or press <kbd>Esc</kbd> to cancel):</p>
+<p id="AltTabWindow">Custom alt-tab actions can also be created via hotkeys. As the identity of the alt-tab menu differs between OS versions, it may be helpful to use a window group as shown below. For the examples above and below which use <code>ahk_group AltTabWindow</code>, this window group is expected to be defined in the <a href="Scripts.htm#auto">auto-execute</a> section. Alternatively, <code>ahk_group AltTabWindow</code> can be replaced with the appropriate <code>ahk_class</code> for your system.</p>
+<pre>GroupAdd AltTabWindow, ahk_class MultitaskingViewFrame  <em>; Windows 10</em>
+GroupAdd AltTabWindow, ahk_class TaskSwitcherWnd  <em>; Windows Vista, 7, 8.1</em>
+GroupAdd AltTabWindow, ahk_class #32771  <em>; Older, or with classic alt-tab enabled</em></pre>
+<p>In the following example, you would press <kbd>F1</kbd> to display the menu and advance forward in it. Then you would press <kbd>F2</kbd> to activate the selected window, or press <kbd>Esc</kbd> to cancel:</p>
 <pre>*F1::Send {Alt down}{tab} <em>; Asterisk is required in this case.</em>
 !F2::Send {Alt up}  <em>; Release the Alt key, which activates the selected window.</em>
-~*Escape::
-if WinExist("ahk_class #32771")
-    Send {Escape}{Alt up}  <em>; Cancel the menu without activating the selected window.</em>
-return</pre>
+#IfWinExist ahk_group AltTabWindow
+~*Esc::Send {Alt up}  <em>; When the menu is cancelled, release the Alt key automatically.
+;*Esc::Send {Esc}{Alt up}  ; Without tilde (~), Escape would need to be sent.</em>
+#If</pre>
 
 <h2 id="Function">Function Hotkeys <span class="ver">[v1.1.20+]</span></h2>
 <p>One or more hotkeys can be assigned a <a href="Functions.htm">function</a> by simply defining it immediately after the hotkey label as in this example:</p>
