@@ -87,8 +87,8 @@ for n, k_Row in k_Layout
 ; the position of the taskbar):
 MyGui.Show("Hide") ; Required to get the window's calculated width and height.
 ; Calculate window's X-position:
-MonitorGetWorkArea(k_Monitor, WL,, WR, WB)
-MyGui.GetPos(,, k_width, k_height)
+MonitorGetWorkArea(k_Monitor, &WL,, &WR, &WB)
+MyGui.GetPos(,, &k_width, &k_height)
 k_xPos := (WR - WL - k_width) / 2 ; Calculate position to center it horizontally.
 ; The following is done in case the window will be on a non-primary monitor
 ; or if the taskbar is anchored on the left side of the screen:

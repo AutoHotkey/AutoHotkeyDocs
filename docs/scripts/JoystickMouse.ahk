@@ -40,9 +40,9 @@ JoystickNumber := 1
 #SingleInstance
 
 JoystickPrefix := JoystickNumber "Joy"
-Hotkey JoystickPrefix . ButtonLeft, ButtonLeft
-Hotkey JoystickPrefix . ButtonRight, ButtonRight
-Hotkey JoystickPrefix . ButtonMiddle, ButtonMiddle
+Hotkey JoystickPrefix . ButtonLeft, ClickButtonLeft
+Hotkey JoystickPrefix . ButtonRight, ClickButtonRight
+Hotkey JoystickPrefix . ButtonMiddle, ClickButtonMiddle
 
 ; Calculate the axis displacements that are needed to start moving the cursor:
 JoyThresholdUpper := 50 + JoyThreshold
@@ -62,7 +62,7 @@ if InStr(JoyInfo, "P")  ; Joystick has POV control, so use it as a mouse wheel.
 ; WatchJoystick quasi-thread beneath the wait-for-button-up thread, which would
 ; effectively prevent mouse-dragging with the joystick.
 
-ButtonLeft(*)
+ClickButtonLeft(*)
 {
     SetMouseDelay -1  ; Makes movement smoother.
     MouseClick "Left",,, 1, 0, "D"  ; Hold down the left mouse button.
@@ -79,7 +79,7 @@ ButtonLeft(*)
     }
 }
 
-ButtonRight(*)
+ClickButtonRight(*)
 {
     SetMouseDelay -1  ; Makes movement smoother.
     MouseClick "Right",,, 1, 0, "D"  ; Hold down the right mouse button.
@@ -95,7 +95,7 @@ ButtonRight(*)
     }
 }
 
-ButtonMiddle(*)
+ClickButtonMiddle(*)
 {
     SetMouseDelay -1  ; Makes movement smoother.
     MouseClick "Middle",,, 1, 0, "D"  ; Hold down the right mouse button.

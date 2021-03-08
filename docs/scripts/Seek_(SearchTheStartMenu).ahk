@@ -289,7 +289,7 @@ FindMatches(thisCtrl, *)
             else
             {
                 ; Append matching records into the list:
-                SplitPath(Line, Name)
+                SplitPath(Line, &Name)
                 MatchFound := true
                 Loop Parse, SearchText, "`s"
                 {
@@ -372,7 +372,7 @@ OpenFolder(thisCtrl, *)
     ; scenario whereby LB.Text is invalid but the directory path of LB.Text is valid):
     if (DriveGetStatus(Path) != "Ready") ; not a directory
     {
-        SplitPath(Path,, Dir)
+        SplitPath(Path,, &Dir)
         Path := Dir
     }
 

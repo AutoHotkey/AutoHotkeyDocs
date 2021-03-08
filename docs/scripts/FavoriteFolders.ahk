@@ -64,6 +64,7 @@ else  ; Read the menu items directly from this script file.
 
 ;----Read the configuration file.
 AtStartingPos := false
+FileExt := ""
 Loop Read, FavoritesFile
 {
     if FileExt != "Exe"
