@@ -1,4 +1,4 @@
-#Requires AutoHotkey v2.0-a113
+#Requires AutoHotkey v2.0-a128
 if (A_PtrSize != 4)
 {
     MsgBox "This script only works with the 32-bit version of AutoHotkey."
@@ -74,18 +74,16 @@ word_pattern := "#\p{L}{2,}+(?!::)|"
     . "(?<![\p{L}\d_])\p{Lu}[\p{L}\d_]+\.[\p{L}\d_]+(?![\p{L}\d_])|"
     . "(?<![\p{L}\d_])[\p{L}\d_]{2,}('[\p{L}\d_]+)?(?![\p{L}\d_])"  ;(-\w+)*
 
-global index, files, filewords, files_map, titles_map, titles
-
 ScanFiles()
 
 ScanFiles()
 {
-    index := Map()
-    files := []
-    filewords := []
-    files_map := Map()
-    titles_map := Map()
-    titles := Map()
+    global index := Map()
+    global files := []
+    global filewords := []
+    global files_map := Map()
+    global titles_map := Map()
+    global titles := Map()
     
     Loop Files, "*.htm", "R"
     {
@@ -270,7 +268,7 @@ ScanFile(filename)
 ScanText(text, words, weight := 1)
 {
     p := 1
-    While p := RegExMatch(text, word_pattern, m, p)
+    While p := RegExMatch(text, word_pattern, &m, p)
     {
         m := StrLower(m.0)
         words[m] := (words.Has(m) ? words[m] : 0) + weight
