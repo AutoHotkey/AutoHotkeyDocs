@@ -1806,13 +1806,6 @@ function ctor_features()
           els.dec.push(out);
           return '<dec></dec>';
         });
-        // ByRef:
-        els.order.push('byref'); els.byref = [];
-        innerHTML = innerHTML.replace(/(.+?)\b(byref)\b(?=(.+?)\))/gim, function(_, PRE, BYREF) {
-          out = PRE + wrap(BYREF, 'cfs', 'Functions.htm#ByRef');
-          els.byref.push(out);
-          return '<byref></byref>';
-        });
         // directives:
         els.order.push('dir'); els.dir = [];
         innerHTML = innerHTML.replace(new RegExp('(' + syntax[0].single.join('|') + ')\\b($|[\\s,])(.*?)(?=<(?:em|sct)></(?:em|sct)>|$)', 'gim'), function(_, DIR, SEP, PARAMS) {
