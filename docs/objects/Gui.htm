@@ -559,13 +559,13 @@ MyGui.Add("Text",, "First name:")
 MyGui.Add("Text",, "Last name:")
 MyGui.Add("Edit", "vFirstName ym")  <em>; The ym option starts a new column of controls.</em>
 MyGui.Add("Edit", "vLastName")
-MyGui.Add("Button", "default", "OK").OnEvent("Click", (*) =&gt; ProcessUserInput(MyGui))
+MyGui.Add("Button", "default", "OK").OnEvent("Click", ProcessUserInput)
 MyGui.OnEvent("Close", ProcessUserInput)
 MyGui.Show()
 
-ProcessUserInput(thisGui, *)
+ProcessUserInput(*)
 {
-    Saved := thisGui.Submit()  <em>; Save the contents of named controls into an object.</em>
+    Saved := MyGui.Submit()  <em>; Save the contents of named controls into an object.</em>
     MsgBox("You entered '" Saved.FirstName " " Saved.LastName "'.")
 }</pre>
 </div>
@@ -582,14 +582,14 @@ Tab.UseTab(3)
 MyGui.Add("Edit", "vMyEdit r5")  <em>; r5 means 5 rows tall.</em>
 Tab.UseTab()  <em>; i.e. subsequently-added controls will not belong to the tab control.</em>
 Btn := MyGui.Add("Button", "default xm", "OK")  <em>; xm puts it at the bottom left corner.</em>
-Btn.OnEvent("Click", (*) =&gt; ProcessUserInput(MyGui))
+Btn.OnEvent("Click", ProcessUserInput)
 MyGui.OnEvent("Close", ProcessUserInput)
 MyGui.OnEvent("Escape", ProcessUserInput)
 MyGui.Show()
 
-ProcessUserInput(thisGui, *)
+ProcessUserInput(*)
 {
-    Saved := thisGui.Submit()  <em>; Save the contents of named controls into an object.</em>
+    Saved := MyGui.Submit()  <em>; Save the contents of named controls into an object.</em>
     MsgBox("You entered:`n" Saved.MyCheckbox "`n" Saved.MyRadio "`n" Saved.MyEdit)
 }</pre>
 </div>
@@ -598,20 +598,19 @@ ProcessUserInput(thisGui, *)
 <p><a class="ex_number" href="#ExListBox"></a> Creates a ListBox control containing files in a directory.</p>
 <pre>MyGui := Gui()
 MyGui.Add("Text",, "Pick a file to launch from the list below.")
-LB := MyGui.Add("ListBox", "w640 r10 vFile")
+LB := MyGui.Add("ListBox", "w640 r10")
 LB.OnEvent("DoubleClick", LaunchFile)
 Loop Files, "C:\*.*"  <em>; Change this folder and wildcard pattern to suit your preferences.</em>
     LB.Add([A_LoopFilePath])
 MyGui.Add("Button", "Default", "OK").OnEvent("Click", LaunchFile)
 MyGui.Show()
 
-LaunchFile(thisCtrl, *)
+LaunchFile(*)
 {
-    Saved := thisCtrl.Gui.Submit()
-    if MsgBox("Would you like to launch the file or document below?`n`n" Saved.File,, 4) = "No"
+    if MsgBox("Would you like to launch the file or document below?`n`n" LB.Text,, 4) = "No"
         return
     <em>; Otherwise, try to launch it:</em>
-    try Run(Saved.File)
+    try Run(LB.Text)
     if A_LastError
         MsgBox("Could not launch the specified file. Perhaps it is not associated with anything.")
 }</pre>
@@ -660,14 +659,14 @@ MyGui.SetFont("s32")  <em>; Set a large font size (32-point).</em>
 CoordText := MyGui.Add("Text", "cLime", "XXXXX YYYYY")  <em>; XX &amp; YY serve to auto-size the window.
 ; Make all pixels of this color transparent and make the text itself translucent (150):</em>
 WinSetTransColor(MyGui.BackColor " 150", MyGui)
-SetTimer(() =&gt; UpdateOSD(CoordText), 200)
-UpdateOSD(CoordText)  <em>; Make the first update immediate rather than waiting for the timer.</em>
+SetTimer(UpdateOSD, 200)
+UpdateOSD()  <em>; Make the first update immediate rather than waiting for the timer.</em>
 MyGui.Show("x0 y400 NoActivate")  <em>; NoActivate avoids deactivating the currently active window.</em>
 
-UpdateOSD(GuiCtrl)
+UpdateOSD(*)
 {
     MouseGetPos &amp;MouseX, &amp;MouseY
-    GuiCtrl.Value := "X" MouseX ", Y" MouseY
+    CoordText.Value := "X" MouseX ", Y" MouseY
 }</pre>
 </div>
 
@@ -678,23 +677,21 @@ MyGui.BackColor := "White"
 MyGui.Add("Picture", "x0 y0 h350 w450", A_WinDir "\Web\Wallpaper\Windows\img0.jpg")
 MyBtn := MyGui.Add("Button", "Default xp+20 yp+250", "Start the Bar Moving")
 MyBtn.OnEvent("Click", MoveBar)
-MyGui.Add("Progress", "w416 vMyProgress")
-MyGui.Add("Text", "wp vMyText")  <em>; wp means "use width of previous".</em>
+MyProgress := MyGui.Add("Progress", "w416")
+MyText := MyGui.Add("Text", "wp")  <em>; wp means "use width of previous".</em>
 MyGui.Show()
 
-MoveBar(thisCtrl, *)
+MoveBar(*)
 {
-    ProgressCtrl := thisCtrl.Gui["MyProgress"]
-    TextCtrl := thisCtrl.Gui["MyText"]
     Loop Files, A_WinDir "\*.*"
     {
         if (A_Index &gt; 100)
             break
-        ProgressCtrl.Value := A_Index
-        TextCtrl.Value := A_LoopFileName
+        MyProgress.Value := A_Index
+        MyText.Value := A_LoopFileName
         Sleep 50
     }
-    TextCtrl.Value := "Bar finished."
+    MyText.Value := "Bar finished."
 }</pre>
 </div>
 
@@ -703,19 +700,17 @@ MoveBar(thisCtrl, *)
 <pre>MyGui := Gui("+Resize")
 MyBtn := MyGui.Add("Button", "default", "&amp;Load New Image")
 MyBtn.OnEvent("Click", LoadNewImage)
-MyGui.Add("Radio", "ym+5 x+10 checked vMyRadio", "Load &amp;actual size")
+MyRadio := MyGui.Add("Radio", "ym+5 x+10 checked", "Load &amp;actual size")
 MyGui.Add("Radio", "ym+5 x+10", "Load to &amp;fit screen")
-MyGui.Add("Pic", "xm vMyPic")
+MyPic := MyGui.Add("Pic", "xm")
 MyGui.Show()
 
-LoadNewImage(thisCtrl, *)
+LoadNewImage(*)
 {
-    RadioCtrl := thisCtrl.Gui["MyRadio"]
-    PicCtrl := thisCtrl.Gui["MyPic"]
     File := FileSelect(,, "Select an image:", "Images (*.gif; *.jpg; *.bmp; *.png; *.tif; *.ico; *.cur; *.ani; *.exe; *.dll)")
     if File = ""
         return
-    if RadioCtrl.Value = 1  <em>; Display image at its actual size.</em>
+    if (MyRadio.Value)  <em>; Display image at its actual size.</em>
     {
         Width := 0
         Height := 0
@@ -725,9 +720,9 @@ LoadNewImage(thisCtrl, *)
         Width := A_ScreenWidth - 28  <em>; Minus 28 to allow room for borders and margins inside.</em>
         Height := -1  <em>; "Keep aspect ratio" seems best.</em>
     }
-    PicCtrl.Value := Format("*w{1} *h{2} {3}", Width, Height, File)  <em>; Load the image.</em>
-    thisCtrl.Gui.Title := File
-    thisCtrl.Gui.Show("xCenter y0 AutoSize")  <em>; Resize the window to match the picture size.</em>
+    MyPic.Value := Format("*w{1} *h{2} {3}", Width, Height, File)  <em>; Load the image.</em>
+    MyGui.Title := File
+    MyGui.Show("xCenter y0 AutoSize")  <em>; Resize the window to match the picture size.</em>
 }</pre>
 </div>
 
@@ -803,7 +798,6 @@ MenuFileExit(*)  <em>; User chose "Exit" from the File menu.</em>
 
 MenuHelpAbout(*)
 {
-    global About
     About := Gui("+owner" MyGui.Hwnd)  <em>; Make the main window the owner of the "about box".</em>
     MyGui.Opt("+Disabled")  <em>; Disable main window.</em>
     About.Add("Text",, "Text for about box.")
@@ -811,6 +805,12 @@ MenuHelpAbout(*)
     About.OnEvent("Close", About_Close)
     About.OnEvent("Escape", About_Close)
     About.Show()
+
+    About_Close(*)
+    {
+        MyGui.Opt("-Disabled")  <em>; Re-enable the main window (must be done prior to the next step).</em>
+        About.Destroy()  <em>; Destroy the about box.</em>
+    }
 }
 
 readContent(FileName)
@@ -844,12 +844,6 @@ saveContent(FileName)
     <em>; Upon success, Show file name in title bar (in case we were called by MenuFileSaveAs):</em>
     MyGui.Title := FileName
     return FileName
-}
-
-About_Close(*)
-{
-    MyGui.Opt("-Disabled")  <em>; Re-enable the main window (must be done prior to the next step).</em>
-    About.Destroy()  <em>; Destroy the about box.</em>
 }
 
 Gui_DropFiles(thisGui, Ctrl, FileArray, *)  <em>; Support drag &amp; drop.</em>

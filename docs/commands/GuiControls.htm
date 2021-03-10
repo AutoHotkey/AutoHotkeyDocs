@@ -587,13 +587,11 @@ MyGui.Show()
 ButtonGo()
 
 ButtonGo(*) {
-    global
     WB.Navigate(URL.Value)
 }
 
 class WB_events {
     NavigateComplete2(wb, NewURL) {
-        global    
         URL.Value := NewURL  <em>; Update the URL edit control.</em>
     }
 }</pre>
@@ -607,37 +605,37 @@ MyGui.Add("Custom", "ClassScintilla")  <em>; Adds a <a href="https://scintilla.o
 <p><strong>Events</strong>: Since the meaning of each notification code depends on the control which sent it, <a href="../objects/GuiOnEvent.htm">OnEvent</a> is not supported for Custom controls. However, if the control sends notifications in the form of a WM_NOTIFY or WM_COMMAND message, the script can use <a href="../objects/GuiOnNotify.htm">OnNotify</a> or <a href="../objects/GuiOnCommand.htm">OnCommand</a> to detect them.</p>
 <p>Here is an example that shows how to add and use an <a href="http://msdn.microsoft.com/en-us/library/windows/desktop/bb761374.aspx">IP address control</a>:</p>
 <pre>MyGui := Gui()
-IP := MyGui.Add("Custom", "ClassSysIPAddress32 r1 w150 vIP")
+IP := MyGui.Add("Custom", "ClassSysIPAddress32 r1 w150")
 IP.OnCommand(0x300, IP_EditChange)  <em>; 0x300 = EN_CHANGE</em>
-IP.OnNotify(-860, IP_FieldChange)  <em>; -860 = IPN_FIELDCHANGED</em> 
-MyGui.Add("Text", "wp vIPText")
-MyGui.Add("Text", "wp y+m vIPField")
+IP.OnNotify(-860, IP_FieldChange)  <em>; -860 = IPN_FIELDCHANGED</em>
+IPText := MyGui.Add("Text", "wp")
+IPField := MyGui.Add("Text", "wp y+m")
 MyGui.Add("Button", "Default", "OK").OnEvent("Click", OK_Click)
 MyGui.Show()
 
 IPCtrlSetAddress(IP, SysGetIPAddresses()[1])
 
-OK_Click(this, *)
+OK_Click(*)
 {
-    this.Gui.Hide()
-    MsgBox("You chose " IPCtrlGetAddress(this.Gui["IP"]))
+    MyGui.Hide()
+    MsgBox("You chose " IPCtrlGetAddress(IP))
     ExitApp()
 }
 
-IP_EditChange(this)
+IP_EditChange(*)
 {
-    this.Gui["IPText"].Text := "New text: " this.Gui["IP"].Text
+    IPText.Text := "New text: " IP.Text
 }
 
-IP_FieldChange(this, NMIPAddress)
+IP_FieldChange(thisCtrl, NMIPAddress)
 {
     <em>; Extract info from the NMIPAddress structure.</em>
     iField := NumGet(NMIPAddress, 3*A_PtrSize + 0, "int")
     iValue := NumGet(NMIPAddress, 3*A_PtrSize + 4, "int")
     if (iValue &gt;= 0)
-        this.Gui["IPField"].Text := "Field #" iField " modified: " iValue
+        IPField.Text := "Field #" iField " modified: " iValue
     else
-        this.Gui["IPField"].Text := "Field #" iField " left empty"
+        IPField.Text := "Field #" iField " left empty"
 }
 
 IPCtrlSetAddress(GuiCtrl, IPAddress)

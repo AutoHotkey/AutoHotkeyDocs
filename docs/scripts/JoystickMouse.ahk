@@ -52,11 +52,11 @@ if InvertYAxis
 else
     YAxisMultiplier := 1
 
-SetTimer "WatchJoystick", 10  ; Monitor the movement of the joystick.
+SetTimer WatchJoystick, 10  ; Monitor the movement of the joystick.
 
 JoyInfo := GetKeyState(JoystickNumber "JoyInfo")
 if InStr(JoyInfo, "P")  ; Joystick has POV control, so use it as a mouse wheel.
-    SetTimer "MouseWheel", WheelDelay
+    SetTimer MouseWheel, WheelDelay
 
 ; The functions below do not use KeyWait because that would sometimes trap the
 ; WatchJoystick quasi-thread beneath the wait-for-button-up thread, which would
@@ -66,7 +66,7 @@ ClickButtonLeft(*)
 {
     SetMouseDelay -1  ; Makes movement smoother.
     MouseClick "Left",,, 1, 0, "D"  ; Hold down the left mouse button.
-    SetTimer "WaitForLeftButtonUp", 10
+    SetTimer WaitForLeftButtonUp, 10
     
     WaitForLeftButtonUp()
     {
@@ -83,7 +83,7 @@ ClickButtonRight(*)
 {
     SetMouseDelay -1  ; Makes movement smoother.
     MouseClick "Right",,, 1, 0, "D"  ; Hold down the right mouse button.
-    SetTimer "WaitForRightButtonUp", 10
+    SetTimer WaitForRightButtonUp, 10
     
     WaitForRightButtonUp()
     {
@@ -99,7 +99,7 @@ ClickButtonMiddle(*)
 {
     SetMouseDelay -1  ; Makes movement smoother.
     MouseClick "Middle",,, 1, 0, "D"  ; Hold down the right mouse button.
-    SetTimer "WaitForMiddleButtonUp", 10
+    SetTimer WaitForMiddleButtonUp, 10
     
     WaitForMiddleButtonUp()
     {

@@ -6,7 +6,7 @@
 ; buttons be referred to by their original names.
 
 #SingleInstance
-SetTimer "ChangeButtonNames", 50
+SetTimer ChangeButtonNames, 50
 Result := MsgBox("Choose a button:", "Add or Delete", 4)
 if Result = "Yes"
     MsgBox "You chose Add."

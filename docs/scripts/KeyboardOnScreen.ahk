@@ -34,7 +34,7 @@ MyGui.MarginY := 0, MyGui.MarginX := 0
 
 ;---- Alter the tray icon menu:
 A_TrayMenu.Delete
-A_TrayMenu.Add k_MenuItemHide, (*) => k_ShowHide(MyGui, k_MenuItemHide, k_MenuItemShow)
+A_TrayMenu.Add k_MenuItemHide, k_ShowHide
 A_TrayMenu.Add "&Exit", (*) => ExitApp()
 A_TrayMenu.Default := k_MenuItemHide
 
@@ -108,19 +108,19 @@ k_KeyPress(BtnCtrl, *)
     ControlClick(, BtnCtrl,,,, "U")
 }
 
-k_ShowHide(GuiObj, HideText, ShowText)
+k_ShowHide(*)
 {
     static isVisible := true
     if isVisible
     {
-        GuiObj.Hide
-        A_TrayMenu.Rename HideText, ShowText
+        MyGui.Hide
+        A_TrayMenu.Rename k_MenuItemHide, k_MenuItemShow
         isVisible := false
     }
     else
     {
-        GuiObj.Show
-        A_TrayMenu.Rename ShowText, HideText
+        MyGui.Show
+        A_TrayMenu.Rename k_MenuItemShow, k_MenuItemHide
         isVisible := true
     }
 }
