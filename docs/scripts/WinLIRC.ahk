@@ -25,7 +25,7 @@
 ; signal. The following setting solves this by ignoring repeated signals
 ; until the specified time has passed. 200 is often a good setting.  Set it
 ; to 0 to disable this feature.
-global g_DelayBetweenButtonRepeats := 200
+g_DelayBetweenButtonRepeats := 200
 
 ; Specify the path to WinLIRC, such as C:\WinLIRC\winlirc.exe
 WinLIRC_Path := A_ProgramFiles "\WinLIRC\winlirc.exe"

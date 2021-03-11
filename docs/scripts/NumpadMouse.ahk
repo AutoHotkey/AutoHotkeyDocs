@@ -76,18 +76,18 @@ o------------------------------------------------------------o
 ; Hook hotkeys are smart enough to ignore such keystrokes.
 #UseHook
 
-global g_MouseSpeed := 1
-global g_MouseAccelerationSpeed := 1
-global g_MouseMaxSpeed := 5
+g_MouseSpeed := 1
+g_MouseAccelerationSpeed := 1
+g_MouseMaxSpeed := 5
 
 ;Mouse wheel speed is also set on Control Panel. As that
 ;will affect the normal mouse behavior, the real speed of
 ;these three below are times the normal mouse wheel speed.
-global g_MouseWheelSpeed := 1
-global g_MouseWheelAccelerationSpeed := 1
-global g_MouseWheelMaxSpeed := 5
+g_MouseWheelSpeed := 1
+g_MouseWheelAccelerationSpeed := 1
+g_MouseWheelMaxSpeed := 5
 
-global g_MouseRotationAngle := 0
+g_MouseRotationAngle := 0
 
 ;END OF CONFIG SECTION
 
@@ -96,8 +96,8 @@ global g_MouseRotationAngle := 0
 ;screen.
 #InstallKeybdHook
 
-global g_Temp := 0
-global g_Temp2 := 0
+g_Temp := 0
+g_Temp2 := 0
 
 ;Divide by 45° because MouseMove only supports whole numbers,
 ;and changing the mouse rotation to a number lesser than 45°
@@ -106,20 +106,20 @@ global g_Temp2 := 0
 ;For example: 22.5° when pressing NumpadUp:
 ;  First it would move upwards until the speed
 ;  to the side reaches 1.
-global g_MouseRotationAnglePart := g_MouseRotationAngle / 45
+g_MouseRotationAnglePart := g_MouseRotationAngle / 45
 
-global g_MouseCurrentAccelerationSpeed := 0
-global g_MouseCurrentSpeed := g_MouseSpeed
-global g_MouseCurrentSpeedToDirection := 0
-global g_MouseCurrentSpeedToSide := 0
+g_MouseCurrentAccelerationSpeed := 0
+g_MouseCurrentSpeed := g_MouseSpeed
+g_MouseCurrentSpeedToDirection := 0
+g_MouseCurrentSpeedToSide := 0
 
-global g_MouseWheelCurrentAccelerationSpeed := 0
-global g_MouseWheelCurrentSpeed := g_MouseSpeed
-global g_MouseWheelAccelerationSpeedReal := 0
-global g_MouseWheelMaxSpeedReal := 0
-global g_MouseWheelSpeedReal := 0
+g_MouseWheelCurrentAccelerationSpeed := 0
+g_MouseWheelCurrentSpeed := g_MouseSpeed
+g_MouseWheelAccelerationSpeedReal := 0
+g_MouseWheelMaxSpeedReal := 0
+g_MouseWheelSpeedReal := 0
 
-global g_Button := 0
+g_Button := 0
 
 SetKeyDelay -1
 SetMouseDelay -1
@@ -656,7 +656,7 @@ EndMouseCurrentSpeedToSideCalculation()
         MouseMove g_Temp, g_Temp2, 0, "R"
     }
 
-    SetTimer "ButtonAccelerationEnd", 10
+    SetTimer ButtonAccelerationEnd, 10
 }
 
 ButtonAccelerationEnd()
@@ -808,7 +808,7 @@ ButtonWheelAccelerationStart()
     else if g_Button = "NumpadAdd"
         MouseClick "WheelDown",,, g_MouseWheelCurrentSpeed, 0, "D"
 
-    SetTimer "ButtonWheelAccelerationEnd", 100
+    SetTimer ButtonWheelAccelerationEnd, 100
 }
 
 ButtonWheelAccelerationEnd()

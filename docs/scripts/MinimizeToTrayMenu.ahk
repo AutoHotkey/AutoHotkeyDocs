@@ -10,17 +10,17 @@
 
 ; This is the maximum number of windows to allow to be hidden (having a
 ; limit helps performance):
-global g_MaxWindows := 50
+g_MaxWindows := 50
 
 ; This is the hotkey used to hide the active window:
-global g_Hotkey := "#h"  ; Win+H
+g_Hotkey := "#h"  ; Win+H
 
 ; This is the hotkey used to unhide the last hidden window:
-global g_UnHotkey := "#u"  ; Win+U
+g_UnHotkey := "#u"  ; Win+U
 
 ; If you prefer to have the tray menu empty of all the standard items,
 ; such as Help and Pause, use False. Otherwise, use True:
-global g_StandardMenu := false
+g_StandardMenu := false
 
 ; These next few performance settings help to keep the action within the
 ; #HotkeyModifierTimeout period, and thus avoid the need to release and
@@ -36,8 +36,8 @@ SetKeyDelay 0
 ; END OF CONFIGURATION SECTION (do not make changes below this point
 ; unless you want to change the basic functionality of the script).
 
-global g_WindowIDs := []
-global g_WindowTitles := []
+g_WindowIDs := []
+g_WindowTitles := []
 
 Hotkey g_Hotkey, Minimize
 Hotkey g_UnHotkey, UnMinimize
@@ -56,7 +56,7 @@ else
 A_TrayMenu.Add "&Unhide All Hidden Windows", RestoreAll
 A_TrayMenu.Add  ; Another separator line to make the above more special.
 
-global g_MaxLength := 260  ; Reduce this to restrict the width of the menu.
+g_MaxLength := 260  ; Reduce this to restrict the width of the menu.
 
 Minimize(*)
 {

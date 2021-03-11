@@ -503,7 +503,7 @@ B2 := MyGui.Add("Button", "x+20", "Clear List")
 B3 := MyGui.Add("Button", "x+20", "Switch View")
 
 <em>; Create the ListView and its columns via <a href="#GuiAdd">MyGui.Add</a>:</em>
-LV := MyGui.Add("ListView", "xm r20 w700 vLV", ["Name","In Folder","Size (KB)","Type"])
+LV := MyGui.Add("ListView", "xm r20 w700", ["Name","In Folder","Size (KB)","Type"])
 <a href="#ModifyCol">LV.ModifyCol</a>(3, "Integer")  <em>; For sorting, indicate that the Size column is an integer.</em>
 
 <em>; Create an ImageList so that the ListView can display some icons:</em>
@@ -517,7 +517,7 @@ LV.SetImageList(ImageListID2)
 <em>; Apply control events:</em>
 LV.OnEvent("<a href="../objects/GuiOnEvent.htm#DoubleClick">DoubleClick</a>", RunFile)
 LV.OnEvent("<a href="../objects/GuiOnEvent.htm#Ctrl-ContextMenu">ContextMenu</a>", ShowContextMenu)
-B1.OnEvent("Click", LoadFolder.bind(ImageListID1, ImageListID2))
+B1.OnEvent("Click", LoadFolder)
 B2.OnEvent("Click", (*) =&gt; <a href="#Delete">LV.Delete</a>())
 B3.OnEvent("Click", SwitchView)
 
@@ -527,11 +527,10 @@ MyGui.OnEvent("Size", Gui_Size)
 <em>; Display the window:</em>
 MyGui.Show()
 
-LoadFolder(ImageListID1, ImageListID2, this, *)
+LoadFolder(*)
 {
     static IconMap := Map()
-    local LV := this.Gui["LV"]  <em>; Not strictly necessary in this case since the global LV is available.</em>
-    this.Gui.Opt("+OwnDialogs")  <em>; Forces user to dismiss the following dialog before using main window.</em>
+    MyGui.Opt("+OwnDialogs")  <em>; Forces user to dismiss the following dialog before using main window.</em>
     Folder := DirSelect(, 3, "Select a folder to read:")
     if not Folder  <em>; The user canceled the dialog.</em>
         return
@@ -605,10 +604,9 @@ LoadFolder(ImageListID1, ImageListID2, this, *)
     LV.ModifyCol(3, 60)  <em>; Make the Size column at little wider to reveal its header.</em>
 }
 
-SwitchView(this, *)
+SwitchView(*)
 {
     static IconView := false
-    local LV := this.Gui["LV"]
     if not IconView
         LV.Opt("+Icon")        <em>; Switch to icon view.</em>
     else
@@ -665,12 +663,12 @@ ShowContextMenu(LV, Item, IsRightClick, X, Y)  <em>; In response to right-click 
     }
 }
 
-Gui_Size(this, MinMax, Width, Height)  <em>; Expand/Shrink ListView in response to the user's resizing.</em>
+Gui_Size(thisGui, MinMax, Width, Height)  <em>; Expand/Shrink ListView in response to the user's resizing.</em>
 {
     if MinMax = -1  <em>; The window has been minimized. No action needed.</em>
         return
     <em>; Otherwise, the window has been resized or maximized. Resize the ListView to match.</em>
-    this["LV"].Move(,, Width - 20, Height - 40)
+    LV.Move(,, Width - 20, Height - 40)
 }</pre>
 
 </div>

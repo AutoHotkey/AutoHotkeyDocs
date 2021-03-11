@@ -52,21 +52,21 @@ Specify which program to use when opening a directory. If the program cannot
 be found or is not specified (i.e. variable is unassigned or assigned
 a null value), the default Explorer will be used.
 */
-global g_dirExplorer := "E:\utl\xplorer2_lite\xplorer2.exe"
+g_dirExplorer := "E:\utl\xplorer2_lite\xplorer2.exe"
 
 /*
 User's customised list of additional directories to be included in the
 scanning. The full path must not be enclosed by quotes or double-quotes.
 If this file is missing, only the default directories will be scanned.
 */
-global g_SeekMyDir := A_ScriptDir "\Seek.dir"
+g_SeekMyDir := A_ScriptDir "\Seek.dir"
 
 /*
 Specify the filename and directory location to save the cached directory/program
 listing and the cached key word/phrase of the last search.
 There is no need to change this unless you want to.
 */
-global g_saveFile := A_Temp "\_Seek.ini"
+g_saveFile := A_Temp "\_Seek.ini"
 
 /*
 Track search string (True/False)
@@ -75,20 +75,20 @@ string the next time you run Seek. If false, the last-used query string will
 not be tracked and there will not be a default query string value the
 next time you run Seek.
 */
-global g_TrackKeyPhrase := True
+g_TrackKeyPhrase := True
 
 /*
 Specify what should be included in scan.
  F: Files are included.
  D: Directories are included.
 */
-global g_ScanMode := "FD"
+g_ScanMode := "FD"
 
 ; Init:
 ; #NoTrayIcon
 
 ; Define the script title:
-global g_ScriptTitle := "Seek - Search the Start Menu"
+g_ScriptTitle := "Seek - Search the Start Menu"
 
 ; Display the help instructions:
 if (A_Args.Length && A_Args[1] ~= "^(--help|-help|/h|-h|/\?|-\?)$")
@@ -138,23 +138,28 @@ if (A_Args.Length && A_Args[1] = "-scex")
 G := Gui(, g_ScriptTitle)
 
 ; Add the text box for user to enter the query string:
-G.Add("Edit", "W600 vE_Search").OnEvent("Change", FindMatches)
+E_Search := G.Add("Edit", "W600")
+E_Search.OnEvent("Change", FindMatches)
 if g_TrackKeyPhrase
-    try G["E_Search"].Value := IniRead(g_saveFile, "LastSession", "SearchText")
+    try E_Search.Value := IniRead(g_saveFile, "LastSession", "SearchText")
 
 ; Add my fav tagline:
 G.Add("Text", "X625 Y10", "What do you seek, my friend?")
 
 ; Add the status bar for providing feedback to user:
-G.Add("Text", "X10 Y31 R1 W764 vT_Info")
+T_Info := G.Add("Text", "X10 Y31 R1 W764")
 
 ; Add the selection listbox for displaying search results:
-G.Add("ListBox", "X10 Y53 R28 W764 HScroll Disabled vLB").OnEvent("DoubleClick", OpenTarget)
+LB := G.Add("ListBox", "X10 Y53 R28 W764 HScroll Disabled")
+LB.OnEvent("DoubleClick", OpenTarget)
 
 ; Add these buttons, but disable them for now:
-G.Add("Button", "Default X10 Y446 Disabled vB1", "Open").OnEvent("Click", OpenTarget)
-G.Add("Button", "X59 Y446 Disabled vB2", "Open Directory").OnEvent("Click", OpenFolder)
-G.Add("Button", "X340 Y446 vB3", "Scan Start-Menu").OnEvent("Click", ScanStartMenu)
+B1 := G.Add("Button", "Default X10 Y446 Disabled", "Open")
+B1.OnEvent("Click", OpenTarget)
+B2 := G.Add("Button", "X59 Y446 Disabled", "Open Directory")
+B2.OnEvent("Click", OpenFolder)
+B3 := G.Add("Button", "X340 Y446", "Scan Start-Menu")
+B3.OnEvent("Click", ScanStartMenu)
 
 ; Add the Exit button:
 G.Add("Button", "X743 Y446", "Exit").OnEvent("Click", (*) => Gui_Close(G))
@@ -168,27 +173,21 @@ G.Show("Center")
 
 ; Force re-scanning if -scan is enabled or listing cache file does not exist:
 if (A_Args.Length && A_Args[1] = "-scan" || !FileExist(g_saveFile))
-    ScanStartMenu(G["LB"])
+    ScanStartMenu()
 
 ; Retrieve an set the matching list:
-FindMatches(G["LB"])
+FindMatches()
 
 ; Retrieve the last selection from cache file and select the item:
 if g_TrackKeyPhrase
     try if (LastSelection := IniRead(g_saveFile, "LastSession", "Selection"))
-        G["LB"].Choose(LastSelection)
+        LB.Choose(LastSelection)
 
 ; Function definitions ---
 
 ; Scan the start-menu and store the directory/program listings in a cache file:
-ScanStartMenu(thisCtrl, *)
+ScanStartMenu(*)
 {
-    T_Info := thisCtrl.Gui["T_Info"]
-    LB := thisCtrl.Gui["LB"]
-    B1 := thisCtrl.Gui["B1"]
-    B2 := thisCtrl.Gui["B2"]
-    B3 := thisCtrl.Gui["B3"]
-
     ; Inform user that scanning has started:
     T_Info.Value := "Scanning directory listing..."
 
@@ -211,7 +210,7 @@ ScanStartMenu(thisCtrl, *)
     B3.Enabled := true
     
     ; Filter for search string with the new listing:
-    FindMatches(thisCtrl)
+    FindMatches()
 }
 
 ; Retrieve and save the start menu files:
@@ -254,32 +253,21 @@ SaveFileList()
 }
 
 ; Search and display all matching records in the listbox:
-FindMatches(thisCtrl, *)
+FindMatches(*)
 {
     FileArray := []
-    E_Search := thisCtrl.Gui["E_Search"]
-    LB := thisCtrl.Gui["LB"]
-    B1 := thisCtrl.Gui["B1"]
-    B2 := thisCtrl.Gui["B2"]
     SearchText := E_Search.Value
     ; Filter matching records based on user query string:
     if SearchText
     {
-        Loop
-        {
-            try
-            {
-                Location := IniRead(g_saveFile, "LocationList", "L" A_Index)
-                L%A_Index% := Location
-            }
-            catch
-                break
-        }
+        L := Map()
+        while (Location := IniRead(g_saveFile, "LocationList", "L" A_Index, ""))
+            L[A_Index] := Location
         Loop Parse, IniRead(g_saveFile, "FileList"), "`n"
         {
             Line := A_LoopField
-            if RegExMatch(Line, "%(L\d+)%", &m) ; Replace %L_n% with location paths.
-                Line := StrReplace(Line, "%" m[1] "%", %m[1]%)
+            if RegExMatch(Line, "%L(\d+)%", &m) ; Replace %L1% etc. with location paths.
+                Line := StrReplace(Line, "%L" m[1] "%", L[Integer(m[1])])
             if (SearchText != E_Search.Value)
             {
                 ; User has changed the search string.
@@ -289,7 +277,7 @@ FindMatches(thisCtrl, *)
             else
             {
                 ; Append matching records into the list:
-                SplitPath(Line, Name)
+                SplitPath(Line, &Name)
                 MatchFound := true
                 Loop Parse, SearchText, "`s"
                 {
@@ -328,9 +316,8 @@ FindMatches(thisCtrl, *)
 }
 
 ; User clicked on 'Open' button or pressed ENTER:
-OpenTarget(thisCtrl, *)
+OpenTarget(*)
 {
-    LB := thisCtrl.Gui["LB"]
     ; Selected record does not exist (file or directory not found):
     if !FileExist(LB.Text)
     {
@@ -348,7 +335,7 @@ OpenTarget(thisCtrl, *)
     ; Check whether the selected record is a file or directory:
     fileAttrib := FileGetAttrib(LB.Text)
     if InStr(fileAttrib, "D") ; is directory
-        OpenFolder(thisCtrl)
+        OpenFolder()
     else if fileAttrib ; is file
         Run(LB.Text)
     else
@@ -364,15 +351,15 @@ OpenTarget(thisCtrl, *)
 }
 
 ; User clicked on 'Open Directory' button:
-OpenFolder(thisCtrl, *)
+OpenFolder(*)
 {
-    Path := thisCtrl.Gui["LB"].Text
+    Path := LB.Text
     ; If user selected a file-record instead of a directory-record, extract the
     ; directory path (I'm using DriveGetStatus instead of FileGetAttrib to allow the
     ; scenario whereby LB.Text is invalid but the directory path of LB.Text is valid):
     if (DriveGetStatus(Path) != "Ready") ; not a directory
     {
-        SplitPath(Path,, Dir)
+        SplitPath(Path,, &Dir)
         Path := Dir
     }
 
@@ -398,13 +385,13 @@ OpenFolder(thisCtrl, *)
 }
 
 
-Gui_Close(thisGui)
+Gui_Close(*)
 {
     ; Save the key word/phrase for next run:
     if g_TrackKeyPhrase
     {
-        IniWrite(thisGui["E_Search"].Value, g_saveFile, "LastSession", "SearchText")
-        IniWrite(thisGui["LB"].Text, g_saveFile, "LastSession", "Selection")
+        IniWrite(E_Search.Value, g_saveFile, "LastSession", "SearchText")
+        IniWrite(LB.Text, g_saveFile, "LastSession", "Selection")
     }
     ExitApp
 }

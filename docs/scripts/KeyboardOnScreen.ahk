@@ -34,7 +34,7 @@ MyGui.MarginY := 0, MyGui.MarginX := 0
 
 ;---- Alter the tray icon menu:
 A_TrayMenu.Delete
-A_TrayMenu.Add k_MenuItemHide, (*) => k_ShowHide(MyGui, k_MenuItemHide, k_MenuItemShow)
+A_TrayMenu.Add k_MenuItemHide, k_ShowHide
 A_TrayMenu.Add "&Exit", (*) => ExitApp()
 A_TrayMenu.Default := k_MenuItemHide
 
@@ -87,8 +87,8 @@ for n, k_Row in k_Layout
 ; the position of the taskbar):
 MyGui.Show("Hide") ; Required to get the window's calculated width and height.
 ; Calculate window's X-position:
-MonitorGetWorkArea(k_Monitor, WL,, WR, WB)
-MyGui.GetPos(,, k_width, k_height)
+MonitorGetWorkArea(k_Monitor, &WL,, &WR, &WB)
+MyGui.GetPos(,, &k_width, &k_height)
 k_xPos := (WR - WL - k_width) / 2 ; Calculate position to center it horizontally.
 ; The following is done in case the window will be on a non-primary monitor
 ; or if the taskbar is anchored on the left side of the screen:
@@ -108,19 +108,19 @@ k_KeyPress(BtnCtrl, *)
     ControlClick(, BtnCtrl,,,, "U")
 }
 
-k_ShowHide(GuiObj, HideText, ShowText)
+k_ShowHide(*)
 {
     static isVisible := true
     if isVisible
     {
-        GuiObj.Hide
-        A_TrayMenu.Rename HideText, ShowText
+        MyGui.Hide
+        A_TrayMenu.Rename k_MenuItemHide, k_MenuItemShow
         isVisible := false
     }
     else
     {
-        GuiObj.Show
-        A_TrayMenu.Rename ShowText, HideText
+        MyGui.Show
+        A_TrayMenu.Rename k_MenuItemShow, k_MenuItemHide
         isVisible := true
     }
 }

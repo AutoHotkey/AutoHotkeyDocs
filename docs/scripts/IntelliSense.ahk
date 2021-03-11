@@ -10,19 +10,19 @@
 
 ; The hotkey below is pressed to display the current command's page in the
 ; help file:
-global g_HelpHotkey := "^F1"
+g_HelpHotkey := "^F1"
 
 ; The string below must exist somewhere in the active window's title for
 ; IntelliSense to be in effect while you're typing.  Make it blank to have
 ; IntelliSense operate in all windows.  Make it Pad to have it operate in
 ; editors such as Metapad, Notepad, and Textpad.  Make it .ahk to have it
 ; operate only when a .ahk file is open in Notepad, Metapad, etc.
-global g_Editor := ".ahk"
+g_Editor := ".ahk"
 
 ; If you wish to have a different icon for this script to distinguish it from
 ; other scripts in the tray, provide the filename below (leave blank to have
 ; no icon). For example: E:\stuff\Pics\icons\GeoIcons\Information.ico
-global g_Icon := ""
+g_Icon := ""
 
 ; END OF CONFIGURATION SECTION (do not make changes below this point unless
 ; you want to change the basic functionality of the script).
@@ -30,10 +30,11 @@ global g_Icon := ""
 SetKeyDelay 0
 #SingleInstance
 
-global g_ThisCmd := ""
-global g_HelpOn := ""
-global g_Cmds := []
-global g_FullCmds := []
+g_ThisCmd := ""
+g_HelpOn := ""
+g_Cmds := []
+g_FullCmds := []
+g_Word := ""
 
 if g_HelpHotkey != ""
     Hotkey g_HelpHotkey, HelpHotkey
@@ -61,7 +62,7 @@ catch  ; Not found, so look for it in some other common locations.
     }
 }
 
-global g_AhkHelpFile := ahk_dir "\AutoHotkey.chm"
+g_AhkHelpFile := ahk_dir "\AutoHotkey.chm"
 
 ; Read command syntaxes; can be found in AHK Basic, but it's outdated:
 Loop Read, ahk_dir "\Extras\Editors\Syntax\Commands.txt"
@@ -105,7 +106,7 @@ Loop
     
     ; Get all keys till endkey:
     Hook := Input("V", "{Enter}{Escape}{Space},")
-    Word := Hook.Input
+    g_Word := Hook.Input
     EndKey := Hook.EndKey
     
     ; ToolTip is hidden in these cases:
@@ -123,14 +124,14 @@ Loop
     }
 
     ; Compensate for any indentation that is present:
-    Word := StrReplace(Word, "`s")
-    Word := StrReplace(Word, "`t")
-    if Word = ""
+    g_Word := StrReplace(g_Word, "`s")
+    g_Word := StrReplace(g_Word, "`t")
+    if g_Word = ""
         Continue
     
     ; Check for commented line:
-    Check := SubStr(Word, 1, 1)
-    if (Check = ";" or Word = "If")  ; "If" seems a little too annoying to show tooltip for.
+    Check := SubStr(g_Word, 1, 1)
+    if (Check = ";" or g_Word = "If")  ; "If" seems a little too annoying to show tooltip for.
         Continue
 
     ; Match word with command:
@@ -139,7 +140,7 @@ Loop
     {
         ; The value put into g_ThisCmd is also used by the HelpHotkey function:
         g_ThisCmd := Cmd
-        if (Word = g_ThisCmd)
+        if (g_Word = g_ThisCmd)
         {
             Index := A_Index
             g_HelpOn := g_ThisCmd
@@ -195,7 +196,7 @@ HelpHotkey(*)
     }
 
     if g_ThisCmd = ""  ; Instead, use what was most recently typed.
-        g_ThisCmd := Word
+        g_ThisCmd := g_Word
 
     ; The above has set the "last found" window which we use below:
     WinActivate

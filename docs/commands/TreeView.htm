@@ -329,20 +329,20 @@ ImageListID := <a href="ListView.htm#IL_Create">IL_Create</a>(5)
 Loop 5 
     <a href="ListView.htm#IL_Add">IL_Add</a>(ImageListID, "shell32.dll", A_Index)
 <em>; Create a <a href="#GuiAdd">TreeView</a> and a ListView side-by-side to behave like Windows Explorer:</em>
-TV := <a href="#GuiAdd">MyGui.Add</a>("TreeView", "r20 w" TreeViewWidth " <a href="#ImageList">ImageList</a>" ImageListID " vTV")
-LV := MyGui.Add("ListView", "r20 w" ListViewWidth " x+10 vLV", ["Name","Modified"])
+TV := <a href="#GuiAdd">MyGui.Add</a>("TreeView", "r20 w" TreeViewWidth " <a href="#ImageList">ImageList</a>" ImageListID)
+LV := MyGui.Add("ListView", "r20 w" ListViewWidth " x+10", ["Name","Modified"])
 
 <em>; Create a <a href="GuiControls.htm#StatusBar">Status Bar</a> to give info about the number of files and their total size:</em>
-SB := MyGui.Add("StatusBar", "vSB")
+SB := MyGui.Add("StatusBar")
 <a href="GuiControls.htm#SB_SetParts">SB.SetParts</a>(60, 85)  <em>; Create three parts in the bar (the third part fills all the remaining width).</em>
 
 <em>; Add folders and their subfolders to the tree. Display the status in case loading takes a long time:</em>
-M := Gui("ToolWindow -SysMenu", "Loading the tree..."), M.Show()
-DirList := AddSubFoldersToTree(TV, TreeRoot, Map())
+M := Gui("ToolWindow -SysMenu Disabled AlwaysOnTop", "Loading the tree..."), M.Show("w200 h0")
+DirList := AddSubFoldersToTree(TreeRoot, Map())
 M.Hide()
 
 <em>; Call TV_ItemSelect whenever a new item is selected:</em>
-TV.OnEvent("ItemSelect", TV_ItemSelect.bind(DirList))
+TV.OnEvent("ItemSelect", TV_ItemSelect)
 
 <em>; Call Gui_Size whenever the window is resized:</em>
 MyGui.OnEvent("Size", Gui_Size)
@@ -355,7 +355,7 @@ LV.ModifyCol(2, Col2Width)
 <em>; Display the window. The OS will notify the script whenever the user performs an eligible action:</em>
 MyGui.Show
 
-AddSubFoldersToTree(TV, Folder, DirList, ParentItemID := 0)
+AddSubFoldersToTree(Folder, DirList, ParentItemID := 0)
 {
     <em>; This function adds to the TreeView all subfolders in the specified folder
     ; and saves their paths associated with an ID into an object for later use.
@@ -364,17 +364,14 @@ AddSubFoldersToTree(TV, Folder, DirList, ParentItemID := 0)
     {
         ItemID := <a href="#Add">TV.Add</a>(A_LoopFileName, ParentItemID, "Icon4")
         DirList[ItemID] := A_LoopFilePath
-        DirList := AddSubFoldersToTree(TV, A_LoopFilePath, DirList, ItemID)
+        DirList := AddSubFoldersToTree(A_LoopFilePath, DirList, ItemID)
     }
     return DirList
 }
 
-TV_ItemSelect(DirList, TV, Item)  <em>; This function is called when a new item is selected.</em>
+TV_ItemSelect(thisCtrl, Item)  <em>; This function is called when a new item is selected.</em>
 {
-    local
-    
     <em>; Put the files into the ListView:</em>
-    LV := TV.Gui["LV"]
     LV.Delete  <em>; Clear all rows.</em>
     LV.Opt("-Redraw")  <em>; Improve performance by disabling redrawing during load.</em>
     TotalSize := 0  <em>; Init prior to loop below.</em>
@@ -386,7 +383,6 @@ TV_ItemSelect(DirList, TV, Item)  <em>; This function is called when a new item 
     LV.Opt("+Redraw")
 
     <em>; Update the three parts of the status bar to show info about the currently selected folder:</em>
-    SB := TV.Gui["SB"]
     <a href="GuiControls.htm#SB_SetText">SB.SetText</a>(LV.GetCount() " files", 1)
     SB.SetText(Round(TotalSize / 1024, 1) " KB", 2)
     SB.SetText(DirList[Item], 3)
@@ -397,9 +393,9 @@ Gui_Size(thisGui, MinMax, Width, Height)  <em>; Expand/Shrink ListView and TreeV
     if MinMax = -1  <em>; The window has been minimized.  No action needed.</em>
         return
     <em>; Otherwise, the window has been resized or maximized. Resize the controls to match.</em>
-    thisGui["TV"].GetPos(,, TV_W)
-    thisGui["TV"].Move(,,, Height - 30)  <em>; -30 for StatusBar and margins.</em>
-    thisGui["LV"].Move(,, Width - TV_W - 30, Height - 30)
+    TV.GetPos(,, &amp;TV_W)
+    TV.Move(,,, Height - 30)  <em>; -30 for StatusBar and margins.</em>
+    LV.Move(,, Width - TV_W - 30, Height - 30)
 }</pre>
 
 </div>

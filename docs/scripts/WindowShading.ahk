@@ -9,14 +9,14 @@
 ; Set the height of a rolled up window here.  The operating system
 ; probably won't allow the title bar to be hidden regardless of
 ; how low this number is:
-global g_MinHeight := 25
+g_MinHeight := 25
 
 ; This line will unroll any rolled up windows if the script exits
 ; for any reason:
 OnExit ExitSub
 
-global IDs := Array()
-global Windows := Map()
+IDs := Array()
+Windows := Map()
 
 #z::  ; Change this line to pick a different hotkey.
 ; Below this point, no changes should be made unless you want to
