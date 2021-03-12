@@ -7,10 +7,10 @@
 ; window is active (Notepad and Word are used as examples here).
 
 ; You can set any title here for the menu:
-global g_MenuTitle := "-=-=-=-=-=-=-=-"
+g_MenuTitle := "-=-=-=-=-=-=-=-"
 
 ; This is how long the mouse button must be held to cause the menu to appear:
-global g_UMDelay := 20
+g_UMDelay := 20
 
 #SingleInstance
 
@@ -23,7 +23,7 @@ global g_UMDelay := 20
 
 ; Don't worry about the order, the menu will be sorted.
 
-global g_MenuItems := "Notepad/Calculator/Section 3/Section 4/Section 5"
+g_MenuItems := "Notepad/Calculator/Section 3/Section 4/Section 5"
 
 
 ;___________________________________________
@@ -32,7 +32,7 @@ global g_MenuItems := "Notepad/Calculator/Section 3/Section 4/Section 5"
 ; Syntax:
 ;     "MenuItem|Window title"
 
-global g_Dyn := [
+g_Dyn := [
     "MS Word|- Microsoft Word",
     "Notepad II|- Notepad",
 ]

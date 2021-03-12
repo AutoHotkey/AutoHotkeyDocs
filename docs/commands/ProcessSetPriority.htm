@@ -65,30 +65,30 @@ MsgBox "The newly launched Notepad's PID is " NewPID</pre>
 <p><a class="ex_number" href="#ExHotkey"></a> Press a hotkey to change the priority of the active window's process.</p>
 <pre>#z:: <em>; Win+Z hotkey</em>
 {
+    active_pid := WinGetPID("A")
+    active_title := WinGetTitle("A")
     MyGui := Gui(, "Set Priority")
     MyGui.Add("Text",, "
     (
         Press ESCAPE to cancel, or double-click a new
         priority level for the following window:
     )")
-    MyGui.Add("Text", "wp", WinGetTitle("A"))
-    LB := MyGui.Add("ListBox", "r5 vLB Choose1", ["Normal","High","Low","BelowNormal","AboveNormal"])
-    SetPriority := SetPriority.bind(WinGetPID("A"))
+    MyGui.Add("Text", "wp", active_title)
+    LB := MyGui.Add("ListBox", "r5 Choose1", ["Normal","High","Low","BelowNormal","AboveNormal"])
     LB.OnEvent("DoubleClick", SetPriority)
     MyGui.Add("Button", "default", "OK").OnEvent("Click", SetPriority)
     MyGui.OnEvent("Escape", (*) =&gt; MyGui.Destroy())
     MyGui.OnEvent("Close", (*) =&gt; MyGui.Destroy())
     MyGui.Show()
-}
 
-SetPriority(PID, this, *)
-{
-    LB := this.Gui["LB"]
-    if ProcessSetPriority(LB.Text, PID)
-        MsgBox "Success: Its priority was changed to '" LB.Text "'."
-    else
-        MsgBox "Error: Its priority could not be changed to '" LB.Text "'."
-    WinClose()
+    SetPriority(*)
+    {
+        MyGui.Destroy()
+        if ProcessSetPriority(LB.Text, active_pid)
+            MsgBox "Success: Its priority was changed to " LB.Text
+        else
+            MsgBox "Error: Its priority could not be changed to " LB.Text
+    }
 }</pre>
 </div>
 
