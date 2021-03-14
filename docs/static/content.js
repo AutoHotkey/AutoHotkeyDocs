@@ -1803,17 +1803,17 @@ function ctor_features()
         els.prp.push(out);
         return '<prp></prp>';
       });
+      // declaration: class ... extends
+      els.order.push('dec_cls'); els.dec_cls = [];
+      innerHTML = innerHTML.replace(/(^\s*)(class)(\s+\S+\s+)(extends)\b/gim, function(_, PRE, CLASS, INPUT, EXTENDS) {
+        var link = cache.index_data[syntax[5].dict['class']][1];
+        els.dec_cls.push(wrap(CLASS, 'dec', link));
+        els.dec_cls.push(wrap(EXTENDS, 'dec', link));
+        return PRE + '<dec_cls></dec_cls>' + INPUT + '<dec_cls></dec_cls>';
+      });
       // declarations:
       els.order.push('dec'); els.dec = [];
-      innerHTML = innerHTML.replace(new RegExp('(^\\s*)((' + syntax[5][0].join('|') + ') (\\S+) (' + syntax[5][1].join('|') + ') (\\S+)|(?:' + syntax[5].single.join('|') + ')\\b)', 'gim'), function(_, PRE, DEC, CLASS, INPUT1, EXTENDS, INPUT2) {
-        if (CLASS) {
-          var dec = cache.index_data[syntax[5].dict[(CLASS + ' ... ' + EXTENDS).toLowerCase()]];
-          if (dec)
-            out = PRE + wrap(CLASS, 'dec', dec[1]) + ' ' + INPUT1 + ' ' + wrap(EXTENDS, 'dec', dec[1]) + ' ' + INPUT2;
-          else
-            out = m;
-        }
-        else
+      innerHTML = innerHTML.replace(new RegExp('(^\\s*)(' + syntax[5].single.join('|') + ')\\b(?=\\s|$)', 'gim'), function(_, PRE, DEC) {
           out = PRE + wrap(DEC, 'dec', 5);
         els.dec.push(out);
         return '<dec></dec>';
