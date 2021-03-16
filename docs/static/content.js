@@ -1979,7 +1979,7 @@ function ctor_features()
       });
       // labels:
       els.order.push('lab'); els.lab = [];
-      innerHTML = innerHTML.replace(/^(\s*)([^\s{(]+?:)(?=\s|$)/mg, function(_, PRE, LABEL) {
+      innerHTML = innerHTML.replace(/^(\s*)([^\s{(]+?:)(?=\s*(<(em|sct)><\/(em|sct)>|$))/mg, function(_, PRE, LABEL) {
         out = PRE + wrap(LABEL, 'lab', null);
         els.lab.push(out);
         return '<lab></lab>';
