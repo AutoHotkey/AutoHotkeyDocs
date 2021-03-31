@@ -200,6 +200,7 @@ tocData = [
     ["Max","commands/Math.htm#Max"],
     ["Min","commands/Math.htm#Min"],
     ["Mod","commands/Math.htm#Mod"],
+    ["Number","commands/Number.htm"],
     ["Random","commands/Random.htm"],
     ["Round","commands/Math.htm#Round"],
     ["Sqrt","commands/Math.htm#Sqrt"],
