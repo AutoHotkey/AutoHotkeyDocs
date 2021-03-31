@@ -31,7 +31,7 @@ ul.list_of_p li { margin: 1em 0; }
 
 <p>See <a href="objects/index.htm">Built-in Classes</a> for a list of standard object types. There are two fundamental types:</p>
 <ul>
-  <li><strong>AutoHotkey objects</strong> are instances of the <a href="objects/Object.htm">Object</a> class. These support ad hoc properties and methods, and have methods for discovering which properties and methods exist. <a href="objects/Array.htm">Array</a>, <a href="objects/Map.htm">Map</a> and all user defined and built-in classes are derived from Object.</li>
+  <li><strong>AutoHotkey objects</strong> are instances of the <a href="objects/Object.htm">Object</a> class. These support ad hoc properties, and have methods for discovering which properties exist. <a href="objects/Array.htm">Array</a>, <a href="objects/Map.htm">Map</a> and all user defined and built-in classes are derived from Object.</li>
   <li><strong>COM objects</strong> such as those created by <a href="commands/ComObjCreate.htm">ComObjCreate</a>. These are implemented by external libraries, so often differ in behaviour to AutoHotkey objects. ComObject typically represents a COM or "Automation" object implementing the <a href="https://docs.microsoft.com/windows/desktop/api/oaidl/nn-oaidl-idispatch">IDispatch interface</a>, but is also used to <a href="commands/ComObject.htm">wrap values of specific types</a> to be passed to COM objects and functions.</li>
 </ul>
 
@@ -93,7 +93,7 @@ For value in MyArray
     MsgBox key ' = ' value</pre>
 
 <h3 id="Usage_Objects">Objects</h3>
-<p>An object can have <em>properties</em>, <em>methods</em> and <em>items</em> (such as array elements). Items are accessed using <code>[]</code> as shown in the previous sections. Properties and methods are usually accessed by writing a dot followed by an identifier (just a <a href="Concepts.htm#names">name</a>).</p>
+<p>An object can have <em>properties</em> and <em>items</em> (such as array elements). Items are accessed using <code>[]</code> as shown in the previous sections. Properties are usually accessed by writing a dot followed by an identifier (just a <a href="Concepts.htm#names">name</a>). <em>Methods</em> are properties which can be called.</p>
 <p><strong>Examples:</strong></p>
 <p>Retrieve or set a property literally named <em>Property</em>:</p>
 <pre>Value := Object.Property</pre>
@@ -101,11 +101,11 @@ For value in MyArray
 <p>Retrieve or set a property where the name is determined by evaluating an <a href="Language.htm#expressions">expression</a> or <a href="Concepts.htm#variables">variable</a>:</p>
 <pre>Value := Object.%Expression%</pre>
 <pre>Object.%Expression% := Value</pre>
-<p>Call a method literally named <em>Method</em>:</p>
+<p>Call a property/method literally named <em>Method</em>:</p>
 <pre>ReturnValue := Object.Method(Parameters)</pre>
-<p>Call a method where the name is determined by evaluating an expression or variable:</p>
+<p>Call a property/method where the name is determined by evaluating an expression or variable:</p>
 <pre>ReturnValue := Object.%Expression%(Parameters)</pre>
-<p>Some properties can accept parameters:</p>
+<p>Sometimes parameters are accepted when retrieving or assigning properties:</p>
 <pre>Value := Object.Property[Parameters]
 Object.Property[Parameters] := Value</pre>
 <p>In fact, the array indexing syntax <code>MyArray[Index]</code> actually invokes the <a href="#__Item">__Item</a> property of <code>MyArray</code>, passing <code>Index</code> as a parameter.</p>
@@ -174,14 +174,14 @@ MsgBox gridtext
 <h2 id="Custom_Objects">Custom Objects</h2>
 <p>There are two general ways to create custom objects:</p>
 <ul>
-  <li><em>Ad hoc</em>: create an object and add properties and methods.</li>
-  <li><em>Delegation</em>: define properties and methods in a shared <em>base object</em> or class.</li>
+  <li><em>Ad hoc</em>: create an object and add properties.</li>
+  <li><em>Delegation</em>: define properties in a shared <em>base object</em> or class.</li>
 </ul>
 <p><a href="#Meta_Functions">Meta-functions</a> can be used to further control how an object behaves.</p>
 <p class="note"><strong>Note:</strong> Within this section, an <em>object</em> is any instance of the <a href="objects/Object.htm">Object</a> class. This section does not apply to COM objects.</p>
 
 <h3 id="ad-hoc">Ad Hoc</h3>
-<p>Properties and methods can generally be added to new objects at any time. For example, an object with one property and one method might be constructed like this:</p>
+<p>Properties and methods (callable properties) can generally be added to new objects at any time. For example, an object with one property and one method might be constructed like this:</p>
 <pre><em>; Create an object.</em>
 thing := {}
 <em>; Store a value.</em>
@@ -195,10 +195,12 @@ thing_test(this) {
     MsgBox this.foo
 }</pre>
 <p>When <code>thing.test()</code> is called, <i>thing</i> is automatically inserted at the beginning of the parameter list. By convention, the function is named by combining the "type" of object and the method name, but this is not a requirement.</p>
+<p>In the example above, <em>test</em> could be assigned some other function or value after it is defined, in which case the original function is lost and cannot be called via this property. An alternative is to define a read-only method, as shown below:</p>
+<pre>thing.DefineProp 'test', {call: thing_test}</pre>
 <p>See also: <a href="objects/Object.htm#DefineProp">DefineProp</a></p>
 
 <h3 id="delegation">Delegation</h3>
-<p>Objects are <em>prototype-based</em>. That is, any properties or methods not defined in the object itself can instead be defined in the object's <a href="objects/Object.htm#Base">base</a>. This is known as <em>inheritance by delegation</em> or <em>differential inheritance</em>, because an object can implement only the parts that make it different, while delegating the rest to its base.</p>
+<p>Objects are <em>prototype-based</em>. That is, any properties not defined in the object itself can instead be defined in the object's <a href="objects/Object.htm#Base">base</a>. This is known as <em>inheritance by delegation</em> or <em>differential inheritance</em>, because an object can implement only the parts that make it different, while delegating the rest to its base.</p>
 <p>Although a base object is also generally known as a prototype, we use "a class's <a href="objects/Class.htm#Prototype">Prototype</a>" to mean the object upon which every instance of the class is based, and "base" to mean the object upon which an instance is based.</p>
 <p class="note">AutoHotkey's object design was influenced primarily by JavaScript and Lua, with a little C#. We use <code><i>obj</i>.base</code> in place of JavaScript's <code><i>obj</i>.__proto__</code> and <code><i>cls</i>.Prototype</code> in place of JavaScript's <code><i>func</i>.prototype</code>. (Class objects are used in place of constructor functions.)</p>
 
@@ -222,10 +224,10 @@ other.test()</pre>
 <h3 id="Custom_Classes">Classes</h3>
 <blockquote>In object-oriented programming, a class is an extensible program-code-template for creating objects, providing initial values for state (member variables) and implementations of behavior (member functions or methods).
 <a href="https://en.wikipedia.org/wiki/Class_(computer_programming)" class="source">Wikipedia</a></blockquote>
-<p>In more general terms, a <em>class</em> is a set or category of things having some property or attribute in common. In AutoHotkey, a <code>class</code> defines properties and methods to be shared by instances of the class. An <em>instance</em> is just an object which inherits properties and methods from the class, and can typically also be identified as belonging to that class (such as with the expression <code><i>instance</i> is <i>ClassName</i></code>). Instances are typically created by calling <a href="objects/Class.htm#Call"><em>ClassName</em>()</a>.</p>
+<p>In more general terms, a <em>class</em> is a set or category of things having some property or attribute in common. In AutoHotkey, a <code>class</code> defines properties to be shared by instances of the class (and methods, which are callable properties). An <em>instance</em> is just an object which inherits properties from the class, and can typically also be identified as belonging to that class (such as with the expression <code><i>instance</i> is <i>ClassName</i></code>). Instances are typically created by calling <a href="objects/Class.htm#Call"><em>ClassName</em>()</a>.</p>
 <p>Since <a href="objects/Object.htm">Objects</a> are <a href="#ad-hoc">dynamic</a> and <a href="#delegation">prototype-based</a>, each class consists of two parts:</p>
 <ul>
-  <li>The class has a <a href="objects/Class.htm#Prototype">Prototype</a> object, on which all instances of the class are based. All methods and properties that apply to a specific instance are contained by the prototype object. This includes all properties and methods which lack the <code>static</code> keyword.</li>
+  <li>The class has a <a href="objects/Class.htm#Prototype">Prototype</a> object, on which all instances of the class are based. All methods and dynamic properties that apply to instances of the class are contained by the prototype object. This includes all properties and methods which lack the <code>static</code> keyword.</li>
   <li>The class itself is an object, containing only static methods and properties. This includes all properties and methods with the <code>static</code> keyword, and all nested classes. These do not apply to a specific instance, and can be used by referring to the class itself by name.</li>
 </ul>
 <p>The following shows most of the elements of a class definition:</p>
@@ -270,7 +272,7 @@ other.test()</pre>
 }
 </pre>
 <p>When the script is loaded, this constructs a <a href="objects/Class.htm">Class</a> object and stores it in a <a href="Functions.htm#Global">global</a> constant (read-only variable) with the name <i>ClassName</i>. If <code>extends BaseClassName</code> is present, <i>BaseClassName</i> must be the full name of another class. The full name of each class is stored in <code><i>ClassName</i>.Prototype.__Class</code>.</p>
-<p>Because of the ambiguity between class names and variables, the class name cannot be used to both reference the class and create a separate variable (such as to hold an instance of the class) in the same context. For example, <code>box := Box()</code> will not work, because <code>box</code> and <code>Box</code> both resolve to the same thing. Attempting to reassign a top-level (not nested) class in this manner results in a load time error.</p>
+<p>Because the class itself is accessed through a variable, the class name cannot be used to both reference the class and create a separate variable (such as to hold an instance of the class) in the same context. For example, <code>box := Box()</code> will not work, because <code>box</code> and <code>Box</code> both resolve to the same thing. Attempting to reassign a top-level (not nested) class in this manner results in a load time error.</p>
 <p>Within this documentation, the word "class" on its own usually means a class object constructed with the <code>class</code> keyword.</p>
 <p>Class definitions can contain variable declarations, method definitions and nested class definitions.</p>
 
@@ -302,11 +304,13 @@ class NestedClass
 <p>However, due to the way methods work for <a href="objects/Object.htm">Objects</a>, <code><i>WhichClass</i>.NestedClass()</code> implicitly passes <em>WhichClass</em> as the first parameter, equivalent to <code><i>WhichClass</i>.NestedClass.Call(<i>WhichClass</i>)</code>. Unless <code>static Call()</code> is overridden, this parameter is automatically passed to <a href="#Custom_NewDelete">__New</a>.</p>
 
 <h4 id="Custom_Classes_method">Methods</h4>
-<p>Method definitions look identical to function definitions. Each method has a hidden parameter named <code>this</code>, which contains a reference to the object on which the method was called. There are two types of methods:</p>
+<p>Method definitions look identical to function definitions. Each method definition creates a <a href="objects/Func.htm">Func</a> with a hidden first parameter named <code>this</code>, and defines a property which is used to call the method or retrieve its function object.</p>
+<p>There are two types of methods:</p>
 <ul>
   <li>Instance methods are defined as below, and are attached to the class's <a href="objects/Class.htm#Prototype">Prototype</a>, which makes them accessible via any instance of the class. When the method is called, <code>this</code> refers to an instance of the class.</li>
   <li>Static methods are defined by preceding the method name with the separate keyword <code>static</code>. These are attached to the class object itself, but are also inherited by subclasses, so <code>this</code> refers to either the class itself or a subclass.</li>
 </ul>
+<p>The method definition below creates a property of the same type as <code><i>target</i>.DefineProp('Method', {call: <i>funcObj</i>})</code>. By default, <code><i>target</i>.Method</code> returns <em>funcObj</em> and attempting to assign to <code><i>target</i>.Method</code> throws an error. These defaults can be overridden by <a href="#Custom_Classes_property">defining a property</a> or calling <a href="objects/Object.htm#DefineProp">DefineProp</a>.</p>
 <pre>
 Method()
 {
@@ -340,14 +344,13 @@ Method()
 }
 </pre>
 <p><em>Property</em> is simply the name of the property, which will be used to invoke it. For example, <code>obj.Property</code> would call <em>get</em> while <code>obj.Property := value</code> would call <em>set</em>. Within <em>get</em> or <em>set</em>, <code>this</code> refers to the object being invoked. Within <em>set</em>, <code>value</code> contains the value being assigned.</p>
-<p>Parameters can be defined by enclosing them in square brackets to the right of the property name, and are passed the same way. Aside from using square brackets, parameters of properties are defined the same way as parameters of methods - optional, ByRef and variadic parameters are supported.</p>
-<p>If a property cannot accept parameters (the square brackets are omitted or empty), parameters are automatically forwarded to the <a href="#__Item">__Item</a> property of the object returned by <em>get</em>. For example, <code>this.Property[x]</code> would have the same effect as <code>(this.Property)[x]</code> or <code>y := this.Property, y[x]</code>.</p>
+<p>Parameters can be defined by enclosing them in square brackets to the right of the property name, and are passed the same way (but should be omitted when accessing a property without parameters). Aside from using square brackets, parameters of properties are defined the same way as parameters of methods - optional, ByRef and variadic parameters are supported.</p>
+<p>If a property is invoked with parameters but has none defined, parameters are automatically forwarded to the <a href="#__Item">__Item</a> property of the object returned by <em>get</em>. For example, <code>this.Property[x]</code> would have the same effect as <code>(this.Property)[x]</code> or <code>y := this.Property, y[x]</code>. Empty brackets (<code>[]</code>) always cause the __Item property to be invoked, but a variadic call such as <code>this.Property[args*]</code> has this effect only if the number of parameters is non-zero.</p>
 <p>Static properties can be defined by preceding the property name with the separate keyword <code>static</code>. In that case, <code>this</code> refers to the class itself or a subclass.</p>
 <p>The return value of <em>set</em> is ignored. For example, <code>val := obj.Property := 42</code> always assigns <code>val := 42</code> regardless of what the property does, unless it throws an exception or exits the thread.</p>
 <p>Each class can define one or both halves of a property. If a class overrides a property, it can use <code><a href="#Custom_Classes_super">super.Property</a></code> to access the property defined by its base class. If <em>Get</em> or <em>Set</em> is not defined, it can be inherited from a base object. If <em>Get</em> is undefined, the property can return a value inherited from a base. If <em>Set</em> is undefined in this and all base objects (or is obscured by an inherited value property), attempting to set the property causes an exception to be thrown.</p>
-<p>Internally, <em>get</em> and <em>set</em> are two separate methods, so cannot share variables (except by storing them in <code>this</code>).</p>
-<p>See also: <a href="objects/Object.htm#DefineProp">DefineProp</a></p>
-<p><a href="#Meta_Functions">Meta-functions</a> provide a broader way of controlling access to properties and methods of an object, but are more complicated and error-prone.</p>
+<p>A property definition with both <em>get</em> and <em>set</em> actually creates two separate functions, which do not share local or static variables or nested functions. As with methods, each function has a hidden parameter named <code>this</code>, and <em>set</em> has a second hidden parameter named <code>value</code>. Any explicitly defined parameters come after those.</p>
+<p>While a property definition defines the <em>get</em> and <em>set</em> accessor functions for a property in the same way as <a href="objects/Object.htm#DefineProp">DefineProp</a>, a method definition defines the <em>call</em> accessor function. Any class may contain a property definition and a method definition with the same name. If a property without a <em>call</em> accessor function (a method) is called, <em>get</em> is invoked with no parameters and the result is then called as a method.</p>
 
 <h4 id="Custom_Classes_property_short">Fat Arrow Properties</h4>
 <p><a href="Variables.htm#fat-arrow">Fat arrow syntax</a> can be used to define a <a href="#Custom_Classes_property">property</a> getter or setter which returns an expression:</p>
