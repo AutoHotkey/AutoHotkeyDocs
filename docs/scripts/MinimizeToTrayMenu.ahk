@@ -32,6 +32,7 @@ SetWinDelay 10
 SetKeyDelay 0
 
 #SingleInstance  ; Allow only one instance of this script to be running.
+Persistent
 
 ; END OF CONFIGURATION SECTION (do not make changes below this point
 ; unless you want to change the basic functionality of the script).

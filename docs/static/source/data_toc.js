@@ -285,7 +285,8 @@ tocData = [
     ["IsSet","commands/IsSet.htm"],
     ["ListLines","commands/ListLines.htm"],
     ["ListVars","commands/ListVars.htm"],
-    ["OutputDebug","commands/OutputDebug.htm"]
+    ["OutputDebug","commands/OutputDebug.htm"],
+    ["Persistent","commands/Persistent.htm"]
   ]],
   ["Object Types","objects/index.htm",
   [
@@ -493,7 +494,6 @@ tocData = [
     ["#MaxThreadsPerHotkey","commands/_MaxThreadsPerHotkey.htm"],
     ["#MenuMaskKey","commands/_MenuMaskKey.htm"],
     ["#NoTrayIcon","commands/_NoTrayIcon.htm"],
-    ["#Persistent","commands/_Persistent.htm"],
     ["#Requires","commands/_Requires.htm"],
     ["#SingleInstance","commands/_SingleInstance.htm"],
     ["#UseHook","commands/_UseHook.htm"],

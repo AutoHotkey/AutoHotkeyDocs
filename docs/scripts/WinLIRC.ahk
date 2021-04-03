@@ -127,6 +127,7 @@ WinLIRC_Init(Path, IPAddress, Port)
     ; the following causes a function to be launched to read the data:
     NotificationMsg := 0x5555  ; An arbitrary message number, but should be greater than 0x1000.
     OnMessage(NotificationMsg, ReceiveData)
+    Persistent
 
     ; Set up the connection to notify this script via message whenever new data has arrived.
     ; This avoids the need to poll the connection and thus cuts down on resource usage.
