@@ -94,7 +94,7 @@ g_MouseRotationAngle := 0
 ;This is needed or key presses would faulty send their natural
 ;actions. Like NumpadDiv would send sometimes "/" to the
 ;screen.
-#InstallKeybdHook
+InstallKeybdHook
 
 g_Temp := 0
 g_Temp2 := 0
