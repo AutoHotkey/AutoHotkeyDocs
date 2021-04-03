@@ -221,7 +221,6 @@ tocData = [
     [
       ["#HotIf","commands/_HotIf.htm"],
       ["#HotIfTimeout","commands/_HotIfTimeout.htm"],
-      ["#HotkeyModifierTimeout","commands/_HotkeyModifierTimeout.htm"],
       ["#Hotstring","commands/_Hotstring.htm"],
       ["#InputLevel","commands/_InputLevel.htm"],
       ["#MaxThreads","commands/_MaxThreads.htm"],
@@ -230,6 +229,7 @@ tocData = [
       ["#MenuMaskKey","commands/_MenuMaskKey.htm"],
       ["#SuspendExempt","commands/_SuspendExempt.htm"],
       ["#UseHook","commands/_UseHook.htm"],
+      ["A_HotkeyModifierTimeout","misc/A_HotkeyModifierTimeout.htm"],
       ["A_MaxHotkeysPerInterval","misc/A_MaxHotkeysPerInterval.htm"],
       ["HotIf / HotIfWin...","commands/HotIf.htm"],
       ["Hotkey","commands/Hotkey.htm"],
@@ -479,7 +479,6 @@ tocData = [
     ["#ErrorStdOut","commands/_ErrorStdOut.htm"],
     ["#HotIf","commands/_HotIf.htm"],
     ["#HotIfTimeout","commands/_HotIfTimeout.htm"],
-    ["#HotkeyModifierTimeout","commands/_HotkeyModifierTimeout.htm"],
     ["#Hotstring","commands/_Hotstring.htm"],
     ["#Include[Again]","commands/_Include.htm"],
     ["#InputLevel","commands/_InputLevel.htm"],

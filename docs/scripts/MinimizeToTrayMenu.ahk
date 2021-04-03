@@ -23,11 +23,11 @@ g_UnHotkey := "#u"  ; Win+U
 g_StandardMenu := false
 
 ; These next few performance settings help to keep the action within the
-; #HotkeyModifierTimeout period, and thus avoid the need to release and
+; A_HotkeyModifierTimeout period, and thus avoid the need to release and
 ; press down the hotkey's modifier if you want to hide more than one
 ; window in a row. These settings are not needed if you choose to have
 ; the script use the keyboard hook via InstallKeybdHook or other means:
-#HotkeyModifierTimeout 100
+A_HotkeyModifierTimeout := 100
 SetWinDelay 10
 SetKeyDelay 0
 
