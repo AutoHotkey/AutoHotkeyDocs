@@ -34,7 +34,6 @@ indexData = [
   ["#Include","commands/_Include.htm",0,"S"],
   ["#IncludeAgain","commands/_Include.htm",0,"S"],
   ["#InputLevel","commands/_InputLevel.htm",0,"S"],
-  ["#KeyHistory","commands/_KeyHistory.htm",0,"S"],
   ["#MaxThreads","commands/_MaxThreads.htm",0,"S"],
   ["#MaxThreadsBuffer","commands/_MaxThreadsBuffer.htm",0,"S"],
   ["#MaxThreadsPerHotkey","commands/_MaxThreadsPerHotkey.htm",0,"S"],

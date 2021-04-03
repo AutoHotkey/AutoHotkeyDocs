@@ -238,7 +238,6 @@ tocData = [
       ["ListHotkeys","commands/ListHotkeys.htm"],
       ["Suspend","commands/Suspend.htm"]
     ]],
-    ["#KeyHistory","commands/_KeyHistory.htm"],
     ["BlockInput","commands/BlockInput.htm"],
     ["CaretGetPos","commands/CaretGetPos.htm"],
     ["Click","commands/Click.htm"],
@@ -482,7 +481,6 @@ tocData = [
     ["#Hotstring","commands/_Hotstring.htm"],
     ["#Include[Again]","commands/_Include.htm"],
     ["#InputLevel","commands/_InputLevel.htm"],
-    ["#KeyHistory","commands/_KeyHistory.htm"],
     ["#MaxThreads","commands/_MaxThreads.htm"],
     ["#MaxThreadsBuffer","commands/_MaxThreadsBuffer.htm"],
     ["#MaxThreadsPerHotkey","commands/_MaxThreadsPerHotkey.htm"],
