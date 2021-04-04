@@ -835,7 +835,7 @@ function ctor_structure()
   self.metaViewport = '<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">';
   self.template = '<div id="body">' +
     '<div id="head" role="banner"><button onclick="structure.focusContent();" class="skip-nav" data-translate aria-label="data-content" data-content="Skip navigation"></button><div class="h-area"><div class="h-tabs"><ul><li><button data-translate title="Shortcut: ALT+C" aria-label="Content tab" data-content="C̲ontent"></button></li><li><button data-translate title="Shortcut: ALT+N" aria-label="Index tab" data-content="In̲dex"></button></li><li><button data-translate title="Shortcut: ALT+S" aria-label="Search tab" data-content="S̲earch"></button></li></ul></div><div class="h-tools sidebar"><ul><li class="sidebar"><button title="Hide or show the sidebar" data-translate aria-label="title">&#926;</button></li></ul></div><div class="h-tools online"><ul><li class="home"><a href="' + location.protocol + '//' + location.host + '" title="Go to the homepage" data-translate aria-label="title">&#916;</a></li><li class="language"><button data-translate title="Change the language" data-translate aria-label="title" data-content="en"></button><ul class="dropdown languages selected"><li><a href="#" title="English" aria-label="title" data-content="en"></a></li><li><a href="#" title="Deutsch (German)" data-content="de" aria-label="title"></a></li><li><a href="#" title="&#xD55C;&#xAD6D;&#xC5B4 (Korean)" aria-label="title" data-content="ko"></a></li><li><a href="#" title="&#x4E2D;&#x6587; (Chinese)" aria-label="title" data-content="zh"></a></li></ul></li><li class="version"><button title="Change the version" data-translate aria-label="title" data-content="v1"></button><ul class="dropdown versions selected"><li><a href="#" title="AHK v1.1" aria-label="title" data-content="v1"></a></li><li><a href="#" title="AHK v2.0" aria-label="title" data-content="v2"></a></li></ul></li><li class="edit"><a href="#" title="Edit this document on GitHub" data-translate=2 aria-label="title" data-content="E"></a></li></ul></div><div class="h-tools chm"><ul><li class="back"><button title="Go back" data-translate=2 aria-label="title">&#9668;</button></li><li class="forward"><button title="Go forward" data-translate=2 aria-label="title">&#9658;</button></li><li class="zoom"><button title="Change the font size" data-translate=2 aria-label="title" data-content="Z"></button></li><li class="print"><button title="Print this document" data-translate=2 aria-label="title" data-content="P"></button></li><li class="browser"><a href="#" target="_blank" title="Open this document in the default browser (requires internet connection). Middle-click to copy the link address." data-translate aria-label="title">¬</a></li></ul></div><div class="h-tools main visible"><ul><li class="color"><button title="Use the dark or light theme" data-translate=2 aria-label="title" data-content="C"></button></li><li class="settings"><button title="Open the help settings" data-translate=2 aria-label="title">&#1029;</button></li></ul></div></div></div>' +
-    '<div id="main"><div id="left" role="navigation"><div class="toc"></div><div class="index"><div class="input"><input type="search" placeholder="Search" data-translate=2 /></div><div class="select"><select size="1" class="empty"><option value="-1" class="empty" selected data-translate>Filter</option><option value="0" data-translate>Directives</option><option value="1" data-translate>Built-in Variables</option><option value="2" data-translate>Built-in Functions</option><option value="3" data-translate>Control Flow Statements</option><option value="4" data-translate>Operators</option><option value="5" data-translate>Declarations</option><option value="99" data-translate>Ahk2Exe Compiler</option></select></div><div class="list"></div></div><div class="search"><div class="input"><input type="search" placeholder="Search" data-translate=2 /></div><div class="checkbox"><input type="checkbox" id="highlightWords"><label for="highlightWords" data-translate>Highlight keywords</label><div class="updown" title="Go to previous/next occurrence" data-translate aria-label="title"><div class="up"><div class="triangle-up"></div></div><div class="down"><div class="triangle-down"></div></div></div></div><div class="list"></div></div><div class="load"><div class="lds-dual-ring"></div></div></div><div class="dragbar"></div><div id="right" tabIndex="-1">'+(isFrameCapable?'<iframe frameBorder="0" id="frame" src="" role="main">':'<div class="area" role="main">');
+    '<div id="main"><div id="left" role="navigation"><div class="toc"></div><div class="index"><div class="input"><input type="search" placeholder="Search" data-translate=2 /></div><div class="select"><select size="1" class="empty"><option value="-1" class="empty" selected data-translate>Filter</option><option value="0" data-translate>Directives</option><option value="1" data-translate>Built-in Variables</option><option value="2" data-translate>Built-in Functions</option><option value="3" data-translate>Control Flow Statements</option><option value="4" data-translate>Operators</option><option value="5" data-translate>Declarations</option><option value="6" data-translate>Built-in Classes</option><option value="99" data-translate>Ahk2Exe Compiler</option></select></div><div class="list"></div></div><div class="search"><div class="input"><input type="search" placeholder="Search" data-translate=2 /></div><div class="checkbox"><input type="checkbox" id="highlightWords"><label for="highlightWords" data-translate>Highlight keywords</label><div class="updown" title="Go to previous/next occurrence" data-translate aria-label="title"><div class="up"><div class="triangle-up"></div></div><div class="down"><div class="triangle-down"></div></div></div></div><div class="list"></div></div><div class="load"><div class="lds-dual-ring"></div></div></div><div class="dragbar"></div><div id="right" tabIndex="-1">'+(isFrameCapable?'<iframe frameBorder="0" id="frame" src="" role="main">':'<div class="area" role="main">');
   self.template = isIE8 ? self.template.replace(/ data-content="(.*?)">/g, '>$1') : self.template;
   self.build = function() { document.write(self.template); }; // Write HTML before DOM is loaded to prevent flickering.
   self.modify = function() { // Modify elements added via build.
@@ -963,8 +963,8 @@ function ctor_structure()
       registerEvent($langList.add($verList), 'mouseup', '', function(e) {
         if (e.which == 1 || e.which == 2) {
           setTimeout(function() {
-          $dropdown.animate({height: 'hide'}, 100);
-          $this.removeClass('selected');
+            $dropdown.animate({height: 'hide'}, 100);
+            $this.removeClass('selected');
           }, 200);
         }
       });
@@ -1081,7 +1081,7 @@ function ctor_structure()
         case 38:
         case 40:
           $ListBox.children('a.selected').focus();
-        processKeys($ListBox, e.which);
+          processKeys($ListBox, e.which);
         break;
 
         default:
@@ -1558,13 +1558,13 @@ function ctor_features()
   self.modifyCodeBoxes = function() {
     var pres = self.content.querySelectorAll("pre, code");
     self.addCodeBoxButtons(pres);
-        self.addSyntaxColors(pres);
+    self.addSyntaxColors(pres);
   };
 
   // --- Add select and download buttons for code boxes ---
 
   self.addCodeBoxButtons = function(pres) {
-    for(var i = 0; i < pres.length; i++) {
+    for (var i = 0; i < pres.length; i++) {
       var pre = pres[i];
       if (pre.tagName == 'CODE')
         continue;
@@ -1598,219 +1598,220 @@ function ctor_features()
         buttons.appendChild(dwn);
       }
       $(parent) // Show these buttons on hover:
-      .mouseenter(function() {
-        $(this).children('div.buttons').fadeTo(200, 0.8);
-      })
-      .mouseleave(function() {
-        $(this).children('div.buttons').fadeTo(200, 0);
-      });
+        .mouseenter(function() {
+          $(this).children('div.buttons').fadeTo(200, 0.8);
+        })
+        .mouseleave(function() {
+          $(this).children('div.buttons').fadeTo(200, 0);
+        });
       $(parent).find('div.buttons > a.selectCode') // Select the code on click:
-      .on('click', function() {
-        var doc = document
-          , text = $(this).parent().siblings('pre.origin')[0]
-          , range, selection;
-        if (doc.body.createTextRange) {
-          range = document.body.createTextRange();
-          range.moveToElementText(text);
-          range.select();
-        } else if (window.getSelection) {
-          selection = window.getSelection();
-          range = document.createRange();
-          range.selectNodeContents(text);
-          selection.removeAllRanges();
-          selection.addRange(range);
-        }
-      });
+        .on('click', function() {
+          var doc = document
+            , text = $(this).parent().siblings('pre.origin')[0]
+            , range, selection;
+          if (doc.body.createTextRange) {
+            range = document.body.createTextRange();
+            range.moveToElementText(text);
+            range.select();
+          } else if (window.getSelection) {
+            selection = window.getSelection();
+            range = document.createRange();
+            range.selectNodeContents(text);
+            selection.removeAllRanges();
+            selection.addRange(range);
+          }
+        });
       $(parent).find('div.buttons > a.downloadCode') // Download the code on click:
-      .on('click', function(e) {
-        var pre = $(this).parent().siblings('pre.origin');
-        var textToWrite = '\ufeff' + pre.text().replace(/\n/g, "\r\n");
-        var textFileAsBlob = new Blob([textToWrite], {type:'text/csv'});
-        var fileNameToSaveAs = pre.attr("filename") || location.pathname.match(/([^\/]+)(?=\.\w+$)/)[0] + "-Script.ahk";
-    
-        var downloadLink = document.createElement("a");
-        downloadLink.download = fileNameToSaveAs;
-        downloadLink.innerHTML = "Download File";
-    
-        // http://stackoverflow.com/a/9851769
-    
-        if (isIE || isEdge) {
-          navigator.msSaveBlob(textFileAsBlob, fileNameToSaveAs);
-        }
-        if (isChrome || isBlink) {
-          downloadLink.href = window.webkitURL.createObjectURL(textFileAsBlob);
-          downloadLink.click();
-        }
-        if (isFirefox) {
-          downloadLink.href = window.URL.createObjectURL(textFileAsBlob);
-          downloadLink.style.display = "none";
-          document.body.appendChild(downloadLink);
-          downloadLink.click();
-        }
-      });
+        .on('click', function(e) {
+          var pre = $(this).parent().siblings('pre.origin');
+          var textToWrite = '\ufeff' + pre.text().replace(/\n/g, "\r\n");
+          var textFileAsBlob = new Blob([textToWrite], {type: 'text/csv'});
+          var fileNameToSaveAs = pre.attr("filename") || location.pathname.match(/([^\/]+)(?=\.\w+$)/)[0] + "-Script.ahk";
+
+          var downloadLink = document.createElement("a");
+          downloadLink.download = fileNameToSaveAs;
+          downloadLink.innerHTML = "Download File";
+
+          // http://stackoverflow.com/a/9851769
+
+          if (isIE || isEdge) {
+            navigator.msSaveBlob(textFileAsBlob, fileNameToSaveAs);
+          }
+          if (isChrome || isBlink) {
+            downloadLink.href = window.webkitURL.createObjectURL(textFileAsBlob);
+            downloadLink.click();
+          }
+          if (isFirefox) {
+            downloadLink.href = window.URL.createObjectURL(textFileAsBlob);
+            downloadLink.style.display = "none";
+            document.body.appendChild(downloadLink);
+            downloadLink.click();
+          }
+        });
     }
   };
 
   // --- Add syntax highlighting for code boxes ---
 
   self.addSyntaxColors = function(pres) {
-      // Create lists of syntax elements by using index data to reduce code size.
-      // An index entry counts as syntax element, if its third field is one of the following digits:
-      /* 
-          0 - directive
-          1 - built-in var
-          2 - built-in function
-          3 - control flow statement
-          4 - operator
-          5 - declaration
-          99 - Ahk2Exe compiler
-      */
+    // Create lists of syntax elements by using index data to reduce code size.
+    // An index entry counts as syntax element, if its third field is one of the following digits:
+    /* 
+        0 - directive
+        1 - built-in var
+        2 - built-in function
+        3 - control flow statement
+        4 - operator
+        5 - declaration
+        6 - built-in class
+        99 - Ahk2Exe compiler
+    */
     if (isIE8) // Exclude old browsers.
       return;
     if (!retrieveData(index.dataPath, "index_data", "indexData", function() {self.addSyntaxColors(pres);}))
       return;
-      var syntax = [], dict = {}, entry = '', type = '';
-      var assignOp = "(?:&lt;&lt;|<<|&gt;&gt;|>>|\\/\\/|\\^|&amp;|&|\\||\\.|\\/|\\*|-|\\+|:)=";
-      for (var i = cache.index_data.length - 1; i >= 0; i--) {
-        entry = cache.index_data[i][0];
-        type = cache.index_data[i][2];
-        syntax[type] = syntax[type] || [];
-        if (typeof type !== 'undefined') {
-          if (entry.indexOf(' ... ') != -1) {
-            part = entry.split(' ... ');
-            for (k in part) {
-              syntax[type][k] = syntax[type][k] || [];
-              if (syntax[type][k].indexOf(part[k]) == -1)
-                syntax[type][k].push(part[k]);
-            }
+    var syntax = [], dict = {}, entry = '', type = '';
+    var assignOp = "(?:&lt;&lt;|<<|&gt;&gt;|>>|\\/\\/|\\^|&amp;|&|\\||\\.|\\/|\\*|-|\\+|:)=";
+    for (var i = cache.index_data.length - 1; i >= 0; i--) {
+      entry = cache.index_data[i][0];
+      type = cache.index_data[i][2];
+      syntax[type] = syntax[type] || [];
+      if (typeof type !== 'undefined') {
+        if (entry.indexOf(' ... ') != -1) {
+          part = entry.split(' ... ');
+          for (k in part) {
+            syntax[type][k] = syntax[type][k] || [];
+            if (syntax[type][k].indexOf(part[k]) == -1)
+              syntax[type][k].push(part[k]);
           }
-          else
-            (syntax[type].single = syntax[type].single || []).push(entry);
-          dict[entry.toLowerCase()] = i;
         }
+        else
+          (syntax[type].single = syntax[type].single || []).push(entry);
+        dict[entry.toLowerCase()] = i;
       }
-      // Traverse pre elements:
-      for (var i = 0; i < pres.length; i++) {
-        var pre = pres[i], els = [];
-        els.order = [];
-        // Skip pre.no-highlight elements:
-        if (pre.className.indexOf('no-highlight') != -1)
-          continue;
-        // Temporary remove elements which interfering with syntax detection:
-        els.order.push('various'); els.various = [];
-        els.order.push('em'); els.em = [];
-        $(pre).children().each(function() {
-          if (this.tagName == 'EM') {
-            els.em.push(this.outerHTML);
-            $(this).replaceWith('<em>');
-          }
-          else if (this.href && this.getAttribute("href").substring(0, 4) != "http")
-            $(this).replaceWith(this.innerText);
-          else if (this.attributes.length || this.children.length) {
-            els.various.push(this.outerHTML);
-            $(this).replaceWith('<various>');
-          }
-        });
-        // Store pre content into a variable to improve performance:
-        var innerHTML = pre.innerHTML;
-        // comments:
-        els.order.push('sct'); els.sct = [];
-        innerHTML = innerHTML.replace(/(\s|^)(;.*?)$/gm, function(_, PRE, COMMENT) {
-          out = wrap(COMMENT, 'cmt', false);
-          els.sct.push(out);
-          return PRE + '<sct></sct>';
-        });
-        els.order.push('mct'); els.mct = [];
-        innerHTML = innerHTML.replace(/(^\s*\/\*[\s\S]*?^\s*(\*\/|$(?![\r\n])))/gm, function(COMMENT) {
-          out = wrap(COMMENT, 'cmt', false);
-          els.mct.push(out);
-          return '<mct></mct>';
-        });
-        // escape sequences:
-        els.order.push('esc'); els.esc = [];
-        innerHTML = innerHTML.replace(/`./gm, function(SEQUENCE) {
-          out = wrap(SEQUENCE, 'esc', false);
-          els.esc.push(out);
-          return '<esc></esc>';
-        });
-        // function definitions:
-        els.order.push('fun'); els.fun = [];
-        innerHTML = innerHTML.replace(/^(\s*?)(\S*?)(?=\(.*?\)\s*(<(em|sct)><\/(em|sct)>\s*)*{)/mg, function(ASIS, PRE, DEFINITION) {
-          if (DEFINITION.match(/^(while|if)$/i))
-            return ASIS;
-          out = PRE + wrap(DEFINITION, 'fun', false);
-          els.fun.push(out);
-          return '<fun></fun>';
-        });
-        // numeric values:
-        els.order.push('num'); els.num = [];
-        innerHTML = innerHTML.replace(/\b((0(x|X)[0-9a-fA-F]*)|(([0-9]+\.?[0-9]*)|(\.[0-9]+))((e|E)(\+|-)?[0-9]+)?)\b/gm, function(_, NUMBER) {
-          out = wrap(NUMBER, 'num', false);
-          els.num.push(out);
-          return '<num></num>';
-        });
-        // continuation section inside a string "(...)"
-        els.order.push('cont1'); els.cont1 = [];
-        innerHTML = innerHTML.replace(/('|")([<\/em>\s]*?^\s*\([\s\S]*?^\s*\).*?)\1/gm, function(_, QUOTE, SECTION) {
-          out = processStrParam(SECTION);
-          els.cont1.push(out);
-          return QUOTE + '<cont1></cont1>' + QUOTE;
-        });
-        // continuation section for hotstrings ::(...)
-        els.order.push('cont2'); els.cont2 = [];
-        innerHTML = innerHTML.replace(/(^\s*:.*?:.*?::)([<\/em>\s]*?^\s*\([\s\S]*?^\s*\).*?)/gm, function(_, PRE, SECTION) {
-          out = processStrParam(SECTION);
-          els.cont2.push(out);
-          return PRE + '<cont2></cont2>';
-        });
-        // built-in vars:
-        els.order.push('biv'); els.biv = [];
-        innerHTML = innerHTML.replace(new RegExp('\\b(' + syntax[1].single.join('|') + ')\\b', 'gi'), function(_, BIV) {
-          out = wrap(BIV, 'biv', true);
-          els.biv.push(out);
-          return '<biv></biv>';
-        });
-        // strings:
-        els.order.push('str'); els.str = [];
-        innerHTML = innerHTML.replace(/(("|')[\s\S]*?\2)/gm, function(_, STRING) {
-          out = wrap(STRING, 'str', false);
-          index = els.str.push(out) - 1;
-          return '<str ' + index + '></str>';
-        });
-        // methods:
-        els.order.push('met'); els.met = [];
-        innerHTML = innerHTML.replace(/(\.)([^~`!@#$%^&*(){}\[\];:"'<,.>?\/\\|+=\-\s]+?)(?=\()/g, function(_, PRE, METHOD) {
-          out = PRE + wrap(METHOD, 'met', false);
-          els.met.push(out);
-          return '<met></met>';
-        });
-        // properties:
-        els.order.push('prp'); els.prp = [];
-        innerHTML = innerHTML.replace(/\.([^~`!@#$%^&*(){}\[\];:"'<,.>?\/\\|+=\-\s]+?)\b/g, function(_, PROPERTY) {
-          out = '.' + wrap(PROPERTY, 'prp', false);
-          els.prp.push(out);
-          return '<prp></prp>';
-        });
-        // declarations:
-        els.order.push('dec'); els.dec = [];
-        innerHTML = innerHTML.replace(new RegExp('(^\\s*)((' + syntax[5][0].join('|') + ') (\\S+) (' + syntax[5][1].join('|') + ') (\\S+)|(?:' + syntax[5].single.join('|') + ')\\b)', 'gim'), function(_, PRE, DEC, CLASS, INPUT1, EXTENDS, INPUT2) {
-          if (CLASS) {
-            var dec = cache.index_data[dict[(CLASS + ' ... ' + EXTENDS).toLowerCase()]];
-            if (dec)
-              out = PRE + wrap(CLASS, 'dec', dec[1]) + ' ' + INPUT1 + ' ' + wrap(EXTENDS, 'dec', dec[1]) + ' ' + INPUT2;
-            else
-              out = m;
-          }
+    }
+    // Traverse pre elements:
+    for (var i = 0; i < pres.length; i++) {
+      var pre = pres[i], els = [];
+      els.order = [];
+      // Skip pre.no-highlight elements:
+      if (pre.className.indexOf('no-highlight') != -1)
+        continue;
+      // Temporary remove elements which interfering with syntax detection:
+      els.order.push('various'); els.various = [];
+      els.order.push('em'); els.em = [];
+      $(pre).children().each(function() {
+        if (this.tagName == 'EM') {
+          els.em.push(this.outerHTML);
+          $(this).replaceWith('<em>');
+        }
+        else if (this.href && this.getAttribute("href").substring(0, 4) != "http")
+          $(this).replaceWith(this.innerText);
+        else if (this.attributes.length || this.children.length) {
+          els.various.push(this.outerHTML);
+          $(this).replaceWith('<various>');
+        }
+      });
+      // Store pre content into a variable to improve performance:
+      var innerHTML = pre.innerHTML;
+      // comments:
+      els.order.push('sct'); els.sct = [];
+      innerHTML = innerHTML.replace(/(\s|^)(;.*?)$/gm, function(_, PRE, COMMENT) {
+        out = wrap(COMMENT, 'cmt', false);
+        els.sct.push(out);
+        return PRE + '<sct></sct>';
+      });
+      els.order.push('mct'); els.mct = [];
+      innerHTML = innerHTML.replace(/(^\s*\/\*[\s\S]*?^\s*(\*\/|$(?![\r\n])))/gm, function(COMMENT) {
+        out = wrap(COMMENT, 'cmt', false);
+        els.mct.push(out);
+        return '<mct></mct>';
+      });
+      // escape sequences:
+      els.order.push('esc'); els.esc = [];
+      innerHTML = innerHTML.replace(/`./gm, function(SEQUENCE) {
+        out = wrap(SEQUENCE, 'esc', false);
+        els.esc.push(out);
+        return '<esc></esc>';
+      });
+      // function definitions:
+      els.order.push('fun'); els.fun = [];
+      innerHTML = innerHTML.replace(/^(\s*?)(\S*?)(?=\(.*?\)\s*(<(em|sct)><\/(em|sct)>\s*)*{)/mg, function(ASIS, PRE, DEFINITION) {
+        if (DEFINITION.match(/^(while|if)$/i))
+          return ASIS;
+        out = PRE + wrap(DEFINITION, 'fun', false);
+        els.fun.push(out);
+        return '<fun></fun>';
+      });
+      // numeric values:
+      els.order.push('num'); els.num = [];
+      innerHTML = innerHTML.replace(/\b((0(x|X)[0-9a-fA-F]*)|(([0-9]+\.?[0-9]*)|(\.[0-9]+))((e|E)(\+|-)?[0-9]+)?)\b/gm, function(_, NUMBER) {
+        out = wrap(NUMBER, 'num', false);
+        els.num.push(out);
+        return '<num></num>';
+      });
+      // continuation section inside a string "(...)"
+      els.order.push('cont1'); els.cont1 = [];
+      innerHTML = innerHTML.replace(/('|")([<\/em>\s]*?^\s*\([\s\S]*?^\s*\).*?)\1/gm, function(_, QUOTE, SECTION) {
+        out = processStrParam(SECTION);
+        els.cont1.push(out);
+        return QUOTE + '<cont1></cont1>' + QUOTE;
+      });
+      // continuation section for hotstrings ::(...)
+      els.order.push('cont2'); els.cont2 = [];
+      innerHTML = innerHTML.replace(/(^\s*:.*?:.*?::)([<\/em>\s]*?^\s*\([\s\S]*?^\s*\).*?)/gm, function(_, PRE, SECTION) {
+        out = processStrParam(SECTION);
+        els.cont2.push(out);
+        return PRE + '<cont2></cont2>';
+      });
+      // built-in vars:
+      els.order.push('biv'); els.biv = [];
+      innerHTML = innerHTML.replace(new RegExp('\\b(' + syntax[1].single.join('|') + ')\\b', 'gi'), function(_, BIV) {
+        out = wrap(BIV, 'biv', true);
+        els.biv.push(out);
+        return '<biv></biv>';
+      });
+      // strings:
+      els.order.push('str'); els.str = [];
+      innerHTML = innerHTML.replace(/(("|')[\s\S]*?\2)/gm, function(_, STRING) {
+        out = wrap(STRING, 'str', false);
+        index = els.str.push(out) - 1;
+        return '<str ' + index + '></str>';
+      });
+      // methods:
+      els.order.push('met'); els.met = [];
+      innerHTML = innerHTML.replace(/(\.)([^~`!@#$%^&*(){}\[\];:"'<,.>?\/\\|+=\-\s]+?)(?=\()/g, function(_, PRE, METHOD) {
+        out = PRE + wrap(METHOD, 'met', false);
+        els.met.push(out);
+        return '<met></met>';
+      });
+      // properties:
+      els.order.push('prp'); els.prp = [];
+      innerHTML = innerHTML.replace(/\.([^~`!@#$%^&*(){}\[\];:"'<,.>?\/\\|+=\-\s]+?)\b/g, function(_, PROPERTY) {
+        out = '.' + wrap(PROPERTY, 'prp', false);
+        els.prp.push(out);
+        return '<prp></prp>';
+      });
+      // declarations:
+      els.order.push('dec'); els.dec = [];
+      innerHTML = innerHTML.replace(new RegExp('(^\\s*)((' + syntax[5][0].join('|') + ') (\\S+) (' + syntax[5][1].join('|') + ') (\\S+)|(?:' + syntax[5].single.join('|') + ')\\b)', 'gim'), function(_, PRE, DEC, CLASS, INPUT1, EXTENDS, INPUT2) {
+        if (CLASS) {
+          var dec = cache.index_data[dict[(CLASS + ' ... ' + EXTENDS).toLowerCase()]];
+          if (dec)
+            out = PRE + wrap(CLASS, 'dec', dec[1]) + ' ' + INPUT1 + ' ' + wrap(EXTENDS, 'dec', dec[1]) + ' ' + INPUT2;
           else
-            out = PRE + wrap(DEC, 'dec', true);
-          els.dec.push(out);
-          return '<dec></dec>';
-        });
-        // directives:
-        els.order.push('dir'); els.dir = [];
-        innerHTML = innerHTML.replace(new RegExp('(' + syntax[0].single.join('|') + ')\\b($|[\\s,])(.*?)(?=<(?:em|sct)></(?:em|sct)>|$)', 'gim'), function(_, DIR, SEP, PARAMS) {
-          // Get type of every parameter:
-          var types = cache.index_data[dict[DIR.toLowerCase()]][3];
+            out = m;
+        }
+        else
+          out = PRE + wrap(DEC, 'dec', true);
+        els.dec.push(out);
+        return '<dec></dec>';
+      });
+      // directives:
+      els.order.push('dir'); els.dir = [];
+      innerHTML = innerHTML.replace(new RegExp('(' + syntax[0].single.join('|') + ')\\b($|[\\s,])(.*?)(?=<(?:em|sct)></(?:em|sct)>|$)', 'gim'), function(_, DIR, SEP, PARAMS) {
+        // Get type of every parameter:
+        var types = cache.index_data[dict[DIR.toLowerCase()]][3];
         // Skip param processing if first param is an expression:
         if (types[0] == 'E')
         {
@@ -1818,6 +1819,69 @@ function ctor_features()
           els.dir.push(out);
           return '<dir></dir>' + SEP + PARAMS;
         }
+        // Temporary exclude (...), {...} and [...]:
+        sub = [];
+        PARAMS = PARAMS.replace(/[({\[][^({\[]*[\]})]/g, function(c) {
+          index = sub.push(c) - 1;
+          return '<sub ' + index + '></sub>';
+        });
+        // Split params:
+        PARAMS = PARAMS.split(',');
+        // Detect smart comma handling:
+        if (PARAMS.length > types.length) // For the last param of any directive.
+          PARAMS.push(PARAMS.splice(types.length - 1).join(','));
+        // Iterate params and recompose them:
+        for (n in PARAMS) {
+          // Restore (...), {...} and [...] previously excluded:
+          PARAMS[n] = PARAMS[n].replace(/<sub (\d+)><\/sub>/g, function(_, index) {
+            return sub[index];
+          });
+          if (PARAMS[n].match(/^\s*%\s/)) // Skip forced expression parameter:
+            continue;
+          if (types[n] == 'S') // string
+            PARAMS[n] = processStrParam(PARAMS[n]);
+        }
+        PARAMS = PARAMS.join(',');
+        out = wrap(DIR, 'dir', true) + SEP + PARAMS;
+        els.dir.push(out);
+        return '<dir></dir>';
+      });
+      // built-in functions:
+      els.order.push('bif'); els.bif = [];
+      innerHTML = innerHTML.replace(new RegExp('\\b(' + syntax[2].single.join('|') + ')\\b(?=$|\\(|\\s(?!\\s*' + assignOp + '))', 'gi'), function(_, BIF) {
+        out = wrap(BIF, 'bif', true);
+        els.bif.push(out);
+        return '<bif></bif>';
+      });
+      // built-in classes:
+      els.order.push('cls'); els.cls = [];
+      innerHTML = innerHTML.replace(new RegExp('\\b(' + syntax[6].single.join('|') + ')\\b', 'gi'), function(_, CLS) {
+        out = wrap(CLS, 'cls', true);
+        els.cls.push(out);
+        return '<cls></cls>';
+      });
+      // control flow statements:
+      els.order.push('cfs'); els.cfs = [];
+      innerHTML = innerHTML.replace(new RegExp('\\b(' + syntax[3][0].join('|') + ') (\\S+|\\S+, \\S+) (' + syntax[3][1].join('|') + ') (.+?)(?=<(?:em|sct)></(?:em|sct)>|$|{)|\\b(' + syntax[3].single.join('|') + ')\\b($|,|{|(?=\\()|\\s(?!\\s*' + assignOp + '))(.*?)(?=<(?:em|sct)></(?:em|sct)>|$|{|\\b(' + syntax[3].single.join('|') + ')\\b)', 'gim'), function(ASIS, IF, INPUT, BETWEEN, VAL, CFS, SEP, PARAMS) {
+        if (IF) {
+          if (INPUT) {
+            var cfs = cache.index_data[dict[(IF + ' ... ' + BETWEEN).toLowerCase()]];
+            if (cfs)
+              out = wrap(IF, 'cfs', cfs[1]) + ' ' + INPUT + ' ' + wrap(BETWEEN, 'cfs', cfs[1]) + ' ' + ((cfs[3][1] == "S") ? processStrParam(VAL) : VAL);
+            else
+              out = ASIS;
+          }
+        }
+        else {
+          var cfs = CFS.toLowerCase();
+          // Skip param processing if the statement uses parentheses:
+          if (SEP == '(') {
+            out = wrap(CFS, 'cfs', true);
+            els.cfs.push(out);
+            return '<cfs></cfs>' + SEP + PARAMS;
+          }
+          // Get type of every parameter:
+          var types = cache.index_data[dict[cfs]][3];
           // Temporary exclude (...), {...} and [...]:
           sub = [];
           PARAMS = PARAMS.replace(/[({\[][^({\[]*[\]})]/g, function(c) {
@@ -1826,9 +1890,6 @@ function ctor_features()
           });
           // Split params:
           PARAMS = PARAMS.split(',');
-          // Detect smart comma handling:
-          if (PARAMS.length > types.length) // For the last param of any directive.
-            PARAMS.push(PARAMS.splice(types.length - 1).join(','));
           // Iterate params and recompose them:
           for (n in PARAMS) {
             // Restore (...), {...} and [...] previously excluded:
@@ -1841,128 +1902,75 @@ function ctor_features()
               PARAMS[n] = processStrParam(PARAMS[n]);
           }
           PARAMS = PARAMS.join(',');
-          out = wrap(DIR, 'dir', true) + SEP + PARAMS;
-          els.dir.push(out);
-          return '<dir></dir>';
-        });
-        // built-in functions:
-        els.order.push('bif'); els.bif = [];
-        innerHTML = innerHTML.replace(new RegExp('\\b(' + syntax[2].single.join('|') + ')\\b(?=$|\\(|\\s(?!\\s*' + assignOp + '))', 'gi'), function(_, BIF) {
-          out = wrap(BIF, 'bif', true);
-          els.bif.push(out);
-          return '<bif></bif>';
-        });
-        // control flow statements:
-        els.order.push('cfs'); els.cfs = [];
-        innerHTML = innerHTML.replace(new RegExp('\\b(' + syntax[3][0].join('|') + ') (\\S+|\\S+, \\S+) (' + syntax[3][1].join('|') + ') (.+?)(?=<(?:em|sct)></(?:em|sct)>|$|{)|\\b(' + syntax[3].single.join('|') + ')\\b($|,|{|(?=\\()|\\s(?!\\s*' + assignOp + '))(.*?)(?=<(?:em|sct)></(?:em|sct)>|$|{|\\b(' + syntax[3].single.join('|') + ')\\b)', 'gim'), function(ASIS, IF, INPUT, BETWEEN, VAL, CFS, SEP, PARAMS) {
-          if (IF) {
-            if (INPUT) {
-              var cfs = cache.index_data[dict[(IF + ' ... ' + BETWEEN).toLowerCase()]];
-              if (cfs)
-                out = wrap(IF, 'cfs', cfs[1]) + ' ' + INPUT + ' ' + wrap(BETWEEN, 'cfs', cfs[1]) + ' ' + ((cfs[3][1] == "S") ? processStrParam(VAL) : VAL);
-              else
-                out = ASIS;
-            }
-          }
-          else {
-            var cfs = CFS.toLowerCase();
-          // Skip param processing if the statement uses parentheses:
-          if (SEP == '(') {
-            out = wrap(CFS, 'cfs', true);
-            els.cfs.push(out);
-            return '<cfs></cfs>' + SEP + PARAMS;
-          }
-          // Get type of every parameter:
-          var types = cache.index_data[dict[cfs]][3];
-            // Temporary exclude (...), {...} and [...]:
-            sub = [];
-            PARAMS = PARAMS.replace(/[({\[][^({\[]*[\]})]/g, function(c) {
-              index = sub.push(c) - 1;
-              return '<sub ' + index + '></sub>';
-            });
-            // Split params:
-            PARAMS = PARAMS.split(',');
-            // Iterate params and recompose them:
-            for (n in PARAMS) {
-              // Restore (...), {...} and [...] previously excluded:
-              PARAMS[n] = PARAMS[n].replace(/<sub (\d+)><\/sub>/g, function(_, index) {
-                return sub[index];
-              });
-              if (PARAMS[n].match(/^\s*%\s/)) // Skip forced expression parameter:
-                continue;
-              if (types[n] == 'S') // string
-                PARAMS[n] = processStrParam(PARAMS[n]);
-            }
-            PARAMS = PARAMS.join(',');
-            out = wrap(CFS, 'cfs', true) + SEP + PARAMS;
-          }
-          els.cfs.push(out);
-          return '<cfs></cfs>';
-        });
-        // hotstrings:
-        els.order.push('hotstr'); els.hotstr = [];
-        innerHTML = innerHTML.replace(/^(\s*)(:.*?:)(.*?)(::)(.*)/mg, function(_, PRE, HOTSTR1, ABBR, HOTSTR2, REPL) {
-          out = PRE + wrap(HOTSTR1, 'lab', false) + wrap(ABBR, 'str', false) + wrap(HOTSTR2, 'lab', false) + (HOTSTR1.match(/x/i) ? REPL : wrap(REPL, 'str', false));
-          els.hotstr.push(out);
-          return '<hotstr></hotstr>';
-        });
-        // hotkeys:
-        els.order.push('hotkey'); els.hotkey = [];
-        innerHTML = innerHTML.replace(/^(\s*)((([#!^+*~$]|&lt;|&gt;)*(\S+)( up)?|~?(\S+) &amp; ~?(\S+)( up)?)::)/gim, function(_, PRE, HOTKEY) {
-          out = PRE + wrap(HOTKEY, 'lab', false);
-          els.hotkey.push(out);
-          return '<hotkey></hotkey>';
-        });
-        // labels:
-        els.order.push('lab'); els.lab = [];
-        innerHTML = innerHTML.replace(/^(\s*)([^\s{(]+?:)(?=\s|$)/mg, function(_, PRE, LABEL) {
-          out = PRE + wrap(LABEL, 'lab', false);
-          els.lab.push(out);
-          return '<lab></lab>';
-        });
-        // Release changes:
-        pre.innerHTML = innerHTML;
-        // Restore elements:
-        for (var k = els.order.length - 1; k >= 0; k--) {
-          $(pre).find(els.order[k]).each(function(index) {
+          out = wrap(CFS, 'cfs', true) + SEP + PARAMS;
+        }
+        els.cfs.push(out);
+        return '<cfs></cfs>';
+      });
+      // hotstrings:
+      els.order.push('hotstr'); els.hotstr = [];
+      innerHTML = innerHTML.replace(/^(\s*)(:.*?:)(.*?)(::)(.*)/mg, function(_, PRE, HOTSTR1, ABBR, HOTSTR2, REPL) {
+        out = PRE + wrap(HOTSTR1, 'lab', false) + wrap(ABBR, 'str', false) + wrap(HOTSTR2, 'lab', false) + (HOTSTR1.match(/x/i) ? REPL : wrap(REPL, 'str', false));
+        els.hotstr.push(out);
+        return '<hotstr></hotstr>';
+      });
+      // hotkeys:
+      els.order.push('hotkey'); els.hotkey = [];
+      innerHTML = innerHTML.replace(/^(\s*)((([#!^+*~$]|&lt;|&gt;)*(\S+)( up)?|~?(\S+) &amp; ~?(\S+)( up)?)::)/gim, function(_, PRE, HOTKEY) {
+        out = PRE + wrap(HOTKEY, 'lab', false);
+        els.hotkey.push(out);
+        return '<hotkey></hotkey>';
+      });
+      // labels:
+      els.order.push('lab'); els.lab = [];
+      innerHTML = innerHTML.replace(/^(\s*)([^\s{(]+?:)(?=\s|$)/mg, function(_, PRE, LABEL) {
+        out = PRE + wrap(LABEL, 'lab', false);
+        els.lab.push(out);
+        return '<lab></lab>';
+      });
+      // Release changes:
+      pre.innerHTML = innerHTML;
+      // Restore elements:
+      for (var k = els.order.length - 1; k >= 0; k--) {
+        $(pre).find(els.order[k]).each(function(index) {
           if (this.attributes[0])
             this.outerHTML = els[els.order[k]][this.attributes[0].name];
           else
             this.outerHTML = els[els.order[k]][index];
-          });
-        }
-      }
-      function wrap(match, type, isLink) {
-        var span = document.createElement('span');
-        span.className = type;
-        if (isLink) {
-          var a = document.createElement('a');
-          if (isLink == true)
-            a.href = scriptDir + '/../' + cache.index_data[dict[match.toLowerCase()]][1];
-          else
-            a.href = scriptDir + '/../' + isLink;
-          a.innerHTML = match;
-          span.appendChild(a);
-        } else
-          span.innerHTML = match;
-        return span.outerHTML;
-      }
-      function processStrParam(param) {
-        if (param.match(/^\s*(\+|-|\^)?\s*<num><\/num>\s*$/)) // skip number
-          return param;
-        param = param.replace(/<str (\d+)><\/str>/g, function(_, index) { // resolve substring
-          return els.str[index];
         });
-        // handle %...%:
-        var out = '', lastIndex = 0;
-        var re = /%[^,\s]+?%/g;
-        while (m = re.exec(param)) {
-          out += wrap(param.slice(lastIndex, m.index), 'str', false) + m[0];
-          lastIndex = re.lastIndex;
-        }
-        out += wrap(param.slice(lastIndex), 'str', false);
-        return out;
       }
+    }
+    function wrap(match, type, isLink) {
+      var span = document.createElement('span');
+      span.className = type;
+      if (isLink) {
+        var a = document.createElement('a');
+        if (isLink == true)
+          a.href = scriptDir + '/../' + cache.index_data[dict[match.toLowerCase()]][1];
+        else
+          a.href = scriptDir + '/../' + isLink;
+        a.innerHTML = match;
+        span.appendChild(a);
+      } else
+        span.innerHTML = match;
+      return span.outerHTML;
+    }
+    function processStrParam(param) {
+      if (param.match(/^\s*(\+|-|\^)?\s*<num><\/num>\s*$/)) // skip number
+        return param;
+      param = param.replace(/<str (\d+)><\/str>/g, function(_, index) { // resolve substring
+        return els.str[index];
+      });
+      // handle %...%:
+      var out = '', lastIndex = 0;
+      var re = /%[^,\s]+?%/g;
+      while (m = re.exec(param)) {
+        out += wrap(param.slice(lastIndex, m.index), 'str', false) + m[0];
+        lastIndex = re.lastIndex;
+      }
+      out += wrap(param.slice(lastIndex), 'str', false);
+      return out;
+    }
   };
 
   // --- Add footer at the bottom of the site ---
@@ -2013,7 +2021,7 @@ function ctor_features()
       search.highlightWords(cache.search_input);
   };
 
-  }
+}
 
 // --- Get the working directory of the site ---
 
