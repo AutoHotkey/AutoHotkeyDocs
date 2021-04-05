@@ -12,56 +12,56 @@
 <body>
 
 <h1>Type</h1>
-<p>Returns the exact type of a value.</p>
-<pre class="Syntax">Type := <span class="func">Type</span>(Value)</pre>
+<p>Returns the class name of a value.</p>
+<pre class="Syntax">ClassName := <span class="func">Type</span>(Value)</pre>
 
 <h2 id="Return_Value">Return Value</h2>
 <p>Type: <a href="../Concepts.htm#strings">String</a></p>
-<p>This function returns the type of <em>Value</em>. For primitive values, the return value is one of the following:</p>
+<p>This function returns the class name of <em>Value</em>. For primitive values, the return value is one of the following:</p>
 <ul>
   <li>String</li>
   <li>Integer</li>
   <li>Float</li>
 </ul>
-<p>If <em>Value</em> is an object, the return value is the object's class name.</p>
-<p>For the <a href="../objects/Object.htm">Object</a> type, the class name is dynamic and is determined using an algorithm like the one below:</p>
+<p>The algorithm for determining a value's class name can be approximated as shown below:</p>
 <pre>
-Object_Type(Value) {
-    if HasProp(Value, "__Class")  <em>; Ensures classes aren't reported as an instance of the base class.</em>
-        return "Class"
-    while Value := Value.base
-        if HasProp(Value, "__Class")
+TypeOf(Value)
+{
+    if Value is Object &amp;&amp; ObjHasOwnProp(Value, "__Class")
+        return "Prototype"
+    if (comClass := ComObjType(Value, "Class")) != ""
+        return comClass
+    while Value := ObjGetBase(Value)
+        if ObjHasOwnProp(Value, "__Class")
             return Value.__Class
     return "Object"
 }
 </pre>
-<p>However, unlike this function, the Type function does not cause the object's meta-functions to be called.</p>
-<p>For COM wrapper objects, the return value depends on the wrapped <a href="ComObjType.htm">variant type</a>. It is determined as follows:</p>
+<p>For COM wrapper objects, the class name can also be determined based on the <a href="ComObjType.htm#vt">variant type</a>, as follows:</p>
 <pre>
 ComObject_Type(obj)
 {
     if ComObjType(obj) &amp; 0x2000 <em>; VT_ARRAY</em>
-        return "<a href="ComObjArray.htm">ComObjArray</a>"
+        return "ComObjArray" <em>; ComObjArray.Prototype.__Class</em>
     if ComObjType(obj) &amp; 0x4000 <em>; VT_BYREF</em>
-        return "<a href="ComObject.htm#ByRef">ComObjRef</a>"
+        return "ComValueRef" <em>; ComValueRef.Prototype.__Class</em>
     if (ComObjType(obj) = 9 || ComObjType(obj) = 13) <em>; VT_DISPATCH || VT_UNKNOWN</em>
         &amp;&amp; ComObjValue(obj) != 0
     {
-        if (classname := <a href="ComObjType.htm">ComObjType</a>(obj, "Class")) != ""
-            return classname
+        if (comClass := ComObjType(obj, "Class")) != ""
+            return comClass
         if ComObjType(obj) = 9 <em>; VT_DISPATCH</em>
-            return "ComObject"
+            return "ComObject" <em>; ComObject.Prototype.__Class</em>
     }
-    return "ComObj"
+    return "ComValue" <em>; ComValue.Prototype.__Class</em>
 }
 </pre>
 
 <h2 id="Remarks">Remarks</h2>
-<p>This function typically shouldn't be used to determine if a value is numeric, since numeric <em>strings</em> are valid in math expressions and with most built-in functions. However, in some cases the exact type of a value is more important.</p>
+<p>This function typically shouldn't be used to determine if a value is numeric, since numeric <em>strings</em> are valid in math expressions and with most built-in functions. However, in some cases the exact type of a value is more important. In such cases, consider using <code>Value is Number</code> or similar instead of Type.</p>
 <p>To check if a value can be used as a number, use the <a href="Is.htm#number">IsNumber</a>, <a href="Is.htm#integer">IsInteger</a> or <a href="Is.htm#float">IsFloat</a> function.</p>
-<p>To check for any type of object, use the <a href="IsObject.htm">IsObject</a> function.</p>
-<p>To check if an object is derived from a particular user-defined class, use the <a href="../Variables.htm#is"><code>is</code></a> operator.</p>
-<p>For built-in types, the object's class cannot be referenced directly.</p>
+<p>To check for any type of object (that is, anything which is not a primitive value), use the <a href="IsObject.htm">IsObject</a> function.</p>
+<p>To check if a value is an instance of a specific class, use the <a href="../Variables.htm#is"><code>is</code></a> operator. This can be used even with primitive values or to identify <a href="ComValue.htm">COM wrapper objects</a>.</p>
 
 <h2 id="Related">Related</h2>
 <p><a href="../Concepts.htm#values">Values</a>, <a href="../Language.htm#expressions">Expressions</a>, <a href="Is.htm">Is functions</a>, <a href="Integer.htm">Integer</a>, <a href="Float.htm">Float</a>, <a href="String.htm">String</a></p>

@@ -184,7 +184,7 @@ ScanFile(filename)
     html := FileRead(filename)
     
     ; Index only content, not markup
-    doc := ComObjCreate("htmlfile")
+    doc := ComObject("htmlfile")
     doc.write(StrReplace(html, "<", " <"))  ; Can't remember the reason for StrReplace(). Maybe to preserve word boundaries.
     doc.close()
     Loop {
@@ -310,7 +310,7 @@ ScanIndex()
         D("skipping index; need 32-bit to eval data_index.js")
         return
     }
-    sc := ComObjCreate("ScriptControl"), sc.Language := "JScript"
+    sc := ComObject("ScriptControl"), sc.Language := "JScript"
     sc.AddCode(FileRead("static\source\data_index.js"))
     ji := sc.Eval("indexData")
     if !(ji && ji.length)

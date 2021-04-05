@@ -12,14 +12,14 @@
 
 <h1>ComObjConnect</h1>
 <p>Connects a COM object's event sources to functions with a given prefix.</p>
-<pre class="Syntax"><span class="func">ComObjConnect</span> ComObject <span class="optional">, Prefix</span></pre>
+<pre class="Syntax"><span class="func">ComObjConnect</span> ComObj <span class="optional">, Prefix</span></pre>
 
 <h2 id="Parameters">Parameters</h2>
 <dl>
 
-  <dt>ComObject</dt>
+  <dt>ComObj</dt>
   <dd>
-    <p>Type: <a href="../Concepts.htm#objects">Object</a></p>
+    <p>Type: <a href="ComObject.htm">ComObject</a></p>
     <p>An object which raises events.</p>
     <p>If the object does not support the IConnectionPointContainer interface or type information about the object's class cannot be retrieved, an error message is shown. This can be suppressed or handled with <a href="Try.htm">try</a>/<a href="Catch.htm">catch</a>.</p>
     <p>The IProvideClassInfo interface is used to retrieve type information about the object's class if the object supports it. Otherwise, ComObjConnect attempts to retrieve type information via the object's IDispatch interface, which may be unreliable.</p>
@@ -37,30 +37,30 @@
 
 <h2 id="Usage">Usage</h2>
 <p>To make effective use of ComObjConnect, you must first write functions in the script to handle any events of interest. Such functions, or "event-handlers," have the following structure:</p>
-<pre class="Syntax Short NoIndent"><i>Prefix</i><b>EventName</b>([<i>Params...</i>, ComObject])
+<pre class="Syntax Short NoIndent"><i>Prefix</i><b>EventName</b>([<i>Params...</i>, ComObj])
 {
     <i class="dull">... event-handling code ...</i>
     return <i>ReturnValue</i>
 }</pre>
 <p><i>Prefix</i> is a prefix of your choosing, while <b>EventName</b> is the name of whatever event the function should handle.</p>
-<p><i>Params</i> corresponds to whatever parameters the event has. If the event has no parameters, <i>Params</i> should be omitted entirely. <i>ComObject</i> is an additional parameter containing a reference to the original wrapper object which was passed to ComObjConnect; it is never included in the COM event's documentation. "ComObject" should be replaced with a name more meaningful in the context of your script.</p>
-<p>Note that event handlers may have return values. To return a COM-specific type of value, use <a href="ComObject.htm">ComObject(type, value)</a>. For example, <code>return ComObject(0,0)</code> returns a variant of type VT_EMPTY, which is equivalent to returning <code>undefined</code> (or not returning) from a JavaScript function.</p>
+<p><i>Params</i> corresponds to whatever parameters the event has. If the event has no parameters, <i>Params</i> should be omitted entirely. <i>ComObj</i> is an additional parameter containing a reference to the original wrapper object which was passed to ComObjConnect; it is never included in the COM event's documentation. "ComObj" should be replaced with a name more meaningful in the context of your script.</p>
+<p>Note that event handlers may have return values. To return a COM-specific type of value, use <a href="ComValue.htm">ComValue(type, value)</a>. For example, <code>return ComValue(0,0)</code> returns a variant of type VT_EMPTY, which is equivalent to returning <code>undefined</code> (or not returning) from a JavaScript function.</p>
 <p>Call <code>ComObjConnect(yourObject, "<i>Prefix</i>")</code> to enable event-handling.</p>
 <p>Call <code>ComObjConnect(yourObject)</code> to disconnect the object (stop handling events).</p>
 <p>If the number of parameters is not known, a <a href="../Functions.htm#Variadic">variadic function</a> can be used.</p>
 
 <h2 id="Remarks">Remarks</h2>
-<p>The script must retain a reference to <em>ComObject</em>, otherwise it would be freed automatically and would disconnect from its COM object, preventing any further events from being detected. There is no standard way to detect when the connection is no longer required, so the script must disconnect manually by calling ComObjConnect.</p>
+<p>The script must retain a reference to <em>ComObj</em>, otherwise it would be freed automatically and would disconnect from its COM object, preventing any further events from being detected. There is no standard way to detect when the connection is no longer required, so the script must disconnect manually by calling ComObjConnect.</p>
 <p>The <a href="Persistent.htm">Persistent</a> function may be needed to keep the script running while it is listening for events.</p>
 <p>An exception is thrown on failure.</p>
 
 <h2 id="Related">Related</h2>
-<p><a href="ComObjCreate.htm">ComObjCreate</a>, <a href="ComObjGet.htm">ComObjGet</a>, <a href="ComObjActive.htm">ComObjActive</a>, <a href="http://msdn.microsoft.com/en-us/library/ccxe1xe6.aspx">WScript.ConnectObject (MSDN)</a></p>
+<p><a href="ComObject.htm">ComObject</a>, <a href="ComObjGet.htm">ComObjGet</a>, <a href="ComObjActive.htm">ComObjActive</a>, <a href="http://msdn.microsoft.com/en-us/library/ccxe1xe6.aspx">WScript.ConnectObject (MSDN)</a></p>
 
 <h2 id="Examples">Examples</h2>
 <div class="ex" id="ExIE">
 <p><a class="ex_number" href="#ExIE"></a> Launches an instance of Internet Explorer and connects events to corresponding script functions with the prefix "IE_". For details about the COM object and DocumentComplete event used below, see <a href="http://msdn.microsoft.com/en-us/library/aa752084.aspx">InternetExplorer object (Microsoft Docs)</a>.</p>
-<pre>ie := ComObjCreate("InternetExplorer.Application")
+<pre>ie := ComObject("InternetExplorer.Application")
 
 <em>; Connects events to corresponding script functions with the prefix "IE_".</em>
 ComObjConnect(ie, "IE_")

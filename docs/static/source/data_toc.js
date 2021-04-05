@@ -76,13 +76,14 @@ tocData = [
       ["ComObjArray","commands/ComObjArray.htm"],
       ["ComCall","commands/ComCall.htm"],
       ["ComObjConnect","commands/ComObjConnect.htm"],
-      ["ComObjCreate","commands/ComObjCreate.htm"],
       ["ComObjGet","commands/ComObjGet.htm"],
       ["ComObject","commands/ComObject.htm"],
       ["ComObjFlags","commands/ComObjFlags.htm"],
+      ["ComObjFromPtr","commands/ComObjFromPtr.htm"],
       ["ComObjQuery","commands/ComObjQuery.htm"],
       ["ComObjType","commands/ComObjType.htm"],
       ["ComObjValue","commands/ComObjValue.htm"],
+      ["ComValue","commands/ComValue.htm"],
       ["ObjAddRef / ObjRelease","commands/ObjAddRef.htm"]
     ]]
   ]],

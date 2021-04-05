@@ -1,0 +1,129 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+<title>ComValue - Syntax &amp; Usage | AutoHotkey v2</title>
+<meta name="description" content="The ComValue class wraps a value, SafeArray or COM object for use by the script or for passing to a COM method." />
+<meta name="ahk:equiv-v1" content="commands/ComObjActive.htm" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<link href="../static/theme.css" rel="stylesheet" type="text/css" />
+<script src="../static/content.js" type="text/javascript"></script>
+</head>
+<body>
+
+<h1>ComValue</h1>
+
+<p>Wraps a value, SafeArray or COM object for use by the script or for passing to a COM method.</p>
+<pre class="Syntax">ComObj := <span class="func">ComValue</span>(VarType, Value <span class="optional">, Flags</span>)</pre>
+<p><code>ComValue</code> itself is a <a href="../objects/Class.htm">class</a> derived from <code>Any</code>, but is used only to create or identify COM wrapper objects.</p>
+
+<h2 id="Parameters">Parameters</h2>
+<dl>
+
+  <dt>VarType</dt>
+  <dd>
+    <p>Type: <a href="../Concepts.htm#numbers">Integer</a></p>
+    <p>An integer indicating the type of value. See <a href="ComObjType.htm#vt">ComObjType</a> for a list of types.</p>
+  </dd>
+
+  <dt>Value</dt>
+  <dd>
+    <p>Type: <a href="../Concepts.htm#numbers">Integer</a></p>
+    <p>The value to wrap. Currently only integer and pointer values are supported.</p>
+  </dd>
+
+  <dt>Flags</dt>
+  <dd>
+    <p>Type: <a href="../Concepts.htm#numbers">Integer</a></p>
+    <p>Flags affecting the behaviour of the wrapper object; see <a href="ComObjFlags.htm">ComObjFlags</a> for details.</p>
+  </dd>
+
+</dl>
+
+<h2 id="Returns">Return Value</h2>
+<p>Type: ComValue, ComValueRef, <a href="ComObjArray.htm">ComObjArray</a> or <a href="ComObject.htm">ComObject</a></p>
+<p>Returns a wrapper object containing a <a href="ComObjType.htm#vt">variant type</a> and value or pointer.</p>
+<p>This object has two uses:</p>
+<ol>
+  <li>Some COM methods may require specific types of values which have no direct equivalent within AutoHotkey. This function allows the type of a value to be specified when passing it to a COM method. For example, <code>ComValue(0xB, -1)</code> creates an object which represents the COM boolean value <em>true</em>.</li>
+  <li>Wrapping a COM object or SafeArray enables the script to interact with it more naturally, using <a href="../Objects.htm#Usage_Objects">object syntax</a>. However, the majority of scripts do not need to do this manually since a wrapper object is created automatically by <a href="ComObject.htm">ComObject</a>, <a href="ComObjArray.htm">ComObjArray</a>, <a href="ComObjActive.htm">ComObjActive</a>, <a href="ComObjGet.htm">ComObjGet</a> and any COM method which returns an object.</li>
+</ol>
+
+<h2 id="Ptr">Ptr</h2>
+<p>If a wrapper object's <a href="ComObjType.htm#vt"><em>VarType</em></a> is VT_UNKNOWN (13) or includes the VT_BYREF (0x4000) flag or VT_ARRAY (0x2000) flag, the <code>Ptr</code> property can be used to retrieve the address of the object, typed variable or SafeArray. This allows the ComObject itself to be passed to any <a href="DllCall.htm">DllCall</a> or <a href="ComCall.htm">ComCall</a> parameter which has the <code>"Ptr"</code> type, but can also be used explicitly. For example, <code>ComObj.Ptr</code> is equivalent to <code>ComObjValue(ComObj)</code> in these cases.</p>
+<p>If a wrapper object's <a href="ComObjType.htm#vt"><em>VarType</em></a> is VT_UNKNOWN (13) or VT_DISPATCH (9) and the wrapped pointer is null (0), the <code>Ptr</code> property can be used to retrieve the current null value or to assign a pointer to the wrapper object. Once assigned (if non-null), the pointer will be released automatically when the wrapper object is freed. This can be used with <a href="DllCall.htm">DllCall</a> or <a href="ComCall.htm">ComCall</a> output parameters of type <code>"Ptr*"</code> or <code>"PtrP"</code> to ensure the pointer will be released automatically, such as if an error occurs. For an example, see <a href="ComObjQuery.htm#ExIE">ComObjQuery</a>.</p>
+<p>When a wrapper object with <em>VarType</em> VT_DISPATCH (9) and a null (0) pointer value is assigned a non-null pointer value, its type changes from <code>ComValue</code> to <code>ComObject</code>. The properties and methods of the wrapped object become available and the <code>Ptr</code> property becomes unavailable.</p>
+
+<h2 id="ByRef">ByRef</h2>
+<p>If a wrapper object's <a href="ComObjType.htm#vt"><em>VarType</em></a> includes the VT_BYREF (0x4000) flag, empty brackets <code>[]</code> can be used to read or write the referenced value.</p>
+<p>When creating a reference, <em>Value</em> must be the memory address of a variable or buffer with sufficient capacity to store a value of the given type. For example, the following can be used to create a variable which a VBScript function can write into:</p>
+<pre>vbuf := BufferAlloc(24, 0)
+vref := ComValue(0x400C, vbuf.ptr)  <em>; 0x400C is a combination of VT_BYREF and VT_VARIANT.</em>
+
+vref[] := "in value"
+sc.Run("Example", vref)  <em>; sc should be initialized as in the <a href="#ExByRef">example below</a>.</em>
+MsgBox vref[]</pre>
+<p>If the method accepts a combination of VT_BYREF and VT_VARIANT as shown above, a <a href="../Concepts.htm#variable-references">VarRef</a> can be used instead. For example:</p>
+<pre>some_var := "in value"
+sc.Run("Example", &amp;some_var)
+MsgBox some_var</pre>
+<p>However, some methods require a more specific variant type, such as <code>VT_BYREF | VT_I4</code>. In such cases, the first approach shown above must be used, replacing 0x400C with the appropriate variant type.</p>
+
+<h2 id="Remarks">General Remarks</h2>
+<p>When this function is used to wrap an <a href="http://msdn.microsoft.com/en-us/library/dd318520.aspx">IDispatch</a> or IUnknown interface pointer, the wrapper object assumes responsibility for automatically releasing the pointer when appropriate. Therefore, if the script intends to use the pointer after calling this function, it must call <code><a href="ObjAddRef.htm">ObjAddRef</a>(DispPtr)</code> first.</p>
+<p>The <em>VarType</em> of a wrapper object can be retrieved using <a href="ComObjType.htm">ComObjType</a>.</p>
+<p>The <em>Value</em> of a wrapper object can be retrieved using <a href="ComObjValue.htm">ComObjValue</a>.</p>
+<p><b>Known limitation:</b> Each time a COM object is wrapped, a new wrapper object is created. Comparisons and assignments such as <code>obj1 == obj2</code> and <code>array[obj1] := value</code> treat the two wrapper objects as unique, even when they contain the same variant type and value.</p>
+
+<h2 id="Related">Related</h2>
+<p><a href="ComObjFromPtr.htm">ComObjFromPtr</a>, <a href="ComObject.htm">ComObject</a>, <a href="ComObjGet.htm">ComObjGet</a>, <a href="ComObjConnect.htm">ComObjConnect</a>, <a href="ComObjFlags.htm">ComObjFlags</a>, <a href="ObjAddRef.htm">ObjAddRef/ObjRelease</a>, <a href="ComObjQuery.htm">ComObjQuery</a>, <a href="http://msdn.microsoft.com/en-us/library/ms221467.aspx">GetActiveObject (MSDN)</a></p>
+
+<h2 id="Examples">Examples</h2>
+<div class="ex" id="ExByRef">
+<p><a class="ex_number" href="#ExByRef"></a> Passes a VARIANT ByRef to a COM function.</p>
+<pre>
+<em>; Preamble - ScriptControl requires a 32-bit version of AutoHotkey.</em>
+code := "
+(
+Sub Example(Var)
+    MsgBox Var
+    Var = "out value!"
+End Sub
+)"
+sc := ComObject("ScriptControl"), sc.Language := "VBScript", sc.AddCode(code)
+
+
+<em>; Example: Pass a VARIANT ByRef to a COM method.</em>
+var := ComVar()
+var[] := "in value"
+sc.Run("Example", var.ref)
+MsgBox var[]
+
+<em>; Above and below are equivalent in this case:</em>
+var := "in value"
+sc.Run("Example", &amp;var)
+MsgBox var
+
+
+<em>; ComVar: An object which can be used to pass a value ByRef.
+;   this[] retrieves the value.
+;   this[] := Val sets the value.
+;   this.ref retrieves a ByRef object for passing to a COM method.</em>
+class ComVar {
+    __new(Type := 0xC) {
+        <em>; Allocate memory for the typed variable.
+        ; The largest supported type is VT_VARIANT on x64 (24 bytes).</em>
+        this.var := BufferAlloc(24, 0)
+        <em>; Create an object which can be used to pass the variable ByRef.</em>
+        this.ref := ComValue(0x4000|Type, this.var.ptr + (Type=0xC ? 0 : 8))
+    }
+    __item {
+        get =&gt; this.ref[]
+        set =&gt; this.ref[] := value
+    }
+}
+</pre>
+</div>
+
+</body>
+</html>

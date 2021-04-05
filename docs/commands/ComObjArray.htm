@@ -15,6 +15,7 @@
 <p>Creates a SafeArray for use with COM.</p>
 
 <pre class="Syntax">ArrayObj := <span class="func">ComObjArray</span>(VarType, Count1 <span class="optional">, Count2, ... Count8</span>)</pre>
+<p><code>ComObjArray</code> itself is a <a href="../objects/Class.htm">class</a> derived from <code>ComValue</code>, but is used only to create or identify SafeArray wrapper objects.</p>
 
 <h2 id="Parameters">Parameters</h2>
 <dl>
@@ -35,27 +36,40 @@
 </dl>
 
 <h2 id="Return_Value">Return Value</h2>
-<p>Type: <a href="../Concepts.htm#objects">Object</a></p>
-<p>This function returns a <a href="../Concepts.htm#references-to-objects">reference</a> to a new wrapper object containing the SafeArray, which supports the following methods:</p>
+<p>Type: ComObjArray</p>
+<p>This function returns a wrapper object containing a new SafeArray.</p>
+
+<h2 id="Methods">Methods</h2>
+<p>ComObjArray objects support the following methods:</p>
 <ul>
     <li><code>.MaxIndex(n)</code>: Returns the upper bound of the <i>n</i>th dimension. If <i>n</i> is omitted, it defaults to 1.</li>
     <li><code>.MinIndex(n)</code>: Returns the lower bound of the <i>n</i>th dimension. If <i>n</i> is omitted, it defaults to 1.</li>
     <li><code>.Clone()</code>: Returns a copy of the array.</li>
     <li><code>.__Enum()</code>: Not typically called by script; allows <a href="For.htm">for-loops</a> to be used with SafeArrays.</li>
 </ul>
+<p>These are currently hard-coded; they do not exist as properties and are not affected by modifications to <code>ComObjArray.Prototype</code>.</p>
 
 <h2 id="Remarks">Remarks</h2>
-<p>Array wrapper objects may also be returned by COM methods and <a href="ComObject.htm">ComObject</a>. Scripts may determine if a value is an array as follows:</p>
-<pre>if ComObjType(<i>obj</i>) &amp; 0x2000
+<p>ComObjArray objects may also be returned by COM methods and <a href="ComValue.htm">ComValue</a>. Scripts may determine if a value is a ComObjArray as follows:</p>
+<pre><em>; Check class</em>
+if obj is ComObjArray
     MsgBox "Array subtype: " . ComObjType(obj) &amp; 0xfff
 else
-    MsgBox "Not an array."</pre>
+    MsgBox "Not an array."
+
+<em>; Check for VT_ARRAY</em>
+if ComObjType(obj) &amp; 0x2000
+    MsgBox "obj is a ComObjArray"
+
+<em>; Check specific array type</em>
+if ComObjType(obj) = 0x2008
+    MsgBox "obj is a ComObjArray of strings"</pre>
 <p>Arrays with up to 8 dimensions are supported.</p>
 <p>Since SafeArrays are not designed to support multiple references, when one SafeArray is assigned to an element of another SafeArray, a separate copy is created. However, this only occurs if the wrapper object has the F_OWNVALUE flag, which indicates it is responsible for destroying the array. This flag can be removed by using <a href="ComObjFlags.htm">ComObjFlags</a>.</p>
 <p>When a function or method called by a COM client returns a SafeArray with the F_OWNVALUE flag, a copy is created and returned instead, as the original SafeArray is automatically destroyed.</p>
 
 <h2 id="Related">Related</h2>
-<p><a href="ComObject.htm">ComObject</a>, <a href="ComObjType.htm">ComObjType</a>, <a href="ComObjValue.htm">ComObjValue</a>, <a href="ComObjActive.htm">ComObjActive</a>, <a href="ComObjFlags.htm">ComObjFlags</a>, <a href="http://msdn.microsoft.com/en-us/library/ms221145.aspx">Array Manipulation Functions (MSDN)</a></p>
+<p><a href="ComValue.htm">ComValue</a>, <a href="ComObjType.htm">ComObjType</a>, <a href="ComObjValue.htm">ComObjValue</a>, <a href="ComObjActive.htm">ComObjActive</a>, <a href="ComObjFlags.htm">ComObjFlags</a>, <a href="http://msdn.microsoft.com/en-us/library/ms221145.aspx">Array Manipulation Functions (MSDN)</a></p>
 
 <h2 id="Examples">Examples</h2>
 <div class="ex" id="ExBasic">
