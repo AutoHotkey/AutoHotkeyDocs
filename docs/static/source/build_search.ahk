@@ -221,7 +221,7 @@ ScanFile(filename)
     h1 := Trim(h1.innerText)
     titles[file_index] := h1
     if titles_map.Has(h1_ := StrLower(h1))
-        throw Exception("Duplicate title: " h1 "`n  " files[file_index] "`n  " files[titles_map[h1_]])
+        throw Error("Duplicate title: " h1 "`n  " files[file_index] "`n  " files[titles_map[h1_]])
     titles_map[h1_] := file_index
     
     ScanText(text, words)
@@ -314,7 +314,7 @@ ScanIndex()
     sc.AddCode(FileRead("static\source\data_index.js"))
     ji := sc.Eval("indexData")
     if !(ji && ji.length)
-        throw Exception("Failed to read/parse data_index.js")
+        throw Error("Failed to read/parse data_index.js")
     
     Loop ji.length
     {
@@ -357,7 +357,7 @@ encode_number(n, length := "")
     if length
     {
         if StrLen(a) > length
-            throw Exception("Number too long",, n " => " a)
+            throw Error("Number too long",, n " => " a)
         Loop length - StrLen(a)
             a := "a" a
     }

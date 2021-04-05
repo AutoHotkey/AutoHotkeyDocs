@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <title>Try - Syntax &amp; Usage | AutoHotkey v2</title>
-<meta name="description" content="The Try statement guards one or more code lines against runtime errors and exceptions thrown by the Throw statement." />
+<meta name="description" content="The Try statement guards one or more code lines against runtime errors and values thrown by the Throw statement." />
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <link href="../static/theme.css" rel="stylesheet" type="text/css" />
@@ -12,7 +12,7 @@
 
 <h1>Try</h1>
 
-<p>Guards one or more statements (functions or expressions) against runtime errors and exceptions thrown by the <a href="Throw.htm">throw</a> statement.</p>
+<p>Guards one or more statements (functions or expressions) against runtime errors and values thrown by the <a href="Throw.htm">throw</a> statement.</p>
 
 <pre class="Syntax"><span class="func">Try</span> <i>Statement</i></pre>
 <pre class="Syntax" style="line-height: 100%"><span class="func">Try</span>
@@ -20,18 +20,18 @@
     <i>Statements</i>
 }</pre>
 <h2 id="Remarks">Remarks</h2>
-<p>The <em>try</em> statement is usually followed by a <a href="Block.htm">block</a> - one or more statements (functions or expressions) enclosed in braces. If only a single statement is to be executed, it can be placed on the same line as <em>try</em> or on the next line, and the braces can be omitted. To specify code that executes only when <em>try</em> catches an error, use the <a href="Catch.htm">catch</a> statement.</p>
-<p>An exception can be thrown by the <a href="Throw.htm">throw</a> statement or by the program when a runtime error occurs. When an exception is thrown from within a try block or a function called by one, the following occurs:</p>
+<p>The <em>try</em> statement is usually followed by a <a href="Block.htm">block</a> - one or more statements (typically functions or expressions) enclosed in braces. If only a single statement is to be executed, it can be placed on the same line as <em>try</em> or on the next line, and the braces can be omitted. To specify code that executes only when <em>try</em> catches an error, use one or more <a href="Catch.htm">catch</a> statements.</p>
+<p>If <em>try</em> is used without <em>catch</em> or <em>finally</em>, it is equivalent to having <code>catch Error</code> with an empty block.</p>
+<p>A value can be thrown by the <a href="Throw.htm">throw</a> statement or by the program when a runtime error occurs. When a value is thrown from within a try block or a function called by one, the following occurs:</p>
 <ul>
-  <li>If there is a corresponding <a href="Catch.htm">catch</a> statement, execution continues there.</li>
-  <li>If there is no catch statement but there is a <a href="Finally.htm">finally</a> statement, it is executed, but once it finishes the exception is automatically thrown again.</li>
-  <li>If there is neither a catch statement nor a finally statement, execution continues at the next line outside the try block.</li>
+  <li>If there is a <a href="Catch.htm">catch</a> statement which matches the class of the thrown value, execution is transferred into it.</li>
+  <li>If there is no matching catch statement but there is a <a href="Finally.htm">finally</a> statement, it is executed, but once it finishes the value is automatically thrown again.</li>
+  <li>If there is no matching catch statement or finally statement, the value is automatically thrown again.</li>
 </ul>
-<p>If an exception is thrown while no try blocks are executing, an error message is shown and the current thread exits.</p>
 <p>The <a href="Block.htm#otb">One True Brace (OTB) style</a> may optionally be used with the <em>try</em> statement. For example:</p>
 <pre>try {
     ...
-} catch e {
+} catch Error as err {
     ...
 }</pre>
 
@@ -87,10 +87,14 @@ catch
 <pre>try
 {
     obj := <a href="ComObjCreate.htm">ComObjCreate</a>("ScriptControl")
-    obj.ExecuteStatement('MsgBox "This is embedded VBScript"')
-    obj.InvalidMethod() <em>; This line produces a runtime error.</em>
+    obj.ExecuteStatement('MsgBox "This is embedded VBScript"')  <em>; This line produces an Error.</em>
+    obj.InvalidMethod()  <em>; This line would produce a MethodError.</em>
 }
-catch e
+catch MemberError  <em>; Covers MethodError and PropertyError.</em>
+{
+    MsgBox "We tried to invoke a member that doesn't exist."
+}
+catch as e
 {
     <em>; For more detail about the object that e contains, see <a href="../objects/Error.htm">Error Object</a>.</em>
     MsgBox("Exception thrown!`n`nwhat: " e.what "`nfile: " e.file 
@@ -102,16 +106,16 @@ catch e
 <div class="ex" id="ex_nesting">
 <p><a class="ex_number" href="#ex_nesting"></a> Demonstrates nesting try-catch statements.</p>
 <pre>try Example1 <em>; Any single statement can be on the same line with a Try statement.</em>
-catch e
+catch Number as e
     MsgBox "Example1() threw " e
 
 Example1()
 {
     try Example2
-    catch e
+    catch Number as e
     {
         if (e = 1)
-            throw e <em>; Rethrow the exception so that the caller can catch it.</em>
+            throw <em>; Rethrow the caught value to our caller.</em>
         else
             MsgBox "Example2() threw " e
     }
