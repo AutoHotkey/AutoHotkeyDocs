@@ -252,7 +252,7 @@ other.test()</pre>
         ...
     }
 
-    Property[]  <em>; Brackets are optional</em>
+    Property[<i>Parameters</i>]  <em>; Use brackets only when parameters are present.</em>
     {
         <span class="dec">get</span> {
             return <i>value of property</i>
@@ -262,13 +262,13 @@ other.test()</pre>
         }
     }
     
-    ShortProperty[]
+    ShortProperty
     {
         <span class="dec">get</span> =&gt; <i>Expression which calculates property value</i>
         <span class="dec">set</span> =&gt; <i>Expression which stores or otherwise handles</i> <span class="biv">value</span>
     }
     
-    ShorterProperty[] =&gt; <i>Expression which calculates property value</i>
+    ShorterProperty =&gt; <i>Expression which calculates property value</i>
 }
 </pre>
 <p>When the script is loaded, this constructs a <a href="objects/Class.htm">Class</a> object and stores it in a <a href="Functions.htm#Global">global</a> constant (read-only variable) with the name <i>ClassName</i>. If <code>extends BaseClassName</code> is present, <i>BaseClassName</i> must be the full name of another class. The full name of each class is stored in <code><i>ClassName</i>.Prototype.__Class</code>.</p>
@@ -333,7 +333,7 @@ Method()
 
 <h4 id="Custom_Classes_property">Properties</h4>
 <p>A property definition creates a <a href="objects/Object.htm#DefineProp">dynamic property</a>, which calls a method instead of simply storing or returning a value.</p>
-<pre>Property[]  <em>; Brackets are optional</em>
+<pre>Property[<i>Parameters</i>]
 {
     <span class="dec">get</span> {
         return <i>property value</i>
@@ -344,8 +344,8 @@ Method()
 }
 </pre>
 <p><em>Property</em> is simply the name of the property, which will be used to invoke it. For example, <code>obj.Property</code> would call <em>get</em> while <code>obj.Property := value</code> would call <em>set</em>. Within <em>get</em> or <em>set</em>, <code>this</code> refers to the object being invoked. Within <em>set</em>, <code>value</code> contains the value being assigned.</p>
-<p>Parameters can be defined by enclosing them in square brackets to the right of the property name, and are passed the same way (but should be omitted when accessing a property without parameters). Aside from using square brackets, parameters of properties are defined the same way as parameters of methods - optional, ByRef and variadic parameters are supported.</p>
-<p>If a property is invoked with parameters but has none defined, parameters are automatically forwarded to the <a href="#__Item">__Item</a> property of the object returned by <em>get</em>. For example, <code>this.Property[x]</code> would have the same effect as <code>(this.Property)[x]</code> or <code>y := this.Property, y[x]</code>. Empty brackets (<code>[]</code>) always cause the __Item property to be invoked, but a variadic call such as <code>this.Property[args*]</code> has this effect only if the number of parameters is non-zero.</p>
+<p>Parameters can be defined by enclosing them in square brackets to the right of the property name, and are passed the same way - but they should be omitted when parameters are not present (see below). Aside from using square brackets, parameters of properties are defined the same way as parameters of methods - optional, ByRef and variadic parameters are supported.</p>
+<p>If a property is invoked with parameters but has none defined, parameters are automatically forwarded to the <a href="#__Item">__Item</a> property of the object returned by <em>get</em>. For example, <code>this.Property[x]</code> would have the same effect as <code>(this.Property)[x]</code> or <code>y := this.Property, y[x]</code>. Empty brackets (<code>this.Property[]</code>) always cause the __Item property <em>of Property's value</em> to be invoked, but a variadic call such as <code>this.Property[args*]</code> has this effect only if the number of parameters is non-zero.</p>
 <p>Static properties can be defined by preceding the property name with the separate keyword <code>static</code>. In that case, <code>this</code> refers to the class itself or a subclass.</p>
 <p>The return value of <em>set</em> is ignored. For example, <code>val := obj.Property := 42</code> always assigns <code>val := 42</code> regardless of what the property does, unless it throws an exception or exits the thread.</p>
 <p>Each class can define one or both halves of a property. If a class overrides a property, it can use <code><a href="#Custom_Classes_super">super.Property</a></code> to access the property defined by its base class. If <em>Get</em> or <em>Set</em> is not defined, it can be inherited from a base object. If <em>Get</em> is undefined, the property can return a value inherited from a base. If <em>Set</em> is undefined in this and all base objects (or is obscured by an inherited value property), attempting to set the property causes an exception to be thrown.</p>
@@ -354,13 +354,14 @@ Method()
 
 <h4 id="Custom_Classes_property_short">Fat Arrow Properties</h4>
 <p><a href="Variables.htm#fat-arrow">Fat arrow syntax</a> can be used to define a <a href="#Custom_Classes_property">property</a> getter or setter which returns an expression:</p>
-<pre>ShortProperty[]
+<pre>ShortProperty[<i>Parameters</i>]
 {
     <span class="dec">get</span> =&gt; <i>Expression which calculates property value</i>
     <span class="dec">set</span> =&gt; <i>Expression which stores or otherwise handles</i> <span class="biv">value</span>
 }</pre>
 <p>When defining only a getter, the braces and <code>get</code> can be omitted:</p>
-<pre>ShorterProperty[] =&gt; <i>Expression which calculates property value</i></pre>
+<pre>ShorterProperty[<i>Parameters</i>] =&gt; <i>Expression which calculates property value</i></pre>
+<p>In both cases, the square brackets must be omitted unless parameters are defined.</p>
 
 <h3 id="__Enum">__Enum Method</h3>
 <pre class="Syntax">__Enum(NumberOfVars)</pre>
