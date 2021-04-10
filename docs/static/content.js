@@ -1670,7 +1670,7 @@ function ctor_features()
       return;
     if (!retrieveData(index.dataPath, "index_data", "indexData", function() {self.addSyntaxColors(pres);}))
       return;
-    var syntax = [], dict = {}, entry = '', type = '';
+    var syntax = [], entry = '', type = '';
     var assignOp = "(?:&lt;&lt;|<<|&gt;&gt;|>>|\\/\\/|\\^|&amp;|&|\\||\\.|\\/|\\*|-|\\+|:|)=";
     for (var i = cache.index_data.length - 1; i >= 0; i--) {
       entry = cache.index_data[i][0];
@@ -1689,11 +1689,11 @@ function ctor_features()
         }
         else
           (syntax[type].single = syntax[type].single || []).push(entry);
-        dict[entry.toLowerCase()] = i;
+        (syntax[type].dict = syntax[type].dict || {})[entry.toLowerCase()] = i;
         if (entry.indexOf(', ') != -1) {
           entry = entry.toLowerCase().replace(', ', ' ');
           syntax[type].single.push(entry);
-          dict[entry] = i;
+          (syntax[type].dict = syntax[type].dict || {})[entry] = i;
         }
       }
     }
@@ -1724,20 +1724,20 @@ function ctor_features()
       // comments:
       els.order.push('sct'); els.sct = [];
       innerHTML = innerHTML.replace(/(\s|^)(;.*?)$/gm, function(_, PRE, COMMENT) {
-        out = wrap(COMMENT, 'cmt', false);
+        out = wrap(COMMENT, 'cmt', null);
         els.sct.push(out);
         return PRE + '<sct></sct>';
       });
       els.order.push('mct'); els.mct = [];
       innerHTML = innerHTML.replace(/(^\s*\/\*[\s\S]*?^\s*(\*\/|$(?![\r\n])))/gm, function(COMMENT) {
-        out = wrap(COMMENT, 'cmt', false);
+        out = wrap(COMMENT, 'cmt', null);
         els.mct.push(out);
         return '<mct></mct>';
       });
       // escape sequences:
       els.order.push('esc'); els.esc = [];
       innerHTML = innerHTML.replace(/`./gm, function(SEQUENCE) {
-        out = wrap(SEQUENCE, 'esc', false);
+        out = wrap(SEQUENCE, 'esc', null);
         els.esc.push(out);
         return '<esc></esc>';
       });
@@ -1746,14 +1746,14 @@ function ctor_features()
       innerHTML = innerHTML.replace(/^(\s*?)(\S*?)(?=\(.*?\)\s*(<(em|sct)><\/(em|sct)>\s*)*{)/mg, function(ASIS, PRE, DEFINITION) {
         if (DEFINITION.match(/^(while|if)$/i))
           return ASIS;
-        out = PRE + wrap(DEFINITION, 'fun', false);
+        out = PRE + wrap(DEFINITION, 'fun', null);
         els.fun.push(out);
         return '<fun></fun>';
       });
       // numeric values:
       els.order.push('num'); els.num = [];
       innerHTML = innerHTML.replace(/\b((0(x|X)[0-9a-fA-F]*)|(([0-9]+\.?[0-9]*)|(\.[0-9]+))((e|E)(\+|-)?[0-9]+)?)\b/gm, function(_, NUMBER) {
-        out = wrap(NUMBER, 'num', false);
+        out = wrap(NUMBER, 'num', null);
         els.num.push(out);
         return '<num></num>';
       });
@@ -1769,14 +1769,14 @@ function ctor_features()
       // built-in vars:
       els.order.push('biv'); els.biv = [];
       innerHTML = innerHTML.replace(new RegExp('\\b(' + syntax[1].single.join('|') + ')\\b', 'gi'), function(_, BIV) {
-        out = wrap(BIV, 'biv', true);
+        out = wrap(BIV, 'biv', 1);
         els.biv.push(out);
         return '<biv></biv>';
       });
       // strings:
       els.order.push('str'); els.str = [];
       innerHTML = innerHTML.replace(/((")[\s\S]*?\2)/gm, function(_, STRING) {
-        out = wrap(STRING, 'str', false);
+        out = wrap(STRING, 'str', null);
         index = els.str.push(out) - 1;
         return '<str ' + index + '></str>';
       });
@@ -1792,29 +1792,29 @@ function ctor_features()
       // methods:
       els.order.push('met'); els.met = [];
       innerHTML = innerHTML.replace(/(\.)([^~`!@#$%^&*(){}\[\];:"'<,.>?\/\\|+=\-\s]+?)(?=\()/g, function(_, PRE, METHOD) {
-        out = PRE + wrap(METHOD, 'met', false);
+        out = PRE + wrap(METHOD, 'met', null);
         els.met.push(out);
         return '<met></met>';
       });
       // properties:
       els.order.push('prp'); els.prp = [];
       innerHTML = innerHTML.replace(/\.([^~`!@#$%^&*(){}\[\];:"'<,.>?\/\\|+=\-\s]+?)\b/g, function(_, PROPERTY) {
-        out = '.' + wrap(PROPERTY, 'prp', false);
+        out = '.' + wrap(PROPERTY, 'prp', null);
         els.prp.push(out);
         return '<prp></prp>';
       });
+      // declaration: class ... extends
+      els.order.push('dec_cls'); els.dec_cls = [];
+      innerHTML = innerHTML.replace(/(^\s*)(class)(\s+\S+\s+)(extends)\b/gim, function(_, PRE, CLASS, INPUT, EXTENDS) {
+        var link = cache.index_data[syntax[5].dict['class']][1];
+        els.dec_cls.push(wrap(CLASS, 'dec', link));
+        els.dec_cls.push(wrap(EXTENDS, 'dec', link));
+        return PRE + '<dec_cls></dec_cls>' + INPUT + '<dec_cls></dec_cls>';
+      });
       // declarations:
       els.order.push('dec'); els.dec = [];
-      innerHTML = innerHTML.replace(new RegExp('(^\\s*)((' + syntax[5][0].join('|') + ') (\\S+) (' + syntax[5][1].join('|') + ') (\\S+)|(?:' + syntax[5].single.join('|') + ')\\b)', 'gim'), function(_, PRE, DEC, CLASS, INPUT1, EXTENDS, INPUT2) {
-        if (CLASS) {
-          var dec = cache.index_data[dict[(CLASS + ' ... ' + EXTENDS).toLowerCase()]];
-          if (dec)
-            out = PRE + wrap(CLASS, 'dec', dec[1]) + ' ' + INPUT1 + ' ' + wrap(EXTENDS, 'dec', dec[1]) + ' ' + INPUT2;
-          else
-            out = m;
-        }
-        else
-          out = PRE + wrap(DEC, 'dec', true);
+      innerHTML = innerHTML.replace(new RegExp('(^\\s*)(' + syntax[5].single.join('|') + ')\\b(?=\\s|$)', 'gim'), function(_, PRE, DEC) {
+          out = PRE + wrap(DEC, 'dec', 5);
         els.dec.push(out);
         return '<dec></dec>';
       });
@@ -1828,7 +1828,7 @@ function ctor_features()
       // built-in functions:
       els.order.push('bif'); els.bif = [];
       innerHTML = innerHTML.replace(new RegExp('\\b(' + syntax[2].single.join('|').replace('()', '') + ')(?=\\()', 'gi'), function(_, BIF) {
-        out = wrap(BIF, 'bif', true);
+        out = wrap(BIF, 'bif', 2);
         els.bif.push(out);
         return '<bif></bif>';
       });
@@ -1836,7 +1836,7 @@ function ctor_features()
       els.order.push('dir'); els.dir = [];
       innerHTML = innerHTML.replace(new RegExp('(' + syntax[0].single.join('|') + ')\\b($|[\\s,])(.*?)(?=<(?:em|sct)></(?:em|sct)>|$)', 'gim'), function(_, DIR, SEP, PARAMS) {
         // Get type of every parameter:
-        var types = cache.index_data[dict[DIR.toLowerCase()]][3];
+        var types = cache.index_data[syntax[0].dict[DIR.toLowerCase()]][3];
         // Temporary exclude (...), {...} and [...]:
         sub = [];
         PARAMS = PARAMS.replace(/[({\[][^({\[]*[\]})]/g, function(c) {
@@ -1860,7 +1860,7 @@ function ctor_features()
             PARAMS[n] = processStrParam(PARAMS[n]);
         }
         PARAMS = PARAMS.join(',');
-        out = wrap(DIR, 'dir', true) + SEP + PARAMS;
+        out = wrap(DIR, 'dir', 0) + SEP + PARAMS;
         els.dir.push(out);
         return '<dir></dir>';
       });
@@ -1868,7 +1868,7 @@ function ctor_features()
       els.order.push('cmd'); els.cmd = [];
       innerHTML = innerHTML.replace(new RegExp('\\b(' + syntax[6].single.join('|') + ')\\b(\\s*,|\\s*<(?:em|sct)><\\/(?:em|sct)>\\s*,|$|,|\\s(?!\\s*' + assignOp + '))(.*?$(?:(?:\\s*?(,|<cont>).*?$))*)', "gim"), function(_, CMD, SEP, PARAMS) {
         // Get type of every parameter:
-        var types = cache.index_data[dict[CMD.toLowerCase()]][3];
+        var types = cache.index_data[syntax[6].dict[CMD.toLowerCase()]][3];
         // Temporary exclude (...), {...} and [...]:
         sub = [];
         PARAMS = PARAMS.replace(/[({\[][^({\[]*[\]})]/g, function(c) {
@@ -1903,7 +1903,7 @@ function ctor_features()
             PARAMS[n] = processStrParam(p[1]) + p[2];
         }
         PARAMS = PARAMS.join(',');
-        out = wrap(CMD, 'cmd', true) + SEP + PARAMS;
+        out = wrap(CMD, 'cmd', 6) + SEP + PARAMS;
         els.cmd.push(out);
         return '<cmd></cmd>';
       });
@@ -1912,14 +1912,14 @@ function ctor_features()
       innerHTML = innerHTML.replace(new RegExp('\\b(' + syntax[3][0].join('|') + ') (\\S+|\\S+, \\S+) (' + syntax[3][1].join('|') + ') ((.+) (' + syntax[3][2].join('|') + ') (.+?)|.+?)(?=<(?:em|sct)></(?:em|sct)>|$|{)|\\b(' + syntax[3].single.join('|') + ')\\b($|,|{|(?=\\()|\\s(?!\\s*' + assignOp + '))(.*?)(?=<(?:em|sct)></(?:em|sct)>|$|{|\\b(' + syntax[3].single.join('|') + ')\\b)', 'gim'), function(ASIS, IF, INPUT, BETWEEN, VAL, VAL1, AND, VAL2, CFS, SEP, PARAMS) {
         if (IF) {
           if (VAL1) {
-            var cfs = cache.index_data[dict[(IF + ' ... ' + BETWEEN + ' ... ' + AND).toLowerCase()]];
+            var cfs = cache.index_data[syntax[3].dict[(IF + ' ... ' + BETWEEN + ' ... ' + AND).toLowerCase()]];
             if (cfs)
               out = wrap(IF, 'cfs', cfs[1]) + ' ' + INPUT + ' ' + wrap(BETWEEN, 'cfs', cfs[1]) + ' ' + processStrParam(VAL1) + ' ' + wrap(AND, 'cfs', cfs[1]) + ' ' + processStrParam(VAL2);
             else
               out = ASIS;
           }
           else if (INPUT) {
-            var cfs = cache.index_data[dict[(IF + ' ... ' + BETWEEN).toLowerCase()]];
+            var cfs = cache.index_data[syntax[3].dict[(IF + ' ... ' + BETWEEN).toLowerCase()]];
             if (cfs)
               out = wrap(IF, 'cfs', cfs[1]) + ' ' + INPUT + ' ' + wrap(BETWEEN, 'cfs', cfs[1]) + ' ' + ((cfs[3][1] == "S") ? processStrParam(VAL) : VAL);
             else
@@ -1929,7 +1929,7 @@ function ctor_features()
         else {
           var cfs = CFS.toLowerCase();
           // Get type of every parameter:
-          var types = cache.index_data[dict[cfs]][3];
+          var types = cache.index_data[syntax[3].dict[cfs]][3];
           // legacy if-statement:
           if (cfs == 'if')
             if (m = PARAMS.match(/^([^.(:]+?)(&gt;=|&gt;|&lt;&gt;|&lt;=|&lt;|!=|=)(.*)$/)) {
@@ -1958,7 +1958,7 @@ function ctor_features()
               PARAMS[n] = processStrParam(PARAMS[n]);
           }
           PARAMS = PARAMS.join(',');
-          out = wrap(CFS, 'cfs', true) + SEP + PARAMS;
+          out = wrap(CFS, 'cfs', 3) + SEP + PARAMS;
         }
         els.cfs.push(out);
         return '<cfs></cfs>';
@@ -1966,21 +1966,21 @@ function ctor_features()
       // hotstrings:
       els.order.push('hotstr'); els.hotstr = [];
       innerHTML = innerHTML.replace(/^(\s*)(:.*?:)(.*?)(::)(.*)/mg, function(_, PRE, HOTSTR1, ABBR, HOTSTR2, REPL) {
-        out = PRE + wrap(HOTSTR1, 'lab', false) + wrap(ABBR, 'str', false) + wrap(HOTSTR2, 'lab', false) + (HOTSTR1.match(/x/i) ? REPL : wrap(REPL, 'str', false));
+        out = PRE + wrap(HOTSTR1, 'lab', null) + wrap(ABBR, 'str', null) + wrap(HOTSTR2, 'lab', null) + (HOTSTR1.match(/x/i) ? REPL : wrap(REPL, 'str', null));
         els.hotstr.push(out);
         return '<hotstr></hotstr>';
       });
       // hotkeys:
       els.order.push('hotkey'); els.hotkey = [];
       innerHTML = innerHTML.replace(/^(\s*)((([#!^+*~$]|&lt;|&gt;)*(\S+)( up)?|~?(\S+) &amp; ~?(\S+)( up)?)::)/gim, function(_, PRE, HOTKEY) {
-        out = PRE + wrap(HOTKEY, 'lab', false);
+        out = PRE + wrap(HOTKEY, 'lab', null);
         els.hotkey.push(out);
         return '<hotkey></hotkey>';
       });
       // labels:
       els.order.push('lab'); els.lab = [];
-      innerHTML = innerHTML.replace(/^(\s*)([^\s{(]+?:)(?=\s|$)/mg, function(_, PRE, LABEL) {
-        out = PRE + wrap(LABEL, 'lab', false);
+      innerHTML = innerHTML.replace(/^(\s*)([^\s{(]+?:)(?=\s*(<(em|sct)><\/(em|sct)>|$))/mg, function(_, PRE, LABEL) {
+        out = PRE + wrap(LABEL, 'lab', null);
         els.lab.push(out);
         return '<lab></lab>';
       });
@@ -1996,15 +1996,15 @@ function ctor_features()
         });
       }
     }
-    function wrap(match, type, isLink) {
+    function wrap(match, className, TypeOrLink) {
       var span = document.createElement('span');
-      span.className = type;
-      if (isLink) {
+      span.className = className;
+      if (TypeOrLink != null) {
         var a = document.createElement('a');
-        if (isLink == true)
-          a.href = scriptDir + '/../' + cache.index_data[dict[match.toLowerCase()]][1];
+        if (typeof TypeOrLink == 'number')
+          a.href = scriptDir + '/../' + cache.index_data[syntax[TypeOrLink].dict[match.toLowerCase()]][1];
         else
-          a.href = scriptDir + '/../' + isLink;
+          a.href = scriptDir + '/../' + TypeOrLink;
         a.innerHTML = match;
         span.appendChild(a);
       } else
@@ -2021,10 +2021,10 @@ function ctor_features()
       var out = '', lastIndex = 0;
       var re = /%[^,\s]+?%/g;
       while (m = re.exec(param)) {
-        out += wrap(param.slice(lastIndex, m.index), 'str', false) + m[0];
+        out += wrap(param.slice(lastIndex, m.index), 'str', null) + m[0];
         lastIndex = re.lastIndex;
       }
-      out += wrap(param.slice(lastIndex), 'str', false);
+      out += wrap(param.slice(lastIndex), 'str', null);
       return out;
     }
   };
