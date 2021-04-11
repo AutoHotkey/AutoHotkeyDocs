@@ -15,7 +15,7 @@
 
 <p>Retrieves the implementation function of a method.</p>
 
-<pre class="Syntax">Method := <span class="func">GetMethod</span>(Value, Name)</pre>
+<pre class="Syntax">Method := <span class="func">GetMethod</span>(Value <span class="optional">, Name, ParamCount</span>)</pre>
 <h2 id="Parameters">Parameters</h2>
 <dl>
   <dt>Value</dt>
@@ -27,15 +27,24 @@
   <dd>
     <p>Type: <a href="../Concepts.htm#strings">String</a></p>
     <p>The name of the method to retrieve.</p>
+    <p>Omit this parameter to perform validation on <em>Value</em> itself and return <em>Value</em> if successful.</p>
+  </dd>
+  <dt>ParamCount</dt>
+  <dd>
+    <tp>Type: <a href="../Concepts.htm#numbers">Integer</a></tp>
+    <p>The number of parameters that would be passed to the method or function. If specified, the method's MinParams, MaxParams and IsVariadic properties may be queried to verify that it can accept this number of parameters. If those properties are not present, the parameter count is not verified.</p>
+    <p>This count should not include the implicit <code>this</code> parameter.</p>
+    <p>If omitted (or if the parameter count was not verified), a basic check is performed for a Call method to verify that the object is most likely callable.</p>
   </dd>
 </dl>
 
 <h2 id="Return_Value">Return Value</h2>
 <p>Type: <a href="../objects/Functor.htm">Function Object</a></p>
-<p>This function returns the function object which contains the implementation of the method.</p>
+<p>This function returns the function object which contains the implementation of the method, or <em>Value</em> itself if <em>Name</em> was omitted.</p>
 
 <h2 id="Errors">Errors</h2>
 <p>If the method is not found or cannot be retrieved without invoking a property getter, a <a href="../objects/Error.htm#MethodError">MethodError</a> is thrown.</p>
+<p>If validation is attempted, exceptions may be thrown as a result of querying the method's properties. A <a href="../objects/Error.htm#ValueError">ValueError</a> or <a href="../objects/Error.htm#MethodError">MethodError</a> is thrown if validation fails.</p>
 
 <h2 id="Remarks">Remarks</h2>
 <p>Methods may be defined through one of the following:</p>
@@ -47,13 +56,13 @@
       <li>Any predefined/built-in method.</li>
     </ul>
   </li>
-  <li>An own value property of the object or one of its base objects, where the value is an object.
-  <p class="warning"><strong>Note:</strong> GetMethod does not verify that the object is callable.</p></li>
+  <li>An own value property of the object or one of its base objects, where the value is a <a href="../objects/Functor.htm">function object</a>.</li>
   <li>A dynamic property with a getter which returns a function object. This case is not supported by GetMethod.</li>
   <li>Handling within a __Call <a href="../Objects.htm#Meta_Functions">meta-function</a>. Methods implemented this way cannot be detected and may not even have a corresponding function object, so are not supported by GetMethod.</li>
 </ul>
 <p>When calling the function object, it is necessary to supply a value for the normally-hidden <em>this</em> parameter. For example, <code>Method(Value, Parameters*)</code>.</p>
 <p>Although the standard implementation of GetMethod has limitations as described above, if <code>Value.GetMethod(Name)</code> is used instead of <code>GetMethod(Value, Name)</code>, the object <em>Value</em> can define its own implementation of GetMethod.</p>
+<p><code>GetMethod(Value, "Call", N)</code> is not the same as <code>GetMethod(Value,, N)</code>, as the Call method takes the function object itself as a parameter, and its usage may otherwise differ from that of <em>Value</em>. For instance, <code>Func.Prototype.Call</code> is a single method which applies to all built-in and user-defined functions, and as such must accept any number of parameters.</p>
 
 <h2 id="Related">Related</h2>
 <p><a href="../Objects.htm">Objects</a>, <a href="HasMethod.htm">HasMethod</a>, <a href="HasBase.htm">HasBase</a>, <a href="HasProp.htm">HasProp</a></p>
