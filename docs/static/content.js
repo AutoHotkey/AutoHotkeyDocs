@@ -1815,7 +1815,7 @@ function ctor_features()
         // Skip param processing if first param is an expression:
         if (types[0] == 'E')
         {
-          out = wrap(DIR, 'dir', true);
+          out = wrap(DIR, 'dir', 0);
           els.dir.push(out);
           return '<dir></dir>' + SEP + PARAMS;
         }
@@ -1856,7 +1856,7 @@ function ctor_features()
       // built-in classes:
       els.order.push('cls'); els.cls = [];
       innerHTML = innerHTML.replace(new RegExp('\\b(' + syntax[6].single.join('|') + ')\\b', 'gi'), function(_, CLS) {
-        out = wrap(CLS, 'cls', true);
+        out = wrap(CLS, 'cls', 6);
         els.cls.push(out);
         return '<cls></cls>';
       });
@@ -1875,8 +1875,8 @@ function ctor_features()
         else {
           var cfs = CFS.toLowerCase();
           // Skip param processing if the statement uses parentheses:
-          if (SEP == '(') {
-            out = wrap(CFS, 'cfs', true);
+          if (PARAMS.charAt(0) == '(') {
+            out = wrap(CFS, 'cfs', 3);
             els.cfs.push(out);
             return '<cfs></cfs>' + SEP + PARAMS;
           }
