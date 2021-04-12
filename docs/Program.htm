@@ -96,6 +96,24 @@
 <p>The built-in variable <a href="Variables.htm#ScriptHwnd">A_ScriptHwnd</a> contains the unique ID (HWND) of the script's main window.</p>
 <p id="title">The title of this window is used by the <a href="commands/_SingleInstance.htm">#SingleInstance</a> and <a href="commands/Reload.htm">Reload</a> mechanisms to identify other instances of the same script. <a href="commands/WinSetTitle.htm">Changing the title</a> prevents the script from being identified as such. The default title is equivalent to the expression <code>A_ScriptFullPath (A_IsCompiled ? "" : " - AutoHotkey v" A_AhkVersion)</code>.</p>
 <p>Closing this window with <a href="commands/WinClose.htm">WinClose</a> (even from another script) causes the script to exit, but most other methods just hide the window and leave the script running.</p>
+<p>Minimizing the main window causes it to automatically be hidden. This is done to prevent any owned windows (such as GUI windows or certain dialog windows) from automatically being minimized, but also has the effect of hiding the main window's taskbar button. To instead allow the main window to be minimized normally, override the default handling with <a href="commands/OnMessage.htm">OnMessage</a>. For example:</p>
+<pre>; This prevents the main window from hiding on minimize:
+OnMessage 0x0112, PreventAutoMinimize <em>; WM_SYSCOMMAND = 0x0112</em>
+OnMessage 0x0005, PreventAutoMinimize <em>; WM_SIZE = 0x0005
+; This prevents owned GUI windows (but not dialogs) from automatically minimizing:</em>
+OnMessage 0x0018, PreventAutoMinimize
+Persistent
+
+PreventAutoMinimize(wParam, lParam, uMsg, hwnd) {
+    if (uMsg = 0x0112 &amp;&amp; wParam = 0xF020 &amp;&amp; hwnd = A_ScriptHwnd) { <em>; SC_MINIMIZE = 0xF020</em>
+        WinMinimize
+        return 0 <em>; Prevent main window from hiding.</em>
+    }
+    if (uMsg = 0x0005 &amp;&amp; wParam = 1 &amp;&amp; hwnd = A_ScriptHwnd) <em>; SIZE_MINIMIZED = 1</em>
+        return 0 <em>; Prevent main window from hiding.</em>
+    if (uMsg = 0x0018 &amp;&amp; lParam = 1) <em>; SW_PARENTCLOSING = 1</em>
+        return 0 <em>; Prevent owned window from minimizing.</em>
+}</pre>
 
 <h2 id="cmd">Command Line Usage</h2>
 <p>See <a href="Scripts.htm#cmd">Passing Command Line Parameters to a Script</a> for command line usage, including a list of command line switches which affect the program's behavior.</p>
