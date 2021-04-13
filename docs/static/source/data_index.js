@@ -621,6 +621,7 @@ indexData = [
   ["IsNumber","commands/Is.htm#number",2],
   ["IsObject","commands/IsObject.htm",2],
   ["IsSet","commands/IsSet.htm",2],
+  ["IsSetRef","commands/IsSet.htm",2],
   ["IsSpace","commands/Is.htm#space",2],
   ["IsTime","commands/Is.htm#time",2],
   ["IsUpper","commands/Is.htm#upper",2],

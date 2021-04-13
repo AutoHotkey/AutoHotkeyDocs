@@ -1,8 +1,8 @@
 <!DOCTYPE HTML>
 <html lang="en">
 <head>
-<title>IsSet - Syntax &amp; Usage | AutoHotkey v2</title>
-<meta name="description" content="The IsSet function returns a non-zero number if the specified variable has been assigned a value." />
+<title>IsSet / IsSetRef - Syntax &amp; Usage | AutoHotkey v2</title>
+<meta name="description" content="The IsSet operator and IsSetRef function return a non-zero number if the specified variable has been assigned a value." />
 <meta name="ahk:equiv-v1" content="AutoHotkey.htm" />
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -11,47 +11,56 @@
 </head>
 <body>
 
-<h1>IsSet</h1>
+<h1>IsSet / IsSetRef</h1>
 
 <p>Returns a non-zero number if the specified variable has been assigned a value.</p>
 
-<pre class="Syntax">VarIsSet := <span class="func">IsSet</span>(&amp;Var)</pre>
+<pre class="Syntax">VarIsSet := <span class="func">IsSet</span>(Var)</pre>
+<pre class="Syntax">VarIsSet := <span class="func">IsSetRef</span>(Ref)</pre>
 <h2 id="Parameters">Parameters</h2>
 <dl>
 
-  <dt>&amp;Var</dt>
+  <dt>Var</dt>
+  <dd>
+    <p>Type: <a href="../Concepts.htm#variables">Variable</a></p>
+    <p>A direct variable reference. For example: <code>IsSet(MyVar)</code>.</p>
+  </dd>
+
+  <dt>Ref</dt>
   <dd>
     <p>Type: <a href="../Concepts.htm#variable-references">VarRef</a></p>
-    <p>A reference to the variable. For example: <code>IsSet(&amp;MyVar)</code>.</p>
-    <p class="note"><strong>Note:</strong> Use the <a href="../Variables.htm#ref">reference operator (&amp;)</a> when checking a variable directly, but not when passing a variable which <em>contains</em> a VarRef.</p>
+    <p>An indirect reference to the variable. This would usually not be passed directly, as in <code>IsSetRef(&amp;MyVar)</code>, but indirectly, such as to check a parameter <em>containing</em> a VarRef prior to <a href="../Variables.htm#deref">dereferencing</a> it. </p>
   </dd>
 
 </dl>
 
 <h2 id="Return_Value">Return Value</h2>
 <p>Type: <a href="../Concepts.htm#boolean">Integer (boolean)</a></p>
-<p>This function returns 1 (true) if <em>Var</em> has been assigned a value, otherwise 0 (false).</p>
+<p>The return value is 1 (true) if <em>Var</em> or the variable represented by <em>Ref</em> has been assigned a value, otherwise 0 (false).</p>
 
 <h2 id="Remarks">Remarks</h2>
+<p>Use IsSet to check a variable directly, as in <code>IsSet(MyGlobalVar)</code>.</p>
+<p>Use IsSetRef to check a <a href="../Concepts.htm#variable-references">VarRef</a>, which would typically be contained by a variable, as in the example below.</p>
 <p>A variable which has not been assigned a value is also known as an <a href="../Concepts.htm#uninitialized-variables">uninitialized variable</a>. Attempting to read an uninitialized variable causes an exception to be thrown. IsSet can be used to avoid this, such as for initializing a global or static variable on first use.</p>
-<p>When checking a global variable inside a function, it is generally necessary to <a href="../Functions.htm#Global">declare</a> the variable. Otherwise, the use of the <a href="../Variables.htm#ref">reference operator (&amp;)</a> would cause a local variable to be created. This declaration would already be necessary if the global variable is to be assigned a value inside the function.</p>
 <p class="note"><strong>Note:</strong> <a href="../Functions.htm#InitStatic">Static initializers</a> such as <code>static my_static_array := []</code> are evaluated only once, the first time they are reached during execution, so typically do not require the use of IsSet.</p>
+<p>Although IsSet uses the same syntax as a function call, it may be considered more of an operator than a function. The keyword <em>IsSet</em> is reserved for the use shown here and cannot be redefined as a variable or function. IsSet cannot be called indirectly because any attempt to pass an uninitialized variable would cause an error to be thrown.</p>
+<p>IsSetRef can also be used to check a specific variable, by using it with the <a href="../Variables.htm#ref">reference operator</a>. When using it this way, be aware of the need to <a href="../Functions.htm#Global">declare the variable</a> first if it is global. For example, the <code>&amp;</code> in <code>IsSetRef(&amp;MyVar)</code> would cause <em>MyVar</em> to resolve to a local variable by default, if used within an assume-local function which lacks the declaration <code>global MyVar</code>.</p>
 
 <h2 id="Related">Related</h2>
 <p><a href="../Functions.htm#ByRef">ByRef parameters</a></p>
 <h2 id="Examples">Examples</h2>
 <div class="ex" id="ExBasic">
-<p><a class="ex_number" href="#ExBasic"></a> Reports a non-zero number if <var>MyVar</var> has been assigned a value.</p>
+<p><a class="ex_number" href="#ExBasic"></a> Shows different uses for IsSet and IsSetRef.</p>
 <pre>
 Loop 2
-    if !IsSet(&amp;MyVar)  <em>; Is this the first "use" of MyVar?</em>
+    if !IsSet(MyVar)  <em>; Is this the first "use" of MyVar?</em>
         MyVar := A_Index  <em>; Initialize on first "use".</em>
 MsgBox Function1(&amp;MyVar)
 MsgBox Function2(&amp;MyVar)
 
 Function1(&amp;Param)  <em>; ByRef parameter.</em>
 {
-    if IsSet(&amp;Param)  <em>; Pass a reference to the target of Param.</em>
+    if IsSet(Param)  <em>; Pass Param itself, which is an alias for MyVar.</em>
         return Param  <em>; ByRef parameters are automatically dereferenced.</em>
     else
         return "unset"
@@ -59,7 +68,7 @@ Function1(&amp;Param)  <em>; ByRef parameter.</em>
 
 Function2(Param)
 {
-    if IsSet(Param)  <em>; Pass the VarRef contained by Param.</em>
+    if IsSetRef(Param)  <em>; Pass the VarRef contained by Param.</em>
         return %Param%  <em>; Explicitly dereference Param.</em>
     else
         return "unset"
