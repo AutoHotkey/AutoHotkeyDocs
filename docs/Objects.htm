@@ -277,7 +277,7 @@ other.test()</pre>
 <p>Class definitions can contain variable declarations, method definitions and nested class definitions.</p>
 
 <h4 id="Custom_Classes_var">Instance Variables</h4>
-<p>An <em>instance variable</em> is one that each instance of the class has its own copy of. They are declared like normal assignments, but the <code>this.</code> prefix is omitted (only directly within the class body):</p>
+<p>An <em>instance variable</em> is one that each instance of the class has its own copy of. They are declared and behave like normal assignments, but the <code>this.</code> prefix is omitted (only directly within the class body):</p>
 <pre>InstanceVar := Expression</pre>
 <p>These declarations are evaluated each time a new instance of the class is created with <a href="objects/Class.htm#Call"><em>ClassName</em>()</a>, after all base-class declarations are evaluated but before <a href="#Custom_NewDelete">__New</a> is called. This is achieved by automatically creating a method named <em>__Init</em> containing a call to <code>super.__Init()</code> and inserting each declaration into it. Therefore, a single class definition must not contain both an __Init method and an instance variable declaration.</p>
 <p><em>Expression</em> can access other instance variables and methods via <code>this</code>. Global variables may be read, but not assigned. An additional assignment (or use of the <a href="Variables.htm#ref">reference operator</a>) within the expression will generally create a variable local to the __Init method. For example, <code>x := y := 1</code> would set <code>this.x</code> and a local variable <code>y</code> (which would be freed once all initializers have been evaluated).</p>
@@ -287,9 +287,9 @@ other.test()</pre>
 <h4 id="Custom_Classes_staticvar">Static/Class Variables</h4>
 <p>Static/class variables belong to the class itself, but their values can be inherited by subclasses. They are declared like instance variables, but using the static keyword:</p>
 <pre>static ClassVar := Expression</pre>
-<p>These declarations are evaluated only once, when the class is initialized. In the current release, classes are initialized in the order that they appear in the script, before <a href="Scripts.htm#auto">startup execution</a> begins at the top of the script. A static method named <em>__Init</em> is automatically defined for this purpose.</p>
-<p>Each declaration stores a value in the class object. <em>Expression</em> has the same interpretation as for instance variables, except that <code>this</code> refers to the class itself.</p>
-<p>To assign to a class variable, always specify the class object; for example, <code><b>ClassName</b>.ClassVar := Value</code>. If a subclass does not own a property by that name, <code><i>Subclass</i>.ClassVar</code> can also be used to retrieve the value; so if the value is a reference to an object, subclasses will share that object by default. However, <code><i>Subclass</i>.ClassVar := y</code> would store the value in <em>Subclass</em>, not in <em>ClassName</em>.</p>
+<p>These declarations are evaluated only once, when the class is <a href="#static__New">initialized</a>. A static method named <em>__Init</em> is automatically defined for this purpose.</p>
+<p>Each declaration acts as a normal property assignment, with the class object as the target. <em>Expression</em> has the same interpretation as for instance variables, except that <code>this</code> refers to the class itself.</p>
+<p>To assign to a class variable anywhere else, always specify the class object; for example, <code><b>ClassName</b>.ClassVar := Value</code>. If a subclass does not own a property by that name, <code><i>Subclass</i>.ClassVar</code> can also be used to retrieve the value; so if the value is a reference to an object, subclasses will share that object by default. However, <code><i>Subclass</i>.ClassVar := y</code> would store the value in <em>Subclass</em>, not in <em>ClassName</em>.</p>
 <p>Declarations like <code>static x.y := z</code> are also supported, provided that <code>x</code> was previously defined in this class. For example, <code>static x := {}, x.y := 42</code> declares <code>x</code> and also initializes <code><i>ClassName</i>.x.y</code>.  Because <a href="objects/Class.htm#Prototype">Prototype</a> is implicitly defined in each class, <code>static Prototype.sharedValue := 1</code> can be used to set values which are dynamically inherited by all instances of the class (until shadowed by a property on the instance itself).</p>
 
 <h4 id="Custom_Classes_class">Nested Classes</h4>
@@ -418,7 +418,26 @@ class GMem<span id="GMem"></span>
 }</pre>
 <p>__Delete is not called for any object which owns a property named "__Class". <a href="objects/Class.htm#Prototype">Prototype objects</a> have this property by default.</p>
 <p>If an exception or runtime error is thrown while __Delete is executing and is not handled within __Delete, it acts as though __Delete was called from a new <a href="misc/Threads.htm">thread</a>. That is, an error dialog is displayed and __Delete returns, but the thread does not exit (unless it was already exiting).</p>
-<p>Each class may also have a <code>static __New</code> method, which is called immediately after its <a href="#Custom_Classes_staticvar">static variables</a> are initialized (this occurs in the order that classes are defined in the script). This method can be inherited from a base class, and can therefore be used to initialize subclasses. Within <code>static __New</code>, <code>this</code> refers to either the class which defined the method, or a subclass.</p>
+
+<h4 id="static__New">Class Initialization</h4>
+<p>Each class is initialized automatically when a reference to the class is evaluated for the first time. For example, if <em>MyClass</em> has not yet been initialized, <code>MyClass.MyProp</code> would cause the class to be initialized before the property is retrieved. Initialization consists of calling two static methods: __Init and __New.</p>
+<p><code>static __Init</code> is defined automatically for every class, and always begins with a reference to the base class if one was specified, to ensure it is initialized. <a href="#Custom_Classes_staticvar">Static/class variables</a> and <a href="#Custom_Classes_class">nested classes</a> are initialized in the order that they were defined, except when a nested class is referenced during initialization of a previous variable or class.</p>
+<p>If the class defines or inherits a <code>static __New</code> method, it is called immediately after __Init. It is important to note that __New may be called once for the class in which it is defined <em>and</em> once for each subclass which does not define its own (or which calls <code>super.__New()</code>). This can be used to perform common initialization tasks for each subclass, or modify subclasses in some way before they are used.</p>
+<p>If <code>static __New</code> is not intended to act on derived classes, that can be avoided by checking the value of <code>this</code>. In some cases it may be sufficient for the method to delete itself, such as with <code>this.DeleteProp('__New')</code>; however, the first execution of __New might be for a subclass if one is nested in the base class or referenced during initialization of a static/class variable.</p>
+<p>A class definition also has the effect of referencing the class. In other words, when execution reaches a class definition during <a href="Scripts.htm#auto">script startup</a>, __Init and __New are called automatically, unless the class was already referenced by the script. However, if execution is prevented from reaching the class definition, such as by <code>return</code> or an infinite loop, the class is initialized only if it is referenced.</p>
+<p>Once automatic initialization begins, it will not occur again for the same class. This is generally not a problem unless multiple classes refer to each other. For example, consider the two classes below. When <code>A</code> is initialized first, evaluating <code>B.SharedArray</code> (A1) causes <code>B</code> to be initialized before retrieving and returning the value, but <code>A.SharedValue</code> (A3) is undefined and does not cause initialization of <code>A</code> because it is already in progress. In other words, if <code>A</code> is accessed or initialized first, the order is A1 to A3; otherwise it is B1 to B4:</p>
+<pre>MsgBox A.SharedArray.Length
+MsgBox B.SharedValue
+
+class A {
+    static SharedArray := B.SharedArray   ; A1          ; B3
+    static SharedValue := 42                            ; B4
+}
+
+class B {
+    static SharedArray := StrSplit("XYZ") ; A2          ; B1
+    static SharedValue := A.SharedValue   ; A3 (Error)  ; B2
+}</pre>
 
 <h3 id="Meta_Functions">Meta-Functions</h3>
 <pre class="Syntax">
