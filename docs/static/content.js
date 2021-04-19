@@ -1815,7 +1815,7 @@ function ctor_features()
         // Skip param processing if first param is an expression:
         if (types[0] == 'E')
         {
-          out = wrap(DIR, 'dir', true);
+          out = wrap(DIR, 'dir', 0);
           els.dir.push(out);
           return '<dir></dir>' + SEP + PARAMS;
         }
@@ -1856,18 +1856,18 @@ function ctor_features()
       // built-in classes:
       els.order.push('cls'); els.cls = [];
       innerHTML = innerHTML.replace(new RegExp('\\b(' + syntax[6].single.join('|') + ')\\b', 'gi'), function(_, CLS) {
-        out = wrap(CLS, 'cls', true);
+        out = wrap(CLS, 'cls', 6);
         els.cls.push(out);
         return '<cls></cls>';
       });
       // control flow statements:
       els.order.push('cfs'); els.cfs = [];
-      innerHTML = innerHTML.replace(new RegExp('\\b(' + syntax[3][0].join('|') + ') (\\S+|\\S+, \\S+) (' + syntax[3][1].join('|') + ') (.+?)(?=<(?:em|sct)></(?:em|sct)>|$|{)|\\b(' + syntax[3].single.join('|') + ')\\b($|,|{|(?=\\()|\\s(?!\\s*' + assignOp + '))(.*?)(?=<(?:em|sct)></(?:em|sct)>|$|{|\\b(' + syntax[3].single.join('|') + ')\\b)', 'gim'), function(ASIS, IF, INPUT, BETWEEN, VAL, CFS, SEP, PARAMS) {
+      innerHTML = innerHTML.replace(new RegExp('\\b(' + syntax[3][0].join('|') + ')(\\s+(?:\\S+|\\S*(?:\\s*,\\s*\\S*)*)\\s+|\\s+)(' + syntax[3][1].join('|') + ')(\\s+.+?)(?=<(?:em|sct)></(?:em|sct)>|$|{)|\\b(' + syntax[3].single.join('|') + ')\\b($|,|{|(?=\\()|\\s(?!\\s*' + assignOp + '))(.*?)(?=<(?:em|sct)></(?:em|sct)>|$|{|\\b(' + syntax[3].single.join('|') + ')\\b)', 'gim'), function(ASIS, IF, INPUT, BETWEEN, VAL, CFS, SEP, PARAMS) {
         if (IF) {
           if (INPUT) {
             var cfs = cache.index_data[syntax[3].dict[(IF + ' ... ' + BETWEEN).toLowerCase()]];
             if (cfs)
-              out = wrap(IF, 'cfs', cfs[1]) + ' ' + INPUT + ' ' + wrap(BETWEEN, 'cfs', cfs[1]) + ' ' + ((cfs[3][1] == "S") ? processStrParam(VAL) : VAL);
+              out = wrap(IF, 'cfs', cfs[1]) + INPUT + wrap(BETWEEN, 'cfs', cfs[1]) + ((cfs[3][1] == "S") ? processStrParam(VAL) : VAL);
             else
               out = ASIS;
           }
@@ -1875,8 +1875,8 @@ function ctor_features()
         else {
           var cfs = CFS.toLowerCase();
           // Skip param processing if the statement uses parentheses:
-          if (SEP == '(') {
-            out = wrap(CFS, 'cfs', true);
+          if (PARAMS.charAt(0) == '(') {
+            out = wrap(CFS, 'cfs', 3);
             els.cfs.push(out);
             return '<cfs></cfs>' + SEP + PARAMS;
           }
