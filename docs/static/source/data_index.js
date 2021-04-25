@@ -259,7 +259,6 @@ indexData = [
   ["BoundFunc","objects/Functor.htm#BoundFunc",6],
   ["Break","commands/Break.htm",3,"S"],
   ["Buffer","objects/Buffer.htm",6],
-  ["BufferAlloc","commands/BufferAlloc.htm",2],
   ["buffering","commands/_MaxThreadsBuffer.htm"],
   ["built-in functions","Functions.htm#BuiltIn"],
   ["built-in variables","Variables.htm#BuiltIn"],

@@ -60,7 +60,7 @@ h := DllCall("OpenProcess", "UInt", 0x0400, "Int", false, "UInt", ScriptPID, "Pt
 DllCall("Advapi32.dll\OpenProcessToken", "Ptr", h, "UInt", 32, "PtrP", &amp;t := 0)
 <em>; Retrieves the locally unique identifier of the debug privilege:</em>
 DllCall("Advapi32.dll\LookupPrivilegeValue", "Ptr", 0, "Str", "SeDebugPrivilege", "Int64P", &amp;luid := 0)
-ti := BufferAlloc(16, 0)  <em>; structure of privileges</em>
+ti := Buffer(16, 0)  <em>; structure of privileges</em>
 NumPut( "UInt", 1  <em>; one entry in the privileges array...</em>
       , "Int64", luid
       , "UInt", 2  <em>; Enable this privilege: SE_PRIVILEGE_ENABLED = 2</em>
@@ -71,7 +71,7 @@ DllCall("CloseHandle", "Ptr", t)  <em>; Close this access token handle to save m
 DllCall("CloseHandle", "Ptr", h)  <em>; Close this process handle to save memory.</em>
 
 hModule := DllCall("LoadLibrary", "Str", "Psapi.dll")  <em>; Increase performance by preloading the library.</em>
-a := BufferAlloc(s)  <em>; An array that receives the list of process identifiers:</em>
+a := Buffer(s)  <em>; An array that receives the list of process identifiers:</em>
 c := 0  <em>; counter for process idendifiers</em>
 l := ""
 DllCall("Psapi.dll\EnumProcesses", "Ptr", a, "UInt", s, "UIntP", &amp;r)
@@ -82,7 +82,7 @@ Loop r // 4  <em>; Parse array for identifiers as DWORDs (32 bits):</em>
     h := DllCall("OpenProcess", "UInt", 0x0010 | 0x0400, "Int", false, "UInt", id, "Ptr")
     if !h
         continue
-    n := BufferAlloc(s, 0)  <em>; a buffer that receives the base name of the module:</em>
+    n := Buffer(s, 0)  <em>; a buffer that receives the base name of the module:</em>
     e := DllCall("Psapi.dll\GetModuleBaseName", "Ptr", h, "Ptr", 0, "Ptr", n, "UInt", s//2)
     if !e    <em>; fall-back method for 64-bit processes when in 32-bit mode:</em>
         e := DllCall("Psapi.dll\GetProcessImageFileName", "Ptr", h, "Ptr", n, "UInt", s//2)

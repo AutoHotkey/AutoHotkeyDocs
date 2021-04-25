@@ -128,7 +128,7 @@ k_ShowHide(*)
 GetKeyNameText(Key, Extended := false, DoNotCare := false)
 {
     Params := (GetKeySC(Key) << 16) | (Extended << 24) | (DoNotCare << 25)
-    KeyNameText := BufferAlloc(64, 0)
+    KeyNameText := Buffer(64, 0)
     DllCall("User32.dll\GetKeyNameText", "Int", Params, "Ptr", KeyNameText, "Int", 32)
     return StrGet(KeyNameText)
 }

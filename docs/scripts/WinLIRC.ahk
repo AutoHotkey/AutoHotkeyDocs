@@ -146,7 +146,7 @@ ConnectToAddress(IPAddress, Port)
 ; This can connect to most types of TCP servers, not just WinLIRC.
 ; Returns -1 (INVALID_SOCKET) upon failure or the socket ID upon success.
 {
-    wsaData := BufferAlloc(400)
+    wsaData := Buffer(400)
     result := DllCall("Ws2_32\WSAStartup", "UShort", 0x0002, "Ptr", wsaData) ; Request Winsock 2.0 (0x0002)
     if result  ; Non-zero, which means it failed (most Winsock functions return 0 upon success).
     {
@@ -166,7 +166,7 @@ ConnectToAddress(IPAddress, Port)
 
     ; Prepare for connection:
     SizeOfSocketAddress := 16
-    SocketAddress := BufferAlloc(SizeOfSocketAddress, 0)
+    SocketAddress := Buffer(SizeOfSocketAddress, 0)
     NumPut( "UShort", 2  ; sin_family
           , "UShort", DllCall("Ws2_32\htons", "UShort", Port)  ; sin_port
           , "UInt", DllCall("Ws2_32\inet_addr", "AStr", IPAddress)  ; sin_addr.s_addr
@@ -192,7 +192,7 @@ ReceiveData(wParam, lParam, *)
     socket := wParam
     ReceivedDataSize := 4096  ; Large in case a lot of data gets buffered due to delay in processing previous data.
 
-    ReceivedData := BufferAlloc(ReceivedDataSize, 0)
+    ReceivedData := Buffer(ReceivedDataSize, 0)
     ReceivedDataLength := DllCall("Ws2_32\recv", "UInt", socket, "Ptr", ReceivedData, "Int", ReceivedDataSize, "Int", 0)
     if ReceivedDataLength = 0  ; The connection was gracefully closed, probably due to exiting WinLIRC.
         ExitApp  ; The OnExit routine will call WSACleanup() for us.

@@ -60,7 +60,7 @@
 <td>Str</td>
 <td>
   <p>A string such as <code>"Blue"</code> or <code>MyVar</code>, or a <a href="../Concepts.htm#variable-references">VarRef</a> such as <code>&amp;MyVar</code>. If the called function modifies the string and the argument is a naked variable or VarRef, its contents will be updated. For example, the following call would convert the contents of <em>MyVar</em> to uppercase: <code>DllCall("CharUpper", "Str", <i>MyVar</i>)</code>.</p>
-  <p>If the function is designed to store a string longer than the parameter's input value (or if the parameter is for output only), the recommended approach is to use <a href="BufferAlloc.htm">BufferAlloc</a> to allocate a buffer, the <a href="#ptr">Ptr</a> type to pass it, and <a href="StrGet.htm">StrGet</a> to retrieve the string after the function returns. </p>
+  <p>If the function is designed to store a string longer than the parameter's input value (or if the parameter is for output only), the recommended approach is to create a <a href="../objects/Buffer.htm">Buffer</a>, use the <a href="#ptr">Ptr</a> type to pass it, and use <a href="StrGet.htm">StrGet</a> to retrieve the string after the function returns, as in the <a href="#ExWsprintf">wsprintf example</a>.</p>
   <p>Otherwise, ensure that the variable is large enough before calling the function. This can be achieved by calling <code><a href="VarSetStrCapacity.htm">VarSetStrCapacity</a>(MyVar, 123)</code>, where 123 is the number of 16-bit units (loosely referred to as characters) that <em>MyVar</em> must be able to hold. If the variable is not null-terminated upon return, an error message is shown and the program exits as it is likely that memory has been corrupted via buffer overrun. This would typically indicate that the variable's capacity was insufficient.</p>
   <p>A <em>Str</em> argument must not be an <a href="../Variables.htm#Expressions">expression</a> that evaluates to a number (such as <code>i+1</code>). If it is, the function is not called and a <a href="../objects/Error.htm#TypeError">TypeError</a> is thrown.</p>
   <p id="strp">The rarely-used <a href="#asterisk">Str*</a> arg type passes the address of a temporary variable containing the address of the string. If the function writes a new address into the temporary variable, the new string is copied into the script's variable, if a <a href="../Concepts.htm#variable-references">VarRef</a> was passed. This can be used with functions that expect something like "TCHAR **" or "LPTSTR *". However, if the function allocates memory and expects the caller to free it (such as by calling <a href="https://docs.microsoft.com/en-us/windows/win32/api/combaseapi/nf-combaseapi-cotaskmemfree">CoTaskMemFree</a>), the <code>Ptr*</code> arg type must be used instead.</p>
@@ -74,7 +74,7 @@
   <td><span id="astr"></span>AStr</td>
   <td>
     <p>AStr causes the input value to be automatically converted to ANSI. Since the temporary memory used for this conversion is only large enough for the converted input string, any value written to it by the function is discarded. To receive an ANSI string as an output parameter, follow this example:</p>
-<pre>buf := BufferAlloc(<i>length</i>)  <em>; Allocate temporary buffer.</em>
+<pre>buf := Buffer(<i>length</i>)  <em>; Allocate temporary buffer.</em>
 DllCall("<i>Function</i>", "ptr", buf)  <em>; Pass buffer to function.</em>
 str := StrGet(buf, "cp0")  <em>; Retrieve ANSI string from buffer.</em>
 </pre>
@@ -111,7 +111,7 @@ str := StrGet(buf, "cp0")  <em>; Retrieve ANSI string from buffer.</em>
 <tr id="ptr">
   <td>Ptr</td>
   <td><p>A <a href="../Variables.htm#PtrSize">pointer-sized</a> integer, equivalent to Int or Int64 depending on whether the exe running the script is 32-bit or 64-bit. <i>Ptr</i> should be used for pointers to arrays or structures (such as RECT* or LPPOINT) and almost all handles (such as HWND, HBRUSH or HBITMAP). If the parameter is a pointer to a single numeric value such as LPDWORD or int*, generally the * or P suffix should be used instead of "Ptr".</p>
-  <p>If an object is passed to a Ptr parameter, the value of the object's <code>Ptr</code> property is used. If no such property exists, a <a href="../objects/Error.htm#PropertyError">PropertyError</a> is thrown. Typically the object would be a <a href="../objects/Buffer.htm">Buffer</a> object created by <a href="BufferAlloc.htm">BufferAlloc</a>.</p>
+  <p>If an object is passed to a Ptr parameter, the value of the object's <code>Ptr</code> property is used. If no such property exists, a <a href="../objects/Error.htm#PropertyError">PropertyError</a> is thrown. Typically the object would be a <a href="../objects/Buffer.htm">Buffer</a>.</p>
   <p>If an object is passed to a Ptr* parameter, the value of the object's <code>Ptr</code> property is retrieved before the call and the address of a temporary variable containing this value is passed to the function. After the function returns, the new value is assigned back to the object's <code>Ptr</code> property.</p>
   <p><i>Ptr</i> can also be used with the * or P suffix; it should be used with functions that output a pointer via LPVOID* or similar.</p>
   <p><i>UPtr</i> is also valid, but is only unsigned in 32-bit builds as AutoHotkey does not support unsigned 64-bit integers.</p>
@@ -175,8 +175,8 @@ Loop 500
 
 <h2 id="struct">Structures and Arrays</h2>
 <p>A structure is a collection of <em>members</em> (fields) stored adjacently in memory. Most members tend to be integers.</p>
-<p>Functions that accept the address of a structure (or a memory-block array) can be called by allocating memory by some means and passing the memory address to the function. The <a href="BufferAlloc.htm">BufferAlloc</a> function and <a href="../objects/Buffer.htm">Buffer</a> object are recommended for this purpose. The following steps are generally used:</p>
-<p>1) Call <code>MyStruct := BufferAlloc(123, 0)</code> to allocate a buffer to hold the structure's data. Replace <code>123</code> with a number that is at least as large as the size of the structure, in bytes. Specifying zero as the last parameter is optional; it initializes all members to be binary zero, which is typically used to avoid calling NumPut as often in the next step.</p>
+<p>Functions that accept the address of a structure (or a memory-block array) can be called by allocating memory by some means and passing the memory address to the function. The <a href="../objects/Buffer.htm">Buffer</a> object is recommended for this purpose. The following steps are generally used:</p>
+<p>1) Call <code>MyStruct := Buffer(123, 0)</code> to allocate a buffer to hold the structure's data. Replace <code>123</code> with a number that is at least as large as the size of the structure, in bytes. Specifying zero as the last parameter is optional; it initializes all members to be binary zero, which is typically used to avoid calling NumPut as often in the next step.</p>
 <p>2) If the target function uses the values initially in the structure, call <code><a href="NumPut.htm">NumPut</a>("UInt", 123, MyStruct, 4)</code> to initialize any members that should be non-zero. Replace <code>123</code> with the integer to be put into the target member (or specify <code>StrPtr(Var)</code> to store the address of a string). Replace <code>4</code> with the offset of the target member (see step #4 for description of "offset"). Replace <code>"UInt"</code> with the appropriate type, such as <code>"Ptr"</code> if the member is a pointer or handle.</p>
 <p>3) Call the target function, passing <em>MyStruct</em> as a Ptr argument. For example, <code>DllCall("MyDll\MyFunc", "Ptr", MyStruct)</code>. The function will examine and/or change some of the members. DllCall automatically uses the address of the buffer, which is normally retrieved by using <code>MyStruct.Ptr</code>.</p>
 <p>4) Use <code>MyInteger := <a href="NumGet.htm">NumGet</a>(MyStruct, 4, "UInt")</code> to retrieve any desired integers from the structure. Replace <code>4</code> with the offset of the target member in the structure. The first member is always at offset 0. The second member is at offset 0 plus the size of the first member (typically 4). Members beyond the second are at the offset of the previous member plus the size of the previous member. Most members -- such as DWORD, Int, and <a href="#Int">other types of 32-bit integers</a> -- are 4 bytes in size. Replace <code>"UInt"</code> with the appropriate type or omit it if the member is a pointer or handle.</p>
@@ -200,7 +200,7 @@ result := DllCall("CharLower", "<strong><u>Str</u></strong>", DllCall("CharUpper
 <p>However, AutoHotkey can utilize the CLR through <a href="https://docs.microsoft.com/en-us/dotnet/standard/native-interop/com-callable-wrapper">COM callable wrappers</a>. Unless the library is also registered as a general COM component, the CLR itself must first be manually initialized via DllCall. For details, see <a href="https://www.autohotkey.com/forum/topic26191.html">.NET Framework Interop</a> (which currently utilizes DllCall and is not compatible with AutoHotkey v2).</p>
 
 <h2 id="Related">Related</h2>
-<p><a href="../Compat.htm#DllCall">Script Compatibility</a>, <a href="BufferAlloc.htm">BufferAlloc</a>, <a href="../objects/Buffer.htm">Buffer object</a>, <a href="ComCall.htm">ComCall</a>, <a href="PostMessage.htm">PostMessage</a>, <a href="OnMessage.htm">OnMessage</a>, <a href="CallbackCreate.htm">CallbackCreate</a>, <a href="Run.htm">Run</a>, <a href="VarSetStrCapacity.htm">VarSetStrCapacity</a>, <a href="../Functions.htm">Functions</a>, <a href="SysGet.htm">SysGet</a>, <a href="_DllLoad.htm">#DllLoad</a>, <a href="https://docs.microsoft.com/en-au/windows/win32/apiindex/windows-api-list">Windows API Index</a></p>
+<p><a href="../Compat.htm#DllCall">Script Compatibility</a>, <a href="../objects/Buffer.htm">Buffer object</a>, <a href="ComCall.htm">ComCall</a>, <a href="PostMessage.htm">PostMessage</a>, <a href="OnMessage.htm">OnMessage</a>, <a href="CallbackCreate.htm">CallbackCreate</a>, <a href="Run.htm">Run</a>, <a href="VarSetStrCapacity.htm">VarSetStrCapacity</a>, <a href="../Functions.htm">Functions</a>, <a href="SysGet.htm">SysGet</a>, <a href="_DllLoad.htm">#DllLoad</a>, <a href="https://docs.microsoft.com/en-au/windows/win32/apiindex/windows-api-list">Windows API Index</a></p>
 
 <h2 id="Examples">Examples</h2>
 <div class="ex" id="ExMessageBox">
@@ -223,7 +223,7 @@ if not DllCall("IsWindowVisible", "Ptr", WinExist("Untitled - Notepad"))  <em>; 
 
 <div class="ex" id="ExWsprintf">
 <p><a class="ex_number" href="#ExWsprintf"></a> Calls the API's wsprintf() to pad the number 432 with leading zeros to make it 10 characters wide (0000000432).</p>
-<pre>ZeroPaddedNumber := BufferAlloc(20)  <em>; Ensure the buffer is large enough to accept the new string.</em>
+<pre>ZeroPaddedNumber := Buffer(20)  <em>; Ensure the buffer is large enough to accept the new string.</em>
 DllCall("wsprintf", "Ptr", ZeroPaddedNumber, "Str", "%010d", "Int", 432, "Cdecl")  <em>; Requires the Cdecl calling convention.</em>
 MsgBox StrGet(ZeroPaddedNumber)
 
@@ -313,7 +313,7 @@ if !hFile
     return
 }
 <em>; Allocate a block of memory for the string to read:</em>
-Buf := BufferAlloc(StrSize)
+Buf := Buffer(StrSize)
 DllCall("ReadFile", "Ptr", hFile, "Ptr", Buf, "UInt", Buf.Size, "UIntP", &amp;BytesActuallyRead := 0, "Ptr", 0)
 DllCall("CloseHandle", "Ptr", hFile)  <em>; Close the file.</em>
 MsgBox "The following string was read from the file: " StrGet(Buf)</pre>
@@ -339,8 +339,8 @@ SystemCursor(cmd)  <em>; cmd = "Show|Hide|Toggle|Reload"</em>
                 , "Int", 0, "Int", 0, "UInt", 0)
             h_blank   := DllCall("CreateCursor", "Ptr", 0, "Int", 0, "Int", 0
                 , "Int", 32, "Int", 32
-                , "Ptr", BufferAlloc(32*4, 0xFF)
-                , "Ptr", BufferAlloc(32*4, 0))
+                , "Ptr", Buffer(32*4, 0xFF)
+                , "Ptr", Buffer(32*4, 0))
             c[id] := {default: h_default, blank: h_blank}
         }
     }
@@ -365,7 +365,7 @@ SystemCursor(cmd)  <em>; cmd = "Show|Hide|Toggle|Reload"</em>
 <p><a class="ex_number" href="#ExStruct"></a> Structure example. Pass the address of a RECT structure to GetWindowRect(), which sets the structure's members to the positions of the left, top, right, and bottom sides of a window (relative to the screen).</p>
 <pre>Run "Notepad"
 WinWait "Untitled - Notepad"  <em>; This also sets the "<a href="../misc/WinTitle.htm#LastFoundWindow">last found window</a>" for use with WinExist below.</em>
-Rect := BufferAlloc(16)  <em>; A RECT is a struct consisting of four 32-bit integers (i.e. 4*4=16).</em>
+Rect := Buffer(16)  <em>; A RECT is a struct consisting of four 32-bit integers (i.e. 4*4=16).</em>
 DllCall("GetWindowRect", "Ptr", WinExist(), "Ptr", Rect)  <em>; WinExist returns an HWND.</em>
 L := NumGet(Rect, 0, "Int"), T := NumGet(Rect, 4, "Int")
 R := NumGet(Rect, 8, "Int"), B := NumGet(Rect, 12, "Int")
@@ -374,7 +374,7 @@ MsgBox Format("Left {1} Top {2} Right {3} Bottom {4}", L, T, R, B)</pre>
 
 <div class="ex" id="ExStructRect">
 <p><a class="ex_number" href="#ExStructRect"></a> Structure example. Pass to FillRect() the address of a RECT structure that indicates a part of the screen to temporarily paint red.</p>
-<pre>Rect := BufferAlloc(16)  <em>; Set capacity to hold four 4-byte integers.</em>
+<pre>Rect := Buffer(16)  <em>; Set capacity to hold four 4-byte integers.</em>
 <a href="NumPut.htm">NumPut</a>( "Int", 0                  <em>; left</em>
       , "Int", 0                  <em>; top</em>
       , "Int", A_ScreenWidth//2   <em>; right</em>
@@ -401,7 +401,7 @@ SetSystemTime(YYYYMMDDHHMISS)
     UTC_Delta := Round(-UTC_Delta/60)  <em>; Round to nearest minute to ensure accuracy.</em>
     YYYYMMDDHHMISS := DateAdd(YYYYMMDDHHMISS, UTC_Delta, "Minutes")  <em>; Apply offset to convert to UTC.</em>
 
-    SystemTime := BufferAlloc(16)  <em>; This struct consists of 8 UShorts (i.e. 8*2=16).</em>
+    SystemTime := Buffer(16)  <em>; This struct consists of 8 UShorts (i.e. 8*2=16).</em>
 
     <a href="NumPut.htm">NumPut</a>( "UShort", SubStr(YYYYMMDDHHMISS, 1, 4)  <em>; YYYY (year)</em>
           , "UShort", SubStr(YYYYMMDDHHMISS, 5, 2)  <em>; MM (month of year, 1-12)</em>
