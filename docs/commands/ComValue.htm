@@ -100,7 +100,17 @@ var[] := "in value"
 sc.Run("Example", var.ref)
 MsgBox var[]
 
-<em>; Above and below are equivalent in this case:</em>
+<em>; The same thing again, but more direct:</em>
+variant_buf := Buffer(24, 0)  <em>; Make a buffer big enough for a VARIANT.</em>
+var := ComValue(0x400C, variant_buf.ptr)  <em>; Make a reference to a VARIANT.</em>
+var[] := "in value"
+sc.Run("Example", var)  <em>; Pass the VT_BYREF ComValue itself, no [] or .ref.</em>
+MsgBox var[]
+<em>; If a VARIANT contains a string or object, it must be explicitly freed
+; by calling VariantClear or assigning a pure numeric value:</em>
+var[] := 0
+
+<em>; The simplest way when the method accepts VT_BYREF|VT_VARIANT:</em>
 var := "in value"
 sc.Run("Example", &amp;var)
 MsgBox var
@@ -111,16 +121,22 @@ MsgBox var
 ;   this[] := Val sets the value.
 ;   this.ref retrieves a ByRef object for passing to a COM method.</em>
 class ComVar {
-    __new(Type := 0xC) {
-        <em>; Allocate memory for the typed variable.
-        ; The largest supported type is VT_VARIANT on x64 (24 bytes).</em>
+    __new(vType := 0xC) {
+        <em>; Allocate memory for a VARIANT to hold our value. VARIANT is used even
+        ; when vType != VT_VARIANT so that VariantClear can be used by __delete.</em>
         this.var := Buffer(24, 0)
         <em>; Create an object which can be used to pass the variable ByRef.</em>
-        this.ref := ComValue(0x4000|Type, this.var.ptr + (Type=0xC ? 0 : 8))
+        this.ref := ComValue(0x4000|vType, this.var.ptr + (vType=0xC ? 0 : 8))
+        <em>; Store the variant type for VariantClear (if not VT_VARIANT).</em>
+        if Type != 0xC
+            NumPut "ushort", vType, this.var
     }
     __item {
         get =&gt; this.ref[]
         set =&gt; this.ref[] := value
+    }
+    __delete() {
+        DllCall("oleaut32\VariantClear", "ptr", this.var)
     }
 }
 </pre>
