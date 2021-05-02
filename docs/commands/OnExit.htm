@@ -21,8 +21,7 @@
   <dt>Function</dt>
   <dd>
     <p>Type: <a href="../objects/Functor.htm">Function Object</a></p>
-    <p>The function object to call when the script is exiting. The function can optionally define parameters as shown below. If an OnExit function returns a non-zero integer, the script does not exit (with some <a href="#close">rare exceptions</a>) and no more functions are called. Otherwise, the script exits after all registered functions are called.</p>
-    <pre class="Syntax"><i>MyFunction</i>(<a href="#ExitReason">ExitReason</a>, <a href="ExitApp.htm">ExitCode</a>)</pre>
+    <p>The function object to call when the script is exiting. The function's parameters and return value are described <a href="#Function">below</a>.</p>
   </dd>
   
   <dt>AddRemove</dt>
@@ -38,19 +37,18 @@
 
 </dl>
 
-<h2 id="Remarks">Remarks</h2>
-<p>Any number of OnExit functions can be registered. An OnExit function usually should not call ExitApp; if it does, the script terminates immediately.</p>
-<p>OnExit functions are called when the script exits by any means (except when it is killed by something like "End Task"). It is also called whenever <a href="_SingleInstance.htm">#SingleInstance</a> and <a href="Reload.htm">Reload</a> ask a previous instance to terminate.</p>
-<p>A script can detect and optionally abort a system shutdown or logoff via <code>OnMessage(0x0011, On_WM_QUERYENDSESSION)</code> (see <a href="OnMessage.htm#ExShutdown">OnMessage example #2</a> for a working script).</p>
-<p>The OnExit <a href="../misc/Threads.htm">thread</a> does not obey <a href="_MaxThreads.htm">#MaxThreads</a> (it will always launch when needed). In addition, while it is running, it cannot be interrupted by any <a href="../misc/Threads.htm">thread</a>, including <a href="../Hotkeys.htm">hotkeys</a>, <a href="../objects/Menu.htm">custom menu items</a>, and <a href="SetTimer.htm">timed subroutines</a>. However, it will be interrupted (and the script will terminate) if the user chooses Exit from the tray menu or main menu, or the script is asked to terminate as a result of <a href="Reload.htm">Reload</a> or <a href="_SingleInstance.htm">#SingleInstance</a>. Because of this, an OnExit function should be designed to finish quickly unless the user is aware of what it is doing.</p>
-<p>If the OnExit <a href="../misc/Threads.htm">thread</a> encounters a failure condition such as a runtime error, the script will terminate.</p>
-<p>If the OnExit <a href="../misc/Threads.htm">thread</a> was launched due to an <a href="Exit.htm">Exit</a> or <a href="ExitApp.htm">ExitApp</a> function that specified an exit code, that exit code is used unless an OnExit function returns true (preventing exit) or calls ExitApp.</p>
-<p>Whenever an exit attempt is made, each OnExit function starts off fresh with the default values for settings such as <a href="SendMode.htm">SendMode</a>. These defaults can be changed during <a href="../Scripts.htm#auto">script startup</a>.</p>
-<p>If an OnExit function declares parameters, its first parameter is one of the following words:</p>
-<table class="info" id="ExitReason">
-  <tr>
-    <th>Reason</th>
-    <th abbr="Descr">Description</th>
+<h2 id="Function">Function</h2>
+<p>The function should accept two parameters:</p>
+<pre class="Syntax"><i>FunctionName</i>(ExitReason, ExitCode)</pre>
+<dl>
+  <dt>ExitReason</dt>
+  <dd>
+    <p>Type: <a href="../Concepts.htm#strings">String</a></p>
+    <p>One of the following words:</p>
+    <table class="info" id="ExitReason">
+      <tr>
+    <th>Word</th>
+    <th>Meaning</th>
   </tr>
   <tr id="logoff">
     <td>Logoff</td>
@@ -89,6 +87,25 @@
     <td>The script is being replaced by a new instance of itself as a result of <a href="_SingleInstance.htm">#SingleInstance</a>.</td>
   </tr>
 </table>
+  </dd>
+  <dt>ExitCode</dt>
+  <dd>
+    <p>Type: <a href="../Concepts.htm#numbers">Integer</a></p>
+    <p>An integer between -2147483648 and 2147483647 that is returned to its caller when the script exits. This code is accessible to any program that spawned the script, such as another script (via RunWait) or a batch (.bat) file. Zero is traditionally used to indicate success.</p>
+  </dd>
+</dl>
+
+<h3 id="Return_Value">Return Value</h3>
+<p>The function can return a non-zero integer to prevent the script from exiting (with some <a href="#close">rare exceptions</a>) and subsequent functions from being called. Otherwise, the script exits after all registered functions are called.</p>
+
+<h2 id="Remarks">Remarks</h2>
+<p>Any number of OnExit functions can be registered. An OnExit function usually should not call ExitApp; if it does, the script terminates immediately.</p>
+<p>OnExit functions are called when the script exits by any means (except when it is killed by something like "End Task"). It is also called whenever <a href="_SingleInstance.htm">#SingleInstance</a> and <a href="Reload.htm">Reload</a> ask a previous instance to terminate.</p>
+<p>A script can detect and optionally abort a system shutdown or logoff via <code>OnMessage(0x0011, On_WM_QUERYENDSESSION)</code> (see <a href="OnMessage.htm#ExShutdown">OnMessage example #2</a> for a working script).</p>
+<p>The OnExit <a href="../misc/Threads.htm">thread</a> does not obey <a href="_MaxThreads.htm">#MaxThreads</a> (it will always launch when needed). In addition, while it is running, it cannot be interrupted by any <a href="../misc/Threads.htm">thread</a>, including <a href="../Hotkeys.htm">hotkeys</a>, <a href="../objects/Menu.htm">custom menu items</a>, and <a href="SetTimer.htm">timed subroutines</a>. However, it will be interrupted (and the script will terminate) if the user chooses Exit from the tray menu or main menu, or the script is asked to terminate as a result of <a href="Reload.htm">Reload</a> or <a href="_SingleInstance.htm">#SingleInstance</a>. Because of this, an OnExit function should be designed to finish quickly unless the user is aware of what it is doing.</p>
+<p>If the OnExit <a href="../misc/Threads.htm">thread</a> encounters a failure condition such as a runtime error, the script will terminate.</p>
+<p>If the OnExit <a href="../misc/Threads.htm">thread</a> was launched due to an <a href="Exit.htm">Exit</a> or <a href="ExitApp.htm">ExitApp</a> function that specified an exit code, that exit code is used unless an OnExit function returns true (preventing exit) or calls ExitApp.</p>
+<p>Whenever an exit attempt is made, each OnExit function starts off fresh with the default values for settings such as <a href="SendMode.htm">SendMode</a>. These defaults can be changed during <a href="../Scripts.htm#auto">script startup</a>.</p>
 
 <h2 id="Related">Related</h2>
 <p><a href="OnError.htm">OnError</a>, <a href="OnMessage.htm">OnMessage</a>, <a href="CallbackCreate.htm">CallbackCreate</a>, <a href="OnClipboardChange.htm">OnClipboardChange</a>, <a href="ExitApp.htm">ExitApp</a>, <a href="Shutdown.htm">Shutdown</a>, <a href="Persistent.htm">Persistent</a>, <a href="../misc/Threads.htm">Threads</a>, <a href="Return.htm">Return</a></p>
