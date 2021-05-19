@@ -388,13 +388,15 @@ sumfn := Sum</pre>
     <td>
       <p>Can be used to get or set the default title for MsgBox, InputBox, FileSelect, DirSelect and Gui. If not set by the script, it defaults to the file name of the current script, without its path, e.g. MyScript.ahk.</p>
       <p>If the script text is <a href="Scripts.htm#stdin">read from stdin</a> rather than from file, the default value is "*".</p>
+      <p>If the script is <a href="Scripts.htm#ahk2exe">compiled</a> or <a href="Program.htm#embedded-scripts">embedded</a>, this is the name of the current executable file.</p>
     </td>
   </tr>
   <tr id="ScriptFullPath">
     <td>A_ScriptFullPath</td>
     <td>
-      <p>The full path of the current script, e.g. C:\My Documents\My Script.ahk</p>
+      <p>The full path of the current script, e.g. C:\Scripts\My Script.ahk</p>
       <p>If the script text is <a href="Scripts.htm#stdin">read from stdin</a> rather than from file, the value is "*".</p>
+      <p>If the script is <a href="Scripts.htm#ahk2exe">compiled</a> or <a href="Program.htm#embedded-scripts">embedded</a>, this is the full path of the current executable file.</p>
     </td>
   </tr>
   <tr id="ScriptHwnd">
@@ -408,7 +410,11 @@ sumfn := Sum</pre>
   </tr>
   <tr id="LineFile">
     <td>A_LineFile</td>
-    <td>The full path and name of the file to which <a href="#LineNumber">A_LineNumber</a> belongs, which will be the same as <a href="#ScriptFullPath">A_ScriptFullPath</a> unless the line belongs to one of a non-compiled script's <a href="commands/_Include.htm">#Include files</a>.</td>
+    <td>
+      <p>The full path and name of the file to which <a href="#LineNumber">A_LineNumber</a> belongs. If the script was loaded from an external file, this is the same as <a href="#ScriptFullPath">A_ScriptFullPath</a> unless the line belongs to one of the script's <a href="commands/_Include.htm">#Include files</a>.</p>
+      <p>If the script was <a href="Scripts.htm#ahk2exe">compiled</a> based on a <a href="Scripts.htm#ahk2exe-base">.bin file</a>, this is the full path and name of the current executable file, the same as <a href="#ScriptFullPath">A_ScriptFullPath</a>.</p>
+      <p>If the script is <a href="Program.htm#embedded-scripts">embedded</a>, A_LineFile contains an asterisk (*) followed by the resource name; e.g. *#1</p>
+    </td>
   </tr>
   <tr id="ThisFunc">
     <td>A_ThisFunc</td>
@@ -420,8 +426,13 @@ sumfn := Sum</pre>
   </tr>
   <tr id="AhkPath">
     <td>A_AhkPath</td>
-    <td><p>For non-compiled scripts: The full path and name of the EXE file that is actually running the current script. For example: C:\Program Files\AutoHotkey\AutoHotkey.exe</p>
-    <p>For <a href="Scripts.htm#ahk2exe">compiled scripts</a>: The same as the above except the AutoHotkey directory is discovered via the registry entry <em>HKLM\SOFTWARE\AutoHotkey\InstallDir</em>. If there is no such entry, A_AhkPath is blank.</p></td>
+    <td>
+      <p>For non-compiled or <a href="Program.htm#embedded-scripts">embedded</a> scripts: The full path and name of the EXE file that is actually running the current script. For example: C:\Program Files\AutoHotkey\AutoHotkey.exe</p>
+      <p>For <a href="Scripts.htm#ahk2exe">compiled scripts</a> based on a <a href="Scripts.htm#ahk2exe-base">.bin file</a>, the value is determined by reading the installation directory from the registry and appending "\AutoHotkey.exe". If AutoHotkey is not installed, the value is blank. The example below is equivalent:</p>
+      <pre>RegRead InstallDir, HKLM\SOFTWARE\AutoHotkey, InstallDir
+AhkPath := ErrorLevel ? "" : InstallDir "\AutoHotkey.exe"</pre>
+      <p>For compiled scripts based on an .exe file, A_AhkPath contains the full path of the compiled script. This can be used in combination with <a href="Scripts.htm#SlashScript">/script</a> to execute external scripts. To instead locate the installed copy of AutoHotkey, read the registry as shown above.</p>
+    </td>
   </tr>
   <tr id="IsCompiled">
     <td>A_IsCompiled</td>

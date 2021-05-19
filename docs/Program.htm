@@ -94,7 +94,6 @@
 </ul>
 <p><strong>Known issue:</strong> Keyboard shortcuts for menu items do not work while the script is displaying a <a href="commands/MsgBox.htm">message box</a> or other dialog.</p>
 <p>The built-in variable <a href="Variables.htm#ScriptHwnd">A_ScriptHwnd</a> contains the unique ID (HWND) of the script's main window.</p>
-<p id="title">The title of this window is used by the <a href="commands/_SingleInstance.htm">#SingleInstance</a> and <a href="commands/Reload.htm">Reload</a> mechanisms to identify other instances of the same script. <a href="commands/WinSetTitle.htm">Changing the title</a> prevents the script from being identified as such. The default title is equivalent to the expression <code>A_ScriptFullPath (A_IsCompiled ? "" : " - AutoHotkey v" A_AhkVersion)</code>.</p>
 <p>Closing this window with <a href="commands/WinClose.htm">WinClose</a> (even from another script) causes the script to exit, but most other methods just hide the window and leave the script running.</p>
 <p>Minimizing the main window causes it to automatically be hidden. This is done to prevent any owned windows (such as GUI windows or certain dialog windows) from automatically being minimized, but also has the effect of hiding the main window's taskbar button. To instead allow the main window to be minimized normally, override the default handling with <a href="commands/OnMessage.htm">OnMessage</a>. For example:</p>
 <pre>; This prevents the main window from hiding on minimize:
@@ -114,6 +113,42 @@ PreventAutoMinimize(wParam, lParam, uMsg, hwnd) {
     if (uMsg = 0x0018 &amp;&amp; lParam = 1) <em>; SW_PARENTCLOSING = 1</em>
         return 0 <em>; Prevent owned window from minimizing.</em>
 }</pre>
+
+<h3 id="title">Main Window Title</h3>
+<p>The title of the script's main window is used by the <a href="commands/_SingleInstance.htm">#SingleInstance</a> and <a href="commands/Reload.htm">Reload</a> mechanisms to identify other instances of the same script. <a href="commands/WinSetTitle.htm">Changing the title</a> prevents the script from being identified as such. The default title depends on how the script was loaded:
+<table class="info">
+  <tr><th>Loaded From</th><th>Title Expression</th><th>Example</th></tr>
+  <tr><td>.ahk file</td><td><code>A_ScriptFullPath " - AutoHotkey v" A_AhkVersion</code></td><td>E:\My Script.ahk - AutoHotkey v1.1.33.09</td></tr>
+  <tr><td>Main resource (compiled script)</td><td><code>A_ScriptFullPath</code></td><td>E:\My Script.exe</td></tr>
+  <tr><td>Any other resource</td><td><code>A_ScriptFullPath " - " A_LineFile</code></td><td>E:\My AutoHotkey.exe - *BUILTIN-TOOL.AHK</td></tr>
+</table>
+<p>The following code illustrates how the default title could be determined by the script itself (but the actual title can be retrieved with <a href="commands/WinGetTitle.htm">WinGetTitle</a>):</p>
+<pre>
+title := A_ScriptFullPath
+if !A_IsCompiled
+    title .= " - AutoHotkey v" A_AhkVersion
+<em>; For the correct result, this must be evaluated by the resource being executed,
+; not an #include (unless the #include was merged into the script by Ahk2Exe):</em>
+else if SubStr(A_LineFile, 1, 1) = "*" &amp;&amp; A_LineFile != "*#1"
+    title .= " - " A_LineFile
+</pre>
+
+<h2 id="embedded-scripts">Embedded Scripts</h2>
+<p>Scripts may be embedded into a standard AutoHotkey .exe file by adding them as Win32 (RCDATA) resources. An embedded script can be specified on the command line or with <a href="commands/_Include.htm">#Include</a> by writing an asterisk (*) followed by the resource name. For an integer ID, the resource name must be a hash sign (#) followed by a decimal number.</p>
+<p>The program may automatically load script code from the following resources, if present in the file:</p>
+<table class="info">
+  <tr><th>ID</th><th>Spec</th><th>Usage</th></tr>
+  <tr>
+    <td>1</td><td>*#1</td>
+    <td>This is the means by which a <a href="Scripts.htm#ahk2exe">compiled script</a> is created from an .exe file. This script is executed automatically and most command line switches are passed to the script instead of being interpreted by the program. External scripts and alternative embedded scripts can be executed by using the <a href="Scripts.htm#SlashScript">/script</a> switch.</td>
+  </tr>
+  <tr>
+    <td>2</td><td>*#2</td>
+    <td>If present, this script is automatically "included" before any script that the program loads, and before any file specified with <a href="Scripts.htm#SlashInclude">/include</a>.</td>
+  </tr>
+</table>
+<p>When the source of the main script is an embedded resource, the program acts in "compiled script" mode, with the exception that <a href="Variables.htm#AhkPath">A_AhkPath</a> always contains the path of the current executable file (the same as <a href="Variables.htm#ScriptFullPath">A_ScriptFullPath</a>). For resources other than *#1, the resource specifier is included in <a href="#title">the main window's title</a> to support <a href="commands/_SingleInstance.htm">#SingleInstance</a> and <a href="commands/Reload.htm">Reload</a>.</p>
+<p>When referenced from code that came from an embedded resource, <a href="Variables.htm#LineFile">A_LineFile</a> contains an asterisk (*) followed by the resource name.</p>
 
 <h2 id="cmd">Command Line Usage</h2>
 <p>See <a href="Scripts.htm#cmd">Passing Command Line Parameters to a Script</a> for command line usage, including a list of command line switches which affect the program's behavior.</p>

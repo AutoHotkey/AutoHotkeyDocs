@@ -1088,7 +1088,7 @@ indexData = [
   ["WriteLine method (File)","objects/File.htm#WriteLine"],
   ["WriteNumType method (File)","objects/File.htm#WriteNum"],
   ["WS_* (GUI styles)","misc/Styles.htm"],
-  ["XButton","commands/Click.htm"],
+  ["XButton","KeyList.htm#mouse-advanced"],
   ["YYYYMMDDHH24MISS","commands/FileSetTime.htm#YYYYMMDD"],
   ["ZeroDivisionError","objects/Error.htm#ZeroDivisionError",6],
   ["{Blind}","commands/Send.htm#blind"]
