@@ -598,7 +598,6 @@ indexData = [
   ["IniRead","commands/IniRead.htm",2],
   ["IniWrite","commands/IniWrite.htm",2],
   ["InputBox","commands/InputBox.htm",2],
-  ["InputHook","commands/InputHook.htm",2],
   ["InputHook","commands/InputHook.htm",6],
   ["InsertAt method (Array)","objects/Array.htm#InsertAt"],
   ["Install","commands/FileInstall.htm"],
