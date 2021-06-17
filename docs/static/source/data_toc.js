@@ -364,7 +364,8 @@ tocData = [
     ["StrSplit","commands/StrSplit.htm"],
     ["SubStr","commands/SubStr.htm"],
     ["Trim","commands/Trim.htm"],
-    ["VarSetStrCapacity","commands/VarSetStrCapacity.htm"]
+    ["VarSetStrCapacity","commands/VarSetStrCapacity.htm"],
+    ["VerCompare","commands/VerCompare.htm"]
   ]],
   ["Window","commands/Win.htm",
   [

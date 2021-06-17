@@ -1013,6 +1013,7 @@ indexData = [
   ["variants (duplicate hotkeys and hotstrings)","commands/_HotIf.htm#variant"],
   ["VarRef","Concepts.htm#variable-references",6],
   ["VarSetStrCapacity","commands/VarSetStrCapacity.htm",2],
+  ["VerCompare","commands/VerCompare.htm",2],
   ["version of a file","commands/FileGetVersion.htm"],
   ["virtual key","commands/Send.htm#vk"],
   ["volume (changing it)","commands/SoundSetVolume.htm"],
