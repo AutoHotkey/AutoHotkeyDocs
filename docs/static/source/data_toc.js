@@ -33,7 +33,7 @@ tocData = [
   ["Function Index","commands/index.htm"],
   ["Drive", "commands/Drive.htm",
   [
-    ["DriveEject", "commands/DriveEject.htm"],
+    ["DriveEject/Retract", "commands/DriveEject.htm"],
     ["DriveGetCapacity", "commands/DriveGetCapacity.htm"],
     ["DriveGetFileSystem", "commands/DriveGetFileSystem.htm"],
     ["DriveGetLabel", "commands/DriveGetLabel.htm"],

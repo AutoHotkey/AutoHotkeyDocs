@@ -433,6 +433,7 @@ indexData = [
   ["DriveGetStatus","commands/DriveGetStatus.htm",2],
   ["DriveGetStatusCD","commands/DriveGetStatusCD.htm",2],
   ["DriveLock","commands/DriveLock.htm",2],
+  ["DriveRetract","commands/DriveEject.htm",2],
   ["DriveSetLabel","commands/DriveSetLabel.htm",2],
   ["DriveUnlock","commands/DriveUnlock.htm",2],
   ["DriveGetType","commands/DriveGetType.htm",2],
