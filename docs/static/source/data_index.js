@@ -946,6 +946,7 @@ indexData = [
   ["StrPut","commands/StrPut.htm",2],
   ["StrReplace","commands/StrReplace.htm",2],
   ["StrSplit","commands/StrSplit.htm",2],
+  ["StrTitle","commands/StrLower.htm",2],
   ["StrUpper","commands/StrLower.htm",2],
   ["structures, via DllCall","commands/DllCall.htm#struct"],
   ["styles for GUI methods","misc/Styles.htm"],
