@@ -28,6 +28,7 @@ tocData = [
   ["Frequently Asked Questions","FAQ.htm"],
   ["Tutorial (quick start)","Tutorial.htm"],
   ["Recent Changes","ChangeLog.htm"],
+  ["Changes from v1.1 to v2.0","v2-changes.htm"],
   ["Script Showcase","scripts/index.htm"],
   ["Script Compatibility","Compat.htm"],
   ["Function Index","commands/index.htm"],

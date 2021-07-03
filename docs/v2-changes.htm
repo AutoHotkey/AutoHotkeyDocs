@@ -1,0 +1,1241 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Changes from v1.1 | AutoHotkey v2</title>
+<meta name="description" content="Changes between v1.1 and v2.0." />
+<meta name="ahk:equiv-v1" content="AHKL_ChangeLog.htm" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<link href="static/theme.css" rel="stylesheet" type="text/css" />
+<script src="static/content.js" type="text/javascript"></script>
+</head>
+<body>
+<h1>Changes from v1.1 to v2.0</h1>
+
+<h2 id="language">Language</h2>
+<h3 id="legacy-syntax-removed">Legacy Syntax Removed</h3>
+<p>Removed literal assignments: <code>var = value</code></p>
+<p>Removed all legacy If statements, leaving only <code>if expression</code>, which never requires parentheses (but allows them, as in any expression).</p>
+<p>Removed &quot;command syntax&quot;. There are no &quot;commands&quot;, only <a href="Language.htm#function-call-statements"><em>function call statements</em></a>, which are just function or method calls without parentheses. That means:</p>
+<ul>
+<li>All former commands are now functions (excluding control flow statements).</li>
+<li>All functions can be called without parentheses if the return value is not needed (but as before, parentheses cannot be omitted for calls within an expression).</li>
+<li>All parameters are expressions, so all text is &quot;quoted&quot; and commas never need to be escaped. Currently this excludes a few directives (which are neither commands nor functions).</li>
+<li>Parameters are the same regardless of parentheses; i.e. there is no output variable for the return value, so it is discarded if parentheses are omitted.</li>
+<li>Normal variable references are never enclosed in percent signs (except with <code>#Include</code> and <code>#DllLoad</code>). Use <a href="Variables.htm#concat">concatenation</a> or <a href="commands/Format.htm">Format</a> to include variables in text.</li>
+<li>There is no comma between the function name and parameters, so <code>MouseGetPos(, y)</code> = <code>MouseGetPos , y</code> (x is omitted). A space or tab is required for clarity. For consistency, directives also follow the new convention (there must not be a comma between the directive name and parameter).</li>
+<li>There is no percent-space prefix to force an expression. Unquoted percent signs in expressions are used only for double-derefs/dynamic references, and having an odd number of them is a syntax error.</li>
+<li>Method call statements (method calls which omit parentheses) are restricted to a plain variable followed by one or more identifiers separated by dots, such as <code>MyVar.MyProperty.MyMethod &quot;String to pass&quot;</code>.</li>
+</ul>
+<p>The translation from v1-command to function is generally as follows (but some functions have been changed, as documented further below):</p>
+<ul>
+<li>If the command's first parameter is an output variable and the second parameter is not, it becomes the return value and is removed from the parameter list.</li>
+<li>The remaining output variables are handled like <a href="#byref">ByRef parameters</a> (for which usage and syntax has changed), except that they permit references to writable built-in variables.</li>
+<li>An exception is thrown on failure instead of setting ErrorLevel.</li>
+<li>Values formerly returned via ErrorLevel are returned by other means, replaced with exceptions, superseded or simply not returned.</li>
+</ul>
+<p>All control flow statements also accept expressions, except where noted below.</p>
+<p>All control flow statements which take parameters (currently excluding the two-word Loop statements) support parentheses around their parameter list, without any space between the name and parenthesis. For example, <code>return(var)</code>. However, these are not functions; for instance, <code>x := return(y)</code> is not valid. If and While already supported this.</p>
+<p><a href="#loop-sub-commands">Loop</a> (except <a href="commands/Loop.htm">Loop <em>Count</em></a>) is now followed by a secondary keyword (<code>Files</code>, <code>Parse</code>, <code>Read</code> or <code>Reg</code>) which cannot be &quot;quoted&quot; or contained by a variable. Currently the keyword can be followed by a comma, but it is not required as this is not a parameter. OTB is supported by all modes.</p>
+<p><a href="commands/Goto.htm">Goto</a>, <a href="commands/Break.htm">break</a> and <a href="commands/Continue.htm">continue</a> require an unquoted label name, similar to v1 (<code>goto label</code> jumps to <code>label:</code>). To jump to a label dynamically, use parentheses immediately after the name: <code>goto(expression)</code>. However, this is not a function and cannot be used mid-expression. Parentheses can be used with break or continue, but in that case the parameter must be a single literal number or quoted string.</p>
+<p>Gosub has been removed, and labels can no longer be used with functions such as SetTimer and Hotkey.</p>
+<ul>
+<li>They were redundant; basically just a limited form of function, without local variables or a return value, and being in their own separate namespace. Functions can be used everywhere that label subroutines were used before (even <a href="Functions.htm#nested">inside other functions</a>).</li>
+<li>Functions cannot overlap (but can be contained within a function). Instead, use multiple functions and call one from the other. Instead of <code>A_ThisLabel</code>, use function parameters.</li>
+<li>Unlike subroutines, if one forgets to define the <em>end</em> of a function, one is usually alerted to the error as each <code>{</code> must have a corresponding <code>}</code>. It may also be easier to identify the bounds of a function than a label subroutine.</li>
+<li>Functions can be placed in the auto-execute section without interrupting it. The auto-execute section can now easily span the entire script, so may instead be referred to as <a href="Language.htm#global-code">global code</a>, executing within the <a href="Scripts.htm#auto">auto-execute thread</a>.</li>
+<li>Functions might be a little less prone to being misused as &quot;goto&quot; (where a user gosubs the current subroutine in order to loop, inevitably exhausting stack space and terminating the program).</li>
+<li>There is less ambiguity without functions (like Hotkey) accepting a label or a function, where both can exist with the same name at once.</li>
+<li>For all remaining uses of labels, it is not valid to refer to a global label from inside a function. Therefore, label lookup can be limited to the local label list. Therefore, there is no need to check for invalid jumps from inside a function to outside (which were never supported).</li>
+</ul>
+<h3 id="hotkey-and-hotstring-labels">Hotkey and Hotstring Labels</h3>
+<p><a href="Hotkeys.htm">Hotkeys</a> and non-autoreplace <a href="Hotstrings.htm">hotstrings</a> are no longer labels; instead, they (automatically) define a function. For multi-line hotkeys, use braces to enclose the body of the hotkey instead of terminating it with <code>return</code> (which is implied by the ending brace). To allow a hotkey to be called explicitly, specify <code>funcName(ThisHotkey)</code> between the <code>::</code> and <code>{</code> - this can also be done in v1.1.20+, but now there is a parameter. When the function definition is not explicit, the parameter is named <code>ThisHotkey</code>.</p>
+<p><strong>Note:</strong> Hotkey functions are <a href="Functions.htm#AssumeLocal">assume-local</a> by default and therefore cannot assign to <a href="Functions.htm#Global">global variables</a> without a declaration.</p>
+<h3 id="names">Names</h3>
+<p>Function and variable names are now placed in a shared namespace.</p>
+<ul>
+<li>Each function definition creates a constant (read-only variable) within the current scope.</li>
+<li>Use <code>MyFunc</code> in place of <code>Func(&quot;MyFunc&quot;)</code>.</li>
+<li>Use <code>MyFunc</code> in place of <code>&quot;MyFunc&quot;</code> when passing the function to any built-in function such as <a href="commands/SetTimer.htm">SetTimer</a> or <a href="commands/Hotkey.htm">Hotkey</a>. Passing a name (string) is no longer supported.</li>
+<li>Use <code>myVar()</code> in place of <code>%myVar%()</code> when calling a function by value.</li>
+<li>To call a function when all you have is a function name (string), first use a <a href="Variables.htm#deref">double-deref</a> to resolve the name to a variable and retrieve its value (the function object). <code>%myVar%()</code> now actually performs a double-deref and then calls the result, equivalent to <code>f := %myVar%, f()</code>. Avoid handling functions by name (string) where possible; use references instead.</li>
+</ul>
+<p>Names cannot start with a digit and cannot contain the following characters which were previously allowed: <code>@ # $</code>.  Only letters, numbers, underscore and non-ASCII characters are allowed.</p>
+<p><strong>Reserved words:</strong> Declaration keywords and names of control flow statements cannot be used as variable, function or class names. This includes Local, Global, Static, If, Else, Loop, For, While, Until, Break, Continue, Goto, Return, Switch, Case, Try, Catch, Finally and Throw. The purpose of this is primarily to detect errors such as <code>if (ex) break</code>.</p>
+<p><strong>Reserved words:</strong> <code>as</code>, <code>and</code>, <code>contains</code>, <code>false</code>, <code>in</code>, <code>is</code>, <code>IsSet</code>, <code>not</code>, <code>or</code>, <code>super</code>, <code>true</code>, <code>unset</code>. These words are reserved for future use or other specific purposes, and are not permitted as variable or function names even when unambiguous. This is primarily for consistency: in v1, <code>and := 1</code> was allowed on its own line but <code>(and := 1)</code> would not work.</p>
+<p>The words listed above are permitted as property or window group names. Property names in typical use are preceded by <code>.</code>, which prevents the word from being interpreted as an operator. By contrast, keywords are never interpreted as variable or function names within an expression. For example, <code>not(x)</code> is equivalent to <code>not (x)</code> or <code>(not x)</code>.</p>
+<p>A number of classes are predefined, effectively reserving those global variable names in the same way that a user-defined class would. (However, the <a href="#scope">changes to scope</a> described below mitigate most issues arising from this.) For a list of classes, see <a href="objects/index.htm">Object Types</a>.</p>
+<h3 id="scope">Scope</h3>
+<p><em>Super-global</em> variables have been removed (excluding built-in variables, which aren't quite the same as they cannot be redeclared or shadowed).</p>
+<p>Within an <a href="Functions.htm#AssumeLocal">assume-local</a> function, if a given name is not used in a declaration or as the target of a non-dynamic assignment or the <a href="Variables.htm#ref">reference (&amp;) operator</a>, it may resolve to an existing global variable.</p>
+<p>In other words:</p>
+<ul>
+<li>Functions can now read global variables without declaring them.</li>
+<li>Functions which have no <code>global</code> declarations cannot directly modify global variables (eliminating one source of unintended side-effects).</li>
+<li>Adding a new <code>class</code> to the script is much less likely to affect the behaviour of any existing function, as classes are not super-global.</li>
+<li>The <code>global</code> keyword is currently redundant when used in global scope, but can be used for clarity. Variables declared this way are now much less likely to conflict with local variables (such as when combining scripts manually or with <a href="commands/_Include.htm">#Include</a>), as they are not super-global. On the other hand, some convenience is lost.</li>
+<li>Declarations are generally not needed as much.</li>
+</ul>
+<p><em>Force-local</em> mode has been removed.</p>
+<h3 id="variables">Variables</h3>
+<p>Local <a href="Functions.htm#static">static</a> variables are initialized if and when execution reaches them, instead of being executed in linear order before the auto-execute section begins. Each initializer has no effect the second time it is reached. Multiple declarations are permitted and may execute for the same variable at different times. There are multiple benefits:</p>
+<ul>
+<li>When a static initializer calls other functions with static variables, there is less risk of initializers having not executed yet due to the order of the function definitions.</li>
+<li>Because the function has been called, parameters, <code>A_ThisFunc</code> and closures are available (they previously were not).</li>
+<li>A static variable can be initialized conditionally, adding flexibility, while still only executing once without requiring <code>if IsSet()</code>.</li>
+<li>Since there may be multiple initializers for a single static variable, compound assignments such as <code>static x += 1</code> are permitted. (This change reduced code size marginally as it was already permitted by <code>local</code> and <code>global</code>.)</li>
+</ul>
+<p class="note"><strong>Note:</strong> <code>static init := somefunction()</code> can no longer be used to auto-execute <em>somefunction</em>. However, since label-and-return based subroutines can now be completely avoided, the auto-execute section is able to span the entire script.</p>
+<p>Declaring a variable with <code>local</code> no longer makes the function <a href="Functions.htm#AssumeGlobal">assume-global</a>.</p>
+<p><a href="Variables.htm#deref">Double-derefs</a> are now more consistent with variables resolved at load-time, and are no longer capable of creating new variables. This avoids some inconsistencies and common points of confusion.</p>
+<p>Double-derefs which fail for any reason now cause an error to be thrown. Previously any cases with an invalid name would silently produce an empty string, while other cases would create and return an empty variable.</p>
+<h3 id="expressions">Expressions</h3>
+<p>Quoted literal strings can be written with <code>&quot;double&quot;</code> or <code>'single'</code> quote marks, but must begin and end with the same mark. Literal quote marks are written by preceding the mark with an escape character - <code>`&quot;</code> or <code>`'</code> - or by using the opposite type of quote mark: <code>'&quot;42&quot; is the answer'</code>. Doubling the quote marks has no special meaning, and causes an error since auto-concat requires a space.</p>
+<p>The operators <code>&amp;&amp;</code>, <code>||</code>, <code>and</code> and <code>or</code> yield whichever value determined the result, similar to JavaScript and Lua. For example, <code>&quot;&quot; or &quot;default&quot;</code> yields <code>&quot;default&quot;</code> instead of <code>1</code>. Scripts which require a pure boolean value (0 or 1) can use something like <code>!!(x or y)</code> or <code>(x or y) ? 1 : 0</code>.</p>
+<p>Auto-concat now requires at least one space or tab in all cases (the v1 documentation says there &quot;should be&quot; a space).</p>
+<p>The result of a multi-statement expression such as <code>x(), y()</code> is the last (right-most) sub-expression instead of the first (left-most) sub-expression. In both v1 and v2, the sub-expressions are evaluated in left to right order.</p>
+<p>Equals after a comma is no longer assignment: <code>y=z</code> in <code>x:=y, y=z</code> is an ineffectual comparison instead of an assignment.</p>
+<p><code>:= += -= *= /= ++ --</code> have consistent behaviour regardless of whether they are used on their own or combined with other operators, such as with <code>x := y, y += 2</code>. Previously, there were differences in behaviour when an error occurred within the expression or a blank value was used in a math operation.</p>
+<p><code>!=</code> is now always case-insensitive, like <code>=</code>, while <code>!==</code> has been added as the counterpart of <code>==</code>.</p>
+<p><code>&lt;&gt;</code> has been removed.</p>
+<p><code>//</code> now throws an exception if given a floating-point number. Previously the results were inconsistent between negative floats and negative integers.</p>
+<p><code>|</code>, <code>^</code>, <code>&amp;</code>, <code>&lt;&lt;</code> and <code>&gt;&gt;</code> now throw an exception if given a floating-point number, instead of truncating to integer.</p>
+<p>Scientific notation can be used without a decimal point (but produces a floating-point number anyway). Scientific notation is also supported when numeric strings are converted to integers (for example, &quot;1e3&quot; is interpreted as 1000 instead of 1).</p>
+<p>Function calls now permit virtually any sub-expression for specifying which function to call, provided that there is no space or tab before the open-parenthesis of the parameter list. For example, <code>MyFunc()</code> would call the value <code>MyFunc</code> regardless of whether that is the function's actual name or a variable containing a function object, and <code>(a?b:c)()</code> would call either <code>b</code> or <code>c</code> depending on <code>a</code>. Note that <code>x.y()</code> is still a method call roughly equivalent to <code>(x.y)(x)</code>, but <code>a[i]()</code> is now equivalent to <code>(a[i])()</code>.</p>
+<p>Double-derefs now permit almost any expression (not just variables) as the source of the variable name. For example, <code>DoNotUseArray%n+1%</code> and <code>%(%triple%)%</code> are valid. Double-deref syntax is now also used to dereference VarRefs, such as <code>ref := &amp;var, value := %ref%</code>.</p>
+<p>The expressions <code>funcName[&quot;&quot;]()</code> and <code>funcName.()</code> no longer call a function by name. Omitting the method name as in <code>.()</code> now causes a load-time error message. Functions should be called or handled by reference, not by name.</p>
+<p><code>var :=</code> with no r-value is treated as an error at load-time. In v1 it was equivalent to <code>var := &quot;&quot;</code>, but silently failed if combined with another expression - for example: <code>x :=, y :=</code>.</p>
+<p>Where a literal string is followed by an ambiguous unary/binary operator, an error is reported at load-time. For instance, <code>&quot;new counter:&quot; ++counter</code> is probably supposed to increment and display <code>counter</code>, but technically it is invalid <em>addition</em> and <em>unary plus</em>.</p>
+<p><code>word ++</code> and <code>word --</code> are no longer expressions, since <code>word</code> can be a user-defined function (and ++/- may be followed by an expression which produces a variable reference).  To write a standalone post-increment or post-decrement expression, either omit the space between the variable and the operator, or wrap the variable or expression in parentheses.</p>
+<p><code>word ? x : y</code> is still a ternary expression, but more complex cases starting with a word, such as <code>word1 word2 ? x : y</code>, are always interpreted as function calls to <em>word1</em> (even if no such function exists). To write a standalone ternary expression with a complex condition, enclose the condition in parentheses.</p>
+<p><span id="is"></span>A new operator <a href="Variables.htm#is">x <strong>is</strong> y</a> can be used to check whether value <code>x</code> is an instance of class <code>y</code>. <code>y</code> must be an Object with a <code>prototype</code> property (i.e. a Class). This includes primitive values, as in <code>x is Integer</code> (which is strictly a type check, whereas <code>IsInteger(x)</code> checks for potential conversion).</p>
+<p>Keywords <code>contains</code> and <code>in</code> are reserved for future use.</p>
+<p><code>&amp;var</code> (address-of) has been replaced with <code>StrPtr(var)</code> and <code>ObjPtr(obj)</code> to more clearly show the intent and enhance error checking. In v1, address-of returned the address of <em>var</em>'s internal string buffer, even if it contained a number (but not an object). It was also used to retrieve the address of an object, and getting an address of the wrong type can have dire consequences.</p>
+<p><code>&amp;var</code> is now the <a href="Variables.htm#ref">reference operator</a>, which is used with all <a href="#byref">ByRef</a> and OutputVar parameters to improve clarity and flexibility (and make other language changes possible). See <a href="Concepts.htm#variable-references">Variable References (VarRef)</a> for more details.</p>
+<p>String length is now cached during expression evaluation. This improves performance and allows strings to contain binary zero. In particular:</p>
+<ul>
+<li>Concatenation of two strings where one or both contain binary zero no longer causes truncation of the data.</li>
+<li>The case-sensitive equality operators (<code>==</code> and <code>!==</code>) can be used to compare binary data. The other comparison operators only &quot;see&quot; up to the first binary zero.</li>
+<li>Binary data can be returned from functions and assigned to objects.</li>
+</ul>
+<p>Most functions still expect null-terminated strings, so will only &quot;see&quot; up to the first binary zero. For example, <a href="commands/MsgBox.htm">MsgBox</a> would display only the portion of the string before the first binary zero.</p>
+<p>The <code>*</code>deref operator has been removed. Use <a href="commands/NumGet.htm">NumGet</a> instead.</p>
+<p>The <code>~</code> (<a href="Variables.htm#unary">bitwise-NOT</a>) operator now always treats its input as a 64-bit signed integer; it no longer treats values between 0 and 4294967295 as unsigned 32-bit.</p>
+<p><code>&gt;&gt;&gt;</code> and <code>&gt;&gt;&gt;=</code> have been added for logical right bit shift.</p>
+<p>Added <a href="Variables.htm#fat-arrow">fat arrow functions</a>. The expression <code>Fn(Parameters) =&gt; Expression</code> defines a function named <em>Fn</em> (which can be blank) and returns a <a href="objects/Func.htm">Func</a> or Closure object. When called, the function evaluates <em>Expression</em> and returns the result. When used inside another function, <em>Expression</em> can refer to the outer function's variables (this can also be done with a normal function definition).</p>
+<p>The fat arrow syntax can also be used to define methods and property getters/setters (in which case the method/property definition itself isn't an expression, but its body just returns an expression).</p>
+<p>Literal numbers are now fully supported on the left-hand side of member access (dot). For example, <code>0.1</code> is a number but <code>0.min</code> and <code>0.1.min</code> access the <em>min</em> property which can be handled by a base object (see <a href="Objects.htm#primitive">Primitive Values</a>). <code>1..2</code> or <code>1.0.2</code> is the number 1.0 followed by the property 2. Example use might be to implement units of measurement, literal version numbers or ranges.</p>
+<p><code>x**y</code>: Where <code>x</code> and <code>y</code> are integers and <code>y</code> is positive, the power operator now gives correct results for all inputs if in range, where previously some precision was lost due to the internal use of floating-point math. Behaviour of overflow is undefined.</p>
+<h3 id="objects-misc">Objects (Misc)</h3>
+<p>See also: <a href="#objects">Objects</a></p>
+<p>There is now a distinction between properties accessed with <code>.</code> and data (items, array or map elements) accessed with <code>[]</code>. For example, <code>dictionary[&quot;Count&quot;]</code> can return the definition of &quot;Count&quot; while <code>dictionary.Count</code> returns the number of words contained within. User-defined objects can utilize this by defining an <a href="Objects.htm#__Item">__Item property</a>.</p>
+<p>When the name of a property or method is not known in advance, it can (and must) be accessed by using percent signs. For example, <code>obj.%varname%()</code> is the v2 equivalent of <code>obj[varname]()</code>. The use of <code>[]</code> is reserved for data (such as array elements).</p>
+<p>The literal syntax for constructing an ad hoc object is still basically <code>{name: value}</code>, but since plain objects now only have &quot;properties&quot; and not &quot;array elements&quot;, the rules have changed slightly for consistency with how properties are accessed in other contexts:</p>
+<ul>
+<li><code>o := {a: b}</code> uses the name &quot;a&quot;, as before.</li>
+<li><code>o := {%a%: b}</code> uses the property name in <code>a</code>, instead of taking that as a variable name, performing a double-deref, and using the contents of the resulting variable. In other words, it has the same effect as <code>o := {}, o.%a% := b</code>.</li>
+<li>Any other kind of expression to the left of <code>:</code> is illegal. For instance, <code>{(a): b}</code> or <code>{an error: 1}</code>.</li>
+</ul>
+<p>The use of the word "base" in <code>base.Method()</code> has been replaced with <a href="Objects.htm#Custom_Classes_super">super</a> (<code>super.Method()</code>) to distinguish the two concepts better:</p>
+<ul>
+<li><code>super.</code> or <code>super[</code> calls the super-class version of a method/property, where &quot;super-class&quot; is the base of the prototype object which was originally associated with the current function's definition.</li>
+<li><code>super</code> is a reserved word; attempting to use it without the <code>.</code> or <code>[</code> or <code>(</code> suffix or outside of a class results in a load time error.</li>
+<li><code>base</code> is a pre-defined property which gets or sets the object's immediate base object (like ObjGetBase/ObjSetBase). It is just a normal property name, not reserved.</li>
+<li>Invoking <code>super.x</code> when the superclass has no definition of x throws an error, whereas <code>base.x</code> was previously ignored (even if it was an assignment).</li>
+</ul>
+<p>Where Fn is an object, <code>Fn()</code> (previously written as <code>%Fn%()</code>) now calls <code>Fn.Call()</code> instead of <code>Fn.()</code> (which can now only be written as <code>Fn.%&quot;&quot;%()</code>). Functions no longer support the nameless method.</p>
+<p><code>this.Method()</code> calls <code>Fn.Call(this)</code> (where <code>Fn</code> is the function object which implements the method) instead of <code>Fn[this]()</code> (which in v1, would result in a call to <code>Fn.__Call(this)</code> unless <code>Fn[this]</code> contains a function). Function objects should implement a <em>Call</em> method instead of <em>__Call</em>, which is only for explicit method calls.</p>
+<p><em>Classname</em><code>()</code> (formerly <code>new Classname()</code>) now fails to create the object if the <code>__New</code> method is defined and it could not be called (e.g. because the parameter count is incorrect), or if parameters were passed and <code>__New</code> is not defined.</p>
+<p>Objects created within an expression or returned from a function are now held until expression evaluation is complete, and then released.  This improves performance slightly and allows temporary objects to be used for memory management within an expression, without fear of the objects being freed prematurely.</p>
+<p>Objects can contain string values (but not keys) which contain binary zero. Cloning an object preserves binary data in strings, up to the stored length of the string (not its capacity). Historically, data was written beyond the value's length when dealing with binary data or structs; now, a Buffer object should be used instead.</p>
+<p>Assignment expressions such as <code>x.y := z</code> now always yield the value of <code>z</code>, regardless of how <code>x.y</code> is implemented. The return value of a property setter is now ignored. Previously:</p>
+<ul>
+<li>Some built-in objects returned <code>z</code>, some returned <code>x.y</code> (such as <code>c := GuiObj.BackColor := &quot;red&quot;</code> setting <code>c</code> to <code>0xFF0000</code>), and some returned an incorrect value.</li>
+<li>User-defined property setters may have returned unexpected values or failed to return anything.</li>
+</ul>
+<p><code>x.y(z) := v</code> is now a syntax error. It was previously equivalent to <code>x.y[z] := v</code>. In general, <code>x.y(z)</code> (method call) and <code>x.y[z]</code> (parameterized property)  are two different operations, although they may be equivalent if <code>x</code> is a COM object (due to limitations of the COM interface).</p>
+<p>Concatenating an object with another value or passing it to Loop is currently treated as an error, whereas previously the object was treated as an empty string. This may be changed to implicitly call <code>.ToString()</code>. Use <code>String(x)</code> to convert a value to a string; this calls <code>.ToString()</code> if <code>x</code> is an object.</p>
+<p>When an object is called via IDispatch (the COM interface), any uncaught exceptions which cannot be passed back to the caller will cause an error dialog. (The caller may or may not show an additional error dialog without any specific details.) This also applies to event handlers being called due to the use of ComObjConnect.</p>
+<h3 id="functions">Functions</h3>
+<p>Functions can no longer be dynamically called with more parameters than they formally accept.</p>
+<p>Variadic functions are not affected by the above restriction, but normally will create an array each time they are called to hold the surplus parameters. If this array is not needed, the parameter name can now be omitted to prevent it from being created:</p>
+<pre>AcceptsOneOrMoreArgs(first, *) {
+  ...
+}
+</pre>
+<p>This can be used for callbacks where the additional parameters are not needed.</p>
+<p>Variadic function calls now permit any enumerable object, where previously they required a standard Object with sequential numeric keys. If the enumerator returns more than one value per iteration, only the first value is used. For example, <code>Array(mymap*)</code> creates an array containing the keys of <em>mymap</em>.</p>
+<p>Variadic function calls previously had half-baked support for named parameters. This has been disabled, to remove a possible impediment to the proper implementation of named parameters.</p>
+<p>User-defined functions may use the new keyword <code>unset</code> as a parameter default value to make the parameter &quot;unset&quot; when no value was provided. The function can then use IsSet() to determine if a value was provided. <code>unset</code> is currently not permitted in any other context.</p>
+<p>Scripts are no longer automatically included from the function library (Lib) folders when a function call is present without a definition, due to increased complexity and potential for accidents (now that the <code>MyFunc</code> in <code>MyFunc()</code> can be any variable). <code>#Include &lt;LibName&gt;</code> works as before. It may be superseded by module support in a future release.</p>
+<p>Variadic built-in functions now have a <code>MaxParams</code> value equal to <code>MinParams</code>, rather than an arbitrary number (such as 255 or 10000). Use <code>IsVariadic</code> to detect when there is no upper bound.</p>
+<h4 id="byref">ByRef</h4>
+<p><a href="Functions.htm#ByRef">ByRef parameters</a> are now declared using <code>&amp;param</code> instead of <code>ByRef param</code>, with some differences in usage.</p>
+<p>ByRef parameters no longer implicitly take a reference to the caller's variable. Instead, the caller must explicitly pass a reference with the <a href="Variables.htm#ref">reference operator</a> (<code>&amp;var</code>). This allows more flexibility, such as storing references elsewhere, accepting them with a variadic function and passing them on with a variadic call.</p>
+<p>When a parameter is marked ByRef, any attempt to explicitly pass a non-VarRef value causes an error to be thrown. Otherwise, the function can check for a reference with <code>param is VarRef</code>, check if the target variable has a value with <code>IsSetRef(param)</code>, and explicitly dereference it with <code>%param%</code>.</p>
+<p>ByRef parameters are now able to receive a reference to a local variable from a previous instance of the same function, when it is called recursively.</p>
+<h3 id="nested-functions">Nested Functions</h3>
+<p>One function may be defined inside another. A nested function may automatically &quot;capture&quot; non-static local variables from the enclosing function (under the right conditions), allowing them to be used after the enclosing function returns.</p>
+<p>The new &quot;fat arrow&quot; <code>=&gt;</code> operator can also be used to create nested functions.</p>
+<p>For full detail, see <a href="Functions.htm#nested">Nested Functions</a>.</p>
+<h3 id="uncategorized">Uncategorized</h3>
+<p><code>:=</code> must be used in place of <code>=</code> when initializing a declared variable or optional parameter.</p>
+<p><code>Return %var%</code> now does a double-deref; previously it was equivalent to <code>Return var</code>.</p>
+<p><a href="commands/_Include.htm">#Include</a> is relative to the directory containing the current file by default. Its parameter may now optionally be enclosed in quote marks.</p>
+<p><a href="commands/_ErrorStdOut.htm">#ErrorStdOut</a>'s parameter may now optionally be enclosed in quote marks.</p>
+<p>Label names are now required to consist only of letters, numbers, underscore and non-ASCII characters (the same as variables, functions, etc.).</p>
+<p>Labels defined in a function have local scope; they are visible only inside that function and do not conflict with labels defined elsewhere. It is not possible for local labels to be called externally (even by built-in functions). Nested functions can be used instead, allowing full use of local variables.</p>
+<p><code>For k, v in obj</code>:</p>
+<ul>
+<li>How the object is invoked has changed. See <em>Enumeration</em>.</li>
+<li><code>For</code> now restores k and v to the values they had before the loop began, after the loop breaks or completes.</li>
+<li>An exception is thrown if <em>obj</em> is not an object or there is a problem retrieving or calling its enumerator.</li>
+<li>Up to 19 variables can be used.</li>
+<li>Variables can be omitted.</li>
+</ul>
+<p>Escaping a comma no longer has any meaning. Previously if used in an expression within a command's parameter and not within parentheses, it forced the comma to be interpreted as the multi-statement operator rather than as a delimiter between parameters. It only worked this way for commands, not functions or variable declarations.</p>
+<p>The escape sequence <code>`s</code> is now allowed wherever <code>`t</code> is supported. It was previously only allowed by #IfWin and (Join.</p>
+<p><code>*/</code> can now be placed at the end of a line to end a multi-line comment, to resolve a common point of confusion relating to how <code>/* */</code> works in other languages. Due to the risk of ambiguity (e.g. with a hotstring ending in <code>*/</code>), any <code>*/</code> which is not preceded by <code>/*</code> is no longer ignored (reversing a change made in AHK_L revision 54).</p>
+<p>Integer constants and numeric strings outside of the supported range (of 64-bit signed integers) now overflow/wrap around, instead of being capped at the min/max value. This is consistent with math operators, so <code>9223372036854775807+1 == 9223372036854775808</code> (but both produce -9223372036854775808). This facilitates bitwise operations on 64-bit values.</p>
+<p>For numeric strings, there are fewer cases where whitespace characters other than space and tab are allowed to precede the number. The general rule (in both v1 and v2) is that only space and tab are permitted, but in some cases other whitespace characters are tolerated due to C runtime library conventions.</p>
+<p><code>Else</code> can now be used with <code>Loop</code>, <code>For</code>, <code>While</code> and <code>Catch</code>. For loops, it is executed if the loop had zero iterations. For <code>Catch</code>, it is executed if no exception is thrown within <code>Try</code> (and is not executed if any error or value is thrown, even if there is no <code>Catch</code> matching the value's class). Consequently, the interpretation of <code>Else</code> may differ from previous versions when used without braces. For example:</p>
+<pre>if condition
+{
+    while condition
+        statement to execute for each iteration
+} ; These braces are now required, otherwise else associates with while
+else
+    statement to execute if condition is false
+</pre>
+<h3 id="continuation-sections">Continuation Sections</h3>
+<p>Smart LTrim: The default behaviour is to count the number of leading spaces or tabs on the first line below the continuation section options, and remove that many spaces or tabs from each line thereafter. If the first line mixes spaces and tabs, only the first type of character is treated as indentation. If any line is indented less than the first line or with the wrong characters, all leading whitespace on that line is left as is.</p>
+<p>Quote marks are automatically escaped (i.e. they are interpreted as literal characters) if the continuation section starts inside a quoted string. This avoids the need to escape quote marks in multi-line strings (if the starting and ending quotes are outside the continuation section) while still allowing multi-line expressions to contain quoted strings.</p>
+<p>If the line above the continuation section ends with a name character and the section does not start inside a quoted string, a single space is automatically inserted to separate the name from the contents of the continuation section. This allows a continuation section to be used for a multi-line expression following <code>return</code>, function call statements, etc. It also ensures variable names are not joined with other tokens (or names), causing invalid expressions.</p>
+<p>Newline characters (<code>`n</code>) in expressions are treated as spaces. This allows multi-line expressions to be written using a continuation section with default options (i.e. omitting <code>Join</code>).</p>
+<p>The <code>,</code> and <code>%</code> options have been removed, since there is no longer any need to escape these characters.</p>
+<p>If <code>(</code> or <code>)</code> appears in the options of a potential continuation section (other than as part of the <code>Join</code> option), the overall line is not interpreted as the start of a continuation section. In other words, lines like <code>(x.y)()</code> and <code>(x=y) &amp;&amp; z()</code> are interpreted as expressions. A multi-line expression can also begin with an open-parenthesis at the start of a line, provided that there is at least one other <code>(</code> or <code>)</code> on the first physical line. For example, the entire expression could be enclosed with <code>((</code> ... <code>))</code>.</p>
+<p>Excluding the above case, if any invalid options are present, a load-time error is displayed instead of ignoring the invalid options.</p>
+<p>Lines starting with <code>(</code> and ending with <code>:</code> are no longer excluded from starting a continuation section on the basis of looking like a label, as <code>(</code> is no longer valid in a label name. This makes it possible for something like <code>(Join:</code> to start a continuation section. However, <code>(:</code> is an error and <code>(::</code> is still a hotkey.</p>
+<p>A new method of line continuation is supported in expressions and function/property definitions which utilizes the fact that each <code>(</code>/<code>[</code>/<code>{</code> must be matched with a corresponding <code>)</code>/<code>]</code>/<code>}</code>. In other words, if a line contains an unclosed <code>(</code>/<code>[</code>/<code>{</code>, it will be joined with subsequent lines until the number of opening and closing symbols balances out. Brace <code>{</code> at the end of a line is considered to be one-true-brace (rather than the start of an object literal) if there are no other unclosed symbols and the brace is not immediately preceded by an operator.</p>
+<h3 id="continuation-lines">Continuation Lines</h3>
+<p>Line continuation is now more selective about the context in which a symbol is considered an expression operator. In general, comma and expression operators can no longer be used for continuation in a textual context, such as with hotstrings or directives (other than #HotIf), or after an unclosed quoted string.</p>
+<p>Line continuation now works for expression operators at the end of a line.</p>
+<p><code>is</code>, <code>in</code> and <code>contains</code> are usable for line continuation, though <code>in</code> and <code>contains</code> are still reserved/not yet implemented as operators.</p>
+<p><code>and</code>, <code>or</code>, <code>is</code>, <code>in</code> and <code>contains</code> act as line continuation operators even if followed by an assignment or other binary operator, since these are no longer valid variable names. By contrast, v1 had exceptions for <code>and</code>/<code>or</code> followed by any of: <code>&lt;&gt;=/|^:,</code></p>
+<p>When <code>.</code> is used for continuation, the two lines are no longer automatically delimited by a space if there was no space or tab to the right of <code>.</code> at the start of a line, as in <code>.VeryLongNestedClassName</code>. Note that <code>x .123</code> is always property access (not auto-concat) and <code>x+.123</code> works with or without space.</p>
+<h3 id="types">Types</h3>
+<p>In general, v2 produces more consistent results with any code that depends on the type of a value.</p>
+<p>In v1, a variable can contain both a string and a cached binary number, which is updated whenever the variable is used as a number.  Since this cached binary number is the only means of detecting the type of value, caching performed internally by expressions like <code>var+1</code> or <code>abs(var)</code> effectively changes the &quot;type&quot; of <code>var</code> as a side-effect. v2 disables this caching, so that <code>str := &quot;123&quot;</code> is always a string and <code>int := 123</code> is always an integer. Consequently, <code>str</code> needs to be converted every time it is used as a number (instead of just the first time), unless it was originally assigned a pure number.</p>
+<p>The built-in &quot;variables&quot; <code>true</code>, <code>false</code>, <code>A_PtrSize</code>, <code>A_IsUnicode</code>, <code>A_Index</code> and <code>A_EventInfo</code> always return pure integers, not strings. They sometimes return strings in v1 due to certain optimizations which have been superseded in v2.</p>
+<p>All literal numbers are converted to pure binary numbers at load time and their string representation is discarded. For example, <code>MsgBox 0x1</code> is equivalent to <code>MsgBox 1</code>, while <code>MsgBox 1.0000</code> is equivalent to <code>MsgBox 1.0</code> (because the float formatting has changed). Storing a number in a variable or returning it from a UDF retains its pure numeric status.</p>
+<p>The default format specifier for floating-point numbers is now <code>.17g</code> (was <code>0.6f</code>), which is more compact and more accurate in many cases. The default cannot be changed, but <code>Format</code> can be used to get different formatting.</p>
+<p>Quoted literal strings and strings produced by concatenating with quoted literal strings are no longer unconditionally considered non-numeric. Instead, they are treated the same as strings stored in variables or returned from functions. This has the following implications:</p>
+<ul>
+<li>Quoted literal <code>&quot;0&quot;</code> is considered false.</li>
+<li><code>(&quot;0xA&quot;) + 1</code> and <code>(&quot;0x&quot; Chr(65)) + 1</code> produce 11 instead of failing.</li>
+<li><code>x[y:=&quot;0&quot;]</code> and <code>x[&quot;0&quot;]</code> now behave the same.</li>
+</ul>
+<p>The operators <code>=</code> and <code>!=</code> now compare their operands alphabetically if both are strings, even if they are numeric strings. Numeric comparison is still performed when both operands are numeric and at least one operand is a pure number (not a string). So for example, 54 and &quot;530&quot; are compared numerically, while &quot;54&quot; and &quot;530&quot; are compared alphabetically. Additionally, strings stored in variables are treated no differently from literal strings.</p>
+<p>The relational operators <code>&lt;</code>, <code>&lt;=</code>, <code>&gt;</code> and <code>&gt;=</code> now throw an exception if used with a non-numeric string. Previously they compared numerically or alphabetically depending on whether both inputs were numeric, but literal quoted strings were always considered non-numeric. Use <code>StrCompare(a, b, CaseSense)</code> instead.</p>
+<p><code>Type(Value)</code> returns one of the following strings: String, Integer, Float, or the specific class of an object.</p>
+<p><code>Float(v)</code>, <code>Integer(v)</code> and <code>String(v)</code> convert <code>v</code> to the respective type, or throw an exception if the conversion cannot be performed (e.g. <code>Integer(&quot;1z&quot;)</code>). <code>Number(v)</code> converts to Integer or Float. <code>String</code> calls <code>v.ToString()</code> if <code>v</code> is an object. (Ideally this would be done for any implicit conversion from object to string, but the current implementation makes this difficult.)</p>
+<h2 id="objects">Objects</h2>
+<p>Objects now use a more structured class-prototype approach, separating class/static members from instance members. Many of the built-in methods and Obj functions have been moved, renamed, changed or removed.</p>
+<ul>
+<li>Each user-defined or built-in class is a class object (an instance of <code>Class</code>) exposing only methods and properties defined with the <code>static</code> keyword (including static members inherited from the base class) and nested classes.</li>
+<li>Each class object has a <code>Prototype</code> object property which becomes the <code>base</code> of all instances of that class. All non-static method and property definitions inside the class body are attached to the prototype object.</li>
+<li>Instantiation is performed by calling the static method <code>Call</code>, as in <code>myClass.Call()</code> or <code>myClass()</code>. This allows the class to fully override construction behaviour (e.g. to implement a class factory or singleton, or to construct a native Array or Map instead of an Object), although initialization should still typically be performed in <code>__New</code>. The return value of <code>__New</code> is now ignored; to override the return value, do so from the <code>Call</code> method.</li>
+</ul>
+<p>The mixed Object type has been split into <code>Object</code>, <code>Array</code> and <code>Map</code> (associative array).</p>
+<p>Object is now the root class for all user-defined <strong>and built-in</strong> objects (this excludes VarRef and COM objects). Members added to <code>Object.Prototype</code> are inherited by all AutoHotkey objects.</p>
+<p>The operator <code>is</code> expects a class, so <code>x is y</code> checks for <code>y.Prototype</code> in the base object chain. To check for <code>y</code> itself, call <code>x.HasBase(y)</code> or <code>HasBase(x, y)</code>.</p>
+<p>User-defined classes can also explicitly extend <code>Object</code>, <code>Array</code>, <code>Map</code> or some other built-in class (though doing so is not always useful), with <code>Object</code> being the default base class if none is specified.</p>
+<p>The <code>new</code> operator has been removed. Instead, just omit the operator, as in <code>MyClass()</code>. To construct an object <em>based on</em> another object that is not a class, create it with <code>{}</code> or <code>Object()</code> (or by any other means) and set its <code>base</code>. <code>__Init</code> and <code>__New</code> can be called explicitly if needed, but generally this is only appropriate when instantiating a class.</p>
+<p>Nested class definitions now produce a dynamic property with <em>get</em> and <em>call</em> accessor functions instead of a simple value property. This is to support the following behaviour:</p>
+<ul>
+<li><code>Nested.Class()</code> does not pass <code>Nested</code> to <code>Nested.Class.Call</code> and ultimately <code>__New</code>, which would otherwise happen because this is the normal behaviour for function objects called as methods (which is how the nested class is being used here).</li>
+<li><code>Nested.Class := 1</code> is an error by default (the property is read-only).</li>
+<li>Referring to or calling the class for the first time causes it to be initialized.</li>
+</ul>
+<p>GetCapacity and SetCapacity were removed.</p>
+<ul>
+<li>ObjGetCapacity and ObjSetCapacity now only affect the object's capacity to contain properties, and are not expected to be commonly used. Setting the capacity of the string buffer of a property, array element or map element is not supported; for binary data, use a Buffer object.</li>
+<li>Array and Map have a Capacity property which corresponds to the object's current array or map allocation.</li>
+</ul>
+<p>Other redundant Obj functions (which mirror built-in methods of Object) were removed. ObjHasOwnProp (formerly ObjHasKey) and ObjOwnProps (formerly ObjNewEnum) are kept to facilitate safe inspection of objects which have redefined those methods (and the primitive prototypes, which don't have them defined). ObjCount was replaced with ObjOwnPropCount (a function only, for all Objects) and Map has its own Count property.</p>
+<p>ObjRawGet and ObjRawSet were merged into GetOwnPropDesc and DefineProp. The original reasons for adding them were superseded by other changes, such as the <code>Map</code> type, changes to how meta-functions work, and DefineProp itself superseding meta-functions for some purposes.</p>
+<p>Top-level class definitions now create a constant (read-only variable); that is, assigning to a class name is now an error rather than an optional warning, except where a local variable shadows the global class (which now occurs by default when assigning inside a function).</p>
+<h3 id="primitive-values">Primitive Values</h3>
+<p>Primitive values emulate objects by delegating method and property calls to a prototype object based on their type, instead of the v1 &quot;default base object&quot;. Integer and Float extend Number. String and Number extend Primitive. Primitive and Object extend Any. These all exist as predefined classes.</p>
+<h3 id="properties-and-methods">Properties and Methods</h3>
+<p>Methods are defined by properties, unlike v2.0-a104 to v2.0-a127, where they are separate to properties. However, unlike v1, properties created by a class method definition (or built-in method) are read-only by default. Methods can still be created by assigning new value properties, which generally act as in v1.</p>
+<p>The Object class defines new methods for dealing with properties and methods: DefineProp, DeleteProp, GetOwnPropDesc, HasOwnProp, OwnProps. Additional methods are defined for all values (except ComObjects): GetMethod, HasProp, HasMethod.</p>
+<p>Object, Array and Map are now separate types, and array elements are separate from properties.</p>
+<p>All built-in methods and properties (including <code>base</code>) are defined the same way as if user-defined. This ensures consistent behaviour and permits both built-in and user-defined members to be detected, retrieved or redefined.</p>
+<p>If a property does not accept parameters, they are automatically passed to the object returned by the property (or it throws).</p>
+<p>Attempting to retrieve a non-existent property is treated as an error for all types of values or objects, unless <code>__get</code> is defined. However, setting a non-existent property will create it in most cases.</p>
+<p>Multi-dimension array hacks were removed.  <code>x.y[z]:=1</code> no longer creates an object in <code>x.y</code>, and <code>x[y,z]</code> is an error unless x.__item handles two parameters (or x.__item.__item does, etc.).</p>
+<p>If a property defines <code>get</code> but not <code>set</code>, assigning a value throws instead of overriding the property.</p>
+<p>DefineProp can be used to define what happens when a specific property is retrieved, set <em>or called</em>, without having to define any meta-functions. Property and method definitions in classes utilize the same mechanism, so it is possible to define a property getter/setter and a method with the same name.</p>
+<p><code>{}</code> object literals now directly set <em>own property</em> values or the object's <code>base</code>. That is, <code>__Set</code> and property setters are no longer invoked (which would typically only be possible if <code>base</code> is set within the parameter list).</p>
+<h3 id="staticclass-variables">Static/Class Variables</h3>
+<p>Static/class variable initializers are now executed within the context of a <code>static __Init</code> method, so <code>this</code> refers to the class and the initializers can create local variables. They are evaluated when the class is referenced for the first time (rather than being evaluated before the auto-execute section begins, strictly in the order of definition). If the class is not referenced sooner, they are evaluated when the class definition is reached during execution, so initialization of global variables can occur first, without putting them into a class.</p>
+<h3 id="meta-functions">Meta-Functions</h3>
+<p>Meta-functions were greatly simplified; they act like normal methods:</p>
+<ul>
+<li>Where they are defined within the hierarchy is not important.</li>
+<li>If overridden, the base version is not called  automatically.  Scripts can call <code>super.__xxx()</code> if needed.</li>
+<li>If defined, it must perform the default action; e.g. if __set does not store the value, it is not stored.</li>
+<li>Behaviour is not dependent on whether the method uses <code>return</code> (but of course, __get and __call still need to return a value).</li>
+</ul>
+<p>Method and property parameters are passed as an Array. This optimizes for chained base/superclass calls and (in combination with MaxParams validation) encourages authors to handle the args. For __set, the value being assigned is passed separately.</p>
+<pre><code><div>this.__call(name, args)
+this.__get(name, args)
+this.__set(name, args, value)
+</div></code></pre>
+<p>Defined properties and methods take precedence over meta-functions, regardless of whether they were defined in a base object.</p>
+<p>__Call is not called for internal calls to __Enum (formerly _NewEnum) or Call, such as when an object is passed to a for-loop or a function object is being called by SetTimer.</p>
+<p>The static method __New is called for each class when it is initialized, if defined by that class or inherited from a superclass. See <a href="#staticclass-variables">Static/Class Variables</a> (above) and <a href="Objects.htm#static__New">Class Initialization</a> for more detail.</p>
+<h3 id="array">Array</h3>
+<p><code>class Array extends Object</code></p>
+<p>An Array object contains a list or sequence of values, with index 1 being the first element.</p>
+<p>When assigning or retrieving an array element, the absolute value of the index must be between 1 and the Length of the array, otherwise an exception is thrown. An array can be resized by inserting or removing elements with the appropriate method, or by assigning Length.</p>
+<p>Currently brackets are required when accessing elements; i.e. <code>a.1</code> refers to a property and <code>a[1]</code> refers to an element.</p>
+<p>Negative values can be used to index in reverse.</p>
+<p>Usage of Clone, Delete, InsertAt, Pop, Push and RemoveAt is basically unchanged. HasKey was renamed to Has. Length is now a property. The Capacity property was added.</p>
+<p>Arrays can be constructed with <code>Array(values*)</code> or <code>[values*]</code>. Variadic functions receive an Array of parameters, and Arrays are also created by several built-in functions.</p>
+<p>For-loop usage is <code>for val in arr</code> or <code>for idx, val in arr</code>, where <code>idx = A_Index</code> by default. That is, elements lacking a value are still enumerated, and the index is not returned if only one variable is passed.</p>
+<h3 id="map">Map</h3>
+<p>A Map object is an associative array with capabilities similar to the v1 Object, but less ambiguity.</p>
+<ul>
+<li>Clone is used as before.</li>
+<li>Delete can only delete one key at a time.</li>
+<li>HasKey was renamed to Has.</li>
+<li>Count is now a property.</li>
+<li>New properties: Capacity, CaseSense</li>
+<li>New methods: Get, Set, Clear</li>
+<li>String keys are case-sensitive by default and are never converted to Integer.</li>
+</ul>
+<p>Currently Float keys are still converted to strings.</p>
+<p>Brackets are required when accessing elements; i.e. <code>a.b</code> refers to a property and <code>a[&quot;b&quot;]</code> refers to an element. Unlike in v1, a property or method cannot be accidentally disabled by assigning an array element.</p>
+<p>An exception is thrown if one attempts to retrieve the value of an element which does not exist, unless the map has a <code>Default</code> property defined. <code>MapObj.Get(key, default)</code> can be used to explicitly provide a default value for each request.</p>
+<p>Use <code>Map(Key, Value, ...)</code> to create a map from a list of key-value pairs.</p>
+<h3 id="enumeration">Enumeration</h3>
+<p>Changed enumerator model:</p>
+<ul>
+<li>Replaced _NewEnum() with __Enum(n).</li>
+<li>The required parameter n contains the number of variables in the for-loop, to allow it to affect enumeration without having to postpone initialization until the first iteration call.</li>
+<li>Replaced Next() with Call(), with the same usage except that ByRef works differently now; for instance, a method defined as <code>Call(&amp;a)</code> should assign <code>a := next_value</code> while <code>Call(a)</code> would receive a <code>VarRef</code>, so should assign <code>%a% := next_value</code>.</li>
+<li>If __Enum is not present, the object is assumed to be an enumerator. This allows function objects (such as closures) to be used directly.</li>
+</ul>
+<p>Since array elements and properties are now separate, enumerating properties requires explicitly creating an enumerator by calling <a href="objects/Object.htm#OwnProps">OwnProps</a>.</p>
+<h3 id="bound-functions">Bound Functions</h3>
+<p>When a bound function is called, parameters passed by the caller fill in any positions that were omitted when creating the bound function. For example, <code>F.Bind(,b).Call(a,c)</code> calls <code>F(a,b,c)</code> rather than <code>F(,b,a,c)</code>.</p>
+<h3 id="com-objects-comobject">COM Objects (ComObject)</h3>
+<p>COM wrapper objects now identify as instances of a few different classes depending on their variant type (which affects what methods and properties they support, as before):</p>
+<ul>
+<li><code>ComValue</code> is the base class for all COM wrapper objects.</li>
+<li><code>ComObject</code> is for VT_DISPATCH with a non-null pointer; that is, typically a valid COM object that can be invoked by the script using normal object syntax.</li>
+<li><code>ComObjArray</code> is for VT_ARRAY (SafeArrays).</li>
+<li><code>ComValueRef</code> is for VT_BYREF.</li>
+</ul>
+<p>These classes can be used for type checks with <code>obj is ComObject</code> and similar. Properties and methods can be defined for objects of type ComValue, ComObjArray and ComValueRef (but not ComObject) by modifying the respective prototype object.</p>
+<p><code>ComObject(CLSID)</code> creates a ComObject; i.e. this is the new ComObjCreate.</p>
+<p>Note: If you are updating old code and get a TypeError due to passing an Integer to ComObject, it's likely that you should be calling ComValue instead.</p>
+<p><code>ComValue(vt, value)</code> creates a wrapper object. It can return an instance of any of the classes listed above. This replaces <code>ComObjParameter(vt, value)</code>, <code>ComObject(vt, value)</code> and any other names that were used with a <em>variant type</em> and <em>value</em> as parameters. <em>value</em> is converted to the appropriate type (following COM conventions), instead of requiring an integer with the right binary value. In particular, the following behave differently to before when passed an integer: R4, R8, Cy, Date. Pointer types permit either a pure integer address as before, or an object/ComValue.</p>
+<p><code>ComObjFromPtr(pdsp)</code> is a function similar to <code>ComObjEnwrap(dsp)</code>, but like ObjFromPtr, it does not call AddRef on the pointer. The equivalent in v1 is <code>ComObject(9, dsp, 1)</code>; omitting the third parameter in v1 caused an AddRef.</p>
+<p>For both ComValue and ComObjFromPtr, be warned that AddRef is never called automatically; in that respect, they behave like <code>ComObject(9, value, 1)</code> or <code>ComObject(13, value, 1)</code> in v1. This does not necessarily mean you should add <code>ObjAddRef(value)</code> when updating old scripts, as many scripts used the old function incorrectly.</p>
+<p>COM wrapper objects with variant type VT_BYREF, VT_ARRAY or VT_UNKNOWN now have a <code>Ptr</code> property equivalent to <code>ComObjValue(ComObj)</code>. This allows them to be passed to DllCall or ComCall with the <code>Ptr</code> arg type. It also allows the object to be passed directly to NumPut or NumGet, which may be used with VT_BYREF (access the caller's typed variable), VT_ARRAY (access SAFEARRAY fields) or VT_UNKNOWN (retrieve vtable pointer).</p>
+<p>COM wrapper objects with variant type VT_DISPATCH or VT_UNKNOWN and a null interface pointer now have a <code>Ptr</code> property which can be read or assigned. Once assigned a non-null pointer, the property is read-only. This is intended for use with DllCall and ComCall, so the pointer does not need to be manually wrapped after the function returns.</p>
+<p>Enumeration of ComObjArray is now consistent with Array; i.e. <code>for value in arr</code> or <code>for index, value in arr</code> rather than <code>for value, vartype in arr</code>. The starting value for <code>index</code> is the lower bound of the ComObjArray (<code>arr.MinIndex()</code>), typically 0.</p>
+<p>The integer types I1, I8, UI1, UI2, UI4 and UI8 are now converted to Integer rather than String. These occur rarely in COM calls, but this also applies to VT_BYREF wrappers. VT_ERROR is no longer converted to Integer; it instead produces a ComValue.</p>
+<h3 id="default-property">Default Property</h3>
+<p>A COM object may have a &quot;default property&quot;, which has two uses:</p>
+<ul>
+<li>The <em>value</em> of the object. For instance, in VBScript, <code>MsgBox obj</code> evaluates the object by invoking its default member.</li>
+<li>The indexed property of a collection, which is usually named <code>Item</code> or <code>item</code>.</li>
+</ul>
+<p>AutoHotkey v1 had no concept of a default property, so the COM object wrapper would invoke the default property if the property name was omitted; i.e. <code>obj[]</code> or <code>obj[,x]</code>.</p>
+<p>However, AutoHotkey v2 separates properties from array/map/collection items, and to do this <code>obj[x]</code> is mapped to the object's default property (whether or not <code>x</code> is present). For AutoHotkey objects, this is <code>__Item</code>.</p>
+<p>Some COM objects which represent arrays or collections do not expose a default property, so items cannot be accessed with <code>[]</code> in v2. For instance, JavaScript array objects and some other objects normally used with JavaScript expose array elements as properties. In such cases, <code>arr.%i%</code> can be used to access an array element-property.</p>
+<p>When an AutoHotkey v2 <code>Array</code> object is passed to JavaScript, its elements cannot be retrieved with JavaScript's <code>arr[i]</code>, because that would attempt to access a property.</p>
+<h3 id="com-calls">COM Calls</h3>
+<p>Calls to AutoHotkey objects via the IDispatch interface now transparently support <code>VT_BYREF</code> parameters. This would most commonly be used with COM events (ComObjConnect).</p>
+<p>For each <code>VT_BYREF</code> parameter, an unnamed temporary var is created, the value is copied from the caller's variable, and a <code>VarRef</code> is passed to the AutoHotkey function/method. Upon return, the value is copied from the temporary var back into the caller's variable.</p>
+<p>A function/method can assign a value by declaring the parameter ByRef (with <code>&amp;</code>) or by explicit dereferencing.</p>
+<p>For example, a parameter of type <code>VT_BYREF|VT_BOOL</code> would previously have received a ComObjRef object, and would be assigned a value like <code>pbCancel[] := true</code> or <code>NumPut(-1, ComObjValue(pbCancel), &quot;short&quot;)</code>. Now the parameter can be defined as <code>&amp;bCancel</code> and assigned like <code>bCancel := true</code>; or can be defined as <code>pbCancel</code> and assigned like <code>%pbCancel% := true</code>.</p>
+<h2 id="library">Library</h2>
+<p>Removed:</p>
+<ul>
+<li>Asc() (use Ord())</li>
+<li>AutoTrim (use Trim())</li>
+<li>ComObjMissing() (write two consecutive commas instead)</li>
+<li>ComObjUnwrap() (use <a href="commands/ComObjValue.htm">ComObjValue</a> instead, and <a href="commands/ObjAddRef.htm">ObjAddRef</a> if needed)</li>
+<li>ComObjEnwrap() (use <a href="commands/ComObjFromPtr.htm">ComObjFromPtr</a> instead, and <a href="commands/ObjAddRef.htm">ObjAddRef</a> if needed)</li>
+<li>ComObjError()</li>
+<li>ComObjXXX() where XXX is anything other than one of the explicitly defined ComObj functions (use <a href="commands/ComObjActive.htm">ComObjActive</a>, <a href="commands/ComValue.htm">ComValue</a> or <a href="commands/ComObjFromPtr.htm">ComObjFromPtr</a> instead).</li>
+<li>ControlSendRaw (use <code>ControlSend &quot;{Raw}&quot;</code> or <a href="commands/ControlSend.htm">ControlSendText</a> instead)</li>
+<li>EnvDiv</li>
+<li>EnvMult</li>
+<li>EnvUpdate (it is of very limited usefulness and can be replaced with a simple SendMessage)</li>
+<li>Exception (use <a href="objects/Error.htm">Error</a> or an appropriate subclass)</li>
+<li>FileReadLine (use a file-reading loop or FileOpen)</li>
+<li>Func (use a direct reference like <code>MyFunc</code>)</li>
+<li>Gosub</li>
+<li>Gui, GuiControl, GuiControlGet (see <a href="#gui">Gui</a>)</li>
+<li>IfEqual</li>
+<li>IfExist</li>
+<li>IfGreater</li>
+<li>IfGreaterOrEqual</li>
+<li>IfInString</li>
+<li>IfLess</li>
+<li>IfLessOrEqual</li>
+<li>IfMsgBox (MsgBox now returns the button name)</li>
+<li>IfNotEqual</li>
+<li>IfNotExist</li>
+<li>IfNotInString</li>
+<li>IfWinActive</li>
+<li>IfWinExist</li>
+<li>IfWinNotActive</li>
+<li>IfWinNotExist</li>
+<li>If between/is/in/contains (but see <a href="#isXXX">isXXX</a>)</li>
+<li>Input (use <a href="commands/InputHook.htm">InputHook</a>)</li>
+<li>IsFunc</li>
+<li>Menu (use the <a href="objects/Menu.htm">Menu/MenuBar class</a>, <a href="commands/TraySetIcon.htm">TraySetIcon</a>, <a href="Variables.htm#IconTip">A_IconTip</a>, <a href="Variables.htm#IconHidden">A_IconHidden</a> and <a href="Variables.htm#AllowMainWindow">A_AllowMainWindow</a>)</li>
+<li>MenuGetHandle (use <a href="objects/Menu.htm#Handle">Menu.Handle</a>)</li>
+<li>MenuGetName (there are no menu names; <a href="commands/MenuFromHandle.htm">MenuFromHandle</a> is the closest replacement)</li>
+<li>Progress (use <a href="objects/Gui.htm">Gui</a>)</li>
+<li>SendRaw (use <code>Send &quot;{Raw}&quot;</code> or <a href="commands/Send.htm#SendText">SendText</a> instead)</li>
+<li>SetBatchLines (-1 is now the default behaviour)</li>
+<li>SetEnv</li>
+<li>SetFormat (<a href="commands/Format.htm">Format</a> can be used to format a string)</li>
+<li>SoundGetWaveVolume/SoundSetWaveVolume (slightly different behaviour to SoundGet/SoundSet regarding balance, but neither one preserves balance)</li>
+<li>SplashImage (use <a href="objects/Gui.htm">Gui</a>)</li>
+<li>SplashTextOn/Off (use <a href="objects/Gui.htm">Gui</a>)</li>
+<li>StringCaseSense (use various parameters)</li>
+<li>StringGetPos (use <a href="commands/InStr.htm">InStr</a>)</li>
+<li>StringLeft<br>
+StringLen<br>
+StringMid<br>
+StringRight<br>
+StringTrimLeft<br>
+StringTrimRight  -- use <a href="commands/SubStr.htm">SubStr</a> in place of these commands.</li>
+<li>StringReplace (use <a href="commands/StrReplace.htm">StrReplace</a> instead)</li>
+<li>StringSplit (use <a href="commands/StrSplit.htm">StrSplit</a> instead)</li>
+<li>Transform</li>
+<li>VarSetCapacity (use a <a href="objects/Buffer.htm">Buffer</a> object for binary data/structs and <a href="commands/VarSetStrCapacity.htm">VarSetStrCapacity</a> for UTF-16 strings)</li>
+<li>WinGetActiveStats</li>
+<li>WinGetActiveTitle</li>
+<li>#CommentFlag</li>
+<li>#Delimiter</li>
+<li>#DerefChar</li>
+<li>#EscapeChar</li>
+<li>#HotkeyInterval (use <a href="Variables.htm#HotkeyInterval">A_HotkeyInterval</a>)</li>
+<li>#HotkeyModifierTimeout (use <a href="misc/A_HotkeyModifierTimeout.htm">A_HotkeyModifierTimeout</a>)</li>
+<li>#IfWinActive, #IfWinExist, #IfWinNotActive, #IfWinNotExist (see <a href="commands/_HotIf.htm#optimization">#HotIf Optimization</a>)</li>
+<li>#InstallKeybdHook (use the <a href="commands/InstallKeybdHook.htm">InstallKeybdHook</a> function)</li>
+<li>#InstallMouseHook (use the <a href="commands/InstallMouseHook.htm">InstallMouseHook</a> function)</li>
+<li>#KeyHistory (use <code>KeyHistory N</code>)</li>
+<li>#LTrim</li>
+<li>#MaxHotkeysPerInterval (use <a href="misc/A_MaxHotkeysPerInterval.htm">A_MaxHotkeysPerInterval</a>)</li>
+<li>#MaxMem</li>
+<li>#MenuMaskKey (use <a href="misc/A_MenuMaskKey.htm">A_MenuMaskKey</a>)</li>
+<li>#NoEnv (now default behaviour)</li>
+</ul>
+<p>Renamed:</p>
+<ul>
+<li>ComObjCreate() -&gt; <a href="commands/ComObject.htm">ComObject</a>, which is a class now</li>
+<li>ComObjParameter() -&gt; <a href="commands/ComValue.htm">ComValue</a>, which is a class now</li>
+<li>DriveSpaceFree -&gt; <a href="commands/DriveGetSpaceFree.htm">DriveGetSpaceFree</a></li>
+<li>EnvAdd -&gt; <a href="commands/DateAdd.htm">DateAdd</a></li>
+<li>EnvSub -&gt; <a href="commands/DateDiff.htm">DateDiff</a></li>
+<li>FileCopyDir -&gt; <a href="commands/DirCopy.htm">DirCopy</a></li>
+<li>FileCreateDir -&gt; <a href="commands/DirCreate.htm">DirCreate</a></li>
+<li>FileMoveDir -&gt; <a href="commands/DirMove.htm">DirMove</a></li>
+<li>FileRemoveDir -&gt; <a href="commands/DirDelete.htm">DirDelete</a></li>
+<li>FileSelectFile -&gt; <a href="commands/FileSelect.htm">FileSelect</a></li>
+<li>FileSelectFolder -&gt; <a href="commands/DirSelect.htm">DirSelect</a></li>
+<li>#If -&gt; <a href="commands/_HotIf.htm">#HotIf</a></li>
+<li>#IfTimeout -&gt; <a href="commands/_HotIfTimeout.htm">HotIfTimeout</a></li>
+<li>StringLower -&gt; <a href="commands/StrLower.htm">StrLower</a> and <a href="commands/StrLower.htm">StrTitle</a></li>
+<li>StringUpper -&gt; <a href="commands/StrLower.htm">StrUpper</a> and <a href="commands/StrLower.htm">StrTitle</a></li>
+<li>UrlDownloadToFile -&gt; <a href="commands/Download.htm">Download</a></li>
+<li>WinMenuSelectItem -&gt; <a href="commands/MenuSelect.htm">MenuSelect</a></li>
+<li>LV, TV and SB functions -&gt; methods of <a href="objects/GuiControl.htm">GuiControl</a></li>
+<li>File.__Handle -&gt; <a href="objects/File.htm#Handle">File.Handle</a></li>
+</ul>
+<h3 id="modified-commandsfunctions">Modified Commands/Functions</h3>
+<p class="note">About the section title: there are no commands in v2, just functions. The title refers to both versions.</p>
+<p><code>Chr(0)</code> returns a string of length 1, containing a binary zero. This is a result of improved support for binary zero in strings.</p>
+<p><a href="commands/ClipWait.htm">ClipWait</a> now returns 0 if the wait period expires, otherwise 1. ErrorLevel was removed. Specifying 0 is no longer the same as specifying 0.5; instead, it produces the shortest wait possible.</p>
+<p><code>ComObj()</code>: This function had a sort of wildcard name, allowing many different suffixes. Some names were more commonly used with specific types of parameters, such as <code>ComObjActive(CLSID)</code>, <code>ComObjParameter(vt, value)</code>, <code>ComObjEnwrap(dsp)</code>. There are instead now separate functions/classes, and no more wildcard names. See <a href="#com-objects-comobject">COM Objects (ComObject)</a> for details.</p>
+<p>Control: Several changes have been made to <a href="commands/Control.htm#Parameter">the <em>Control</em> parameter</a> used by the <a href="commands/Control.htm">Control functions</a>, <a href="commands/SendMessage.htm">SendMessage</a> and <a href="commands/PostMessage.htm">PostMessage</a>:</p>
+<ul>
+<li>It can now accept a HWND (must be a pure integer) or an object with a <code>Hwnd</code> property, such as a <a href="objects/GuiControl.htm">GuiControl</a> object. The HWND can identify a control or a top-level window, though the latter is usually only meaningful for a select few functions (see below).</li>
+<li>It is no longer optional, except with functions which can operate on a top-level window (<a href="commands/ControlSend.htm">ControlSend[Text]</a>, <a href="commands/ControlClick.htm">ControlClick</a>, <a href="commands/SendMessage.htm">SendMessage</a>, <a href="commands/PostMessage.htm">PostMessage</a>) or when preceded by other optional parameters (<a href="commands/ListViewGetContent.htm">ListViewGetContent</a>, <a href="commands/ControlGetPos.htm">ControlGetPos</a>, <a href="commands/ControlMove.htm">ControlMove</a>).</li>
+<li>If omitted, the target window is used instead. This matches the previous behaviour of <a href="commands/SendMessage.htm">SendMessage</a>/<a href="commands/PostMessage.htm">PostMessage</a>, and replaces the <code>ahk_parent</code> special value previously used by <a href="commands/ControlSend.htm">ControlSend</a>.</li>
+<li>Blank values are invalid. Functions never default to the target window's topmost control.</li>
+</ul>
+<p><a href="commands/ControlGetFocus.htm">ControlGetFocus</a> now returns the control's HWND instead of its ClassNN, and no longer considers there to be an error when it has successfully determined that the window has no focused control.</p>
+<p><a href="commands/ControlMove.htm">ControlMove</a>, <a href="commands/ControlGetPos.htm">ControlGetPos</a> and <a href="commands/ControlClick.htm">ControlClick</a> now use client coordinates (like <a href="objects/GuiControl.htm">GuiControl</a>) instead of window coordinates. Client coordinates are relative to the top-left of the client area, which excludes the window's title bar and borders. (Controls are rendered only inside the client area.)</p>
+<p><a href="commands/ControlMove.htm">ControlMove</a>, <a href="commands/ControlSend.htm">ControlSend</a> and <a href="commands/ControlSetText.htm">ControlSetText</a> now use parameter order consistent with the other Control functions; i.e. <em><strong>Control</strong>, WinTitle, WinText, ExcludeTitle, ExcludeText</em> are always grouped together (at the end of the parameter list), to aide memorisation.</p>
+<p><a href="commands/CoordMode.htm">CoordMode</a> no longer accepts &quot;Relative&quot; as a mode, since all modes are relative to something. It was synonymous with &quot;Window&quot;, so use that instead.</p>
+<p><a href="commands/DllCall.htm">DllCall</a>: See <a href="#dllcall">DllCall</a> section below.</p>
+<p><a href="commands/Edit.htm">Edit</a> previously had fallback behaviour for the <code>.ini</code> file type if the &quot;edit&quot; shell verb was not registered. This was removed as script files are not expected to have the <code>.ini</code> extension. <code>AutoHotkey.ini</code> was the default script name in old versions of AutoHotkey.</p>
+<p><a href="commands/Edit.htm">Edit</a> now does nothing if the script was read from stdin, instead of attempting to open an editor for <code>*</code>.</p>
+<p><a href="commands/Exit.htm">Exit</a> previously acted as <a href="commands/ExitApp.htm">ExitApp</a> when the script is not persistent, even if there were other suspended threads interrupted by the thread which called Exit. It no longer does this. Instead, it always exits the current thread properly, and (if non-persistent) the script terminates only after the last thread exits. This ensures <code>finally</code> statements are executed and local variables are freed, which may allow <code>__delete</code> to be called for any objects contained by local variables.</p>
+<p><a href="commands/FileAppend.htm">FileAppend</a> defaults to no end-of-line translations, consistent with <a href="commands/FileRead.htm">FileRead</a> and <a href="commands/FileOpen.htm">FileOpen</a>. FileAppend and FileRead both have a separate <em>Options</em> parameter which replaces the option prefixes and may include an optional encoding name (superseding FileRead's <code>*Pnnn</code> option). FileAppend, FileRead and FileOpen use <code>&quot;`n&quot;</code> to enable end-of-line translations. FileAppend and FileRead support an option <code>&quot;RAW&quot;</code> to disable codepage conversion (read/write binary data); FileRead returns a <code>Buffer</code> object in this case. This replaces <code>*c</code> (see ClipboardAll in the documentation). FileAppend may accept a <code>Buffer</code>-like object, in which case no conversions are performed.</p>
+<p><a href="commands/FileCopy.htm">FileCopy</a> and <a href="commands/FileMove.htm">FileMove</a> now throw an exception if the source path does not contain <code>*</code> or <code>?</code> and no file was not found. However, it is still not considered an error to copy or move zero files when the source path contains wildcards.</p>
+<p><a href="commands/FileOpen.htm">FileOpen</a> now throws an exception if it fails to open the file. Otherwise, an exception would be thrown (if the script didn't check for failure) by the first attempt to access the object, rather than at the actual point of failure.</p>
+<p><a href="objects/File.htm#RawRead">File.RawRead</a>: When a variable is passed directly, the address of the variable's internal string buffer is no longer used. Therefore, a variable containing an address may be passed directly (whereas in v1, something like <code>var+0</code> was necessary).</p>
+<p>For buffers allocated by the script, the new <code>Buffer</code> object is preferred over a variable; any object can be used, but must have <code>Ptr</code> and <code>Size</code> properties.</p>
+<p><a href="objects/File.htm#RawWrite">File.RawWrite</a>: As above, except that it can accept a string (or variable containing a string), in which case <em>Bytes</em> defaults to the size of the string in bytes. The string may contain binary zero.</p>
+<p><a href="objects/File.htm#ReadLine">File.ReadLine</a> now always supports <code>`r</code>, <code>`n</code> and <code>`r`n</code> as line endings, and no longer includes the line ending in the return value. Line endings are still returned to the script as-is by <a href="objects/File.htm#Read">File.Read</a> if EOL translation is not enabled.</p>
+<p><a href="commands/FileEncoding.htm">FileEncoding</a> now allows code pages to be specified by number without the <code>CP</code> prefix.</p>
+<p><a href="commands/FileExist.htm">FileExist</a> now ignores the <code>.</code> and <code>..</code> implied in every directory listing, so <code>FileExist(&quot;dir\*&quot;)</code> is now false instead of true when dir exists but is empty.</p>
+<p><a href="commands/FileInstall.htm">FileInstall</a> in a non-compiled script no longer attempts to copy the file if source and destination are the same path (after resolving relative paths, as the source is relative to <a href="Variables.htm#ScriptDir">A_ScriptDir</a>, not <a href="Variables.htm#WorkingDir">A_WorkingDir</a>). In v1 this caused ErrorLevel to be set to 1, which mostly went unnoticed. Attempting to copy a file onto itself via two different paths still causes an error.</p>
+<p>FileSelectFile (now named <a href="commands/FileSelect.htm">FileSelect</a>) had two multi-select modes, accessible via options 4 and M. Option 4 and the corresponding mode have been removed; they had been undocumented for some time. FileSelect now returns an Array of paths when the multi-select mode is used, instead of a string like <code>C:\Dir`nFile1`nFile2</code>. Each array element contains the full path of a file. If the user cancels, the array is empty.</p>
+<p>FileSelect now uses the IFileDialog API present in Windows Vista and later, instead of the old GetOpenFileName/GetSaveFileName API. This removes the need for (built-in) workarounds relating to the dialog changing the current working directory.</p>
+<p>FileSelect no longer has a redundant &quot;Text Documents (*.txt)&quot; filter by default when <em>Filter</em> is omitted.</p>
+<p>FileSelect no longer strips spaces from the filter pattern, such as for <code>pattern with spaces*.ext</code>. Testing indicates spaces on either side of the pattern (such as after the semi-colon in <code>*.cpp; *.h</code>) are already ignored by the OS, so there should be no negative consequences.</p>
+<p>FileSelect can now be used in &quot;Select Folder&quot; mode via the <code>D</code> option letter.</p>
+<p><a href="commands/FileSetAttrib.htm">FileSetAttrib</a> now overwrites attributes when no +, - or ^ prefix is present, instead of doing nothing. For example, <code>FileSetAttrib(FileGetAttrib(file2), file1)</code> copies the attributes of file2 to file1 (adding any that file2 have and removing any that it does not have).</p>
+<p><a href="commands/FileSetAttrib.htm">FileSetAttrib</a> and <a href="commands/FileSetTime.htm">FileSetTime</a>: the OperateOnFolders? and Recurse? parameters have been replaced with a single Mode parameter identical to that of <a href="commands/LoopFiles.htm">Loop Files</a>. For example, <code>FileSetAttrib(&quot;+a&quot;, &quot;*.zip&quot;, &quot;RF&quot;)</code> (Recursively operate on Files only).</p>
+<p><a href="commands/GetKeyName.htm">GetKeyName</a> now returns the non-Numpad names for VK codes that correspond to both a Numpad and a non-Numpad key. For instance, <code>GetKeyName(&quot;vk25&quot;)</code> returns Left instead of NumpadLeft.</p>
+<p><a href="commands/GetKeyState.htm">GetKeyState</a> now always returns 0 or 1.</p>
+<p><a href="commands/GroupActivate.htm">GroupActivate</a> now returns the HWND of the window which was selected for activation, or 0 if there were no matches (aside from the already-active window), instead of setting ErrorLevel.</p>
+<p><a href="commands/GroupAdd.htm">GroupAdd</a>: Removed the Label parameter and related functionality. This was an unintuitive way to detect when GroupActivate fails to find any matching windows; GroupActivate's return value should be used instead.</p>
+<p><a href="commands/GroupDeactivate.htm">GroupDeactivate</a> now selects windows in a manner closer to the Alt+Esc and Alt+Shift+Esc system hotkeys and the taskbar. Specifically,</p>
+<ul>
+<li>Owned windows are not evaluated. If the owner window is eligible (not a match for the group), either the owner window or one of its owned windows is activated; whichever was active last. A window owned by a group member will no longer be activated, but adding the owned window itself to the group now has no effect. (The previous behaviour was to cycle through every owned window and never activate the owner.)</li>
+<li>Any disabled window is skipped, unless one of its owned windows was active more recently than it.</li>
+<li>Windows with the WS_EX_NOACTIVATE style are skipped, since they are probably not supposed to be activated. They are also skipped by the Alt+Esc/Alt+Shift+Esc system hotkeys.</li>
+<li>Windows with WS_EX_TOOLWINDOW but not WS_EX_APPWINDOW are omitted from the taskbar and Alt-Tab, and are therefore skipped.</li>
+</ul>
+<p><code>Hotkey</code> no longer defaults to the script's bottommost <code>#HotIf</code> (formerly <code>#If</code>).  Hotkey/hotstring and HotIf threads default to the same criterion as the hotkey, so <code>Hotkey A_ThisHotkey, &quot;Off&quot;</code> turns off the current hotkey even if it is context-sensitive. All other threads default to the last setting used by the auto-execute section, which itself defaults to no criterion (global hotkeys).</p>
+<p><code>Hotkey</code>'s <em>Callback</em> parameter now requires a function object or hotkey name. Labels and function names are no longer supported. If a hotkey name is specified, the original function of that hotkey is used; and unlike before, this works with <code>#HotIf</code> (formerly #If).</p>
+<ul>
+<li>Among other benefits, this eliminates ambiguity with the following special strings: <code>On</code>, <code>Off</code>, <code>Toggle</code>, <code>AltTab</code>, <code>ShiftAltTab</code>, <code>AltTabAndMenu</code>, <code>AltTabMenuDismiss</code>.  The old behaviour was to use the label/function by that name if one existed, but only if the <em>Label</em> parameter did not contain a variable reference or expression.</li>
+</ul>
+<p><code>Hotkey</code> and <code>Hotstring</code> now support option <code>S</code> to make the hotkey/hostring exempt from <code>Suspend</code> (equivalent to the new <code>#SuspendExempt</code> directive), and option <code>S0</code> to disable exemption.</p>
+<p><code>Hotkey If</code> and the other If sub-commands were replaced with individual functions: HotIf, HotIfWinActive, HotIfWinExist, HotIfWinNotActive, HotIfWinNotExist.</p>
+<p><code>HotIf</code> (formerly <code>Hotkey If</code>) now recognizes expressions which use the <code>and</code> or <code>or</code> operators. This did not work in v1 as these operators were replaced with <code>&amp;&amp;</code> or <code>||</code> at load time.</p>
+<p><code>Hotkey</code> no longer has a <code>UseErrorLevel</code> option, and never sets ErrorLevel.  An exception is thrown on failure.  Error messages were changed to be constant (and shorter), with the key or hotkey name in <code>Exception.Extra</code>, and the class of the exception indicating the reason for failure.</p>
+<p><code>#HotIf</code> (formerly <code>#If</code>) now implicitly creates a function with one parameter (<code>ThisHotkey</code>). As is the default for all functions, this function is assume-local. The expression can create local variables and read global variables, but cannot directly assign to global variables as the expression cannot contain declarations.</p>
+<p><code>#HotIf</code> has been optimized so that simple calls to WinActive() or WinExist() can be evaluated directly by the hook thread (as <code>#IfWin</code> was in v1, and <code>HotIfWin</code> still is). This improves performance and reduces the risk of problems when the script is busy/unresponsive. This optimization applies to expressions which contain a single call to WinActive() or WinExist() with up to two parameters, where each parameter is a simple quoted string and the result is optionally inverted with <code>!</code> or <code>not</code>. For example, <code>#HotIf WinActive(&quot;Chrome&quot;)</code> or <code>#HotIf !WinExist(&quot;Popup&quot;)</code>. In these cases, the first expression with any given combination of criteria can be identified by either the expression or the window criteria. For example, <code>HotIf '!WinExist(&quot;Popup&quot;)'</code> and <code>HotIfWinNotExist &quot;Popup&quot;</code> refer to the same hotkey variants.</p>
+<p><code>KeyHistory N</code> resizes the key history buffer instead of displaying the key history. This replaces <code>#KeyHistory N</code>.</p>
+<p><a href="commands/ImageSearch.htm">ImageSearch</a> returns true if the image was found, false if it was not found, or throws an exception if the search could not be conducted. ErrorLevel is not set.</p>
+<p><a href="commands/IniDelete.htm">IniDelete</a>, <a href="commands/IniRead.htm">IniRead</a> and <a href="commands/IniWrite.htm">IniWrite</a> set <code>A_LastError</code> to the result of the operating system's GetLastError() function.</p>
+<p><a href="commands/IniRead.htm">IniRead</a> throws an exception if the requested key, section or file cannot be found and the <em>Default</em> parameter was omitted. If <em>Default</em> is given a value, even <code>&quot;&quot;</code>, no exception is thrown.</p>
+<p><a href="commands/InputHook.htm">InputHook</a> now treats Shift+Backspace the same as Backspace, instead of transcribing it to <code>`b</code>.</p>
+<p><a href="commands/InputBox.htm">InputBox</a> has been given a syntax overhaul to make it easier to use (with fewer parameters). See <a href="#inputbox">InputBox</a> for usage.</p>
+<p><a href="commands/InStr.htm">InStr</a>'s <em>CaseSensitive</em> parameter has been replaced with <em>CaseSense</em>, which can be 0, 1 or &quot;Locale&quot;.</p>
+<p>InStr now searches right-to-left when <em>Occurrence</em> is negative (which previously caused a result of 0), and no longer searches right-to-left if a negative <em>StartingPos</em> is used with a positive <em>Occurrence</em>. (However, it still searches right-to-left if <em>StartingPos</em> is negative and <em>Occurrence</em> is omitted.) This facilitates right-to-left searches in a loop, and allows a negative <em>StartingPos</em> to be used while still searching left-to-right.</p>
+<ul>
+<li>For example, <code>InStr(a, b,, -1, 2)</code> now searches left-to-right. To instead search right-to-left, use <code>InStr(a, b,, -1, -2)</code>.</li>
+<li>Note that a <em>StartingPos</em> of -1 means the last character in v2, but the second last character in v1. If the example above came from v1 (rather than v2.0-a033 - v2.0-a136), the new code should be <code>InStr(a, b, -2, -2)</code>.</li>
+</ul>
+<p><a href="commands/KeyWait.htm">KeyWait</a> now returns 0 if the wait period expires, otherwise 1. ErrorLevel was removed.</p>
+<p><a href="commands/MouseClick.htm">MouseClick</a> and <a href="commands/MouseClickDrag.htm">MouseClickDrag</a> are no longer affected by the system setting for swapped mouse buttons; &quot;Left&quot; is the always the primary button and &quot;Right&quot; is the secondary.</p>
+<p><a href="commands/MsgBox.htm">MsgBox</a> has had its syntax changed to prioritise its most commonly used parameters and improve ease of use. See <a href="#msgbox">MsgBox</a> for a summary of usage.</p>
+<p><a href="commands/NumPut.htm">NumPut</a>/<a href="commands/NumGet.htm">NumGet</a>: When a variable is passed directly, the address of the variable's internal string buffer is no longer used. Therefore, a variable containing an address may be passed directly (whereas in v1, something like <code>var+0</code> was necessary). For buffers allocated by the script, the new <code>Buffer</code> object is preferred over a variable; any object can be used, but must have <code>Ptr</code> and <code>Size</code> properties.</p>
+<p>NumPut's parameters were reordered to allow a sequence of values, with the (now mandatory) type string preceding each number. For example: <code>NumPut(&quot;ptr&quot;, a, &quot;int&quot;, b, &quot;int&quot;, c, addrOrBuffer, offset)</code>. Type is now mandatory for NumGet as well. (In comparison to DllCall, NumPut's input parameters correspond to the dll function's parameters, while NumGet's return type parameter corresponds to the dll function's return type string.)</p>
+<p>The use of <code>Object(obj)</code> and <code>Object(ptr)</code> to convert between a reference and a pointer was shifted to separate functions, <code>ObjPtrAddRef(obj)</code> and <code>ObjFromPtrAddRef(ptr)</code>. There are also versions of these functions that do not increment the reference count: <code>ObjPtr(obj)</code> and <code>ObjFromPtr(ptr)</code>.</p>
+<p><code>OnClipboardChange:</code> (the label) is no longer called automatically if it exists. Use the OnClipboardChange() function which was added in v1.1.20 instead. It now requires a function object, not a name.</p>
+<p><a href="commands/OnError.htm">OnError</a> now requires a function object, not a name. See also: <em>Continuable Errors</em> and <em>Error Handling</em>.</p>
+<p><code>OnExit, <i>Label</i></code> (the command) has been removed; use the <a href="commands/OnExit.htm">OnExit function</a> which was added in v1.1.20 instead. It now requires a function object, not a name.  A_ExitReason has also been removed; its value is available as a parameter of the OnExit callback function.</p>
+<p><a href="commands/OnMessage.htm">OnMessage</a> no longer has the single-function-per-message mode that was used when a function name (string) was passed; it now only accepts a function by reference. Use <code>OnMessage(x, MyFunc)</code> where <em>MyFunc</em> is literally the name of a function, but note that the v1 equivalent would be <code>OnMessage(x, Func(&quot;MyFunc&quot;))</code>, which allows other functions to continue monitoring message x, unlike <code>OnMessage(x, &quot;MyFunc&quot;)</code>. To stop monitoring the message, use <code>OnMessage(x, MyFunc, 0)</code> as <code>OnMessage(x, &quot;&quot;)</code> and <code>OnMessage(x)</code> are now errors. On failure, OnMessage throws an exception.</p>
+<p><a href="commands/Pause.htm">Pause</a> is no longer exempt from <a href="commands/_MaxThreadsPerHotkey.htm">#MaxThreadsPerHotkey</a> when used on the first line of a hotkey, so <code>#p::Pause</code> is no longer suitable for toggling pause. Therefore, <code>Pause()</code> now only pauses the current thread (for combinations like ListVars/Pause), while <code>Pause(v)</code> now always operates on the underlying thread. <code>v</code> must be 0, 1 or -1. The second parameter was removed.</p>
+<p><a href="commands/PixelSearch.htm">PixelSearch</a> and <a href="commands/PixelGetColor.htm">PixelGetColor</a> use RGB values instead of BGR, for consistency with other functions. Both functions throw an exception if a problem occurs, and no longer set ErrorLevel. PixelSearch returns true if the color was found. PixelSearch's slow mode was removed, as it is unusable on most modern systems due to an incompatibility with desktop composition.</p>
+<p><a href="commands/PostMessage.htm">PostMessage</a>: See <a href="#SendMessage">SendMessage</a>.</p>
+<p><a href="commands/Random.htm">Random</a> has been reworked to utilize the operating system's random number generator, lift several restrictions, and make it more convenient to use.</p>
+<ul>
+<li>The full 64-bit range of signed integer values is now supported (increased from 32-bit).</li>
+<li>Floating-point numbers are generated from a 53-bit random integer, instead of a 32-bit random integer, and should be <code>&gt;= Min</code> and <code>&lt; Max</code> (but floating-point rounding errors can theoretically produce <code>= Max</code>).</li>
+<li>The parameters could already be specified in any order, but now specifying only the first parameter defaults the other bound to 0 instead of 2147483647. For example, <code>Random(9)</code> returns a number between 0 and 9.</li>
+<li>If both parameters are omitted, the return value is a floating-point number between 0.0 (inclusive) and 1.0 (generally exclusive), instead of an integer between 0 and 2147483647 (inclusive).</li>
+<li>The system automatically seeds the random number generator, and does not provide a way to manually seed it, so there is no replacement for <code>Random, , NewSeed</code>.</li>
+</ul>
+<p><a href="commands/RegExMatch.htm">RegExMatch</a> options O and P were removed; O (object) mode is now mandatory. The RegExMatch object now supports enumeration (for-loop). The match object's syntax has changed:</p>
+<ul>
+<li>__Get is used to implement the shorthand <code>match.subpat</code> where <em>subpat</em> is the name of a subpattern/capturing group. As __Get is no longer called if a property is <em>inherited</em>, the following subpattern names can no longer be used with the shorthand syntax: Pos, Len, Name, Count, Mark. (For example, <code>match.Len</code> always returns the length of the overall match, not a captured string.)</li>
+<li>Originally the match object had methods instead of properties so that properties could be reserved for subpattern names. As new language behaviour implies that <code>match.name</code> would return a function by default, the methods have been replaced or supplemented with properties:
+<ul>
+<li>Pos, Len and Name are now properties and methods.</li>
+<li>Name now requires 1 parameter to avoid confusion (<code>match.Name</code> throws an error).</li>
+<li>Count and Mark are now only properties.</li>
+<li>Value has been removed; use <code>match.0</code> or <code>match[]</code> instead of <code>match.Value()</code>, and <code>match[N]</code> instead of <code>match.Value(N)</code>.</li>
+</ul>
+</li>
+</ul>
+<p>RegisterCallback was renamed to <a href="commands/CallbackCreate.htm">CallbackCreate</a> and changed to better utilize closures:</p>
+<ul>
+<li>It now supports <a href="objects/Functor.htm">function objects</a> (and no longer supports function names).</li>
+<li>Removed EventInfo parameter (use a closure or bound function instead).</li>
+<li>Removed the special behaviour of variadic callback functions and added the <code>&amp;</code> option (pass the address of the parameter list).</li>
+<li>Added <code>CallbackFree(Address)</code>, to free the callback memory and release the associated function object.</li>
+</ul>
+<p>Registry functions (<a href="commands/RegRead.htm">RegRead</a>, <a href="commands/RegWrite.htm">RegWrite</a>, <a href="commands/RegDelete.htm">RegDelete</a>): the new syntax added in v1.1.21+ is now the only syntax. Root key and subkey are combined. Instead of <code>RootKey, Key</code>, write <code>RootKey\Key</code>. To connect to a remote registry, use <code>\\ComputerName\RootKey\Key</code> instead of <code>\\ComputerName:RootKey, Key</code>.</p>
+<p>RegWrite's parameters were reordered to put <em>Value</em> first, like IniWrite (but this doesn't affect the single-parameter mode, where <em>Value</em> was the only parameter).</p>
+<p>When <em>KeyName</em> is omitted and the current loop reg item is a subkey, RegDelete, RegRead and RegWrite now operate on values within that subkey; i.e. <em>KeyName</em> defaults to <code>A_LoopRegKey &quot;\&quot; A_LoopRegName</code> in that case (note that A_LoopRegKey was merged with A_LoopRegSubKey). Previously they behaved as follows:</p>
+<ul>
+<li>RegRead read a value with the same name as the subkey, if one existed in the parent key.</li>
+<li>RegWrite returned an error.</li>
+<li>RegDelete deleted the subkey.</li>
+</ul>
+<p>RegDelete, RegRead and RegWrite now allow <em>ValueName</em> to be specified when <em>KeyName</em> is omitted:</p>
+<ul>
+<li>If the current loop reg item is a subkey, <em>ValueName</em> defaults to empty (the subkey's default value) and <em>ValueType</em> must be specified.</li>
+<li>If the current loop reg item is a value, <em>ValueName</em> and <em>ValueType</em> default to that value's name and type, but one or both can be overridden.</li>
+</ul>
+<p>Otherwise, RegDelete with a blank or omitted <em>ValueName</em> now deletes the key's default value (not the key itself), for consistency with RegWrite, RegRead and A_LoopRegName. The phrase &quot;AHK_DEFAULT&quot; no longer has any special meaning. To delete a key, use <a href="commands/RegDeleteKey.htm">RegDeleteKey</a> (new).</p>
+<p><a href="commands/RegRead.htm">RegRead</a> now has a <em>Default</em> parameter, like IniRead.</p>
+<p>RegRead had an undocumented 5-parameter mode, where the value type was specified after the output variable. This has been removed.</p>
+<p><a href="commands/Reload.htm">Reload</a> now does nothing if the script was read from stdin.</p>
+<p><a href="commands/Run.htm">Run</a> and <a href="commands/Run.htm">RunWait</a> no longer recognize the <code>UseErrorLevel</code> option as ErrorLevel was removed. Use try/catch instead. <code>A_LastError</code> is set unconditionally, and can be inspected after an exception is caught/suppressed. RunWait returns the exit code.</p>
+<p><a href="commands/Send.htm">Send</a> (and its variants) now interpret <code>{LButton}</code> and <code>{RButton}</code> in a way consistent with hotkeys and <a href="commands/Click.htm">Click</a>. That is, LButton is the primary button and RButton is the secondary button, even if the user has swapped the buttons via system settings.</p>
+<p id="SendMessage"><a href="commands/SendMessage.htm">SendMessage</a> and <a href="commands/PostMessage.htm">PostMessage</a> now require wParam and lParam to be integers or objects with a Ptr property; an exception is thrown if they are given a non-numeric string or float. Previously a string was passed by address if the expression began with <code>&quot;</code>, but other strings were coerced to integers. Passing the address of a variable (formerly <code>&amp;var</code>, now <code>StrPtr(var)</code>) no longer updates the variable's length (use <code>VarSetStrCapacity(&amp;var, -1)</code>).</p>
+<p>SendMessage and PostMessage now throw an exception on failure (or timeout) and do not set ErrorLevel. SendMessage returns the message reply.</p>
+<p><a href="commands/SetTimer.htm">SetTimer</a> no longer supports label or function names, but as it now accepts an expression and functions can be referenced directly by name, usage looks very similar: <code>SetTimer MyFunc</code>. As with all other functions which accept an object, SetTimer now allows expressions which return an object (previously it required a variable reference).</p>
+<p><a href="commands/Sort.htm">Sort</a> has received the following changes:</p>
+<ul>
+<li>The <em>VarName</em> parameter has been split into separate input/output parameters, for flexibility. Usage is now <code>Output := Sort(Input [, Options, Function])</code>.</li>
+<li>When any two items compare equal, the original order of the items is now automatically used as a tie-breaker to ensure more stable results.</li>
+<li>The <code>C</code> option now also accepts a suffix equivalent to the <em>CaseSense</em> parameter of other functions (in addition to <code>CL</code>): <code>CLocale CLogical COn C1 COff C0</code>. In particular, support for the &quot;logical&quot; comparison mode is new.</li>
+</ul>
+<p><a href="commands/Sound.htm">Sound functions</a>: SoundGet and SoundSet have been revised to better match the capabilities of the Vista+ sound APIs, dropping support for XP.</p>
+<ul>
+<li>Removed unsupported control types.</li>
+<li>Removed legacy mixer component types.</li>
+<li>Let components be referenced by name and/or index.</li>
+<li>Let devices be referenced by name-prefix and/or index.</li>
+<li>Split into separate Volume and Mute functions.</li>
+<li>Added <a href="commands/SoundGetName.htm">SoundGetName</a> for retrieving device or component names.</li>
+<li>Added <a href="commands/SoundGetInterface.htm">SoundGetInterface</a> for retrieving COM interfaces.</li>
+</ul>
+<p><a href="commands/StrGet.htm">StrGet</a>: If <em>Length</em> is negative, its absolute value indicates the exact number of characters to convert, including any binary zeros that the string might contain -- in other words, the result is always a string of exactly that length. If <em>Length</em> is positive, the converted string ends at the first binary zero as in v1.</p>
+<p><a href="commands/StrGet.htm">StrGet</a>/<a href="commands/StrPut.htm">StrPut</a>: The <em>Address</em> parameter can be an object with the <code>Ptr</code> and <code>Size</code> properties, such as the new <code>Buffer</code> object. The read/write is automatically limited by <code>Size</code> (which is in bytes). If <em>Length</em> is also specified, it must not exceed <em>Size</em> (multiplied by 2 for UTF-16).</p>
+<p>StrPut's return value is now in bytes, so it can be passed directly to Buffer().</p>
+<p><a href="commands/StrReplace.htm">StrReplace</a> now has a <em>CaseSense</em> parameter in place of <em>OutputVarCount</em>, which is moved one parameter to the right, with <em>Limit</em> following it.</p>
+<p><a href="commands/Suspend.htm">Suspend</a>: Making a hotkey or hotstring's first line a call to Suspend no longer automatically makes it exempt from suspension. Instead, use <code>#SuspendExempt</code> or the <code>S</code> option. The &quot;Permit&quot; parameter value is no longer valid.</p>
+<p><a href="commands/Switch.htm">Switch</a> now performs case-sensitive comparison for strings by default, and has a <em>CaseSense</em> parameter which overrides the mode of case sensitivity and forces string (rather than numeric) comparison. Previously it was case-sensitive only if StringCaseSense was changed to On.</p>
+<p><a href="commands/SysGet.htm">SysGet</a> now only has numeric sub-commands; its other sub-commands have been split into functions.  See <a href="#sub-commands">Sub-Commands</a> for details.</p>
+<p>TrayTip's usage has changed to <code>TrayTip [Text, Title, Options]</code>. <em>Options</em> is a string of zero or more case-insensitive options delimited by a space or tab. The options are <code>Iconx</code>, <code>Icon!</code>, <code>Iconi</code>, <code>Mute</code> and/or any numeric value as before. TrayTip now shows even if <em>Text</em> is omitted (which is now harder to do by accident than in v1). The <em>Seconds</em> parameter no long exists (it had no effect on Windows Vista or later). Scripts may now use the NIIF_USER (0x4) and NIIF_LARGE_ICON (0x20) flags in combination (0x24) to include the large version of the tray icon in the notification. NIIF_USER (0x4) can also be used on its own for the small icon, but may not have consistent results across all OSes.</p>
+<p>#Warn UseUnsetLocal and UseUnsetGlobal have been removed, as reading an unset variable now raises an error. <a href="commands/IsSet.htm">IsSet</a> can be used to avoid the error and <a href="commands/Try.htm">try</a>/<a href="commands/Catch.htm">catch</a> or <a href="commands/OnError.htm">OnError</a> can be used to handle it.</p>
+<p><a href="commands/_Warn.htm#VarUnset">#Warn VarUnset</a> was added; it defaults to MsgBox. If not disabled, a warning is given for the first non-dynamic reference to each variable which is never used as the target of a direct, non-dynamic assignment or the reference operator (&amp;), or passed directly to IsSet.</p>
+<p><a href="commands/_Warn.htm#Unreachable">#Warn Unreachable</a> no longer considers lines following an <code>Exit</code> call to be unreachable, as Exit is now an ordinary function.</p>
+<p>#Warn ClassOverwrite has been removed, as top-level classes can no longer be overwritten by assignment. (However, they can now be implicitly shadowed by a local variable; that can be detected by #Warn LocalSameAsGlobal.)</p>
+<p><a href="commands/WinActivate.htm">WinActivate</a> now sends <code>{Alt up}</code> after its first failed attempt at activating a window. Testing has shown this reduces the occurrence of flashing taskbar buttons. See the documentation for more details.</p>
+<p><a href="commands/WinSetTitle.htm">WinSetTitle</a> and <a href="commands/WinMove.htm">WinMove</a> now use parameter order consistent with other Win functions; i.e. <em>WinTitle, WinText, ExcludeTitle, ExcludeText</em> are always grouped together (at the end of the parameter list), to aide memorisation.</p>
+<p>The WinTitle parameter of various functions can now accept a HWND (must be a pure integer) or an object with a <code>Hwnd</code> property, such as a Gui object. <code>DetectHiddenWindows</code> is ignored in such cases.</p>
+<p><a href="commands/WinMove.htm">WinMove</a> no longer has special handling for the literal word <code class="no-highlight">DEFAULT</code>. Omit the parameter or specify an empty string instead (this works in both v1 and v2).</p>
+<p><a href="commands/WinWait.htm">WinWait</a>, <a href="commands/WinWaitClose.htm">WinWaitClose</a>, <a href="commands/WinWaitActive.htm">WinWaitActive</a> and <a href="commands/WinWaitActive.htm">WinWaitNotActive</a> return non-zero if the wait finished (timeout did not expire). ErrorLevel was removed. WinWait and WinWaitActive return the HWND of the found window. WinWaitClose now sets the Last Found Window, so if WinWaitClose times out, it returns false and <code>WinExist()</code> returns the last window it found. For the timeout, specifying 0 is no longer the same as specifying 0.5; instead, it produces the shortest wait possible.</p>
+<p><strong>Unsorted:</strong></p>
+<p>A negative <em>StartingPos</em> for <a href="commands/InStr.htm">InStr</a>, <a href="commands/SubStr.htm">SubStr</a>, <a href="commands/RegExMatch.htm">RegExMatch</a> and <a href="commands/RegExReplace.htm">RegExReplace</a> is interpreted as a position from the end. Position -1 is the last character and position 0 is invalid (whereas in v1, position 0 was the last character).</p>
+<p>Functions which previously accepted On/Off or On/Off/Toggle (but not other strings) now require 1/0/-1 instead.  On and Off would typically be replaced with <code>True</code> and <code>False</code>.  Variables which returned On/Off now return 1/0, which are more useful in expressions.</p>
+<ul>
+<li><a href="commands/_UseHook.htm">#UseHook</a> and <a href="commands/_MaxThreadsBuffer.htm">#MaxThreadsBuffer</a> allow <code>1</code>, <code>0</code>, <code>True</code> and <code>False</code>.
+(Unlike the others, they do not actually support expressions.)</li>
+<li><a href="commands/ListLines.htm">ListLines</a> allows blank or boolean.</li>
+<li><a href="commands/ControlSetChecked.htm">ControlSetChecked</a>, <a href="commands/ControlSetEnabled.htm">ControlSetEnabled</a>, <a href="commands/Pause.htm">Pause</a>, <a href="commands/Suspend.htm">Suspend</a>, <a href="commands/WinSetAlwaysOnTop.htm">WinSetAlwaysOnTop</a>, and <a href="commands/WinSetEnabled.htm">WinSetEnabled</a> allow <code>1</code>, <code>0</code> and <code>-1</code>.</li>
+<li><a href="Variables.htm#DetectHiddenWindows">A_DetectHiddenWindows</a>, <a href="Variables.htm#DetectHiddenText">A_DetectHiddenText</a>, and <a href="Variables.htm#StoreCapsLockMode">A_StoreCapsLockMode</a> use boolean (as do the corresponding functions).</li>
+</ul>
+<p>The following functions return a pure integer instead of a hexadecimal string:</p>
+<ul>
+<li><a href="commands/ControlGetStyle.htm">ControlGetExStyle</a></li>
+<li><a href="commands/ControlGetHwnd.htm">ControlGetHwnd</a></li>
+<li><a href="commands/ControlGetStyle.htm">ControlGetStyle</a></li>
+<li><a href="commands/MouseGetPos.htm">MouseGetPos</a></li>
+<li><a href="commands/WinActive.htm">WinActive</a></li>
+<li><a href="commands/WinExist.htm">WinExist</a></li>
+<li><a href="commands/WinGetID.htm">WinGetID</a></li>
+<li><a href="commands/WinGetIDLast.htm">WinGetIDLast</a></li>
+<li><a href="commands/WinGetList.htm">WinGetList</a> (within the Array)</li>
+<li><a href="commands/WinGetStyle.htm">WinGetStyle</a></li>
+<li><a href="commands/WinGetStyle.htm">WinGetStyleEx</a></li>
+<li><a href="commands/WinGetControlsHwnd.htm">WinGetControlsHwnd</a> (within the Array)</li>
+</ul>
+<p><code>A_ScriptHwnd</code> also returns a pure integer.</p>
+<h4 id="dllcall">DllCall</h4>
+<p>If a type parameter is a variable, that variable's content is always used, never its name. In other words, unquoted type names are no longer supported - type names must be enclosed in quote marks.</p>
+<p>When DllCall updates the length of a variable passed as Str or WStr, it now detects if the string was not properly null-terminated (likely indicating that buffer overrun has occurred), and terminates the program with an error message if so, as safe execution cannot be guaranteed.</p>
+<p><code>AStr</code> (without any suffix) is now input-only. Since the buffer is only ever as large as the input string, it was usually not useful for output parameters. This would apply to WStr instead of AStr if AutoHotkey is compiled for ANSI, but official v2 releases are only ever compiled for Unicode.</p>
+<p>If a function writes a new address to a <code>Str*</code>, <code>AStr*</code> or <code>WStr*</code> parameter, DllCall now assigns the new string to the corresponding variable if one was supplied, instead of merely updating the length of the original string (which probably hasn't changed). Parameters of this type are usually not used to modify the input string, but rather to pass back a string at a new address.</p>
+<p>DllCall now accepts an object for any <code>Ptr</code> parameter and the <em>Function</em> parameter; the object must have a <code>Ptr</code> property. For buffers allocated by the script, the new <code>Buffer</code> object is preferred over a variable. For <code>Ptr*</code>, the parameter's new value is assigned back to the object's <code>Ptr</code> property. This allows constructs such as <code>DllCall(..., &quot;Ptr*&quot;, unk := IUnknown.new())</code>, which reduces repetition compared to <code>DllCall(..., &quot;Ptr*&quot;, punk), unk := IUnknown.new(punk)</code>, and can be used to ensure any output from the function is properly freed (even if an exception is thrown due to the <code>HRESULT</code> return type, although typically the function would not output a non-null pointer in that case).</p>
+<p>DllCall now requires the values of numeric-type parameters to be numeric, and will throw an exception if given a non-numeric or empty string. In particular, if the * or P suffix is used for output parameters, the output variable is required to be initialized.</p>
+<p>The output value (if any) of numeric parameters with the * or P suffix is ignored if the script passes a plain variable containing a number. To receive the output value, pass a <code>VarRef</code> such as <code>&amp;myVar</code> or an object with a <code>Ptr</code> property.</p>
+<p>The new <code>HRESULT</code> return type throws an exception if the function failed (<code>int &lt; 0</code> or <code>uint &amp; 0x80000000</code>). This should be used only with functions that actually return a <code>HRESULT</code>.</p>
+<h4 id="loop-sub-commands">Loop Sub-commands</h4>
+<p>The sub-command keyword must be written literally; it must not be enclosed in quote marks and cannot be a variable or expression. All other parameters are expressions. All loop sub-commands now support OTB.</p>
+<p>Removed:</p>
+<pre>Loop, FilePattern [, IncludeFolders?, Recurse?]
+Loop, RootKey [, Key, IncludeSubkeys?, Recurse?]
+</pre>
+<p>Use the following (added in v1.1.21) instead:</p>
+<pre>Loop Files, FilePattern [, Mode]
+Loop Reg, RootKey\Key [, Mode]
+</pre>
+<p>The comma after the second word is now optional.</p>
+<p><code>A_LoopRegKey</code> now contains the root key and subkey, and A_LoopRegSubKey was removed.</p>
+<h4 id="inputbox">InputBox</h4>
+<pre>Obj := InputBox([Text, Title, Options, Default])
+</pre>
+<p>The Options parameter accepts a string of zero or more case-insensitive options delimited by a space or tab, similar to Gui control options. For example, this includes all supported options: <code>x0 y0 w100 h100 T10.0 Password*</code>. <code>T</code> is timeout and <code>Password</code> has the same usage as the equivalent Edit control option.</p>
+<p>The width and height options now set the size of the client area (the area excluding the title bar and window frame), so are less theme-dependent.</p>
+<p>The title will be blank if the Title parameter is an empty string. It defaults to <code>A_ScriptName</code> only when completely omitted, consistent with optional parameters of user-defined functions.</p>
+<p><code>Obj</code> is an object with the properties <code>result</code> (containing &quot;OK&quot;, &quot;Cancel&quot; or &quot;Timeout&quot;) and <code>value</code>.</p>
+<h4 id="msgbox">MsgBox</h4>
+<pre>Result := MsgBox([Text, Title, Options])
+</pre>
+<p>The Options parameter accepts a string of zero or more case-insensitive options delimited by a space or tab, similar to Gui control options.</p>
+<ul>
+<li><code>Iconx</code>, <code>Icon?</code>, <code>Icon!</code> and <code>Iconi</code> set the icon.</li>
+<li><code class="no-highlight">Default</code> followed immediately by an integer sets the <em>n</em>th button as default.</li>
+<li><code>T</code> followed immediately by an integer or floating-point number sets the timeout, in seconds.</li>
+<li><code>Owner</code> followed immediately by a HWND sets the owner, overriding the Gui <code>+OwnDialogs</code> option.</li>
+<li>One of the following mutually-exclusive strings sets the button choices: <code>OK</code>, <code>OKCancel</code>, <code>AbortRetryIgnore</code>, <code>YesNoCancel</code>, <code>YesNo</code>, <code>RetryCancel</code>, <code>CancelTryAgainContinue</code>, or just the initials separated by slashes (<code>o/c</code>, <code>y/n</code>, etc.), or just the initials without slashes.</li>
+<li>Any numeric value, the same as in v1. Numeric values can be combined with string options, or Options can be a pure integer.</li>
+</ul>
+<p>The return value is the name of the button, without spaces. These are the same strings that were used with IfMsgBox in v1.</p>
+<p>The title will be blank if the Title parameter is an empty string. It defaults to <code>A_ScriptName</code> only when completely omitted, consistent with optional parameters of user-defined functions.</p>
+<h4 id="sub-commands">Sub-Commands</h4>
+<p>Sub-commands of Control, ControlGet, Drive, DriveGet, WinGet, WinSet and Process have been replaced with individual functions, and the main commands have been removed. Names and usage have been changed for several of the functions. The new usage is shown below:</p>
+<pre>; Where ... means optional Control, WinTitle, etc.
+
+Boolean := ControlGetChecked(...)
+Boolean := ControlGetEnabled(...)
+Boolean := ControlGetVisible(...)
+Integer := ControlGetIndex(...)  ; For Tab, LB, CB, DDL
+String  := ControlGetChoice(...)
+Array   := ControlGetItems(...)
+Integer := ControlGetStyle(...)
+Integer := ControlGetExStyle(...)
+Integer := ControlGetHwnd(...)
+
+           ControlSetChecked(TrueFalseToggle, ...)
+           ControlSetEnabled(TrueFalseToggle, ...)
+           ControlShow(...)
+           ControlHide(...)
+           ControlSetStyle(Value, ...)
+           ControlSetExStyle(Value, ...)
+           ControlShowDropDown(...)
+           ControlHideDropDown(...)
+           ControlChooseIndex(Index, ...)  ; Also covers Tab
+Index   := ControlChooseString(String, ...)
+
+Index   := ControlFindItem(String, ...)
+Index   := ControlAddItem(String, ...)
+           ControlDeleteItem(Index, ...)
+
+Integer := EditGetLineCount(...)
+Integer := EditGetCurrentLine(...)
+Integer := EditGetCurrentCol(...)
+String  := EditGetLine(N [, ...])
+String  := EditGetSelectedText(...)
+           EditPaste(String, ...)
+
+String  := ListViewGetContent([Options, ...])
+
+           DriveEject([Drive])
+           DriveRetract([Drive])
+           DriveLock(Drive)
+           DriveUnlock(Drive)
+           DriveSetLabel(Drive [, Label])
+
+String  := DriveGetList([Type])
+String  := DriveGetFilesystem(Drive)
+String  := DriveGetLabel(Drive)
+String  := DriveGetSerial(Drive)
+String  := DriveGetType(Path)
+String  := DriveGetStatus(Path)
+String  := DriveGetStatusCD(Drive)
+Integer := DriveGetCapacity(Path)
+Integer := DriveGetSpaceFree(Path)
+
+; Where ... means optional WinTitle, etc.
+
+Integer := WinGetID(...)
+Integer := WinGetIDLast(...)
+Integer := WinGetPID(...)
+String  := WinGetProcessName(...)
+String  := WinGetProcessPath(...)
+Integer := WinGetCount(...)
+Array   := WinGetList(...)
+Integer := WinGetMinMax(...)
+Array   := WinGetControls(...)
+Array   := WinGetControlsHwnd(...)
+Integer := WinGetTransparent(...)
+String  := WinGetTransColor(...)
+Integer := WinGetStyle(...)
+Integer := WinGetExStyle(...)
+
+           WinSetTransparent(N [, ...])
+           WinSetTransColor(&quot;Color [N]&quot; [, ...]),
+           WinSetAlwaysOnTop([TrueFalseToggle := -1, ...])
+           WinSetStyle(Value [, ...])
+           WinSetExStyle(Value [, ...])
+           WinSetEnabled(Value [, ...])
+           WinSetRegion(Value [, ...])
+
+           WinRedraw(...)
+           WinMoveBottom(...)
+           WinMoveTop(...)
+
+PID     := ProcessExist([PID_or_Name])
+PID     := ProcessClose(PID_or_Name)
+PID     := ProcessWait(PID_or_Name [, Timeout])
+PID     := ProcessWaitClose(PID_or_Name [, Timeout])
+
+           ProcessSetPriority(Priority [, PID_or_Name])
+</pre>
+<p><a href="commands/ProcessExist.htm">ProcessExist</a>, <a href="commands/ProcessClose.htm">ProcessClose</a>, <a href="commands/ProcessWait.htm">ProcessWait</a> and <a href="commands/ProcessWaitClose.htm">ProcessWaitClose</a> no longer set ErrorLevel; instead, they return the PID.</p>
+<p>None of the other functions set ErrorLevel. Instead, they throw an exception on failure. In most cases failure is because the target window or control was not found.</p>
+<p>HWNDs and styles are always returned as pure integers, not hexadecimal strings.</p>
+<p><a href="commands/ControlChooseIndex.htm">ControlChooseIndex</a> allows 0 to deselect the current item/all items. It replaces Control Choose, but also supports Tab controls.</p>
+<p>ControlGet Tab was merged into <a href="commands/ControlGetIndex.htm">ControlGetIndex</a>, which also works with ListBox, ComboBox and DDL. For Tab controls, it returns 0 if no tab is selected (rare but valid). <a href="commands/ControlChooseIndex.htm">ControlChooseIndex</a> does not permit 0 for Tab controls since applications tend not to handle it.</p>
+<p><a href="commands/ControlGetItems.htm">ControlGetItems</a> replaces ControlGet List for ListBox and ComboBox. It returns an Array.</p>
+<p><a href="commands/DriveEject.htm">DriveEject</a> and <a href="commands/DriveEject.htm">DriveRetract</a> now use DeviceIoControl instead of mciSendString. DriveEject is therefore able to eject non-CD/DVD drives which have an &quot;Eject&quot; option in Explorer (i.e. removable drives but not external hard drives which show as fixed disks).</p>
+<p><a href="commands/ListViewGetContent.htm">ListViewGetContent</a> replaces ControlGet List for ListView, and currently has the same usage as before.</p>
+<p><a href="commands/WinGetList.htm">WinGetList</a>, <a href="commands/WinGetControls.htm">WinGetControls</a> and <a href="commands/WinGetControlsHwnd.htm">WinGetControlsHwnd</a> return arrays, not newline-delimited lists.</p>
+<p><a href="commands/WinSetTransparent.htm">WinSetTransparent</a> treats &quot;&quot; as &quot;Off&quot; rather than 0 (which would make the window invisible and unclickable).</p>
+<p>Abbreviated aliases such as Topmost, Trans, FS and Cap were removed.</p>
+<p>The following functions were formerly sub-commands of SysGet:</p>
+<pre>Exists  := MonitorGet(N, Left, Top, Right, Bottom)
+Exists  := MonitorGetWorkArea(N, Left, Top, Right, Bottom)
+Count   := MonitorGetCount()
+Primary := MonitorGetPrimary()
+Name    := MonitorGetName(N)
+</pre>
+<h3 id="new-functions">New Functions</h3>
+<p><code>Buffer(Size, FillByte)</code> (calling the Buffer class) creates and returns a <code>Buffer</code> object encapsulating a block of <em>Size</em> bytes of memory, initialized only if <em>FillByte</em> is specified. <code>BufferObj.Ptr</code> returns the address and <code>BufferObj.Size</code> returns or sets the size in bytes (reallocating the block of memory). Any object with Ptr and Size properties can be passed to <a href="commands/NumPut.htm">NumPut</a>, <a href="commands/NumGet.htm">NumGet</a>, <a href="commands/StrPut.htm">StrPut</a>, <a href="commands/StrGet.htm">StrGet</a>, <a href="objects/File.htm#RawRead">File.RawRead</a>, <a href="objects/File.htm#RawWrite">File.RawWrite</a> and <a href="commands/FileAppend.htm">FileAppend</a>. Any object with a <code>Ptr</code> property can be passed to <a href="commands/DllCall.htm">DllCall</a> parameters with <code>Ptr</code> type, <a href="commands/SendMessage.htm">SendMessage</a> and <a href="commands/PostMessage.htm">PostMessage</a>.</p>
+<p><code>CaretGetPos([&amp;X, &amp;Y])</code> retrieves the current coordinates of the caret (text insertion point). This ensures the X and Y coordinates always match up, and there is no caching to cause unexpected behaviour (such as A_CaretX/Y returning a value that's not in the current CoordMode).</p>
+<p><code>ClipboardAll([Data, Size])</code> creates an object containing everything on the clipboard (optionally accepting data previously retrieved from the clipboard instead of using the clipboard's current contents). The methods of reading and writing clipboard file data are different. The data format is the same, except that the data size is always 32-bit, so that the data is portable between 32-bit and 64-bit builds. See the v2 documentation for details.</p>
+<p><code>ComCall(offset, comobj, ...)</code> is equivalent to <code>DllCall(NumGet(NumGet(comobj.ptr)+offset*A_Index), &quot;ptr&quot;, comobj.ptr, ...)</code>, but with the return type defaulting to &quot;hresult&quot; rather than &quot;int&quot;.</p>
+<p><a href="commands/ComObject.htm">ComObject</a> (formerly ComObjCreate) and <a href="commands/ComObjQuery.htm">ComObjQuery</a> now return a wrapper object even if an IID is specified. ComObjQuery permits the first parameter to be any object with a <code>Ptr</code> property.</p>
+<p><a href="commands/ControlGetClassNN.htm">ControlGetClassNN</a> returns the ClassNN of the specified control.</p>
+<p><a href="commands/ControlSend.htm">ControlSendText</a>, equivalent to ControlSendRaw but using {Text} mode instead of {Raw} mode.</p>
+<p><code>DirExist(Path)</code>, with usage similar to FileExist. Note that <code>InStr(FileExist(Pattern), &quot;D&quot;)</code> only tells you whether the <em>first</em> matching file is a folder, not whether a folder exists.</p>
+<p><code>Float(v)</code>: see Types.</p>
+<p><code>InstallKeybdHook(Install := true, Force := false)</code> and <code>InstallMouseHook(Install := true, Force := false)</code> replace the corresponding directives, for increased flexibility.</p>
+<p><code>Integer(v)</code>: see Types.</p>
+<p id="isXXX"><a href="commands/Is.htm">isXXX</a>: The legacy command <code>if var is type</code> has been replaced with a series of functions: isAlnum, isAlpha, isDigit, isFloat, isInteger, isLower, isNumber, isSpace, isUpper, isXDigit. With the exception of isFloat, isInteger and isNumber, an exception is thrown if the parameter is not a string, as implicit conversion to string may cause counter-intuitive results.</p>
+<p><code>IsSet(var)</code>, <code>IsSetRef(&amp;var)</code>: Returns true if the variable has been assigned a value (even if that value is an empty string), otherwise false. If false, attempting to read the variable within an expression would throw an error.</p>
+<p><code>Menu()</code>/<code>MenuBar()</code> returns a new Menu/MenuBar object, which has the following members corresponding to v1 Menu sub-commands. Methods: Add, <strong>Add</strong>Standard, Check, Delete, Disable, Enable, Insert, Rename, <strong>Set</strong>Color, <strong>Set</strong>Icon, Show, ToggleCheck, ToggleEnable, Uncheck. Properties: Click<strong>Count</strong>, Default, Handle (replaces MenuGetHandle). <code>A_TrayMenu</code> also returns a Menu object. There is no UseErrorLevel mode, no global menu names, and no explicitly deleting the menu itself (that happens when all references are released; Menu.Delete() is equivalent to v1 DeleteAll). Labels are not supported, only function objects. Menu.AddStandard() adds the standard menu items and allows them to be individually modified as with custom items. Unlike v1, the Win32 menu is destroyed only when the object is deleted.</p>
+<p><code>MenuFromHandle(Handle)</code> returns the Menu object corresponding to a Win32 menu handle, if it was created by AutoHotkey.</p>
+<p><code>Number(v)</code>: see Types.</p>
+<p><code>Persistent(Persist := true)</code> replaces the corresponding directive, increasing flexibility.</p>
+<p><code>RegDeleteKey(&quot;RootKey\SubKey&quot;)</code> deletes a registry key. (RegDelete now only deletes values, except when omitting all parameters in a registry loop.)</p>
+<p><a href="commands/Send.htm#SendText">SendText</a>, equivalent to SendRaw but using {Text} mode instead of {Raw} mode.</p>
+<p><code>StrCompare(str1, str2 [, CaseSense := false])</code> returns -1 (str1 is less than str2), 0 (equal) or 1 (greater than). <em>CaseSense</em> can be &quot;Locale&quot;.</p>
+<p><code>String(v)</code>: see Types.</p>
+<p><code>StrPtr(str)</code> returns the address of a string. Unlike address-of in v1, it can be used with literal strings and temporary strings.</p>
+<p><code>SysGetIPAddresses()</code> returns an array of IP addresses, equivalent to the A_IPAddress variables which have been removed. Each reference to <code>A_IPAddress%N%</code> retrieved all addresses but returned only one, so retrieving multiple addresses took exponentially longer than necessary. The returned array can have zero or more elements.</p>
+<p><code>TraySetIcon([FileName, IconNumber, Freeze])</code> replaces <code>Menu Tray, Icon</code>.</p>
+<p><code>VarSetStrCapacity(&amp;Var [, NewCapacity])</code> replaces the v1 VarSetCapacity, but is intended for use only with UTF-16 strings (such as to optimize repeated concatenation); therefore <em>NewCapacity</em> and the return value are in characters, not bytes.</p>
+<p><code>VerCompare(A, B)</code> compares two version strings using the same algorithm as <code>#Requires</code>.</p>
+<p><code>WinGetClientPos([&amp;X, &amp;Y, &amp;W, &amp;H, WinTitle, ...])</code> retrieves the position and size of the window's client area, in screen coordinates.</p>
+<h3 id="new-directives">New Directives</h3>
+<p><code>#DllLoad [FileOrDllName]</code>: Loads a DLL or EXE file before the script starts executing.</p>
+<h3 id="built-in-variables">Built-in Variables</h3>
+<p><a href="Variables.htm#OSVersion">A_OSVersion</a> always returns a string in the format <code>major.minor.build</code>, such as <code>6.1.7601</code> for Windows 7 SP1. A_OSType has been removed as only NT-based systems are supported.</p>
+<p>All built-in &quot;virtual&quot; variables now have the <code>A_</code> prefix (specifics below). Any predefined variables which lack this prefix (such as <code>Object</code>) are just global variables. The distinction may be important since it is currently impossible to take a reference to a virtual variable (except when passed directly to a built-in function); however, <code>A_Args</code> is not a virtual variable.</p>
+<p>Built-in variables which return numbers now return them as <code>Integer</code> rather than <code>String</code>.</p>
+<p>Renamed:</p>
+<ul>
+<li>A_LoopFileFullPath -&gt; <code>A_LoopFilePath</code> (returns a relative path if the Loop's parameter was relative, so &quot;full path&quot; was misleading)</li>
+<li>A_LoopFileLongPath -&gt; <code>A_LoopFileFullPath</code></li>
+<li>Clipboard -&gt; <code>A_Clipboard</code></li>
+</ul>
+<p>Removed:</p>
+<ul>
+<li>ClipboardAll (replaced with the ClipboardAll function)</li>
+<li>ComSpec (use A_ComSpec)</li>
+<li>ProgramFiles (use A_ProgramFiles)</li>
+<li>A_AutoTrim</li>
+<li>A_BatchLines</li>
+<li>A_CaretX, A_CaretY (use CaretGetPos)</li>
+<li>A_DefaultGui, A_DefaultListView, A_DefaultTreeView</li>
+<li>A_ExitReason</li>
+<li>A_FormatFloat</li>
+<li>A_FormatInteger</li>
+<li>A_Gui, A_GuiControl, A_GuiControlEvent, A_GuiEvent, A_GuiX, A_GuiY, A_GuiWidth, A_GuiHeight (all replaced with parameters of event handlers)</li>
+<li>A_IPAddress1, A_IPAddress2, A_IPAddress3, A_IPAddress4 (use SysGetIPAddresses)</li>
+<li>A_IsUnicode (v2 is always Unicode; it can be replaced with <code>StrLen(Chr(0xFFFF))</code> or redefined with <code>global A_IsUnicode := 1</code>)</li>
+<li>A_StringCaseSense</li>
+<li>A_ThisLabel</li>
+<li>A_ThisMenu, A_ThisMenuItem, A_ThisMenuItemPos (use the menu item callback's parameters)</li>
+<li>A_LoopRegSubKey (A_LoopRegKey now contains the root key and subkey)</li>
+<li>True and False (still exist, but are now only keywords, not variables)</li>
+</ul>
+<p>Added:</p>
+<ul>
+<li><code>A_AllowMainWindow</code> (read/write; replaces <code>Menu Tray, MainWindow/NoMainWindow</code>)</li>
+<li><code>A_HotkeyInterval</code> (replaces #HotkeyInterval)</li>
+<li><code>A_HotkeyModifierTimeout</code> (replaces #HotkeyModifierTimeout)</li>
+<li><code>A_InitialWorkingDir</code> (see <a href="#default-settings">Default Settings</a>)</li>
+<li><code>A_MaxHotkeysPerInterval</code> (replaces #MaxHotkeysPerInterval)</li>
+<li><code>A_MenuMaskKey</code> (replaces #MenuMaskKey)</li>
+</ul>
+<p>The following built-in variables can be assigned values:</p>
+<ul>
+<li><code>A_ControlDelay</code></li>
+<li><a href="Variables.htm#CoordMode">A_CoordMode..</a></li>
+<li><code>A_DefaultMouseSpeed</code></li>
+<li><code>A_DetectHiddenText</code> (also, it now returns 1 or 0 instead of &quot;On&quot; or &quot;Off&quot;)</li>
+<li><code>A_DetectHiddenWindows</code> (also, it now returns 1 or 0 instead of &quot;On&quot; or &quot;Off&quot;)</li>
+<li><code>A_EventInfo</code></li>
+<li><code>A_FileEncoding</code> (also, it now returns &quot;CP0&quot; in place of &quot;&quot;, and allows the &quot;CP&quot; prefix to be omitted when assigning)</li>
+<li><code>A_IconHidden</code></li>
+<li><code>A_IconTip</code> (also, it now always reflects the tooltip, even if it is default or empty)</li>
+<li><code>A_Index</code>: For counted loops, modifying this affects how many iterations are performed. (The global nature of built-in variables means that an Enumerator function could set the index to be seen by a For loop.)</li>
+<li><code>A_KeyDelay</code></li>
+<li><code>A_KeyDelayPlay</code></li>
+<li><code>A_KeyDuration</code></li>
+<li><code>A_KeyDurationPlay</code></li>
+<li><code>A_LastError</code>: Calls the Win32 SetLastError() function. Also, it now returns an unsigned value.</li>
+<li><code>A_ListLines</code></li>
+<li><code>A_MouseDelay</code></li>
+<li><code>A_MouseDelayPlay</code></li>
+<li><code>A_RegView</code></li>
+<li><code>A_ScriptName</code>: Changes the default dialog title.</li>
+<li><code>A_SendLevel</code></li>
+<li><code>A_SendMode</code></li>
+<li><code>A_StoreCapslockMode</code> (also, it now returns 1 or 0 instead of &quot;On&quot; or &quot;Off&quot;)</li>
+<li><code>A_TitleMatchMode</code></li>
+<li><code>A_TitleMatchModeSpeed</code></li>
+<li><code>A_WinDelay</code></li>
+<li><code>A_WorkingDir</code>: Same as calling <a href="commands/SetWorkingDir.htm">SetWorkingDir</a>.</li>
+</ul>
+<h3 id="built-in-objects">Built-in Objects</h3>
+<p>File objects now strictly require property syntax when invoking properties and method syntax when invoking methods. For example, <code>File.Pos(n)</code> is not valid. An exception is thrown if there are too few or too many parameters, or if a read-only property is assigned a value.</p>
+<p><code>File.Tell()</code> was removed.</p>
+<p><code>Func.IsByRef()</code> now works with built-in functions.</p>
+<h2 id="gui">Gui</h2>
+<p>Gui, GuiControl and GuiControlGet were replaced with <a href="objects/Gui.htm#Call">Gui()</a> and <a href="objects/Gui.htm">Gui</a>/<a href="objects/GuiControl.htm">GuiControl</a> objects, which are generally more flexible, more consistent, and easier to use.</p>
+<p>A GUI is typically not referenced by name/number (although it can still be named with <code>GuiObj.Name</code>). Instead, a GUI object (and window) is created explicitly by instantiating the <code>Gui</code> class, as in <code>GuiObj := Gui()</code>. This object has methods and properties which replace the Gui sub-commands. GuiObj.Add() returns a GuiControl object, which has methods and properties which replace the GuiControl and GuiControlGet commands. One can store this object in a variable, or use <code>GuiObj[&quot;Name&quot;]</code> or <code>GuiCtrlFromHwnd(hwnd)</code> to retrieve the object. It is also passed as a parameter whenever an event handler (the replacement of a g-label) is called.</p>
+<p>The usage of these methods and properties is not 1:1. Many parts have been revised to be more consistent and flexible, and to fix bugs or limitations.</p>
+<p>There are no &quot;default&quot; GUIs, as the target Gui or control object is always specified. LV/TV/SB functions were replaced with methods (of the control object), making it much easier to use multiple ListViews/TreeViews.</p>
+<p>There are no built-in variables containing information about events. The information is passed as parameters to the function/method which handles the event, including the source Gui or control.</p>
+<p>Controls can still be named and be referenced by name, but it's just a name (used with <code>GuiObj[&quot;Name&quot;]</code> and <code>GuiObj.Submit()</code>), not an associated variable, so there is no need to declare or create a global or static variable. The value is never stored in a variable automatically, but is accessible via <code>GuiCtrl.Value</code>. <code>GuiObj.Submit()</code> returns a new associative array using the control names as keys.</p>
+<p>The v<em>Name</em> option now just sets the control's name to <em>Name</em>.</p>
+<p>The +Hwnd<em>VarName</em> option has been removed in favour of <code>GuiCtrl.Hwnd</code>.</p>
+<p>There are no more &quot;g-labels&quot; or labels/functions which automatically handle GUI events. The script must register for each event of interest by calling the <a href="objects/GuiOnEvent.htm">OnEvent</a> method of the Gui or GuiControl. For example, rather than checking <code>if (A_GuiEvent = &quot;I&quot; &amp;&amp; InStr(ErrorLevel, &quot;F&quot;, true))</code> in a g-label, the script would register a handler for the <code>ItemFocus</code> event: <code>MyLV.OnEvent(&quot;ItemFocus&quot;, MyFunction)</code>. <em>MyFunction</em> would be called only for the ItemFocus event. It is not necessary to apply <code>AltSubmit</code> to enable additional events.</p>
+<p>Arrays are used wherever a pipe-delimited list was previously used, such as to specify the items for a ListBox when creating it, when adding items, or when retrieving the selected items.</p>
+<p>Scripts can define a class which <code>extends Gui</code> and handles its own events, keeping all of the GUI logic self-contained.</p>
+<h3 id="gui-sub-commands">Gui sub-commands</h3>
+<p><strong>Gui New</strong> → <a href="objects/Gui.htm#Call">Gui()</a>. Passing an empty title (not omitting it) now results in an empty title, not the default title.</p>
+<p><strong>Gui Add</strong> → <a href="objects/Gui.htm#Add">GuiObj.Add() or GuiObj.Add<em>ControlType</em>()</a>; e.g. GuiObj.Add(&quot;Edit&quot;) or GuiObj.AddEdit().</p>
+<p><strong>Gui Show</strong> → <a href="objects/Gui.htm#Show">GuiObj.Show()</a>, but it has no Title parameter. The title can be specified as a parameter of Gui.New() or via the GuiObj.Title property. The initial focus is still set to the first input-capable control with the WS_TABSTOP style (as per default message processing by the system), unless that's a Button control, in which case focus is now shifted to the Default button.</p>
+<p><strong>Gui Submit</strong> → <a href="objects/Gui.htm#Submit">GuiObj.Submit()</a>. It works like before, except that Submit() creates and returns a new object which contains all of the &quot;associated variables&quot;.</p>
+<p><strong>Gui Destroy</strong> → <a href="objects/Gui.htm#Destroy">GuiObj.Destroy()</a>. The object still exists (until the script releases it) but cannot be used. A new GUI must be created (if needed). The window is also destroyed when the object is deleted, but the object is &quot;kept alive&quot; while the window is visible.</p>
+<p><strong>Gui Font</strong> → <a href="objects/Gui.htm#SetFont">GuiObj.SetFont()</a>. It is also possible to set a control's font directly, with GuiCtrl.SetFont().</p>
+<p><strong>Gui Color</strong> → <a href="objects/Gui.htm#BackColor">GuiObj.BackColor</a> sets/returns the background color. ControlColor (the second parameter) is not supported, but all controls which previously supported it can have a background set by the <code>+Background</code> option instead. Unlike Gui Color, GuiObj.BackColor does not affect Progress controls or disabled/read-only Edit, DDL, ComboBox or TreeView (with -Theme) controls.</p>
+<p><strong>Gui Margin</strong> → <a href="objects/Gui.htm#MarginX">GuiObj.MarginX</a> and <a href="objects/Gui.htm#MarginY">GuiObj.MarginY</a> properties.</p>
+<p><strong>Gui Menu</strong> → <a href="objects/Gui.htm#MenuBar">GuiObj.MenuBar</a> sets/returns a MenuBar object, created with <code>MenuBarCreate()</code>.</p>
+<p><strong>Gui Cancel/Hide/Minimize/Maximize/Restore</strong> → Gui methods of the same name.</p>
+<p><strong>Gui Flash</strong> → <a href="objects/Gui.htm#Flash">GuiObj.Flash()</a>, but use <code>false</code> instead of <code>Off</code>.</p>
+<p><strong>Gui Tab</strong> → <a href="objects/GuiControl.htm#UseTab">TabControl.UseTab()</a>. Defaults to matching a prefix of the tab name as before. Pass true for the second parameter to match the whole tab name, but unlike the v1 &quot;Exact&quot; mode, it is case-insensitive.</p>
+<h3 id="events">Events</h3>
+<p>See <a href="objects/GuiOnEvent.htm#Events">Events (OnEvent)</a> for details of all explicitly supported GUI and GUI control events.</p>
+<p>The Size event passes 0, -1 or 1 (consistent with WinGetMinmax) instead of 0, 1 or 2.</p>
+<p>The ContextMenu event can be registered for each control, or for the whole GUI.</p>
+<p>The DropFiles event swaps the FileArray and Ctrl parameters, to be consistent with ContextMenu.</p>
+<p>The ContextMenu and DropFiles events use client coordinates instead of window coordinates (Client is also the default CoordMode in v2).</p>
+<p>The following control events were removed, but detecting them is a simple case of passing the appropriate numeric notification code (defined in the Windows SDK) to <a href="objects/GuiOnNotify.htm">GuiCtrl.OnNotify()</a>: K, D, d, A, S, s, M, C, E and MonthCal's 1 and 2.</p>
+<p>Control events do not pass the event name as a parameter (GUI events never did).</p>
+<p>Custom's N and Normal events were replaced with <a href="objects/GuiOnNotify.htm">GuiCtrl.OnNotify()</a> and <a href="objects/GuiOnCommand.htm">GuiCtrl.OnCommand()</a>, which can be used with any control.</p>
+<p>Link's Click event passes (Ctrl, ID or Index, HREF) instead of (Ctrl, Index, HREF or ID), and does not automatically execute HREF if a Click callback is registered.</p>
+<p>ListView's Click, DoubleClick and ContextMenu (when triggered by a right-click) events now report the item which was clicked (or 0 if none) instead of the focused item.</p>
+<p>ListView's I event was split into multiple named events, except for the f (de-focus) event, which was excluded because it is implied by F (ItemFocus).</p>
+<p>ListView's e (ItemEdit) event is ignored if the user cancels.</p>
+<p>Slider's Change event is raised more consistently than the v1 g-label; i.e. it no longer ignores changes made by the mouse wheel by default. See the documentation for details.</p>
+<p>The BS_NOTIFY style is now added automatically as needed for Button, CheckBox and Radio controls. It is no longer applied by default to Radio controls.</p>
+<p>Focus (formerly F) and LoseFocus (formerly f) are supported by more (but not all) control types.</p>
+<p>Setting an Edit control's text with Edit.Value or Edit.Text does not trigger the control's Change event, whereas GuiControl would trigger the control's g-label.</p>
+<p>LV/TV.Add/Modify now suppress item-change events, so such events should only be raised by user action or SendMessage.</p>
+<h3 id="removed">Removed</h3>
+<p>+Delimiter<br>
++Hwnd<em>OutputVar</em> (use GuiObj.Hwnd or GuiCtrl.Hwnd instead)<br>
++Label<br>
++LastFoundExist<br>
+Gui GuiName: Default</p>
+<h3 id="control-options">Control Options</h3>
+<p>+/-Background is interpreted and supported more consistently. All controls which supported <code>Gui Color</code> now support +Background<em>Color</em> and +BackgroundDefault (synonymous with -Background), not just ListView/TreeView/StatusBar/Progress.</p>
+<p><a href="objects/Gui.htm#Add">GuiObj.Add</a> defaults to <code>y+m</code>/<code>x+m</code> instead of <code>yp</code>/<code>xp</code> when <code>xp</code>/<code>yp</code> or <code>xp+0</code>/<code>yp+0</code> is used. In other words, the control is placed below/to the right of the previous control instead of at exactly the same position. If a non-zero offset is used, the behaviour is the same as in v1. To use exactly the same position, specify <code>xp yp</code> together.</p>
+<p><code>x+m</code> and <code>y+m</code> can be followed by an additional offset, such as <code>x+m+10</code> (<code>x+m10</code> is also valid, but less readable).</p>
+<p><code>Choose</code> no longer serves as a redundant (undocumented) way to specify the value for a MonthCal. Just use the <em>Text</em> parameter, as before.</p>
+<h3 id="guicontrolget">GuiControlGet</h3>
+<h4 id="empty-sub-command">Empty sub-command</h4>
+<p>GuiControlGet's empty sub-command had two modes: the default mode, and text mode, where the fourth parameter was the word <code>Text</code>. If a control type had no single &quot;value&quot;, GuiControlGet defaulted to returning the result of <a href="https://msdn.microsoft.com/library/ms633520">GetWindowText</a> (which isn't always visible text). Some controls had no visible text, or did not support retrieving it, so completely ignored the fourth parameter. By contrast, GuiCtrl.Text returns display text, hidden text (the same text returned by ControlGetText) or nothing at all.</p>
+<p>The table below shows the closest equivalent property or function for each mode of GuiControlGet and control type.</p>
+<table class="info">
+<tr><th>Control</th><th>Default</th><th>Text</th><th>Notes</th></tr>
+<tr><td>ActiveX</td><td>.Value</td><td>.Text</td><td>Text is hidden. See below.</td></tr>
+<tr><td>Button</td><td colspan="2">.Text</td><td></td></tr>
+<tr><td>CheckBox</td><td>.Value</td><td>.Text</td><td></td></tr>
+<tr><td>ComboBox</td><td>.Text</td><td>ControlGetText()</td><td>Use Value instead of Text if AltSubmit was used (but Value returns 0 if Text does not match a list item). Text performs case-correction, whereas ControlGetText returns the Edit field's content.</td></tr>
+<tr><td>Custom</td><td colspan="2">.Text</td><td></td></tr>
+<tr><td>DateTime</td><td colspan="2">.Value</td><td></td></tr>
+<tr><td>DDL</td><td colspan="2">.Text</td><td>Use Value instead of Text if AltSubmit was used.</td></tr>
+<tr><td>Edit</td><td colspan="2">.Value</td><td></td></tr>
+<tr><td>GroupBox</td><td colspan="2">.Text</td><td></td></tr>
+<tr><td>Hotkey</td><td colspan="2">.Value</td><td></td></tr>
+<tr><td>Link</td><td colspan="2">.Text</td><td></td></tr>
+<tr><td>ListBox</td><td>.Text</td><td>ControlGetText()</td><td>Use Value instead of Text if AltSubmit was used. Text returns the selected item's text, whereas ControlGetText returns hidden text. See below.</td></tr>
+<tr><td>ListView</td><td colspan="2">.Text</td><td>Text is hidden.</td></tr>
+<tr><td>MonthCal</td><td colspan="2">.Value</td><td></td></tr>
+<tr><td>Picture</td><td colspan="2">.Value</td><td></td></tr>
+<tr><td>Progress</td><td colspan="2">.Value</td><td></td></tr>
+<tr><td>Radio</td><td>.Value</td><td>.Text</td><td></td></tr>
+<tr><td>Slider</td><td colspan="2">.Value</td><td></td></tr>
+<tr><td>StatusBar</td><td colspan="2">.Text</td><td></td></tr>
+<tr><td>Tab</td><td>.Text</td><td>ControlGetText()</td><td>Use Value instead of Text if AltSubmit was used. Text returns the selected tab's text, whereas ControlGetText returns hidden text.</td></tr>
+<tr><td>Text</td><td colspan="2">.Text</td><td></td></tr>
+<tr><td>TreeView</td><td colspan="2">.Text</td><td>Text is hidden.</td></tr>
+<tr><td>UpDown</td><td colspan="2">.Value</td><td></td></tr>
+</table>
+<p>ListBox: For multi-select ListBox, Text and Value return an array instead of a pipe-delimited list.</p>
+<p>ActiveX: GuiCtrl.Value returns the same object each time, whereas GuiControlGet created a new wrapper object each time. Consequently, it is no longer necessary to retain a reference to an ActiveX object for the purpose of keeping a ComObjConnect connection alive.</p>
+<h4 id="other-sub-commands">Other sub-commands</h4>
+<p><strong>Pos</strong> → <a href="objects/GuiControl.htm#GetPos">GuiCtrl.GetPos()</a></p>
+<p><strong>Focus</strong> → <a href="objects/Gui.htm#FocusedCtrl">GuiObj.FocusedCtrl</a>; returns a GuiControl object instead of the ClassNN.</p>
+<p><strong>FocusV</strong> → <code>GuiObj.FocusedCtrl.Name</code></p>
+<p><strong>Hwnd</strong> → <a href="objects/GuiControl.htm#Hwnd">GuiCtrl.Hwnd</a>; returns a pure integer, not a hexadecimal string.</p>
+<p><strong>Enabled/Visible/Name</strong> → GuiCtrl properties of the same name.</p>
+<h3 id="guicontrol">GuiControl</h3>
+<h4 id="blank-and-text-sub-commands">(Blank) and Text sub-commands</h4>
+<p>The table below shows the closest equivalent property or function for each mode of GuiControl and control type.</p>
+<table class="info">
+<tr><th>Control</th><th>(Blank)</th><th>Text</th><th>Notes</th></tr>
+<tr><td>ActiveX</td><td colspan="2">N/A</td><td>Command had no effect.</td></tr>
+<tr><td>Button</td><td colspan="2">.Text</td><td></td></tr>
+<tr><td>CheckBox</td><td>.Value</td><td>.Text</td><td></td></tr>
+<tr><td>ComboBox</td><td>.Delete/Add/Choose</td><td>.Text</td><td></td></tr>
+<tr><td>Custom</td><td colspan="2">.Text</td><td></td></tr>
+<tr><td>DateTime</td><td>.Value</td><td>.SetFormat()</td><td></td></tr>
+<tr><td>DDL</td><td colspan="2">.Delete/Add/Choose</td><td></td></tr>
+<tr><td>Edit</td><td colspan="2">.Value</td><td></td></tr>
+<tr><td>GroupBox</td><td colspan="2">.Text</td><td></td></tr>
+<tr><td>Hotkey</td><td colspan="2">.Value</td><td></td></tr>
+<tr><td>Link</td><td colspan="2">.Text</td><td></td></tr>
+<tr><td>ListBox</td><td colspan="2">.Delete/Add/Choose</td><td></td></tr>
+<tr><td>ListView</td><td colspan="2">N/A</td><td>Command had no effect.</td></tr>
+<tr><td>MonthCal</td><td colspan="2">.Value</td><td></td></tr>
+<tr><td>Picture</td><td colspan="2">.Value</td><td></td></tr>
+<tr><td>Progress</td><td colspan="2">.Value</td><td>Use the <code>+=</code> operator instead of the <code>+</code> prefix.</td></tr>
+<tr><td>Radio</td><td>.Value</td><td>.Text</td><td></td></tr>
+<tr><td>Slider</td><td colspan="2">.Value</td><td>Use the <code>+=</code> operator instead of the <code>+</code> prefix.</td></tr>
+<tr><td>StatusBar</td><td colspan="2">.Text or SB.SetText()</td><td></td></tr>
+<tr><td>Tab</td><td colspan="2">.Delete/Add/Choose</td><td></td></tr>
+<tr><td>Text</td><td colspan="2">.Text</td><td></td></tr>
+<tr><td>TreeView</td><td colspan="2">N/A</td><td>Command had no effect.</td></tr>
+<tr><td>UpDown</td><td colspan="2">.Value</td><td>Use the <code>+=</code> operator instead of the <code>+</code> prefix.</td></tr>
+</table>
+<h4 id="other-sub-commands-1">Other sub-commands</h4>
+<p><strong>Move</strong> → <a href="objects/GuiControl.htm#Move">GuiCtrl.Move(x, y, w, h)</a></p>
+<p><strong>MoveDraw</strong> → GuiCtrl.Move(x, y, w, h), <a href="objects/GuiControl.htm#Redraw">GuiCtrl.Redraw()</a></p>
+<p><strong>Focus</strong> → <a href="objects/GuiControl.htm">GuiCtrl.Focus()</a>, which now uses WM_NEXTDLGCTL instead of SetFocus, so that focusing a Button temporarily sets it as the default, consistent with tabbing to the control.</p>
+<p><strong>Enable/Disable</strong> → set <a href="objects/GuiControl.htm#Enabled">GuiCtrl.Enabled</a></p>
+<p><strong>Hide/Show</strong> → set <a href="objects/GuiControl.htm#Visible">GuiCtrl.Visible</a></p>
+<p><strong>Choose</strong> → <a href="objects/GuiControl.htm#Choose">GuiCtrl.Choose(n)</a>, where in is a pure integer. The <code>|n</code> or <code>||n</code> mode is not supported (use ControlChoose instead, if needed).</p>
+<p><strong>ChooseString</strong> → <a href="objects/GuiControl.htm#Choose">GuiCtrl.Choose(s)</a>, where s is not a pure integer. The <code>|n</code> or <code>||n</code> mode is not supported. If the string matches multiple items in a multi-select ListBox, Choose() selects them all, not just the first.</p>
+<p><strong>Font</strong> → <a href="objects/GuiControl.htm#SetFont">GuiCtrl.SetFont()</a></p>
+<p><strong>+/-Option</strong> → <a href="objects/GuiControl.htm#Opt">GuiCtrl.Opt(&quot;+/-Option&quot;)</a></p>
+<h3 id="other-changes">Other Changes</h3>
+<p>Progress Gui controls no longer have the PBS_SMOOTH style by default, so they are now styled according to the system visual style.</p>
+<p>The default margins and control sizes (particularly for Button controls) may differ slightly from v1 when DPI &gt; 100%.</p>
+<p>Picture controls no longer delete their current image when they fail to set a new image via <code>GuiCtrl.Value := &quot;new image.png&quot;</code>. However, removing the current image with <code>GuiCtrl.Value := &quot;&quot;</code> is permitted.</p>
+<h2 id="error-handling">Error Handling</h2>
+<p><a href="commands/OnError.htm">OnError</a> is now called for critical errors prior to exiting the script. Although the script might not be in a state safe for execution, the attempt is made, consistent with OnExit.</p>
+<p>Runtime errors no longer set <code>Exception.What</code> to the currently running user-defined function or sub (but this is still done when calling <code>Error()</code> without the second parameter). This gives <code>What</code> a clearer purpose: a function name indicates a failure of that function (not a failure to call the function or evaluate its parameters). <code>What</code> is blank for expression evaluation and control flow errors (some others may also be blank).</p>
+<p>Exception objects thrown by runtime errors can now be identified as instances of the new Error class or a more specific subclass. Error objects have a <code>Stack</code> property containing a stack trace. If the <em>What</em> parameter specifies the name of a running function, <em>File</em> and <em>Line</em> are now set based on which line called that function.</p>
+<p>Try-catch syntax has changed to allow the script to catch specific error classes, while leaving others uncaught. See <a href="#catch">Catch</a> below for details.</p>
+<h3 id="continuable-errors">Continuable Errors</h3>
+<p>In most cases, error dialogs now provide the option to continue the current thread (vs. exiting the thread).  COM errors now exit the thread when choosing not to continue (vs. exiting the entire script).</p>
+<p>Scripts should not rely on this: If the error was raised by a built-in function, continuing causes it to return &quot;&quot;. If the error was raised by the expression evaluator (such as for an invalid dynamic reference or divide by zero), the expression is aborted and yields &quot;&quot; (if used as a control flow statement's parameter).</p>
+<p>In some cases the code does not support continuation, and the option to continue should not be shown. The option is also not shown for critical errors, which are designed to terminate the script.</p>
+<p><a href="commands/OnError.htm">OnError</a> callbacks now take a second parameter, containing one of the following values:</p>
+<ul>
+<li>&quot;Return&quot;: Returning -1 will continue the thread, while 0 and 1 act as before.</li>
+<li>&quot;Exit&quot;: Continuation not supported. Returning non-zero stops further processing but still exits the thread.</li>
+<li>&quot;ExitApp&quot;: This is a critical error. Returning non-zero stops further processing but the script is still terminated.</li>
+</ul>
+<h3 id="errorlevel">ErrorLevel</h3>
+<p>ErrorLevel has been removed. Scripts are often (perhaps usually) written without error-checking, so the policy of setting ErrorLevel for errors often let them go undetected. An immediate error message may seem a bit confrontational, but is generally more helpful.</p>
+<p>Where ErrorLevel was previously set to indicate an error condition, an exception is thrown instead, with a (usually) more helpful error message.</p>
+<p>Commands such as <code>Process Exist</code> which used it to return a value now simply return that value (e.g. <code>pid := ProcessExist()</code>) or something more useful (e.g. <code>hwnd := GroupActivate(group)</code>).</p>
+<p>In some cases ErrorLevel was used for a secondary return value.</p>
+<ul>
+<li><a href="commands/Sort.htm">Sort</a> with the U option no longer returns the number of duplicates removed.</li>
+<li><code>Input</code> was removed. It was superseded by InputHook. A few lines of code can make a simple replacement which returns an InputHook object containing the results instead of using ErrorLevel and an OutputVar.</li>
+<li><a href="commands/InputBox.htm">InputBox</a> returns an object with <code>result</code> (OK, Cancel or Timeout) and <code>value</code> properties.</li>
+</ul>
+<p>File functions which previously stored the number of failures in <code>ErrorLevel</code> now throw it in the <code>Extra</code> property of the thrown exception object.</p>
+<p><a href="commands/SendMessage.htm">SendMessage</a> timeout is usually an anomolous condition, so causes a <code>TimeoutError</code> to be thrown. <code>TargetError</code> and <code>OSError</code> may be thrown under other conditions.</p>
+<p>The <code>UseErrorLevel</code> modes of the <a href="commands/Run.htm">Run</a> and <a href="commands/Hotkey.htm">Hotkey</a> functions were removed.  This mode predates the addition of <code>Try</code>/<code>Catch</code> to the language.  Menu and Gui had this mode as well but were replaced with objects (which do not use ErrorLevel).</p>
+<h3 id="expressions-1">Expressions</h3>
+<p>A load-time error is raised for more syntax errors than in v1, such as:</p>
+<ul>
+<li>Empty parentheses (except adjoining a function name); e.g. <code>x ()</code></li>
+<li>Prefix operator used on the wrong side or lacking an operand; e.g. <code>x!</code></li>
+<li>Binary operator with less than two operands.</li>
+<li>Ternary operator with less than three operands.</li>
+<li>Target of assignment not a writable variable or property.</li>
+</ul>
+<p>An exception is thrown when any of the following failures occur (instead of ignoring the failure or producing an empty string):</p>
+<ul>
+<li>Attempting math on a non-numeric value. (Numeric strings are okay.)</li>
+<li>Divide by zero or other invalid/unsupported input, such as <code>(-1)**1.5</code>. Note that some cases are newly detected as invalid, such as <code>0**0</code> and <code>a&lt;&lt;b</code> or <code>a&gt;&gt;b</code> where <code>b</code> is not in the range 0..63.</li>
+<li>Failure to allocate memory for a built-in function's return value, concatenation or the expression's result.</li>
+<li>Stack underflow (typically caused by a syntax error).</li>
+<li>Attempted assignment to something which isn't a variable (or array element).</li>
+<li>Attempted assignment to a read-only variable.</li>
+<li>Attempted double-deref with an empty name, such as <code>fn(%empty%)</code>.</li>
+<li>Failure to execute a dynamic function call or method call.</li>
+<li>A method/property invocation fails because the value does not implement that method/property.  (For associative arrays in v1, only a method call can cause this.)</li>
+<li>An object-assignment fails due to memory allocation failure.</li>
+</ul>
+<p>Some of the conditions above are detected in v1, but not mid-expression; for instance, <code>A_AhkPath := x</code> is detected in v1 but <code>y := x, A_AhkPath := x</code> is only detected in v2.</p>
+<p>Standalone use of the operators <code>+=</code>, <code>-=</code>, <code>--</code> and <code>++</code> no longer treats an empty variable as 0. This differs from v1, where they treated an empty variable as 0 when used standalone, but not mid-expression or with multi-statement comma.</p>
+<h3 id="functions-1">Functions</h3>
+<p>Functions generally throw an exception on failure. In particular:</p>
+<ul>
+<li>
+<p>Errors due to incorrect use of DllCall, RegExMatch and RegExReplace were fairly common due to their complexity, and (like many errors) are easier to detect and debug if an error message is shown immediately.</p>
+</li>
+<li>
+<p>Math functions throw an exception if any of their inputs are non-numeric, or if the operation is invalid (such as division by zero).</p>
+</li>
+<li>
+<p>Functions with a WinTitle parameter (with exceptions, such as WinClose's ahk_group mode) throw if the target window or control is not found.</p>
+</li>
+</ul>
+<p>Exceptions are thrown for some errors that weren't previously detected, and some conditions that were incorrectly marked as errors (previously by setting ErrorLevel) were fixed.</p>
+<p>Some error messages have been changed.</p>
+<h3 id="catch">Catch</h3>
+<p>The syntax for Catch has been changed to provide a way to catch specific error classes, while leaving others uncaught (to transfer control to another Catch further up the call stack, or report the error and exit the thread). Previously this required catching thrown values of all types, then checking type and re-throwing. For example:</p>
+<pre>; Old (uses obsolete v2.0-a rules for demonstration since v1 had no `is` or Error classes)
+try
+    SendMessage msg,,, &quot;Control1&quot;, &quot;The Window&quot;
+catch err
+    if err is TimeoutError
+        MsgBox &quot;The Window is unresponsive&quot;
+    else
+        throw err
+
+; New
+try
+    SendMessage msg,,, &quot;Control1&quot;, &quot;The Window&quot;
+catch TimeoutError
+    MsgBox &quot;The Window is unresponsive&quot;
+</pre>
+<p>Variations:</p>
+<ul>
+<li><code>catch</code> catches an Error instance.</li>
+<li><code>catch as err</code> catches an Error instance, which is assigned to err.</li>
+<li><code>catch ValueError as err</code> catches a ValueError instance, which is assigned to err.</li>
+<li><code>catch ValueError, TypeError</code> catches either type.</li>
+<li><code>catch ValueError, TypeError as err</code> catches either type and assigns the instance to err.</li>
+<li><code>catch Any</code> catches anything.</li>
+<li><code>catch (MyError as err)</code> permits parentheses, like most other control flow statements.</li>
+</ul>
+<p>If <code>try</code> is used without <code>finally</code> or <code>catch</code>, it acts as though it has a <code>catch</code> with an empty block. Although that sounds like v1, now <code>catch</code> on its own only catches instances of <code>Error</code>. In most cases, <code>try</code> on its own is meant to suppress an Error, so no change needs to be made. However, the direct equivalent of v1 <code>try something()</code> in v2 is:</p>
+<pre>try something()
+catch Any
+{}
+</pre>
+<p>Prioritising the error type over the output variable name might encourage better code; handling the expected error as intended without suppressing or mishandling unexpected errors that should have been reported.</p>
+<p>As values of all types can be thrown, any class is valid for the filter (e.g. <code>String</code> or <code>Map</code>). However, the class prototypes are resolved at load time, and must be specified as a full class name and not an arbitrary expression (similar to <code>y</code> in <code>class x extends y</code>).</p>
+<p>While a <code>catch</code> statement is executing, <code>throw</code> can be used without parameters to re-throw the exception (avoiding the need to specify an output variable just for that purpose). This is supported even within a nested <code>try</code>...<code>finally</code>, but not within a nested <code>try</code>...<code>catch</code>. The <code>throw</code> does not need to be physically contained by the <code>catch</code> statement's body; it can be used by a called function.</p>
+<p>An <code>else</code> can be present after the last <code>catch</code>; this is executed if no exception is thrown within <code>try</code>.</p>
+<h2 id="keyboard-mouse-hotkeys-and-hotstrings">Keyboard, Mouse, Hotkeys and Hotstrings</h2>
+<p>Fewer VK to SC and SC to VK mappings are hard-coded, in theory improving compatibility with non-conventional custom keyboard layouts.</p>
+<p>The key names "Return" and "Break" were removed. Use "Enter" and "Pause" instead.</p>
+<p>The presence of AltGr on each keyboard layout is now always detected by reading the KLLF_ALTGR flag from the keyboard layout DLL. (v1.1.28+ Unicode builds already use this method.) The fallback methods of detecting AltGr via the keyboard hook have been removed.</p>
+<p>Mouse wheel hotkeys set A_EventInfo to the wheel delta as reported by the mouse driver instead of dividing by 120. Generally it is a multiple of 120, but some mouse hardware/drivers may report wheel movement at a higher resolution.</p>
+<p>Hotstrings now treat Shift+Backspace the same as Backspace, instead of transcribing it to <code>`b</code> within the hotstring buffer.</p>
+<p>Hotstrings use the first pair of colons (<code>::</code>) as a delimiter rather than the last when multiple pairs of colons are present. In other words, colons (when adjacent to another colon) must be escaped in the trigger text in v2, whereas in v1 they must be escaped in the replacement. Note that with an odd number of consecutive colons, the previous    behaviour did not consider the final colon as part of a pair. For example, there is no change in behaviour for <code>::1:::2</code> (<code>1</code> → <code>:2</code>), but <code>::3::::4</code> is now <code>3</code> → <code>::4</code> rather than <code>3::</code> → <code>4</code>.</p>
+<p>Hotstrings no longer escape colons in pairs, which means it is now possible to escape a single colon at the end of the hotstring trigger. For example, <code>::5`:::6</code> is now <code>5:</code> → <code>6</code> rather than an error, and <code>::7`::::8</code> is now <code>7:</code> → <code>:8</code> rather than <code>7::</code> → <code>8</code>. It is best to escape every literal colon in these cases to avoid confusion (but a single isolated colon need not be escaped).</p>
+<p>Hotstrings with continuation sections now default to Text mode instead of Raw mode.</p>
+<p>Hotkeys now mask the Win/Alt key on release only if it is logically down and the hotkey requires the Win/Alt key (with <code>#</code>/<code>!</code> or a custom prefix). That is, hotkeys which do not require the Win/Alt key no longer mask Win/Alt-up when the Win/Alt key is physically down. This allows hotkeys which send <code>{Blind}{LWin up}</code> to activate the Start menu (which was already possible if using a remapped key such as <code>AppsKey::RWin</code>).</p>
+<h2 id="other">Other</h2>
+<p>Windows 2000 and Windows XP support has been dropped.</p>
+<p>AutoHotkey no longer overrides the system <code>ForegroundLockTimeout</code> setting at startup.</p>
+<ul>
+<li>This was done by calling <code>SystemParametersInfo</code> with the <code>SPI_SETFOREGROUNDLOCKTIMEOUT</code> action, which affects all applications for the current user session. It does not persist after logout, but was still undesirable to some users.</li>
+<li>User bug reports (and simple logic) indicate that if it works, it allows the focus to be stolen by programs which aren't specifically designed to do so.</li>
+<li>Some testing on Windows 10 indicated that it had no effect on anything; calls to <code>SetForegroundWindow</code> always failed, and other workarounds employed by WinActivate were needed and effective regardless of timeout. <code>SPI_GETFOREGROUNDLOCKTIMEOUT</code> was used from a separate process to verify that the change took effect (it sometimes doesn't).</li>
+<li>It can be replicated in script easily:
+<pre>DllCall(&quot;SystemParametersInfo&quot;, &quot;int&quot;, 0x2001, &quot;int&quot;, 0, &quot;ptr&quot;, 0, &quot;int&quot;, 2)</pre>
+</li>
+</ul>
+<p>RegEx newline matching defaults to (*ANYCRLF) and (*BSR_ANYCRLF); `r and `n are recognized in addition to `r`n. The `a option implicitly enables (*BSR_UNICODE).</p>
+<p>RegEx callout functions can now be variadic. Callouts specified via a <code>pcre_callout</code> variable can be any callable object, or <code>pcre_callout</code> itself can be directly defined as a function (perhaps a nested function). As the function and variable <a href="#scope">namespaces were merged</a>, a callout pattern such as <code>(?C:fn)</code> can also refer to a local or global variable containing a function object, not just a user-defined function.</p>
+<p>Scripts read from stdin (e.g. with <code>AutoHotkey.exe *</code>) no longer include the initial working directory in <code>A_ScriptFullPath</code> or the main window's title, but it is used as <code>A_ScriptDir</code> and to locate the local Lib folder.</p>
+<p>Settings changed by the auto-execute thread now become the default settings immediately (for threads launched after that point), rather than after 100ms and then again when the auto-execute thread finishes.</p>
+<p>The following limits have been removed by utilizing dynamic allocations:</p>
+<ul>
+<li>Maximum line or continuation section length of 16,383 characters.</li>
+<li>Maximum 512 tokens per expression (MAX_TOKENS).<br>
+Arrays internal to the expression evaluator which were sized based on MAX_TOKENS are now based on precalculated estimates of the required sizes, so performance should be similar but stack usage is somewhat lower in most cases. This might increase the maximum recursion depth of user-defined functions.</li>
+<li>Maximum 512 var or function references per arg (but MAX_TOKENS was more limiting for expressions anyway).</li>
+<li>Maximum 255 specified parameter values per function call (but MAX_TOKENS was more limiting anyway).</li>
+</ul>
+<p><a href="commands/ListVars.htm">ListVars</a> now shows static variables separately to local variables. Global variables declared within the function are also listed as static variables (this is a side-effect of new implementation details, but is kept as it might be useful in scripts with many global variables).</p>
+<p>The (undocumented?) &quot;lazy var&quot; optimization was removed to reduce code size and maintenance costs. This optimization improved performance of scripts with more than 100,000 variables.</p>
+<p><a href="Program.htm#tray-icon">Tray menu</a>: The word &quot;This&quot; was removed from &quot;Reload This Script&quot; and &quot;Edit This Script&quot;, for consistency with &quot;Pause Script&quot; and the main window's menu options.</p>
+<p>YYYYMMDDHH24MISS timestamp values are now considered invalid if their length is not an even number between 4 and 14 (inclusive).</p>
+<h3 id="persistence">Persistence</h3>
+<p>Scripts are &quot;persistent&quot; while at least one of the following conditions is satisfied:</p>
+<ul>
+<li>At least one hotkey or hotstring has been defined by the script.</li>
+<li>At least one Gui (or the script's main window) is visible.</li>
+<li>At least one script timer is currently enabled.</li>
+<li>At least one OnClipboardChange callback function has been set.</li>
+<li>At least one InputHook is active.</li>
+<li><code>Persistent()</code> or <code>Persistent(true)</code> was called and not reversed by calling <code>Persistent(false)</code>.</li>
+</ul>
+<p>If one of the following occurs and none of the above conditions are satisfied, the script terminates.</p>
+<ul>
+<li>The last script thread finishes.</li>
+<li>A Gui is closed or destroyed.</li>
+<li>The script's main window is closed (but destroying it causes the script to exit regardless of persistence, as before).</li>
+<li>An InputHook with no OnEnd callback ends.</li>
+</ul>
+<p>For flexibility, OnMessage does not make the script automatically persistent.</p>
+<p>By contrast, v1 scripts are &quot;persistent&quot; when at least one of the following is true:</p>
+<ul>
+<li>At least one hotkey or hotstring has been defined by the script.</li>
+<li>Gui or OnMessage() appears anywhere in the script.</li>
+<li>The keyboard hook or mouse hook is installed.</li>
+<li>Input has been called.</li>
+<li>#Persistent was used.</li>
+</ul>
+<h3 id="threads">Threads</h3>
+<p>Threads start out with an uninterruptible timeout of 17ms instead of 15ms. 15 was too low since the system tick count updates in steps of 15 or 16 minimum; i.e. if the tick count updated at exactly the wrong moment, the thread could become interruptible even though virtually no time had passed.</p>
+<p>Threads which start out uninterruptible now remain so until at least one line has executed, even if the uninterruptible timeout expires first (such as if the system suspends the process immediately after the thread starts in order to give CPU time to another process).</p>
+<p>#MaxThreads and #MaxThreadsPerHotkey no longer make exceptions for any subroutine whose first line is one of the following commands: ExitApp, Pause, Edit, Reload, KeyHistory, ListLines, ListVars, or ListHotkeys.</p>
+<h3 id="default-settings">Default Settings</h3>
+<ul>
+<li>#NoEnv is the default behaviour, so the directive itself has been removed. Use EnvGet instead if an equivalent built-in variable is not available.</li>
+<li><a href="commands/SendMode.htm">SendMode</a> defaults to Input instead of Event.</li>
+<li>Title matching mode defaults to 2 instead of 1.</li>
+<li>SetBatchLines has been removed, so all scripts run at full speed (equivalent to SetBatchLines -1 in v1).</li>
+<li>The working directory defaults to <code>A_ScriptDir</code>. <code>A_InitialWorkingDir</code> contains the working directory which was set by the process which launched AutoHotkey.</li>
+<li><a href="commands/_SingleInstance.htm">#SingleInstance</a> prompt behaviour is default for all scripts; #SingleInstance on its own activates Force mode. <code>#SingleInstance Prompt</code> can also be used explicitly, for clarity or to override a previous directive.</li>
+<li><a href="commands/CoordMode.htm">CoordMode</a> defaults to Client (added in v1.1.05) instead of Window.</li>
+<li>The default codepage for script files (but not files read <em>by</em> the script) is now UTF-8 instead of ANSI (CP0). This can be overridden with the /CP command line switch, as before.</li>
+</ul>
+<h3 id="command-line">Command Line</h3>
+<p>Command-line args are no longer stored in a pseudo-array of numbered global vars; the global variable <code>A_Args</code> (added in v1.1.27) should be used instead.</p>
+<p>The /R and /F switches were removed. Use /restart and /force instead.</p>
+<p>/validate should be used in place of /iLib when AutoHotkey.exe is being used to check a script for syntax errors, as the function library auto-include mechanism was removed.</p>
+<p>/ErrorStdOut is now treated as one of the script's parameters, not built-in, in either of the following cases:</p>
+<ul>
+<li>When the script is compiled, unless /script is used.</li>
+<li>When it has a suffix not beginning with <code>=</code> (where previously the suffix was ignored).</li>
+</ul>
+
+</body>
+</html>
