@@ -1,7 +1,7 @@
 <!DOCTYPE HTML>
 <html lang="en">
 <head>
-<title>Script Compatibility | AutoHotkey v2</title>
+<title>Binary Compatibility | AutoHotkey v2</title>
 <meta name="description" content="Find out what has changed compared to AutoHotkey 1.0 and how much the impact is." />
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -10,45 +10,10 @@
 </head>
 <body>
 
-<h1>Script Compatibility</h1>
+<h1>Binary Compatibility</h1>
 
-<p class="warning"><strong>Warning:</strong> This page is outdated. Instead, see <a href="v2-changes.htm">Changes from v1.1 to v2.0</a>.</p>
-<p>Although many scripts written for AutoHotkey 1.0 do not require changes to run on AutoHotkey 1.1, some may function incorrectly due to necessary differences between the two versions. As the most problematic differences only affect advanced functionality like DllCall, most users do not need to be concerned.</p>
-<p>AutoHotkey 1.1 is also known as "AutoHotkey_L", while AutoHotkey 1.0 was retrospectively labelled "AutoHotkey Basic". Some older versions of AutoHotkey_L used 1.0.* version numbers, so for clarity, this document refers to the two branches of AutoHotkey by name rather than version number.</p>
-<p class="note"><strong>Note:</strong> Some of the most common problems are caused by changes required to support Unicode text, and can be avoided by simply using the ANSI version of AutoHotkey_L.</p>
+<p>This document contains some topics which are sometimes important when dealing with external libraries or sending messages to a control or window.</p>
 
-<h2 id="toc">Table of Contents</h2>
-<h3 id="toc_basic">Basic</h3>
-<p>High impact:</p>
-<ul>
-  <li><a href="#Syntax_Errors">Certain syntax errors are no longer tolerated</a></li>
-  <li><a href="#FileRead">FileRead may return corrupt binary data</a></li>
-  <li><a href="#Names">Variable and function names do not allow [, ] or ?</a></li>
-  <li><a href="#DPIScale">DPI scaling is enabled by default for GUIs</a></li>
-</ul>
-<p>Medium impact:</p>
-<ul>
-  <li><a href="#Transform">Transform's <em>Unicode</em> sub-command is unavailable on Unicode versions</a></li>
-  <li><a href="#Default_Script">AutoHotkey.ahk is launched instead of AutoHotkey.ini</a></li>
-  <li><a href="#SetFormat">SetFormat, Integer, <strong>H</strong> is case-sensitive</a></li>
-  <li><a href="#LastError">A_LastError is modified by more commands</a></li>
-  <li><a href="#MsgBox">MsgBox's handles commas more consistently</a></li>
-  <li><a href="#GuiOwner">GUI's Owner option overrides additional styles</a></li>
-  <li><a href="#Tilde">~Tilde affects how custom modifier keys work</a></li>
-  <li><a href="#ComboUpDown"><code>x &amp; y::</code> causes both <code>x::</code> and <code>x up::</code> to fire when x is released</a></li>
-</ul>
-<p>Low impact:</p>
-<ul>
-  <li><a href="#IfIs">If <em>var</em> is <em>type</em> ignores the system locale by default</a></li>
-  <li><a href="#Window_Groups">GroupActivate sets ErrorLevel and GroupAdd's <em>Label</em> works differently</a></li>
-  <li><a href="#Run">Run and RunWait interpret <em>Target</em> differently</a></li>
-  <li><a href="#ControlZ">Control-Z is not interpreted as end-of-file</a></li>
-  <li><a href="#Compatibility_Mode">Compatibility mode may cause confusion</a></li>
-  <li><a href="#IsCompiled">A_IsCompiled is always read-only</a></li>
-  <li><a href="#Escaped_Whitespace">Leading and trailing `t sequences are no longer discarded</a></li>
-</ul>
-
-<h3 id="toc_advanced">Advanced</h3>
 <ul>
   <li><a href="#Format">Unicode vs ANSI</a>
     <ul>
@@ -60,137 +25,28 @@
   <li><a href="#ptr">Pointer Size</a></li>
 </ul>
 
-<h2 id="Basic">Basic</h2>
-
-<span id="Validation"></span><h3 id="Syntax_Errors">Syntax Errors</h3>
-<p>Certain syntax errors which were tolerated by AutoHotkey Basic are not tolerated by AutoHotkey_L.  Most such errors can be easily corrected once they are identified.  The following errors are detected immediately upon launching a script in AutoHotkey_L, and must be corrected for the script to run:</p>
-<ul>
-  <li>A space, tab or comma is required between each command and its parameters.  For example, <code>MsgBox&lt; foo</code> and <code>If!foo</code> are not tolerated.</li>
-  <li><code>Hotkey, If<i>Something</i></code>, where <i>Something</i> is invalid, is not tolerated.</li>
-</ul>
-<p>Some other syntax errors are detected while the script is running.  These cause an error message to be displayed prior to exiting the current thread:</p>
-<ul>
-  <li><strong>Common:</strong> Unrecognized or badly formatted <a href="objects/Gui.htm#Options">Gui.Opt</a>, <a href="objects/Gui.htm#Show">Gui.Show</a> or <a href="objects/Gui.htm#Add">Gui.Add</a> options.</li>
-  <li>GroupAdd with a blank group name.  Previously this caused the thread to <em>silently</em> exit.</li>
-  <li>Gui option <a href="objects/Gui.htm#LastFoundExist">+LastFoundExist</a> must not be combined with another option, since that would cause it to act the same as <a href="objects/Gui.htm#LastFound">+LastFound</a>.</li>
-</ul>
-<p>Some other syntax errors are currently not detected, but cause problems with AutoHotkey_L:</p>
-<ul>
-  <li><a href="Variables.htm#concat">Auto-concat</a> with <code>(</code> is more selective, so some invalid expressions like <code>12(34)</code> no longer work.</li>
-</ul>
-
-<h3 id="FileRead">FileRead</h3>
-<p><a href="commands/FileRead.htm#Binary">FileRead</a> translates text between code pages in certain common cases and therefore might output corrupt binary data.  To avoid this, add the <code>*c</code> option or use <a href="commands/FileOpen.htm">FileOpen</a> instead.</p>
-
-<h3 id="Names">Variable and Function Names</h3>
-<p>The characters <code>[</code>, <code>]</code> and <code>?</code> are reserved for use in <a href="Variables.htm#Expressions">expressions</a>, so are no longer valid in variable names.  Consequently, <code>?</code> (used in <a href="Variables.htm#ternary">ternary operations</a>) no longer requires a space on either side.  See also <a href="Objects.htm#Syntax">object syntax</a>.</p>
-<p>Errors may or may not be detected automatically:</p>
-<ul>
-  <li>If a script used these characters in variable names in expressions, generally the script will run without displaying an error message, but will misbehave as the characters will be interpreted as operators rather than as part of a variable name.</li>
-  <li>If these characters are used in a <a href="Variables.htm#deref">double-deref</a> (such as <code>Array%n%</code> where <em>n</em> contains one of the above characters), an error message is displayed when the double-deref is evaluated, while the script is running.</li>
-  <li>If these characters are used in other contexts, such as on the left hand side of an assignment, in the name of a command's input/output variable or between %percent% signs, an error message is displayed and the script is prevented from launching.</li>
-</ul>
-
-<h3 id="DPIScale">DPI Scaling</h3>
-<p><a href="objects/Gui.htm#DPIScale">DPI scaling</a> is enabled by default for script GUIs to ensure they scale according to the <a href="Variables.htm#ScreenDPI">system DPI setting</a>.  If enabled and the system DPI setting is not 96 (100%), positions and sizes accepted by or returned from Gui methods/properties are not compatible with other commands.  To disable DPI scaling, use <code>MyGui.Opt("-DPIScale")</code>.</p>
-
-<h3 id="Transform">Transform</h3>
-<p>Some <i>Transform</i> sub-commands are altered or unavailable in Unicode versions of AutoHotkey_L:</p>
-<ul>
-  <li><a href="commands/Transform.htm#Unicode">Transform, Unicode</a> is unavailable. To assign Unicode text to the clipboard, use a regular assignment. See also: <a href="commands/StrPut.htm">StrPut</a>/<a href="commands/StrGet.htm">StrGet</a>.</li>
-  <li><a href="commands/Transform.htm#HTML">Transform, HTML</a> supports additional features.</li>
-</ul>
-
-<h3 id="Default_Script">Default Script</h3>
-<p>When AutoHotkey_L is launched without specifying a script, an .ahk file is loaded by default instead of an .ini file.  The name of this file depends on the filename of the current executable.  For more details, see <a href="Scripts.htm#cmd">Passing Command Line Parameters to a Script</a>.</p>
-
-<h3 id="SetFormat">SetFormat, Integer[Fast], H</h3>
-<p>When an uppercase H is used, hexadecimal digits A-F will also be in uppercase.  AutoHotkey Basic always uses lowercase digits. See <a href="commands/SetFormat.htm">SetFormat</a>.</p>
-
-<h3 id="LastError">A_LastError</h3>
-<p>The following commands now set <a href="Variables.htm#LastError">A_LastError</a> to assist with debugging: FileAppend, FileRead, FileReadLine, FileDelete, FileCopy, FileMove, FileGetAttrib/Time/Size/Version, FileSetAttrib/Time, FileCreateDir, RegRead, RegWrite, RegDelete.  Using any of these commands causes the previous value of A_LastError to be overwritten.</p>
-
-<h3 id="MsgBox">MsgBox</h3>
-<p><a href="commands/MsgBox.htm">MsgBox</a>'s smart comma handling has been changed to improve flexibility and consistency with all other commands.  In most cases, MsgBox will just work as intended.  In some rare cases, scripts relying on the old quirky behaviour may observe a change in behaviour.  For instance:</p>
-<pre><em>; This is now interpreted as an expression (Options) followed by text (Title)
-; instead of as a single expression (Text) with multiple <a href="Variables.htm#comma">sub-expressions</a>:</em>
-MsgBox % x, y
-<em>; Parentheses can be added to force the old interpretation:</em>
-MsgBox % (x, y)
-
-<em>; This now shows an empty dialog instead of the text "0, Title":</em>
-MsgBox 0, Title
-<em>; These behave as expected in both AutoHotkey_L and AutoHotkey Basic:</em>
-MsgBox 0, Title, % ""   <em>; Shows an empty dialog</em>
-MsgBox 0`, Title        <em>; Shows the text "0, Title"</em>
-
-<em>; This now shows an empty dialog instead of the text ", Title":</em>
-MsgBox,, Title
-</pre>
-
-<h3 id="GuiOwner">GUI's Owner option</h3>
-<p>Applying the <a href="objects/Gui.htm#Owner">+Owner</a> option to a Gui also removes the WS_CHILD style and sets the WS_POPUP style. This may break scripts which used <code>+Owner</code> to set the parent window of a Gui <em>after</em> setting the styles.</p>
-
-<h3 id="Tilde">~Tilde and Custom Combination Hotkeys</h3>
-<p>As of <span class="ver">[v1.1.14]</span>, the <a href="Hotkeys.htm#Tilde">tilde prefix</a> affects how a key works when used as a modifier key in a custom combination.</p>
-
-<h3 id="ComboUpDown">Custom Combinations and Down/Up Hotkeys</h3>
-<p>Except when the tilde prefix is used, if both a key-down and a key-up hotkey are defined for a custom modifier key, they will both fire when the key is released.  For example, <code>x &amp; y::</code> causes both <code>x::</code> and <code>x up::</code> to fire when x is released, where previously <code>x::</code> never fired.</p>
-
-<h3 id="IfIs">If <em>var</em> is <em>type</em></h3>
-<p><a href="commands/IfIs.htm">If <em>var</em> is <em>type</em></a> ignores the system locale unless <a href="commands/StringCaseSense.htm">StringCaseSense, Locale</a> has been used.</p>
-
-<h3 id="Window_Groups">Window Groups</h3>
-<p><a href="commands/GroupActivate.htm">GroupActivate</a> sets ErrorLevel to 1 if no window was found to activate or 0 otherwise.  Previously, ErrorLevel was left unchanged.</p>
-<p><a href="commands/GroupAdd.htm">GroupAdd</a>'s <em>Label</em> parameter applies to the window group as a whole instead of to one particular window specification within the group.  A discussion of this change can be found <a href="https://www.autohotkey.com/community/viewtopic.php?t=61362">on the forums</a>.  However, using this parameter is <strong>not recommended</strong>; check ErrorLevel after calling GroupActivate instead.</p>
-
-<h3 id="Run">Run / RunWait</h3>
-<p>AutoHotkey_L includes some enhancements to the way the <a href="commands/Run.htm">Run</a> and <a href="commands/Run.htm">RunWait</a> commands interpret the <em>Target</em> parameter.  This allows some things that didn't work previously, but in some very rare cases, may also affect scripts which were already working in AutoHotkey Basic.  The new behaviour is as follows:</p>
-<ul>
-  <li>If <i>Target</i> begins with a quotation mark, everything up to the next quotation mark is considered the action, typically an executable file.</li>
-  <li>Otherwise the first substring which ends at a space and is either an existing file or ends in .exe, .bat, .com, .cmd or .hta is considered the action. This allows file types such as .ahk, .vbs or .lnk to accept parameters while still allowing "known" executables such as wordpad.exe to be launched without an absolute path as in previous versions.</li>
-</ul>
-
-<h3 id="ControlZ">Control-Z</h3>
-<p><a href="commands/LoopRead.htm">Loop Read</a> and <a href="commands/FileReadLine.htm">FileReadLine</a> no longer interpret the character <kbd>Ctrl</kbd>+<kbd>Z</kbd> (0x1A) as an end-of-file marker.  Any <kbd>Ctrl</kbd>+<kbd>Z</kbd>, even one appearing at the very end of the file, is loaded as-is.  <a href="commands/FileRead.htm">FileRead</a> already ignored this character, so is not affected by this issue.</p>
-
-<h3 id="Compatibility_Mode">Compatibility Mode</h3>
-<p>If <a href="https://support.microsoft.com/en-us/help/15078/windows-make-older-programs-compatible">Compatibility mode</a> is set to Windows 95, 98/ME or NT4 in the properties of the EXE file used to run the script, the script may not behave correctly.  This is because compatibility mode causes a specific version of Windows to be reported to the application, but AutoHotkey_L omits support for these versions.  For example, setting compatibility mode to Windows 95 or 98/ME will cause <code>MsgBox %A_OSVersion%</code> to report <code>WIN_NT4</code>.</p>
-
-<h3 id="IsCompiled">A_IsCompiled</h3>
-<p><a href="Variables.htm#IsCompiled">A_IsCompiled</a> is defined as an empty string if the script has not been compiled.  Previously it was left undefined, which meant that assignments such as <code>A_IsCompiled := 1</code> were valid if the script hadn't been compiled.  Now it is treated as a read-only built-in variable in all cases.</p>
-
-<h3 id="Escaped_Whitespace">Escaped Whitespace</h3>
-<p>Escaped whitespace characters such as <code>`t</code> and <code>` </code> are no longer trimmed from the beginning and end of each arg.  For example, <code>StringReplace s, s, `t</code> is now valid and will remove all tab characters from <em>s</em>.</p>
-
-
 <h2 id="Format">Unicode vs ANSI</h2>
 <p class="note"><strong>Note:</strong> This section builds on topics covered in other parts of the documentation: <a href="Concepts.htm#strings">Strings</a>, <a href="Concepts.htm#string-encoding">String Encoding</a>.</p>
-<p>Within a string (text value), the numeric character code and size (in bytes) of each character depends on the <a href="Concepts.htm#native-encoding">native encoding</a> of the script or AutoHotkey executable; i.e. <i>Unicode</i> or <i>ANSI</i>.  These details are typically important for scripts which do any of the following:</p>
+<p>Within a string (text value), the numeric character code and size (in bytes) of each character depends on the <a href="Concepts.htm#string-encoding">encoding</a> of the string. These details are typically important for scripts which do any of the following:</p>
 <ul>
   <li>Pass strings to external functions via <a href="#DllCall">DllCall</a>.</li>
   <li>Pass strings via <a href="commands/PostMessage.htm">PostMessage</a> or <a href="commands/SendMessage.htm">SendMessage</a>.</li>
   <li>Manipulate strings directly via <a href="#NumPutGet">NumPut/NumGet</a>.</li>
-  <li>Use <a href="#VarSetCapacity">VarSetCapacity</a> to ensure a variable can hold a specific number of characters.</li>
+  <li>Allocate a <a href="#Buffer">Buffer</a> to hold a specific number of characters.</li>
 </ul>
-<p>Scripts designed with one particular format in mind will often encounter problems when run on the wrong version of AutoHotkey.  For instance, some scripts written for AutoHotkey Basic will function correctly on the ANSI version of AutoHotkey_L but fail on Unicode versions.  If you aren't sure which version you are using, run the following script:</p>
-<pre>MsgBox % A_IsUnicode ? "Unicode" : "ANSI"</pre>
-<p><strong>ANSI:</strong> Each character is <strong>one byte</strong> (8 bits).  Character codes above 127 depend on your system's language settings.</p>
+<p>AutoHotkey v2 natively uses Unicode (UTF-16), but some external libraries or window messages might require ANSI strings.</p>
+<p><strong>ANSI:</strong> Each character is <strong>one byte</strong> (8 bits).  Character codes above 127 depend on your system's language settings (or the codepage chosen when the text was encoded, such as when it is written to a file).</p>
 <p><strong>Unicode:</strong> Each character is <strong>two bytes</strong> (16 bits).  Character codes are as defined by the <a href="https://en.wikipedia.org/wiki/UTF-16">UTF-16</a> format.</p>
 <p class="Indent"><em>Semantic note:</em> Technically, some Unicode characters are represented by <i>two</i> 16-bit code units, collectively known as a "surrogate pair."  Similarly, some <a href="http://msdn.microsoft.com/en-us/library/dd317752.aspx">ANSI code pages</a> (commonly known as <a href="http://msdn.microsoft.com/en-us/library/dd317794.aspx">Double Byte Character Sets</a>) contain some double-byte characters.  However, for practical reasons these are almost always treated as two individual units (referred to as "characters" for simplicity).</p>
 
-<h3 id="VarSetCapacity">VarSetCapacity</h3>
-<p>VarSetCapacity sets the capacity of a var <i>in bytes</i>.  To set a variable's capacity based on the number of characters, the size of a character must be taken into account.  For example:</p>
-<pre>VarSetCapacity(ansi_var,    capacity_in_chars)
-VarSetCapacity(unicode_var, capacity_in_chars * 2)
-VarSetCapacity(native_var,  capacity_in_chars * (A_IsUnicode ? 2 : 1))
-VarSetCapacity(native_var,  t_size(capacity_in_chars))  <em>; see <a href="#NumPutGet">below</a></em>
-</pre>
-<p>There are two main uses for VarSetCapacity:</p>
-<ol>
-  <li>Expand a variable to hold an estimated number of characters, to enhance performance when building a string by means of gradual concatenation.  For example, <code>VarSetCapacity(var, 1000)</code> allows for 1000 bytes, which is only 500 characters on Unicode versions of AutoHotkey_L.  This could affect performance, but the script should still function correctly.</li>
-  <li>Resize a variable to hold a binary structure.  If the structure directly contains text, the format of that text must be taken into account.  This depends on the structure - sometimes ANSI text will be used even in a Unicode version of AutoHotkey_L.  If the variable is too small, the script may crash or otherwise behave unpredictably (depending on how the structure is used).</li>
-</ol>
+<h3 id="Buffer">Buffer</h3>
+<p>When allocating a <a href="objects/Buffer.htm">Buffer</a>, take care to calculate the correct number of <em>bytes</em> for whichever encoding is required. For example:</p>
+<pre>ansi_buf  := Buffer(capacity_in_chars)
+utf16_buf := Buffer(capacity_in_chars * 2)</pre>
+<p>If an ANSI or UTF-8 string will be written into the buffer with <a href="commands/StrPut.htm">StrPut</a>, do not use <a href="commands/StrLen.htm">StrLen</a> to determine the buffer size, as the ANSI or UTF-8 length may differ from the native (UTF-16) length. Instead, use <a href="commands/StrPut.htm#ExEncoding">StrPut</a> to calculate the required buffer size. For example:</p>
+<pre>required_bytes := StrPut(source_string, "cp0")
+ansi_buf := Buffer(required_bytes)
+StrPut(source_string, ansi_buf)</pre>
 
 <h3 id="DllCall">DllCall</h3>
 <p>When the "Str" type is used, it means a string in the native format of the current build.  Since some functions may require or return strings in a particular format, the following string types are available:</p>
@@ -198,43 +54,33 @@ VarSetCapacity(native_var,  t_size(capacity_in_chars))  <em>; see <a href="#NumP
   <tr><th>&nbsp;</th><th class="center">Char Size</th><th>C / Win32 Types</th><th>Encoding</th></tr>
   <tr><td class="Syntax center">WStr</td><td class="center">16-bit</td><td>wchar_t*, WCHAR*, LPWSTR, LPCWSTR</td><td>UTF-16</td></tr>
   <tr><td class="Syntax center">AStr</td><td class="center">8-bit</td><td>char*, CHAR*, LPSTR, LPCSTR</td><td>ANSI (the system default ANSI code page)</td></tr>
-  <tr><td class="Syntax center">Str</td><td class="center">--</td><td>TCHAR*, LPTSTR, LPCTSTR</td><td>Equivalent to <b>WStr</b> in Unicode builds and <b>AStr</b> in ANSI builds.</td></tr>
+  <tr><td class="Syntax center">Str</td><td class="center">--</td><td>TCHAR*, LPTSTR, LPCTSTR</td><td>Equivalent to <b>WStr</b> in AutoHotkey v2.</td></tr>
 </table>
-<p>If "Str" or the equivalent type for the current build is used as a parameter, the address of the string or var is passed to the function, otherwise a temporary copy of the string is created in the desired format and passed instead. As a general rule, "AStr" and "WStr" should not be used if the function writes a value into that parameter.</p>
+<p>If "Str" or "WStr" is used for a parameter, the address of the string is passed to the function. For "AStr", a temporary ANSI copy of the string is created and its address is passed instead. As a general rule, "AStr" should not be used for an output parameter since the buffer is only large enough to hold the input string.</p>
 <p class="note"><b>Note:</b> "AStr" and "WStr" are equally valid for parameters and the function's return value.</p>
-<p>In general, if a script calls a function via DllCall which accepts a string as a parameter, one of the following approaches must be taken:</p>
+<p>In general, if a script calls a function via DllCall which accepts a string as a parameter, one or more of the following approaches must be taken:</p>
 <ol>
-  <li>If both Unicode (W) and ANSI (A) versions of the function are available, call the appropriate one for the current build.  In the following example, "DeleteFile" is internally known as "DeleteFileA" or "DeleteFileW".  Since "DeleteFile" itself doesn't really exist, DllCall automatically tries "A" or "W" as appropriate for the current build:
+  <li>If both Unicode (W) and ANSI (A) versions of the function are available, omit the W or A suffix and use the "Str" type for input parameters or the return value. For example, the DeleteFile function is exported from kernel32.dll as <code>DeleteFileA</code> and <code>DeleteFileW</code>. Since <code>DeleteFile</code> itself doesn't really exist, DllCall automatically tries <code>DeleteFileW</code>:
   <pre>DllCall("DeleteFile", "Ptr", StrPtr(filename))
 DllCall("DeleteFile", "Str", filename)</pre>
-  <p>In this example, <code>&amp;filename</code> passes the address of the string exactly as-is, so the function must expect a string in the same format as the "Str" type. Note that "UInt" must be used in place of "Ptr" in AutoHotkey Basic, but the resulting code may not be 64-bit compatible.</p>
-  <p class="note"><b>Note:</b> If the function cannot be found exactly as specified, AutoHotkey_L appends the "A" or "W" suffix regardless of which DLL is specified.  However, AutoHotkey Basic appends the "A" suffix only for functions in User32.dll, Kernel32.dll, ComCtl32.dll, or Gdi32.dll.</p></li>
-  <li>If the function only accepts a specific type of string as input, the script may use the appropriate string type:
+  <p>In both cases, the address of the original unmodified string is passed to the function.</p>
+  <p>In some cases this approach may backfire, as DllCall adds the W suffix only if no function could be found with the original name. For example, shell32.dll exports ExtractIconExW, ExtractIconExA and ExtractIconEx with no suffix, with the last two being equivalent. In that case, omitting the W suffix causes the ANSI version to be called.</p>
+  <li>If the function accepts a specific type of string as input, the script may use the appropriate string type:
   <pre>DllCall("DeleteFileA", "AStr", filename)
-DllCall("DeleteFileW", "WStr", filename)</pre></li>
-  <li>If the function must modify a string (in a non-native format), the script must allocate a buffer as described <a href="#VarSetCapacity">above</a> and pass its address to the function.  If the parameter accepts input, the script must also convert the input string to the appropriate format; this can be done using <a href="commands/StrPut.htm">StrPut</a>.</li>
+DllCall("DeleteFileW", "WStr", filename)</pre>
+  <li>If the function has a string parameter used for output, the script must allocate a buffer as described <a href="#Buffer">above</a> and pass it to the function. If the parameter accepts input, the script must also convert the input string to the appropriate format; <a href="commands/StrPut.htm">StrPut</a> can be used for this.</li>
 </ol>
 
 <h3 id="NumPutGet">NumPut / NumGet</h3>
 <p>When NumPut or NumGet are used with strings, the offset and type must be correct for the given type of string.  The following may be used as a guide:</p>
-<pre><em>;  8-bit/ANSI   strings:  size_of_char=1  type_of_char="Char"
+<pre><em>;  8-bit/ANSI   strings:  size_of_char=1  type_of_char="UChar"
 ; 16-bit/UTF-16 strings:  size_of_char=2  type_of_char="UShort"</em>
-<i>n</i>th_char := NumGet(var, (<i>n</i>-1)*<i>size_of_char</i>, <i>type_of_char</i>)
-NumPut(<i>n</i>th_char, var, (<i>n</i>-1)*<i>size_of_char</i>, <i>type_of_char</i>)</pre>
-<p>If <code>var</code> contains a string in the native format, the appropriate values may be determined based on the value of <code>A_IsUnicode</code>:</p>
-<pre><i>n</i>th_char := NumGet(var, t_size(<i>n</i>-1), t_char())
-NumPut(<i>n</i>th_char, var, t_size(<i>n</i>-1), t_char())
-
-<em>; Define functions for convenience and clarity:</em>
-t_char() {
-    return A_IsUnicode ? "UShort" : "Char"
-}
-t_size(char_count:=1) {
-    return A_IsUnicode ? char_count*2 : char_count
-}</pre>
+<i>n</i>th_char := NumGet(buffer_or_address, (<i>n</i>-1)*size_of_char, type_of_char)
+NumPut(type_of_char, <i>n</i>th_char, buffer_or_address, (<i>n</i>-1)*size_of_char)</pre>
+<p>For the first character, <em>n</em> should have the value 1.</p>
 
 <h2 id="ptr">Pointer Size</h2>
-<p>Pointers are 4 bytes in 32-bit builds (including AutoHotkey Basic) and 8 bytes in 64-bit builds. Scripts using structures or DllCalls may need to account for this to run correctly on both platforms. Specific areas which are affected include:</p>
+<p>Pointers are 4 bytes in 32-bit builds and 8 bytes in 64-bit builds. Scripts using structures or DllCalls may need to account for this to run correctly on both platforms. Specific areas which are affected include:</p>
 <ul>
   <li>Offset calculation for fields in structures which contain one or more pointers.</li>
   <li>Size calculation for structures containing one or more pointers.</li>
@@ -250,7 +96,7 @@ t_size(char_count:=1) {
     DWORD  dwThreadId;
   } <a href="http://msdn.microsoft.com/en-us/library/ms684873.aspx">PROCESS_INFORMATION</a>, *LPPROCESS_INFORMATION;
 */</em>
-VarSetCapacity(pi, A_PtrSize*2 + 8) <em>; Ptr + Ptr + UInt + UInt</em>
+pi := Buffer(A_PtrSize*2 + 8) <em>; Ptr + Ptr + UInt + UInt</em>
 DllCall("<a href="http://msdn.microsoft.com/en-us/library/ms682425.aspx">CreateProcess</a>", <span class="dull">&lt;omitted for brevity&gt;</span>, "Ptr", &amp;pi, <span class="dull">&lt;omitted&gt;</span>)
 hProcess    := NumGet(pi, 0)         <em>; Defaults to "Ptr".</em>
 hThread     := NumGet(pi, A_PtrSize) <em>;</em>
