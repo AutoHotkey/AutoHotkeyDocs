@@ -1430,14 +1430,21 @@ function ctor_features()
         var id = tr.getAttribute('id');
         newTable += (id) ? '<tbody id="'+id+'">' : '<tbody>';
         var tds = tr.querySelectorAll('td');
-        if (tr.querySelectorAll('td[rowspan]').length)
+        if (tr.querySelectorAll('td[rowspan], td[colspan]').length)
           for (var k = 0; k < tds.length; k++)
           {
             var td = tds[k];
             var rowspan = td.getAttribute('rowspan');
+            var colspan = td.getAttribute('colspan');
             if (rowspan)
               for (var l = 1; l < rowspan; l++)
                 trs[j + l].insertCell(k).innerHTML = td.innerHTML;
+            if (colspan)
+            {
+              for (var l = 1; l < colspan; l++)
+                tr.insertCell(k + l).innerHTML = td.innerHTML;
+              tds = tr.querySelectorAll('td');
+            }
           }
         for(var k = 0; k < tds.length; k++) {
           var td = tds[k];
