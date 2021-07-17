@@ -14,6 +14,7 @@ translateData = {
   "Declarations":true,
   "Operators":true,
   "Commands":true,
+  "Ahk2Exe Compiler":true,
   "S̲earch":true,
   "Search tab":true,
   "Shortcut: ALT+S":true,
