@@ -129,7 +129,7 @@ indexData = [
   ["A_KeyDuration","Variables.htm#KeyDelay",1],
   ["A_KeyDurationPlay","Variables.htm#KeyDelayPlay",1],
   ["A_Language","Variables.htm#Language",1],
-  ["A_Language Values","misc/Languages.htm",1],
+  ["A_Language Values","misc/Languages.htm"],
   ["A_LastError","Variables.htm#LastError",1],
   ["A_LineFile","Variables.htm#LineFile",1],
   ["A_LineNumber","Variables.htm#LineNumber",1],

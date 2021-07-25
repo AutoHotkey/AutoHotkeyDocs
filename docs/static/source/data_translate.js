@@ -13,6 +13,7 @@ translateData = {
   "Control Flow Statements":true,
   "Declarations":true,
   "Operators":true,
+  "Ahk2Exe Compiler":true,
   "S̲earch":true,
   "Search tab":true,
   "Shortcut: ALT+S":true,
