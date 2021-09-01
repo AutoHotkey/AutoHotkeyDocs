@@ -290,6 +290,7 @@ indexData = [
   ["AutoTrim","commands/AutoTrim.htm",6,"S"],
   ["balloon tip","commands/TrayTip.htm"],
   ["base (Objects)","Objects.htm#Custom_Objects"],
+  ["Base directive (Ahk2Exe)","misc/Ahk2ExeDirectives.htm#Bin",99],
   ["base property (Object)","objects/Object.htm#Base"],
   ["beep the PC speaker","commands/SoundBeep.htm"],
   ["between (check if var between two values)","commands/IfBetween.htm"],
