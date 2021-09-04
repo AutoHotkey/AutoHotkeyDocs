@@ -158,13 +158,20 @@
   <li>If two variables were specified, the enumerator attempts to call the property's getter to retrieve the value.
     <ul>
       <li>If the getter requires parameters, the property is skipped.</li>
-      <li>If <em>Obj</em> itself does not define a getter for this property, it is skipped.</li>
+      <li>If <em>Obj</em> itself does not define a getter for this property, it is skipped.
+        <p class="warning"><strong>Note:</strong> Properties defined by a method definition typically do not have a getter, so are skipped.</p>
+      </li>
       <li>If <em>Obj</em> is a class prototype object, the getter should not (and in some cases cannot) be called; so the property is skipped.</li>
       <li>If the getter throws an exception, it is propagated (not suppressed). The caller can continue enumeration at the next property only if it retained a reference to the enumerator (i.e. not if it passed the enumerator directly to a for-loop, since in that case the enumerator is freed when the for-loop aborts).</li>
     </ul>
   </li>
 </ul>
-<p>To enumerate own properties without calling property getters, pass only a single variable to the for-loop or enumerator. <a href="#GetOwnPropDesc">GetOwnPropDesc</a> can be used to differentiate value properties from dynamic properties, while also retrieving the value or getter/setter.</p>
+<p>To enumerate own properties without calling property getters, or to enumerate all properties regardless of type, pass only a single variable to the for-loop or enumerator. <a href="#GetOwnPropDesc">GetOwnPropDesc</a> can be used to differentiate value properties from dynamic properties, while also retrieving the value or getter/setter/method.</p>
+<p>Methods are typically excluded from enumeration in the two-parameter mode, because evaluation of the property normally depends on whether the object has a corresponding getter or value, either in the same object or a base object. To avoid inconsistency when two variables are specified, OwnProps skips over own properties that have only a <em>Call</em> accessor function. For example:</p>
+<ul>
+  <li>If OwnProps returned the method itself when no getter is defined, defining a getter would then prevent the method from being returned. Scripts relying on the two variable mode to retrieve methods would then miss some methods.</li>
+  <li>If OwnProps returned the method itself when a getter is defined by a base object, this would be inconsistent with normal evaluation of the property.</li>
+</ul>
 <p>The default implementation of this method is also defined as a function: <code>ObjOwnProps(Obj)</code>.</p>
 </div>
 
