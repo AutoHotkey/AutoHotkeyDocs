@@ -25,6 +25,7 @@
       <p>The name of a single file or folder, or a wildcard pattern such as "C:\Temp\*.tmp". <em>FilePattern</em> is assumed to be in <a href="../Variables.htm#WorkingDir">A_WorkingDir</a> if an absolute path isn't specified.</p>
       <p>Both asterisks and question marks are supported as wildcards. A match occurs when the pattern appears in either the file's long/normal name or its <a href="#LoopFileShortName">8.3 short name</a>.</p>
       <p>If this parameter is a single file or folder (i.e. no wildcards) and <em>Mode</em> includes R, more than one match will be found if the specified file name appears in more than one of the folders being searched.</p>
+      <p>Patterns longer than 259 characters may fail to find any files due to <a href="../misc/LongPaths.htm">system limitations (MAX_PATH)</a>. This limit can be bypassed by using the <code>\\?\</code> <a href="../misc/LongPaths.htm#prefix">long path prefix</a>, with some stipulations.</code></p>
   </dd>
 
   <dt>Mode</dt>
@@ -122,7 +123,12 @@ Loop Files, "*.jpg"
 Loop Parse, FileList, "`n"
     FileMove A_LoopField, "renamed_" A_LoopField</pre>
 <p>Files in an NTFS file system are probably always retrieved in alphabetical order. Files in other file systems are retrieved in no particular order. To ensure a particular ordering, use the <a href="Sort.htm">Sort</a> function as shown in the Examples section below.</p>
-<p>Files and folders with a complete path name longer than 259 characters are skipped over as though they do not exist. Such files are rare because normally, the operating system does not allow their creation.</p>
+<p>File patterns longer than 259 characters are supported only when at least one of the following is true:</p>
+<ul>
+  <li>The system has <a href="../misc/LongPaths.htm">long path support</a> enabled (requires Windows 10 version 1607 or later).</li>
+  <li>The <code>\\?\</code> <a href="../misc/LongPaths.htm#prefix">long path prefix</a> is used (caveats apply).</li>
+</ul>
+<p>In all other cases, file patterns longer than 259 characters will not find any files or folders. This limit applies both to <em>FilePattern</em> and any temporary pattern used during recursion into a subfolder.</p>
 <p>See <a href="Loop.htm">Loop</a> for information about <a href="Block.htm">Blocks</a>, <a href="Break.htm">Break</a>, <a href="Continue.htm">Continue</a>, and the A_Index variable (which exists in every type of loop).</p>
 <p>The loop may optionally be followed by an <a href="Else.htm">Else</a> statement, which is executed if no matching files or directories were found (i.e. the loop had zero iterations).</p>
 

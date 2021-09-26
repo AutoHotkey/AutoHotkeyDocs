@@ -250,6 +250,7 @@ indexData = [
   ["auto-replace text as you type it","Hotstrings.htm"],
   ["balloon tip","commands/TrayTip.htm"],
   ["base (Objects)","Objects.htm#Custom_Objects"],
+  ["Base directive (Ahk2Exe)","misc/Ahk2ExeDirectives.htm#Bin",99],
   ["Base property (Object)","objects/Object.htm#Base"],
   ["beep the PC speaker","commands/SoundBeep.htm"],
   ["Bin directive (Ahk2Exe)","misc/Ahk2ExeDirectives.htm#Bin",99],

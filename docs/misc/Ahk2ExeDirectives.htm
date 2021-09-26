@@ -23,7 +23,7 @@
   <ul>
     <li><a href="#Intro2">Introduction</a></li>
     <li><a href="#AddResource">AddResource</a>: Adds a resource to the .exe.</li>
-    <li><a href="#Bin">Bin</a>: Specifies the binary version of AutoHotkey to use.</li>
+    <li><a href="#Bin">Bin / Base</a>: Specifies the base version of AutoHotkey to use.</li>
     <li><a href="#ConsoleApp">ConsoleApp</a>: Sets Console mode.</li>
     <li><a href="#Cont">Cont</a>: Specifies a directive continuation line.</li>
     <li><a href="#Debug">Debug</a>: Shows directive debugging text.</li>
@@ -31,6 +31,7 @@
     <li><a href="#Let">Let</a>: Sets a user variable.</li>
     <li><a href="#Obey">Obey</a>: Obeys a command or expression.</li>
     <li><a href="#PostExec">PostExec</a>: Runs a program after compilation.</li>
+    <li><a href="#ResourceID">ResourceID</a>: Assigns a non-standard resource ID to the main script.</li>
     <li><a href="#SetMainIcon">SetMainIcon</a>: Sets the main icon.</li>
     <li><a href="#SetProp">Set<i>Prop</i></a>: Sets an .exe property.</li>
     <li><a href="#Set">Set</a>: Sets a miscellaneous property.</li>
@@ -125,18 +126,23 @@ MsgBox "This message appears in both the compiled and uncompiled script"
   <li>23 (RT_HTML): <code>.htm</code>, <code>.html</code>, <code>.mht</code></li>
   <li>24 (RT_MANIFEST): <code>.manifest</code>. If the name for the resource is not specified, it defaults to <code>1</code></li>
 </ul>
-<p><strong>Example:</strong> To replace the standard icons (other than the <a href="#SetMainIcon">main icon</a>):</p>
+<p><strong>Example 1:</strong> To replace the standard icons (other than the <a href="#SetMainIcon">main icon</a>):</p>
 <pre>;@Ahk2Exe-AddResource Icon1.ico, 160  ; Replaces 'H on blue'
 ;@Ahk2Exe-AddResource Icon2.ico, 206  ; Replaces 'S on green'
 ;@Ahk2Exe-AddResource Icon3.ico, 207  ; Replaces 'H on red'
 ;@Ahk2Exe-AddResource Icon4.ico, 208  ; Replaces 'S on red'</pre>
 
-<h3 id="Bin">Bin</h3>
-<p>Specifies the Binary version of AutoHotkey to be included in the generated .exe. (This overrides anything specified in the GUI or CLI.) This directive can be specified many times if necessary, but only in the top level script file (i.e. not in an <a href="../commands/_Include.htm">#Include</a> file). The compiler will be run at least once for each <em>Bin</em> directive found. (If an actual comment is appended to this directive, it must use the <code>&nbsp;;</code> flag. To truly comment out this directive, insert a space after the first comment flag.)</p>
-<pre class="Syntax"><span class="func">;@Ahk2Exe-Bin</span> [Path\]Name <span class="optional">, [Exe_path\][Name], Codepage</span></pre>
+<p><strong>Example 2:</strong> To include another script as a separate RCDATA resource (see <a href="../program.htm#embedded-scripts">Embedded Scripts</a>):</p>
+<pre>;@Ahk2Exe-AddResource MyScript.ahk, MYRESOURCE</pre>
+
+<h3 id="Bin">Bin / Base</h3>
+<p>Specifies the base version of AutoHotkey to be used to generate the .exe file. This directive may be overridden by a base file parameter specified in the GUI or CLI. This directive can be specified many times if necessary, but only in the top level script file (i.e. not in an <a href="../commands/_Include.htm">#Include</a> file). The compiler will be run at least once for each Bin/Base directive found. (If an actual comment is appended to this directive, it must use the <code>&nbsp;;</code> flag. To truly comment out this directive, insert a space after the first comment flag.)</p>
+
+<pre class="Syntax"><span class="func">;@Ahk2Exe-Bin </span> [Path\]Name <span class="optional">, [Exe_path\][Name], Codepage</span> <em>; Deprecated</em>
+<span class="func">;@Ahk2Exe-Base</span> [Path\]Name <span class="optional">, [Exe_path\][Name], Codepage</span></pre>
 <dl>
   <dt>[Path\]Name</dt>
-  <dd>The *.bin file to use. If no extension is supplied, <code>.bin</code> is assumed. A DOS mask may be specified for <em>Name</em>, e.g. <code>ANSI*</code>, <code>Unicode 32*</code>, <code>Unicode 64*</code>, or <code>*bit</code> for all three. If no path is specified, the standard *.bin files in the compiler folder are searched. The compiler will be run for each *.bin file that matches. Any use of built-in variable replacements must only be from <a href="#group1">group 1</a> above.</dd>
+  <dd>The *.bin or *.exe file to use. If no extension is supplied, <code>.bin</code> is assumed. A DOS mask may be specified for <em>Name</em>, e.g. <code>ANSI*</code>, <code>Unicode 32*</code>, <code>Unicode 64*</code>, or <code>*bit</code> for all three. If no path is specified, the standard *.bin files in the compiler folder are searched. The compiler will be run for each *.bin or *.exe file that matches. Any use of built-in variable replacements must only be from <a href="#group1">group 1</a> above.</dd>
   <dt>[Exe_path\][Name]</dt>
   <dd><i>(Optional)</i> The file name to be given to the .exe. Any extension supplied will be replaced by <code>.exe</code>. If no path is specified, the .exe will be created in the script folder. If no name is specified, the .exe will have the default name. (This parameter can be overridden by the <a href="#ExeName">ExeName</a> directive.)</dd>
   <dt>Codepage</dt>
@@ -165,7 +171,7 @@ MsgBox "This message appears in both the compiled and uncompiled script"
 </dl>
 
 <h3 id="ExeName">ExeName</h3>
-<p>Specifies the location and name given to the generated .exe file. (Also see the <a href="#Bin">Bin</a> directive.)</p>
+<p>Specifies the location and name given to the generated .exe file. (Also see the <a href="#Bin">Base</a> directive.) This directive may be overridden by an output file specified in the GUI or CLI.</p>
 <pre class="Syntax"><span class="func">;@Ahk2Exe-ExeName</span> [Path\][Name]</pre>
 <dl>
   <dt>[Path\][Name]</dt>
@@ -239,8 +245,16 @@ MsgBox "This message appears in both the compiled and uncompiled script"
 ;@Ahk2Exe-Cont  "11.UPX." "1.UPX!.", 2</pre>
 <p>There are other examples mentioned in the <a href="https://github.com/AutoHotkey/Ahk2Exe/blob/master/BinMod.ahk">BinMod.ahk</a> script.</p>
 
+<h3 id="ResourceID">ResourceID</h3>
+<p>Assigns a non-standard resource ID to be used for the main script for compilations which use an <a href="#Bin">.exe base file</a> (see <a href="../program.htm#embedded-scripts">Embedded Scripts</a>). This directive may be overridden by a Resource ID specified in the GUI or CLI. This directive is ignored if it appears in a script inserted by the <a href="#AddResource">AddResource</a> directive.</p>
+<pre class="Syntax"><span class="func">;@Ahk2Exe-ResourceID</span> Name</pre>
+<dl>
+  <dt>Name</dt>
+  <dd>The resource ID to use. Numeric resource IDs should consist of a hash sign (#) followed by a decimal number.</dd>
+</dl>
+
 <h3 id="SetMainIcon">SetMainIcon</h3>
-<p>Overrides the custom EXE icon used for compilation. (To change the other icons, see the <a href="#AddResource">AddResource</a> example.)</p>
+<p>Overrides the custom EXE icon used for compilation. (To change the other icons, see the <a href="#AddResource">AddResource</a> example.) This directive may be overridden by an icon file specified in the GUI or CLI.</p>
 <pre class="Syntax"><span class="func">;@Ahk2Exe-SetMainIcon</span> <span class="optional">IcoFile</span></pre>
 <dl>
   <dt>IcoFile</dt>
