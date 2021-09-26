@@ -965,6 +965,7 @@ indexData = [
   ["ternary operator (?:)","Variables.htm#ternary"],
   ["Text controls (GUI)","commands/GuiControls.htm#Text"],
   ["text-mode Send","commands/Send.htm#SendText"],
+  ["ThisHotkey","Hotkeys.htm#ThisHotkey"],
   ["Thread","commands/Thread.htm",2],
   ["threads","misc/Threads.htm"],
   ["Throw","commands/Throw.htm",3,"E"],
