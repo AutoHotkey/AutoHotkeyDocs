@@ -157,17 +157,17 @@ Line 2 of the text. By default, a linefeed (`n) is present between lines.
 
 <h2 id="ahk2exe">Convert a Script to an EXE (Ahk2Exe)</h2>
 <p>A script compiler (courtesy of fincs, with additions by TAC109) is included with the program.</p>
-<p>Once a script is compiled, it becomes a standalone executable; that is, AutoHotkey.exe is not required in order to run the script. The compilation process creates an executable file which contains the following: the AutoHotkey interpreter, the script, any files it <a href="commands/_Include.htm">includes</a>, and any files it has incorporated via the <a href="commands/FileInstall.htm">FileInstall</a> function. Additional files can be included using <a href="misc/Ahk2ExeDirectives.htm">Compiler Directives</a>.</p>
+<p>Once a script is compiled, it becomes a standalone executable; that is, AutoHotkey.exe is not required in order to run the script. The compilation process creates an executable file which contains the following: the AutoHotkey interpreter, the script, any files it <a href="commands/_Include.htm">includes</a>, and any files it has incorporated via the <a href="commands/FileInstall.htm">FileInstall</a> function. Additional files can be included using <a href="misc/Ahk2ExeDirectives.htm">compiler directives</a>.</p>
 <p>Ahk2Exe can be used in the following ways:</p>
 <ul>
   <li>
-    <p><strong>GUI Interface</strong>: Run the "Convert .ahk to .exe" item in the Start Menu.</p>
+    <p><strong>GUI Interface</strong>: Run the "Convert .ahk to .exe" item in the Start Menu. (After invoking the GUI, there may be a pause before the window is shown; see <a href="#information">Background Information</a> for more details.)</p>
   </li>
   <li>
-    <p><strong>Right-click</strong>: Within an open Explorer window, you can right-click any .ahk file and select "Compile Script" (only available if the script compiler option was chosen when AutoHotkey was installed). This creates an EXE file of the same base filename as the script, which appears after a short time in the same directory. Note: The EXE file is produced using the same custom icon, .bin file and <a href="#mpress">compression</a> setting that were last used by Method #1 above.</p>
+    <p><strong>Right-click</strong>: Within an open Explorer window, right-click any .ahk file and select "Compile Script" (only available if the script compiler option was chosen when AutoHotkey was installed). This creates an EXE file of the same base filename as the script, which appears after a short time in the same directory. Note: The EXE file is produced using the same custom icon, .bin file and <a href="#mpress">compression</a> setting that were last saved in Method #1 above, or as specified by any relevant <a href="misc/Ahk2ExeDirectives.htm">compiler directive</a> in the script.</p>
   </li>
   <li id="ahk2exeCmd">
-    <p><strong>Command Line</strong>: The compiler can be run from the command line by using the parameters shown below. If any command line parameters are used, the script is compiled immediately unless <code class="no-highlight">/gui</code> is used.</p>
+    <p><strong>Command Line</strong>: The compiler can be run from the command line by using the parameters shown below. If any command line parameters are used, the script is compiled immediately unless <code class="no-highlight">/gui</code> is used. All parameters are optional, except that there must be one <code class="no-highlight">/gui</code> or <code class="no-highlight">/in</code> parameter.</p>
     <style>
       #param_pairs td:not(:last-child) {
         white-space: nowrap;
@@ -184,15 +184,19 @@ Line 2 of the text. By default, a linefeed (`n) is present between lines.
       </tr>
       <tr id="SlashOut">
         <td>/out <i>exe_name</i></td>
-        <td>The path\name of the output .exe to be created. Default is the directory\base_name of the input file plus extension of .exe.</td>
+        <td>The path\name of the output .exe to be created. Default is the directory\base_name of the input file plus extension of .exe, or any relevant <a href="misc/Ahk2ExeDirectives.htm">compiler directive</a> in the script.</td>
       </tr>
       <tr id="slashIcon">
         <td>/icon <i>icon_name</i></td>
-        <td>The icon file to be used. Default is the last icon used in the GUI interface.</td>
+        <td>The icon file to be used. Default is the last icon saved in the GUI interface, or any <a href="misc/Ahk2ExeDirectives.htm#SetMainIcon">SetMainIcon</a> compiler directive in the script.</td>
       </tr>
-      <tr id="SlashBin">
-        <td>/bin <i>file_name</i></td>
-        <td>The .bin file to be used. Default is the last .bin file name used in the GUI interface.</td>
+      <tr id="SlashBase">
+        <td>/base <i>file_name</i></td>
+        <td>The base file to be used (a .bin or .exe file). Default is the last base file name saved in the GUI interface, or any <a href="misc/Ahk2ExeDirectives.htm#Bin">Base</a> compiler directive in the script.</td>
+      </tr>
+      <tr id="SlashResourceID">
+        <td>/resourceid <i>name</i></td>
+        <td>Assigns a non-standard resource ID to be used for the main script for compilations which use an <a href="#SlashBase">.exe base file</a> (see <a href="program.htm#embedded-scripts">Embedded Scripts</a>). Numeric resource IDs should consist of a hash sign (#) followed by a decimal number. Default is #1, or any <a href="misc/Ahk2ExeDirectives.htm#ResourceID">ResourceID</a> compiler directive in the script.</td>
       </tr>
       <tr id="SlashCp">
         <td>/cp <i>codepage</i></td>
@@ -200,19 +204,27 @@ Line 2 of the text. By default, a linefeed (`n) is present between lines.
       </tr>
       <tr id="SlashCompress">
         <td>/compress <i>n</i></td>
-        <td><a href="#mpress">Compress</a> the exe? 0 = no, 1 = use MPRESS if present, 2 = use UPX if present. Default is the last setting used in the GUI interface.</td>
-      </tr>
-      <tr id="SlashAhk">
-        <td>/ahk <i>file_name</i></td>
-        <td>The path\name of AutoHotkey.exe to be used when compiling the script. Default is AutoHotkey.exe in the directory immediately above that containing the compiler. If not there, the installed Autohotkey.exe is used if present. Otherwise AutoHotkeyU32.exe in the directory immediately above that containing the compiler is used.</td>
+        <td><a href="#mpress">Compress</a> the exe? 0 = no, 1 = use MPRESS if present, 2 = use UPX if present. Default is the last setting saved in the GUI interface.</td>
       </tr>
       <tr id="SlashGui">
         <td>/gui</td>
-        <td>Show the GUI instead of immediately compiling. The other parameters can be used to override the settings last used in the GUI. <code>/in</code> is optional in this case.</td>
+        <td>Shows the GUI instead of immediately compiling. The other parameters can be used to override the settings last saved in the GUI. <code>/in</code> is optional in this case.</td>
+      </tr>
+      <tr id="SlashGuiSilent">
+        <td>/silent [verbose]</td>
+        <td>Disables all message boxes and instead outputs errors to the standard error stream (stderr); or to the standard output stream (stdout) if stderr fails. Other messages are also output to stdout. Optionally enter the word <code>verbose</code> to output status messages to stdout as well.</td>
+      </tr>
+      <tr id="SlashAhk">
+        <td class="warning"><strong>Deprecated:</strong><br>/ahk <i>file_name</i></td>
+        <td class="warning">The path\name of AutoHotkey.exe to be used as a utility when compiling the script.</td>
       </tr>
       <tr id="SlashMpress">
         <td class="warning"><strong>Deprecated:</strong><br>/mpress <i>0or1</i></td>
         <td class="warning"><a href="#mpress">Compress</a> the exe with MPRESS? 0 = no, 1 = yes. Default is the last setting used in the GUI interface.</td>
+      </tr>
+      <tr id="SlashBin">
+        <td class="warning"><strong>Deprecated:</strong><br>/bin <i>file_name</i></td>
+        <td class="warning">The .bin file to be used. Default is the last .bin file name saved in the GUI interface.</td>
       </tr>
     </table>
     <p>For example:</p>
@@ -249,6 +261,29 @@ Line 2 of the text. By default, a linefeed (`n) is present between lines.
 <p><strong>MPRESS</strong> official website (downloads and information): <a href="http://www.matcode.com/mpress.htm">http://www.matcode.com/mpress.htm</a><br>MPRESS mirror: <a href="https://www.autohotkey.com/mpress/">https://www.autohotkey.com/mpress/</a></p>
 <p><strong>UPX</strong> official website (downloads and information): <a href="https://upx.github.io/">https://upx.github.io/</a></p>
 <p><strong>Note:</strong> While compressing the script executable prevents casual inspection of the script's source code using a plain text editor like Notepad or a PE resource editor, it does not prevent the source code from being extracted by tools dedicated to that purpose.</p>
+
+<h3 id="information">Background Information</h3>
+ <p>The following folder structure is supported, where the running version of <code>Ahk2Exe.exe</code> is in the first \Compiler directory shown below:</p>
+<pre class="no-highlight">\AutoHotkey 
+   AutoHotkeyA32.exe 
+   AutoHotkeyU32.exe
+   AutoHotkeyU64.exe
+   \Compiler
+      Ahk2Exe.exe  <em>; the master version of Ahk2Exe</em>
+      ANSI 32-bit.bin
+      Unicode 32-bit.bin
+      Unicode 64-bit.bin
+   \AutoHotkey v2.0-a135
+      AutoHotkey32.exe
+      AutoHotkey64.exe
+      \Compiler
+   \v2.0-beta.1
+      AutoHotkey32.exe
+      AutoHotkey64.exe</pre>
+<p>The base file search algorithm runs for a short amount of time when Ahk2Exe starts, and works as follows:</p>
+<p>Qualifying AutoHotkey .exe files and all .bin files are searched for in the compiler's directory, the compiler's parent directory, and any of the compiler's sibling directories with directory names that start with <code>AutoHotkey</code> or <code>V</code>, but do not start with <code>AutoHotkey_H</code>. The selected directories are searched recursively. Any AutoHotkey.exe files found are excluded, leaving files such as AutoHotkeyA32.exe, AutoHotkey64.exe, etc. plus all .bin files found. All .exe files that are included must have a name starting with <code>AutoHotkey</code> and a file description containing the word <code>AutoHotkey</code>, and  must have a version of <code class="no-highlight">1.1.34+</code> or <code class="no-highlight">2.0-a135+</code>.</p>
+<p>A version of the AutoHotkey interpreter is also needed (as a utility) for a successful compile, and one is selected using a similar algorithm. In most cases the version of the interpreter used will match the version of the base file selected by the user for the compile.</p>
+
 
 <h2 id="cmd">Passing Command Line Parameters to a Script</h2>
 <p>Scripts support command line parameters. The format is:</p>
