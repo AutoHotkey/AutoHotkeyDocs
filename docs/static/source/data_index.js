@@ -297,7 +297,6 @@ indexData = [
   ["Click","commands/Click.htm",2],
   ["Click a mouse button","commands/Click.htm"],
   ["Clipboard","misc/A_Clipboard.htm"],
-  ["ClipboardAll","commands/ClipboardAll.htm",2],
   ["ClipboardAll","commands/ClipboardAll.htm",6],
   ["ClipWait","commands/ClipWait.htm",2],
   ["Clone method (Map)","objects/Map.htm#Clone"],
