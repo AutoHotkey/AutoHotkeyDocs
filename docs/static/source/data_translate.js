@@ -21,6 +21,8 @@ translateData = {
   "Search":true,
   "Highlight keywords":true,
   "Go to previous/next occurrence":true,
+  "Quick reference":true,
+  "Collapse or uncollapse the quick reference":true,
   // header
   "Skip navigation":true,
   "Hide or show the sidebar":true,
