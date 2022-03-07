@@ -283,6 +283,7 @@ tocData = [
     ["File Object","objects/File.htm"],
     ["Func Object","objects/Func.htm"],
     ["Function Objects","objects/Functor.htm"],
+    ["InputHook Object","commands/InputHook.htm#object"],
     ["RegExMatch Object","commands/RegExMatch.htm#MatchObject"]
   ]],
   ["Process","",
