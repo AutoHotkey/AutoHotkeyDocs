@@ -202,7 +202,7 @@ labels := { ""     : ""
     , "PgUp"       : "PU"
     , "RAlt"       : "Alt" zwnbs
     , "RCtrl"      : "Ctrl" zwnbs
-    , "Right"      : Chr(0x27A4)
+    , "Right"      : Chr(0x2B9E)
     , "RShift"     : "Shift" zwnbs
     , "RWin"       : "Win" zwnbs
     , "Tab"        : Chr(0x2B7E)
