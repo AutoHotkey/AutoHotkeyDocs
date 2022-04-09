@@ -16,14 +16,7 @@ tocData = [
     ["Threads","misc/Threads.htm"],
     ["Debugging Clients","AHKL_DBGPClients.htm"],
     ["Compiler Directives","misc/Ahk2ExeDirectives.htm"],
-    ["Objects","Objects.htm",
-    [
-      ["Basic Usage","Objects.htm#Usage"],
-      ["Extended Usage","Objects.htm#Extended_Usage"],
-      ["Custom Objects","Objects.htm#Custom_Objects"],
-      ["Default Base Object","Objects.htm#Default_Base_Object"],
-      ["Implementation","Objects.htm#Implementation"]
-    ]]
+    ["Objects","Objects.htm"]
   ]],
   ["Frequently Asked Questions","FAQ.htm"],
   ["Tutorial (quick start)","Tutorial.htm"],
@@ -290,6 +283,7 @@ tocData = [
     ["File Object","objects/File.htm"],
     ["Func Object","objects/Func.htm"],
     ["Function Objects","objects/Functor.htm"],
+    ["InputHook Object","commands/InputHook.htm#object"],
     ["RegExMatch Object","commands/RegExMatch.htm#MatchObject"]
   ]],
   ["Process","",
