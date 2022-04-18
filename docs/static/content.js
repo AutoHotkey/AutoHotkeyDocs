@@ -12,7 +12,8 @@ var user = {
   fontSize: 1.0,
   clickTab: 0,
   displaySidebar: true,
-  colorTheme: 0
+  colorTheme: 0,
+  collapseQuickRef: false
 }
 
 // --- Cached data ---
@@ -30,6 +31,7 @@ var cache = {
   clickTab: user.clickTab,
   displaySidebar: user.displaySidebar,
   sidebarWidth: '18em',
+  collapseQuickRef: user.collapseQuickRef,
   RightIsFocused: true,
   toc_clickItem: 0,
   toc_scrollPos: 0,
@@ -186,6 +188,10 @@ var isPhone = (document.documentElement.clientWidth <= 600);
 
           case 'pressKey':
           structure.pressKey(data[1]);
+          break;
+
+          case 'updateQuickRef':
+          structure.updateQuickRef(data[1], data[2]);
           break;
         }
       });
@@ -835,7 +841,7 @@ function ctor_structure()
   self.metaViewport = '<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">';
   self.template = '<div id="body">' +
     '<div id="head" role="banner"><button onclick="structure.focusContent();" class="skip-nav" data-translate aria-label="data-content" data-content="Skip navigation"></button><div class="h-area"><div class="h-tabs"><ul><li><button data-translate title="Shortcut: ALT+C" aria-label="Content tab" data-content="C̲ontent"></button></li><li><button data-translate title="Shortcut: ALT+N" aria-label="Index tab" data-content="In̲dex"></button></li><li><button data-translate title="Shortcut: ALT+S" aria-label="Search tab" data-content="S̲earch"></button></li></ul></div><div class="h-tools sidebar"><ul><li class="sidebar"><button title="Hide or show the sidebar" data-translate aria-label="title">&#926;</button></li></ul></div><div class="h-tools online"><ul><li class="home"><a href="' + location.protocol + '//' + location.host + '" title="Go to the homepage" data-translate aria-label="title">&#916;</a></li><li class="language"><button data-translate title="Change the language" data-translate aria-label="title" data-content="en"></button><ul class="dropdown languages selected"><li><a href="#" title="English" aria-label="title" data-content="en"></a></li><li><a href="#" title="Deutsch (German)" data-content="de" aria-label="title"></a></li><li><a href="#" title="&#xD55C;&#xAD6D;&#xC5B4 (Korean)" aria-label="title" data-content="ko"></a></li><li><a href="#" title="Português (Portuguese)" data-content="pt" aria-label="title"></a></li><li><a href="#" title="&#x4E2D;&#x6587; (Chinese)" aria-label="title" data-content="zh"></a></li></ul></li><li class="version"><button title="Change the version" data-translate aria-label="title" data-content="v1"></button><ul class="dropdown versions selected"><li><a href="#" title="AHK v1.1" aria-label="title" data-content="v1"></a></li><li><a href="#" title="AHK v2.0" aria-label="title" data-content="v2"></a></li></ul></li><li class="edit"><a href="#" title="Edit this document on GitHub" data-translate=2 aria-label="title" data-content="E"></a></li></ul></div><div class="h-tools chm"><ul><li class="back"><button title="Go back" data-translate=2 aria-label="title">&#9668;</button></li><li class="forward"><button title="Go forward" data-translate=2 aria-label="title">&#9658;</button></li><li class="zoom"><button title="Change the font size" data-translate=2 aria-label="title" data-content="Z"></button></li><li class="print"><button title="Print this document" data-translate=2 aria-label="title" data-content="P"></button></li><li class="browser"><a href="#" target="_blank" title="Open this document in the default browser (requires internet connection). Middle-click to copy the link address." data-translate aria-label="title">¬</a></li></ul></div><div class="h-tools main visible"><ul><li class="color"><button title="Use the dark or light theme" data-translate=2 aria-label="title" data-content="C"></button></li><li class="settings"><button title="Open the help settings" data-translate=2 aria-label="title">&#1029;</button></li></ul></div></div></div>' +
-    '<div id="main"><div id="left" role="navigation"><div class="toc"></div><div class="index"><div class="input"><input type="search" placeholder="Search" data-translate=2 /></div><div class="select"><select size="1" class="empty"><option value="-1" class="empty" selected data-translate>Filter</option><option value="0" data-translate>Directives</option><option value="1" data-translate>Built-in Variables</option><option value="2" data-translate>Built-in Functions</option><option value="3" data-translate>Control Flow Statements</option><option value="4" data-translate>Operators</option><option value="5" data-translate>Declarations</option><option value="6" data-translate>Built-in Classes</option><option value="99" data-translate>Ahk2Exe Compiler</option></select></div><div class="list"></div></div><div class="search"><div class="input"><input type="search" placeholder="Search" data-translate=2 /></div><div class="checkbox"><input type="checkbox" id="highlightWords"><label for="highlightWords" data-translate>Highlight keywords</label><div class="updown" title="Go to previous/next occurrence" data-translate aria-label="title"><div class="up"><div class="triangle-up"></div></div><div class="down"><div class="triangle-down"></div></div></div></div><div class="list"></div></div><div class="load"><div class="lds-dual-ring"></div></div></div><div class="dragbar"></div><div id="right" tabIndex="-1">'+(isFrameCapable?'<iframe frameBorder="0" id="frame" src="" role="main">':'<div class="area" role="main">');
+    '<div id="main"><div id="left" role="navigation"><div class="tab toc"></div><div class="tab index"><div class="input"><input type="search" placeholder="Search" data-translate=2 /></div><div class="select"><select size="1" class="empty"><option value="-1" class="empty" selected data-translate>Filter</option><option value="0" data-translate>Directives</option><option value="1" data-translate>Built-in Variables</option><option value="2" data-translate>Built-in Functions</option><option value="3" data-translate>Control Flow Statements</option><option value="4" data-translate>Operators</option><option value="5" data-translate>Declarations</option><option value="6" data-translate>Built-in Classes</option><option value="99" data-translate>Ahk2Exe Compiler</option></select></div><div class="list"></div></div><div class="tab search"><div class="input"><input type="search" placeholder="Search" data-translate=2 /></div><div class="checkbox"><input type="checkbox" id="highlightWords"><label for="highlightWords" data-translate>Highlight keywords</label><div class="updown" title="Go to previous/next occurrence" data-translate aria-label="title"><div class="up"><div class="triangle-up"></div></div><div class="down"><div class="triangle-down"></div></div></div></div><div class="list"></div></div><div class="load"><div class="lds-dual-ring"></div></div>'+(isIE8?'':'<div class="quick"><button class="header" title="Collapse or uncollapse the quick reference" data-translate aria-label="title"><div class="chevron"></div><span data-translate data-content="Quick reference"></span></button><div class="main"></div></div>')+'</div><div class="dragbar"></div><div id="right" tabIndex="-1">'+(isFrameCapable?'<iframe frameBorder="0" id="frame" src="" role="main">':'<div class="area" role="main">');
   self.template = isIE8 ? self.template.replace(/ data-content="(.*?)">/g, '>$1') : self.template;
   self.build = function() { document.write(self.template); }; // Write HTML before DOM is loaded to prevent flickering.
   self.modify = function() { // Modify elements added via build.
@@ -1011,6 +1017,31 @@ function ctor_structure()
       self.showTab($(this).index());
     });
 
+    // --- Apply events for navbar's quick reference ---
+
+    if (!isIE8)
+    {
+      $quick_header = $('#left .quick .header');
+      $quick_main = $('#left .quick .main');
+      registerEvent($quick_header, 'click', function() {
+        self.collapseQuickRef(!cache.collapseQuickRef);
+      });
+      registerEvent($quick_main, 'click', 'li > span', function() {
+        self.openSite($(this).children('a').attr('href'));
+        structure.focusContent();
+        return false;
+      });
+      if (!isTouch) {
+        $quick_main.addClass('no-scroll');
+        registerEvent($quick_main, 'mouseenter', function() {
+          $(this).removeClass('no-scroll');
+        });
+        registerEvent($quick_main, 'mouseleave', function() {
+          $(this).addClass('no-scroll');
+        });
+      }
+    }
+
     // --- Apply control events ---
 
     var Edit = $('#left .input input');
@@ -1129,6 +1160,7 @@ function ctor_structure()
 
     self.showTab(cache.clickTab);
     self.displaySidebar(cache.displaySidebar);
+    self.collapseQuickRef(isIE8 ? true : cache.collapseQuickRef);
 
     // --- Resize the sidebar's width via mouse ---
 
@@ -1184,13 +1216,52 @@ function ctor_structure()
   self.showTab = function(pos) {
     cache.set('clickTab', pos);
     var $t = $('#head div.h-tabs li');
-    var $s = $('#left > div');
+    var $s = $('#left > div:not(.quick)');
     $t.removeClass('selected')
       .eq(pos).addClass('selected');
     $s.css("visibility", "hidden")
       .eq(pos).css("visibility", "inherit")
       .focus() // To make internal hotkeys work on startup.
       .find('.input input').focus();
+  };
+  // Collapse navbar's quick reference:
+  self.collapseQuickRef = function(collapse) {
+    cache.set('collapseQuickRef', collapse);
+    var $tab = $('#left .tab');
+    var $chevron = $('#left .quick .header .chevron');
+    var $main = $('#left .quick .main');
+    if (collapse) {
+      $tab.removeClass('shrinked').addClass('full');
+      $chevron.removeClass('down').addClass('right');
+      $main.hide();
+    }
+    else {
+      $tab.removeClass('full').addClass('shrinked');
+      $chevron.removeClass('right').addClass('down');
+      $main.show();
+    }
+  };
+  // Update navbar's quick reference:
+  self.updateQuickRef = function(relPath, h2s) {
+    var ul = document.createElement("ul");
+    for (var i = 0; i < h2s.length; i++) {
+      var h2 = h2s[i];
+      var el = document.createElement("a");
+      el.href = workingDir + relPath + ((h2.id) ? ('#' + h2.id) : '');
+      if (isIE8)
+        el.innerHTML = h2.innerText;
+      else {
+        el.setAttribute("data-content", h2.innerText);
+        el.setAttribute("aria-label", h2.innerText);
+      }
+      var span = document.createElement("span");
+      span.innerHTML = el.outerHTML;
+      var li = document.createElement("li");
+      li.title = h2.innerText;
+      li.innerHTML = span.outerHTML;
+      ul.innerHTML += li.outerHTML;
+    }
+    $('#left .quick .main').html(ul);
   };
   // Save cache before leaving site:
   self.saveCacheBeforeLeaving = function() {
@@ -1400,6 +1471,7 @@ function ctor_features()
     self.content = document.querySelectorAll('#right .area, #right body')[0];
     $.queueFunc.add(self.modifyTables);
     $.queueFunc.add(self.modifyHeaders);
+    $.queueFunc.add(self.gatherHeadingsForQuickRef);
     $.queueFunc.add(self.modifyExternalLinks);
     $.queueFunc.add(self.modifyDeprecatedLinks);
     $.queueFunc.add(self.modifyVersions);
@@ -1500,6 +1572,21 @@ function ctor_features()
       }
       h.innerHTML = headLink + innerHTML + '</a>';
     }
+  };
+
+  // --- Gather headings to show them in the navbar's quick reference ---
+
+  self.gatherHeadingsForQuickRef = function() {
+    if (isIE8)
+      return;
+    var hs = self.content.querySelectorAll('h2');
+    var list = [];
+    for (var i = 0; i < hs.length; i++) {
+      var h = hs[i].cloneNode(true);
+      $(h).find('.ver, .headnote').remove();
+      list.push({id: h.id, innerText: h.innerText});
+    }
+    postMessageToParent('updateQuickRef', [relPath.replace(window.location.hash, ''), list]);
   };
 
   // --- Open external links in a new tab/window ---
