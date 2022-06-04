@@ -32,7 +32,10 @@
   <li><a href="#embedded-scripts">Embedded Scripts</a></li>
   <li><a href="#cmd">Command Line Usage</a></li>
   <li><a href="#portability">Portability of AutoHotkey.exe</a></li>
-  <li><a href="#install">Installer Options</a>
+  <li><a href="#launcher">Launcher</a></li>
+  <li><a href="#dash">Dash</a></li>
+  <li><a href="#newscript">New Script</a></li>
+  <li><a href="#install">Installation</a>
   <ul>
     <li><a href="#Installer_uiAccess">Run with UI Access</a></li>
   </ul></li>
@@ -158,41 +161,117 @@ else if SubStr(A_LineFile, 1, 1) = "*" &amp;&amp; A_LineFile != "*#1"
 <p>The file AutoHotkey.exe is all that is needed to launch any .ahk script.</p>
 <p>Renaming AutoHotkey.exe also changes which script it runs <a href="Scripts.htm#defaultfile">by default</a>, which can be an alternative to compiling a script for use on a computer without AutoHotkey installed. For instance, <i>MyScript</i>.exe automatically runs <i>MyScript</i>.ahk if a filename is not supplied, but is also capable of running other scripts.</p>
 
-<h2 id="install">Installer Options</h2>
-<p class="warning"><strong>Note:</strong> There is currently no standard installer for v2.0-alpha.</p>
-<p>To silently install AutoHotkey into the default directory (which is the same directory displayed by non-silent mode), pass the parameter /S to the installer. For example:</p>
-<pre>AutoHotkey110800_Install.exe /S</pre>
-<p>A directory other than the default may be specified via the /D parameter (in the absence of /S, this changes the default directory displayed by the installer). For example:</p>
-<pre>AutoHotkey110800_Install.exe /S /D=C:\Program Files\AutoHotkey</pre>
-<p><strong>Version</strong>: If AutoHotkey was previously installed, the installer automatically detects which version of AutoHotkey.exe to set as the default. Otherwise, the default is Unicode 32-bit or Unicode 64-bit depending on whether the OS is 64-bit. To override which version of AutoHotkey.exe is set as the default, pass one of the following switches:</p>
+<h2 id="launcher">Launcher</h2>
+<p>The launcher enables the use of v1 and v2 scripts on one system, with a single filename extension, without necessarily giving preference to one version or requiring different methods of launching scripts. It does this by checking the script for clues about which version it requires, and then locating an appropriate exe to run the script.</p>
+<p>If the script contains the <a href="commands/_Requires.htm">#Requires</a> directive, the launcher looks for an exe that satisfies the requirement. Otherwise, the launcher optionally checks syntax. That is, it checks for patterns that are valid only in one of the two major versions. Some of the common patterns it may find include:</p>
 <ul>
-  <li><code>/A32</code> or <code>/ANSI</code>: ANSI 32-bit.</li>
-  <li><code>/U64</code> or <code>/x64</code>: Unicode 64-bit (only valid on 64-bit systems).</li>
-  <li><code>/U32</code>: Unicode 32-bit.</li>
+  <li>v1: <code>MsgBox, with comma</code>, <code>MsgBox % "no end percent"</code> and <code>Legacy = assignment</code>.</li>
+  <li>v1: Multi-line hotkeys without braces or a function definition.</li>
+  <li>Common directives such as #NoEnv and #If (v1) or <a href="commands/_HotIf.htm">#HotIf</a> (v2).</li>
+  <li>v2: Unambiguous use of <a href="Scripts.htm#continuation-expr">continuation by enclosure</a> or <a href="Scripts.htm#continuation-line">end-of-line continuation operators</a>.</li>
+  <li>v2: Unambiguous use of <code>'single quotes'</code> or <a href="Variables.htm#fat-arrow">fat arrow <code>=></code></a> in an expression.</li>
 </ul>
-<p>For example, the following installs silently and sets ANSI 32-bit as the default:</p>
-<pre>AutoHotkey110800_Install.exe /S /A32</pre>
-<p><strong>Uninstall</strong>: To silently uninstall AutoHotkey, pass the <code>/Uninstall</code> parameter to Installer.ahk. For example:</p>
-<pre class="no-highlight">"C:\Program Files\AutoHotkey\AutoHotkey.exe" "C:\Program Files\AutoHotkey\Installer.ahk" /Uninstall</pre>
-<p><strong>Note:</strong> Installer.ahk must be run as admin to work correctly.</p>
-<p><strong>Extract</strong>: Later versions of the installer include a link in the bottom-right corner to extract setup files without installing. If this function is present, the <code>/E</code> switch can be used to invoke it from the command line. For example:</p>
-<pre>AutoHotkey110903_Install.exe /D=F:\AutoHotkey /E</pre>
-<p><strong>Restart scripts</strong>: In silent install/uninstall mode, running scripts are closed automatically, where necessary. Pass the <code>/R</code> switch to automatically reload these scripts using whichever EXE they were running on, <strong>without</strong> command line args. Setup will attempt to launch the scripts via Explorer, so they do not run as administrator if UAC is enabled.</p>
+<p>Detection is conservative; if a case is ambiguous, it should generally be ignored.</p>
+<p>In any case where detection fails, by default a menu is shown for the user to select a version. This default can be changed to instead launch either v1 or v2.</p>
+<p><strong>Known limitations:</strong></p>
+<ul>
+  <li>Only the main file is checked.</li>
+  <li>Since it is legal to include a line like <code>/****/</code> in v1, but <code>*/</code> at line-end only closes comments in v2, the presence of such a line may cause a large portion of the script to be ignored (by both the launcher and the v1 interpreter).</li>
+  <li>Only syntax is checked, not semantics. For instance, <code>xyz,</code> is invalid in v2, so is assumed to be a valid v1 command. <code>xyz 1</code> could be a function statement in v2, but is assumed to also be a valid v1 command, and is therefore ignored.</li>
+  <li>Since the patterns being detected are effectively syntax errors in one version, a script with actual syntax errors or incorrectly mixed syntax might be misidentified.</li>
+</ul>
+<p class="note"><strong>Note:</strong> Declaring the required version with <a href="commands/_Requires.htm">#Requires</a> at the top of the main file eliminates any ambiguity.</p>
 
-<p id="Installer_IsHostApp"><strong>Taskbar buttons</strong>: On Windows 7 and later, taskbar buttons for multiple scripts are automatically grouped together or combined into one button by default. The <em>Separate taskbar buttons</em> option disables this by registering each AutoHotkey executable as a <a href="https://msdn.microsoft.com/en-us/library/ee872121#APPLICATIONS">host app (IsHostApp)</a>.</p>
-<p>For command-line installations, specify <code>/IsHostApp</code> or <code>/IsHostApp=1</code> to enable the option and <code>/IsHostApp=0</code> to disable it.</p>
+<h3 id="launcher-config">Launch Settings</h3>
+<p>The launcher can be enabled, disabled or configured via the Launch Settings GUI, which can be accessed via the <a href="#dash">dash</a>.</p>
+<p><em>Run all scripts with a specific interpreter</em> disables the launcher and allows the user to select which exe to use to run all scripts, the traditional way. Be aware that selecting a v1 exe will make it difficult to run any of the support scripts, except via the "AutoHotkey" shortcut in the Start menu.</p>
+<p><em>Auto-detect version when launching script</em> enables the launcher. Additional settings control how the launcher selects which interpreter to use.</p>
+
+<h2 id="dash">Dash</h2>
+<p>The dash provides access to support scripts and documentation. It can be opened via the "AutoHotkey" shortcut in the Start menu after installation, or by directly running UX\ui-dash.ahk from the installation directory. Currently it is little more than a menu containing the following items, but it might be expanded to provide controls for active scripts, or other convenient functions.</p>
+<ul>
+  <li>New script: Create a new script from a template.</li>
+  <li>Compile: Opens Ahk2Exe, or offers to automatically download and install it.</li>
+  <li>Help files (F1): Shows a menu containing help files and online documentation for v1 and v2, and any other CHM files found in the installation directory.</li>
+  <li>Window spy</li>
+  <li>Launch settings: Configure the launcher.</li>
+  <li>Editor settings: Set the default editor for .ahk files.</li>
+</ul>
+<p>Note that although the Start menu shortcut launches the dash, if it is pinned to the taskbar (or to the Start menu in Windows 7 or 10), the jump list will include any recent scripts launched with the <em>open</em>, <em>runas</em> or <em>UIAccess</em> shell verbs (which are normally accessed via the Explorer context menu or by double-clicking a file). Scripts can be pinned for easy access.</p>
+
+<h2 id="newscript">New Script</h2>
+<p>The New Script GUI can be accessed via the dash or by right-clicking within a folder in Explorer and selecting New &rarr; AutoHotkey Script. It can be used to create a new script file from a preinstalled or user-defined template, and optionally open it for editing.</p>
+<p>Right-clicking on a template in the list gives the following options:</p>
+<ul>
+  <li>Edit template: Open the template in the default editor. If it is a preinstalled template, an editable copy is created instead of opening the original.</li>
+  <li>Hide template: Adds the template name to a list of templates that will not be shown in the GUI. To unhide a template, delete the corresponding registry value from <code>HKCU\Software\AutoHotkey\New\HideTemplate</code>.</li>
+  <li>Set as default: Sets the template to be selected by default.</li>
+</ul>
+<p>By default, the GUI closes after creating a file unless the Ctrl key is held down.</p>
+<p>Additional settings can be accessed via the settings button at the bottom-left of the GUI.</p>
+
+<h3>Templates</h3>
+<p>Template files are drawn from UX\Templates (preinstalled) and <em>%A_MyDocuments%</em>\AutoHotkey\Templates (user), with a user-defined template overriding any preinstalled template which has the same name. If a file exists at <em>%A_WinDir%</em>\ShellNew\Template.ahk, it is shown as "Legacy" and can be overridden by a user-defined template of that name.</p>
+<p>Each template may contain an INI section as follows:</p>
+<pre>/*
+[NewScriptTemplate]
+Description = Descriptive text
+Execute = true|false|1|0
+*/</pre>
+<p>If the INI section starts with <code>/*</code> and ends with <code>*/</code> as shown above, it is not included in the created file.</p>
+<p><strong>Description</strong> is optional. It is shown in the GUI, in addition to the file's name.</p>
+<p><strong>Execute</strong> is optional. If set to true, the template script is executed with <code>A_Args[1]</code> containing the path of the file to be created and <code>A_Args[2]</code> containing either "Create" or "Edit", depending on which button the user clicked. The template script is expected to create the file and open it for editing if applicable. If the template script needs to <code>#include</code> other files, they can be placed in a subdirectory to avoid having them shown in the template list.</p>
+
+<h2 id="install">Installation</h2>
+<p>This installer and related scripts are designed to permit multiple versions of AutoHotkey to coexist. The installer provides very few options, as most things can be configured after installation. Only the following choices must be made during installation:</p>
+<ul>
+  <li>Where to install.</li>
+  <li>Whether to install for all users or the current user.</li>
+</ul>
+<p>By default the installer will install to "%A_ProgramFiles%\AutoHotkey" for all users. This is recommended, as the UI Access option requires the program to be installed under Program Files. If the installer is not already running as admin, it will attempt to elevate when the Install button is clicked, as indicated by the shield icon on the button.</p>
+<p>Current user installation does not require admin rights, as long as the user has write access to the chosen directory. The default directory for a current user installation is "%LocalAppData%\Programs\AutoHotkey".</p>
+
+<h3 id="install_v1">Installing with v1</h3>
+<p>There are two methods of installing v1 and v2 together:</p>
+<ol>
+  <li>Install v1 first, and then v2. In that case, the v1 files are left in the root of the installation directory, to avoid breaking any external tools or shortcuts that rely on their current path.</li>
+  <li>Install v1 as an additional version. Running a v1.1.34.03 or later installer gives this option. Alternatively, use the <code>/install</code> switch described below. Each version installs into its own subdirectory.</li>
+</ol>
+<p>Running a v1.1.34.02 or older installer (or a custom install with v1.1.34.03 or newer) will overwrite some of the values set in the registry by the v2 installer, such as the version number, uninstaller entry and parts of the file type registration. It will also register the v1 uninstaller, which is not capable of correctly uninstalling both versions. To re-register v2, re-run any v2 installer or run UX\install.ahk using AutoHotkey32.exe or AutoHotkey64.exe.</p>
+
+<h3 id="installdef">Default Version</h3>
+<p>Unlike a v1 installation, a default version is not selected during installation. Defaults are instead handled more dynamically by the launcher, and can be configured per-user.</p>
+
+<h3 id="installcmd">Command Line Usage</h3>
+<p class="warning"><strong>Note:</strong> Command line usage of the v2 installer has not been finalized, and may change prior to the v2.0 release. Some options present in the v1 installer have not been reimplemented.</p>
+<p>Some prompts may be shown during installation if conflicts are detected (such as running scripts or unrecognized files to be overwritten). Silent mode is not implemented.</p>
+<p>To install to the <em>DESTINATION</em> directory, execute the following from within the source directory:</p>
+<pre>AutoHotkey32.exe UX\install.ahk /to "%DESTINATION%"</pre>
+<p>To install an additional version from <em>SOURCE</em>, execute the following from within the current installation directory (adjusting the path of AutoHotkey32.exe as needed):</p>
+<pre>AutoHotkey32.exe UX\install.ahk /install "%SOURCE%"</pre>
+<p>The full command string for the above is registered as <em>InstallCommand</em> under <code>HKLM\Software\AutoHotkey</code> or <code>HKCU\Software\AutoHotkey</code>, with <code class="no-highlight">%1</code> as the substitute for the source directory. Using this registry value may be more future-proof.</p>
+<p>To re-register the current installation:</p>
+<pre>AutoHotkey32.exe UX\install.ahk</pre>
+<p>To uninstall:</p>
+<pre>AutoHotkey32.exe UX\install.ahk /uninstall</pre>
+<p>Alternatively, read the <em>QuietUninstallString</em> value from one of the following registry keys, and execute it:</p>
+<pre>HKLM\Microsoft\Windows\CurrentVersion\Uninstall\AutoHotkey
+HKCU\Microsoft\Windows\CurrentVersion\Uninstall\AutoHotkey</pre>
+
+<h3 id="Installer_IsHostApp">Taskbar Buttons</h3>
+<p>The v2 installer does not provide an option to separate taskbar buttons. This was previously achieved by registering each AutoHotkey executable as a <a href="https://msdn.microsoft.com/en-us/library/ee872121#APPLICATIONS">host app (IsHostApp)</a>, but this approach has limitations, and becomes less manageable when multiple versions can be installed. Instead, each script should set the <a href="https://docs.microsoft.com/en-us/windows/win32/shell/appids">AppUserModelID</a> of its process or windows to control grouping.</p>
 
 <h3 id="Installer_uiAccess">Run with UI Access</h3>
-<p>The installer GUI has an option "Add 'Run with UI Access' to context menus". This context menu option provides a workaround for common <a href="FAQ.htm#uac">UAC-related issues</a> by allowing the script to automate administrative programs - without the script running as admin. To achieve this, the installer does the following:</p>
+<p>When installing under Program Files, the installer creates an additional set of AutoHotkey exe files that can be used to work around some <a href="FAQ.htm#uac">common UAC-related issues</a>. These files are given the "_UIA.exe" suffix. When one of these UIA.exe files is used by an administrator to run a script, the script is able to interact with windows of programs that run as admin, without the script itself running as admin.</p>
+<p>The installer does the following:</p>
 <ul>
-  <li>Copies AutoHotkeyA32.exe, AutoHotkeyU32.exe and (if present) AutoHotkeyU64.exe to AutoHotkey*_UIA.exe.</li>
-  <li>Sets the <a href="https://msdn.microsoft.com/en-us/library/ee671610">uiAccess attribute</a> in each UIA file's embedded manifest.</li>
-  <li>Creates a self-signed digital certificate named "AutoHotkey" and signs each UIA file.</li>
-  <li>Registers the context menu option to run the appropriate exe file.</li>
+  <li>Copies each AutoHotkey*.exe to AutoHotkey*_UIA.exe.</li>
+  <li>Sets the <a href="https://msdn.microsoft.com/en-us/library/ee671610">uiAccess attribute</a> in each UIA.exe file's embedded manifest.</li>
+  <li>Creates a self-signed digital certificate named "AutoHotkey" and signs each UIA.exe file.</li>
+  <li>Registers the <em>UIAccess</em> shell verb, which appears in Explorer's context menu as "Run with UI access". By default this executes the <a href="#launcher">launcher</a>, which tries to select an appropriate UIA.exe file to run the script.</li>
 </ul>
-<p>If any these UIA files are present before installation, the installer will automatically update them even if the UI Access option is not enabled.</p>
-<p>For command-line installations, specify <code>/uiAccess</code> or <code>/uiAccess=1</code> to enable the option and <code>/uiAccess=0</code> to disable it. By default, the installer will enable the option if UAC is enabled and the UI Access context menu option was present before installation.</p>
-<p>Scripts which need to run other scripts with UI access can simply <a href="commands/Run.htm">Run</a> the appropriate UIA.exe file with the normal <a href="#cmd">command line parameters</a>.</p>
+<p>The <a href="#launcher">launcher</a> can also be configured to run v1 scripts, v2 scripts or both with UI Access by default, but this option has no effect if a UIA.exe file does not exist for the selected version and build.</p>
+<p>Scripts which need to run other scripts with UI access can simply <a href="commands/Run.htm">Run</a> the appropriate UIA.exe file with the normal <a href="#cmd">command line parameters</a>. Alternatively, if the <em>UIAccess</em> shell verb is registered, it can be used via Run. For example: <code>Run '*UIAccess "Script.ahk"'</code></p>
 <p><strong>Known limitations</strong>:</p>
 <ul>
   <li>UIA is only effective if the file is in a trusted location; i.e. a Program Files sub-directory.</li>
