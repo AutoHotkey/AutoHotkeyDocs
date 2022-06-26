@@ -84,7 +84,7 @@ MsgBox(1.00)  <em>; Shows 1.0</em></pre>
       <p class="note"><strong>Note:</strong> The <u>result</u> of the sub-expression <em>Expr</em> must be the name or partial name of the variable or property to be accessed.</p>
       <p>Percent signs cannot be used directly within <em>Expr</em> due to ambiguity, but can be nested within parentheses. Otherwise, <em>Expr</em> can be any expression.</p>
       <p>If there are any adjoining <em>%Expr%</em> sequences and partial <a href="Concepts.htm#names">names</a> (without any spaces or other characters between them), they are combined to form a single name.</p>
-      <p>An <a href="objects/Error.htm">Error</a> is thrown if the variable does not already exist, or if it is uninitialized and its value is being read.</p>
+      <p>An <a href="objects/Error.htm">Error</a> is typically thrown if the variable does not already exist, or if it is uninitialized and its value is being read. The <a href="#or-maybe">or-maybe operator (??)</a> can be used to avoid that case by providing a default value. For example: <code>%'novar'% ?? 42</code>.</p>
       <p>Although this is historically known as a "double-deref", this term is inaccurate when <em>Expr</em> does not contain a variable (first deref), and also when the resulting variable is the target of an assignment, not being dereferenced (second deref).</p>
     </td>
   </tr>
@@ -96,7 +96,7 @@ MsgBox(1.00)  <em>; Shows 1.0</em></pre>
     <td class="center"><em>var</em><strong>?</strong></td>
     <td>
       <p><strong>Maybe</strong>. Permits the variable to be unset. This is valid only when passing a variable to an optional parameter, array element or object literal. The question mark must be followed by one of the following symbols (ignoring whitespace): <code>)]},:</code>. The variable may be passed conditionally via the <a href="#ternary">ternary operator</a> or on the right-hand side of <a href="#and">AND</a>/<a href="#or">OR</a>.</p>
-      <p>The variable is typically also an optional parameter, but can be any variable. For variables that are not function parameters, a <a href="commands/_Warn.htm#VarUnset">VarUnset warning</a> may still be shown at load-time if no assignments are found for the variable.</p>
+      <p>The variable is typically also an optional parameter, but can be any variable. For variables that are not function parameters, a <a href="commands/_Warn.htm#VarUnset">VarUnset warning</a> may still be shown at load-time if there are other references to the variable but no assignments.</p>
       <p>This operator is currently supported only for variables. To explicitly or conditionally omit a parameter in more general cases, use the <code>unset</code> keyword.</p>
       <p>See also: <a href="Language.htm#unset">unset (Optional Parameters)</a></p>
     </td>
@@ -244,11 +244,20 @@ MsgBox(A || B || C || D || ++E) <em>; The <strong>first</strong> truthy operand 
 MsgBox(A || B || C) <em>; The <strong>last</strong> falsey operand is returned (0)</em></pre>
         <p>A line that begins with <code>OR</code> or <code>||</code> (or any other operator) is automatically <a href="Scripts.htm#continuation">appended to</a> the line above it.</p></td>
     </tr>
+  <tr id="or-maybe">
+    <td class="center bold">??</td>
+    <td>
+      <p><strong>Or maybe</strong>, otherwise known as the coalescing operator. If the left operand (which must be a variable) has a value, it becomes the result and the right branch is skipped. Otherwise, the right operand becomes the result. In other words, <code>A ?? B</code> behaves like <code>A || B</code> (<a href="#or">logical-OR</a>) except that the condition is <code>IsSet(A)</code>.</p>
+      <p>This is typically used to provide a default value when it is known that a variable or optional parameter might not already have a value. For example:</p>
+      <pre>MsgBox MyVar ?? "Default value"</pre>
+      <p>Since the variable is expected to sometimes be <a href="Concepts.htm#uninitialized-variables">uninitialized</a>, no error is thrown in that case. Unlike <code>IsSet(A) ? A : B</code>, a <a href="commands/_Warn.htm#VarUnset">VarUnset warning</a> may still be shown at load-time if there are other references to the variable but no assignments.</p>
+    </td>
+  </tr>
   <tr id="ternary">
     <td class="center bold">?:</td>
     <td>
       <p><strong>Ternary operator</strong>. This operator is a shorthand replacement for the <a href="commands/If.htm">if-else statement</a>. It evaluates the condition on its left side to determine which of its two branches should become its final result. For example, <code>var := x&gt;y ? 2 : 3</code> stores 2 in <em>Var</em> if x is greater than y; otherwise it stores 3. To enhance performance, only the winning branch is evaluated (see <a href="Functions.htm#ShortCircuit">short-circuit evaluation</a>).</p>
-      <p>See also: <a href="#maybe">maybe (<em>var</em><strong>?</strong>)</a></p>
+      <p>See also: <a href="#maybe">maybe (<em>var</em>?)</a>, <a href="#or-maybe">or-maybe (??)</a></p>
       <p class="warning"><strong>Note:</strong> When used at the beginning of a line, the ternary condition should usually be enclosed in parentheses to reduce ambiguity with other types of statements. For details, see <a href="Language.htm#expression-statements">Expression Statements</a>.</p>
     </td>
   </tr>
