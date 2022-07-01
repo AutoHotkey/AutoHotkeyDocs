@@ -931,6 +931,7 @@ indexData = [
   ["standard library","Scripts.htm#lib"],
   ["standard output (stdout)","commands/FileAppend.htm"],
   ["static","Functions.htm#static",5],
+  ["static functions","Functions.htm#static-functions"],
   ["static variables","Functions.htm#static"],
   ["StatusBar controls (GUI)","commands/GuiControls.htm#StatusBar"],
   ["StatusBar.SetIcon","commands/GuiControls.htm#SB_SetIcon"],

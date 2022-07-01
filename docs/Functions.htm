@@ -229,6 +229,7 @@ MsgBox Join("`n", <b class="blue">substrings*</b>)</pre>
     FileAppend LoggedLines ": " TextToLog "`n", LogFileName
 }</pre>
 <p id="InitStatic">A static variable may be initialized on the same line as its declaration by following it with <code>:=</code> and any <a href="Variables.htm#Expressions">expression</a>. For example: <code>static X:=0, Y:="fox"</code>. Static declarations are evaluated the same as <a href="#Local">local</a> declarations, except that after a static initializer (or group of combined initializers) is successfully evaluated, it is effectively removed from the flow of control and will not execute a second time.</p>
+<p>Nested functions can be <a href="#static-functions">declared static</a> to prevent them from capturing non-static local variables of the outer function.</p>
 <p id="AssumeStatic"><strong>Assume-static mode</strong>: A function may be defined to assume that all its undeclared local variables are static (except its parameters) by making its first line the word "static". For example:</p>
 <pre>GetFromStaticArray(WhichItemNumber)
 {
@@ -289,14 +290,13 @@ outer(x) {
 }
 outer("title")
 </pre>
-<p>A nested function is not accessible by name outside of the function which immediately encloses it, but is accessible anywhere inside that function, including inside other nested functions.</p>
-<p>By default, a nested function may access any <a href="#static">static</a> variable of any function which encloses it, even dynamically.</p>
+<p>A nested function is not accessible by name outside of the function which immediately encloses it, but is accessible anywhere inside that function, including inside other nested functions (with exceptions).</p>
+<p>By default, a nested function may access any <a href="#static">static</a> variable of any function which encloses it, even dynamically. However, a non-dynamic assignment inside a nested function typically resolves to a local variable if the outer function has neither a declaration nor a non-dynamic assignment for that variable.</p>
 <p id="capture-var">By default, a nested function automatically "captures" a non-static local variable of an outer function when the following requirements are met:</p>
 <ol>
   <li>The outer function must refer to the variable in at least one of the following ways:
     <ol type="a">
-      <li>By declaring it with <code>local</code>.</li>
-      <li>By declaring it in the parameter list.</li>
+      <li>By declaring it with <code>local</code>, or as a parameter or nested function.</li>
       <li>As the non-dynamic target of an assignment or the <a href="Variables.htm#ref">reference operator (&amp;)</a>.</li>
     </ol>
   </li>
@@ -305,9 +305,23 @@ outer("title")
 <p>A nested function which has captured variables is known as a <a href="#closures">closure</a>.</p>
 <p>Non-static local variables of the outer function cannot be <a href="Language.htm#dynamic-variables">accessed dynamically</a> unless they have been captured.</p>
 <p>Explicit declarations always take precedence over local variables of the function which encloses them. For example, <code>local x</code> declares a variable local to the current function, independent of any <code>x</code> in the outer function. <a href="#Global">Global</a> declarations in the outer function also affect nested functions, except where overridden by an explicit declaration.</p>
-<p>If a function is declared <a href="#AssumeGlobal">assume-global</a>, any local or static variables created <em>outside</em> that function are not directly accessible to the function itself or any of its nested functions. By contrast, a nested function which is assume-static can still refer to variables from the outer function.</p>
+<p>If a function is declared <a href="#AssumeGlobal">assume-global</a>, any local or static variables created <em>outside</em> that function are not directly accessible to the function itself or any of its nested functions. By contrast, a nested function which is assume-static can still refer to variables from the outer function, unless the function itself is <a href="#static-functions">declared static</a>.</p>
 <p>Functions are <a href="#AssumeLocal">assume-local</a> by default, and this is true even for nested functions, even those inside an <a href="#AssumeStatic">assume-static</a> function. However, if the outer function is <a href="#AssumeGlobal">assume-global</a>, nested functions behave as though assume-global by default, except that they can refer to local and static variables of the outer function.</p>
 <p>Each function definition creates a read-only variable containing the function itself; that is, a <a href="objects/Func.htm">Func</a> or <a href="#closures">Closure</a> object. See below for examples of how this might be used.</p>
+
+<h3 id="static-functions">Static functions</h3>
+<p>Any nested function which does not capture variables is automatically static; that is, every call to the outer function references the same <a href="objects/Func.htm">Func</a>. The keyword "static" can be used to explicitly declare a nested function as static, in which case any non-static local variables of the outer function are ignored. For example:</p>
+<pre>outer() {
+    x := "outer value"
+    static inner(y) {
+        x := "inner value"  <em>; Creates a variable local to inner</em>
+        MsgBox type(inner)  <em>; Displays "Func"</em>
+    }
+    inner()
+    MsgBox x  <em>; Displays "outer value"</em>
+}
+outer()</pre>
+<p>A static function cannot refer to other nested functions outside its own body unless they are explicitly declared static. Note that even if the function is assume-static, a non-static nested function may become a closure if it references a function parameter.</p>
 
 <h3 id="closures">Closures</h3>
 <p>A <em>closure</em> is a nested function bound to a set of <em>free variables</em>. Free variables are local variables of the outer function which are also used by nested functions. Closures allow one or more nested functions to share variables with the outer function even after the outer function returns.</p>
