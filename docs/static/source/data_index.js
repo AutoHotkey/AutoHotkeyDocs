@@ -1008,6 +1008,8 @@ indexData = [
   ["Type","commands/Type.htm",2],
   ["TypeError","objects/Error.htm#TypeError",6],
   ["Unset","Language.htm#unset",1],
+  ["UnsetError","objects/Error.htm#UnsetError",6],
+  ["UnsetItemError","objects/Error.htm#UnsetItemError",6],
   ["Until","commands/Until.htm",3,"E"],
   ["UpdateManifest directive (Ahk2Exe)","misc/Ahk2ExeDirectives.htm#UpdateManifest",99],
   ["UpDown controls (GUI)","commands/GuiControls.htm#UpDown"],
