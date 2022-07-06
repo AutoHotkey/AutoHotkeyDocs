@@ -12,7 +12,7 @@
 
 <h1>ComObjConnect() <span class="ver">[AHK_L 53+]</span></h1>
 <p>Connects a COM object's event sources to functions with a given prefix.</p>
-<pre class="Syntax"><span class="func">ComObjConnect</span>(ComObject <span class="optional">, Prefix</span>)</pre>
+<pre class="Syntax"><span class="func">ComObjConnect</span>(ComObject <span class="optional">, PrefixOrSink</span>)</pre>
 
 <h2 id="Parameters">Parameters</h2>
 <dl>
@@ -24,11 +24,10 @@
     <p><span class="ver">[v1.1.22+]</span>: The IProvideClassInfo interface is used to retrieve type information about the object's class if the object supports it. Otherwise, ComObjConnect attempts to retrieve type information via the object's IDispatch interface, which may be unreliable.</p>
   </dd>
 
-  <dt>Prefix</dt>
+  <dt>PrefixOrSink</dt>
   <dd>
-      <p>A string to prefix to the event name to determine which function to call when an event occurs.</p>
+      <p>A string to prefix to the event name to determine which function to call when an event occurs, or <span class="ver">[in v1.1.01+]</span> an <a href="#event-sink">event sink object</a> defining a method for each event to be handled.</p>
       <p>If omitted, the object is "disconnected"; that is, the script will no longer receive notification of its events.</p>
-      <p><span class="ver">[v1.1.01+]:</span> This parameter can be an object defined by the script. When an event is raised, the corresponding method is called. The first parameter, which is usually the hidden <code>this</code> parameter, refers to the script-defined object, not the COM object. To catch all events without defining a method for each one, define a <a href="../Objects.htm#Meta_Functions">__Call meta-function</a>.</p>
     </dd>
 
 </dl>
@@ -40,12 +39,17 @@
     <i class="dull">... event-handling code ...</i>
     return <i>ReturnValue</i>
 }</pre>
-<p><i>Prefix</i> is a prefix of your choosing, while <b>EventName</b> is the name of whatever event the function should handle.</p>
+<p><i>Prefix</i> should be the same as the <em>PrefixOrSink</em> parameter if it is a string; otherwise, it should be omitted. <b>EventName</b> should be replaced with the name of whatever event the function should handle.</p>
 <p><i>Params</i> corresponds to whatever parameters the event has. If the event has no parameters, <i>Params</i> should be omitted entirely. <i>ComObject</i> is optional, and can only be used if the correct number of <i>Params</i> are defined; it contains a reference to the original wrapper object which was passed to ComObjConnect. "ComObject" should be replaced with a name more meaningful in the context of your script.</p>
 <p>Note that event handlers may have return values. To return a COM-specific type of value, use <a href="ComObjActive.htm#param">ComObject(type, value)</a>. For example, <code>return ComObject(0,0)</code> returns a variant of type VT_EMPTY, which is equivalent to returning <code>undefined</code> (or not returning) from a JavaScript function.</p>
 <p>Call <code>ComObjConnect(yourObject, "<i>Prefix</i>")</code> to enable event-handling.</p>
 <p>Call <code>ComObjConnect(yourObject)</code> to disconnect the object (stop handling events).</p>
 <p>If the number of parameters is not known, a <a href="../Functions.htm#Variadic">variadic function</a> can be used.</p>
+
+<h3 id="event-sink">Event Sink <span class="ver">[v1.1.01+]</span></h3>
+<p>If <em>PrefixOrSink</em> is an object, whenever an event is raised, the corresponding method of that object is called. Although the object can be constructed dynamically, it is more typical for <em>PrefixOrSink</em> to refer to a class or an instance of a class. In that case, methods are defined as shown above, but without <em>Prefix</em>.</p>
+<p>As with any call to a method, the method's (normally hidden) <code>this</code> parameter contains a reference to the object through which the method was called; i.e. the event sink object, not the COM object. This can be used to provide context to the event handlers, or share values between them.</p>
+<p>To catch all events without defining a method for each one, define a <a href="../Objects.htm#Meta_Functions">__Call meta-function</a>.</p>
 
 <h2 id="Remarks">Remarks</h2>
 <p>The script must retain a reference to <em>ComObject</em>, otherwise it would be freed automatically and would disconnect from its COM object, preventing any further events from being detected. There is no standard way to detect when the connection is no longer required, so the script must disconnect manually by calling ComObjConnect.</p>
