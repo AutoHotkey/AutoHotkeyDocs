@@ -536,6 +536,7 @@ indexData = [
   ["GetMethod method","objects/Any.htm#GetMethod"],
   ["GetOwnPropDesc method (Object)","objects/Object.htm#GetOwnPropDesc"],
   ["global","Functions.htm#Global",5],
+  ["global code","Language.htm#global-code"],
   ["global variables in functions","Functions.htm#Global"],
   ["Goto","commands/Goto.htm",3,"S"],
   ["GroupActivate","commands/GroupActivate.htm",2],
