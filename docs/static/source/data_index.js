@@ -748,6 +748,7 @@ indexData = [
   ["NumGet","commands/NumGet.htm",2],
   ["NumPut","commands/NumPut.htm",2],
   ["Object","objects/Object.htm",6],
+  ["object literal","Objects.htm#object-literal"],
   ["Obey directive (Ahk2Exe)","misc/Ahk2ExeDirectives.htm#Obey",99],
   ["Objects (general information)","Objects.htm"],
   ["ObjAddRef","commands/ObjAddRef.htm",2],
