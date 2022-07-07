@@ -916,6 +916,7 @@ indexData = [
   ["Sleep","commands/Sleep.htm",2],
   ["Slider controls (GUI)","commands/GuiControls.htm#Slider"],
   ["Sort","commands/Sort.htm",2],
+  ["Sound functions","commands/Sound.htm"],
   ["SoundBeep","commands/SoundBeep.htm",2],
   ["SoundGetInterface","commands/SoundGetInterface.htm",2],
   ["SoundGetMute","commands/SoundGetMute.htm",2],
