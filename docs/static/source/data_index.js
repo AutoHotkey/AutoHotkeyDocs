@@ -834,6 +834,7 @@ indexData = [
   ["REG_EXPAND_SZ","commands/RegRead.htm"],
   ["REG_MULTI_SZ","commands/RegRead.htm"],
   ["REG_SZ","commands/RegRead.htm"],
+  ["RegCreateKey","commands/RegCreateKey.htm",2],
   ["RegDelete","commands/RegDelete.htm",2],
   ["RegDeleteKey","commands/RegDeleteKey.htm",2],
   ["RegEx: Quick Reference","misc/RegEx-QuickRef.htm"],

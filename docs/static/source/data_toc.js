@@ -317,6 +317,7 @@ tocData = [
   ["Registry","",
   [
     ["Loop Reg","commands/LoopReg.htm"],
+    ["RegCreateKey","commands/RegCreateKey.htm"],
     ["RegDelete","commands/RegDelete.htm"],
     ["RegDeleteKey","commands/RegDeleteKey.htm"],
     ["RegRead","commands/RegRead.htm"],
