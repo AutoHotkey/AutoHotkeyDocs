@@ -358,6 +358,7 @@ indexData = [
   ["Compatibility","Compat.htm"],
   ["compile a script","Scripts.htm#ahk2exe"],
   ["Compiler Directives","misc/Ahk2ExeDirectives.htm"],
+  ["Compression","Scripts.htm#mpress"],
   ["ComSpec","Variables.htm#ComSpec",1],
   ["concatenate, in expressions","Variables.htm#concat"],
   ["concatenate, script lines","Scripts.htm#continuation"],
