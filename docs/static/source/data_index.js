@@ -726,6 +726,7 @@ indexData = [
   ["mute (changing it)","commands/SoundSet.htm"],
   ["new","Variables.htm#new",4],
   ["NewEnum method (Object)","objects/Object.htm#NewEnum"],
+  ["Nop directive (Ahk2Exe)","misc/Ahk2ExeDirectives.htm#Nop",99],
   ["not","Variables.htm#not",4],
   ["nothing (concepts)", "Concepts.htm#nothing"],
   ["NoTimers","commands/Thread.htm"],
