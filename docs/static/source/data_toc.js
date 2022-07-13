@@ -307,6 +307,7 @@ tocData = [
   [
     ["ProcessClose","commands/ProcessClose.htm"],
     ["ProcessExist","commands/ProcessExist.htm"],
+    ["ProcessGetName/Path","commands/ProcessGetName.htm"],
     ["ProcessSetPriority","commands/ProcessSetPriority.htm"],
     ["ProcessWait","commands/ProcessWait.htm"],
     ["ProcessWaitClose","commands/ProcessWaitClose.htm"],

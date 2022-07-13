@@ -805,6 +805,8 @@ indexData = [
   ["Process functions","commands/Process.htm"],
   ["ProcessClose","commands/ProcessClose.htm",2],
   ["ProcessExist","commands/ProcessExist.htm",2],
+  ["ProcessGetName","commands/ProcessGetName.htm",2],
+  ["ProcessGetPath","commands/ProcessGetName.htm",2],
   ["ProcessSetPriority","commands/ProcessSetPriority.htm",2],
   ["ProcessWait","commands/ProcessWait.htm",2],
   ["ProcessWaitClose","commands/ProcessWaitClose.htm",2],
