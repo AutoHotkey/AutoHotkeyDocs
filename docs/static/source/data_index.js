@@ -723,6 +723,7 @@ indexData = [
   ["MsgBox","commands/MsgBox.htm",6,"SSSS"],
   ["multiply","commands/EnvMult.htm"],
   ["mute (changing it)","commands/SoundSet.htm"],
+  ["names","Concepts.htm#names"],
   ["new","Variables.htm#new",4],
   ["NewEnum method (Object)","objects/Object.htm#NewEnum"],
   ["not","Variables.htm#not",4],
