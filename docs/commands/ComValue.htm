@@ -28,7 +28,9 @@
 
   <dt>Value</dt>
   <dd>
-    <p>The value to wrap. If this is a pure integer and <em>VarType</em> is not VT_R4, VT_R8, VT_DATE or VT_CY, its value is used directly; in particular, VT_BSTR, VT_DISPATCH and VT_UNKNOWN can be initialized with a pointer value. In any other case, the value is converted to the target type. An exception is thrown if the conversion cannot be performed.</p>
+    <p>The value to wrap.</p>
+    <p>If this is a pure integer and <em>VarType</em> is not VT_R4, VT_R8, VT_DATE or VT_CY, its value is used directly; in particular, VT_BSTR, VT_DISPATCH and VT_UNKNOWN can be initialized with a pointer value.</p>
+    <p>In any other case, the value is copied into a temporary VARIANT using the same rules as normal COM methods calls. If the source variant type is not equal to <em>VarType</em>, conversion is attempted by calling <a href="https://docs.microsoft.com/en-us/windows/win32/api/oleauto/nf-oleauto-variantchangetype">VariantChangeType</a> with a <em>wFlags</em> value of 0. An exception is thrown if conversion fails.</p>
   </dd>
 
   <dt>Flags</dt>
@@ -42,10 +44,11 @@
 <h2 id="Returns">Return Value</h2>
 <p>Type: ComValue, ComValueRef, <a href="ComObjArray.htm">ComObjArray</a> or <a href="ComObject.htm">ComObject</a></p>
 <p>Returns a wrapper object containing a <a href="ComObjType.htm#vt">variant type</a> and value or pointer.</p>
-<p>This object has two uses:</p>
+<p>This object has multiple uses:</p>
 <ol>
   <li>Some COM methods may require specific types of values which have no direct equivalent within AutoHotkey. This function allows the type of a value to be specified when passing it to a COM method. For example, <code>ComValue(0xB, true)</code> creates an object which represents the COM boolean value <em>true</em>.</li>
   <li>Wrapping a COM object or SafeArray enables the script to interact with it more naturally, using <a href="../Objects.htm#Usage_Objects">object syntax</a>. However, the majority of scripts do not need to do this manually since a wrapper object is created automatically by <a href="ComObject.htm">ComObject</a>, <a href="ComObjArray.htm">ComObjArray</a>, <a href="ComObjActive.htm">ComObjActive</a>, <a href="ComObjGet.htm">ComObjGet</a> and any COM method which returns an object.</li>
+  <li>Wrapping a COM interface pointer allows the script to take advantage of automatic reference counting. An interface pointer can be wrapped immediately upon being returned to the script (typically from <a href="ComCall.htm">ComCall</a> or <a href="DllCall.htm">DllCall</a>), avoiding the need to explicitly <a href="ObjAddRef.htm">release</a> it at some later point.</li>
 </ol>
 
 <h2 id="Ptr">Ptr</h2>
@@ -70,7 +73,8 @@ MsgBox some_var</pre>
 <p>However, some methods require a more specific variant type, such as <code>VT_BYREF | VT_I4</code>. In such cases, the first approach shown above must be used, replacing 0x400C with the appropriate variant type.</p>
 
 <h2 id="Remarks">General Remarks</h2>
-<p>When this function is used to wrap an <a href="http://msdn.microsoft.com/en-us/library/dd318520.aspx">IDispatch</a> or IUnknown interface pointer, the wrapper object assumes responsibility for automatically releasing the pointer when appropriate. Therefore, if the script intends to use the pointer after calling this function, it must call <code><a href="ObjAddRef.htm">ObjAddRef</a>(DispPtr)</code> first.</p>
+<p>When this function is used to wrap an <a href="http://msdn.microsoft.com/en-us/library/dd318520.aspx">IDispatch</a> or IUnknown interface pointer (passed as an integer), the wrapper object assumes responsibility for automatically releasing the pointer when appropriate. Therefore, if the script intends to use the pointer after calling this function, it must call <code><a href="ObjAddRef.htm">ObjAddRef</a>(DispPtr)</code> first. By contrast, this is not necessary if <em>Value</em> is itself a ComValue or ComObject.</p>
+<p>Conversion from VT_UNKNOWN to VT_DISPATCH results in a call to <a href="https://docs.microsoft.com/en-au/windows/win32/api/unknwn/nf-unknwn-iunknown-queryinterface(refiid_void)">IUnknown::QueryInterface</a>, which may produce an interface pointer different to the original, and will throw an exception if the object does not implement IDispatch. By contrast, if <em>Value</em> is an integer and <em>VarType</em> is VT_DISPATCH, the value is used directly, and therefore must be an IDispatch-compatible interface pointer.</p>
 <p>The <em>VarType</em> of a wrapper object can be retrieved using <a href="ComObjType.htm">ComObjType</a>.</p>
 <p>The <em>Value</em> of a wrapper object can be retrieved using <a href="ComObjValue.htm">ComObjValue</a>.</p>
 <p><b>Known limitation:</b> Each time a COM object is wrapped, a new wrapper object is created. Comparisons and assignments such as <code>obj1 == obj2</code> and <code>array[obj1] := value</code> treat the two wrapper objects as unique, even when they contain the same variant type and value.</p>
