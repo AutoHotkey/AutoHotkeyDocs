@@ -29,6 +29,7 @@
     <li><a href="#Debug">Debug</a>: Shows directive debugging text.</li>
     <li><a href="#ExeName">ExeName</a>: Specifies the location and name for the .exe.</li>
     <li><a href="#Let">Let</a>: Sets a user variable.</li>
+    <li><a href="#Nop">Nop</a>: Does nothing.</li>
     <li><a href="#Obey">Obey</a>: Obeys a command or expression.</li>
     <li><a href="#PostExec">PostExec</a>: Runs a program after compilation.</li>
     <li><a href="#ResourceID">ResourceID</a>: Assigns a non-standard resource ID to the main script.</li>
@@ -108,7 +109,7 @@ MsgBox "This message appears in both the compiled and uncompiled script"
 <pre class="Syntax"><span class="func">;@Ahk2Exe-AddResource</span> FileName <span class="optional">, ResourceName</span></pre>
 <dl>
   <dt>FileName</dt>
-  <dd>The filename of the resource to add. The type of the resource (as an integer or string) can be explicitly specified by prepending an asterisk to it: <code class="no-highlight">*type Filename</code>. If omitted, Ahk2Exe automatically detects the type according to the file extension.</dd>
+  <dd>The filename of the resource to add. The file is assumed to be in (or relative to) the script's own directory if an absolute path isn't specified. The type of the resource (as an integer or string) can be explicitly specified by prepending an asterisk to it: <code class="no-highlight">*type Filename</code>. If omitted, Ahk2Exe automatically detects the type according to the file extension.</dd>
   <dt>ResourceName</dt>
   <dd><i>(Optional)</i> The name that the resource will have (can be a string or an integer). If omitted, it defaults to the name (with no path) of the file, in uppercase.</dd>
 </dl>
@@ -133,7 +134,9 @@ MsgBox "This message appears in both the compiled and uncompiled script"
 ;@Ahk2Exe-AddResource Icon4.ico, 208  ; Replaces 'S on red'</pre>
 
 <p><strong>Example 2:</strong> To include another script as a separate RCDATA resource (see <a href="../Program.htm#embedded-scripts">Embedded Scripts</a>):</p>
-<pre>;@Ahk2Exe-AddResource MyScript.ahk, MYRESOURCE</pre>
+<pre>;@Ahk2Exe-AddResource MyScript1.ahk, #2
+;@Ahk2Exe-AddResource MyScript2.ahk, MYRESOURCE
+</pre><p>Note that each script added with this directive will be fully and separately processed by the compiler, and can include further directives. If there are any competing directives overall, the last encountered by the compiler will be used.</p>
 
 <h3 id="Bin">Bin / Base</h3>
 <p>Specifies the base version of AutoHotkey to be used to generate the .exe file. This directive may be overridden by a base file parameter specified in the GUI or CLI. This directive can be specified many times if necessary, but only in the top level script file (i.e. not in an <a href="../commands/_Include.htm">#Include</a> file). The compiler will be run at least once for each Bin/Base directive found. (If an actual comment is appended to this directive, it must use the <code>&nbsp;;</code> flag. To truly comment out this directive, insert a space after the first comment flag.)</p>
@@ -142,7 +145,7 @@ MsgBox "This message appears in both the compiled and uncompiled script"
 <span class="func">;@Ahk2Exe-Base</span> [Path\]Name <span class="optional">, [Exe_path\][Name], Codepage</span></pre>
 <dl>
   <dt>[Path\]Name</dt>
-  <dd>The *.bin or *.exe file to use. If no extension is supplied, <code>.bin</code> is assumed. A DOS mask may be specified for <em>Name</em>, e.g. <code>ANSI*</code>, <code>Unicode 32*</code>, <code>Unicode 64*</code>, or <code>*bit</code> for all three. If no path is specified, the standard *.bin files in the compiler folder are searched. The compiler will be run for each *.bin or *.exe file that matches. Any use of built-in variable replacements must only be from <a href="#group1">group 1</a> above.</dd>
+  <dd>The *.bin or *.exe file to use. If no extension is supplied, <code>.bin</code> is assumed. The file is assumed to be in (or relative to) the compiler's own directory if an absolute path isn't specified. A DOS mask may be specified for <em>Name</em>, e.g. <code>ANSI*</code>, <code>Unicode 32*</code>, <code>Unicode 64*</code>, or <code>*bit</code> for all three. The compiler will be run for each *.bin or *.exe file that matches. Any use of built-in variable replacements must only be from <a href="#group1">group 1</a> above.</dd>
   <dt>[Exe_path\][Name]</dt>
   <dd><i>(Optional)</i> The file name to be given to the .exe. Any extension supplied will be replaced by <code>.exe</code>. If no path is specified, the .exe will be created in the script folder. If no name is specified, the .exe will have the default name. (This parameter can be overridden by the <a href="#ExeName">ExeName</a> directive.)</dd>
   <dt>Codepage</dt>
@@ -191,6 +194,18 @@ MsgBox "This message appears in both the compiled and uncompiled script"
   <dt>Value</dt>
   <dd>The value to be used.</dd>
 </dl>
+
+<h3 id="Nop">Nop</h3>
+<p>Does nothing.</p>
+<pre class="Syntax"><span class="func">;@Ahk2Exe-Nop</span> <span class="optional">Text</span></pre>
+<dl>
+  <dt>Text</dt>
+  <dd><i>(Optional)</i> Any text, which is ignored.</dd>
+</dl>
+<strong>Example:</strong>
+<pre>Ver := A_AhkVersion "" ; If quoted literal not empty, do 'SetVersion'
+;@Ahk2Exe-Obey U_V, = "%A_PriorLine~U)^(.+")(.*)".*$~$2%" ? "SetVersion" : "Nop"
+;@Ahk2Exe-%U_V%        %A_AhkVersion%%A_PriorLine~U)^(.+")(.*)".*$~$2%</pre>
 
 <h3 id="Obey">Obey</h3>
 <p>Obeys isolated AutoHotkey commands or expressions, with result in <code>U_<i>Name</i></code>.</p>
@@ -254,7 +269,7 @@ MsgBox "This message appears in both the compiled and uncompiled script"
 </dl>
 
 <h3 id="SetMainIcon">SetMainIcon</h3>
-<p>Overrides the custom EXE icon used for compilation. (To change the other icons, see the <a href="#AddResource">AddResource</a> example.) This directive may be overridden by an icon file specified in the GUI or CLI.</p>
+<p>Overrides the custom EXE icon used for compilation. (To change the other icons, see the <a href="#AddResource">AddResource</a> example.) This directive may be overridden by an icon file specified in the GUI or CLI. The new icon might not be immediately visible in Windows Explorer if the compiled file existed before with a different icon, however the new icon can be shown by selecting <code>Refresh Windows Icons</code> from the Ahk2Exe <code>File</code> menu.</p>
 <pre class="Syntax"><span class="func">;@Ahk2Exe-SetMainIcon</span> <span class="optional">IcoFile</span></pre>
 <dl>
   <dt>IcoFile</dt>

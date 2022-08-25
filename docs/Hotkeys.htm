@@ -130,7 +130,7 @@ AppsKey Up::ToolTip
       <pre>*LWin::Send "{LControl down}"
 *LWin Up::Send "{LControl up}"
 </pre>
-      <p>"Up" can also be used with normal hotkeys as in this example: <code>^!r Up::MsgBox "You pressed and released Ctrl+Alt+R"</code>. It also works with <a href="#combo">combination hotkeys</a> (e.g. <code>F1 &amp; e Up::</code>)</p>      
+      <p>"Up" can also be used with normal hotkeys as in this example: <code>^!r Up::MsgBox "You pressed and released Ctrl+Alt+R"</code>. It also works with <a href="#combo">combination hotkeys</a> (e.g. <code>F1 &amp; e Up::</code>)</p>
       <p>Limitations: 1) "Up" does not work with <a href="KeyList.htm">joystick buttons</a>; and 2) An "Up" hotkey without a normal/down counterpart hotkey will completely take over that key to prevent it from getting stuck down. One way to prevent this is to add a <a href="#Tilde">tilde prefix</a> (e.g. <code>~LControl up::</code>)</p>
       <p>"Up" hotkeys and their key-down counterparts (if any) always use the keyboard hook.</p>
       <p>On a related note, a technique similar to the above is to make a hotkey into a prefix key. The advantage is that although the hotkey will fire upon release, it will do so only if you did not press any other key while it was held down. For example:</p>
@@ -164,7 +164,14 @@ WheelDown::Send "{Volume_Down}" <em>;</em>
 </pre>
 
 <h2 id="combo">Custom Combinations</h2>
-<p>You can define a custom combination of two keys (except joystick buttons) by using " &amp; " between them. In the below example, you would hold down Numpad0 then press the second key to trigger the hotkey:</p>
+<p>Normally shortcut key combinations consist of optional prefix/modifier keys (<kbd>Ctrl</kbd>, <kbd>Alt</kbd>, <kbd>Shift</kbd> and <kbd>LWin</kbd>/<kbd>RWin</kbd>) and a single suffix key. The standard modifier keys are designed to be used in this manner, so normally have no immediate effect when pressed down.</p>
+<p>A custom combination of two keys (including mouse but not joystick buttons) can be defined by using " &amp; " between them. Because they are intended for use with prefix keys that are not normally used as such, custom combinations have the following special behavior:</p>
+<ul>
+  <li>The prefix key loses its native function, unless it is a standard modifier key or toggleable key such as <kbd>CapsLock</kbd>.</li>
+  <li>If the prefix key is also used as a suffix in another hotkey, by default that hotkey is fired upon release, and is not fired at all if it was used to activate a custom combination. If there is both a key-down hotkey and a <a href="#keyup">key-up</a> hotkey, both hotkeys are fired at once. The fire-on-release effect is disabled if the <a href="#Tilde">tilde prefix</a> is applied to the prefix key in at least one active custom combination or the suffix hotkey itself.</li>
+</ul>
+<p class="note"><strong>Note:</strong> For combinations with standard modifier keys, it is usually better to use the standard syntax. For example, use <code>&lt;+s::</code> rather than <code>LShift &amp; s::</code>.</p>
+<p>In the below example, you would hold down Numpad0 then press the second key to trigger the hotkey:</p>
 <pre id="prefix">Numpad0 &amp; Numpad1::MsgBox "You pressed Numpad1 while holding down Numpad0."
 Numpad0 &amp; Numpad2::Run "Notepad"</pre>
 <p><strong>The prefix key loses its native function:</strong> In the above example, Numpad0 becomes a <em>prefix key</em>; but this also causes Numpad0 to lose its original/native function when it is pressed by itself. To avoid this, a script may configure Numpad0 to perform a new action such as one of the following:</p>
@@ -172,7 +179,6 @@ Numpad0 &amp; Numpad2::Run "Notepad"</pre>
 Numpad0::Send "{Numpad0}"  <em>; Make the <i>release</i> of Numpad0 produce a Numpad0 keystroke. See comment below.</em></pre>
 <p><strong>Fire on release:</strong> The presence of one of the above custom combination hotkeys causes the <em>release</em> of Numpad0 to perform the indicated action, but only if you did not press any other keys while Numpad0 was being held down.  This behaviour can be avoided by applying the <a href="#Tilde">tilde prefix</a> to either hotkey.</p>
 <p id="combo_mods"><strong>Modifiers:</strong> Unlike a normal hotkey, custom combinations act as though they have the <a href="#wildcard">wildcard (*)</a> modifier by default. For example, <code>1 &amp; 2::</code> will activate even if <kbd>Ctrl</kbd> or <kbd>Alt</kbd> is held down when <kbd>1</kbd> and <kbd>2</kbd> are pressed, whereas <code>^1::</code> would be activated only by <kbd>Ctrl</kbd>+<kbd>1</kbd> and not <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>1</kbd>.</p>
-<p>For standard modifier keys, normal hotkeys typically work as well or better than "custom" combinations. For example, <code>&lt;+s::</code> is recommended over <code>LShift &amp; s::</code>.</p>
 <p>Combinations of three or more keys are not supported. Combinations which your keyboard hardware supports can usually be detected by using <a href="commands/_HotIf.htm">#HotIf</a> and <a href="commands/GetKeyState.htm">GetKeyState</a>, but the results may be inconsistent. For example:</p>
 <pre><em>; Press AppsKey and Alt in any order, then slash (/).</em>
 #HotIf GetKeyState("AppsKey", "P")
