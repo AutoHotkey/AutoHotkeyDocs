@@ -22,7 +22,7 @@ indexData = [
   ["//","Variables.htm#MulDiv",4],
   ["//=","Variables.htm#AssignOp",4],
   ["/=","Variables.htm#AssignOp",4],
-  ["&","Variables.htm#bitwise",4],
+  ["&","Variables.htm#ref",4],
   ["& (bitwise-and)","Variables.htm#bitwise",4],
   ["&&","Variables.htm#and",4],
   ["&=","Variables.htm#AssignOp",4],
