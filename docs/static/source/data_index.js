@@ -41,7 +41,7 @@ indexData = [
   ["#NoTrayIcon","commands/_NoTrayIcon.htm",0,""],
   ["#Requires","commands/_Requires.htm",0,"S"],
   ["#SingleInstance","commands/_SingleInstance.htm",0,"S"],
-  ["#SuspendExempt","commands/_SuspendExempt.htm",0,"E"],
+  ["#SuspendExempt","commands/_SuspendExempt.htm",0,"S"],
   ["#UseHook","commands/_UseHook.htm",0,"S"],
   ["#Warn","commands/_Warn.htm",0,"SS"],
   ["#WinActivateForce","commands/_WinActivateForce.htm",0,""],
