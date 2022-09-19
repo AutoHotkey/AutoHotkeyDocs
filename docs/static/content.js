@@ -19,8 +19,8 @@ var user = {
 // --- Cached data ---
 
 // To have the data remain while navigating through the docs, it'll be stored into
-// window.name. This is done because CHM doesn't support
-// window.localStorage/sessionStorage or cookies.
+// sessionStorage. Fallbacks to window.name if sessionStorage is not supported.
+// Note: CHM doesn't support window.localStorage/sessionStorage or cookies.
 
 var cache = {
   colorTheme: user.colorTheme,
@@ -45,7 +45,13 @@ var cache = {
   search_clickItem: 0,
   search_scrollPos: 0,
   load: function() {
-    try {
+    if (window.sessionStorage)
+    {
+      var data = JSON.parse(window.sessionStorage.getItem('data'));
+      if (!data)
+        return false;
+    }
+    else try {
       var data = JSON.parse(window.name);
     } catch(e) {
       return false;
@@ -56,7 +62,10 @@ var cache = {
     return true;
   },
   save: function() {
-    window.name = JSON.stringify(this);
+    if (window.sessionStorage)
+      window.sessionStorage.setItem('data', JSON.stringify(this));
+    else
+      window.name = JSON.stringify(this);
   },
   set: function(prop, value) {
     this[prop] = value;
@@ -362,8 +371,10 @@ function ctor_toc()
       });
     }
     self.preSelect($toc, location, relPath);
-    if (!isFrameCapable)
-      setTimeout( function() { self.preSelect($toc, location, relPath); }, 0);
+    if (!isFrameCapable || cache.search_input)
+      $(document).ready(function() {
+        setTimeout( function() { self.preSelect($toc, location, relPath); }, 0);
+      });
   };
   self.preSelect = function($toc, url, relPath) { // Apply stored settings.
     var tocList = $toc.find('li > span');
@@ -466,7 +477,7 @@ function ctor_index()
     });
 
     // Select closest index entry and show color indicator on input:
-    $indexInput.on('keyup input', function(e) {
+    $indexInput.on('keyup input', function(e, noskip) {
       var $this = $(this);
       var prevInput = cache.index_input; // defaults to undefined
       var input = cache.set('index_input', $this.val().toLowerCase());
@@ -476,7 +487,7 @@ function ctor_index()
         return;
       }
       // Skip subsequent index-matching if we have the same query as the last search, to prevent double execution:
-      if (input == prevInput)
+      if (!noskip && input == prevInput)
         return;
       // Otherwise find the first item which matches the input value:
       var indexListChildren = $indexList.children();
@@ -495,8 +506,10 @@ function ctor_index()
     });
     $indexSelect.val(cache.index_filter).trigger('change');
     self.preSelect($indexList, $indexInput);
-    if (!isFrameCapable)
-      setTimeout( function() { self.preSelect($indexList, $indexInput); }, 0);
+    if (!isFrameCapable || cache.index_input)
+      $(document).ready(function() {
+        setTimeout( function() { self.preSelect($indexList, $indexInput); }, 0);
+      });
   };
   self.findMatch = function(indexListChildren, input) {
     var match = {};
@@ -516,7 +529,7 @@ function ctor_index()
     var clicked = $indexList.children().eq(cache.index_clickItem);
     $indexInput.val(cache.index_input);
     if (cache.index_scrollPos == null)
-      $indexInput.trigger('keyup');
+      $indexInput.trigger('keyup', true);
     else
     {
       $indexList.scrollTop(cache.index_scrollPos);
@@ -548,7 +561,7 @@ function ctor_search()
     // --- Hook up events ---
 
     // Refresh the search list and show color indicator on input:
-    $searchInput.on('keyup input', function(e) {
+    $searchInput.on('keyup input', function(e, noskip) {
       var $this = $(this);
       var prevInput = cache.search_input; // defaults to undefined
       var input = cache.set('search_input', $this.val());
@@ -559,7 +572,7 @@ function ctor_search()
         return;
       }
       // Skip subsequent search if we have the same query as the last search, to prevent double execution:
-      if (input == prevInput)
+      if (!noskip && input == prevInput)
         return;
       // Otherwise fill the search list:
       cache.set('search_data', self.create(input));
@@ -582,7 +595,7 @@ function ctor_search()
   self.preSelect = function($searchList, $searchInput, $searchCheckBox) { // Apply stored settings.
     $searchInput.val(cache.search_input);
     if (cache.search_scrollPos == null)
-      $searchInput.trigger('keyup');
+      $searchInput.trigger('keyup', true);
     else
     {
       $searchList.html(cache.search_data);
