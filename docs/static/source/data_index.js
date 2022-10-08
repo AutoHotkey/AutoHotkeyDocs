@@ -97,6 +97,7 @@ indexData = [
   ["A_AppDataCommon","Variables.htm#AppDataCommon",1],
   ["A_Args","Variables.htm#Args",1],
   ["A_AutoTrim","Variables.htm#AutoTrim",1],
+  ["A_BasePath (Ahk2Exe)","misc/Ahk2ExeDirectives.htm#BasePath",99],
   ["A_BatchLines","Variables.htm#BatchLines",1],
   ["A_CaretX","Variables.htm#Caret",1],
   ["A_CaretY","Variables.htm#Caret",1],
