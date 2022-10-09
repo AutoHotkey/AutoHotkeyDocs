@@ -106,7 +106,8 @@ Menu, Tray, Add, This menu item is a submenu, :MySubmenu</pre>
 <h3 id="Delete">Delete</h3>
 <p>Deletes the specified menu item from the menu.</p>
 <pre class="Syntax"><span class="func">Menu</span>, MenuName, Delete <span class="optional">, MenuItemName</span></pre>
-<p><em>MenuItemName</em> is the name or position of a menu item (see <a href="#MenuItemName">MenuItemName</a> for details). Standard menu items such as "Exit" (see below) cannot be individually deleted. If the <em>default</em> menu item is deleted, the effect will be similar to having used the <a href="#NoDefault">NoDefault</a> sub-command. If <em>MenuItemName</em> is omitted, the entire <em>MenuName</em> menu will be deleted as will any menu items in other menus that use <em>MenuName</em> as a submenu. Deleting a menu also causes the current <a href="#Win32_Menus">Win32 menu</a> of its parent and submenus to be destroyed, to be recreated later as needed.</p>
+<p><em>MenuItemName</em> is the name or position of a menu item (see <a href="#MenuItemName">MenuItemName</a> for details). Standard menu items such as "Exit" (see below) cannot be individually deleted. If the <em>default</em> menu item is deleted, the effect will be similar to having used the <a href="#NoDefault">NoDefault</a> sub-command.</p>
+<p>If <em>MenuItemName</em> is omitted, the entire <em>MenuName</em> menu will be deleted as will any menu items in other menus that use <em>MenuName</em> as a submenu. Deleting a menu also causes the current <a href="#Win32_Menus">Win32 menu</a> of each of its submenus to be destroyed, to be recreated later as needed. Other menus which contain those submenus may also be affected. This can be avoided by deleting the items of the menu with <a href="#DeleteAll">DeleteAll</a> before deleting the menu itself.</p>
 
 <h3 id="DeleteAll">DeleteAll</h3>
 <p>Deletes all custom menu items from the menu.</p>
@@ -256,12 +257,14 @@ Menu, Tray, Add, This menu item is a submenu, :MySubmenu</pre>
 </ul>
 
 <h2 id="Win32_Menus">Win32 Menus</h2>
-<p>As items are added to a menu or modified, the name and other properties of each item are recorded by the Menu command, but the actual <a href="https://msdn.microsoft.com/en-us/library/ms646977">Win32 menu</a> is not constructed immediately. This occurs when the menu or its parent menu is attached to a GUI or shown, either  for the first time or if the menu has been "destroyed" since it was last shown. Any of the following can cause this Win32 menu to be destroyed, along with any parent menus and submenus:</p>
+<p>As items are added to a menu or modified, the name and other properties of each item are recorded by the Menu command, but the actual <a href="https://msdn.microsoft.com/en-us/library/ms646977">Win32 menu</a> is not constructed immediately. This occurs when the menu or its parent menu is attached to a GUI or shown, either  for the first time or if the menu has been "destroyed" since it was last shown. Any of the following can cause this Win32 menu to be destroyed:</p>
 <ul>
   <li>Deleting a menu.</li>
   <li>Replacing an item's submenu with a label or a different menu.</li>
   <li>Prior to <span class="ver">[v1.1.27.03]</span>, calling the sub-commands <a href="#NoStandard">NoStandard</a> (if the standard items were present) or <a href="#DeleteAll">DeleteAll</a>.</li>
 </ul>
+<p>When the Win32 menu is destroyed, the Win32 menu of each submenu and parent menu may also be destroyed.</p>
+<p>When a menu which contains the standard items has its Win32 menu recreated, the standard items are placed at the top.</p>
 <p>Any modifications which are made to the menu directly by Win32 API calls only apply to the current "instance" of the menu, and are lost when the menu is destroyed.</p>
 <p>Each menu item is assigned an ID when it is first added to the menu. Scripts cannot rely on an item receiving a particular ID, but can retrieve the ID of an item by using GetMenuItemID as shown in the <a href="MenuGetHandle.htm#Examples">MenuGetHandle example</a>. This ID cannot be used with the Menu command, but can be used with various <a href="https://msdn.microsoft.com/en-us/library/ms646977">Win32 functions</a>.</p>
 
