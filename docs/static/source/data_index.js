@@ -143,6 +143,7 @@ indexData = [
   ["A_IconNumber","Variables.htm#IconNumber",1],
   ["A_IconTip","Variables.htm#IconTip",1],
   ["A_Index","commands/Loop.htm",1],
+  ["A_InitialWorkingDir","Variables.htm#InitialWorkingDir",1],
   ["A_IPAddress1","Variables.htm#IPAddress",1],
   ["A_IPAddress2","Variables.htm#IPAddress",1],
   ["A_IPAddress3","Variables.htm#IPAddress",1],
