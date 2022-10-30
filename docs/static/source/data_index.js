@@ -102,6 +102,7 @@ indexData = [
   ["A_BatchLines","Variables.htm#BatchLines",1],
   ["A_CaretX","Variables.htm#Caret",1],
   ["A_CaretY","Variables.htm#Caret",1],
+  ["A_Clipboard","misc/Clipboard.htm",1],
   ["A_ComputerName","Variables.htm#ComputerName",1],
   ["A_ComSpec","Variables.htm#ComSpec",1],
   ["A_ControlDelay","Variables.htm#ControlDelay",1],
