@@ -8,6 +8,7 @@ indexData = [
   [":=","commands/SetExpression.htm",4],
   ["!","Variables.htm#unary",4],
   ["!=","Variables.htm#equal",4],
+  ["!==","Variables.htm#equal",4],
   ["?","Variables.htm#ternary",4],
   [".","Variables.htm#concat",4],
   [".=","Variables.htm#AssignOp",4],
