@@ -724,6 +724,7 @@ indexData = [
   ["IsLabel()","commands/IsLabel.htm",2],
   ["IsObject()","commands/IsObject.htm",2],
   ["IsOptional method (Func)","objects/Func.htm#IsOptional",8],
+  ["IsSet()","commands/IsSet.htm",2],
   ["IsVariadic property (Func)","objects/Func.htm#IsVariadic",8],
   ["Join (continuation sections)","Scripts.htm#Join"],
   ["Joystick","KeyList.htm#Joystick"],
