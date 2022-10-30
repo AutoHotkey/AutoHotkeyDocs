@@ -29,7 +29,7 @@
     <li><a href="#Debug">Debug</a>: Shows directive debugging text.</li>
     <li><a href="#ExeName">ExeName</a>: Specifies the location and name for the .exe.</li>
     <li><a href="#Let">Let</a>: Sets a user variable.</li>
-    <li><a href="#Nop">Nop</a>: Does nothing.</li>
+    <li><a href="#Nop">Nop</a> <span class="ver">[v1.1.34.03c+]</span>: Does nothing.</li>
     <li><a href="#Obey">Obey</a>: Obeys a command or expression.</li>
     <li><a href="#PostExec">PostExec</a>: Runs a program after compilation.</li>
     <li><a href="#ResourceID">ResourceID</a> <span class="ver">[v1.1.34+]</span>: Assigns a non-standard resource ID to the main script.</li>
@@ -76,6 +76,8 @@ MsgBox This message appears in both the compiled and uncompiled script
 <p><strong>Group 2:</strong> <a href="../Variables.htm#AhkVersion">A_AhkVersion</a>, <a href="../Variables.htm#IsCompiled">A_IsCompiled</a>, <a href="../Variables.htm#IsUnicode">A_IsUnicode</a>, <a href="../Variables.htm#PtrSize">A_PtrSize</a>.</p>
 
 <p id="WorkFileName">In addition to these variable names, the special variable <strong>A_WorkFileName</strong> holds the temporary name of the processed .exe file. This can be used to pass the file name as a parameter to any <a href="#PostExec">PostExec</a> directives which need to access the generated .exe.</p>
+
+<p id="BasePath"> <span class="ver">[v1.1.34.04b+]</span> Furthermore, the special variable <strong>A_BasePath</strong> contains the full path and name of the selected base file.</p>
 
 <p id="PriorLine">Also, the special variable <strong>A_PriorLine</strong> contains the source line immediately preceding the current compiler directive. Intervening lines of blanks and comments only are ignored, as are any intervening compiler directive lines. This variable can be used to 'pluck' constant information from the script source, and use it in later compiler directives. An example would be accessing the version number of the script, which may be changed often. Accessing the version number in this way means that it needs to be changed only once in the source code, and the change will get copied through to the necessary directive. (See the RegEx example below for more information.)</p>
 
@@ -195,7 +197,7 @@ MsgBox This message appears in both the compiled and uncompiled script
   <dd>The value to be used.</dd>
 </dl>
 
-<h3 id="Nop">Nop</h3>
+<h3 id="Nop">Nop <span class="ver">[v1.1.34.03c+]</span></h3>
 <p>Does nothing.</p>
 <pre class="Syntax"><span class="func">;@Ahk2Exe-Nop</span> <span class="optional">Text</span></pre>
 <dl>
@@ -229,7 +231,7 @@ MsgBox This message appears in both the compiled and uncompiled script
 </dl>
 
 <h3 id="PostExec">PostExec</h3>
-<p>Specifies a program to be executed after a successful compilation, before (or after) any <a href="../Scripts.htm#mpress">Compression</a> is applied to the .exe.</p>
+<p>Specifies a program to be executed after a successful compilation, before (or after) any <a href="../Scripts.htm#mpress">Compression</a> is applied to the .exe. This directive can be present many times and will be executed in the order encountered by the compiler, in the appropriate queue as specified by the <code>When</code> parameter.</p>
 <pre class="Syntax">
 <span class="func">;@Ahk2Exe-PostExec</span> Program [parameters] <span class="optional">, When, WorkingDir, Hidden, IgnoreErrors</span></pre>
 <dl>
@@ -251,7 +253,7 @@ MsgBox This message appears in both the compiled and uncompiled script
   <dt>IgnoreErrors <span class="ver">[v1.1.33.03+]</span></dt>
   <dd><i>(Optional)</i> If set to 1, any errors that occur during the launching or running of the program will not be reported to the user.</dd>
 </dl>
-<p><strong>Example 1:</strong> (To use these examples, first download <a href="https://github.com/AutoHotkey/Ahk2Exe/blob/master/BinMod.ahk">BinMod.ahk</a> and compile it according to the instructions in the downloaded script.)</p>
+<p><strong>Example 1:</strong> (To use the first two examples, first download <a href="https://github.com/AutoHotkey/Ahk2Exe/blob/master/BinMod.ahk">BinMod.ahk</a> and compile it according to the instructions in the downloaded script.)</p>
 <p>This example can be used to remove a reference to "AutoHotkey" in the generated .exe to disguise that it is a compiled AutoHotkey script:</p>
 <pre><em>;@Ahk2Exe-Obey U_au, = "%A_IsUnicode%" ? 2 : 1    ; Script ANSI or Unicode?
 ;@Ahk2Exe-PostExec "BinMod.exe" "%A_WorkFileName%"
@@ -259,7 +261,12 @@ MsgBox This message appears in both the compiled and uncompiled script
 <p><strong>Example 2:</strong> This example will alter a UPX compressed .exe so that it can't be de-compressed with <code>UPX -d</code>:</p>
 <pre><em>;@Ahk2Exe-PostExec "BinMod.exe" "%A_WorkFileName%"
 ;@Ahk2Exe-Cont  "11.UPX." "1.UPX!.", 2</em></pre>
-<p>There are other examples mentioned in the <a href="https://github.com/AutoHotkey/Ahk2Exe/blob/master/BinMod.ahk">BinMod.ahk</a> script.</p>
+<p>(There are other examples mentioned in the <a href="https://github.com/AutoHotkey/Ahk2Exe/blob/master/BinMod.ahk">BinMod.ahk</a> script.)</p>
+<p><strong>Example 3:</strong> This example specifies the <a href="../Scripts.htm#mpress">Compression</a> to be used on a compiled script, if none is specified in the CLI or GUI. The default parameters normally used by the compiler are shown.</p><p>For MPRESS:</p>
+<pre>;@Ahk2Exe-PostExec "MPRESS.exe" "%A_WorkFileName%" -q -x, 0,, 1</pre>
+<p>For UPX:</p>
+<pre>;@Ahk2Exe-PostExec "UPX.exe" "%A_WorkFileName%" 
+;@Ahk2Exe-Cont  -q --all-methods --compress-icons=0, 0,, 1</pre>
 
 <h3 id="ResourceID">ResourceID <span class="ver">[v1.1.34+]</span></h3>
 <p>Assigns a non-standard resource ID to be used for the main script for compilations which use an <a href="#Bin">.exe base file</a> (see <a href="../Program.htm#embedded-scripts">Embedded Scripts</a>). This directive may be overridden by a Resource ID specified in the GUI or CLI. This directive is ignored if it appears in a script inserted by the <a href="#AddResource">AddResource</a> directive.</p>
