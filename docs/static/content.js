@@ -252,7 +252,10 @@ var isPhone = (document.documentElement.clientWidth <= 600);
   // Load current URL into frame:
   if (isFrameCapable)
     $(document).ready(function() {
-      document.getElementById('frame').contentWindow.name = JSON.stringify(cache);
+      if (window.sessionStorage)
+        window.sessionStorage.setItem('data', JSON.stringify(cache));
+      else
+        document.getElementById('frame').contentWindow.name = JSON.stringify(cache);
       structure.openSite(scriptDir + '/../' + (getUrlParameter('frame') || relPath));
     });
 
