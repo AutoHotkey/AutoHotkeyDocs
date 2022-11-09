@@ -77,6 +77,8 @@ MsgBox "This message appears in both the compiled and uncompiled script"
 
 <p id="WorkFileName">In addition to these variable names, the special variable <strong>A_WorkFileName</strong> holds the temporary name of the processed .exe file. This can be used to pass the file name as a parameter to any <a href="#PostExec">PostExec</a> directives which need to access the generated .exe.</p>
 
+<p id="BasePath">Furthermore, the special variable <strong>A_BasePath</strong> contains the full path and name of the selected base file.</p>
+
 <p id="PriorLine">Also, the special variable <strong>A_PriorLine</strong> contains the source line immediately preceding the current compiler directive. Intervening lines of blanks and comments only are ignored, as are any intervening compiler directive lines. This variable can be used to 'pluck' constant information from the script source, and use it in later compiler directives. An example would be accessing the version number of the script, which may be changed often. Accessing the version number in this way means that it needs to be changed only once in the source code, and the change will get copied through to the necessary directive. (See the RegEx example below for more information.)</p>
 
 <p>As well, special user variables can be created with the format <code>U_<i>Name</i></code> using the <a href="#Let">Let</a> and <a href="#Obey">Obey</a> directives, described below.</p>
@@ -96,8 +98,8 @@ MsgBox "This message appears in both the compiled and uncompiled script"
   <li>
     <p>Assume there is a source line followed by two compiler directives as follows:</p>
     <pre>CodeVersion := "1.2.3.4", company := "My Company"</pre>
-    <pre>;@Ahk2Exe-Let U_version = %A_PriorLine~U)^(.+"){1}(.+)".*$~$2%</pre>
-    <pre>;@Ahk2Exe-Let U_company = %A_PriorLine~U)^(.+"){3}(.+)".*$~$2%</pre>
+    <pre><em>;@Ahk2Exe-Let U_version = %A_PriorLine~U)^(.+"){1}(.+)".*$~$2%</em></pre>
+    <pre><em>;@Ahk2Exe-Let U_company = %A_PriorLine~U)^(.+"){3}(.+)".*$~$2%</em></pre>
     <p>These directives copy the version number <code>1.2.3.4</code> into the special variable <code>U_version</code>, and the company name <code>My Company</code> into the special variable <code>U_company</code> for use in other directives later.<br>
     (The <code>{1}</code> in the first regex was changed to <code>{3}</code> in the second regex to select after the third <code>"</code> to extract the company name.)</p>
   </li>
@@ -128,15 +130,15 @@ MsgBox "This message appears in both the compiled and uncompiled script"
   <li>24 (RT_MANIFEST): <code>.manifest</code>. If the name for the resource is not specified, it defaults to <code>1</code></li>
 </ul>
 <p><strong>Example 1:</strong> To replace the standard icons (other than the <a href="#SetMainIcon">main icon</a>):</p>
-<pre>;@Ahk2Exe-AddResource Icon1.ico, 160  ; Replaces 'H on blue'
+<pre><em>;@Ahk2Exe-AddResource Icon1.ico, 160  ; Replaces 'H on blue'
 ;@Ahk2Exe-AddResource Icon2.ico, 206  ; Replaces 'S on green'
 ;@Ahk2Exe-AddResource Icon3.ico, 207  ; Replaces 'H on red'
-;@Ahk2Exe-AddResource Icon4.ico, 208  ; Replaces 'S on red'</pre>
+;@Ahk2Exe-AddResource Icon4.ico, 208  ; Replaces 'S on red'</em></pre>
 
 <p><strong>Example 2:</strong> To include another script as a separate RCDATA resource (see <a href="../Program.htm#embedded-scripts">Embedded Scripts</a>):</p>
-<pre>;@Ahk2Exe-AddResource MyScript1.ahk, #2
-;@Ahk2Exe-AddResource MyScript2.ahk, MYRESOURCE
-</pre><p>Note that each script added with this directive will be fully and separately processed by the compiler, and can include further directives. If there are any competing directives overall, the last encountered by the compiler will be used.</p>
+<pre><em>;@Ahk2Exe-AddResource MyScript1.ahk, #2
+;@Ahk2Exe-AddResource MyScript2.ahk, MYRESOURCE</em></pre>
+<p>Note that each script added with this directive will be fully and separately processed by the compiler, and can include further directives. If there are any competing directives overall, the last encountered by the compiler will be used.</p>
 
 <h3 id="Bin">Bin / Base</h3>
 <p>Specifies the base version of AutoHotkey to be used to generate the .exe file. This directive may be overridden by a base file parameter specified in the GUI or CLI. This directive can be specified many times if necessary, but only in the top level script file (i.e. not in an <a href="../commands/_Include.htm">#Include</a> file). The compiler will be run at least once for each Bin/Base directive found. (If an actual comment is appended to this directive, it must use the <code>&nbsp;;</code> flag. To truly comment out this directive, insert a space after the first comment flag.)</p>
@@ -149,7 +151,7 @@ MsgBox "This message appears in both the compiled and uncompiled script"
   <dt>[Exe_path\][Name]</dt>
   <dd><i>(Optional)</i> The file name to be given to the .exe. Any extension supplied will be replaced by <code>.exe</code>. If no path is specified, the .exe will be created in the script folder. If no name is specified, the .exe will have the default name. (This parameter can be overridden by the <a href="#ExeName">ExeName</a> directive.)</dd>
   <dt>Codepage</dt>
-  <dd><i>(Optional)</i> Overrides the default <a href="http://msdn.microsoft.com/en-us/library/dd317756.aspx">codepage</a>
+  <dd><i>(Optional)</i> Overrides the default <a href="https://learn.microsoft.com/windows/desktop/Intl/code-page-identifiers">codepage</a>
   used to process script files. (Scripts should begin with a Unicode byte-order-mark (BOM), rendering the use of this parameter unnecessary.)</dd>
 </dl>
 
@@ -181,9 +183,9 @@ MsgBox "This message appears in both the compiled and uncompiled script"
   <dd>The .exe file name. Any extension supplied will be replaced by <code>.exe</code>. If no path is specified, the .exe will be created in the script folder. If no name is specified, the .exe will have the default name.</dd>
 </dl>
 <strong>Example:</strong>
-<pre>;@Ahk2Exe-Obey U_bits, = %A_PtrSize% * 8
+<pre><em>;@Ahk2Exe-Obey U_bits, = %A_PtrSize% * 8
 ;@Ahk2Exe-Obey U_type, = "%A_IsUnicode%" ? "Unicode" : "ANSI"
-;@Ahk2Exe-ExeName %A_ScriptName~\.[^\.]+$%_%U_type%_%U_bits%</pre>
+;@Ahk2Exe-ExeName %A_ScriptName~\.[^\.]+$%_%U_type%_%U_bits%</em></pre>
 
 <h3 id="Let">Let</h3>
 <p>Creates (or modifies) one or more user variables which can be accessed by <code>%U_<i>Name</i>%</code>, similar to the built-in variables (see above).</p>
@@ -203,9 +205,9 @@ MsgBox "This message appears in both the compiled and uncompiled script"
   <dd><i>(Optional)</i> Any text, which is ignored.</dd>
 </dl>
 <strong>Example:</strong>
-<pre>Ver := A_AhkVersion "" ; If quoted literal not empty, do 'SetVersion'
+<pre>Ver := A_AhkVersion "" <em>; If quoted literal not empty, do 'SetVersion'
 ;@Ahk2Exe-Obey U_V, = "%A_PriorLine~U)^(.+")(.*)".*$~$2%" ? "SetVersion" : "Nop"
-;@Ahk2Exe-%U_V%        %A_AhkVersion%%A_PriorLine~U)^(.+")(.*)".*$~$2%</pre>
+;@Ahk2Exe-%U_V%        %A_AhkVersion%%A_PriorLine~U)^(.+")(.*)".*$~$2%</em></pre>
 
 <h3 id="Obey">Obey</h3>
 <p>Obeys isolated AutoHotkey commands or expressions, with result in <code>U_<i>Name</i></code>.</p>
@@ -217,11 +219,11 @@ MsgBox "This message appears in both the compiled and uncompiled script"
   <dd>
     <p>The command or expression to obey.</p>
     <p><strong>Command</strong> format must use <em>Name</em> as the output variable (often the first parameter), e.g.</p>
-    <pre>;@Ahk2Exe-Obey U_date, FormatTime U_date`, R D2 T2</pre>
+    <pre><em>;@Ahk2Exe-Obey U_date, FormatTime U_date`, R D2 T2</em></pre>
     <p><strong>Expression</strong> format must start with <code>=</code>, e.g.</p>
-    <pre>;@Ahk2Exe-Obey U_type, = "%A_IsUnicode%" ? "Unicode" : "ANSI"</pre>
+    <pre><em>;@Ahk2Exe-Obey U_type, = "%A_IsUnicode%" ? "Unicode" : "ANSI"</em></pre>
     <p>Expressions can be written in command format, e.g.</p>
-    <pre>;@Ahk2Exe-Obey U_bits, U_bits := %A_PtrSize% * 8</pre>
+    <pre><em>;@Ahk2Exe-Obey U_bits, U_bits := %A_PtrSize% * 8</em></pre>
     <p>If needed, separate multiple commands and expressions with <code>`n</code>.</p>
   </dd>
   <dt>Extra</dt>
@@ -229,7 +231,7 @@ MsgBox "This message appears in both the compiled and uncompiled script"
 </dl>
 
 <h3 id="PostExec">PostExec</h3>
-<p>Specifies a program to be executed after a successful compilation, before (or after) any <a href="../Scripts.htm#mpress">Compression</a> is applied to the .exe.</p>
+<p>Specifies a program to be executed after a successful compilation, before (or after) any <a href="../Scripts.htm#mpress">Compression</a> is applied to the .exe. This directive can be present many times and will be executed in the order encountered by the compiler, in the appropriate queue as specified by the <em>When</em> parameter.</p>
 <pre class="Syntax"><span class="func">;@Ahk2Exe-PostExec</span> Program [parameters] <span class="optional">, When, WorkingDir, Hidden, IgnoreErrors</span></pre>
 <dl>
   <dt>Program [parameters]</dt>
@@ -250,15 +252,20 @@ MsgBox "This message appears in both the compiled and uncompiled script"
   <dt>IgnoreErrors</dt>
   <dd><i>(Optional)</i> If set to 1, any errors that occur during the launching or running of the program will not be reported to the user.</dd>
 </dl>
-<p><strong>Example 1:</strong> (To use these examples, first download <a href="https://github.com/AutoHotkey/Ahk2Exe/blob/master/BinMod.ahk">BinMod.ahk</a> and compile it according to the instructions in the downloaded script.)</p>
+<p><strong>Example 1:</strong> (To use the first two examples, first download <a href="https://github.com/AutoHotkey/Ahk2Exe/blob/master/BinMod.ahk">BinMod.ahk</a> and compile it according to the instructions in the downloaded script.)</p>
 <p>This example can be used to remove a reference to "AutoHotkey" in the generated .exe to disguise that it is a compiled AutoHotkey script:</p>
-<pre>;@Ahk2Exe-Obey U_au, = "%A_IsUnicode%" ? 2 : 1    ; Script ANSI or Unicode?
+<pre><em>;@Ahk2Exe-Obey U_au, = "%A_IsUnicode%" ? 2 : 1    ; Script ANSI or Unicode?
 ;@Ahk2Exe-PostExec "BinMod.exe" "%A_WorkFileName%"
-;@Ahk2Exe-Cont  "%U_au%2.&gt;AUTOHOTKEY SCRIPT&lt;. DATA              "</pre>
+;@Ahk2Exe-Cont  "%U_au%2.&gt;AUTOHOTKEY SCRIPT&lt;. DATA              "</em></pre>
 <p><strong>Example 2:</strong> This example will alter a UPX compressed .exe so that it can't be de-compressed with <code>UPX -d</code>:</p>
-<pre>;@Ahk2Exe-PostExec "BinMod.exe" "%A_WorkFileName%"
-;@Ahk2Exe-Cont  "11.UPX." "1.UPX!.", 2</pre>
-<p>There are other examples mentioned in the <a href="https://github.com/AutoHotkey/Ahk2Exe/blob/master/BinMod.ahk">BinMod.ahk</a> script.</p>
+<pre><em>;@Ahk2Exe-PostExec "BinMod.exe" "%A_WorkFileName%"
+;@Ahk2Exe-Cont  "11.UPX." "1.UPX!.", 2</em></pre>
+<p>(There are other examples mentioned in the <a href="https://github.com/AutoHotkey/Ahk2Exe/blob/master/BinMod.ahk">BinMod.ahk</a> script.)</p>
+<p><strong>Example 3:</strong> This example specifies the <a href="../Scripts.htm#mpress">Compression</a> to be used on a compiled script, if none is specified in the CLI or GUI. The default parameters normally used by the compiler are shown.</p><p>For MPRESS:</p>
+<pre><em>;@Ahk2Exe-PostExec "MPRESS.exe" "%A_WorkFileName%" -q -x, 0,, 1</em></pre>
+<p>For UPX:</p>
+<pre><em>;@Ahk2Exe-PostExec "UPX.exe" "%A_WorkFileName%"
+;@Ahk2Exe-Cont  -q --all-methods --compress-icons=0, 0,, 1</em></pre>
 
 <h3 id="ResourceID">ResourceID</h3>
 <p>Assigns a non-standard resource ID to be used for the main script for compilations which use an <a href="#Bin">.exe base file</a> (see <a href="../Program.htm#embedded-scripts">Embedded Scripts</a>). This directive may be overridden by a Resource ID specified in the GUI or CLI. This directive is ignored if it appears in a script inserted by the <a href="#AddResource">AddResource</a> directive.</p>
