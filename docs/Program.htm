@@ -189,6 +189,39 @@ else if SubStr(A_LineFile, 1, 1) = "*" &amp;&amp; A_LineFile != "*#1"
 <p><em>Run all scripts with a specific interpreter</em> disables the launcher and allows the user to select which exe to use to run all scripts, the traditional way. Be aware that selecting a v1 exe will make it difficult to run any of the support scripts, except via the "AutoHotkey" shortcut in the Start menu.</p>
 <p><em>Auto-detect version when launching script</em> enables the launcher. Additional settings control how the launcher selects which interpreter to use.</p>
 
+<h3 id="launcher-criteria">Criteria</h3>
+<p>When multiple interpreters with the same version number are found, the launcher can rank them according to a predetermined or user-defined set of criteria. The criteria can be expressed as a comma-delimited list of substrings, where each substring may be prefixed with "!" to negate a match. A score is calculated based on which substrings matched, with the left-most substring having highest priority.</p>
+<p>Substrings are matched in the file's description, with the exception of "UIA", which matches if the filename contains "_UIA".</p>
+<p>For example, <code>_H, 64, !ANSI</code> would prefer AutoHotkey_H if available, 64-bit if compatible with the system, and finally Unicode over ANSI.</p>
+<p>Although the Launcher Settings GUI presents drop-down lists with options such as "Unicode 32-bit", a list of substrings can be manually entered.</p>
+<p>Additional (higher-priority) criteria can be specified on the command line with the <a href="#SlashRunWith">/RunWith</a> launcher switch.</p>
+
+<h3 id="launcher-run">Run *Launch</h3>
+<p>The installer registers a hidden shell verb named "launch", which executes the launcher with the <a href="#SlashLaunch">/Launch</a> switch. It can be utilized by following this example:</p>
+<pre>pid := RunWait('*Launch "' PathOfScript '"')</pre>
+<p>By contrast with the default action for .ahk files:</p>
+<ul>
+  <li>/Launch causes the process ID (PID) of the newly launched script to be returned as the launcher's exit code, whereas it would normally return the launched script's exit code. Run's <em>OutputVarPID</em> parameter returns the PID of the launcher.</li>
+  <li>/Launch causes the launcher to exit immediately after launching the script. If /Launch is not used, the launcher generally has to assume that its parent process might be doing something like <code>RunWait(PathOfScript)</code>, which wouldn't work as expected if the launcher exited before the launched script.</li>
+</ul>
+
+<h3 id="launcher-cmd">Command-line Usage</h3>
+<p>The launcher can be explicitly executed at the command line for cases where .ahk files are not set to use the launcher by default, or for finer control over its behaviour. If the launcher is compiled, its usage is essentially the same as AutoHotkey.exe except for the additional launcher switches. Otherwise, the format for command line use is as follows:</p>
+<pre>AutoHotkeyUX.exe launcher.ahk [<i>Switches</i>] [<i>Script Filename</i>] [<i>Script Parameters</i>]</pre>
+<p>Typically full paths and quote marks would be used for the path to AutoHotkeyUX.exe and launcher.ahk, which can be found in the UX subdirectory of the AutoHotkey installation. An appropriate version of AutoHotkey32.exe or AutoHotkey64.exe can be used instead of AutoHotkeyUX.exe (which is just a copy).</p>
+<p><em>Switches</em> can be a mixture of any of the <a href="Scripts.htm#cmd">standard switches</a> and the following launcher-only switches:</p>
+<table class="info">
+  <tr><th>Switch</th><th>Meaning</th></tr>
+  <tr id="SlashLaunch">
+    <td>/Launch</td>
+    <td>Causes the launcher to exit immediately after launching the script, instead of waiting in the background for it to terminate. The launcher's exit code is the process ID (PID) of the new script process.</td>
+  </tr>
+  <tr id="SlashRunWith">
+    <td>/RunWith <em>criteria</em></td>
+    <td>Specifies additional <a href="#launcher-criteria">criteria</a> for determining which executable to use to launch the script. For example, <code>/RunWith UIA</code>.</td>
+  </tr>
+</table>
+
 <h2 id="dash">Dash</h2>
 <p>The dash provides access to support scripts and documentation. It can be opened via the "AutoHotkey" shortcut in the Start menu after installation, or by directly running UX\ui-dash.ahk from the installation directory. Currently it is little more than a menu containing the following items, but it might be expanded to provide controls for active scripts, or other convenient functions.</p>
 <ul>
