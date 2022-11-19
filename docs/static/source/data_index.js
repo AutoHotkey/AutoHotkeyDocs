@@ -919,6 +919,7 @@ indexData = [
   ["ProcessClose","commands/ProcessClose.htm",2],
   ["ProcessExist","commands/ProcessExist.htm",2],
   ["ProcessGetName","commands/ProcessGetName.htm",2],
+  ["ProcessGetParent","commands/ProcessGetParent.htm",2],
   ["ProcessGetPath","commands/ProcessGetName.htm",2],
   ["ProcessSetPriority","commands/ProcessSetPriority.htm",2],
   ["ProcessWait","commands/ProcessWait.htm",2],
