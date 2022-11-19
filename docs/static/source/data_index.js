@@ -476,7 +476,7 @@ indexData = [
   ["DllCall()","commands/DllCall.htm",2],
   ["double-deref","Language.htm#dynamic-variables"],
   ["download a file","commands/URLDownloadToFile.htm"],
-  ["DPI scaling","commands/Gui.htm#DPIScale"],
+  ["DPI scaling","misc/DPIScaling.htm"],
   ["drag and drop (GUI windows)","commands/Gui.htm#GuiDropFiles"],
   ["drag the mouse","commands/MouseClickDrag.htm"],
   ["Drive","commands/Drive.htm",6,"SSS"],

@@ -27,6 +27,7 @@ tocData = [
   ["Environment","",
   [
     ["ClipWait","commands/ClipWait.htm"],
+    ["DPI Scaling","misc/DPIScaling.htm"],
     ["EnvGet","commands/EnvGet.htm"],
     ["EnvSet","commands/EnvSet.htm"],
     ["EnvUpdate","commands/EnvUpdate.htm"],
