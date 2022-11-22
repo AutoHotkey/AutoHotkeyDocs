@@ -34,7 +34,7 @@ translateData = {
   "v1":true,
   "Change the version":true,
   "Edit this document on GitHub":true,
-  "https://github.com/Lexikos/AutoHotkey_L-Docs/edit/master/docs/":true,
+  "https://github.com/Lexikos/AutoHotkey_L-Docs/edit/v1/docs/":true,
   "Go back":true,
   "Go forward":true,
   "Change the font size":true,
