@@ -1384,7 +1384,7 @@ function ctor_structure()
         anchor = document.getElementById(location.hash.substr(1));
       else
         return;
-      $(anchor).css("backgroundColor", "#ff9632");
+      $(anchor).css("backgroundColor", cache.colorTheme ? "#3e2f23" : "#ff9632");
       setTimeout( function() {
         $(anchor).css("backgroundColor", "")
                  .css("transition", "background-color 1s"); // CSS3 only

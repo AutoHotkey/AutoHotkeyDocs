@@ -46,6 +46,7 @@ tocData = [
     ["A_Clipboard","misc/A_Clipboard.htm"],
     ["ClipboardAll","commands/ClipboardAll.htm"],
     ["ClipWait","commands/ClipWait.htm"],
+    ["DPI Scaling","misc/DPIScaling.htm"],
     ["EnvGet","commands/EnvGet.htm"],
     ["EnvSet","commands/EnvSet.htm"],
     ["OnClipboardChange","commands/OnClipboardChange.htm"],
