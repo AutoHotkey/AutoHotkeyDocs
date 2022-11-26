@@ -1220,6 +1220,7 @@ indexData = [
   ["variadic functions","Functions.htm#Variadic"],
   ["variants (duplicate hotkeys and hotstrings)","commands/_IfWinActive.htm#variant"],
   ["VarSetCapacity()","commands/VarSetCapacity.htm",2],
+  ["VerCompare()","commands/VerCompare.htm",2],
   ["version of a file","commands/FileGetVersion.htm"],
   ["virtual key","commands/Send.htm#vk"],
   ["Visible (ControlGet)","commands/ControlGet.htm#Visible",7],

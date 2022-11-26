@@ -350,7 +350,8 @@ tocData = [
     ["StrReplace()","commands/StrReplace.htm"],
     ["StrSplit()","commands/StrSplit.htm"],
     ["SubStr()","commands/SubStr.htm"],
-    ["Trim() / LTrim() / RTrim()","commands/Trim.htm"]
+    ["Trim() / LTrim() / RTrim()","commands/Trim.htm"],
+    ["VerCompare()","commands/VerCompare.htm"]
   ]],
   ["Window","",
   [
