@@ -20,16 +20,20 @@
 <dl>
   <dt>Requirement</dt>
   <dd>
-    <p>If this begins with the word "AutoHotkey" followed by a space or tab, it should be followed by a version string with optional leading "v". If <a href="../Variables.htm#AhkVersion">A_AhkVersion</a> is deemed compatible, loading of the script continues without displaying an error. For example, a script that requires v1.1.33 will also run on v1.1.33.01 and v1.1.34, but not v2.0.</p>
-    <p>Otherwise, an error message is shown and the program exits.</p>
+    <p>If this does not begin with the word "AutoHotkey", an error message is shown and the program exits. This encourages clarity and reserves the directive for future uses. Other forks of AutoHotkey may support other names.</p>
+    <p>Otherwise, the word "AutoHotkey" should be followed by any combination of the following, separated by spaces or tabs:</p>
+    <ul>
+      <li>An optional letter "v" followed by a version number. <a href="../Variables.htm#AhkVersion">A_AhkVersion</a> is required to be greater than or equal to this version, but less than the next major version.</li>
+      <li><span class="ver">[v1.1.36+]:</span> One of <code>&lt;</code>, <code>&lt;=</code>, <code>&gt;</code>, <code>&gt;=</code> or <code>=</code> immediately followed by an optional letter "v" and a version number. For example, <code class="no-highlight">&gt;=1.1.36 &lt;1.1.37</code> allows only v1.1.36.*.</li>
+      <li><span class="ver">[v1.1.36+]:</span> One of the following words to restrict the type of executable (EXE) which can run the script: "Unicode", "ANSI", "32-bit", "64-bit".</li>
+    </ul>
   </dd>
 </dl>
 
 <h2 id="Error_Message">Error Message</h2>
-<p>If a different version of AutoHotkey is required, the message includes <a href="../Variables.htm#AhkVersion">A_AhkVersion</a>:</p>
-<pre class="no-highlight">This script requires <i>%Requirement%</i>, but you have v<i>%A_AhkVersion%</i>.</pre>
-<p>If the requirement was not recognized, the message format is as follows:</p>
-<pre class="no-highlight">This script requires <i>%Requirement%</i>.</pre>
+<p>The message shown depends on the version of AutoHotkey interpreting the directive.</p>
+<p><span class="ver">[v1.1.33+]:</span> The current AutoHotkey version is shown only if a different version of AutoHotkey is required.</p>
+<p><span class="ver">[v1.1.36+]:</span> The path, version and build of AutoHotkey are always shown in the error message.</p>
 <p>If the script is launched with a version of AutoHotkey that does not support this directive, the error message is something like the following:</p>
 <pre class="no-highlight">Line Text: #Requires <i>%Requirement%</i>
 Error: This line does not contain a recognized action.</pre>
@@ -37,7 +41,7 @@ Error: This line does not contain a recognized action.</pre>
 <h2 id="Remarks">Remarks</h2>
 <p>If the script uses syntax or functions which are unavailable in earlier versions, using this directive ensures that the error message shows the unmet requirement, rather than indicating an arbitrary syntax error. This cannot be done with something like <code>if (A_AhkVersion &lt;= "1.1.33")</code> because a syntax error elsewhere in the script would prevent it from executing.</p>
 <p>When sharing a script or posting code online, using this directive allows anyone who finds the code to readily identify which version of AutoHotkey it was intended for.</p>
-<p>Other programs or scripts can check for this directive for various purposes. For example, a launcher script might use it to determine which AutoHotkey executable to launch, while a script editor or related tools might use it to determine how to interpret or highlight the script file.</p>
+<p>Other programs or scripts can check for this directive for various purposes. For example, the launcher installed with AutoHotkey v2 uses it to determine which AutoHotkey executable to launch, while a script editor or related tools might use it to determine how to interpret or highlight the script file.</p>
 <p>Version strings are compared as a series of dot-delimited components, optionally followed by a hyphen and pre-release identifier(s).</p>
 <ul>
   <li>Numeric components are compared numerically. For example, v1.01 = v1.1, but a20 &gt; a112.</li>
@@ -55,9 +59,24 @@ Error: This line does not contain a recognized action.</pre>
 
 <h2 id="Examples">Examples</h2>
 <div class="ex" id="ExBasic">
-<p><a class="ex_number" href="#ExBasic"></a> Causes the script to run only on v1.1.33.00 and later v1.1.* releases.</p>
+<p><a class="ex_number" href="#ExBasic"></a> Causes the script to run only on v1.1.33.00 and later v1.* releases.</p>
 <pre>#Requires AutoHotkey v1.1.33+
-MsgBox This script will run only on v1.1.33.00 and later v1.1.* releases.</pre>
+MsgBox This script will run only on v1.1.33.00 and later v1.* releases.</pre>
+</div>
+
+<div class="ex" id="ExUpper">
+<p><a class="ex_number" href="#ExUpper"></a> Causes the script to run only on v1.1.36.00 and later v1.1.* releases.</p>
+<pre>#Requires AutoHotkey &gt;=1.1.36 &lt;1.2</pre>
+</div>
+
+<div class="ex" id="ExBuild">
+<p><a class="ex_number" href="#ExBuild"></a> Causes the script to run only with a 64-bit interpreter (EXE).</p>
+<pre>#Requires AutoHotkey 64-bit</pre>
+</div>
+
+<div class="ex" id="ExVerBuild">
+<p><a class="ex_number" href="#ExVerBuild"></a> Causes the script to run only with a 64-bit interpreter (EXE) version 1.1.36.00 or later.</p>
+<pre>#Requires AutoHotkey v1.1.36 64-bit</pre>
 </div>
 
 </body>
