@@ -993,7 +993,7 @@ function ctor_structure()
       });
       // 'Edit page on GitHub' button:
       $("li.edit > a").attr({
-        href: T("https://github.com/Lexikos/AutoHotkey_L-Docs/edit/master/docs/") + relPath,
+        href: T("https://github.com/Lexikos/AutoHotkey_L-Docs/edit/v1/docs/") + relPath,
         target: "_blank"
       });
 
