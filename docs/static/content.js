@@ -2047,7 +2047,7 @@ function ctor_features()
           if (cfs == 'if')
             if (m = PARAMS.match(/^([^.(:]+?)(&gt;=|&gt;|&lt;&gt;|&lt;=|&lt;|!=|=)(.*)$/)) {
               var VAR = m[1], OP = m[2], VAL = m[3];
-              out = wrap(CFS, 'cfs', 'commands/IfEqual.htm') + SEP + VAR + OP + processStrParam(VAL);
+              out = wrap(CFS, 'cfs', 'lib/IfEqual.htm') + SEP + VAR + OP + processStrParam(VAL);
               els.cfs.push(out);
               return '<cfs></cfs>';
             }
