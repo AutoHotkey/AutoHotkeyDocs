@@ -1,5 +1,5 @@
 tocData = [
-  ["Quick Reference","AutoHotkey.htm"],
+  ["Quick Reference","index.htm"],
   ["Usage and Syntax","",
   [
     ["Using the Program","Program.htm"],
