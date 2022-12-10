@@ -140,7 +140,7 @@ ScanFiles()
     s := SubStr(s,1,-1) "}`n`n"
     
     abbs := Map(
-        "C", "commands/",
+        "C", "lib/",
         "V", "Variables#",
         "F", "Functions#"
         )

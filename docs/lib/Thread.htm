@@ -1,0 +1,79 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+<title>Thread - Syntax &amp; Usage | AutoHotkey</title>
+<meta name="description" content="The Thread command sets the priority or interruptibility of threads. It can also temporarily disable all timers." />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<link href="../static/theme.css" rel="stylesheet" type="text/css" />
+<script src="../static/content.js" type="text/javascript"></script>
+</head>
+<body>
+
+<h1>Thread</h1>
+
+<p>Sets the priority or interruptibility of <a href="../misc/Threads.htm">threads</a>. It can also temporarily disable all <a href="SetTimer.htm">timers</a>.</p>
+<pre class="Syntax"><span class="func">Thread</span>, <a href="#SubCommands">SubCommand</a> <span class="optional">, Value1, Value2</span></pre>
+<p>The <em>SubCommand</em>, <em>Value1</em>, and <em>Value2</em> parameters are dependent upon each other and their usage is described below.</p>
+
+<h2 id="SubCommands">Sub-commands</h2>
+<p>For <em>SubCommand</em>, specify one of the following:</p>
+<ul>
+    <li><a href="#NoTimers">NoTimers</a>: Prevents interruptions from any timers.</li>
+    <li><a href="#Priority">Priority</a>: Changes the priority level of the current thread.</li>
+    <li><a href="#Interrupt">Interrupt</a>: Changes the duration of interruptibility for newly launched threads.</li>
+</ul>
+
+<h3 id="NoTimers">NoTimers</h3>
+<p>Prevents interruptions from any timers.</p>
+<pre class="Syntax"><span class="func">Thread</span>, NoTimers <span class="optional">, TrueOrFalse</span></pre>
+<p>This sub-command prevents interruptions from any <a href="SetTimer.htm">timers</a> until the <a href="../misc/Threads.htm">current thread</a> either ends, executes <code>Thread, NoTimers, false</code>, or is interrupted by another thread that allows timers (in which case timers can interrupt the interrupting thread until it finishes).</p>
+<p>If this sub-command is not used in the auto-execute section (top part of the script), all threads start off as interruptible by timers (though the settings of the <a href="#Interrupt">Interrupt</a> sub-command [below] will still apply). By contrast, if the auto-execute section turns on this sub-command but never turns it off, every newly launched <a href="../misc/Threads.htm">thread</a> (such as a <a href="../Hotkeys.htm">hotkey</a>, <a href="Menu.htm">custom menu item</a>, or <a href="SetTimer.htm">timer</a>) starts off immune to interruptions by timers.</p>
+<p>Regardless of the default setting, timers will always operate when the script has no threads (unless <a href="Pause.htm">Pause</a> has been turned on).</p>
+<p><code>Thread, NoTimers</code> is equivalent to <code>Thread, NoTimers, true</code>. In addition, since <em>TrueOrFalse</em> is an <a href="../Variables.htm#Expressions">expression</a>, true resolves to 1, and false to 0.</p>
+
+<h3 id="Priority">Priority</h3>
+<p>Changes the priority level of the current thread.</p>
+<pre class="Syntax"><span class="func">Thread</span>, Priority, Level</pre>
+<p>Specify for <em>Level</em> an integer between -2147483648 and 2147483647 (or an <a href="../Variables.htm#Expressions">expression</a>) to indicate the current thread's new priority. This has no effect on other threads. See <a href="../misc/Threads.htm">Threads</a> for details.</p>
+<p>Due to its ability to buffer events, the command <a href="Critical.htm">Critical</a> is generally superior to this sub-command.</p>
+<p>On a related note, the OS's priority level for the entire script can be changed via <a href="Process.htm#Priority">Process Priority</a>. For example:</p>
+<pre>Process, Priority,, High</pre>
+
+<h3 id="Interrupt">Interrupt</h3>
+<p>Changes the duration of interruptibility for newly launched threads.</p>
+<pre class="Syntax"><span class="func">Thread</span>, Interrupt <span class="optional">, Duration, LineCount</span></pre>
+<p class="note"><strong>Note:</strong> This sub-command should be used sparingly because most scripts perform more consistently with settings close to the defaults.</p>
+<p>By default, every newly launched thread is uninterruptible for a <em>Duration</em> of 15 milliseconds or a <em>LineCount</em> of 1000 script lines, whichever comes first. This gives the thread a chance to finish rather than  being immediately interrupted by another thread that is waiting to launch (such as a buffered <a href="../Hotkeys.htm">hotkey</a> or a series of <a href="SetTimer.htm">timed subroutines</a> that are all due to be run).</p>
+<p class="note"><strong>Note:</strong> Any <em>Duration</em> less than 17 might result in a shorter actual duration or immediate interruption, since the system tick count has a minimum resolution of 10 to 16 milliseconds.</p>
+<p>If either parameter is 0, each newly launched thread is immediately interruptible. If either parameter is -1, the thread cannot be interrupted as a result of that parameter. The maximum for both parameters is 2147483647.</p>
+<p>This sub-command is global, meaning that all subsequent threads will obey it, even if the sub-command is used somewhere other than the <a href="../Scripts.htm#auto">auto-execute section</a>. However,<a href="../misc/Threads.htm"> interrupted threads</a> are unaffected because their period of uninterruptibility has already expired. Similarly, the <a href="../misc/Threads.htm">current thread</a> is unaffected except if it is uninterruptible at the time the <em>LineCount</em> parameter is changed, in which case the new <em>LineCount</em> will be in effect for it.</p>
+<p>If a <a href="../Hotkeys.htm">hotkey</a> is pressed or a <a href="Menu.htm">custom menu item</a> is selected while the <a href="../misc/Threads.htm">current thread</a> is uninterruptible, that event will be buffered. In other words, it will launch when the current thread finishes or becomes interruptible, whichever comes first. The exception to this is when the current thread becomes interruptible before it finishes, and it is of higher <a href="#Priority">priority</a> than the buffered event; in this case the buffered event is unbuffered and discarded.</p>
+<p>Regardless of this sub-command, a thread will become interruptible the moment it displays a <a href="MsgBox.htm">MsgBox</a>, <a href="InputBox.htm">InputBox</a>, <a href="FileSelectFile.htm">FileSelectFile</a>, or <a href="FileSelectFolder.htm">FileSelectFolder</a> dialog.</p>
+<p>Either parameter can be left blank to avoid changing it.</p>
+<p>If <a href="Critical.htm">Critical</a> is specified as the first line of the thread's subroutine or function, the thread starts out uninterruptible and the Interrupt sub-command has no effect. However, this does not apply to bound functions or user-defined <a href="../misc/Functor.htm">function objects</a>.</p>
+
+<h2 id="Remarks">Remarks</h2>
+<p>Due to its greater flexibility and its ability to buffer events, the command <a href="Critical.htm">Critical</a> is generally more useful than the sub-commands <a href="#Interrupt">Interrupt</a> and <a href="#Priority">Priority</a>.</p>
+
+<h2 id="Related">Related</h2>
+<p><a href="Critical.htm">Critical</a>, <a href="../misc/Threads.htm">Threads</a>, <a href="Hotkey.htm">Hotkey</a>, <a href="Menu.htm">Menu</a>, <a href="SetTimer.htm">SetTimer</a>, <a href="Process.htm">Process</a></p>
+
+<h2 id="Examples">Examples</h2>
+<div class="ex" id="ExPriority">
+<p><a class="ex_number" href="#ExPriority"></a> Makes the priority of the current thread slightly above average.</p>
+<pre>Thread, Priority, 1</pre>
+</div>
+
+<div class="ex" id="ExInterrupt">
+<p><a class="ex_number" href="#ExInterrupt"></a> Makes each newly launched thread immediately interruptible.</p>
+<pre>Thread, Interrupt, 0</pre>
+</div>
+
+<div class="ex" id="ExInterrupt2">
+<p><a class="ex_number" href="#ExInterrupt2"></a> Makes each thread interruptible after 50 ms or 2000 lines, whichever comes first.</p>
+<pre>Thread, Interrupt, 50, 2000</pre>
+</div>
+
+</body>
+</html>

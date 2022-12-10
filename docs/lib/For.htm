@@ -1,0 +1,129 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+<title>For Loop - Syntax &amp; Usage | AutoHotkey</title>
+<meta name="description" content="The For loop statement repeats a series of code lines once for each key-value pair in an object." />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<link href="../static/theme.css" rel="stylesheet" type="text/css" />
+<script src="../static/content.js" type="text/javascript"></script>
+</head>
+<body>
+
+<h1>For-loop <span class="ver">[AHK_L 59+]</span></h1>
+
+<p>Repeats a series of commands once for each key-value pair in an object.</p>
+
+<pre class="Syntax"><span class="func">For</span> Key <span class="optional">, Value</span> in Expression</pre>
+<h2 id="Parameters">Parameters</h2>
+<dl>
+
+  <dt>Key</dt>
+  <dd><p>Name of the variable in which to store the key at the beginning of each iteration.</p></dd>
+
+  <dt>Value</dt>
+  <dd><p>Name of the variable in which to store the value associated with the current key.</p></dd>
+
+  <dt>Expression</dt>
+  <dd><p>An <a href="../Variables.htm#Expressions">expression</a> which results in an object, or a variable which contains an object.</p></dd>
+
+</dl>
+
+<h2 id="Remarks">Remarks</h2>
+<p><i>Expression</i> is evaluated only once, before the loop begins. If its result is not an object, execution jumps immediately to the line following the loop's body; otherwise, the object's <code>_NewEnum()</code> method is called to retrieve an <a href="EnumeratorObj.htm"><i>enumerator</i></a> object. At the beginning of each iteration, the enumerator's <a href="EnumeratorObj.htm#Next">Next()</a> method is used to retrieve the next key-value pair. If Next() returns zero or an empty string, the loop terminates.</p>
+<p>Although not exactly equivalent to a for-loop, the following demonstrates this process:</p>
+<pre>_enum := (<i>Expression</i>)._NewEnum()
+if IsObject(_enum)
+    while _enum.Next(Key, Value)
+    {
+        ...
+    }
+</pre>
+<p>Existing key-value pairs may be modified during the loop, but inserting or removing keys may cause some items to be skipped or enumerated multiple times. One workaround is to build a list of keys to remove, then use a second loop to remove the keys after the first loop completes. Note that <code><a href="Object.htm#Remove">Object.Remove</a>(<i>first</i>, <i>last</i>)</code> can be used to remove a range of keys without looping.</p>
+<p>A for-loop is usually followed by a <a href="Block.htm">block</a>, which is a collection of statements that form the <em>body</em> of the loop. However, a loop with only a single statement does not require a block (an "if" and its "else" count as a single statement for this purpose). The One True Brace (OTB) style may optionally be used, which allows the open-brace to appear on the same line rather than underneath. For example: <code>for x, y in z {</code>.</p>
+<p>As with all loops, <a href="Break.htm">Break</a>, <a href="Continue.htm">Continue</a> and <a href="../Variables.htm#Index">A_Index</a> may be used.</p>
+
+<h2 id="COM_Objects">COM Objects</h2>
+<p>Since <i>Key</i> and <i>Value</i> are passed directly to the enumerator's Next() method, the values they are assigned depends on what type of object is being enumerated. For COM objects, <i>Key</i> contains the value returned by <a href="http://msdn.microsoft.com/en-us/library/ms221369.aspx">IEnumVARIANT::Next()</a> and <i>Value</i> contains a number which represents its <a href="http://msdn.microsoft.com/en-us/library/cc237865.aspx">variant type</a>. For example, when used with a <a href="http://msdn.microsoft.com/en-us/library/x4k5wbx4.aspx">Scripting.Dictionary</a> object, each <i>Key</i> contains a key from the dictionary and <i>Value</i> is typically 8 for strings and 3 for integers. See <a href="ComObjType.htm">ComObjType()</a> for a list of type codes.</p>
+<p><span class="ver">[v1.0.96.00+]:</span> When enumerating a <a href="ComObjArray.htm">SafeArray</a>, <i>Key</i> contains the current element and <i>Value</i> contains its variant type.</p>
+
+<h2 id="Related">Related</h2>
+<p><a href="EnumeratorObj.htm">Enumerator object</a>, <a href="Object.htm#NewEnum">Object._NewEnum()</a>, <a href="While.htm">While-loop</a>, <a href="Loop.htm">Loop</a>, <a href="Until.htm">Until</a>, <a href="Break.htm">Break</a>, <a href="Continue.htm">Continue</a>, <a href="Block.htm">Blocks</a></p>
+
+<h2 id="Examples">Examples</h2>
+<div class="ex" id="ExBasic">
+<p><a class="ex_number" href="#ExBasic"></a> Lists the key-value pairs of an object.</p>
+<pre>colours := <a href="../Objects.htm#Arrays">Object</a>("red", 0xFF0000, "blue", 0x0000FF, "green", 0x00FF00)
+<em>; The above expression could be used directly in place of "colours" below:</em>
+for k, v in colours
+    s .= k "=" v "`n"
+MsgBox % s
+</pre>
+</div>
+
+<div class="ex" id="ExCOM">
+<p><a class="ex_number" href="#ExCOM"></a> Lists all open Explorer and Internet Explorer windows, using the <a href="https://docs.microsoft.com/en-us/windows/win32/shell/shell">Shell</a> object.</p>
+<pre>for window in ComObjCreate("Shell.Application").Windows
+    windows .= window.LocationName " :: " window.LocationURL "`n"
+MsgBox % windows</pre>
+</div>
+
+<div class="ex" id="ExCEnumerator">
+<p><a class="ex_number" href="#ExCEnumerator"></a> Class: CEnumerator</p>
+<p>Provides a generic enumerator object that can be used for iterating over numeric keys. The array must not be modified during iteration, otherwise the iterated range will be invalid. It's possible to define a custom MaxIndex() functions for array boundaries. If there are missing array members between 1 and max index, they will be iterated but will have a value of "". This means that real sparse arrays are not supported by this enumerator by design. Source: <a href="https://www.autohotkey.com/board/topic/2667-suggestions-on-documentation-improvements/?p=531509">Suggestions on documentation improvements</a></p>
+<pre><em>/*
+Class: CEnumerator
+
+To make an object use this iterator, insert this function in the class definition:
+
+    _NewEnum()
+    {
+    	return new CEnumerator(this)
+    }
+*/</em>
+
+<em>; Iterate over the enumerator</em>
+For k, v in Test
+    MsgBox %k%=%v%
+
+<em>; Test class for demonstrating usage</em>
+class Test
+{
+    static Data := ["abc", "def", "ghi"]
+
+    _NewEnum()
+    {
+        return new CEnumerator(this.Data)
+    }
+}
+
+class CEnumerator
+{
+    __New(Object)
+    {
+        this.Object := Object
+        this.first := true
+        <em>; Cache for speed. Useful if custom MaxIndex() functions have poor performance.</em>
+        <em>; In return, that means that no key-value pairs may be inserted during iteration or the range will become invalid.</em>
+        this.ObjMaxIndex := Object.MaxIndex()
+    }
+
+    Next(ByRef key, ByRef value)
+    {
+        if (this.first)
+        {
+            this.Remove("first")
+            key := 1
+        }
+        else
+            key ++
+        if (key &lt;= this.ObjMaxIndex)
+            value := this.Object[key]
+        else
+            key := ""
+        return key != ""
+    }
+}</pre>
+</div>
+</body>
+</html>

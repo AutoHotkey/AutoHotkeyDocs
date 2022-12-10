@@ -1,0 +1,102 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+<title>#IfWinActive / #IfWinNotActive / #IfWinExist / #IfWinNotExist - Syntax &amp; Usage | AutoHotkey</title>
+<meta name="description" content="The #IfWinActive, #IfWinNotActive, #IfWinExist and #IfWinNotExist directives create context-sensitive hotkeys and hotstrings depending on the type of window that is active or exists." />
+<meta name="ahk:equiv-v2" content="lib/_HotIf.htm" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<link href="../static/theme.css" rel="stylesheet" type="text/css" />
+<script src="../static/content.js" type="text/javascript"></script>
+</head>
+<body>
+
+<h1>#IfWinActive / #IfWinNotActive / #IfWinExist / #IfWinNotExist</h1>
+
+<p>Creates context-sensitive <a href="../Hotkeys.htm">hotkeys</a> and <a href="../Hotstrings.htm">hotstrings</a>. Such hotkeys perform a different action (or none at all) depending on the type of window that is active or exists.</p>
+
+<pre class="Syntax">
+<span class="func">#IfWinActive</span> <span class="optional">WinTitle, WinText</span>
+<span class="func">#IfWinExist</span> <span class="optional">WinTitle, WinText</span>
+<span class="func">#IfWinNotActive</span> <span class="optional">WinTitle, WinText</span>
+<span class="func">#IfWinNotExist</span> <span class="optional">WinTitle, WinText</span>
+<a href="_If.htm">#If <span class="optional">Expression</span></a>
+</pre>
+<h2 id="Parameters">Parameters</h2>
+<dl>
+
+  <dt>WinTitle</dt>
+  <dd><p>A window title or other criteria identifying the target window. See <a href="../misc/WinTitle.htm">WinTitle</a>.</p>
+    <p>Title matching behaviour is determined by <a href="SetTitleMatchMode.htm">SetTitleMatchMode</a> as set in the <a href="../Scripts.htm#auto">auto-execute section</a>.</p>
+    <p>As with most other directives, variables are not supported. Although <a href="../misc/WinTitle.htm#ahk_pid">ahk_pid</a> and <a href="../misc/WinTitle.htm#ahk_id">ahk_id</a> can be used with a hard-coded process or window ID, it is more common for #IfWin to use them indirectly via <a href="GroupAdd.htm">GroupAdd</a> or <a href="Hotkey.htm">Hotkey IfWin</a>.</p>
+    </dd>
+
+  <dt>WinText</dt>
+  <dd><p>If present, this parameter must be a substring from a single text element of the target window (as revealed by the included Window Spy utility). Hidden text elements are detected if <a href="DetectHiddenText.htm">DetectHiddenText</a> has been turned on in the auto-execute section (top part of the script).</p></dd>
+
+  <dt>ExcludeTitle, ExcludeText</dt>
+  <dd><p>Although these are <strong>not</strong> supported, they can be used indirectly by specifying <code>ahk_group MyGroup</code> for <em>WinTitle</em> (where <em>MyGroup</em> is a group created via <a href="GroupAdd.htm">GroupAdd</a>, which supports ExcludeTitle/Text).</p></dd>
+
+</dl>
+
+<h2 id="Basic_Operation">Basic Operation</h2>
+<p>The #IfWin directives make it easy to create context-sensitive <a href="../Hotkeys.htm">hotkeys</a> and <a href="../Hotstrings.htm">hotstrings</a>. For example:</p>
+<pre>#IfWinActive ahk_class Notepad
+#space::MsgBox You pressed Win+Spacebar in Notepad.</pre>
+<p>The #IfWin directives are positional: they affect all hotkeys and hotstrings physically beneath them in the script. They are also mutually exclusive; that is, only the most recent one will be in effect.</p>
+<p>To turn off context sensitivity, specify any #IfWin directive but omit all of its parameters. For example:</p>
+<pre>#IfWinActive</pre>
+<p>When #IfWin is turned off (or never used in a script), all <a href="../Hotkeys.htm">hotkeys</a> and <a href="../Hotstrings.htm">hotstrings</a> are enabled for all windows (unless disabled via <a href="Suspend.htm">Suspend</a> or the <a href="Hotkey.htm">Hotkey command</a>).</p>
+<p>When a mouse or keyboard hotkey is disabled via #IfWin, it performs its native function; that is, it passes through to the active window as though there is no such hotkey. There is one exception: Joystick hotkeys: although #IfWin works, it never prevents other programs from seeing the press of a button.</p>
+<p>#IfWin can also be used to alter the behavior of an ordinary key like <kbd>Enter</kbd> or <kbd>Space</kbd>. This is useful when a particular window ignores that key or performs some action you find undesirable. For example:</p>
+<pre>#IfWinActive Reminders ahk_class #32770  <em>; The "reminders" window in Outlook.</em>
+Enter::Send !o  <em>; Have an "Enter" keystroke open the selected reminder rather than snoozing it.</em>
+#IfWinActive</pre>
+<p>Like other directives, #IfWin cannot be executed conditionally.</p>
+<h2 id="variant">Variant (Duplicate) Hotkeys</h2>
+<p>A particular <a href="../Hotkeys.htm">hotkey</a> or <a href="../Hotstrings.htm">hotstring</a> can be defined more than once in the script if each definition has different #IfWin criteria. These are known as <em>hotkey variants</em>. For example:</p>
+<pre>#IfWinActive ahk_class Notepad
+^!c::MsgBox You pressed Control+Alt+C in Notepad.
+#IfWinActive ahk_class WordPadClass
+^!c::MsgBox You pressed Control+Alt+C in WordPad.
+#IfWinActive
+^!c::MsgBox You pressed Control+Alt+C in a window other than Notepad/WordPad.</pre>
+<p>If more than one variant is eligible to fire, only the one closest to the top of the script will fire. The exception to this is the global variant (the one with no #IfWin criteria): It always has the lowest precedence; therefore, it will fire only if no other variant is eligible (this exception does not apply to <a href="../Hotstrings.htm">hotstrings</a>).</p>
+<p>When creating duplicate hotkeys, the order of <a href="../Hotkeys.htm#Symbols">modifier symbols</a> such as ^!+# does not matter. For example, <code>^!c</code> is the same as <code>!^c</code>. However, keys must be spelled consistently. For example, <em>Esc</em> is not the same as <em>Escape</em> for this purpose (though the case does not matter). Also, any hotkey with a <a href="../Hotkeys.htm#wildcard">wildcard prefix (*)</a> is entirely separate from a non-wildcard one; for example, <code>*F1</code> and <code>F1</code> would each have their own set of variants.</p>
+<p>To have the same hotkey subroutine executed by more than one variant, the easiest way is to create a stack of identical hotkeys, each with a different #IfWin directive above it. For example:</p>
+<pre>#IfWinActive ahk_class Notepad
+#z::
+#IfWinActive ahk_class WordPadClass
+#z::
+MsgBox You pressed Win+Z in either Notepad or WordPad.
+return</pre>
+<p>Alternatively, a <a href="GroupAdd.htm">window group</a> can be used via <code>#IfWinActive ahk_group MyGroup</code>.</p>
+<p>To create hotkey variants dynamically (while the script is running), see <a href="Hotkey.htm#IfWin">"Hotkey IfWin"</a>.</p>
+<h2 id="gen">General Remarks</h2>
+<p>#IfWin also restores prefix keys to their native function when appropriate (a <a href="../Hotkeys.htm#prefix">prefix key</a> is <kbd>A</kbd> in a hotkey such as "a &amp; b"). This occurs whenever there are no enabled hotkeys for a given prefix.</p>
+<p>When Gosub or Goto is used to jump to a hotkey or hotstring label, it jumps to the variant closest to the top of the script.</p>
+<p>When a hotkey is currently disabled via #IfWin, its key or mouse button will appear with a "#" character in <a href="KeyHistory.htm">KeyHistory's</a> "Type" column. This can help debug a script.</p>
+<p>Variable references such as %Var% are not currently supported. Therefore, percent signs must be <a href="../misc/EscapeChar.htm">escaped</a> via `% to allow future support for them. Similarly, literal commas must be escaped (via `,) to allow additional parameters to be added in the future. If you need to work around this limitation, use <a href="GroupAdd.htm">GroupAdd</a> and <a href="../misc/WinTitle.htm#ahk_group">ahk_group</a>.</p>
+<p>A label to which the <a href="Hotkey.htm">Hotkey command</a> has assigned a hotkey is not directly affected by #IfWin. Instead, the use of #IfWin closest to the bottom of the script (if any) will be in effect for all hotkeys created by the Hotkey command (unless <a href="Hotkey.htm#IfWin">"Hotkey IfWin"</a> has been used to change that).</p>
+<p><a href="../Hotkeys.htm#alttab">Alt-tab hotkeys</a> are not affected by #IfWin: they are in effect for all windows.</p>
+<p>The <a href="../misc/WinTitle.htm#LastFoundWindow">Last Found Window</a> is set by #IfWinActive/Exist (though not by #IfWin<em>Not</em>Active/<em>Not</em>Exist). For example:</p>
+<pre>#IfWinExist ahk_class Notepad
+#n::WinActivate  <em>; Activates the window found by #IfWin.</em></pre>
+<p>The <a href="../misc/EscapeChar.htm">escape sequences</a> `s and `t may be used if leading or trailing spaces/tabs are needed in one of #IfWin's parameters.</p>
+<p>For performance reasons, #IfWin does not continuously monitor the activation or existence of the specified windows. Instead, it checks for a matching window only when you type a hotkey or hotstring. If a matching window is not present, your keystroke or mouse click is allowed to pass through to the active window unaltered.</p>
+<p>Window titles and text are case sensitive. Hidden windows are not detected unless <a href="DetectHiddenWindows.htm">DetectHiddenWindows</a> has been turned on in the auto-execute section (top part of the script).</p>
+<h2 id="Related">Related</h2>
+<p><a href="_If.htm">#If <i>expression</i></a>, <a href="Hotkey.htm">Hotkey command</a>, <a href="../Hotkeys.htm">Hotkeys</a>, <a href="../Hotstrings.htm">Hotstrings</a>, <a href="Suspend.htm">Suspend</a>, <a href="WinActive.htm">WinActive()</a>, <a href="WinExist.htm">WinExist()</a>, <a href="SetTitleMatchMode.htm">SetTitleMatchMode</a>, <a href="DetectHiddenWindows.htm">DetectHiddenWindows</a></p>
+<h2 id="Examples">Examples</h2>
+<div class="ex" id="ExBasic">
+<p><a class="ex_number" href="#ExBasic"></a> Creates two hotkeys and one hotstring which only work when Notepad is active, and one hotkey which works for any window except Notepad.</p>
+<pre>#IfWinActive ahk_class Notepad
+^!a::MsgBox You pressed Ctrl-Alt-A while Notepad is active.  <em>; This hotkey will have no effect if pressed in other windows (and it will "pass through").</em>
+#c::MsgBox You pressed Win-C while Notepad is active.
+::btw::This replacement text for "btw" will occur only in Notepad.
+#IfWinActive
+#c::MsgBox You pressed Win-C in a window other than Notepad.</pre>
+</div>
+
+</body>
+</html>

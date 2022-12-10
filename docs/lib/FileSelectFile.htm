@@ -1,0 +1,121 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+<title>FileSelectFile - Syntax &amp; Usage | AutoHotkey</title>
+<meta name="description" content="The FileSelectFile command displays a standard dialog that allows the user to open or save file(s)." />
+<meta name="ahk:equiv-v2" content="lib/FileSelect.htm" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<link href="../static/theme.css" rel="stylesheet" type="text/css" />
+<script src="../static/content.js" type="text/javascript"></script>
+</head>
+<body>
+
+<h1>FileSelectFile</h1>
+
+<p>Displays a standard dialog  that allows the user to open or save file(s).</p>
+
+<pre class="Syntax"><span class="func">FileSelectFile</span>, OutputVar <span class="optional">, Options, RootDir\Filename, Title, Filter</span></pre>
+<h2 id="Parameters">Parameters</h2>
+<dl>
+
+  <dt>OutputVar</dt>
+  <dd><p>The name of the variable in which to store the filename(s) selected by the user. This will be made blank if the user cancels the dialog (i.e. does not wish to select a file).</p></dd>
+
+  <dt>Options</dt>
+  <dd><p>If omitted, it will default to zero, which is the same as having none of the options below.</p>
+      <p><strong>M</strong>: Multi-select. Specify the letter M to allow the user to select more than one file via shift-click, control-click, or other means. <strong>M</strong> may optionally be followed by a number as described below (for example, both M and M1 are valid). To extract the individual files, see the example at the bottom of this page.</p>
+      <p><strong>S</strong>: Save dialog. Specify the letter S to cause the dialog to always contain a Save button instead of an Open button. <strong>S</strong> may optionally be followed by a number (or sum of numbers) as described below (for example, both S and S16 are valid).</p>
+      <p>Even if <strong>M</strong> and <strong>S</strong> are absent, the following numbers can be used. To put more than one of them into effect, add them up. For example, to use 1 and 2, specify the number 3.</p>
+      <p><strong>1</strong>: File Must Exist<br>
+        <strong>2</strong>: Path Must Exist<br>
+        <strong>8</strong>: Prompt to Create New File<br>
+        <strong>16</strong>: Prompt to Overwrite File<br>
+        <strong>32</strong> <span class="ver">[v1.0.43.09+]:</span>
+        Shortcuts (.lnk files) are selected as-is rather than being resolved to their targets. This option also prevents navigation into a folder via a folder shortcut.</p>
+      <p>As the "Prompt to Overwrite" option is supported only by the Save dialog, specifying that option without the "Prompt to Create" option also puts the "S" option into effect. Similarly, the "Prompt to Create" option has no effect when the "S" option is present. Specifying the number 24 enables whichever type of prompt is supported by the dialog.</p></dd>
+
+  <dt>RootDir\Filename</dt>
+  <dd><p>If present, this parameter contains one or both of the following:</p>
+      <p><strong>RootDir</strong>: The root (starting) directory, which is assumed to be a subfolder in <a href="../Variables.htm#WorkingDir">%A_WorkingDir%</a> if an absolute path is not specified. If omitted or blank, the starting directory will be a default that might depend on the OS version (it will likely be the directory most recently selected by the user during a prior use of FileSelectFile). <span class="ver">[v1.0.43.10+]</span>: On Windows XP/2003 and earlier, a <a href="../misc/CLSID-List.htm">CLSID</a> such as <code>::{20d04fe0-3aea-1069-a2d8-08002b30309d}</code> (i.e. My Computer) may also be specified, in which case any subdirectory present after the CLSID should end in a backslash (otherwise, the string after the last backslash will be interpreted as the default filename, below).</p>
+      <p><strong>Filename</strong>: The default filename to initially show in the dialog's edit field. Only the naked filename (with no path) will be shown. To ensure that the dialog is properly shown, ensure that no illegal characters are present (such as /&lt;|:").</p>
+      <p>Examples:</p>
+      <pre class="no-highlight">C:\My Pictures\Default Image Name.gif  <em>; Both <i>RootDir</i> and <i>Filename</i> are present.</em>
+C:\My Pictures  <em>; Only <i>RootDir</i> is present.</em>
+My Pictures  <em>; Only <i>RootDir</i> is present, and it's relative to the current working directory.</em>
+My File  <em>; Only <i>Filename</i> is present (but if "My File" exists as a folder, it is assumed to be <i>RootDir</i>).</em></pre></dd>
+
+  <dt>Title</dt>
+  <dd><p>The title of the file-selection window. If omitted or blank, it will default to "Select File - %A_ScriptName%" (i.e. the name of the current script).</p></dd>
+
+  <dt>Filter</dt>
+  <dd><p>Indicates which types of files are shown by the dialog.</p>
+      <p>Example: Documents (*.txt)<br>
+        Example: Audio (*.wav; *.mp2; *.mp3)</p>
+      <p>If omitted, the filter defaults to All Files (*.*). An option for Text Documents (*.txt) will also be available in the dialog's "files of type" menu.</p>
+    <p>Otherwise, the filter uses the indicated string but also provides an option for All Files (*.*) in the dialog's "files of type" drop-down list. To include more than one file extension in the filter, separate them with semicolons as illustrated in the example above.</p></dd>
+
+</dl>
+
+<h2 id="Error_Handling">Error Handling</h2>
+<p><span class="ver">[v1.1.04+]</span>: This command is able to throw an exception on failure. For more information, see <a href="Catch.htm#RuntimeErrors">Runtime Errors</a>.</p>
+<p><a href="../misc/ErrorLevel.htm">ErrorLevel</a> is set to 1 if the user dismissed the dialog without selecting a file (such as by pressing the Cancel button). It is also set to 1 if the system refused to show the dialog (rare). Otherwise, it is set to 0.</p>
+<h2 id="Remarks">Remarks</h2>
+<p>A file-selection dialog usually looks like this:</p>
+<img src="../static/dlg_file.png" alt="FileSelectFile" />
+<p>If the user didn't select anything (e.g. pressed CANCEL), <em>OutputVar</em> is made blank.</p>
+<p>If multi-select is not in effect, <em>OutputVar</em> is set to the full path and name of the single file chosen by the user.</p>
+<p>If the M option (multi-select) is in effect, <em>OutputVar</em> is set to a list of items, each of which except the last is followed by a linefeed (`n) character. The first item in the list is the path that contains all the selected files (this path will end in a backslash only if it is a root folder such as C:\). The other items are the selected filenames (without path). For example:</p>
+<pre class="no-highlight">C:\My Documents\New Folder [this is the path in which all the files below reside]
+test1.txt [these are the naked filenames: no path info]
+test2.txt
+... etc.</pre>
+<p>(The example at the bottom of this page demonstrates how to extract the files one by one.)</p>
+<p>When multi-select is in effect, the sum of the lengths of the selected filenames is limited to 64 KB. Although this is typically enough to hold several thousand files, <em>OutputVar</em> will be made blank if the limit is exceeded.</p>
+<p>A GUI window may display a modal file-selection dialog by means of <a href="Gui.htm#OwnDialogs">Gui +OwnDialogs</a>. A modal dialog prevents the user from interacting with the GUI window until the dialog is dismissed.</p>
+<p>Known limitation: A <a href="SetTimer.htm">timer</a> that launches during the display of a FileSelectFile dialog will postpone the effect of the user's clicks inside the dialog until after the timer finishes. To work around this, avoid using timers whose subroutines take a long time to finish, or disable all timers during the dialog:</p>
+<pre><a href="Thread.htm">Thread</a>, NoTimers
+FileSelectFile, OutputVar
+Thread, NoTimers, false</pre>
+<p><span class="ver">[v1.0.25.06+]</span>: The multi-select option "4" is obsolete. However, for compatibility with older scripts, it still functions as it did before. Specifically, if the user selects only one file, <em>OutputVar</em> will contain its full path and name followed by a linefeed (`n) character. If the user selects more than one file, the format is the same as that of the M option described above, except that the last item also ends in a linefeed (`n).</p>
+<h2 id="Related">Related</h2>
+<p><a href="FileSelectFolder.htm">FileSelectFolder</a>, <a href="MsgBox.htm">MsgBox</a>, <a href="InputBox.htm">InputBox</a>, <a href="ToolTip.htm">ToolTip</a>, <a href="Gui.htm">GUI</a>, <a href="../misc/CLSID-List.htm">CLSID List</a>, <a href="LoopParse.htm">parsing loop</a>, <a href="SplitPath.htm">SplitPath</a></p>
+<p>Also, the operating system offers standard dialog boxes that prompt the user to pick a font, color, or icon. These dialogs can be displayed via <a href="DllCall.htm">DllCall()</a> as demonstrated at <a href="https://github.com/majkinetor/mm-autohotkey/tree/master/Dlg">GitHub</a>.</p>
+<h2 id="Examples">Examples</h2>
+<div class="ex" id="ExBasic">
+<p><a class="ex_number" href="#ExBasic"></a> Allows the user to select an existing .txt or .doc file.</p>
+<pre>FileSelectFile, SelectedFile, 3, , Open a file, Text Documents (*.txt; *.doc)
+if (SelectedFile = "")
+    MsgBox, The user didn't select anything.
+else
+    MsgBox, The user selected the following:`n%SelectedFile%</pre>
+</div>
+
+<div class="ex" id="ExCLSID">
+<p><a class="ex_number" href="#ExCLSID"></a> A <a href="../misc/CLSID-List.htm">CLSID</a> example. Allows the user to select a file in the recycle bin. Note that this example only works on Windows XP/2003 or earlier.</p>
+<pre>FileSelectFile, OutputVar,, ::{645ff040-5081-101b-9f08-00aa002f954e}  <em>; Recycle Bin.</em></pre>
+</div>
+
+<div class="ex" id="ExMulti">
+<p><a class="ex_number" href="#ExMulti"></a> Allows the user to select multiple existing files.</p>
+<pre>FileSelectFile, files, M3  <em>; M3 = Multiselect existing files.</em>
+if (files = "")
+{
+    MsgBox, The user pressed cancel.
+    return
+}
+Loop, parse, files, `n
+{
+    if (A_Index = 1)
+        MsgBox, The selected files are all contained in %A_LoopField%.
+    else
+    {
+        MsgBox, 4, , The next file is %A_LoopField%.  Continue?
+        IfMsgBox, No, break
+    }
+}
+return</pre>
+</div>
+
+</body>
+</html>

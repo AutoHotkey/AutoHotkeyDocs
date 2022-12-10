@@ -1,0 +1,114 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+<title>#If - Syntax &amp; Usage | AutoHotkey</title>
+<meta name="description" content="The #If directive creates context-sensitive hotkeys and hotstrings. Such hotkeys perform a different action (or none at all) depending on the result of an expression." />
+<meta name="ahk:equiv-v2" content="lib/_HotIf.htm" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<link href="../static/theme.css" rel="stylesheet" type="text/css" />
+<script src="../static/content.js" type="text/javascript"></script>
+</head>
+<body>
+
+
+<h1>#If <span class="ver">[AHK_L 4+]</span></h1>
+
+<p>Creates context-sensitive <a href="../Hotkeys.htm">hotkeys</a> and <a href="../Hotstrings.htm">hotstrings</a>. Such hotkeys perform a different action (or none at all) depending on the result of an expression.</p>
+
+<pre class="Syntax"><span class="func">#If</span> <span class="optional">Expression</span></pre>
+<h2 id="Parameters">Parameters</h2>
+<dl>
+
+  <dt>Expression</dt>
+  <dd><p>Any valid <a href="../Variables.htm#Expressions">expression</a>.</p></dd>
+
+</dl>
+
+<h2 id="Basic_Operation">Basic Operation</h2>
+<p>Any valid expression may be used to define the context in which a hotkey should be active. For example:</p>
+<pre>#If WinActive("ahk_class Notepad") or WinActive(MyWindowTitle)
+#Space::MsgBox You pressed Win+Spacebar in Notepad or %MyWindowTitle%.</pre>
+<p>Like the #IfWin directives, #If is positional: it affects all hotkeys and hotstrings physically beneath it in the script. #If and #IfWin are also mutually exclusive; that is, only the most recent #If or #IfWin will be in effect.</p>
+<p>To turn off context sensitivity, specify #If or any #IfWin directive but omit all the parameters. For example:</p>
+<pre>#If</pre>
+<p>Like other directives, #If cannot be executed conditionally.</p>
+
+<h2 id="General_Remarks">General Remarks</h2>
+<p>When the key, mouse or joystick button combination which forms a hotkey is pressed, the #If expression is evaluated to determine if the hotkey should activate.</p>
+<p class="warning"><strong>Note:</strong> Scripts should not assume that the expression is only evaluated when the key is pressed (see below).</p>
+<p>The expression may also be evaluated whenever the program needs to know whether the hotkey is active. For example, the #If expression for a custom combination like <code>a &amp; b::</code> might be evaluated when the prefix key (<code>a</code> in this example) is pressed, to determine whether it should act as a custom modifier key.</p>
+<p class="warning"><strong>Note:</strong> Use of #If in an unresponsive script may cause input lag or break hotkeys (see below).</p>
+<p>There are several more caveats to the #If directive:</p>
+<ul>
+  <li>Keyboard or mouse input is typically buffered (delayed) until expression evaluation completes or <a href="_IfTimeout.htm">times out</a>.</li>
+  <li>Expression evaluation can only be performed by the script's main thread (at the OS level, not a <a href="../misc/Threads.htm">quasi-thread</a>), not directly by the keyboard/mouse hook. If the script is busy or unresponsive, such as if a FileCopy is in progress, expression evaluation is delayed and may time out.</li>
+  <li>If the <a href="_IfTimeout.htm#LowLevelHooksTimeout">system-defined timeout</a> is reached, the system may stop notifying the script of keyboard or mouse input (see #IfTimeout for details).</li>
+  <li>Sending keystrokes or mouse clicks while the expression is being evaluated (such as from a function which it calls) may cause complications and should be avoided.</li>
+</ul>
+<p><span class="ver">[AHK_L 53+]:</span> <a href="../Variables.htm#ThisHotkey">A_ThisHotkey</a> and <a href="../Variables.htm#TimeSinceThisHotkey">A_TimeSinceThisHotkey</a> are set based on the hotkey for which the current #If expression is being evaluated.</p>
+<p><span class="ver">[v1.0.95.00+]:</span> <a href="../Variables.htm#PriorHotkey">A_PriorHotkey</a> and <a href="../Variables.htm#TimeSincePriorHotkey">A_TimeSincePriorHotkey</a> temporarily contain the previous values of the corresponding "This" variables.</p>
+
+<h2 id="Related">Related</h2>
+<p>Most behavioural properties of the <a href="_IfWinActive.htm">#IfWin</a> directives also apply to #If.</p>
+<p><a href="_IfTimeout.htm">#IfTimeout</a> may be used to override the default timeout value.</p>
+
+<h2 id="Examples">Examples</h2>
+
+<div class="ex" id="ExVolume">
+<p><a class="ex_number" href="#ExVolume"></a> Allows the volume to be adjusted by scrolling the mouse wheel over the taskbar.</p>
+<pre>
+#If MouseIsOver("ahk_class Shell_TrayWnd")
+WheelUp::Send {Volume_Up}
+WheelDown::Send {Volume_Down}
+
+MouseIsOver(WinTitle) {
+    MouseGetPos,,, Win
+    return WinExist(WinTitle . " ahk_id " . Win)
+}
+</pre>
+</div>
+
+<div class="ex" id="ExWordDelete">
+<p><a class="ex_number" href="#ExWordDelete"></a> Simple word-delete shortcuts for all Edit controls.</p>
+<pre>
+#If ActiveControlIsOfClass("Edit")
+^BS::Send ^+{Left}{Del}
+^Del::Send ^+{Right}{Del}
+
+ActiveControlIsOfClass(Class) {
+    ControlGetFocus, FocusedControl, A
+    ControlGet, FocusedControlHwnd, Hwnd,, %FocusedControl%, A
+    WinGetClass, FocusedControlClass, ahk_id %FocusedControlHwnd%
+    return (FocusedControlClass=Class)
+}
+</pre>
+</div>
+
+<div class="ex" id="ExContextInsens">
+<p><a class="ex_number" href="#ExContextInsens"></a> Context-insensitive Hotkey.</p>
+<pre>
+#If
+Esc::ExitApp
+</pre>
+</div>
+
+<div class="ex" id="ExDynamic">
+<p><a class="ex_number" href="#ExDynamic"></a> Dynamic Hotkeys. This example should be combined with <a href="#ExVolume">example #1</a> before running it.</p>
+<pre>
+NumpadAdd::
+Hotkey, If, MouseIsOver("ahk_class Shell_TrayWnd")
+if (doubleup := !doubleup)
+    Hotkey, WheelUp, DoubleUp
+else
+    Hotkey, WheelUp, WheelUp
+return
+
+DoubleUp:
+Send {Volume_Up 2}
+return
+</pre>
+</div>
+
+</body>
+</html>

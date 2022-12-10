@@ -27,7 +27,7 @@
 
 ; Run a search for "Transparency" and edit the number to make it more/less opaque.
 ; Run a search for "BackgroundRed" and edit "Red" to change the flash color.
-; Usable colors: https://www.autohotkey.com/docs/commands/Progress.htm#colors
+; Usable colors: https://www.autohotkey.com/docs/lib/Progress.htm#colors
  
 ; Changing this font size will resize the keyboard:
 k_FontSize = 10
