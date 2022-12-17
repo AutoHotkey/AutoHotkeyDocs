@@ -19,7 +19,16 @@ tocData = [
     ["Objects","Objects.htm"]
   ]],
   ["Frequently Asked Questions","FAQ.htm"],
-  ["Tutorial (quick start)","Tutorial.htm"],
+  ["Tutorials","",
+  [
+    ["Install AutoHotkey","howto/Install.htm"],
+    ["Run Example Code","howto/RunExamples.htm"],
+    ["Run Programs","howto/RunPrograms.htm"],
+    ["Write Hotkeys","howto/WriteHotkeys.htm"],
+    ["Send Keystrokes","howto/SendKeys.htm"],
+    ["Manage Windows","howto/ManageWindows.htm"],
+    ["Tutorial by tidbit","Tutorial.htm"]
+  ]],
   ["Recent Changes","ChangeLog.htm"],
   ["Changes from v1.1 to v2.0","v2-changes.htm"],
   ["Changes from v1.0 to v1.1","v1-changes.htm"],

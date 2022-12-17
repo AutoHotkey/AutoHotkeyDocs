@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta name="description" content="Learn how to run programs with AutoHotkey." />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<title>How to Run Programs | AutoHotkey v2</title>
+<link href="../static/theme.css" rel="stylesheet" type="text/css" />
+<script src="../static/content.js" type="text/javascript"></script>
+</head>
+<body>
+<h1>How to Run Programs</h1>
+<p>One of the easiest and most useful things AutoHotkey can do is allow you to create keyboard shortcuts (hotkeys) that launch programs.</p>
+<p>Programs are launched by calling the <a href="../lib/Run.htm">Run</a> function, <a href="../Concepts.htm#pass-parameters">passing</a> the command line of the program as a <a href="../Concepts.htm#parameters">parameter</a>:</p>
+<pre>Run "C:\Windows\notepad.exe"</pre>
+<p>This example launches Notepad. To learn how to try it out, refer to <a href="RunExamples.htm">How to Run Example Code</a>.</p>
+<p>At this stage, we haven't defined a hotkey (in other words, assigned a keyboard shortcut), so the instructions are carried out immediately. In this case, the script has nothing else to do, so it automatically exits. If you prefer to make useful hotkeys while learning, check out <a href="WriteHotkeys.htm">How to Write Hotkeys</a> first.</p>
+<p class="note"><strong>Note:</strong> Run can also be used to open documents, folders and URLs.</p>
+<p>To launch other programs, simply replace the path in the example above with the path of the program you wish to launch. Some programs have their paths registered with the system, in which case you can get away with just passing the filename of the program, with or (sometimes) without the ".exe" extension. For example:</p>
+<pre>Run "notepad"</pre>
+
+<h2>Command-line Parameters</h2>
+<p>If the program accepts command-line parameters, they can be passed as part of the <a href="../lib/Run.htm">Run</a> function's first parameter. The following example should open license.txt in Notepad:</p>
+<pre>
+Run "notepad C:\Program Files\AutoHotkey\license.txt"
+</pre>
+<p class="note"><strong>Note:</strong> This example assumes AutoHotkey is installed in the default location, and will show an error otherwise.</p>
+<p>Simple, right? Now suppose that we want to open the file in WordPad instead of Notepad.</p>
+<pre>Run "wordpad C:\Program Files\AutoHotkey\license.txt"</pre>
+<p>Run this code and see what you can learn from the result.</p>
+<p>Okay, so the new code doesn't work. Hopefully you didn't dismiss the error dialog immediately; error dialogs are a normal part of the process of coding, and often contain very useful information. This one should tell us a few things:</p>
+<ul>
+  <li>Firstly, the obvious: the program couldn't be launched.</li>
+  <li>The dialog shows "Action" and "Params", but our whole command line is shown next to "Action", and "Params" is empty. In other words, the Run function doesn't know where the program name ends and the parameters begin.</li>
+  <li>"The system cannot find the file specified" (on English-language systems). Perhaps the system couldn't find "wordpad", but what it's really saying is that there is no such file as "wordpad C:\...".</li>
+</ul>
+<d>But why did Notepad work? Running either "notepad" or "wordpad" on its own works, but for different reasons. Unlike notepad.exe, wordpad.exe cannot be found by checking each directory listed in the PATH environment variable. It can be located by a different method, which requires the Run function to separate the program name and parameters.</p>
+<p>So in this case, the Run function needs a bit of help, in any or all of the following forms:</p>
+<ul>
+  <li>Explicitly use the ".exe" extension.</li>
+  <li>Explicitly use the full path of wordpad.exe.</li>
+  <li>Enclose the program name in quotation marks.</li>
+</ul>
+<p>For now, go with the easiest option:</p>
+<pre>Run "wordpad.exe C:\Program Files\AutoHotkey\license.txt"</pre>
+<p>Now WordPad launches, but it shows an error: "C:\Program" wasn't found.</p>
+
+<h2>Quote Marks and Spaces</h2>
+<p>Often when passing command-line parameters to a program, it is necessary to enclose each parameter in quote marks if the parameter contains a space. This wasn't necessary with Notepad, but Notepad is an exception to the general rule. A naive attempt at a solution might be to simply add more quote marks:</p>
+<pre>Run "wordpad.exe "C:\Program Files\AutoHotkey\license.txt""</pre>
+<p>But this won't work, because by default, quote marks are used to denote the start and end of literal text. So how do we include a literal quote mark within the command line, rather than having it end the command line?</p>
+<p><strong>Method 1:</strong> Precede each literal quote mark with <code>`</code> (back-tick, back-quote or grave accent). This is known as an <a href="../misc/EscapeChar.htm">escape sequence</a>. The quote mark is then included in the command line (i.e. the string that is passed to the Run function), whereas the back-tick, having fulfilled its purpose, is left out.</p>
+<pre>Run "wordpad.exe `"C:\Program Files\AutoHotkey\license.txt`""</pre>
+<p><strong>Method 2:</strong> Enclose the command line in single quotes instead of double quotes.</p>
+<pre>Run 'wordpad.exe "C:\Program Files\AutoHotkey\license.txt"'</pre>
+<p>Of course, in that case any <em>literal</em> single quotes (or apostrophes) in the text would need to be escaped (<code>`'</code>).</p>
+<p>How you write the code affects which quote marks actually make it through to the Run function. In the two examples above, the Run function receives the string <code>wordpad.exe "C:\Program Files\AutoHotkey\license.txt"</code>. The Run function either splits this into a <em>program name</em> and <em>parameters</em> (everything else) or leaves that up to the system. In either case, how the remaining quote marks are interpreted depends entirely on the target program.</p>
+<p>Many programs treat a quote mark as part of the parameter if it is preceded by a backslash. For example, <code>Run 'my.exe "A\" B'</code> might produce a parameter with the value <code>A" B</code> instead of two parameters. This is up to the program, and can usually be avoided by doubling the backslash, as in <code>Run 'my.exe "A\\" B'</code>, which usually produces two parameters (<code>A\</code> and <code>B</code>).</p>
+<p>Most programs interpret quote marks as a sort of toggle, switching modes between "space ends the parameter" and "space is included in the parameter". In other words, <code>Run 'my.exe "A B"'</code> is generally equivalent to <code>Run 'my.exe A" "B'</code>. So another way to avoid issues with slashes is to quote the <em>spaces</em> instead of the entire parameter, or end the quote before the slash, as in <code>Run 'my.exe "A"\ B'</code>.</p>
+
+<h2>Including Variables</h2>
+<p>Often a command line needs to include some <a href="../Concepts.htm#variables">variables</a>. For example, the location of the "Program Files" directory can vary between systems, and a script can take this into account by using the <a href="../Variables.htm#ProgramFiles">A_ProgramFiles</a> variable. If the variable contains the entire command line, simply pass the variable to the Run function to execute it.</p>
+<pre>Run A_ComSpec  <em>; Start a command prompt (almost always cmd.exe).</em>
+Run A_MyDocuments  <em>; Open the user's Documents folder.</em></pre>
+<p>Including a variable <em>inside</em> a quoted string won't work; instead, we use <a href="../Variables.htm#concat">concatenation</a> to join literal strings together with variables. For example:</p>
+<pre>Run 'notepad.exe "' A_MyDocuments '\AutoHotkey.ahk"'</pre>
+<p>Another method is to use <a href="../lib/Format.htm">Format</a> to perform substitution. For example:</p>
+<pre>Run Format('notepad.exe "{1}\AutoHotkey.ahk"', A_MyDocuments)</pre>
+<p class="note"><strong>Note:</strong> Format can perform additional formatting at the same time, such as padding with 0s or spaces, or formatting numbers as hexadecimal instead of decimal.</p>
+
+<h2>Run's Parameters</h2>
+<p>Aside from the command line to execute, the Run function accepts a few other <a href="../Concepts.htm#parameters">parameters</a> that affect its behaviour.</p>
+<p><em>WorkingDir</em> specifies the working directory for the new process. If you specify a relative path for the program, it is relative to this directory. Relative paths in command line parameters are often also relative to this directory, but that depends on the program.</p>
+<pre>Run "cmd", "C:\"  <em>; Open a command prompt at C:\</em></pre>
+<p><em>Options</em> can often be used to run a program minimized or hidden, instead of having it pop up on screen, but some programs ignore it.</p>
+<p><em>OutputVarPID</em> gives you the process ID, which is often used with <a href="../lib/WinWait.htm">WinWait</a> or <a href="../lib/WinWaitActive.htm">WinWaitActive</a> and <a href="../misc/WinTitle.htm#ahk_pid">ahk_pid</a> to wait until the program shows a window on screen, or to identify one of its windows. For example:</p>
+<pre>Run "notepad",,, &amp;pid
+WinWaitActive "ahk_pid " pid
+SendText "Hello, world!"</pre>
+
+<h2>System Verbs</h2>
+<p><a href="../lib/Run.htm#verbs">System verbs</a> are actions that the system or applications register for specific file types. They are normally available in the file's right-click menu in Explorer, but their actual names don't always match the text displayed in the menu. For example, AutoHotkey scripts have an "edit" verb which opens the script in an editor, and (if Ahk2Exe is installed) a "compile" verb which <a href="../Scripts.htm#ahk2exe">compiles</a> the script.</p>
+<p>"Edit" is one of a list of common verbs that Run recognizes by default, so can be used by just writing the word followed by a space and the filename, as follows:</p>
+<pre>Run 'edit ' A_ScriptFullPath  <em>; Generally equivalent to <a href="../lib/Edit.htm">Edit</a></em></pre>
+<p>Any verb registered with the system can be executed by using the * prefix as shown below:</p>
+<pre>Run '*Compile-Gui ' A_ScriptFullPath</pre>
+<p>If Ahk2Exe is installed, this opens the Ahk2Exe Gui with the current script pre-selected.</p>
+
+<h2>Environment</h2>
+<p>Whenever a new process starts, it generally inherits the <em>environment</em> of the process which launched it (the <em>parent process</em>). This basically means that all of the script's <a href="../Concepts.htm#environment-variables">environment variables</a> are inherited by any program that you launch with <a href="../lib/Run.htm">Run</a>.</p>
+<p>In some cases, environment variables can be set with <a href="../lib/EnvSet.htm">EnvSet</a> before launching the program to affect its behaviour, or pass information to it. A script can also use <a href="../lib/EnvGet.htm">EnvGet</a> to read environment variables that it might have inherited from its parent process.</p>
+<p>On 64-bit systems, the script's own environment heavily depends on whether the EXE running it is 32-bit or 64-bit. 32-bit processes not only have different environment variables, but also have <a href="https://learn.microsoft.com/en-us/windows/win32/winprog64/file-system-redirector">file system redirection</a> in place for compatibility reasons.</p>
+<pre>Run "cmd /k set pro"</pre>
+<p>The example above shows a command prompt which prints all environment variables beginning with "pro". If you run it from a 32-bit script, you will likely see <code>PROCESSOR_ARCHITECTURE=x86</code> and <code>ProgramFiles=C:\Program Files (x86)</code>. Although the title shows something like "C:\Windows\System32\cmd.exe", this is a lie; it is actually the 32-bit version, which really resides in "C:\Windows\SysWow64\cmd.exe".</p>
+<p>In simple cases like this, the easiest way to bypass the redirection of "System32" is to use "SysNative" instead. However, this only works from a 32-bit process on a 64-bit system, so must be done conditionally. When the following example is executed on a 64-bit system, it shows a 64-bit command prompt even if the script is 32-bit:</p>
+<pre>if FileExist(A_WinDir "\SysNative")
+    Run A_WinDir "\SysNative\cmd.exe /k set pro"
+else
+    Run "cmd /k set pro"</pre>
+
+</body>

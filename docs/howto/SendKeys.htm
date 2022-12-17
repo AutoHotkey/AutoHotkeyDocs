@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta name="description" content="Learn how to send keystrokes or text with AutoHotkey." />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<title>How to Send Keystrokes | AutoHotkey v2</title>
+<link href="../static/theme.css" rel="stylesheet" type="text/css" />
+<script src="../static/content.js" type="text/javascript"></script>
+</head>
+<body>
+<h1>How to Send Keystrokes</h1>
+<pre>Send "Hello, world{!}{Left}^+{Left}"</pre>
+<p>Sending keystrokes (or keys for short) is the most common method of automating programs, because it is the one that works most generally. More direct methods tend to work only in particular types of app.</p>
+<p>There are broadly two parts to learning how to send keys:</p>
+<ol>
+  <li>How to write the code so that the program knows which keys you want to send.</li>
+  <li>How to use the available modes and options to get the right end result.</li>
+</ol>
+<p>It is important to understand that sending a key does not perfectly replicate the act of physically pressing the key, even if you slow it down to human speeds. But before we go into that, we'll cover some basics.</p>
+
+<h2>Trying the examples</h2>
+<p>If you run an example like <code>SendText "Hi!"</code>, the text will be immediately sent to the active (focused) window, which might be less than useful depending on how you ran the example. It's usually better to define a hotkey, run the example to load it up, and press the hotkey when you want to test its effect. Some of the examples below will use numbered hotkeys like <code>^1::</code> (<kbd>Ctrl</kbd> and a number, so you can try multiple examples at once if there are no duplicates), but you can change that to whatever suits you.</p>
+<p>To learn how to customize the hotkeys or create your own, see <a href="WriteHotkeys.htm">How to Write Hotkeys</a>.</p>
+<p>If you're not sure how to try out the examples, see <a href="RunExamples.htm">How to Run Example Code</a>.</p>
+
+<h2>How to write the code</h2>
+<p>When sending keys, you generally want to either send a key or key combination for its effect (like <kbd>Ctrl</kbd>+<kbd>C</kbd> to copy to the clipboard), or type some text. Typing text is simpler, so we'll start there: just call the <a href="../lib/Send.htm">SendText</a> function, <a href="../Concepts.htm#pass-parameters">passing</a> it the exact text you want to send.</p>
+<pre>^1::SendText "To Whom It May Concern"</pre>
+<p>Technically SendText actually sends Unicode character packets and not keystrokes, and that makes it much more reliable for characters that are normally typed with a key-combination like <kbd>Shift</kbd>+<kbd>2</kbd> or <kbd>AltGr</kbd>+<kbd>a</kbd>.</p>
+
+<h3>Rules of quoted strings</h3>
+<p>SendText sends the text verbatim, but keep in mind the rules of the <a href="../Language.htm">language</a>. For instance, <a href="../Language.htm#strings">literal text</a> must be enclosed in quote marks (double <code>"</code> or single <code>'</code>), and the quote marks themselves aren't "seen" by the SendText function. To send a literal quote mark, you can enclose it in the opposite type of quote mark. For example:</p>
+<pre>^2::SendText 'Quote marks are also known as "quotes".'</pre>
+<p>Alternatively, use an <a href="../misc/EscapeChar.htm">escape sequence</a>. Inside a quoted string, <code>`"</code> translates to a literal <code>"</code> and <code>`'</code> translates to a literal <code>'</code>. For example:</p>
+<pre>^3::{
+    SendText "Double quote (`")"
+    SendText 'Single quote (`')'
+}</pre>
+<p>You can also alternate the quote marks:</p>
+<pre>^4::SendText 'Double (") and' . " single (') quote"</pre>
+<p>The two strings are joined together (<a href="../Variables.htm#concat">concatenated</a>) before being passed to the SendText function. The dot (<code>.</code>) can be omitted, but that makes it harder to see where one ends and the other begins.</p>
+<p>As you've seen above, the escape character <code>`</code> (known by <em>backquote</em>, <em>backtick</em>, <em>grave accent</em> and other names) has special meaning, so if you want to send that character literally (or send the corresponding key), you need to double it up, as in <code>Send "``"</code>. Other common escape sequences include <code>`n</code> for linefeed (Enter) and <code>`t</code> for tab. See <a href="../misc/EscapeChar.htm">Escape Sequences</a> for more.</p>
+
+<h3>Sending keys and key combinations</h3>
+<p><a href="../lib/Send.htm">SendText</a> is best for sending text verbatim, but it can't send keys that don't produce text, like <kbd>Left</kbd> or <kbd>Home</kbd>. <a href="../lib/Send.htm">Send</a>, <a href="../lib/Send.htm">SendInput</a>, <a href="../lib/Send.htm">SendPlay</a>, <a href="../lib/Send.htm">SendEvent</a> and <a href="../lib/ControlSend.htm">ControlSend</a> can send both text and key combinations, or keys which don't produce text. To do all of this, they add special meaning to the following symbols: <code>^!+#{}</code>
+<p>The first four symbols correspond to the standard modifier keys, Ctrl (<code>^</code>), Alt (<code>!</code>), Shift (<code>+</code>) and Win (<code>#</code>). They can be used in combination, but otherwise affect only the next key.</p>
+<p>To send a key by name, or to send any one of the above symbols literally, enclose it in braces. For example:</p>
+<ul>
+  <li><code>^+{Left}</code> produces <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Left</kbd></li>
+  <li><code>^{+}{Left}</code> produces <kbd>Ctrl</kbd>+<kbd>+</kbd> followed by <kbd>Left</kbd></li>
+  <li><code>^+Left</code> produces <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>L</kbd> followed literally by the letters <code>eft</code></li>
+</ul>
+<p>When you press <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>"</kbd>, the following example sends two quote marks and then moves the insertion point to the left, ready to type inside the quote marks:</p>
+<!-- span works around a highlighter bug (4/12/22) -->
+<pre><span class="no-highlight">^+"</span>::Send '""{Left}'</pre>
+<p>For any single character other than <code>^!+#{}</code>, Send translates it to the corresponding key combination and presses and releases that combination. For example, <code>Send "aB"</code> presses and releases <kbd>A</kbd> and then presses and releases <kbd>Shift</kbd>+<kbd>B</kbd>. Similarly, any key name enclosed in braces is pressed and released by default. For example, <code>Send "{Ctrl}a"</code> would press and release <kbd>Ctrl</kbd>, then press and release <kbd>A</kbd>; probably not what you want.</p>
+<p>To only press (hold down) or release a key, enclose the key name in braces, followed by a space and then the word "down" or "up". The following example causes <kbd>Ctrl</kbd>+<kbd>CapsLock</kbd> to act as a toggle for <kbd>Shift</kbd>:</p>
+<pre>*^CapsLock::{
+    if GetKeyState("Shift")
+        Send "{Shift up}"
+    else
+        Send "{Shift down}"
+}</pre>
+
+<h3>Hotkeys vs. Send</h3>
+<p class="warning"><strong>Warning:</strong> Hotkeys and Send have some differences that you should be aware of.</p>
+<p>Although <a href="../Hotkeys.htm">hotkeys</a> also use the symbols <code>^!+#</code> and the same key names, there are several important differences:</p>
+<ul>
+  <li>Other hotkey modifier symbols are not supported by Send. For example, <code>&gt;^a::</code> corresponds to <kbd>RCtrl</kbd>+<kbd>A</kbd>, but to send that combination, you need to spell out the key name in full, as in <code>Send "{RCtrl down}a{RCtrl up}"</code>.</li>
+  <li>Key names are never enclosed in braces within hotkeys, but must always be enclosed in braces for Send (if longer than one character).</li>
+  <li>Send is case-sensitive. For example, <code>Send "^A"</code> sends the combination of <kbd>Ctrl</kbd> with <em>upper-case</em> "a", so <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>A</kbd>. By contrast, <code>^a::</code> and <code>^A::</code> are equivalent.</li>
+</ul>
+<p>This is because Send serves multiple purposes, whereas hotkeys are optimized for key combinations.</p>
+<p>On a related note, <a href="../Hotstrings.htm">hotstrings</a> are exclusively for detecting text entry, so the symbols <code>^!+#{}</code> have no special meaning within the hotstring trigger text. However, a hotstring's <em>replacement</em> text uses the same syntax as Send (except when the <a href="../Hotstrings.htm#T">T option</a> is used). Whenever you type "{" with the following hotstring active, it sends "}" and then <kbd>Left</kbd> to move the insertion point back between the braces:</p>
+<pre>:*?B0:{::{}}{Left}</pre>
+
+<h3>Blind mode</h3>
+<p>Normally, Send assumes that any modifier keys you are physically holding down should not be combined with the keys you are asking it to send. For instance, if you are holding <kbd>Ctrl</kbd> and you call <code>Send "Hi"</code>, Send will automatically release <kbd>Ctrl</kbd> before sending "Hi" and press it back down afterward.</p>
+<p>Sometimes what you want is to send some keys in combination with other modifiers that were previously pressed or sent. To do this, you can use the <code>{Blind}</code> prefix. While running the following example, try focusing a non-empty text editor or input field and pressing <kbd>1</kbd> or <kbd>2</kbd> while holding <kbd>Ctrl</kbd> or <kbd>Ctrl</kbd>+<kbd>Shift</kbd>:</p>
+<pre>*^1::Send "{Blind}{Home}"
+*^2::Send "{Blind}{End}"</pre>
+<p>For more about <code>{Blind}</code>, see <a href="../lib/Send.htm#Blind">Blind mode</a>.</p>
+
+<h3>Others</h3>
+<p>Send supports a few other special constructs, such as:</p>
+<ul>
+  <li><code>{U+00B5}</code> to send a Unicode character by its ordinal value (character code).</li>
+  <li><code>{ASC 0181}</code> to send an Alt+Numpad sequence.</li>
+  <li><code class="no-highlight">{Click <i>Options</i>}</code> to click or move the mouse.</li>
+</ul>
+<p>For a full list, see <a href="../lib/Send.htm#keynames">Key names</a>.</p>
+
+<h2>Modes and options</h2>
+<p>Sending a key does not perfectly replicate the act of physically pressing the key. The operating system provides several different ways to send keys, with different caveats for each. Sometimes to get the result you want, you will need to not only try different methods but also tweak the timing.</p>
+<p>The <a href="../lib/Send.htm#Send_variants">main methods</a> are SendInput, SendEvent and SendPlay. SendInput is generally the most reliable, so by default, Send is synonymous with SendInput. <a href="../lib/SendMode.htm">SendMode</a> can be used to make Send synonymous with SendEvent or SendPlay instead. The documentation describes other pros and cons of <a href="../lib/Send.htm#SendInputDetail">SendInput</a> and <a href="../lib/Send.htm#SendPlayDetail">SendPlay</a> at length, but I would suggest just trying SendEvent or SendPlay when you have issues with SendInput.</p>
+<p class="warning"><strong>Warning:</strong> SendPlay doesn't tend to work on modern systems unless you <a href="../Program.htm#Installer_uiAccess">run with UI access</a>.</p>
+<p>Another option worth trying is <a href="../lib/ControlSend.htm">ControlSend</a>. This doesn't use an official method of sending keystrokes, but instead sends messages directly to the window that you specify. The main advantage is that the window usually doesn't need to be active to receive these messages. But since it bypasses the normal processing of keyboard input by the system, sometimes it doesn't work.</p>
+
+<h3>Timing and delays</h3>
+<p>Sometimes you can get away with sending a flood of keystrokes faster than humanly possible, and sometimes you can't. There are generally two situations where you might need a delay:</p>
+<ul>
+  <li>A keypress is supposed to trigger some change within the target app (such as showing a new control or window), and sending another keypress before that happens will have the wrong effect.</li>
+  <li>The app can't keep up with a rapid stream of keystrokes, and you need to slow them all down.</li>
+</ul>
+<p>For the first case, you can simply call Send, then <a href="../lib/Sleep.htm">Sleep</a>, then Send, and so on.</p>
+<p><a href="../lib/SetKeyDelay.htm">SetKeyDelay</a> exists for the second case. This function can set a delay to be performed between each keystroke, and the duration of the keystroke (i.e. the delay between pressing and releasing the key).</p>
+<pre>^1::{
+    SetKeyDelay 75, 25  <em>; 75ms between keys, 25ms between down/up.</em>
+    SendEvent "You should see the keys{bs 4}text appear gradually."
+}</pre>
+<p class="warning"><strong>Warning:</strong> SendInput does not support key delays, nor does Send by default.</p>
+<p>In order to make SetKeyDelay effective, you must generally either use <code>SendMode "Event"</code> or call SendEvent, SendPlay or ControlSend instead of Send or SendText.</p>
+
+<h2>Sending a lot of text</h2>
+<p>One way to send multiple lines of text is to use a <a href="../Scripts.htm#continuation-section">continuation section</a>:</p>
+<pre>SendText "
+(
+    Leading indentation is stripped out,
+    based on the first line.
+    Line breaks are kept
+    unless you use the "Join" option.
+)"</pre>
+<p>Although it is generally quite fast, SendText still has to send each character one at a time, while Send generally needs to send at least twice as many messages (key-down <em>and</em> key-up). This adds up to a noticeable delay when sending a large amount of text. It can also become unreliable, as a longer delay means higher risk of conflict with input by the user, the keyboard focus shifting, or other conditions changing.</p>
+<p>Generally it is faster and more reliable to instead place the text on the clipboard and <em>paste</em> it. For example:</p>
+<pre>^1::{
+    old_clip := ClipboardAll()  <em>; Save all clipboard content</em>
+    A_Clipboard := "
+    (Join`s
+        This text is placed on the clipboard,
+        and will be pasted below by sending Ctrl+V.
+    )"
+    Send "^v"
+    Sleep 500  <em>; Wait a bit for Ctrl+V to be processed</em>
+    A_Clipboard := old_clip  <em>; Restore previous clipboard content</em>
+}</pre>
+
+</body>

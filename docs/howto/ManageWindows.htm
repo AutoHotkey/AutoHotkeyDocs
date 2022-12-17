@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta name="description" content="Learn how to activate or manipulate windows." />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<title>How to Manage Windows | AutoHotkey v2</title>
+<link href="../static/theme.css" rel="stylesheet" type="text/css" />
+<script src="../static/content.js" type="text/javascript"></script>
+</head>
+<body>
+<h1>How to Manage Windows</h1>
+<p>One of the easiest and most useful things AutoHotkey can do is allow you to create keyboard shortcuts (hotkeys) that manipulate windows. A script can activate, close, minimize, maximize, restore, hide, show or move almost any window. This is done by calling the appropriate <a href="../lib/Win.htm">Win function</a>, specifying the window by title or some other criteria:</p>
+<pre>Run "notepad.exe"
+WinWait "Untitled - Notepad"
+WinActivate "Untitled - Notepad"
+WinMove 0, 0, A_ScreenWidth/4, A_ScreenHeight/2, "Untitled - Notepad"</pre>
+<p>This example should open a new Notepad window and then move it to fill a portion of the primary screen (&frac14; of its width and &frac12; its height). To learn how to try it out, refer to <a href="RunExamples.htm">How to Run Example Code</a>.</p>
+
+<p>We won't go into detail about many of the functions for manipulating windows, since there's not much to it. For instance, to minimize a window instead of activating it, replace <code>WinActivate</code> with <code>WinMinimize</code>. See <a href="../lib/Win.htm">Win functions</a> for a list of functions which can manipulate windows or retrieve information.</p>
+<p>Most of this tutorial is about ways to <em>identify</em> which window you want to operate on, since that is often the most troublesome part. For instance, there are a number of problems with the example above:</p>
+<ul>
+  <li>The title is repeated unnecessarily.</li>
+  <li>The title is correct only for systems with UI language set to English.</li>
+  <li>It might move an existing untitled Notepad window instead of the new one.</li>
+  <li>If for some reason no matching window appears, the script will stall indefinitely.</li>
+</ul>
+<p>We'll address these issues one at a time, after covering a few basics.</p>
+<p class="note"><strong>Tip:</strong> AutoHotkey comes with a script called <em>Window Spy</em>, which can be used to confirm the title, class and process name of a window. The class and process name are often used when identifying a window by title alone is not feasible. You can find Window Spy in the script's <a href="../Program.htm#tray-icon">tray menu</a> or the <a href="../Program.htm#dash">AutoHotkey Dash</a>.</p>
+
+<h2 id="ttm">Title Matching</h2>
+<p>There are a few things to know when specifying a window by title:</p>
+<ul>
+  <li>Window titles are always case-sensitive, except when using the RegEx matching mode with the <a href="../misc/RegEx-QuickRef.htm#opt_i">i) modifier</a>.</li>
+  <li>By default, functions expect a substring of the window title. For example, "Notepad" could match both "Untitled - Notepad" and "C:\A\B.ahk - Notepad++". <a href="../lib/SetTitleMatchMode.htm">SetTitleMatchMode</a> can be used to make functions expect a prefix, exact match, or RegEx pattern instead.</li>
+  <li>By default, hidden windows are ignored (except by <a href="../lib/WinShow.htm">WinShow</a>). <a href="../lib/DetectHiddenWindows.htm">DetectHiddenWindows</a> can be used to change this.</li>
+</ul>
+<p>See <a href="../misc/WinTitle.htm">Matching Behaviour</a> for more details.</p>
+
+<h2 id="A">Active Window</h2>
+<p>To refer to the active window, use the letter "A" in place of a window title. For example, this minimizes the active window:</p>
+<pre>WinMinimize "A"</pre>
+
+<h2 id="lfw">Last Found Window</h2>
+<p>When <a href="../lib/WinWait.htm">WinWait</a>, <a href="../lib/WinExist.htm">WinExist</a>, <a href="../lib/WinActive.htm">WinActive</a>, <a href="../lib/WinWaitActive.htm">WinWaitActive</a> or <a href="../lib/WinWaitActive.htm">WinWaitNotActive</a> find a matching window, they set it as the <a href="../misc/WinTitle.htm#LastFoundWindow"><em>last found window</em></a>. Most window functions allow the window title (and related parameters) to be omitted, and will in that case default to the last found window. For example:</p>
+<pre>Run "notepad.exe"
+WinWait "Untitled - Notepad"
+WinActivate
+WinMove 0, 0, A_ScreenWidth/4, A_ScreenHeight/2</pre>
+<p>This saves repeating the window title, which saves a little of your time, makes the script easier to update if the window title needs to be changed, and might make the code easier to read. It makes the script more reliable by ensuring that it operates on the same window each time, even when there are multiple matching windows, or if the window title changes after the window is "found". It also makes the script execute more efficiently, but not by much.</p>
+
+<h2 id="class">Window Class</h2>
+<p>A window class is a set of attributes that is used as a template to create a window.  Often the name of a window's class is related to the app or the purpose of the window. A window's class never changes while the window exists, so we can often use it to identify a window when identifying by title is impractical or impossible.</p>
+<p>For example, instead of the window title "Untitled - Notepad", we can use the window's class, which in this case happens to be "Notepad" <em>regardless</em> of the system language:</p>
+<pre>Run "notepad.exe"
+WinWait "ahk_class Notepad"
+WinActivate
+WinMove 0, 0, A_ScreenWidth/4, A_ScreenHeight/2</pre>
+<p>A window class is distinguished from a title by using the word "ahk_class" as shown above. To combine multiple criteria, list the window title first. For example: "Untitled ahk_class Notepad".</p>
+<p><strong>Related:</strong> <a href="../misc/WinTitle.htm#ahk_class">ahk_class</a></p>
+
+<h2 id="exe">Process Name/Path</h2>
+<p>Windows can be identified by the process which created them by using the word "ahk_exe" followed by the name or path of the process. For example:</p>
+<pre>Run "notepad.exe"
+WinWait "ahk_exe notepad.exe"
+WinActivate
+WinMove 0, 0, A_ScreenWidth/4, A_ScreenHeight/2</pre>
+<p><strong>Related:</strong> <a href="../misc/WinTitle.htm#ahk_exe">ahk_exe</a></p>
+
+<h2 id="pid">Process ID (PID)</h2>
+<p>Each process has an ID number which remains unique until the process exits. We can use this to make our Notepad example more reliable by ensuring that it ignores any Notepad window except the one that is created by the new process:</p>
+<pre>Run "notepad.exe",,, &amp;notepad_pid
+WinWait "ahk_pid " notepad_pid
+WinActivate
+WinMove 0, 0, A_ScreenWidth/4, A_ScreenHeight/2</pre>
+<p>We need three commas in a row; two of them are just to skip the unused <em>WorkingDir</em> and <em>Options</em> parameters of the Run function, since the one we want (<em>OutputVarPID</em>) is the fourth parameter.</p>
+<p>Ampersand (&amp;) is the <a href="../Variables.htm#ref">reference operator</a>. This is used to pass the <code>notepad_pid</code> variable to the Run function <em>by reference</em> (in other words, to pass the variable itself instead of its value), allowing the function to assign a new value to the variable. Then <code>notepad_pid</code> becomes a placeholder for the actual process ID.</p>
+<p>The <a href="../Concepts.htm#strings">string</a> "ahk_pid " is <a href="../Variables.htm#concat">concatenated</a> with the process ID contained by the notepad_pid variable by simply writing them in sequence, separated by whitespace. The result is a string like "ahk_pid 1040", but the number isn't predictable.</p>
+<p>If the new process might create multiple windows, a window title and other criteria can be combined by delimiting them with spaces. The window title must always come first. For example: <code>"Untitled ahk_class Notepad ahk_pid " notepad_pid</code>.</p>
+<p><strong>Related:</strong> <a href="../misc/WinTitle.htm#ahk_pid">ahk_pid</a></p>
+
+<h2 id="hwnd">Window ID (HWND)</h2>
+<p>Each window has an ID number which remains unique until the window is destroyed. In programming parlance, this is known as a "window handle" or HWND. Although not as convenient as using the <em>last found window</em>, the window's ID can be stored in a variable so that the script can refer to it by a name of your choice, even if the title changes. There can be only one <em>last found window</em> at a time, but you can use as many window IDs as you can make up variable names for (or you can use an <a href="../lib/ArrayObj.htm">array</a>).</p>
+<p>A window ID is <a href="../Concepts.htm#return-a-value">returned</a> by <a href="../lib/WinWait.htm">WinWait</a>, <a href="../lib/WinExist.htm">WinExist</a> or <a href="../lib/WinActive.htm">WinActive</a>, or can come from some other sources. The Notepad example can be rewritten to take advantage of this:</p>
+<pre>Run "notepad.exe"
+notepad_id := WinWait("Untitled - Notepad")
+WinActivate notepad_id
+WinMove 0, 0, A_ScreenWidth/4, A_ScreenHeight/2, notepad_id</pre>
+<p>This assigns the return value of WinWait to the variable "notepad_id". In other words, when WinWait finds the window, it produces the window's ID as its result, and the script then stores this result in the variable. "notepad_id" is just a name that I've made up for this example; you can use whatever variable names make sense to you (within <a href="../Concepts.htm#names">certain constraints</a>).</p>
+<p>Notice that I added parentheses around the window title, <em>immediately</em> following the function name. Parentheses can be omitted in <a href="../Language.htm#function-call-statements">function call statements</a> (that is, function calls at the very beginning of the line), but in that case you cannot get the function's return value.</p>
+<p>The script can also retain the <a href="../Concepts.htm#variables">variable</a> <code>notepad_id</code> for later use, such as to close or reactivate the window or move it somewhere else.</p>
+<p><strong>Related:</strong> <a href="../misc/WinTitle.htm#ahk_id">ahk_id</a></p>
+
+<h2 id="timeout">Timeout</h2>
+<p>By default, WinWait will wait indefinitely for a matching window to appear. You can determine whether this has happened by opening the script's <a href="../Program.htm#main-window">main window</a> via the <a href="../Program.htm#tray-icon">tray icon</a> (unless you've <a href="../lib/_NoTrayIcon.htm">disabled it</a>). The window normally opens on <a href="../lib/ListLines.htm#Remarks">ListLines</a> view by default. If WinWait is still waiting, it will appear at the very bottom of the list of lines, followed by the number of seconds since it began waiting. The number doesn't update unless you select "Refresh" from the View menu.</p>
+<p>Try running this example and opening the main window as described above:</p>
+<pre>WinWait "Untitled - Notpad"  <em>; (intentional typo)</em></pre>
+<p>If the script is stuck waiting for a window, you will usually need to exit or reload the script to get it unstuck. To prevent that from happening in the first place (or happening again), you can use the <em>timeout</em> parameter of WinWait. For example, this will wait at most 5 seconds for the window to appear:</p>
+<pre>Run "notepad.exe",,, &amp;notepad_pid
+if WinWait("ahk_pid " notepad_pid,, 5)
+{
+    WinActivate
+    WinMove 0, 0, A_ScreenWidth/4, A_ScreenHeight/2
+}</pre>
+<p>The <a href="../lib/Block.htm">block</a> below the if statement is executed only if WinWait finds a matching window. If it times out, the block is skipped and execution continues after the closing brace (if there is any code after it).</p>
+<p>Note that the parentheses after "WinWait" are required when we want to use the function's result in an <a href="../Language.htm#expressions">expression</a> (such as the condition of an <a href="../lib/If.htm">if statement</a>). You can think of the <a href="../Language.htm#function-calls">function call</a> itself as a substitute for the result of the function. For instance, if WinWait finds a match before timing out, the result is non-zero. <code>if 1</code> would execute the block below the if statement, whereas <code>if 0</code> would skip it.</p>
+<p>Another way to write it is to return early (in other words, abort) if the wait times out. For example:</p>
+<pre>Run "notepad.exe",,, &amp;notepad_pid
+if !WinWait("ahk_pid " notepad_pid,, 5)
+    return
+WinActivate
+WinMove 0, 0, A_ScreenWidth/4, A_ScreenHeight/2</pre>
+<p>The result is inverted by applying the <a href="../Variables.htm#unary">logical-not</a> operator (<code>!</code> or <code>not</code>). If WinWait times out, its result is 0. The result of <code>!0</code> is 1, so when WinWait times out, the if statement executes the <code>return</code>.</p>
+<p>WinWait's result is actually the ID of the window (as described above) or zero if it timed out. If you also want to refer to the window by ID, you can assign the result to a variable instead of using it directly in the if statement:</p>
+<pre>Run "notepad.exe",,, &amp;notepad_pid
+notepad_id := WinWait("ahk_pid " notepad_pid,, 5)
+if notepad_id
+{
+    WinActivate notepad_id
+    WinMove 0, 0, A_ScreenWidth/4, A_ScreenHeight/2, notepad_id
+}</pre>
+<p>To avoid repeating the variable name, you can both assign the result to a variable and check that it is non-zero (<a href="../Concepts.htm#boolean"><em>true</em></a>) at the same time:</p>
+<pre>Run "notepad.exe",,, &amp;notepad_pid
+if notepad_id := WinWait("ahk_pid " notepad_pid,, 2)
+{
+    WinActivate notepad_id
+    WinMove 0, 0, A_ScreenWidth/4, A_ScreenHeight/2, notepad_id
+}</pre>
+<p>In that case, be careful not to confuse <code>:=</code> (assignment) with <code>=</code> or <code>==</code> (comparison). For example, <code>if myvar := 0</code> assigns a new value and gives the same result every time (false), whereas <code>if myvar = 0</code> compares a previously-assigned value with 0.</p>
+
+<h2 id="math">Expressions (Math etc.)</h2>
+<p>When you want to move a window, it is often useful to move or size it relative to its previous position or size, which can be retrieved by using the <a href="../lib/WinGetPos.htm">WinGetPos</a> function. For example, the following set of hotkeys can be used to move the active window by 10 pixels in each direction, by holding <kbd>RCtrl</kbd> and pressing the arrow keys:</p>
+<pre>&gt;^Left::    MoveActiveWindowBy(-10,   0)
+&gt;^Right::   MoveActiveWindowBy(+10,   0)
+&gt;^Up::      MoveActiveWindowBy(  0, -10)
+&gt;^Down::    MoveActiveWindowBy(  0, +10)
+
+MoveActiveWindowBy(x, y) {
+    WinExist "A"  <em>; Make the active window the Last Found Window  </em>
+    WinGetPos &amp;current_x, &amp;current_y
+    WinMove current_x + x, current_y + y
+}</pre>
+<p>The example <a href="../Functions.htm#intro">defines a function</a> to avoid repeating code several times. <code>x</code> and <code>y</code> become placeholders for the two numbers specified in each hotkey. WinGetPos stores the current position in <code>current_x</code> and <code>current_y</code>, which we then add to <code>x</code> and <code>y</code>.</p>
+<p>Simple expressions such as this should look fairly familiar. For more details, see <a href="../Variables.htm#Expressions">Expressions</a>; but be aware there is a lot of detail that you probably won't need to learn immediately.</p>
+
+</body>

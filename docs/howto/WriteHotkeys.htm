@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta name="description" content="Learn how to write hotkeys." />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<title>How to Write Hotkeys | AutoHotkey v2</title>
+<link href="../static/theme.css" rel="stylesheet" type="text/css" />
+<script src="../static/content.js" type="text/javascript"></script>
+</head>
+<body>
+<h1>How to Write Hotkeys</h1>
+<p>A hotkey is a key or key combination that triggers an action. For example, <kbd>Win</kbd>+<kbd>E</kbd> normally launches File Explorer, and <kbd>F1</kbd> often activates an app-specific help function. AutoHotkey has the power to define hotkeys that can be used anywhere <em>or</em> only within specific apps, performing any action that you are able to express with code.</p>
+<p>The most common way to define a hotkey is to write the <em>hotkey name</em> followed by double-colon, then the action:</p>
+<pre>#n::Run "notepad"</pre>
+<p>This example defines a hotkey that runs Notepad whenever you press <kbd>Win</kbd>+<kbd>N</kbd>. To learn how to try it out, refer to <a href="RunExamples.htm">How to Run Example Code</a>.</p>
+<p>For more about running programs, see <a href="RunPrograms.htm">How to Run Programs</a>.</p>
+<p>If multiple lines are required, use braces to mark the start and end of the hotkey's action. This is called a <a href="../lib/Block.htm">block</a>.</p>
+<pre>#n::
+{
+    if WinExist("ahk_class Notepad")
+        WinActivate  <em>; Activate the window found above</em>
+    else
+        Run "notepad"  <em>; Open a new Notepad window</em>
+}</pre>
+<p>The opening brace can also be written on the same line as the hotkey, after <code>::</code>.</p>
+<p>The block following a double-colon hotkey is implicitly the body of a <a href="../Functions.htm">function</a>, but that is only important when you define your own <a href="../Concepts.htm#variables">variables</a>. For now, just know that blocks are used to group multiple lines as a single action or <em>statement</em> (see <a href="../Concepts.htm#control-flow">Control Flow</a> if you want to know more more about this).</p>
+
+<h2>Basic Hotkeys</h2>
+<p>For most hotkeys, the <em>hotkey name</em> consists of optional modifier symbols immediately followed by a single letter or symbol, or a <a href="../KeyList.htm">key name</a>. Try making the following changes to the example above:</p>
+<ul>
+  <li>Remove <code>#</code> to make the hotkey activate whenever you press <kbd>N</kbd> on its own. Keep in mind that if something goes wrong, you can always <a href="RunExamples.htm#bailing-out">exit the script</a>.</li>
+  <li>Replace <code>#</code> with <code>^</code> for Ctrl, <code>!</code> for Alt or <code>+</code> for Shift, or try combinations.</li>
+  <li>Replace <code>#</code> with <code>&lt;^</code> to make it activate only when the <em>left</em> Ctrl key is pressed, or <code>&gt;^</code> for the right Ctrl key, or <em>both</em> to require both keys.</li>
+  <li>Replace <code>n</code> with any other letter or symbol (except <code>:</code>).</li>
+  <li>Replace <code>n</code> with any name from the <a href="../KeyList.htm">key list</a>.</li>
+</ul>
+<p class="note"><strong>Note:</strong> The last character before <code>::</code> is never interpreted as a modifier symbol.</p>
+<p>With this form of hotkey, only the final key in the combination can be written literally as a single character or have its name spelled out in full. For example:</p>
+<ul>
+  <li><code>#::</code> would create a hotkey activated by the hash key, or whatever combination is associated with that symbol (on the US layout, it's <kbd>Shift</kbd>+<kbd>3</kbd>).</li>
+  <li><code>##::</code> would create a hotkey like the above, but which activates only if you are also holding the Windows key.</li>
+  <li><code>LWin::</code> would create a hotkey activated by pressing down the left Windows key without any other modifier keys.</li>
+</ul>
+<p>The most common modifiers are Ctrl (<code>^</code>), Alt (<code>!</code>), Shift (<code>+</code>) and Win (<code>#</code>).</p>
+<p>The symbols <code>&lt;</code> and <code>&gt;</code> can be prefixed to any one of the above four modifiers to specify the left or right variant of that key. The modifier combination <code>&lt;^&gt;!</code> corresponds to the AltGr key (if present on your keyboard layout), since the operating system implements it as a combination of LCtrl and RAlt.</p>
+<p>The other modifiers are:</p>
+<ul>
+  <li><code>*</code> (<a href="../Hotkeys.htm#wildcard">wildcard</a>) allows the hotkey to fire even if you are holding modifier keys that the hotkey doesn't include symbols for.</li>
+  <li><code>~</code> (<a href="../Hotkeys.htm#Tilde">no-suppress</a>) prevents the hotkey from blocking the key's native function.</li>
+  <li><code>$</code> (<a href="../Hotkeys.htm#prefixdollar">use hook</a>) prevents unintentional loops when sending keys, and in some instances makes the hotkey more reliable.</li>
+</ul>
+<p>To make a hotkey fire only when you release the key instead of when you press it, use the <a href="../Hotkeys.htm#keyup">UP suffix</a>.</p>
+<p><strong>Related:</strong> <a href="../Hotkeys.htm#Symbols">Hotkey Modifier Symbols</a>, <a href="../KeyList.htm">List of Keys</a></p>
+
+<h2>Context-sensitive Hotkeys</h2>
+<p>The <a href="../lib/_HotIf.htm">#HotIf</a> directive can be used to specify a condition that must be met for the hotkey to activate, such as:</p>
+<ul>
+  <li>If a window of a specific app is active when you press the hotkey.</li>
+  <li>If CapsLock is on when you press the hotkey.</li>
+  <li>Any other condition you are able to detect with code.</li>
+</ul>
+<p>For example:</p>
+<pre>#HotIf WinActive("ahk_class Notepad")
+^a::MsgBox "You pressed Ctrl-A while Notepad is active. Pressing Ctrl-A in any other window will pass the Ctrl-A keystroke to that window."
+#c::MsgBox "You pressed Win-C while Notepad is active."
+
+#HotIf
+#c::MsgBox "You pressed Win-C while any window except Notepad is active."</pre>
+<p>You define the condition by writing an <a href="../Language.htm#expressions">expression</a> which is evaluated whenever you press the hotkey. If the expression <a href="../Concepts.htm#boolean">evaluates to true</a>, the hotkey's action is executed.</p>
+<p>The same hotkey can be used multiple times by specifying a different condition for each occurrence of the hotkey, or each <em>hotkey variant</em>. When you press the hotkey, the program executes the first hotkey variant whose condition is met, or the one without a condition (such as the final <code>#c::</code> in the example above).</p>
+<p>If the hotkey's condition isn't met and there is no unconditional variant of the hotkey, the keypress is passed on to the active window as though the hotkey wasn't defined in the first place. For instance, if Notepad <em>isn't</em> active while running the example above, <kbd>Ctrl</kbd>+<kbd>A</kbd> will perform its normal function (probably Select All).</p>
+<p>Try making the following changes to the example:</p>
+<ul>
+  <li>Replace <code>WinActive</code> with <code>WinExist</code> so that the hotkeys activate if Notepad is running, even if Notepad doesn't have the focus.</li>
+  <li>Replace the condition with <code>GetKeyState("CapsLock", "T")</code> so that the hotkeys only activate while CapsLock is on.</li>
+  <li>Add another ^a or #c hotkey for some other window, such as your web browser or editor. Note that we use <a href="../misc/WinTitle.htm#ahk_class">ahk_class</a> so that the example will work on non-English systems, but you can remove it and use the window's title if you wish.</li>
+</ul>
+<p>Correctly identifying which window you want the hotkey to affect sometimes requires using criteria other than the window title. To learn more, see <a href="ManageWindows.htm">How to Manage Windows</a>.</p>
+<p><strong>Related:</strong> <a href="../lib/_HotIf.htm">#HotIf</a>, <a href="../Language.htm#expressions">Expressions</a>, <a href="../lib/WinActive.htm">WinActive</a></p>
+
+<h2>Custom Combinations</h2>
+<p>A <em>custom combination</em> is a hotkey that combines two keys which aren't normally meant to be used in combination. For example, <code>Numpad0 &amp; Numpad1::</code> defines a hotkey which activates when you hold Numpad0 and press Numpad1.</p>
+<p>When you use a key as a prefix in a custom combination, AutoHotkey assumes that you don't want the normal function of the key to activate, since that would interfere with its use as a modifier key. There are two ways to restore the key's normal function:</p>
+<ol>
+  <li>Use another hotkey such as <code>Numpad0::Send "{Numpad0}"</code> to replicate the key's original function. By default, the hotkey will only activate when you <em>release</em> Numpad0, and only if you didn't press Numpad0 and Numpad1 in combination.</li>
+  <li>Prefix the combination with <a href="../Hotkeys.htm#Tilde">tilde (~)</a>, as in <code>~Numpad0 &amp; Numpad1::</code>. This prevents AutoHotkey from suppressing the normal function of Numpad0, unless you have also defined <code>Numpad0::</code>, in which case the tilde allows the latter hotkey to activate immediately instead of when you release Numpad0.</li>
+</ol>
+<p class="note"><strong>Note:</strong> Custom combinations only support combinations of exactly two keys/mouse buttons, and cannot be combined with other modifiers, such as <code>!#^+</code> for Alt, Win, Ctrl and Shift.</p>
+<p>Although AutoHotkey does not directly support custom combinations of more than two keys, a similar end result can be achieved by using <a href="../lib/_HotIf.htm">#HotIf</a>. If you run the example below, pressing <kbd>Ctrl</kbd>+<kbd>CapsLock</kbd>+<kbd>Space</kbd> or <kbd>Ctrl</kbd>+<kbd>Space</kbd>+<kbd>CapsLock</kbd> should show a message:</p>
+<pre>#HotIf GetKeyState("Ctrl")
+Space &amp; CapsLock::
+CapsLock &amp; Space::MsgBox "Success!"</pre>
+<p>It is necessary to press Ctrl first in this example. This has the advantage that Space and CapsLock perform their normal function if you are not holding Ctrl.</p>
+<p><strong>Related:</strong> <a href="../Hotkeys.htm#combo">Custom Combinations</a></p>
+
+<h2>Other Features</h2>
+<p>AutoHotkey's hotkeys have some other features that are worth exploring. While most applications are limited to combinations of Ctrl, Alt, Shift and sometimes Win with one other key (and often not all keys on the keyboard are supported), AutoHotkey isn't so limited. For further reading, see <a href="../Hotkeys.htm">Hotkeys</a>.</p>
+
+</body>
