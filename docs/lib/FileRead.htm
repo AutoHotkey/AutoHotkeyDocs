@@ -29,7 +29,7 @@
     <p>Type: <a href="../Concepts.htm#strings">String</a></p>
     <p>Zero or more of the following strings. Separate each option from the next with a single space or tab. For example: <code>"`n m5000 UTF-8"</code></p>
     <p><strong>Encoding</strong>: Specify any of the encoding names accepted by <a href="FileEncoding.htm">FileEncoding</a> (excluding the empty string) to use that encoding if the file lacks a UTF-8 or UTF-16 byte order mark. If omitted, it defaults to <a href="../Variables.htm#FileEncoding">A_FileEncoding</a>.</p>
-    <p><strong>RAW</strong>: Specify the word RAW (case-insensitive) to read the file's content as <a href="#Binary">raw binary data</a> and return a <a href="BufferObj.htm">Buffer</a> object instead of a string. This option overrides any previously specified encoding and vice versa.</p>
+    <p><strong>RAW</strong>: Specify the word RAW (case-insensitive) to read the file's content as <a href="#Binary">raw binary data</a> and return a <a href="Buffer.htm">Buffer</a> object instead of a string. This option overrides any previously specified encoding and vice versa.</p>
     <p><strong>m1024</strong>: If this option is omitted, the entire file is loaded unless there is insufficient memory, in which case an error message is shown and the thread exits (but <a href="Try.htm">Try</a> can be used to avoid this). Otherwise, replace 1024 with a decimal or hexadecimal number of bytes. If the file is larger than this, only its leading part is loaded.</p>
     <p class="note"><strong>Note</strong>: This might result in the last line ending in a naked carriage return (`r) rather than `r`n.</p>
     <p><strong>`n</strong> (a linefeed character): Replaces any/all occurrences of carriage return &amp; linefeed (`r`n) with linefeed (`n). However, this translation reduces performance and is usually not necessary. For example, text containing `r`n is already in the right format to be added to a <a href="StrReplace.htm">Gui Edit control</a>. The following <a href="LoopParse.htm">parsing loop</a> will work correctly regardless of whether each line ends in `r`n or just `n: <code>Loop Parse, MyFileContents, "`n", "`r"</code>.</p>
@@ -38,16 +38,16 @@
 </dl>
 
 <h2 id="Return_Value">Return Value</h2>
-<p>Type: <a href="../Concepts.htm#strings">String</a> or <a href="BufferObj.htm">Buffer</a></p>
+<p>Type: <a href="../Concepts.htm#strings">String</a> or <a href="Buffer.htm">Buffer</a></p>
 <p>This function returns the contents of the specified file. The return value is a Buffer object if the RAW option is in effect and the file can be opened; otherwise, it is a string. If the file does not exist or cannot be opened for any other reason, an empty string is returned.</p>
 
 <h2 id="Error_Handling">Error Handling</h2>
-<p>An <a href="ErrorObj.htm#OSError">OSError</a> is thrown if there was a problem opening or reading the file.</p>
-<p>A file greater than 4 GB in size will cause a <a href="ErrorObj.htm#MemoryError">MemoryError</a> to be thrown unless the <strong>*m</strong> option is present, in which case the leading part of the file is loaded. A MemoryError will also be thrown if the program is unable to allocate enough memory to contain the requested amount of data.</p>
+<p>An <a href="Error.htm#OSError">OSError</a> is thrown if there was a problem opening or reading the file.</p>
+<p>A file greater than 4 GB in size will cause a <a href="Error.htm#MemoryError">MemoryError</a> to be thrown unless the <strong>*m</strong> option is present, in which case the leading part of the file is loaded. A MemoryError will also be thrown if the program is unable to allocate enough memory to contain the requested amount of data.</p>
 <p><a href="../Variables.htm#LastError">A_LastError</a> is set to the result of the operating system's GetLastError() function.</p>
 
 <h2 id="Binary">Reading Binary Data</h2>
-<p>When the <code>RAW</code> option is used, the return value is a <a href="BufferObj.htm">Buffer</a> object containing the raw, unmodified contents of the file. The object's <a href="BufferObj.htm#Size">Size</a> property returns the number of bytes read. <a href="NumGet.htm">NumGet</a> or <a href="StrGet.htm">StrGet</a> can be used to retrieve data from the buffer. For example:</p>
+<p>When the <code>RAW</code> option is used, the return value is a <a href="Buffer.htm">Buffer</a> object containing the raw, unmodified contents of the file. The object's <a href="Buffer.htm#Size">Size</a> property returns the number of bytes read. <a href="NumGet.htm">NumGet</a> or <a href="StrGet.htm">StrGet</a> can be used to retrieve data from the buffer. For example:</p>
 <pre>buf := FileRead(A_AhkPath, "RAW")
 if StrGet(buf, 2, "cp0") == "MZ"  <em>; Looks like an executable file...</em>
 {
@@ -60,15 +60,15 @@ if StrGet(buf, 2, "cp0") == "MZ"  <em>; Looks like an executable file...</em>
 buf := ""</pre>
 <p>This option is generally required for reading binary data because by default, any bytes read from file are interpreted as text and may be converted from the source file's encoding (as specified in the options or by <a href="../Variables.htm#FileEncoding">A_FileEncoding</a>) to the script's <a href="../Compat.htm#Format">native encoding</a>, UTF-16. If the data is not UTF-16 text, this conversion generally changes the data in undesired ways.</p>
 <p>For another demonstration of the RAW option, see <a href="ClipboardAll.htm#ExFile">ClipboardAll example #2</a>.</p>
-<p>Finally, <a href="FileOpen.htm">FileOpen</a> and <a href="FileObj.htm#RawRead">File.RawRead</a> or <a href="FileObj.htm#ReadNum">File.Read<i>Num</i></a> may be used to read binary data without first reading the entire file into memory.</p>
+<p>Finally, <a href="FileOpen.htm">FileOpen</a> and <a href="File.htm#RawRead">File.RawRead</a> or <a href="File.htm#ReadNum">File.Read<i>Num</i></a> may be used to read binary data without first reading the entire file into memory.</p>
 
 <h2 id="Remarks">Remarks</h2>
 <p>When the goal is to load all or a large part of a file into memory, FileRead performs much better than using a <a href="LoopRead.htm">file-reading loop</a>.</p>
 <p>If there is concern about using too much memory, check the file size beforehand with <a href="FileGetSize.htm">FileGetSize</a>.</p>
-<p><a href="FileOpen.htm">FileOpen</a> provides more advanced functionality than FileRead, such as reading or writing data at a specific location in the file without reading the entire file into memory. See <a href="FileObj.htm">File Object</a> for a list of functions.</p>
+<p><a href="FileOpen.htm">FileOpen</a> provides more advanced functionality than FileRead, such as reading or writing data at a specific location in the file without reading the entire file into memory. See <a href="File.htm">File Object</a> for a list of functions.</p>
 
 <h2 id="Related">Related</h2>
-<p><a href="FileEncoding.htm">FileEncoding</a>, <a href="FileOpen.htm">FileOpen</a>/<a href="FileObj.htm">File Object</a>, <a href="LoopRead.htm">file-reading loop</a>, <a href="FileGetSize.htm">FileGetSize</a>, <a href="FileAppend.htm">FileAppend</a>, <a href="IniRead.htm">IniRead</a>, <a href="Sort.htm">Sort</a>, <a href="Download.htm">Download</a></p>
+<p><a href="FileEncoding.htm">FileEncoding</a>, <a href="FileOpen.htm">FileOpen</a>/<a href="File.htm">File Object</a>, <a href="LoopRead.htm">file-reading loop</a>, <a href="FileGetSize.htm">FileGetSize</a>, <a href="FileAppend.htm">FileAppend</a>, <a href="IniRead.htm">IniRead</a>, <a href="Sort.htm">Sort</a>, <a href="Download.htm">Download</a></p>
 
 <h2 id="Examples">Examples</h2>
 <div class="ex" id="ExBasic">
