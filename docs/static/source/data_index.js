@@ -598,7 +598,7 @@ indexData = [
   ["functions (libraries)","Functions.htm#lib"],
   ["function objects","misc/Functor.htm"],
   ["Func object","lib/FuncObj.htm"],
-  ["Func()","lib/Func.htm",2],
+  ["Func()","lib/FuncObj.htm#Func",2],
   ["g-label (responding to GUI events)","lib/Gui.htm#label"],
   ["game automation","lib/PixelSearch.htm"],
   ["GetAddress method (Object)","lib/Object.htm#GetAddress",8],

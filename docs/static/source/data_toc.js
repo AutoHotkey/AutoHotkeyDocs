@@ -264,7 +264,7 @@ tocData = [
   [
     ["AutoTrim","lib/AutoTrim.htm"],
     ["Edit","lib/Edit.htm"],
-    ["Func()","lib/Func.htm"],
+    ["Func()","lib/FuncObj.htm#Func"],
     ["IsByRef()","lib/IsByRef.htm"],
     ["IsFunc()","lib/IsFunc.htm"],
     ["IsLabel()","lib/IsLabel.htm"],
