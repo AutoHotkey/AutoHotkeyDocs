@@ -1,0 +1,114 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+<title>RegExReplace - Syntax &amp; Usage | AutoHotkey v2</title>
+<meta name="description" content="The RegExReplace function replaces occurrences of a pattern (regular expression) inside a string." />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<link href="../static/theme.css" rel="stylesheet" type="text/css" />
+<script src="../static/content.js" type="text/javascript"></script>
+</head>
+<body>
+
+<h1>RegExReplace</h1>
+
+<p>Replaces occurrences of a pattern (regular expression) inside a string.</p>
+
+<pre class="Syntax">NewStr := <span class="func">RegExReplace</span>(Haystack, NeedleRegEx <span class="optional">, Replacement, &amp;OutputVarCount, Limit, StartingPos</span>)</pre>
+<h2 id="Parameters">Parameters</h2>
+<dl>
+
+  <dt>Haystack</dt>
+  <dd>
+    <p>Type: <a href="../Concepts.htm#strings">String</a></p>
+    <p>The string whose content is searched and replaced. This may contain binary zero.</p>
+  </dd>
+
+  <dt>NeedleRegEx</dt>
+  <dd>
+    <p>Type: <a href="../Concepts.htm#strings">String</a></p>
+    <p>The pattern to search for, which is a Perl-compatible regular expression (PCRE). The pattern's <a href="../misc/RegEx-QuickRef.htm#Options">options</a> (if any) must be included at the beginning of the string followed by a close-parenthesis. For example, the pattern <span class="regex"><span class="red">i)</span>abc.*123</span> would turn on the case-insensitive option and search for "abc", followed by zero or more occurrences of any character, followed by "123". If there are no options, the ")" is optional; for example, <span class="regex">)abc</span> is equivalent to <span class="regex">abc</span>.</p>
+    <p>Although <em>NeedleRegEx</em> cannot contain binary zero, the pattern <code>\x00</code> can be used to match a binary zero within <em>Haystack</em>.</p>
+  </dd>
+
+  <dt>Replacement</dt>
+  <dd>
+    <p>Type: <a href="../Concepts.htm#strings">String</a></p>
+    <p id="BackRef">The string to be substituted for each match, which is plain text (not a regular expression). It may include backreferences like $1, which brings in the substring from <em>Haystack</em> that matched the first <a href="../misc/RegEx-QuickRef.htm#subpat">subpattern</a>. The simplest backreferences are $0 through $9, where $0 is the substring that matched the entire pattern, $1 is the substring that matched the first subpattern, $2 is the second, and so on. For backreferences above 9 (and optionally those below 9), enclose the number in braces; e.g. ${10}, ${11}, and so on. For <a href="RegExMatch.htm#NamedSubPat">named subpatterns</a>, enclose the name in braces; e.g. ${SubpatternName}. To specify a literal $, use $$ (this is the only character that needs such special treatment; backslashes are never needed to escape anything).</p>
+    <p>To convert the case of a subpattern, follow the $ with one of the following characters: U or u (uppercase), L or l (lowercase), T or t (title case, in which the first letter of each word is capitalized but all others are made lowercase). For example, both $U1 and $U{1} transcribe an uppercase version of the first subpattern.</p>
+    <p>Nonexistent backreferences and those that did not match anything in <em>Haystack</em> -- such as one of the subpatterns in <span class="regex">(abc)|(xyz)</span> -- are transcribed as empty strings.</p>
+  </dd>
+
+  <dt>&amp;OutputVarCount</dt>
+  <dd>
+    <p>Type: <a href="../Concepts.htm#variable-references">VarRef</a></p>
+    <p>Specify a reference to a output variable in which to store the number of replacements that occurred (0 if none).</p>
+  </dd>
+
+  <dt>Limit</dt>
+  <dd>
+    <p>Type: <a href="../Concepts.htm#numbers">Integer</a></p>
+    <p>If <em>Limit</em> is omitted, it defaults to -1, which replaces <strong>all</strong> occurrences of the pattern found in <em>Haystack</em>. Otherwise, specify the maximum number of replacements to allow. The part of <em>Haystack</em> to the right of the last replacement is left unchanged.</p>
+  </dd>
+
+  <dt>StartingPos</dt>
+  <dd>
+    <p>Type: <a href="../Concepts.htm#numbers">Integer</a></p>
+    <p>If <em>StartingPos</em> is omitted, it defaults to 1 (the beginning of <em>Haystack</em>). Otherwise, specify 2 to start at the second character, 3 to start at the third, and so on.  If <em>StartingPos</em> is beyond the length of <em>Haystack</em>, the search starts at the empty string that lies at the end of <em>Haystack</em> (which typically results in no replacements).</p>
+    <p>Specify a negative <em>StartingPos</em> to start at that position from the right. For example, -1 starts at the last character and -2 starts at the next-to-last character. If <em>StartingPos</em> tries to go beyond the left end of <em>Haystack</em>, all of <em>Haystack</em> is searched.</p>
+    <p>Specify 0 to start at the end of <em>Haystack</em>; i.e. the position to the right of the last character. This can be used with zero-width assertions such as <code>(?&lt;=a)</code>.</p>
+    <p>Regardless of the value of <em>StartingPos</em>, the return value is always a complete copy of <em>Haystack</em> -- the only difference is that more of its left side might be unaltered compared to what would have happened with a <em>StartingPos</em> of 1.</p>
+  </dd>
+
+</dl>
+
+<h2 id="Return_Value">Return Value</h2>
+<p>Type: <a href="../Concepts.htm#strings">String</a></p>
+<p>This function returns a version of <em>Haystack</em> whose contents have been replaced by the operation. If no replacements are needed, <em>Haystack</em> is returned unaltered.</p>
+
+<h2 id="Errors">Errors</h2>
+<p>An <a href="ErrorObj.htm">Error</a> is thrown if:</p>
+<ul>
+  <li>the pattern contains a syntax error; or</li>
+  <li>an error occurred during the <em>execution</em> of the regular expression.</li>
+</ul>
+<p>For details, see <a href="RegExMatch.htm#Errors">RegExMatch</a>.</p>
+
+<h2 id="Options">Options</h2>
+<p>See <a href="../misc/RegEx-QuickRef.htm#Options">Options</a> for modifiers such as <span class="regex"><span class="red">i)</span>abc</span>, which turns off case-sensitivity in the pattern "abc".</p>
+<h2 id="Performance">Performance</h2>
+<p>To replace simple substrings, use <a href="StrReplace.htm">StrReplace</a> because it is faster than RegExReplace.</p>
+<p>If you know what the maximum number of replacements will be, specifying that for the <em>Limit</em> parameter improves performance because the search can be stopped early (this might also reduce the memory load on the system during the operation). For example, if you know there can be only one match near the beginning of a large string, specify a limit of 1.</p>
+<p>To improve performance, the 100 most recently used regular expressions are kept cached in memory (in compiled form).</p>
+<p>The <a href="../misc/RegEx-QuickRef.htm#Study">study option (S)</a> can sometimes improve the performance of a regular expression that is used many times (such as in a loop).</p>
+<h2 id="Remarks">Remarks</h2>
+<p>Most characters like abc123 can be used literally inside a regular expression. However, the characters <strong>\.*?+[{|()^$</strong> must be preceded by a backslash to be seen as literal. For example, <strong>\.</strong> is a literal period and <strong>\\</strong> is a literal backslash. Escaping can be avoided by using \Q...\E. For example: <span class="regex">\QLiteral Text\E</span>.</p>
+<p>Within a regular expression, special characters such as tab and newline can be escaped with either an accent (`) or a backslash (\). For example, `t is the same as \t.</p>
+<p>To learn the basics of regular expressions (or refresh your memory of pattern syntax), see the <a href="../misc/RegEx-QuickRef.htm">RegEx Quick Reference</a>.</p>
+<h2 id="Related">Related</h2>
+<p><a href="RegExMatch.htm">RegExMatch</a>, <a href="../misc/RegEx-QuickRef.htm">RegEx Quick Reference</a>, <a href="../misc/RegExCallout.htm">Regular Expression Callouts</a>, <a href="StrReplace.htm">StrReplace</a>, <a href="InStr.htm">InStr</a></p>
+<p>Common sources of text data: <a href="FileRead.htm">FileRead</a>, <a href="Download.htm">Download</a>, <a href="A_Clipboard.htm">A_Clipboard</a>, <a href="GuiControls.htm#Edit">GUI Edit controls</a></p>
+<h2 id="Examples">Examples</h2>
+<p>For general RegEx examples, see the <a href="../misc/RegEx-QuickRef.htm">RegEx Quick Reference</a>.</p>
+<div class="ex" id="ExDollar">
+<p><a class="ex_number" href="#ExDollar"></a> Reports "abc123xyz" because the $ allows a match only at the end.</p>
+<pre>MsgBox RegExReplace("abc123123", "123$", "xyz")</pre>
+</div>
+
+<div class="ex" id="ExCaseInsens">
+<p><a class="ex_number" href="#ExCaseInsens"></a> Reports "123" because a match was achieved via the case-insensitive option.</p>
+<pre>MsgBox RegExReplace("abc123", "i)^ABC")</pre>
+</div>
+
+<div class="ex" id="ExBackref">
+<p><a class="ex_number" href="#ExBackref"></a> Reports "aaaXYZzzz" by means of the $1 <a href="#BackRef">backreference</a>.</p>
+<pre>MsgBox RegExReplace("abcXYZ123", "abc(.*)123", "aaa$1zzz")</pre>
+</div>
+
+<div class="ex" id="ExOutputVarCount">
+<p><a class="ex_number" href="#ExOutputVarCount"></a> Reports an empty string and stores 2 in <var>ReplacementCount</var>.</p>
+<pre>MsgBox RegExReplace("abc123abc456", "abc\d+", "", &amp;ReplacementCount)</pre>
+</div>
+
+</body>
+</html>

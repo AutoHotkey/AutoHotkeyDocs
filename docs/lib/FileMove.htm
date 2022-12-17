@@ -1,0 +1,109 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+<title>FileMove - Syntax &amp; Usage | AutoHotkey v2</title>
+<meta name="description" content="The FileMove function moves or renames one or more files." />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<link href="../static/theme.css" rel="stylesheet" type="text/css" />
+<script src="../static/content.js" type="text/javascript"></script>
+</head>
+<body>
+
+<h1>FileMove</h1>
+
+<p>Moves or renames one or more files.</p>
+
+<pre class="Syntax"><span class="func">FileMove</span> SourcePattern, DestPattern <span class="optional">, Overwrite</span></pre>
+<h2 id="Parameters">Parameters</h2>
+<dl>
+
+  <dt>SourcePattern</dt>
+  <dd>
+    <p>Type: <a href="../Concepts.htm#strings">String</a></p>
+    <p>The name of a single file or a wildcard pattern such as C:\Temp\*.tmp. <em>SourcePattern</em> is assumed to be in <a href="../Variables.htm#WorkingDir">A_WorkingDir</a> if an absolute path isn't specified.</p>
+  </dd>
+
+  <dt>DestPattern</dt>
+  <dd>
+    <p>Type: <a href="../Concepts.htm#strings">String</a></p>
+    <p>The name or pattern of the  destination, which is assumed to be in <a href="../Variables.htm#WorkingDir">A_WorkingDir</a> if an absolute path isn't specified.</p>
+    <p>If present, the first asterisk (<code>*</code>) in the filename is replaced with the source filename excluding its extension, while the first asterisk after the last full stop (<code>.</code>) is replaced with the source file's extension. If an asterisk is present but the extension is omitted, the source file's extension is used.</p>
+    <p>To perform a simple move -- retaining the existing file name(s) -- specify only the folder name as shown in these mostly equivalent examples:</p>
+    <pre>FileMove "C:\*.txt", "C:\My Folder"</pre>
+    <pre>FileMove "C:\*.txt", "C:\My Folder\*.*"</pre>
+    <p>The destination directory must already exist. If <em>My Folder</em> does not exist, the first example above will use "My Folder" as the target filename, while the second example will move no files.</p>
+  </dd>
+
+  <dt>Overwrite</dt>
+  <dd>
+    <p>Type: <a href="../Concepts.htm#numbers">Integer</a></p>
+    <p>This parameter determines whether to overwrite files if they already exist. If this parameter is 1 (true), the function overwrites existing files. If omitted or 0 (false), the function does not overwrite existing files.</p>
+    <p>Other values are reserved for future use.</p>
+  </dd>
+
+</dl>
+
+<h2 id="Error_Handling">Error Handling</h2>
+<p>An <a href="ErrorObj.htm">Error</a> is thrown if any files failed to be moved, with its <a href="ErrorObj.htm#Extra">Extra</a> property set to the number of failures. If no files were found, an exception is thrown only if <em>SourcePattern</em> lacks the wildcards <code>*</code> and <code>?</code>. In other words, moving a wildcard pattern such as <code>"*.txt"</code> is considered a success when it does not match any files.</p>
+<p>Unlike <a href="FileCopy.htm">FileCopy</a>, moving a file onto itself is always considered successful, even if the overwrite mode is not in effect.</p>
+<p>If files were found, <a href="../Variables.htm#LastError">A_LastError</a> is set to 0 (zero) or the result of the operating system's GetLastError() function immediately after the last failure. Otherwise A_LastError contains an error code that might indicate why no files were found.</p>
+
+<h2 id="Remarks">Remarks</h2>
+<p>FileMove moves files only. To instead move the contents of a folder (all its files and subfolders), see the examples section below. To move or rename a single folder, use <a href="DirMove.htm">DirMove</a>.</p>
+<p>The operation will continue even if error(s) are encountered.</p>
+<p>Although this function is capable of moving files to a different volume, the operation will take longer than a same-volume move. This is because a same-volume move is similar to a rename, and therefore much faster.</p>
+<h2 id="Related">Related</h2>
+<p><a href="FileCopy.htm">FileCopy</a>, <a href="DirCopy.htm">DirCopy</a>, <a href="DirMove.htm">DirMove</a>, <a href="FileDelete.htm">FileDelete</a></p>
+<h2 id="Examples">Examples</h2>
+<div class="ex" id="ExNoRename">
+<p><a class="ex_number" href="#ExNoRename"></a> Moves a file without renaming it.</p>
+<pre>FileMove "C:\My Documents\List1.txt", "D:\Main Backup\"</pre>
+</div>
+
+<div class="ex" id="ExRename">
+<p><a class="ex_number" href="#ExRename"></a> Renames a single file.</p>
+<pre>FileMove "C:\File Before.txt", "C:\File After.txt"</pre>
+</div>
+
+<div class="ex" id="ExNewExt">
+<p><a class="ex_number" href="#ExNewExt"></a> Moves text files to a new location and gives them a new extension.</p>
+<pre>FileMove "C:\Folder1\*.txt", "D:\New Folder\*.bkp"</pre>
+</div>
+
+<div class="ex" id="ExMoveAll">
+<p><a class="ex_number" href="#ExMoveAll"></a> Moves all files and folders inside a folder to a different folder.</p>
+<pre>ErrorCount := MoveFilesAndFolders("C:\My Folder\*.*", "D:\Folder to receive all files &amp; folders")
+if ErrorCount != 0
+    MsgBox ErrorCount " files/folders could not be moved."
+
+MoveFilesAndFolders(SourcePattern, DestinationFolder, DoOverwrite := false)
+<em>; Moves all files and folders matching SourcePattern into the folder named DestinationFolder and
+; returns the number of files/folders that could not be moved.</em>
+{
+    ErrorCount := 0
+    if DoOverwrite = 1
+        DoOverwrite := 2  <em>; See <a href="DirMove.htm">DirMove</a> for description of mode 2 vs. 1.</em>
+    <em>; First move all the files (but not the folders):</em>
+    try
+        FileMove SourcePattern, DestinationFolder, DoOverwrite
+    catch as Err
+        ErrorCount := Err.Extra
+    <em>; Now move all the folders:</em>
+    Loop Files, SourcePattern, "D"  <em>; D means "retrieve folders only".</em>
+    {
+        try
+            DirMove A_LoopFilePath, DestinationFolder "\" A_LoopFileName, DoOverwrite
+        catch
+        {
+            ErrorCount += 1
+            <em>; Report each problem folder by name.</em>
+            MsgBox "Could not move " A_LoopFilePath " into " DestinationFolder
+        }
+    }
+    return ErrorCount
+}</pre>
+</div>
+
+</body>
+</html>

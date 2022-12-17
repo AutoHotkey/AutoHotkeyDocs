@@ -1,0 +1,185 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+<title>SetTimer - Syntax &amp; Usage | AutoHotkey v2</title>
+<meta name="description" content="The SetTimer function causes a function to be called automatically and repeatedly at a specified time interval." />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<link href="../static/theme.css" rel="stylesheet" type="text/css" />
+<script src="../static/content.js" type="text/javascript"></script>
+</head>
+<body>
+
+<h1>SetTimer</h1>
+
+<p>Causes a function to be called automatically and repeatedly at a specified time interval.</p>
+
+<pre class="Syntax"><span class="func">SetTimer</span> <span class="optional">Function, Period, Priority</span></pre>
+<h2 id="Parameters">Parameters</h2>
+<dl>
+
+  <dt id="Function">Function</dt>
+  <dd>
+    <p>Type: <a href="../misc/Functor.htm">Function Object</a></p>
+    <p>The function object to call.</p>
+    <p>A <a href="../Concepts.htm#references-to-objects">reference</a> to the function object is kept in the script's list of timers, and is not released unless the timer is deleted.  This occurs automatically for <a href="#once">run-once</a> timers, but can also be done by calling SetTimer with a <em>Period</em> of 0.</p>
+    <p id="OmitCallback">If <em>Function</em> is omitted, SetTimer will operate on the timer which launched the current thread, if any. For example, <code>SetTimer , 0</code> can be used inside a timer function to mark the timer for deletion, while <code>SetTimer , 1000</code> would update the current timer's <em>Period</em>.</p>
+    <p class="warning"><strong>Note:</strong> Passing an empty variable or an expression which results in an empty value is considered an error. This parameter must be either given a non-empty value or completely omitted.</p>
+  </dd>
+
+  <dt>Period</dt>
+  <dd>
+    <p>Type: <a href="../Concepts.htm#numbers">Integer</a></p>
+    <p>The absolute value of this parameter is used as the <a href="#Precision">approximate</a> number of milliseconds that must pass before the timer is executed. The timer will be automatically <a href="#reset">reset</a>. It can be set to repeat automatically or run only once:</p>
+    <ul>
+      <li>If <em>Period</em> is greater than 0, the timer will automatically repeat until it is explicitly disabled by the script.</li>
+      <li id="once">If <em>Period</em> is less than 0, the timer will run only once. For example, specifying -100 would call <em>Function</em> 100 ms from now then delete the timer as though <code>SetTimer <i>Function</i>, 0</code> had been used.</li>
+      <li>If <em>Period</em> is 0, the timer is marked for deletion. If a thread started by this timer is still running, the timer is deleted after the thread finishes (unless it has been reenabled); otherwise, it is deleted immediately. In any case, the timer's previous <em>Period</em> and <em>Priority</em> are not retained.</li>
+    </ul>
+    <p>The absolute value of <em>Period</em> must be no larger than 4294967295 ms (49.7 days).</p>
+    <p><strong>Default</strong>: If this parameter is omitted and:<br>
+    1) the timer does not exist: it will be created with a period of 250.<br>
+    2) the timer already exists: it will be <a href="#reset">reset</a> at its former <em>period</em> unless a <em>Priority</em> is specified.</p>
+  </dd>
+
+  <dt>Priority</dt>
+  <dd>
+    <p>Type: <a href="../Concepts.htm#numbers">Integer</a></p>
+    <p>This optional parameter is an integer between -2147483648 and 2147483647 (or an <a href="../Variables.htm#Expressions">expression</a>) to indicate this timer's thread priority. If omitted, 0 will be used. See <a href="../misc/Threads.htm">Threads</a> for details.</p>
+    <p>To change the priority of an existing timer without affecting it in any other way, omit <em>Period</em>.</p>
+  </dd>
+
+</dl>
+
+<h2 id="Remarks">Remarks</h2>
+<p>Timers are useful because they run asynchronously, meaning that they will run at the specified frequency (interval) even when the script is  waiting for a window, displaying a dialog, or busy with another task. Examples of their many uses include taking some action when the user becomes idle (as reflected by <a href="../Variables.htm#TimeIdle">A_TimeIdle</a>) or closing unwanted windows the moment they appear.</p>
+<p>Although timers may give the illusion that the script is performing more than one task simultaneously, this is not the case. Instead, timed functions are treated just like other threads: they can interrupt or be interrupted by another thread, such as a <a href="../Hotkeys.htm">hotkey subroutine</a>. See <a href="../misc/Threads.htm">Threads</a> for details.</p>
+<p>Whenever a timer is created or updated with a new <em>period</em>, its function will not be called right away; its time <em>period</em> must expire first. If you wish the timer's first execution to be immediate, call the timer's function directly (however, this will not start a new thread like the timer itself does; so settings such as <a href="SendMode.htm">SendMode</a> will not start off at their defaults).</p>
+<p id="reset"><strong>Reset</strong>: If SetTimer is used on an existing timer, the timer is reset (unless <em>Priority</em> is specified and <em>Period</em> is omitted); in other words, the entirety of its period must elapse before its function will be called again.</p>
+<p id="Precision"><strong>Timer precision</strong>: Due to the granularity of the OS's time-keeping system, <em>Period</em> is typically rounded up to the nearest multiple of 10 or 15.6 milliseconds (depending on the type of hardware and drivers installed). A shorter delay may be achieved via Loop+Sleep as demonstrated at <a href="Sleep.htm#ExShorterSleep">DllCall+timeBeginPeriod+Sleep</a>.</p>
+<p id="Reliability"><strong>Reliability</strong>: A timer might not be able to run at the expected time under the following conditions:</p>
+<ol>
+  <li>Other applications are putting a heavy load on the CPU.</li>
+  <li>The timer's function is still running when the timer period expires again.</li>
+  <li>There are too many other competing timers.</li>
+  <li>The timer has been interrupted by another <a href="../misc/Threads.htm">thread</a>, namely another timed function, <a href="../Hotkeys.htm">hotkey subroutine</a>, or <a href="MenuObj.htm">custom menu item</a> (this can be avoided via <a href="Critical.htm">Critical</a>). If this happens and the interrupting thread takes a long time to finish, the interrupted timer will be effectively disabled for the duration. However, any other timers will continue to run by interrupting the <a href="../misc/Threads.htm">thread</a> that interrupted the first timer.</li>
+  <li>The script is uninterruptible as a result of <a href="Critical.htm">Critical</a> or <a href="Thread.htm">Thread "Interrupt/Priority"</a>. During such times, timers will not run. Later, when the script becomes interruptible again, any overdue timer will run once as soon as possible and then resume its normal schedule.</li>
+</ol>
+<p>Although timers will operate when the script is <a href="Suspend.htm">suspended</a>, they will not run if the <a href="../misc/Threads.htm">current thread</a> has <a href="Thread.htm">Thread "NoTimers"</a> in effect or whenever any thread is <a href="Pause.htm">paused</a>. In addition, they do not operate when the user is navigating through one of the script's menus (such as the tray icon menu or a menu bar).</p>
+<p>Because timers operate by temporarily interrupting the script's current activity, their functions should be kept short (so that they finish  quickly) whenever a long interruption would be undesirable.</p>
+<p id="otherremarks"><strong>Other remarks</strong>: A temporary timer might often be disabled by its own function (see examples at the bottom of this page).</p>
+<p>Whenever a function is called by a timer, it starts off fresh with the default values for settings such as <a href="SendMode.htm">SendMode</a>. These defaults can be changed during <a href="../Scripts.htm#auto">script startup</a>.</p>
+<p>If <a href="../Hotkeys.htm">hotkey</a> response time is crucial (such as in games) and the script contains any timers whose functions take longer than about 5 ms to execute, use the following function to avoid any chance of a 15 ms delay. Such a delay would otherwise happen if a hotkey is pressed at the exact moment a timer thread is in its period of uninterruptibility:</p>
+<pre><a href="Thread.htm">Thread</a> "interrupt", 0  <em>; Make all threads always-interruptible.</em></pre>
+<p>If a timer is disabled while its function is currently running, that function will continue until it completes.</p>
+<p>The <a href="KeyHistory.htm">KeyHistory</a> feature shows how many timers exist and how many are currently enabled.</p>
+
+<h2 id="Related">Related</h2>
+<p><a href="../misc/Threads.htm">Threads</a>, <a href="Thread.htm">Thread (function)</a>, <a href="Critical.htm">Critical</a>, <a href="../misc/Functor.htm">Function Objects</a></p>
+
+<h2 id="Examples">Examples</h2>
+<div class="ex" id="ExampleClose">
+<p><a class="ex_number" href="#ExampleClose"></a> Closes unwanted windows whenever they appear.</p>
+<pre>SetTimer CloseMailWarnings, 250
+
+CloseMailWarnings()
+{
+    WinClose "Microsoft Outlook", "A timeout occured while communicating"
+    WinClose "Microsoft Outlook", "A connection to the server could not be established"
+}</pre>
+</div>
+
+<div class="ex" id="ExampleWait">
+<p><a class="ex_number" href="#ExampleWait"></a> Waits for a certain window to appear and then alerts the user.</p>
+<pre>SetTimer Alert1, 500
+
+Alert1()
+{
+    if not WinExist("Video Conversion", "Process Complete")
+        return
+    <em>; Otherwise:</em>
+    SetTimer , 0  <em>; i.e. the timer turns itself off here.</em>
+    MsgBox "The video conversion is finished."
+}</pre>
+</div>
+
+<div class="ex" id="ExampleCount">
+<p><a class="ex_number" href="#ExampleCount"></a> Detects single, double, and triple-presses of a hotkey. This allows a hotkey to perform a different operation depending on how many times you press it.</p>
+<pre>#c::
+KeyWinC(ThisHotkey)  <em>; This is a <a href="../Hotkeys.htm#Function">named function hotkey</a>.</em>
+{
+    static winc_presses := 0
+    if winc_presses &gt; 0 <em>; SetTimer already started, so we log the keypress instead.</em>
+    {
+        winc_presses += 1
+        return
+    }
+    <em>; Otherwise, this is the first press of a new series. Set count to 1 and start
+    ; the timer:</em>
+    winc_presses := 1
+    SetTimer After400, -400 <em>; Wait for more presses within a 400 millisecond window.</em>
+
+    After400()  <em>; This is a <a href="../Functions.htm#nested">nested function</a>.</em>
+    {
+        if winc_presses = 1 <em>; The key was pressed once.</em>
+        {
+            Run "m:\"  <em>; Open a folder.</em>
+        }
+        else if winc_presses = 2 <em>; The key was pressed twice.</em>
+        {
+            Run "m:\multimedia"  <em>; Open a different folder.</em>
+        }
+        else if winc_presses &gt; 2
+        {
+            MsgBox "Three or more clicks detected."
+        }
+        <em>; Regardless of which action above was triggered, reset the count to
+        ; prepare for the next series of presses:</em>
+        winc_presses := 0
+    }
+}
+</pre>
+</div>
+
+<div class="ex" id="ExampleClass">
+<p><a class="ex_number" href="#ExampleClass"></a> Uses a <a href="../Objects.htm#Custom_Classes_method">method</a> as the timer function.</p>
+<pre>counter := SecondCounter()
+counter.Start
+Sleep 5000
+counter.Stop
+Sleep 2000
+
+<em>; An example class for counting the seconds...</em>
+class SecondCounter {
+    __New() {
+        this.interval := 1000
+        this.count := 0
+        <em>; Tick() has an implicit parameter "this" which is a reference to
+        ; the object, so we need to create a function which encapsulates
+        ; "this" and the method to call:</em>
+        this.timer := ObjBindMethod(this, "Tick")
+    }
+    Start() {
+        SetTimer this.timer, this.interval
+        ToolTip "Counter started"
+    }
+    Stop() {
+        <em>; To turn off the timer, we must pass the same object as before:</em>
+        SetTimer this.timer, 0
+        ToolTip "Counter stopped at " this.count
+    }
+    <em>; In this example, the timer calls this method:</em>
+    Tick() {
+        ToolTip ++this.count
+    }
+}</pre>
+<p>Tips relating to the above example:</p>
+<ul>
+  <li>We can also use <code>this.timer := this.Tick.<a href="FuncObj.htm#Bind">Bind</a>(this)</code>.  When <code>this.timer</code> is called, it will effectively invoke <code><i>tick_function</i>.<a href="FuncObj.htm#Call">Call</a>(this)</code>, where <i>tick_function</i> is the function object which implements that method. By contrast, <a href="ObjBindMethod.htm">ObjBindMethod</a> produces an object which invokes <code>this.Tick()</code>.</li>
+  <li>If we rename <em>Tick</em> to <em>Call</em>, we can just use <code>this</code> directly instead of <code>this.timer</code>.  However, ObjBindMethod is useful when the object has multiple methods which should be called by different event sources, such as hotkeys, menu items, GUI controls, etc.</li>
+  <li>If the timer is being modified or deleted from within a function/method called by the timer, it may be easier to <a href="#OmitCallback">omit the <em>Function</em> parameter</a>. In some cases this avoids the need to retain the original object which was passed to SetTimer.</li>
+</ul>
+</div>
+
+</body>
+</html>

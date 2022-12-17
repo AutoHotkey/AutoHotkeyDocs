@@ -1,0 +1,106 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+<title>FileCopy - Syntax &amp; Usage | AutoHotkey v2</title>
+<meta name="description" content="The FileCopy function copies one or more files." />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<link href="../static/theme.css" rel="stylesheet" type="text/css" />
+<script src="../static/content.js" type="text/javascript"></script>
+</head>
+<body>
+
+<h1>FileCopy</h1>
+
+<p>Copies one or more files.</p>
+
+<pre class="Syntax"><span class="func">FileCopy</span> SourcePattern, DestPattern <span class="optional">, Overwrite</span></pre>
+<h2 id="Parameters">Parameters</h2>
+<dl>
+
+  <dt>SourcePattern</dt>
+  <dd>
+    <p>Type: <a href="../Concepts.htm#strings">String</a></p>
+    <p>The name of a single file or folder, or a wildcard pattern such as C:\Temp\*.tmp. <em>SourcePattern</em> is assumed to be in <a href="../Variables.htm#WorkingDir">A_WorkingDir</a> if an absolute path isn't specified.</p>
+  </dd>
+
+  <dt>DestPattern</dt>
+  <dd>
+    <p>Type: <a href="../Concepts.htm#strings">String</a></p>
+    <p>The name or pattern of the destination, which is assumed to be in <a href="../Variables.htm#WorkingDir">A_WorkingDir</a> if an absolute path isn't specified.</p>
+    <p>If present, the first asterisk (<code>*</code>) in the filename is replaced with the source filename excluding its extension, while the first asterisk after the last full stop (<code>.</code>) is replaced with the source file's extension. If an asterisk is present but the extension is omitted, the source file's extension is used.</p>
+    <p>To perform a simple copy -- retaining the existing file name(s) -- specify only the folder name as shown in these mostly equivalent examples:</p>
+    <pre>FileCopy "C:\*.txt", "C:\My Folder"</pre>
+    <pre>FileCopy "C:\*.txt", "C:\My Folder\*.*"</pre>
+    <p>The destination directory must already exist. If <em>My Folder</em> does not exist, the first example above will use "My Folder" as the target filename, while the second example will copy no files.</p>
+  </dd>
+
+  <dt>Overwrite</dt>
+  <dd>
+    <p>Type: <a href="../Concepts.htm#numbers">Integer</a></p>
+    <p>This parameter determines whether to overwrite files if they already exist. If this parameter is 1 (true), the function overwrites existing files. If omitted or 0 (false), the function does not overwrite existing files.</p>
+    <p>Other values are reserved for future use.</p>
+  </dd>
+
+</dl>
+
+<h2 id="Error_Handling">Error Handling</h2>
+<p>An <a href="ErrorObj.htm">Error</a> is thrown if any files failed to be copied, with its <a href="ErrorObj.htm#Extra">Extra</a> property set to the number of failures. If no files were found, an error is thrown only if <em>SourcePattern</em> lacks the wildcards <code>*</code> and <code>?</code>. In other words, copying a wildcard pattern such as <code>"*.txt"</code> is considered a success when it does not match any files.</p>
+<p>Unlike <a href="FileMove.htm">FileMove</a>, copying a file onto itself is always counted as an error, even if the overwrite mode is in effect.</p>
+<p>If files were found, <a href="../Variables.htm#LastError">A_LastError</a> is set to 0 (zero) or the result of the operating system's GetLastError() function immediately after the last failure. Otherwise A_LastError contains an error code that might indicate why no files were found.</p>
+
+<h2 id="Remarks">Remarks</h2>
+<p>FileCopy copies files only. To instead copy the contents of a folder (all its files and subfolders), see the examples section below. To copy a single folder (including its subfolders), use <a href="DirCopy.htm">DirCopy</a>.</p>
+<p>The operation will continue even if error(s) are encountered.</p>
+<h2 id="Related">Related</h2>
+<p><a href="FileMove.htm">FileMove</a>, <a href="DirCopy.htm">DirCopy</a>, <a href="DirMove.htm">DirMove</a>, <a href="FileDelete.htm">FileDelete</a></p>
+<h2 id="Examples">Examples</h2>
+<div class="ex" id="ExKeepOrigName">
+<p><a class="ex_number" href="#ExKeepOrigName"></a> Makes a copy but keep the original file name.</p>
+<pre>FileCopy "C:\My Documents\List1.txt", "D:\Main Backup\"</pre>
+</div>
+
+<div class="ex" id="ExNewName">
+<p><a class="ex_number" href="#ExNewName"></a> Copies a file into the same directory by providing a new name.</p>
+<pre>FileCopy "C:\My File.txt", "C:\My File New.txt"</pre>
+</div>
+
+<div class="ex" id="ExNewExt">
+<p><a class="ex_number" href="#ExNewExt"></a> Copies text files to a new location and gives them a new extension.</p>
+<pre>FileCopy "C:\Folder1\*.txt", "D:\New Folder\*.bkp"</pre>
+</div>
+
+<div class="ex" id="ExCopyAll">
+<p><a class="ex_number" href="#ExCopyAll"></a> Copies all files and folders inside a folder to a different folder.</p>
+<pre>ErrorCount := CopyFilesAndFolders("C:\My Folder\*.*", "D:\Folder to receive all files &amp; folders")
+if ErrorCount != 0
+    MsgBox ErrorCount " files/folders could not be copied."
+
+CopyFilesAndFolders(SourcePattern, DestinationFolder, DoOverwrite := false)
+<em>; Copies all files and folders matching SourcePattern into the folder named DestinationFolder and
+; returns the number of files/folders that could not be copied.</em>
+{
+    ErrorCount := 0
+    <em>; First copy all the files (but not the folders):</em>
+    try
+        FileCopy SourcePattern, DestinationFolder, DoOverwrite
+    catch as Err
+        ErrorCount := Err.Extra
+    <em>; Now copy all the folders:</em>
+    Loop Files, SourcePattern, "D"  <em>; D means "retrieve folders only".</em>
+    {
+        try
+            DirCopy A_LoopFilePath, DestinationFolder "\" A_LoopFileName, DoOverwrite
+        catch
+        {
+            ErrorCount += 1
+            <em>; Report each problem folder by name.</em>
+            MsgBox "Could not copy " A_LoopFilePath " into " DestinationFolder
+        }
+    }
+    return ErrorCount
+}</pre>
+</div>
+
+</body>
+</html>

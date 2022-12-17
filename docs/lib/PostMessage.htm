@@ -1,0 +1,90 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+<title>PostMessage - Syntax &amp; Usage | AutoHotkey v2</title>
+<meta name="description" content="The PostMessage function places a message in the message queue of a window or control." />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<link href="../static/theme.css" rel="stylesheet" type="text/css" />
+<script src="../static/content.js" type="text/javascript"></script>
+</head>
+<body>
+
+<h1>PostMessage</h1>
+
+<p>Places a message in the message queue of a window or control.</p>
+
+<pre class="Syntax"><span class="func">PostMessage</span> Msg <span class="optional">, wParam, lParam, Control, WinTitle, WinText, ExcludeTitle, ExcludeText</span></pre>
+<h2 id="Parameters">Parameters</h2>
+<dl>
+
+  <dt>Msg</dt>
+  <dd>
+    <p>Type: <a href="../Concepts.htm#numbers">Integer</a></p>
+    <p>The message number to send. See the <a href="../misc/SendMessageList.htm">message list</a> to determine the number.</p>
+  </dd>
+
+  <dt>wParam, lParam</dt>
+  <dd>
+    <p>Type: <a href="../Concepts.htm#numbers">Integer</a></p>
+    <p>The message parameters. If omitted, each parameter defaults to 0.</p>
+    <p>Each parameter must be an <a href="../Concepts.htm#numbers">integer</a>.</p>
+    <p>If AutoHotkey or the target window is 32-bit, only the parameter's low 32 bits are used; that is, values are truncated if outside the range -2147483648 to 2147483647 (-0x80000000 to 0x7FFFFFFF) for signed values, or 0 to 4294967295 (0xFFFFFFFF) for unsigned values. If AutoHotkey and the target window are both 64-bit, any integer value <a href="../Concepts.htm#pure-numbers">supported by AutoHotkey</a> can be used.</p>
+  </dd>
+
+  <dt>Control</dt>
+  <dd>
+    <p>Type: <a href="../Concepts.htm#strings">String</a>, <a href="../Concepts.htm#numbers">Integer</a> or <a href="../Objects.htm">Object</a></p>
+    <p>If this parameter is omitted, the message will be posted directly to the target window rather than one of its controls. Otherwise, this parameter can be the control's ClassNN, text or HWND, or an object with a <code>Hwnd</code> property. For details, see <a href="Control.htm#Parameter">The Control Parameter</a>.</p>
+    <p>If this parameter specifies a HWND (as an integer or object), it is not required to be the HWND of a control (child window). That is, it can also be the HWND of a top-level window.</p>
+  </dd>
+
+  <dt>WinTitle</dt>
+  <dd>
+    <p>Type: <a href="../Concepts.htm#strings">String</a>, <a href="../Concepts.htm#numbers">Integer</a> or <a href="../Objects.htm">Object</a></p>
+    <p>A window title or other criteria identifying the target window. See <a href="../misc/WinTitle.htm">WinTitle</a>.</p>
+  </dd>
+
+  <dt>WinText</dt>
+  <dd>
+    <p>Type: <a href="../Concepts.htm#strings">String</a></p>
+    <p>If present, this parameter must be a substring from a single text element of the target window (as revealed by the included Window Spy utility). Hidden text elements are detected if <a href="DetectHiddenText.htm">DetectHiddenText</a> is ON.</p>
+  </dd>
+
+  <dt>ExcludeTitle</dt>
+  <dd>
+    <p>Type: <a href="../Concepts.htm#strings">String</a></p>
+    <p>Windows whose titles include this value will not be considered.</p>
+  </dd>
+
+  <dt>ExcludeText</dt>
+  <dd>
+    <p>Type: <a href="../Concepts.htm#strings">String</a></p>
+    <p>Windows whose text include this value will not be considered.</p>
+  </dd>
+
+</dl>
+
+<h2 id="Error_Handling">Error Handling</h2>
+<p>A <a href="ErrorObj.htm#TargetError">TargetError</a> is thrown if the window or control could not be found.</p>
+<p>An <a href="ErrorObj.htm#OSError">OSError</a> is thrown if the message could not be posted. For example, if the target window is running at a higher integrity level than the script (i.e. it is running as admin while the script is not), messages may be blocked.</p>
+
+<h2 id="Remarks">Remarks</h2>
+<p>This function should be used with caution because sending a message to the wrong window (or sending an invalid message) might cause unexpected behavior or even crash the target application. This is because most applications are not designed to expect certain types of messages from external sources.</p>
+<p>PostMessage places the message in the message queue associated with the target window. It does not wait for acknowledgement or reply. By contrast, <a href="SendMessage.htm">SendMessage</a> waits for the target window to process the message, up until the timeout period expires.</p>
+<p>Unlike <a href="SendMessage.htm">SendMessage</a>, PostMessage usually only sends basic numeric values, not pointers to structures or strings.</p>
+<p>To send a message to all windows in the system, including those that are hidden or disabled, specify <code>0xFFFF</code> for <em>WinTitle</em> (0xFFFF is HWND_BROADCAST). This technique should be used only for messages intended to be broadcast.</p>
+<p>To have a script receive a message, use <a href="OnMessage.htm">OnMessage</a>.</p>
+<p>See the <a href="../misc/SendMessage.htm">Message Tutorial</a> for an introduction to using this function.</p>
+<p>Window titles and text are case sensitive. Hidden windows are not detected unless <a href="DetectHiddenWindows.htm">DetectHiddenWindows</a> has been turned on.</p>
+
+<h2 id="Related">Related</h2>
+<p><a href="SendMessage.htm">SendMessage</a>, <a href="../misc/SendMessageList.htm">Message List</a>, <a href="../misc/SendMessage.htm">Message Tutorial</a>, <a href="OnMessage.htm">OnMessage</a>, <a href="../misc/Winamp.htm">Automating Winamp</a>, <a href="DllCall.htm">DllCall</a>, <a href="ControlSend.htm">ControlSend</a>, <a href="MenuSelect.htm">MenuSelect</a></p>
+<h2 id="Examples">Examples</h2>
+<div class="ex" id="ExSwitchKeybLang">
+<p><a class="ex_number" href="#ExSwitchKeybLang"></a> Switches the active window's keyboard layout/language to English (US).</p>
+<pre>PostMessage 0x0050, 0, 0x4090409,, "A"  <em>; 0x0050 is WM_INPUTLANGCHANGEREQUEST.</em></pre>
+</div>
+
+</body>
+</html>

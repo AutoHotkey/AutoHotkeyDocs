@@ -1,0 +1,133 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+<title>Buffer Object - Definition &amp; Usage | AutoHotkey v2</title>
+<meta name="description" content="The Buffer object encapsulates a block of memory for use with advanced techniques such as DllCall, structures, StrPut and raw file I/O." />
+<meta name="ahk:equiv-v1" content="lib/VarSetCapacity.htm" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<link href="../static/theme.css" rel="stylesheet" type="text/css" />
+<script src="../static/content.js" type="text/javascript"></script>
+</head>
+<body>
+
+<h1>Buffer Object</h1>
+<pre class="NoIndent">class Buffer extends Object</pre>
+
+<p>Encapsulates a block of memory for use with advanced techniques such as DllCall, structures, StrPut and raw file I/O.</p>
+<p>Buffer objects are typically created by calling <a href="#Call">Buffer()</a>, but can also be returned by <a href="FileRead.htm">FileRead</a> with the "RAW" option.</p>
+<pre>BufferObj := Buffer(ByteCount)</pre>
+<p><a href="ClipboardAll.htm">ClipboardAll</a> returns a sub-type of Buffer, also named ClipboardAll.</p>
+<pre>class ClipboardAll extends Buffer</pre>
+
+<p>"BufferObj" is used below as a placeholder for any Buffer object, as "Buffer" is the class itself.</p>
+<p>In addition to the methods and property inherited from <a href="Object.htm">Object</a>, Buffer objects have the following predefined properties.</p>
+
+<h2 id="toc">Table of Contents</h2>
+<ul>
+  <li><a href="#like">Buffer-like Objects</a></li>
+  <li><a href="#StaticMethods">Static Methods</a>:
+    <ul>
+      <li><a href="#Call">Call</a>: Creates a Buffer.</li>
+    </ul>
+  </li>
+  <li><a href="#Methods">Methods</a>:
+    <ul>
+      <li><a href="#__New">__New</a>: Allocates or reallocates the buffer and optionally fills it.</li>
+    </ul>
+  </li>
+  <li><a href="#Properties">Properties</a>:
+    <ul>
+      <li><a href="#Ptr">Ptr</a>: Retrieves the buffer's current memory address.</li>
+      <li><a href="#Size">Size</a>: Retrieves or sets the buffer's size, in bytes.</li>
+    </ul>
+  </li>
+  <li><a href="#Related">Related</a></li>
+  <li><a href="#Examples">Examples</a></li>
+</ul>
+
+<h2 id="like">Buffer-like Objects</h2>
+<p>Some built-in functions accept a Buffer object in place of an address - see the <a href="#Related">Related</a> section for links. These functions also accept any other object which has <a href="#Ptr">Ptr</a> and <a href="#Size">Size</a> properties, but are optimized for the native Buffer object.</p>
+<p>In most cases, passing a Buffer object is safer than passing an address, as the function can read the <a href="#Size">buffer size</a> to ensure that it does not attempt to access any memory location outside of the buffer. One exception is that <a href="DllCall.htm">DllCall</a> calls functions outside of the program; in those cases, it may be necessary to explicitly pass the <a href="#Size">buffer size</a> to the function.</p>
+
+<h2 id="StaticMethods">Static Methods</h2>
+<div class="methodShort" id="Call"><h3>Call</h3>
+<p>Creates a Buffer.</p>
+<pre class="Syntax">BufferObj := <span class="func">Buffer</span>(<span class="optional">ByteCount, FillByte</span>)</pre>
+<dl>
+  <dt>ByteCount</dt>
+  <dd>
+    <p>Type: <a href="../Concepts.htm#numbers">Integer</a></p>
+    <p>The number of bytes to allocate. Corresponds to <a href="BufferObj.htm#Size">Buffer.Size</a>.</p>
+    <p>If omitted, the Buffer is created with a null (zero) <a href="#Ptr">Ptr</a> and zero <a href="#Size">Size</a>.</p>
+  </dd>
+  <dt>FillByte</dt>
+  <dd>
+    <p>Type: <a href="../Concepts.htm#numbers">Integer</a></p>
+    <p>Specify a number between 0 and 255 to set each byte in the buffer to that number.</p>
+    <p>This should generally be omitted in cases where the buffer will be written into without first being read, as it has a time-cost proportionate to the number of bytes. If omitted, the memory of the buffer is not initialized; the value of each byte is arbitrary.</p>
+  </dd>
+</dl>
+<p>A <a href="ErrorObj.htm#MemoryError">MemoryError</a> is thrown if the memory could not be allocated, such as if <em>ByteCount</em> is unexpectedly large or the system is low on virtual memory.</p>
+<p>Parameters are defined by <a href="#__New">__New</a>.</p>
+</div>
+
+<h2 id="Methods">Methods</h2>
+<div class="methodShort" id="__New"><h3>__New</h3>
+<p>Allocates or reallocates the buffer and optionally fills it.</p>
+<pre class="Syntax">BufferObj.<span class="func">__New</span>(<span class="optional">ByteCount, FillByte</span>)</pre>
+<p>This method exists to support <a href="#Call">Call</a>, and is not usually called directly. See <a href="../Objects.htm#Custom_NewDelete">Construction and Destruction</a>.</p>
+<p>Specify <em>ByteCount</em> to allocate, reallocate or free the buffer. This is equivalent to assigning <a href="#Size">Size</a>.</p>
+<p>Specify <em>FillByte</em> to fill the buffer with the given numeric byte value, overwriting any existing content.</p>
+<p>If both parameters are omitted, this method has no effect.</p>
+</div>
+
+<h2 id="Properties">Properties</h2>
+<div class="methodShort" id="Ptr"><h3>Ptr</h3>
+<p>Retrieves the buffer's current memory address.</p>
+<pre class="Syntax">Ptr := BufferObj.Ptr</pre>
+<p>Type: <a href="../Concepts.htm#numbers">Integer</a></p>
+<p>Any address returned by this property becomes invalid when the buffer is freed or reallocated. Invalid addresses must not be used. The buffer is not freed until the Buffer object's <a href="../Objects.htm#Reference_Counting">reference count</a> reaches zero, but it is reallocated when its <a href="#Size">Size</a> is changed.</p>
+</div>
+
+<div class="methodShort" id="Size"><h3>Size</h3>
+<p>Retrieves or sets the buffer's size, in bytes.</p>
+<pre class="Syntax">ByteCount := BufferObj.Size</pre>
+<pre class="Syntax">BufferObj.Size := ByteCount</pre>
+<p>Type: <a href="../Concepts.htm#numbers">Integer</a></p>
+<p>The buffer's address typically changes whenever its size is changed. If the size is decreased, the data within the buffer is truncated, but the remaining bytes are preserved. If the size is increased, all data is preserved and the values of any new bytes are arbitrary (they are not initialized, for performance reasons).</p>
+<p>A <a href="ErrorObj.htm#MemoryError">MemoryError</a> is thrown if the memory could not be allocated, such as if <em>ByteCount</em> is unexpectedly large or the system is low on virtual memory.</p>
+<p>This property always returns the exact value it was given either by <a href="#__New">__New</a> or by a previous assignment.</p>
+</div>
+
+<h2 id="Related">Related</h2>
+<p><a href="DllCall.htm">DllCall</a>, <a href="NumPut.htm">NumPut</a>, <a href="NumGet.htm">NumGet</a>, <a href="StrPut.htm">StrPut</a>, <a href="StrGet.htm">StrGet</a>, <a href="FileObj.htm#RawRead">File.RawRead</a>, <a href="FileObj.htm#RawWrite">File.RawWrite</a>, <a href="ClipboardAll.htm">ClipboardAll</a></p>
+
+<h2 id="Examples">Examples</h2>
+<div class="ex" id="ExString">
+<p><a class="ex_number" href="#ExString"></a> Use a Buffer to receive a string from an external function via <a href="DllCall.htm">DllCall</a>.</p>
+<pre>
+max_chars := 11
+
+<em>; Allocate a buffer for use with the Unicode version of wsprintf.</em>
+bufW := Buffer(max_chars*2)
+
+<em>; Print a UTF-16 string into the buffer with wsprintfW().</em>
+DllCall("wsprintfW", "Ptr", bufW, "Str", "0x%08x", "UInt", 4919, "CDecl")
+
+<em>; Retrieve the string from bufW and show it.</em>
+MsgBox StrGet(bufW, "UTF-16")  <em>; Or just StrGet(bufW).</em>
+
+<em>; Allocate a buffer for use with the ANSI version of wsprintf.</em>
+bufA := Buffer(max_chars)
+
+<em>; Print an ANSI string into the buffer with wsprintfA().</em>
+DllCall("wsprintfA", "Ptr", bufA, "AStr", "0x%08x", "UInt", 4919, "CDecl")
+
+<em>; Retrieve the string from bufA (converted to the native format), and show it.</em>
+MsgBox StrGet(bufA, "CP0")
+</pre>
+</div>
+
+</body>
+</html>

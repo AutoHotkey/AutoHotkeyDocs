@@ -1,0 +1,54 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+<title>A_HotkeyModifierTimeout - Syntax &amp; Usage | AutoHotkey v2</title>
+<meta name="description" content="The A_HotkeyModifierTimeout variable affects the behavior of the Send function with the hotkey modifiers CTRL, ALT, WIN, and SHIFT." />
+<meta name="ahk:equiv-v1" content="lib/_HotkeyModifierTimeout.htm" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<link href="../static/theme.css" rel="stylesheet" type="text/css" />
+<script src="../static/content.js" type="text/javascript"></script>
+</head>
+<body>
+
+<h1>A_HotkeyModifierTimeout</h1>
+
+<p>Affects the behavior of <a href="Send.htm">Send</a> with <a href="../Hotkeys.htm">hotkey</a> modifiers: <kbd>Ctrl</kbd>, <kbd>Alt</kbd>, <kbd>Win</kbd>, and <kbd>Shift</kbd>.</p>
+
+<p>The built-in variable <strong>A_HotkeyModifierTimeout</strong> defines how long after a hotkey is pressed that its modifier keys are assumed to still be held down. This is used by <a href="Send.htm">Send</a> to determine whether to push the modifier keys back down after having temporarily released them.</p>
+<dl>
+  <dt>Value</dt>
+  <dd>
+    <p>Type: <a href="../Concepts.htm#numbers">Integer</a></p>
+    <p>The length of the interval in milliseconds. The value can be -1 so that it never times out (modifier keys are always pushed back down after the Send), or 0 so that it always times out (modifier keys are never pushed back down).</p>
+    <p>The default value is 50.</p>
+  </dd>
+</dl>
+
+<h2 id="Remarks">Remarks</h2>
+<p>This variable has no effect when:</p>
+<ul>
+  <li>Hotkeys send their keystrokes via the <a href="Send.htm#SendInput">SendInput</a> or <a href="Send.htm#SendPlay">SendPlay</a> methods. This is because those methods postpone the user's physical pressing and releasing of keys until after the Send completes.</li>
+  <li>The script has the keyboard hook installed (you can see if your script uses the hook via the "View-&gt;Key history" menu item in the main window, or via the <a href="KeyHistory.htm">KeyHistory</a> function). This is because the hook can keep track of which modifier keys (<kbd>Alt</kbd>/<kbd>Ctrl</kbd>/<kbd>Win</kbd>/<kbd>Shift</kbd>) the user is physically holding down and doesn't need to use the timeout.</li>
+</ul>
+<p>To illustrate the effect of this variable, consider this example: <code>^!a::Send "abc"</code>.</p>
+<p>When the <a href="Send.htm">Send</a> function executes, the first thing it does is release <kbd>Ctrl</kbd> and <kbd>Alt</kbd> so that the characters get sent properly. After sending all the keys, the function doesn't know whether it can safely push back down <kbd>Ctrl</kbd> and <kbd>Alt</kbd> (to match whether the user is still holding them down). But if less than the specified number of milliseconds have elapsed, it will assume that the user hasn't had a chance to release the keys yet and it will thus push them back down to match their physical state. Otherwise, the modifier keys will not be pushed back down and the user will have to release and press them again to get them to modify the same or another key.</p>
+<p>The timeout should be set to a value less than the amount of time that the user typically holds down a hotkey's modifiers before releasing them. Otherwise, the modifiers may be restored to the down position (get stuck down) even when the user isn't physically holding them down.</p>
+<p>You can reduce or eliminate the need for this variable with one of the following:</p>
+<ul>
+  <li>Install the keyboard hook by calling <a href="InstallKeybdHook.htm">InstallKeybdHook</a>.</li>
+  <li>Use the <a href="Send.htm#SendInput">SendInput</a> or <a href="Send.htm#SendPlay">SendPlay</a> methods rather than the traditional <a href="Send.htm#SendEvent">SendEvent</a> method.</li>
+  <li>When using the traditional <a href="Send.htm#SendEvent">SendEvent</a> method, reduce <a href="SetKeyDelay.htm">SetKeyDelay</a> to 0 or -1, which should help because it sends the keystrokes more quickly.</li>
+</ul>
+
+<h2 id="Related">Related</h2>
+<p><a href="GetKeyState.htm">GetKeyState</a></p>
+
+<h2 id="Examples">Examples</h2>
+<div class="ex" id="ExBasic">
+<p><a class="ex_number" href="#ExBasic"></a> Sets the hotkey modifier timeout to 100 ms instead of 50 ms.</p>
+<pre>A_HotkeyModifierTimeout := 100</pre>
+</div>
+
+</body>
+</html>

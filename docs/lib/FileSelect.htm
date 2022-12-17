@@ -1,0 +1,127 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+<title>FileSelect - Syntax &amp; Usage | AutoHotkey v2</title>
+<meta name="description" content="The FileSelect function displays a standard dialog that allows the user to open or save file(s)." />
+<meta name="ahk:equiv-v1" content="lib/FileSelectFile.htm" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<link href="../static/theme.css" rel="stylesheet" type="text/css" />
+<script src="../static/content.js" type="text/javascript"></script>
+</head>
+<body>
+
+<h1>FileSelect</h1>
+
+<p>Displays a standard dialog  that allows the user to open or save file(s).</p>
+
+<pre class="Syntax">SelectedFile := <span class="func">FileSelect</span>(<span class="optional">Options, RootDir\Filename, Title, Filter</span>)</pre>
+<h2 id="Parameters">Parameters</h2>
+<dl>
+
+  <dt>Options</dt>
+  <dd>
+      <p>Type: <a href="../Concepts.htm#strings">String</a> or <a href="../Concepts.htm#numbers">Integer</a></p>
+      <p>If omitted, it will default to zero, which is the same as having none of the options below.</p>
+      <p>Otherwise, it can be a number or one of the letters listed below, optionally followed by a number. For example, <code>"M"</code>, <code>1</code> and <code>"M1"</code> are all valid (but not equivalent).</p>
+      <p id="D"><strong>D</strong>: Select Folder (Directory). Specify the letter D to allow the user to select a folder rather than a file. The dialog has most of the same features as when selecting a file, but does not support filters (<em>Filter</em> must be omitted or blank).</p>
+      <p id="M"><strong>M</strong>: Multi-select. Specify the letter M to allow the user to select more than one file via shift-click, control-click, or other means. In this case, the return value is an <a href="ArrayObj.htm">Array</a> instead of a string. To extract the individual files, see the example at the bottom of this page.</p>
+      <p id="S"><strong>S</strong>: Save dialog. Specify the letter S to cause the dialog to always contain a Save button instead of an Open button.</p>
+      <p>The following numbers can be used. To put more than one of them into effect, add them up. For example, to use 1 and 2, specify the number 3.</p>
+      <p><strong>1</strong>: File Must Exist<br>
+        <strong>2</strong>: Path Must Exist<br>
+        <strong>8</strong>: Prompt to Create New File<br>
+        <strong>16</strong>: Prompt to Overwrite File<br>
+        <strong>32</strong>: Shortcuts (.lnk files) are selected as-is rather than being resolved to their targets. This option also prevents navigation into a folder via a folder shortcut.</p>
+      <p>As the "Prompt to Overwrite" option is supported only by the Save dialog, specifying that option without the "Prompt to Create" option also puts the "S" option into effect. Similarly, the "Prompt to Create" option has no effect when the "S" option is present. Specifying the number 24 enables whichever type of prompt is supported by the dialog.</p>
+  </dd>
+
+  <dt>RootDir\Filename</dt>
+  <dd>
+      <p>Type: <a href="../Concepts.htm#strings">String</a></p>
+      <p>If present, this parameter contains one or both of the following:</p>
+      <p><strong>RootDir</strong>: The root (starting) directory, which is assumed to be a subfolder in <a href="../Variables.htm#WorkingDir">A_WorkingDir</a> if an absolute path is not specified. If omitted or blank, the starting directory will be a default that might depend on the OS version (it will likely be the directory most recently selected by the user during a prior use of FileSelect).</p>
+      <p><strong>Filename</strong>: The default filename to initially show in the dialog's edit field. Only the naked filename (with no path) will be shown. To ensure that the dialog is properly shown, ensure that no illegal characters are present (such as /&lt;|:").</p>
+      <p>Examples:</p>
+      <pre>"C:\My Pictures\Default Image Name.gif"  <em>; Both <i>RootDir</i> and <i>Filename</i> are present.</em>
+"C:\My Pictures"  <em>; Only <i>RootDir</i> is present.</em>
+"My Pictures"  <em>; Only <i>RootDir</i> is present, and it's relative to the current working directory.</em>
+"My File"  <em>; Only <i>Filename</i> is present (but if "My File" exists as a folder, it is assumed to be <i>RootDir</i>).</em></pre>
+  </dd>
+
+  <dt>Title</dt>
+  <dd>
+      <p>Type: <a href="../Concepts.htm#strings">String</a></p>
+      <p>The title of the file-selection window. If omitted or blank, it will default to <code>"Select File - " <a href="../Variables.htm#ScriptName">A_ScriptName</a></code> (i.e. the name of the current script), unless the "D" option is present, in which case the word "File" is replaced with "Folder".</p>
+  </dd>
+
+  <dt>Filter</dt>
+  <dd>
+      <p>Type: <a href="../Concepts.htm#strings">String</a></p>
+      <p>Indicates which types of files are shown by the dialog.</p>
+      <p>Example: Documents (*.txt)<br>
+        Example: Audio (*.wav; *.mp2; *.mp3)</p>
+      <p>If omitted, the filter defaults to All Files (*.*).</p>
+    <p>Otherwise, the filter uses the indicated string but also provides an option for All Files (*.*) in the dialog's "files of type" drop-down list. To include more than one file extension in the filter, separate them with semicolons as illustrated in the example above.</p>
+    <p>This parameter must be blank or omitted if the "D" option is present.</p>
+  </dd>
+
+</dl>
+
+<h2 id="Return_Value">Return Value</h2>
+<p>Type: <a href="../Concepts.htm#strings">String</a> or <a href="ArrayObj.htm">Array</a> of <a href="../Concepts.htm#strings">Strings</a></p>
+<p>If multi-select is not in effect, this function returns the full path and name of the single file or folder chosen by the user, or an empty string if the user cancels the dialog.</p>
+<p>If the M option (multi-select) is in effect, this function returns an array of items, where each item is the full path and name of a single file. The example at the bottom of this page demonstrates how to extract the files one by one. If the user cancels the dialog, the array is empty (has zero items).</p>
+
+<h2 id="Remarks">Remarks</h2>
+<p>A file-selection dialog usually looks like this:</p>
+<img src="../static/dlg_file.png" alt="FileSelect" />
+<p>A GUI window may display a modal file-selection dialog by means of the <a href="GuiObj.htm#OwnDialogs">+OwnDialogs</a> option. A modal dialog prevents the user from interacting with the GUI window until the dialog is dismissed.</p>
+<p>Known limitation: A <a href="SetTimer.htm">timer</a> that launches during the display of a FileSelect dialog will postpone the effect of the user's clicks inside the dialog until after the timer finishes. To work around this, avoid using timers whose subroutines take a long time to finish, or disable all timers during the dialog:</p>
+<pre><a href="Thread.htm">Thread</a> "NoTimers"
+SelectedFile := FileSelect()
+Thread "NoTimers", false</pre>
+
+<h2 id="Related">Related</h2>
+<p><a href="DirSelect.htm">DirSelect</a>, <a href="MsgBox.htm">MsgBox</a>, <a href="InputBox.htm">InputBox</a>, <a href="ToolTip.htm">ToolTip</a>, <a href="GuiObj.htm">GUI</a>, <a href="../misc/CLSID-List.htm">CLSID List</a>, <a href="LoopParse.htm">parsing loop</a>, <a href="SplitPath.htm">SplitPath</a></p>
+<p>Also, the operating system offers standard dialog boxes that prompt the user to pick a font, color, or icon. These dialogs can be displayed via <a href="DllCall.htm">DllCall</a> as demonstrated at <a href="https://github.com/majkinetor/mm-autohotkey/tree/master/Dlg">GitHub</a>.</p>
+<h2 id="Examples">Examples</h2>
+<div class="ex" id="ExBasic">
+<p><a class="ex_number" href="#ExBasic"></a> Allows the user to select an existing .txt or .doc file.</p>
+<pre>SelectedFile := FileSelect(3, , "Open a file", "Text Documents (*.txt; *.doc)")
+if SelectedFile = ""
+    MsgBox "The dialog was canceled."
+else
+    MsgBox "The following file was selected:`n" SelectedFile</pre>
+</div>
+
+<div class="ex" id="ExMulti">
+<p><a class="ex_number" href="#ExMulti"></a> Allows the user to select multiple existing files.</p>
+<pre>SelectedFiles := FileSelect("M3")  <em>; M3 = Multiselect existing files.</em>
+if SelectedFiles.Length = 0
+{
+    MsgBox "The dialog was canceled."
+    return
+}
+for FileName in SelectedFiles
+{
+    Result := MsgBox("File #" A_Index " of " SelectedFiles.Length ":`n" FileName "`n`nContinue?",, "YN")
+    if Result = "No"
+        break
+}
+</pre>
+</div>
+
+<div class="ex" id="ExFolder">
+<p><a class="ex_number" href="#ExFolder"></a> Allows the user to select a folder.</p>
+<pre>
+SelectedFolder := FileSelect("D", , "Select a folder")
+if SelectedFolder = ""
+    MsgBox "The dialog was canceled."
+else
+    MsgBox "The following folder was selected:`n" SelectedFolder
+</pre>
+</div>
+
+</body>
+</html>

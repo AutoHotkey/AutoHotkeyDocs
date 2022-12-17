@@ -1,0 +1,67 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+<title>ProcessWait - Syntax &amp; Usage | AutoHotkey v2</title>
+<meta name="description" content="The ProcessWait function waits for the specified process to exist." />
+<meta name="ahk:equiv-v1" content="lib/Process.htm#Wait" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<link href="../static/theme.css" rel="stylesheet" type="text/css" />
+<script src="../static/content.js" type="text/javascript"></script>
+</head>
+<body>
+
+<h1>ProcessWait</h1>
+
+<p>Waits for the specified process to exist.</p>
+
+<pre class="Syntax">PID := <span class="func">ProcessWait</span>(PIDOrName <span class="optional">, Timeout</span>)</pre>
+
+<h2 id="Parameters">Parameters</h2>
+<dl>
+    <dt>PIDOrName</dt>
+    <dd>
+        <p>Type: <a href="../Concepts.htm#numbers">Integer</a> or <a href="../Concepts.htm#strings">String</a></p>
+        <p>Specify either a number (the PID) or a process name:</p>
+        <p><strong>PID:</strong> The Process ID, which is a number that uniquely identifies one specific process (this number is valid only during the lifetime of that process). The PID of a newly launched process can be determined via the <a href="Run.htm">Run</a> function. Similarly, the PID of a window can be determined with <a href="WinGetPID.htm">WinGetPID</a>. <a href="ProcessExist.htm">ProcessExist</a> can also be used to discover a PID.</p>
+        <p><strong>Name:</strong> The name of a process is usually the same as its executable (without path), e.g. notepad.exe or winword.exe. Since a name might match multiple running processes, only the first process will be operated upon. The name is not case sensitive.</p>
+    </dd>
+    <dt>Timeout</dt>
+    <dd>
+        <p>Type: <a href="../Concepts.htm#numbers">Integer</a> or <a href="../Concepts.htm#numbers">Float</a></p>
+        <p>If omitted, this function will wait indefinitely. Otherwise, specify the number of seconds (can contain a decimal point) to wait before timing out.</p>
+    </dd>
+</dl>
+
+<h2 id="Return_Value">Return Value</h2>
+<p>Type: <a href="../Concepts.htm#numbers">Integer</a></p>
+<p>If the specified process is discovered, this function returns the <a href="../misc/WinTitle.htm#ahk_pid">Process ID (PID)</a> of the process. If the function times out, zero is returned.</p>
+
+<h2 id="Remarks">Remarks</h2>
+<p>Processes are checked every 100 milliseconds; the moment the condition is satisfied, the function stops waiting. In other words, rather than waiting for the timeout to expire, it immediately returns and continues execution of the script. Also, while the function is in a waiting state, new <a href="../misc/Threads.htm">threads</a> can be launched via <a href="../Hotkeys.htm">hotkey</a>, <a href="MenuObj.htm">custom menu item</a>, or <a href="SetTimer.htm">timer</a>.</p>
+
+<h2 id="Related">Related</h2>
+<p><a href="ProcessWaitClose.htm">ProcessWaitClose</a>, <a href="Run.htm">Run</a>, <a href="WinWait.htm">WinWait</a>, <a href="Process.htm">Process functions</a>, <a href="Win.htm">Win functions</a></p>
+
+<h2 id="Examples">Examples</h2>
+
+<div class="ex" id="ExBasic">
+<p><a class="ex_number" href="#ExBasic"></a> Waits up to 5.5 seconds for Notepad to appear. If Notepad appears within this number of seconds, its priority is set to "Low" and the script's own priority is set to "High". After that, Notepad will be closed and a message box will be shown if it did not close within 5 seconds.</p>
+<pre>NewPID := ProcessWait("notepad.exe", 5.5)
+if not NewPID
+{
+    MsgBox "The specified process did not appear within 5.5 seconds."
+    return
+}
+<em>; Otherwise:</em>
+MsgBox "A matching process has appeared (Process ID is " NewPID ")."
+ProcessSetPriority "Low", NewPID
+ProcessSetPriority "High"  <em>; Have the script set itself to high priority.</em>
+WinClose "Untitled - Notepad"
+WaitPID := ProcessWaitClose(NewPID, 5)
+if WaitPID <em>; The PID still exists.</em>
+    MsgBox "The process did not close within 5 seconds."</pre>
+</div>
+
+</body>
+</html>

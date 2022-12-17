@@ -1,0 +1,83 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+<title>DirSelect - Syntax &amp; Usage | AutoHotkey v2</title>
+<meta name="description" content="The DirSelect function displays a standard dialog that allows the user to select a folder." />
+<meta name="ahk:equiv-v1" content="lib/FileSelectFolder.htm" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<link href="../static/theme.css" rel="stylesheet" type="text/css" />
+<script src="../static/content.js" type="text/javascript"></script>
+</head>
+<body>
+
+<h1>DirSelect</h1>
+
+<p>Displays a standard dialog  that allows the user to select a folder.</p>
+
+<pre class="Syntax">SelectedFolder := <span class="func">DirSelect</span>(<span class="optional">StartingFolder, Options, Prompt</span>)</pre>
+<h2 id="Parameters">Parameters</h2>
+<dl>
+
+  <dt>StartingFolder</dt>
+  <dd>
+      <p>Type: <a href="../Concepts.htm#strings">String</a></p>
+      <p>If blank or omitted, the dialog's initial selection will be the user's My Documents folder (or possibly My Computer). A <a href="../misc/CLSID-List.htm">CLSID folder</a> such as <code>"::{20d04fe0-3aea-1069-a2d8-08002b30309d}"</code> (i.e. My Computer) may be specified start navigation at a specific special folder.</p>
+      <p>Otherwise, the most common usage of this parameter is an asterisk followed immediately by the absolute path of the drive or folder to be initially selected. For example, <code>"*C:\"</code> would initially select the C drive. Similarly, <code>"*C:\My Folder"</code> would initially select that particular folder.</p>
+      <p>The asterisk indicates that the user is permitted to navigate upward (closer to the root) from the starting folder. Without the asterisk, the user would be forced to select a folder inside <em>StartingFolder</em> (or <em>StartingFolder</em> itself). One benefit of omitting the asterisk is that <em>StartingFolder</em> is initially shown in a tree-expanded state, which may save the user from having to click the first plus sign.</p>
+      <p>If the asterisk is present, upward navigation may optionally be restricted to a folder other than Desktop. This is done by preceding the asterisk with the absolute path of the uppermost folder followed by exactly one space or tab. For example, <code>"C:\My Folder *C:\My Folder\Projects"</code> would not allow the user to navigate any higher than C:\My Folder (but the initial selection would be C:\My Folder\Projects).</p>
+    </dd>
+
+  <dt>Options</dt>
+  <dd>
+      <p>Type: <a href="../Concepts.htm#numbers">Integer</a></p>
+      <p>One of the following numbers:</p>
+      <p><strong>0</strong>: The options below are all disabled (except on Windows 2000, where the "make new folder" button might appear anyway).</p>
+      <p><strong>1</strong> (default): A button is provided that allows the user to create new folders.</p>
+      <p><strong>Add 2</strong> to the above number to  provide an edit field that allows the user to type the name of a folder. For example, a value of 3 for this parameter provides both an edit field and a "make new folder" button.</p>
+      <p id="NewDialog"><strong>Add 4</strong> to the above number to omit the BIF_NEWDIALOGSTYLE property. Adding 4 ensures that DirSelect will work properly even in a Preinstallation Environment like WinPE or BartPE. However, this prevents the appearance of a "make new folder" button.</p>
+      <p>If the user types an invalid folder name in the edit field, <em>SelectedFolder</em> will be set to the folder selected in the navigation tree rather than what the user entered.</p>
+  </dd>
+
+  <dt>Prompt</dt>
+  <dd>
+      <p>Type: <a href="../Concepts.htm#strings">String</a></p>
+      <p>Text displayed in the window to instruct the user what to do. If omitted or blank, it will default to <code>"Select Folder - " <a href="../Variables.htm#ScriptName">A_ScriptName</a></code> (i.e. the name of the current script).</p>
+  </dd>
+
+</dl>
+
+<h2 id="Return_Value">Return Value</h2>
+<p>Type: <a href="../Concepts.htm#strings">String</a></p>
+<p>This function returns the full path and name of the folder chosen by the user. If the user cancels the dialog (i.e. does not wish to select a folder), an empty string is returned. If the user selects a root directory (such as C:\), the return value will contain a trailing backslash. If this is undesirable, remove it as follows:</p>
+<pre>Folder := RegExReplace(DirSelect(), "\\$")  <em>; Removes the trailing backslash, if present.</em></pre>
+<p>An empty string is also returned if the system refused to show the dialog, but this is very rare.</p>
+
+<h2 id="Remarks">Remarks</h2>
+<p>A folder-selection dialog usually looks like this:</p>
+<img src="../static/dlg_folder.png" alt="DirSelect" />
+<p>A GUI window may display a modal folder-selection dialog by means of the <a href="GuiObj.htm#OwnDialogs">+OwnDialogs</a> option. A modal dialog prevents the user from interacting with the GUI window until the dialog is dismissed.</p>
+<p>Known limitation: A <a href="SetTimer.htm">timer</a> that launches during the display of a DirSelect dialog will postpone the effect of the user's clicks inside the dialog until after the timer finishes. To work around this, avoid using timers whose subroutines take a long time to finish, or disable all timers during the dialog:</p>
+<pre><a href="Thread.htm">Thread</a> "NoTimers"
+SelectedFolder := DirSelect(, 3)
+Thread "NoTimers", false</pre>
+<h2 id="Related">Related</h2>
+<p><a href="FileSelect.htm">FileSelect</a>, <a href="MsgBox.htm">MsgBox</a>, <a href="InputBox.htm">InputBox</a>, <a href="ToolTip.htm">ToolTip</a>, <a href="GuiObj.htm">GUI</a>, <a href="../misc/CLSID-List.htm">CLSID List</a>, <a href="DirCopy.htm">DirCopy</a>, <a href="DirMove.htm">DirMove</a>, <a href="SplitPath.htm">SplitPath</a></p>
+<p>Also, the operating system offers standard dialog boxes that prompt the user to pick a font, color, or icon. These dialogs can be displayed via <a href="DllCall.htm">DllCall</a> as demonstrated at <a href="https://github.com/majkinetor/mm-autohotkey/tree/master/Dlg">GitHub</a>.</p>
+<h2 id="Examples">Examples</h2>
+<div class="ex" id="ExBasic">
+<p><a class="ex_number" href="#ExBasic"></a> Allows the user to select a folder and provides both an edit field and a "make new folder" button.</p>
+<pre>SelectedFolder := DirSelect(, 3)
+if SelectedFolder = ""
+    MsgBox "You didn't select a folder."
+else
+    MsgBox "You selected folder '" SelectedFolder "'."</pre>
+</div>
+
+<div class="ex" id="ExCLSID">
+<p><a class="ex_number" href="#ExCLSID"></a> A <a href="../misc/CLSID-List.htm">CLSID</a> example. Allows the user to select a folder in the "My Computer" directory.</p>
+<pre>SelectedFolder := DirSelect("::{20d04fe0-3aea-1069-a2d8-08002b30309d}")  <em>; My Computer.</em></pre>
+</div>
+
+</body>
+</html>

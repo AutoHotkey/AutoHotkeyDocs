@@ -1,0 +1,86 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+<title>RegWrite - Syntax &amp; Usage | AutoHotkey v2</title>
+<meta name="description" content="The RegWrite function writes a value to the registry." />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<link href="../static/theme.css" rel="stylesheet" type="text/css" />
+<script src="../static/content.js" type="text/javascript"></script>
+</head>
+<body>
+
+<h1>RegWrite</h1>
+
+<p>Writes a value to the registry.</p>
+
+<pre class="Syntax"><span class="func">RegWrite</span> Value, ValueType, KeyName <span class="optional">, ValueName</span>
+<span class="func">RegWrite</span> Value <span class="optional">, ValueType, , ValueName</span>
+</pre>
+<h2 id="Parameters">Parameters</h2>
+<dl>
+
+  <dt>Value</dt>
+  <dd>
+    <p>Type: <a href="../Concepts.htm#strings">String</a> or <a href="../Concepts.htm#numbers">Integer</a></p>
+    <p>The value to be written. Long text values can be broken up into several shorter lines by means of a <a href="../Scripts.htm#continuation">continuation section</a>, which might improve readability and maintainability.</p>
+  </dd>
+
+  <dt>ValueType</dt>
+  <dd>
+    <p>Type: <a href="../Concepts.htm#strings">String</a></p>
+    <p>Must be either REG_SZ, REG_EXPAND_SZ, REG_MULTI_SZ, REG_DWORD, or REG_BINARY.</p>
+    <p><em>ValueType</em> can be omitted only if <em>KeyName</em> is omitted and the current <a href="LoopReg.htm">registry loop</a> item is a value, as noted below.</p>
+  </dd>
+
+  <dt>KeyName</dt>
+  <dd>
+    <p>Type: <a href="../Concepts.htm#strings">String</a></p>
+    <p>The full name of the registry key.</p>
+    <p>This must start with HKEY_LOCAL_MACHINE, HKEY_USERS, HKEY_CURRENT_USER, HKEY_CLASSES_ROOT, or HKEY_CURRENT_CONFIG (or the abbreviations for each of these, such as HKLM). To access a <a href="LoopReg.htm#remote">remote registry</a>, prepend the computer name and a slash, as in this example: \\workstation01\HKEY_LOCAL_MACHINE</p>
+    <p><em>KeyName</em> can be omitted only if a <a href="LoopReg.htm">registry loop</a> is running, in which case it defaults to the key of the current loop item. If the item is a subkey, the full name of that subkey is used by default. If the item is a value, <em>ValueType</em> and <em>ValueName</em> default to the type and name of that value, but can be overridden.</p>
+  </dd>
+
+  <dt>ValueName</dt>
+  <dd>
+    <p>Type: <a href="../Concepts.htm#strings">String</a></p>
+    <p>The name of the value that will be written to. If blank or omitted, the key's default value will be used (except as noted above). The default value is displayed as "(Default)" by RegEdit.</p>
+  </dd>
+
+</dl>
+
+<h2 id="Error_Handling">Error Handling</h2>
+<p>An <a href="ErrorObj.htm#OSError">OSError</a> is thrown on failure.</p>
+<p><a href="../Variables.htm#LastError">A_LastError</a> is set to the result of the operating system's GetLastError() function.</p>
+
+<h2 id="Remarks">Remarks</h2>
+<p>If <em>KeyName</em> specifies a subkey which does not exist, RegWrite attempts to create it (along with its ancestors, if necessary). Although RegWrite can write directly into a root key, some operating systems might refuse to write into HKEY_CURRENT_USER's top level.</p>
+<p>To create a key without writing any values to it, use <a href="RegCreateKey.htm">RegCreateKey</a>.</p>
+<p>If <em>ValueType</em> is REG_DWORD, <em>Value</em> should be between -2147483648 and 4294967295 (0xFFFFFFFF). In the registry, REG_DWORD values are always expressed as positive decimal numbers. To read it as a negative number with means such as <a href="RegRead.htm">RegRead</a>, convert it to a signed 32-bit integer by using <code>OutputVar := OutputVar &lt;&lt; 32 &gt;&gt; 32</code> or similar.</p>
+<p>When writing a REG_BINARY key, use a string of hex characters, e.g. the REG_BINARY value of 01,a9,ff,77 can be written by using the string 01A9FF77.</p>
+<p>When writing a REG_MULTI_SZ key, you must separate each component from the next with a linefeed character (`n). The last component may optionally end with a linefeed as well. No blank components are allowed. In other words, do not specify two linefeeds in a row (`n`n) because that will result in a shorter-than-expected value being written to the registry.</p>
+<p>To retrieve and operate upon multiple registry keys or values, consider using a <a href="LoopReg.htm">registry-loop</a>.</p>
+<p>For details about how to access the registry of a remote computer, see the remarks in <a href="LoopReg.htm#remote">registry-loop</a>.</p>
+<p>To read and write entries from the 64-bit sections of the registry in a 32-bit script or vice versa, use <a href="SetRegView.htm">SetRegView</a>.</p>
+
+<h2 id="Related">Related</h2>
+<p><a href="RegCreateKey.htm">RegCreateKey</a>, <a href="RegDelete.htm">RegDelete</a>, <a href="RegDeleteKey.htm">RegDeleteKey</a>, <a href="RegRead.htm">RegRead</a>, <a href="LoopReg.htm">Registry-loop</a>, <a href="SetRegView.htm">SetRegView</a>, <a href="IniWrite.htm">IniWrite</a></p>
+
+<h2 id="Examples">Examples</h2>
+<div class="ex" id="ExBasic">
+<p><a class="ex_number" href="#ExBasic"></a> Writes a string to the registry.</p>
+<pre>RegWrite "Test Value", "REG_SZ", "HKEY_LOCAL_MACHINE\SOFTWARE\TestKey", "MyValueName"</pre>
+</div>
+
+<div class="ex" id="ExBinary">
+<p><a class="ex_number" href="#ExBinary"></a> Writes binary data to the registry.</p>
+<pre>RegWrite "01A9FF77", "REG_BINARY", "HKEY_CURRENT_USER\Software\TEST_APP", "TEST_NAME"</pre>
+</div>
+
+<div class="ex" id="ExMulti">
+<p><a class="ex_number" href="#ExMulti"></a> Writes a multi-line string to the registry.</p>
+<pre>RegWrite "Line1`nLine2", "REG_MULTI_SZ", "HKEY_CURRENT_USER\Software\TEST_APP", "TEST_NAME"</pre>
+</div>
+
+</body>
+</html>

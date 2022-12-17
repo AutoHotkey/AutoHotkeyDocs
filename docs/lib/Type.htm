@@ -1,0 +1,77 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+<title>Type - Syntax &amp; Usage | AutoHotkey v2</title>
+<meta name="description" content="The Type function returns the class name of a value." />
+<meta name="ahk:equiv-v1" content="index.htm" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<link href="../static/theme.css" rel="stylesheet" type="text/css" />
+<script src="../static/content.js" type="text/javascript"></script>
+</head>
+<body>
+
+<h1>Type</h1>
+<p>Returns the class name of a value.</p>
+<pre class="Syntax">ClassName := <span class="func">Type</span>(Value)</pre>
+
+<h2 id="Return_Value">Return Value</h2>
+<p>Type: <a href="../Concepts.htm#strings">String</a></p>
+<p>This function returns the class name of <em>Value</em>.</p>
+<p>The algorithm for determining a value's class name can be approximated as shown below:</p>
+<pre>
+TypeOf(Value)
+{
+    if (comClass := ComObjType(Value, "Class")) != ""
+        return comClass
+    try <em>; `Value is Object` is not checked because it can be false for prototypes.</em>
+        if ObjHasOwnProp(Value, "__Class")
+            return "Prototype"
+    while Value := ObjGetBase(Value)
+        if ObjHasOwnProp(Value, "__Class")
+            return Value.__Class
+    return "Object"
+}
+</pre>
+<p>For COM wrapper objects, the class name can also be determined based on the <a href="ComObjType.htm#vt">variant type</a>, as follows:</p>
+<pre>
+ComObject_Type(obj)
+{
+    if ComObjType(obj) &amp; 0x2000 <em>; VT_ARRAY</em>
+        return "ComObjArray" <em>; ComObjArray.Prototype.__Class</em>
+    if ComObjType(obj) &amp; 0x4000 <em>; VT_BYREF</em>
+        return "ComValueRef" <em>; ComValueRef.Prototype.__Class</em>
+    if (ComObjType(obj) = 9 || ComObjType(obj) = 13) <em>; VT_DISPATCH || VT_UNKNOWN</em>
+        &amp;&amp; ComObjValue(obj) != 0
+    {
+        if (comClass := ComObjType(obj, "Class")) != ""
+            return comClass
+        if ComObjType(obj) = 9 <em>; VT_DISPATCH</em>
+            return "ComObject" <em>; ComObject.Prototype.__Class</em>
+    }
+    return "ComValue" <em>; ComValue.Prototype.__Class</em>
+}
+</pre>
+
+<h2 id="Remarks">Remarks</h2>
+<p>This function typically shouldn't be used to determine if a value is numeric, since numeric <em>strings</em> are valid in math expressions and with most built-in functions. However, in some cases the exact type of a value is more important. In such cases, consider using <code>Value is Number</code> or similar instead of Type.</p>
+<p>To check if a value can be used as a number, use the <a href="Is.htm#number">IsNumber</a>, <a href="Is.htm#integer">IsInteger</a> or <a href="Is.htm#float">IsFloat</a> function.</p>
+<p>To check for any type of object (that is, anything which is not a primitive value), use the <a href="IsObject.htm">IsObject</a> function.</p>
+<p>To check if a value is an instance of a specific class, use the <a href="../Variables.htm#is"><code>is</code></a> operator. This can be used even with primitive values or to identify <a href="ComValue.htm">COM wrapper objects</a>.</p>
+
+<h2 id="Related">Related</h2>
+<p><a href="../Concepts.htm#values">Values</a>, <a href="../Language.htm#expressions">Expressions</a>, <a href="Is.htm">Is functions</a>, <a href="Integer.htm">Integer</a>, <a href="Float.htm">Float</a>, <a href="String.htm">String</a></p>
+
+<h2 id="Examples">Examples</h2>
+<div class="ex" id="ExBasic">
+<p><a class="ex_number" href="#ExBasic"></a> Retrieves and reports the exact type of the values stored in <var>a</var>, <var>b</var> and <var>c</var>.</p>
+<pre>
+a := 1, b := 2.0, c := "3"
+MsgBox Type(a)  <em>; Integer</em>
+MsgBox Type(b)  <em>; Float</em>
+MsgBox Type(c)  <em>; String</em>
+</pre>
+</div>
+
+</body>
+</html>

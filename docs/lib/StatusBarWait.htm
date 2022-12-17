@@ -1,0 +1,119 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+<title>StatusBarWait - Syntax &amp; Usage | AutoHotkey v2</title>
+<meta name="description" content="The StatusBarWait function waits until a window's status bar contains the specified string." />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<link href="../static/theme.css" rel="stylesheet" type="text/css" />
+<script src="../static/content.js" type="text/javascript"></script>
+</head>
+<body>
+
+<h1>StatusBarWait</h1>
+
+<p>Waits until a window's status bar contains the specified string.</p>
+
+<pre class="Syntax"><span class="func">StatusBarWait</span> <span class="optional">BarText, Timeout, Part#, WinTitle, WinText, Interval, ExcludeTitle, ExcludeText</span></pre>
+<h2 id="Parameters">Parameters</h2>
+<dl>
+
+  <dt>BarText</dt>
+  <dd>
+    <p>Type: <a href="../Concepts.htm#strings">String</a></p>
+    <p>The text or partial text for the which the function will wait to appear. Default is blank (empty), which means to wait for the status bar to become blank. The text is case sensitive and the matching behavior is determined by <a href="SetTitleMatchMode.htm">SetTitleMatchMode</a>, similar to <em>WinTitle</em> below.</p>
+    <p>To instead wait for the bar's text to <em>change</em>, either use <a href="StatusBarGetText.htm">StatusBarGetText</a> in a loop, or use the RegEx example at the bottom of this page.</p>
+  </dd>
+  
+  <dt>Timeout</dt>
+  <dd>
+    <p>Type: <a href="../Concepts.htm#numbers">Integer</a> or <a href="../Concepts.htm#numbers">Float</a></p>
+    <p>The number of seconds (can contain a decimal point) to wait before timing out, in which case the return value is 0 (false). Default is blank, which means the function will wait indefinitely.</p>
+  </dd>
+  
+  <dt>Part#</dt>
+  <dd>
+    <p>Type: <a href="../Concepts.htm#numbers">Integer</a></p>
+    <p>Which part number of the bar to retrieve. Default 1, which is usually the part that contains the text of interest.</p>
+  </dd>
+
+  <dt>WinTitle</dt>
+  <dd>
+    <p>Type: <a href="../Concepts.htm#strings">String</a>, <a href="../Concepts.htm#numbers">Integer</a> or <a href="../Objects.htm">Object</a></p>
+    <p>A window title or other criteria identifying the target window. See <a href="../misc/WinTitle.htm">WinTitle</a>.</p>
+  </dd>
+
+  <dt>WinText</dt>
+  <dd>
+    <p>Type: <a href="../Concepts.htm#strings">String</a></p>
+    <p>If present, this parameter must be a substring from a single text element of the target window (as revealed by the included Window Spy utility). Hidden text elements are detected if <a href="DetectHiddenText.htm">DetectHiddenText</a> is ON.</p>
+  </dd>
+
+  <dt>Interval</dt>
+  <dd>
+    <p>Type: <a href="../Concepts.htm#numbers">Integer</a></p>
+    <p>How often the status bar should be checked while the function is waiting (in milliseconds). Default is 50. </p>
+  </dd>
+
+  <dt>ExcludeTitle</dt>
+  <dd>
+    <p>Type: <a href="../Concepts.htm#strings">String</a></p>
+    <p>Windows whose titles include this value will not be considered.</p>
+  </dd>
+
+  <dt>ExcludeText</dt>
+  <dd>
+    <p>Type: <a href="../Concepts.htm#strings">String</a></p>
+    <p>Windows whose text include this value will not be considered.</p>
+  </dd>
+
+</dl>
+
+<h2 id="Return_Value">Return Value</h2>
+<p>Type: <a href="../Concepts.htm#boolean">Integer (boolean)</a></p>
+<p>This function returns 1 (true) if a match was found or 0 (false) if the function timed out.</p>
+
+<h2 id="Error_Handling">Error Handling</h2>
+<p>An exception is thrown in any of the following cases:</p>
+<ul>
+  <li><a href="ErrorObj.htm#TargetError">TargetError</a>: The target window could not be found or does not contain a standard status bar.</li>
+  <li><a href="ErrorObj.htm#OSError">OSError</a>: There was a problem sending the SB_GETPARTS message, or no reply was received within 2000ms.</li>
+  <li><a href="ErrorObj.htm#OSError">OSError</a>: Memory could not be allocated within the process which owns the status bar.</li>
+</ul>
+
+<h2 id="Remarks">Remarks</h2>
+<p>StatusBarWait attempts to read the first <em>standard</em> status bar on a window (class msctls_statusbar32). Some programs use their own status bars or special versions of the MS common control. Such bars are not supported.</p>
+<p>Rather than using <a href="StatusBarGetText.htm">StatusBarGetText</a> in a loop, it is usually more efficient to use StatusBarWait because it contains optimizations that avoid the overhead that repeated calls to <a href="StatusBarGetText.htm">StatusBarGetText</a> would incur.</p>
+<p>StatusBarWait determines its target window before it begins waiting for a match. If that target window is closed, the function will stop waiting even if there is another window matching the specified <em>WinTitle</em> and <em>WinText</em>.</p>
+<p>While the function is in a waiting state, new <a href="../misc/Threads.htm">threads</a> can be launched via <a href="../Hotkeys.htm">hotkey</a>, <a href="MenuObj.htm">custom menu item</a>, or <a href="SetTimer.htm">timer</a>.</p>
+<p>Window titles and text are case sensitive. Hidden windows are not detected unless <a href="DetectHiddenWindows.htm">DetectHiddenWindows</a> has been turned on.</p>
+
+<h2 id="Related">Related</h2>
+<p><a href="StatusBarGetText.htm">StatusBarGetText</a>, <a href="WinGetTitle.htm">WinGetTitle</a>, <a href="WinGetText.htm">WinGetText</a>, <a href="ControlGetText.htm">ControlGetText</a></p>
+<h2 id="Examples">Examples</h2>
+<div class="ex" id="ExSearch">
+<p><a class="ex_number" href="#ExSearch"></a> Enters a new search pattern into an existing Explorer/Search window.</p>
+<pre>if WinExist("Search Results") <em>; Sets the Last Found window to simplify the below.</em>
+{
+    WinActivate
+    Send "{tab 2}!o*.txt{enter}"  <em>; In the Search window, enter the pattern to search for.</em>
+    Sleep 400  <em>; Give the status bar time to change to "Searching".</em>
+    if StatusBarWait("found", 30)
+        MsgBox "The search successfully completed."
+    else
+        MsgBox "The function timed out."
+}</pre>
+</div>
+
+<div class="ex" id="ExChange">
+<p><a class="ex_number" href="#ExChange"></a> Waits for the status bar of the active window to <strong>change</strong>.</p>
+<pre>SetTitleMatchMode "RegEx"  <em>; Accept <a href="SetTitleMatchMode.htm#RegEx">regular expressions</a> for use below.</em>
+if WinExist("A")  <em>; Set the last-found window to be the active window (for use below).</em>
+{
+    <span class="red">OrigText</span> := StatusBarGetText()
+    StatusBarWait "^(?!^\Q" <span class="red">OrigText</span> "\E$)"  <em>; This regular expression waits for any change to the text.</em>
+}</pre>
+</div>
+
+</body>
+</html>

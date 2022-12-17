@@ -1,0 +1,151 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+<title>Sound Functions | AutoHotkey v2</title>
+<meta name="description" content="Usage details regarding the SoundGet and SoundSet functions." />
+<meta name="ahk:equiv-v1" content="lib/SoundSet.htm" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<link href="../static/theme.css" rel="stylesheet" type="text/css" />
+<script src="../static/content.js" type="text/javascript"></script>
+</head>
+<body>
+
+<h1>Sound Functions</h1>
+
+<p>Applies to:</p>
+<ul>
+  <li><a href="SoundGetVolume.htm">SoundGetVolume</a> / <a href="SoundSetVolume.htm">SoundSetVolume</a></li>
+  <li><a href="SoundGetMute.htm">SoundGetMute</a> / <a href="SoundSetMute.htm">SoundSetMute</a></li>
+  <li><a href="SoundGetName.htm">SoundGetName</a></li>
+  <li><a href="SoundGetInterface.htm">SoundGetInterface</a></li>
+</ul>
+<p>Other sound-related functions:</p>
+<ul>
+  <li><a href="SoundBeep.htm">SoundBeep</a></li>
+  <li><a href="SoundPlay.htm">SoundPlay</a></li>
+</ul>
+
+<h2 id="devices">Endpoint Devices</h2>
+<p>The "devices" referenced by the SoundGet and SoundSet functions are <em>audio endpoint devices</em>. A single device driver or physical device often has multiple endpoints, such as for different types of output or input. For example:</p>
+<table class="info">
+  <tr><th>Name</th><th abbr="Descr">Description</th></tr>
+  <tr><td>Speakers (Example HD Audio)</td><td>The main analog outputs of this device (uses multiple jacks in the case of surround sound).</td></tr>
+  <tr><td>Digital Output (Example HD Audio)</td><td>An optical or coaxial digital output.</td></tr>
+  <tr><td>Microphone (Example HD Audio)</td><td>Captures audio through a microphone jack.</td></tr>
+  <tr><td>Stereo Mix (Example HD Audio)</td><td>Captures whatever audio is being output to the Speakers endpoint.</td></tr>
+</table>
+<p>Device names typically consist of an endpoint name such as "Speakers" followed by the name of the audio driver in parentheses. Scripts may use the full name or just the leading part of the name, such as "Mic" or "Microphone". An audio driver has a fixed name, but endpoint names may be changed by an administrator at any time via the Sound control panel.</p>
+<p id="mmsys">Devices are listed in the Sound control panel, which can be opened by running <code>mmsys.cpl</code> from the command line, or via the Run dialog (<kbd>Win</kbd>+<kbd>R</kbd>) or the <a href="Run.htm">Run</a> function. By default, the control panel only lists devices that are enabled and plugged in (if applicable), but this can be changed via the right-click menu. AutoHotkey detects devices which are not plugged in, but does not detect disabled devices.</p>
+
+<h2 id="components">Components</h2>
+<p>Components are as shown on the Levels tab of the sound device's properties dialog.</p>
+<img src="../static/sound_levels.png" alt="Levels" />
+<p>In this example, the master controls are at the top, followed by the first four components: Microphone, FrontMic, Line In, and Side. All have volume and mute controls, except the fourth component, which only has volume.</p>
+<p>A sound device's properties dialog can be opened via the <a href="#mmsys">Sound control panel</a>.</p>
+<p>Audio drivers are capable of exposing other controls, such as bass and treble. However, common audio drivers tend to have only volume and mute controls, or no components at all. Volume and mute controls are supported directly through <a href="SoundGetVolume.htm">SoundGetVolume</a>, <a href="SoundSetVolume.htm">SoundSetVolume</a>, <a href="SoundGetMute.htm">SoundGetMute</a> and <a href="SoundSetMute.htm">SoundSetMute</a>. All other controls are supported only indirectly, through <a href="SoundGetInterface.htm">SoundGetInterface</a> and <a href="ComCall.htm">ComCall</a>.</p>
+
+<h3 id="Advanced_Details">Advanced Details</h3>
+<p>Components are discovered through the <a href="https://docs.microsoft.com/en-us/windows/win32/coreaudio/devicetopology-api">DeviceTopology API</a>, which exposes a graph of <em>Connectors</em> and <em>Subunits</em>. Each component shown above has a Connector, and it is the Connector that defines the component's name. Each control (such as volume or mute) is represented by a Subunit which sits between the Connector and the endpoint. Data "flows" from or to the Connector and is altered as it flows through each Subunit, such as to adjust volume or suppress (mute) all sound.</p>
+<p>The SoundGet and SoundSet functions identify components by walking the <em>device topology</em> graph and counting Connectors with the given name (or all Connectors if no name is given). Once the matching Connector is found, a control interface (such as IAudioVolumeLevel or IAudioMute) is retrieved by querying each Subunit on that specific branch of the graph, starting nearest the Connector.</p>
+<p>Subunits which apply to multiple Connectors are excluded - such as Subunits which correspond to the master volume and mute controls. A Connector is counted if (and only if) it has at least one Subunit of its own, even if the Subunit is not of the requested type.</p>
+<p>In practice, the end result is that the available components are as listed on <a href="#components">the Levels tab</a>, and in the same order. However, this process is based on observation, trial and error, so might not be 100% accurate.</p>
+
+<h2 id="Common_Parameters">Common Parameters</h2>
+<dl>
+
+  <dt id="component">Component</dt>
+  <dd>
+    <p>Type: <a href="../Concepts.htm#strings">String</a> or <a href="../Concepts.htm#numbers">Integer</a></p>
+    <p>One of the following:</p>
+    <ul>
+      <li>The index of a <a href="#components">component</a>, where 1 is the first component.</li>
+      <li>The full display name of a component (case-insensitive).</li>
+      <li>As above, but followed by a colon and integer, where 1 is the first occurrence of a component with that name. For example, <code>"Line In:2"</code> uses the second component named "Line In". This is necessary only when <em>Component</em> would otherwise be ambiguous, such as when multiple components exist with the same name, or the display name is empty, an integer or contains a colon.</li>
+      <li>If omitted or blank, the function targets the master volume/mute controls or an interface that can be returned by <a href="https://docs.microsoft.com/en-us/windows/win32/api/mmdeviceapi/nf-mmdeviceapi-immdevice-activate">IMMDevice::Activate</a>.</li>
+    </ul>
+    <p>If only an index is specified, the display names are ignored. For example, <code>1</code>, <code>"1"</code> and <code>":1"</code> use the first component regardless of name, whereas <code>""</code> uses the master controls.</p>
+    <p>If the sound device lacks the specified <em>Component</em>, a <a href="ErrorObj.htm#TargetError">TargetError</a> is thrown.</p>
+  </dd>
+
+  <dt id="device">Device</dt>
+  <dd>
+    <p>Type: <a href="../Concepts.htm#strings">String</a> or <a href="../Concepts.htm#numbers">Integer</a></p>
+    <p>One of the following:</p>
+    <ul>
+      <li>A number (integer) between 1 and the total number of supported devices.</li>
+      <li>The display name of a device; either the full name or a leading part (case-insensitive). For example, <code>"Speakers"</code> or <code>"Speakers (Example HD Audio)"</code>.</li>
+      <li>As above, but followed by a colon and integer, where 1 is the first device with a matching name. For example, <code>"Speakers:2"</code> indicates the second device which has a name starting with "Speakers". This is necessary only when <em>Device</em> would otherwise be ambiguous, such as when multiple devices exist with the same name, or the display name contains a colon.</li>
+      <li>If omitted or blank, it defaults to the system's default device for playback (which is not necessarily device 1).</li>
+    </ul>
+    <p>The <a href="#ExSoundcard">soundcard analysis script</a> may help determine which name and/or number to use.</p>
+  </dd>
+
+</dl>
+
+<h2 id="Examples">Examples</h2>
+<div class="ex" id="ExSoundcard">
+<p><a class="ex_number" href="#ExSoundcard"></a> Soundcard Analysis. Use the following script to discover the available audio device and component names and whether each device or component supports volume and/or mute controls. It displays the results in a simple ListView. The current volume and mute settings are shown if they can be retrieved, but are not updated in realtime.</p>
+<pre filename="soundcard.ahk">
+scGui := Gui(, "Sound Components")
+scLV := scGui.Add('ListView', "w600 h400"
+    , ["Component", "#", "Device", "Volume", "Mute"])
+
+devMap := Map()
+
+loop
+{
+    <em>; For each loop iteration, try to get the corresponding device.</em>
+    try
+        devName := SoundGetName(, dev := A_Index)
+    catch  <em>; No more devices.</em>
+        break
+    
+    <em>; Qualify names with ":index" where needed.</em>
+    devName := Qualify(devName, devMap, dev)
+    
+    <em>; Retrieve master volume and mute setting, if possible.</em>
+    vol := mute := ""
+    try vol := Round(SoundGetVolume( , dev), 2)
+    try mute := SoundGetMute( , dev)
+    
+    <em>; Display the master settings only if at least one was retrieved.</em>
+    if vol != "" || mute != ""
+        scLV.Add("", "", dev, devName, vol, mute)
+    
+    <em>; For each component, first query its name.</em>
+    cmpMap := Map()
+    
+    loop
+    {
+        try
+            cmpName := SoundGetName(cmp := A_Index, dev)
+        catch
+            break
+        <em>; Retrieve this component's volume and mute setting, if possible.</em>
+        vol := mute := ""
+        try vol := Round(SoundGetVolume(cmp, dev), 2)
+        try mute := SoundGetMute(cmp, dev)
+        <em>; Display this component even if it does not support volume or mute,
+        ; since it likely supports other controls via SoundGetInterface().</em>
+        scLV.Add("", Qualify(cmpName, cmpMap, A_Index), dev, devName, vol, mute)
+    }
+}
+
+loop 5
+    scLV.ModifyCol(A_Index, 'AutoHdr Logical')
+scGui.Show()
+
+<em>; Qualifies full names with ":index" when needed.</em>
+Qualify(name, names, overallIndex)
+{
+    if name = ''
+        return overallIndex
+    key := StrLower(name)
+    index := names.Has(key) ? ++names[key] : (names[key] := 1)
+    return (index &gt; 1 || InStr(name, ':') || IsInteger(name)) ? name ':' index : name
+}</pre>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,120 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+<title>Function Objects - Definition &amp; Usage | AutoHotkey v2</title>
+<meta name="description" content="Function objects are either references to Func objects representing actual functions, or objects which can be called like functions." />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<link href="../static/theme.css" rel="stylesheet" type="text/css" />
+<script src="../static/content.js" type="text/javascript"></script>
+</head>
+<body>
+
+<h1>Function Objects</h1>
+
+<p>"Function object" usually means any of the following:</p>
+<ul>
+  <li>A <a href="../lib/FuncObj.htm">Func</a> or <a href="../Functions.htm#closures">Closure</a> object, which represents an actual <a href="../Functions.htm">function</a>; either built-in or defined by the script.</li>
+  <li>A user-defined object which can be called like a function.  This is sometimes also referred to as a "functor".</li>
+  <li>Any other object which can be called like a function, such as a <a href="#BoundFunc">BoundFunc object</a> or a JavaScript function object returned by a COM method.</li>
+</ul>
+<p>Function objects can be used with the following:</p>
+<ul>
+  <li><a href="../lib/CallbackCreate.htm">CallbackCreate</a></li>
+  <li><a href="../lib/GuiOnEvent.htm">Gui events</a></li>
+  <li><a href="../lib/For.htm">For ... in</a></li>
+  <li><a href="../lib/HotIf.htm">HotIf</a></li>
+  <li><a href="../lib/Hotkey.htm">Hotkey</a></li>
+  <li><a href="../lib/Hotstring.htm">Hotstring</a></li>
+  <li><a href="../lib/InputHook.htm">InputHook</a> (OnEnd, OnChar, OnKeyDown, OnKeyUp)</li>
+  <li><a href="../lib/MenuObj.htm#Add">Menu.Add</a></li>
+  <li><a href="../lib/OnClipboardChange.htm">OnClipboardChange</a></li>
+  <li><a href="../lib/OnError.htm">OnError</a></li>
+  <li><a href="../lib/OnExit.htm">OnExit</a></li>
+  <li><a href="../lib/OnMessage.htm">OnMessage</a></li>
+  <li><a href="RegExCallout.htm">RegEx callouts</a></li>
+  <li><a href="../lib/SetTimer.htm">SetTimer</a></li>
+  <li><a href="../lib/Sort.htm">Sort</a></li>
+</ul>
+<p id="HasCall">To determine whether an object appears to be callable, use one of the following:</p>
+<ul>
+  <li><code>Value.HasMethod()</code> works with all AutoHotkey values and objects by default, but allows HasMethod to be overridden for some objects or classes. For COM objects, this will typically fail (throw an exception or produce the wrong result) unless the COM object is actually an AutoHotkey object from another process.</li>
+  <li><code>HasMethod(Value)</code> works with all AutoHotkey values and objects and cannot be overridden, but will return false if the presence of a <em>Call</em> method cannot be determined. An exception is thrown if <em>Value</em> is a <a href="../lib/ComObject.htm">ComObject</a>.</li>
+</ul>
+
+<h2 id="User-Defined">User-Defined</h2>
+<!-- TODO: Explain how a user-defined object could be useful -->
+<p>User-defined function objects must define a <em>Call</em> method containing the implementation of the "function".</p>
+<pre>class YourClassName {
+    Call(a, b) {  <em>; Declare parameters as needed, or an <a href="../Functions.htm#Variadic">array*</a>.</em>
+        <em>;...</em>
+        return c
+    }
+    <em>;...</em>
+}
+</pre>
+<p>This applies to <em>instances</em> of <em>YourClassName</em>, such as the object returned by <code>YourClassName()</code>. Replacing <code>Call</code> with <code>static Call</code> would instead override what occurs when <em>YourClassName</em> itself is called.</p>
+<h3 id="User-Defined-Examples">Examples</h3>
+<p>The following example defines a function array which can be called; when called, it calls each element of the array in turn.</p>
+<pre>class FuncArrayType extends Array {
+    Call(params*) {
+        <em>; Call a list of functions.</em>
+        for fn in this
+            fn(params*)
+    }
+}
+
+<em>; Create an array of functions.</em>
+funcArray := FuncArrayType()
+<em>; Add some functions to the array (can be done at any point).</em>
+funcArray.Push(One)
+funcArray.Push(Two)
+<em>; Create an object which uses the array as a method.</em>
+obj := {method: funcArray}
+<em>; Call the method (and consequently both One and Two).</em>
+obj.method("2nd")
+<em>; Call it as a function.</em>
+(obj.method)("1st", "2nd")
+
+One(param1, param2) {
+    ListVars
+    MsgBox
+}
+Two(param1, param2) {
+    ListVars
+    MsgBox
+}</pre>
+
+<h2 id="BoundFunc">BoundFunc Object</h2>
+<p>Acts like a function, but just passes predefined parameters to another function.</p>
+<p>There are two ways that BoundFunc objects can be created:</p>
+<ul>
+  <li>By calling the <a href="../lib/FuncObj.htm#Bind">Func.Bind</a> method, which binds parameter values to a function.</li>
+  <li>By calling the <a href="../lib/ObjBindMethod.htm">ObjBindMethod</a> function, which binds parameter values and a method name to a target object.</li>
+</ul>
+<p>BoundFunc objects can be called as shown in the example below. When the BoundFunc is called, it calls the function or method to which it is bound, passing a combination of bound parameters and the caller's parameters. Unbound parameter positions are assigned positions from the caller's parameter list, left to right. For example:</p>
+<pre>fn := RealFn.Bind(1)  <em>; Bind first parameter only</em>
+fn(2)      <em>; Shows "1, 2"</em>
+fn.Call(3) <em>; Shows "1, 3"</em>
+
+fn := RealFn.Bind( , 1)  <em>; Bind second parameter only</em>
+fn(2)      <em>; Shows "2, 1"</em>
+fn.Call(3) <em>; Shows "3, 1"</em>
+fn(, 4)    <em>; Error: 'a' was omitted</em>
+
+RealFn(a, b, c:="c") {
+    MsgBox a ", " b
+}</pre>
+<p><a href="../lib/ObjBindMethod.htm">ObjBindMethod</a> can be used to bind to a method even when it isn't possible to retrieve a reference to the method itself.  For example:</p>
+<pre>Shell := ComObject("Shell.Application")
+RunBox := ObjBindMethod(Shell, "FileRun")
+<em>; Show the Run dialog.</em>
+RunBox</pre>
+<p>For a more complex example, see <a href="../lib/SetTimer.htm#ExampleClass">SetTimer</a>.</p>
+<p>Other properties and methods are inherited from <a href="../lib/FuncObj.htm">Func</a>, but do not reflect the properties of the target function or method (which is not required to be implemented as a function). The BoundFunc acts as an anonymous variadic function with no other formal parameters, similar to the <a href="../Variables.htm#fat-arrow">fat arrow function</a> below:</p>
+<pre>Func_Bind(fn, bound_args*) {
+    return (args*) =&gt; (args.InsertAt(1, bound_args*), fn(args*))
+}</pre>
+
+</body>
+</html>

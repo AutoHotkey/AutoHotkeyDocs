@@ -1,0 +1,121 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+<title>MenuSelect - Syntax &amp; Usage | AutoHotkey v2</title>
+<meta name="description" content="The MenuSelect function invokes a menu item from the menu bar of the specified window." />
+<meta name="ahk:equiv-v1" content="lib/WinMenuSelectItem.htm" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<link href="../static/theme.css" rel="stylesheet" type="text/css" />
+<script src="../static/content.js" type="text/javascript"></script>
+</head>
+<body>
+
+<h1>MenuSelect</h1>
+
+<p>Invokes a menu item from the menu bar of the specified window.</p>
+
+<pre class="Syntax"><span class="func">MenuSelect</span> WinTitle, WinText, Menu <span class="optional">, SubMenu1, SubMenu2, SubMenu3, SubMenu4, SubMenu5, SubMenu6, ExcludeTitle, ExcludeText</span></pre>
+<h2 id="Parameters">Parameters</h2>
+<dl>
+
+  <dt>WinTitle</dt>
+  <dd>
+    <p>Type: <a href="../Concepts.htm#strings">String</a>, <a href="../Concepts.htm#numbers">Integer</a> or <a href="../Objects.htm">Object</a></p>
+    <p>A window title or other criteria identifying the target window. See <a href="../misc/WinTitle.htm">WinTitle</a>.</p>
+  </dd>
+
+  <dt>WinText</dt>
+  <dd>
+    <p>Type: <a href="../Concepts.htm#strings">String</a></p>
+    <p>If present, this parameter must be a substring from a single text element of the target window (as revealed by the included Window Spy utility). Hidden text elements are detected if <a href="DetectHiddenText.htm">DetectHiddenText</a> is ON.</p>
+  </dd>
+
+  <dt>Menu</dt>
+  <dd>
+    <p>Type: <a href="../Concepts.htm#strings">String</a></p>
+    <p>The name (or a prefix of the name) of the top-level menu item, e.g. File, Edit, View. It can also be the position of the desired menu item by using <code>1&amp;</code> to represent the first menu, <code>2&amp;</code> the second, and so on.</p>
+    <p>The search is case-insensitive according to the rules of the current user's locale, and stops at the first matching item. The use of ampersand (&amp;) to indicate the underlined letter in a menu item is <em>usually</em> not necessary (i.e. &amp;File is the same as File).</p>
+    <p class="warning"><strong>Known limitation:</strong> If the parameter contains an ampersand, it must match the item name exactly, including all non-literal ampersands (which are hidden or displayed as an underline). If the parameter does not contain an ampersand, all ampersands are ignored, including literal ones. For example, an item displayed as "a &amp;&nbsp;b" may match a parameter value of <code>a &amp;&amp;&nbsp;b</code> or <code>a &nbsp;b</code>.</p>
+    <p>Specify <code>0&amp;</code> to use the window's <a href="#sys">system menu</a>.</p>
+  </dd>
+
+  <dt>SubMenu1</dt>
+  <dd>
+    <p>Type: <a href="../Concepts.htm#strings">String</a></p>
+    <p>The name of the menu item to select or its position (see above).</p>
+    <p>This can be omitted if the top-level item does not contain a menu (rare).</p>
+  </dd>
+
+  <dt>SubMenu2</dt>
+  <dd>
+    <p>Type: <a href="../Concepts.htm#strings">String</a></p>
+    <p>If <em>SubMenu1</em> itself contains a menu, this is the name of the menu item inside, or its position.</p>
+  </dd>
+
+  <dt>SubMenu3</dt>
+  <dt>SubMenu4</dt>
+  <dt>SubMenu5</dt>
+  <dt>SubMenu6</dt>
+  <dd>
+    <p>Type: <a href="../Concepts.htm#strings">String</a></p>
+    <p>Same as above.</p>
+  </dd>
+
+  <dt>ExcludeTitle</dt>
+  <dd>
+    <p>Type: <a href="../Concepts.htm#strings">String</a></p>
+    <p>Windows whose titles include this value will not be considered.</p>
+  </dd>
+
+  <dt>ExcludeText</dt>
+  <dd>
+    <p>Type: <a href="../Concepts.htm#strings">String</a></p>
+    <p>Windows whose text include this value will not be considered.</p>
+  </dd>
+
+</dl>
+
+<h2 id="Error_Handling">Error Handling</h2>
+<p>A <a href="ErrorObj.htm#TargetError">TargetError</a> is thrown if the window or control could not be found, or does not have a standard Win32 menu.</p>
+<p>A <a href="ErrorObj.htm#ValueError">ValueError</a> is thrown if a menu, submenu or menu item could not be found, or if the final menu parameter corresponds to a menu item which opens a submenu.</p>
+
+<h2 id="Remarks">Remarks</h2>
+<p>For this function to work, the target window need not be active. However, some windows might need to be in a <a href="WinRestore.htm">non-minimized</a> state.</p>
+<p>This function <strong>will not work</strong> with applications that use non-standard menu bars. Examples include Microsoft Outlook and Outlook Express, which use disguised toolbars for their menu bars. In these cases, consider using <a href="ControlSend.htm">ControlSend</a> or <a href="PostMessage.htm">PostMessage</a>, which should be able to interact with some of these non-standard menu bars.</p>
+<p>The menu name parameters can also specify positions. This method exists to support menus that don't contain text (perhaps because they contain pictures of text rather than actual text). Position 1&amp; is the first menu item (e.g. the File menu), position 2&amp; is the second menu item (e.g. the Edit menu), and so on. Menu separator lines count as menu items for the purpose of determining the position of a menu item.</p>
+<p>Window titles and text are case sensitive. Hidden windows are not detected unless <a href="DetectHiddenWindows.htm">DetectHiddenWindows</a> has been turned on.</p>
+
+<h2 id="sys">System Menu</h2>
+<p><em>Menu</em> can be <code>0&amp;</code> to select an item within the window's system menu, which typically appears when the user presses <kbd>Alt</kbd>+<kbd>Space</kbd> or clicks on the icon in the window's title bar. For example:</p>
+<pre><em>; Paste a command into cmd.exe without activating the window.</em>
+A_Clipboard := "echo Hello, world!`r"
+MenuSelect "ahk_exe cmd.exe",, "0&amp;", "Edit", "Paste"</pre>
+<p class="warning"><strong>Caution:</strong> Use this only on windows which have custom items in their system menu.</p>
+<p>If the window does not already have a custom system menu, a copy of the standard system menu will be created and assigned to the target window as a side effect. This copy is destroyed by the system when the script exits, leaving other scripts unable to access it. Therefore, avoid using 0&amp; for the standard items which appear on all windows. Instead, post the <a href="https://msdn.microsoft.com/library/ms646360">WM_SYSCOMMAND</a> message directly. For example:</p>
+<pre><em>; Like [<a href="WinMinimize.htm">WinMinimize</a> "A"], but also play the system sound for minimizing.</em>
+WM_SYSCOMMAND := 0x0112
+SC_MINIMIZE := 0xF020
+PostMessage WM_SYSCOMMAND, SC_MINIMIZE, 0,, "A"</pre>
+
+<h2 id="Related">Related</h2>
+<p><a href="ControlSend.htm">ControlSend</a>, <a href="PostMessage.htm">PostMessage</a></p>
+<h2 id="Examples">Examples</h2>
+<div class="ex" id="ExBasic">
+<p><a class="ex_number" href="#ExBasic"></a> Selects <code class="no-highlight">File -&gt; Open</code> in Notepad. This example may fail on Windows 11 or later, as it requires the classic version of Notepad.</p>
+<pre>MenuSelect "Untitled - Notepad",, "File", "Open"</pre>
+</div>
+
+<div class="ex" id="ExPos">
+<p><a class="ex_number" href="#ExPos"></a> Same as above except it is done by position instead of name. On Windows 10, 2& must be replaced with 3& due to the new "New Window" menu item. This example may fail on Windows 11 or later, as it requires the classic version of Notepad.</p>
+<pre>MenuSelect "Untitled - Notepad",, "1&amp;", "2&amp;"</pre>
+</div>
+
+<div class="ex" id="ExMainWin">
+<p><a class="ex_number" href="#ExMainWin"></a> Selects <code class="no-highlight">View -&gt; Lines most recently executed</code> in the <a href="../Program.htm#main-window">main window</a>.</p>
+<pre>WinShow "ahk_class AutoHotkey"
+MenuSelect "ahk_class AutoHotkey",, "View", "Lines most recently executed"</pre>
+</div>
+
+</body>
+</html>
