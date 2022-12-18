@@ -123,7 +123,7 @@
 <p>The <code>*</code> (deref) operator has been removed. Use <a href="lib/NumGet.htm">NumGet</a> instead.</p>
 <p>The <code>~</code> (<a href="Variables.htm#unary">bitwise-NOT</a>) operator now always treats its input as a 64-bit signed integer; it no longer treats values between 0 and 4294967295 as unsigned 32-bit.</p>
 <p><code>&gt;&gt;&gt;</code> and <code>&gt;&gt;&gt;=</code> have been added for logical right bit shift.</p>
-<p>Added <a href="Variables.htm#fat-arrow">fat arrow functions</a>. The expression <code>Fn(Parameters) =&gt; Expression</code> defines a function named <em>Fn</em> (which can be blank) and returns a <a href="lib/FuncObj.htm">Func</a> or Closure object. When called, the function evaluates <em>Expression</em> and returns the result. When used inside another function, <em>Expression</em> can refer to the outer function's variables (this can also be done with a normal function definition).</p>
+<p>Added <a href="Variables.htm#fat-arrow">fat arrow functions</a>. The expression <code>Fn(Parameters) =&gt; Expression</code> defines a function named <em>Fn</em> (which can be blank) and returns a <a href="lib/Func.htm">Func</a> or Closure object. When called, the function evaluates <em>Expression</em> and returns the result. When used inside another function, <em>Expression</em> can refer to the outer function's variables (this can also be done with a normal function definition).</p>
 <p>The fat arrow syntax can also be used to define methods and property getters/setters (in which case the method/property definition itself isn't an expression, but its body just returns an expression).</p>
 <p>Literal numbers are now fully supported on the left-hand side of member access (dot). For example, <code>0.1</code> is a number but <code>0.min</code> and <code>0.1.min</code> access the <em>min</em> property which can be handled by a base object (see <a href="Objects.htm#primitive">Primitive Values</a>). <code>1..2</code> or <code>1.0.2</code> is the number 1.0 followed by the property 2. Example use might be to implement units of measurement, literal version numbers or ranges.</p>
 <p><code>x**y</code>: Where <code>x</code> and <code>y</code> are integers and <code>y</code> is positive, the power operator now gives correct results for all inputs if in range, where previously some precision was lost due to the internal use of floating-point math. Behaviour of overflow is undefined.</p>
@@ -148,7 +148,7 @@
 <p><code>this.Method()</code> calls <code>Fn.Call(this)</code> (where <em>Fn</em> is the function object which implements the method) instead of <code>Fn[this]()</code> (which in v1, would result in a call to <code>Fn.__Call(this)</code> unless <code>Fn[this]</code> contains a function). Function objects should implement a <em>Call</em> method instead of <em>__Call</em>, which is only for explicit method calls.</p>
 <p><code><i>Classname</i>()</code> (formerly <code>new <i>Classname</i>()</code>) now fails to create the object if the <code>__New</code> method is defined and it could not be called (e.g. because the parameter count is incorrect), or if parameters were passed and <code>__New</code> is not defined.</p>
 <p>Objects created within an expression or returned from a function are now held until expression evaluation is complete, and then released.  This improves performance slightly and allows temporary objects to be used for memory management within an expression, without fear of the objects being freed prematurely.</p>
-<p>Objects can contain string values (but not keys) which contain binary zero. Cloning an object preserves binary data in strings, up to the stored length of the string (not its capacity). Historically, data was written beyond the value's length when dealing with binary data or structs; now, a <a href="lib/BufferObj.htm">Buffer</a> object should be used instead.</p>
+<p>Objects can contain string values (but not keys) which contain binary zero. Cloning an object preserves binary data in strings, up to the stored length of the string (not its capacity). Historically, data was written beyond the value's length when dealing with binary data or structs; now, a <a href="lib/Buffer.htm">Buffer</a> object should be used instead.</p>
 <p>Assignment expressions such as <code>x.y := z</code> now always yield the value of <code>z</code>, regardless of how <code>x.y</code> is implemented. The return value of a property setter is now ignored. Previously:</p>
 <ul>
 <li>Some built-in objects returned <code>z</code>, some returned <code>x.y</code> (such as <code>c := GuiObj.BackColor := "red"</code> setting <code>c</code> to <code>0xFF0000</code>), and some returned an incorrect value.</li>
@@ -243,9 +243,9 @@ else
 <h2 id="objects">Objects</h2>
 <p>Objects now use a more structured class-prototype approach, separating class/static members from instance members. Many of the built-in methods and Obj functions have been moved, renamed, changed or removed.</p>
 <ul>
-<li>Each user-defined or built-in class is a class object (an instance of <a href="lib/ClassObj.htm">Class</a>) exposing only methods and properties defined with the <code>static</code> keyword (including static members inherited from the base class) and nested classes.</li>
-<li>Each class object has a <a href="lib/ClassObj.htm#Prototype">Prototype</a> property which becomes the <code>base</code> of all instances of that class. All non-static method and property definitions inside the class body are attached to the prototype object.</li>
-<li>Instantiation is performed by calling the static <a href="lib/ClassObj.htm#Call">Call</a> method, as in <code>myClass.Call()</code> or <code>myClass()</code>. This allows the class to fully override construction behaviour (e.g. to implement a class factory or singleton, or to construct a native Array or Map instead of an Object), although initialization should still typically be performed in <code>__New</code>. The return value of <code>__New</code> is now ignored; to override the return value, do so from the Call method.</li>
+<li>Each user-defined or built-in class is a class object (an instance of <a href="lib/Class.htm">Class</a>) exposing only methods and properties defined with the <code>static</code> keyword (including static members inherited from the base class) and nested classes.</li>
+<li>Each class object has a <a href="lib/Class.htm#Prototype">Prototype</a> property which becomes the <code>base</code> of all instances of that class. All non-static method and property definitions inside the class body are attached to the prototype object.</li>
+<li>Instantiation is performed by calling the static <a href="lib/Class.htm#Call">Call</a> method, as in <code>myClass.Call()</code> or <code>myClass()</code>. This allows the class to fully override construction behaviour (e.g. to implement a class factory or singleton, or to construct a native Array or Map instead of an Object), although initialization should still typically be performed in <code>__New</code>. The return value of <code>__New</code> is now ignored; to override the return value, do so from the Call method.</li>
 </ul>
 <p>The mixed Object type has been split into <code>Object</code>, <code>Array</code> and <code>Map</code> (associative array).</p>
 <p>Object is now the root class for all user-defined <strong>and built-in</strong> objects (this excludes VarRef and COM objects). Members added to <code>Object.Prototype</code> are inherited by all AutoHotkey objects.</p>
@@ -260,10 +260,10 @@ else
 </ul>
 <p>GetCapacity and SetCapacity were removed.</p>
 <ul>
-<li><a href="lib/Object.htm#GetCapacity">ObjGetCapacity</a> and <a href="lib/Object.htm#SetCapacity">ObjSetCapacity</a> now only affect the object's capacity to contain properties, and are not expected to be commonly used. Setting the capacity of the string buffer of a property, array element or map element is not supported; for binary data, use a <a href="lib/BufferObj.htm">Buffer</a> object.</li>
+<li><a href="lib/Object.htm#GetCapacity">ObjGetCapacity</a> and <a href="lib/Object.htm#SetCapacity">ObjSetCapacity</a> now only affect the object's capacity to contain properties, and are not expected to be commonly used. Setting the capacity of the string buffer of a property, array element or map element is not supported; for binary data, use a <a href="lib/Buffer.htm">Buffer</a> object.</li>
 <li>Array and Map have a Capacity property which corresponds to the object's current array or map allocation.</li>
 </ul>
-<p>Other redundant Obj functions (which mirror built-in methods of Object) were removed. <a href="lib/Object.htm#HasOwnProp">ObjHasOwnProp</a> (formerly ObjHasKey) and <a href="lib/Object.htm#OwnProps">ObjOwnProps</a> (formerly ObjNewEnum) are kept to facilitate safe inspection of objects which have redefined those methods (and the primitive prototypes, which don't have them defined). ObjCount was replaced with <a href="lib/Object.htm#OwnPropCount">ObjOwnPropCount</a> (a function only, for all Objects) and Map has its own <a href="lib/MapObj.htm#Count">Count</a> property.</p>
+<p>Other redundant Obj functions (which mirror built-in methods of Object) were removed. <a href="lib/Object.htm#HasOwnProp">ObjHasOwnProp</a> (formerly ObjHasKey) and <a href="lib/Object.htm#OwnProps">ObjOwnProps</a> (formerly ObjNewEnum) are kept to facilitate safe inspection of objects which have redefined those methods (and the primitive prototypes, which don't have them defined). ObjCount was replaced with <a href="lib/Object.htm#OwnPropCount">ObjOwnPropCount</a> (a function only, for all Objects) and Map has its own <a href="lib/Map.htm#Count">Count</a> property.</p>
 <p>ObjRawGet and ObjRawSet were merged into <a href="lib/Object.htm#GetOwnPropDesc">GetOwnPropDesc</a> and <a href="lib/Object.htm#DefineProp">DefineProp</a>. The original reasons for adding them were superseded by other changes, such as the <code>Map</code> type, changes to how meta-functions work, and DefineProp itself superseding meta-functions for some purposes.</p>
 <p>Top-level class definitions now create a constant (read-only variable); that is, assigning to a class name is now an error rather than an optional warning, except where a local variable shadows the global class (which now occurs by default when assigning inside a function).</p>
 <h3 id="primitive-values">Primitive Values</h3>
@@ -300,26 +300,26 @@ this.__set(name, args, value)
 <h3 id="array">Array</h3>
 <p><code>class Array extends Object</code></p>
 <p>An Array object contains a list or sequence of values, with index 1 being the first element.</p>
-<p>When assigning or retrieving an array element, the absolute value of the index must be between 1 and the <a href="lib/ArrayObj.htm#Length">Length</a> of the array, otherwise an exception is thrown. An array can be resized by inserting or removing elements with the appropriate method, or by assigning <a href="lib/ArrayObj.htm#Length">Length</a>.</p>
+<p>When assigning or retrieving an array element, the absolute value of the index must be between 1 and the <a href="lib/Array.htm#Length">Length</a> of the array, otherwise an exception is thrown. An array can be resized by inserting or removing elements with the appropriate method, or by assigning <a href="lib/Array.htm#Length">Length</a>.</p>
 <p>Currently brackets are required when accessing elements; i.e. <code>a.1</code> refers to a property and <code>a[1]</code> refers to an element.</p>
 <p>Negative values can be used to index in reverse.</p>
-<p>Usage of <a href="lib/ArrayObj.htm#Clone">Clone</a>, <a href="lib/ArrayObj.htm#Delete">Delete</a>, <a href="lib/ArrayObj.htm#InsertAt">InsertAt</a>, <a href="lib/ArrayObj.htm#Pop">Pop</a>, <a href="lib/ArrayObj.htm#Push">Push</a> and <a href="lib/ArrayObj.htm#RemoveAt">RemoveAt</a> is basically unchanged. HasKey was renamed to <a href="lib/ArrayObj.htm#Has">Has</a>. <a href="lib/ArrayObj.htm#Length">Length</a> is now a property. The <a href="lib/ArrayObj.htm#Capacity">Capacity</a> property was added.</p>
+<p>Usage of <a href="lib/Array.htm#Clone">Clone</a>, <a href="lib/Array.htm#Delete">Delete</a>, <a href="lib/Array.htm#InsertAt">InsertAt</a>, <a href="lib/Array.htm#Pop">Pop</a>, <a href="lib/Array.htm#Push">Push</a> and <a href="lib/Array.htm#RemoveAt">RemoveAt</a> is basically unchanged. HasKey was renamed to <a href="lib/Array.htm#Has">Has</a>. <a href="lib/Array.htm#Length">Length</a> is now a property. The <a href="lib/Array.htm#Capacity">Capacity</a> property was added.</p>
 <p>Arrays can be constructed with <code>Array(values*)</code> or <code>[values*]</code>. Variadic functions receive an Array of parameters, and Arrays are also created by several built-in functions.</p>
 <p>For-loop usage is <code>for val in arr</code> or <code>for idx, val in arr</code>, where <code>idx = A_Index</code> by default. That is, elements lacking a value are still enumerated, and the index is not returned if only one variable is passed.</p>
 <h3 id="map">Map</h3>
 <p>A Map object is an associative array with capabilities similar to the v1 Object, but less ambiguity.</p>
 <ul>
-<li><a href="lib/MapObj.htm#Clone">Clone</a> is used as before.</li>
-<li><a href="lib/MapObj.htm#Delete">Delete</a> can only delete one key at a time.</li>
-<li>HasKey was renamed to <a href="lib/MapObj.htm#Has">Has</a>.</li>
-<li><a href="lib/MapObj.htm#Count">Count</a> is now a property.</li>
-<li>New properties: <a href="lib/MapObj.htm#Capacity">Capacity</a>, <a href="lib/MapObj.htm#CaseSense">CaseSense</a></li>
-<li>New methods: <a href="lib/MapObj.htm#Get">Get</a>, <a href="lib/MapObj.htm#Set">Set</a>, <a href="lib/MapObj.htm#Clear">Clear</a></li>
+<li><a href="lib/Map.htm#Clone">Clone</a> is used as before.</li>
+<li><a href="lib/Map.htm#Delete">Delete</a> can only delete one key at a time.</li>
+<li>HasKey was renamed to <a href="lib/Map.htm#Has">Has</a>.</li>
+<li><a href="lib/Map.htm#Count">Count</a> is now a property.</li>
+<li>New properties: <a href="lib/Map.htm#Capacity">Capacity</a>, <a href="lib/Map.htm#CaseSense">CaseSense</a></li>
+<li>New methods: <a href="lib/Map.htm#Get">Get</a>, <a href="lib/Map.htm#Set">Set</a>, <a href="lib/Map.htm#Clear">Clear</a></li>
 <li>String keys are case-sensitive by default and are never converted to Integer.</li>
 </ul>
 <p>Currently Float keys are still converted to strings.</p>
 <p>Brackets are required when accessing elements; i.e. <code>a.b</code> refers to a property and <code>a["b"]</code> refers to an element. Unlike in v1, a property or method cannot be accidentally disabled by assigning an array element.</p>
-<p>An exception is thrown if one attempts to retrieve the value of an element which does not exist, unless the map has a <a href="lib/MapObj.htm#Default">Default</a> property defined. <code>MapObj.Get(key, default)</code> can be used to explicitly provide a default value for each request.</p>
+<p>An exception is thrown if one attempts to retrieve the value of an element which does not exist, unless the map has a <a href="lib/Map.htm#Default">Default</a> property defined. <code>MapObj.Get(key, default)</code> can be used to explicitly provide a default value for each request.</p>
 <p>Use <code>Map(Key, Value, ...)</code> to create a map from a list of key-value pairs.</p>
 <h3 id="enumeration">Enumeration</h3>
 <p>Changed enumerator model:</p>
@@ -380,7 +380,7 @@ this.__set(name, args, value)
 <li>EnvDiv</li>
 <li>EnvMult</li>
 <li>EnvUpdate (it is of very limited usefulness and can be replaced with a simple <a href="lib/SendMessage.htm">SendMessage</a>)</li>
-<li>Exception (use <a href="lib/ErrorObj.htm">Error</a> or an appropriate subclass)</li>
+<li>Exception (use <a href="lib/Error.htm">Error</a> or an appropriate subclass)</li>
 <li>FileReadLine (use a <a href="lib/LoopFiles.htm">file-reading loop</a> or <a href="lib/FileOpen.htm">FileOpen</a>)</li>
 <li>Func (use a direct reference like <code>MyFunc</code>)</li>
 <li>Gosub</li>
@@ -403,18 +403,18 @@ this.__set(name, args, value)
 <li>If between/is/in/contains (but see <a href="#isXXX">isXXX</a>)</li>
 <li>Input (use <a href="lib/InputHook.htm">InputHook</a>)</li>
 <li>IsFunc</li>
-<li>Menu (use the <a href="lib/MenuObj.htm">Menu/MenuBar class</a>, <a href="lib/TraySetIcon.htm">TraySetIcon</a>, <a href="Variables.htm#IconTip">A_IconTip</a>, <a href="Variables.htm#IconHidden">A_IconHidden</a> and <a href="Variables.htm#AllowMainWindow">A_AllowMainWindow</a>)</li>
-<li>MenuGetHandle (use <a href="lib/MenuObj.htm#Handle">Menu.Handle</a>)</li>
+<li>Menu (use the <a href="lib/Menu.htm">Menu/MenuBar class</a>, <a href="lib/TraySetIcon.htm">TraySetIcon</a>, <a href="Variables.htm#IconTip">A_IconTip</a>, <a href="Variables.htm#IconHidden">A_IconHidden</a> and <a href="Variables.htm#AllowMainWindow">A_AllowMainWindow</a>)</li>
+<li>MenuGetHandle (use <a href="lib/Menu.htm#Handle">Menu.Handle</a>)</li>
 <li>MenuGetName (there are no menu names; <a href="lib/MenuFromHandle.htm">MenuFromHandle</a> is the closest replacement)</li>
-<li>Progress (use <a href="lib/GuiObj.htm">Gui</a>)</li>
+<li>Progress (use <a href="lib/Gui.htm">Gui</a>)</li>
 <li>SendRaw (use <code>Send "{Raw}"</code> or <a href="lib/Send.htm#SendText">SendText</a> instead)</li>
 <li>SetBatchLines (-1 is now the default behaviour)</li>
 <li>SetEnv</li>
 <li>SetFormat (<a href="lib/Format.htm">Format</a> can be used to format a string)</li>
 <li>SoundGet/SoundSet (see <a href="#Sound">Sound functions</a>)</li>
 <li>SoundGetWaveVolume/SoundSetWaveVolume (slightly different behaviour to SoundGet/SoundSet regarding balance, but neither one preserves balance)</li>
-<li>SplashImage (use <a href="lib/GuiObj.htm">Gui</a>)</li>
-<li>SplashTextOn/Off (use <a href="lib/GuiObj.htm">Gui</a>)</li>
+<li>SplashImage (use <a href="lib/Gui.htm">Gui</a>)</li>
+<li>SplashTextOn/Off (use <a href="lib/Gui.htm">Gui</a>)</li>
 <li>StringCaseSense (use various parameters)</li>
 <li>StringGetPos (use <a href="lib/InStr.htm">InStr</a>)</li>
 <li>StringLeft<br>
@@ -426,7 +426,7 @@ StringTrimRight  -- use <a href="lib/SubStr.htm">SubStr</a> in place of these co
 <li>StringReplace (use <a href="lib/StrReplace.htm">StrReplace</a> instead)</li>
 <li>StringSplit (use <a href="lib/StrSplit.htm">StrSplit</a> instead)</li>
 <li>Transform</li>
-<li>VarSetCapacity (use a <a href="lib/BufferObj.htm">Buffer</a> object for binary data/structs and <a href="lib/VarSetStrCapacity.htm">VarSetStrCapacity</a> for UTF-16 strings)</li>
+<li>VarSetCapacity (use a <a href="lib/Buffer.htm">Buffer</a> object for binary data/structs and <a href="lib/VarSetStrCapacity.htm">VarSetStrCapacity</a> for UTF-16 strings)</li>
 <li>WinGetActiveStats</li>
 <li>WinGetActiveTitle</li>
 <li>#CommentFlag</li>
@@ -464,8 +464,8 @@ StringTrimRight  -- use <a href="lib/SubStr.htm">SubStr</a> in place of these co
 <li>StringUpper → <a href="lib/StrLower.htm">StrUpper</a> and <a href="lib/StrLower.htm">StrTitle</a></li>
 <li>UrlDownloadToFile → <a href="lib/Download.htm">Download</a></li>
 <li>WinMenuSelectItem → <a href="lib/MenuSelect.htm">MenuSelect</a></li>
-<li>LV, TV and SB functions → methods of <a href="lib/GuiControlObj.htm">GuiControl</a></li>
-<li>File.__Handle → <a href="lib/FileObj.htm#Handle">File.Handle</a></li>
+<li>LV, TV and SB functions → methods of <a href="lib/GuiControl.htm">GuiControl</a></li>
+<li>File.__Handle → <a href="lib/File.htm#Handle">File.Handle</a></li>
 </ul>
 <h3 id="removed-details">Removed Commands (Details)</h3>
 <p>See above for the full list.</p>
@@ -480,13 +480,13 @@ StringTrimRight  -- use <a href="lib/SubStr.htm">SubStr</a> in place of these co
 <p><code>ComObj()</code>: This function had a sort of wildcard name, allowing many different suffixes. Some names were more commonly used with specific types of parameters, such as <code>ComObjActive(CLSID)</code>, <code>ComObjParameter(vt, value)</code>, <code>ComObjEnwrap(dsp)</code>. There are instead now separate functions/classes, and no more wildcard names. See <a href="#com-objects-comobject">COM Objects (ComObject)</a> for details.</p>
 <p>Control: Several changes have been made to <a href="lib/Control.htm#Parameter">the <em>Control</em> parameter</a> used by the <a href="lib/Control.htm">Control functions</a>, <a href="lib/SendMessage.htm">SendMessage</a> and <a href="lib/PostMessage.htm">PostMessage</a>:</p>
 <ul>
-<li>It can now accept a HWND (must be a pure integer) or an object with a <code>Hwnd</code> property, such as a <a href="lib/GuiControlObj.htm">GuiControl</a> object. The HWND can identify a control or a top-level window, though the latter is usually only meaningful for a select few functions (see below).</li>
+<li>It can now accept a HWND (must be a pure integer) or an object with a <code>Hwnd</code> property, such as a <a href="lib/GuiControl.htm">GuiControl</a> object. The HWND can identify a control or a top-level window, though the latter is usually only meaningful for a select few functions (see below).</li>
 <li>It is no longer optional, except with functions which can operate on a top-level window (<a href="lib/ControlSend.htm">ControlSend[Text]</a>, <a href="lib/ControlClick.htm">ControlClick</a>, <a href="lib/SendMessage.htm">SendMessage</a>, <a href="lib/PostMessage.htm">PostMessage</a>) or when preceded by other optional parameters (<a href="lib/ListViewGetContent.htm">ListViewGetContent</a>, <a href="lib/ControlGetPos.htm">ControlGetPos</a>, <a href="lib/ControlMove.htm">ControlMove</a>).</li>
 <li>If omitted, the target window is used instead. This matches the previous behaviour of <a href="lib/SendMessage.htm">SendMessage</a>/<a href="lib/PostMessage.htm">PostMessage</a>, and replaces the <code>ahk_parent</code> special value previously used by <a href="lib/ControlSend.htm">ControlSend</a>.</li>
 <li>Blank values are invalid. Functions never default to the target window's topmost control.</li>
 </ul>
 <p><a href="lib/ControlGetFocus.htm">ControlGetFocus</a> now returns the control's HWND instead of its ClassNN, and no longer considers there to be an error when it has successfully determined that the window has no focused control.</p>
-<p><a href="lib/ControlMove.htm">ControlMove</a>, <a href="lib/ControlGetPos.htm">ControlGetPos</a> and <a href="lib/ControlClick.htm">ControlClick</a> now use client coordinates (like <a href="lib/GuiControlObj.htm">GuiControl</a>) instead of window coordinates. Client coordinates are relative to the top-left of the client area, which excludes the window's title bar and borders. (Controls are rendered only inside the client area.)</p>
+<p><a href="lib/ControlMove.htm">ControlMove</a>, <a href="lib/ControlGetPos.htm">ControlGetPos</a> and <a href="lib/ControlClick.htm">ControlClick</a> now use client coordinates (like <a href="lib/GuiControl.htm">GuiControl</a>) instead of window coordinates. Client coordinates are relative to the top-left of the client area, which excludes the window's title bar and borders. (Controls are rendered only inside the client area.)</p>
 <p><a href="lib/ControlMove.htm">ControlMove</a>, <a href="lib/ControlSend.htm">ControlSend</a> and <a href="lib/ControlSetText.htm">ControlSetText</a> now use parameter order consistent with the other Control functions; i.e. <em><strong>Control</strong>, WinTitle, WinText, ExcludeTitle, ExcludeText</em> are always grouped together (at the end of the parameter list), to aide memorisation.</p>
 <p><a href="lib/CoordMode.htm">CoordMode</a> no longer accepts "Relative" as a mode, since all modes are relative to something. It was synonymous with "Window", so use that instead.</p>
 <p><a href="lib/DllCall.htm">DllCall</a>: See <a href="#dllcall">DllCall</a> section further below.</p>
@@ -497,10 +497,10 @@ StringTrimRight  -- use <a href="lib/SubStr.htm">SubStr</a> in place of these co
 <p><a href="lib/FileAppend.htm">FileAppend</a> defaults to no end-of-line translations, consistent with <a href="lib/FileRead.htm">FileRead</a> and <a href="lib/FileOpen.htm">FileOpen</a>. FileAppend and FileRead both have a separate <em>Options</em> parameter which replaces the option prefixes and may include an optional encoding name (superseding FileRead's <code>*Pnnn</code> option). FileAppend, FileRead and FileOpen use <code>"`n"</code> to enable end-of-line translations. FileAppend and FileRead support an option <code>"RAW"</code> to disable codepage conversion (read/write binary data); FileRead returns a <code>Buffer</code> object in this case. This replaces <code>*c</code> (see ClipboardAll in the documentation). FileAppend may accept a <code>Buffer</code>-like object, in which case no conversions are performed.</p>
 <p><a href="lib/FileCopy.htm">FileCopy</a> and <a href="lib/FileMove.htm">FileMove</a> now throw an exception if the source path does not contain <code>*</code> or <code>?</code> and no file was not found. However, it is still not considered an error to copy or move zero files when the source path contains wildcards.</p>
 <p><a href="lib/FileOpen.htm">FileOpen</a> now throws an exception if it fails to open the file. Otherwise, an exception would be thrown (if the script didn't check for failure) by the first attempt to access the object, rather than at the actual point of failure.</p>
-<p><a href="lib/FileObj.htm#RawRead">File.RawRead</a>: When a variable is passed directly, the address of the variable's internal string buffer is no longer used. Therefore, a variable containing an address may be passed directly (whereas in v1, something like <code>var+0</code> was necessary).</p>
+<p><a href="lib/File.htm#RawRead">File.RawRead</a>: When a variable is passed directly, the address of the variable's internal string buffer is no longer used. Therefore, a variable containing an address may be passed directly (whereas in v1, something like <code>var+0</code> was necessary).</p>
 <p>For buffers allocated by the script, the new <code>Buffer</code> object is preferred over a variable; any object can be used, but must have <code>Ptr</code> and <code>Size</code> properties.</p>
-<p><a href="lib/FileObj.htm#RawWrite">File.RawWrite</a>: As above, except that it can accept a string (or variable containing a string), in which case <em>Bytes</em> defaults to the size of the string in bytes. The string may contain binary zero.</p>
-<p><a href="lib/FileObj.htm#ReadLine">File.ReadLine</a> now always supports <code>`r</code>, <code>`n</code> and <code>`r`n</code> as line endings, and no longer includes the line ending in the return value. Line endings are still returned to the script as-is by <a href="lib/FileObj.htm#Read">File.Read</a> if EOL translation is not enabled.</p>
+<p><a href="lib/File.htm#RawWrite">File.RawWrite</a>: As above, except that it can accept a string (or variable containing a string), in which case <em>Bytes</em> defaults to the size of the string in bytes. The string may contain binary zero.</p>
+<p><a href="lib/File.htm#ReadLine">File.ReadLine</a> now always supports <code>`r</code>, <code>`n</code> and <code>`r`n</code> as line endings, and no longer includes the line ending in the return value. Line endings are still returned to the script as-is by <a href="lib/File.htm#Read">File.Read</a> if EOL translation is not enabled.</p>
 <p><a href="lib/FileEncoding.htm">FileEncoding</a> now allows code pages to be specified by number without the <code>CP</code> prefix. Its parameter is no longer optional, but can still be explicitly blank.</p>
 <p><a href="lib/FileExist.htm">FileExist</a> now ignores the <code>.</code> and <code>..</code> implied in every directory listing, so <code>FileExist("dir\*")</code> is now false instead of true when dir exists but is empty.</p>
 <p><a href="lib/FileGetAttrib.htm">FileGetAttrib</a> and A_LoopFileAttrib now include the letter "L" for reparse points or symbolic links.</p>
@@ -818,7 +818,7 @@ Primary := MonitorGetPrimary()
 Name    := MonitorGetName(N)
 </pre>
 <h3 id="new-functions">New Functions</h3>
-<p><code>Buffer(Size, FillByte)</code> (calling the Buffer class) creates and returns a <code>Buffer</code> object encapsulating a block of <em>Size</em> bytes of memory, initialized only if <em>FillByte</em> is specified. <code>BufferObj.Ptr</code> returns the address and <code>BufferObj.Size</code> returns or sets the size in bytes (reallocating the block of memory). Any object with Ptr and Size properties can be passed to <a href="lib/NumPut.htm">NumPut</a>, <a href="lib/NumGet.htm">NumGet</a>, <a href="lib/StrPut.htm">StrPut</a>, <a href="lib/StrGet.htm">StrGet</a>, <a href="lib/FileObj.htm#RawRead">File.RawRead</a>, <a href="lib/FileObj.htm#RawWrite">File.RawWrite</a> and <a href="lib/FileAppend.htm">FileAppend</a>. Any object with a <code>Ptr</code> property can be passed to <a href="lib/DllCall.htm">DllCall</a> parameters with <code>Ptr</code> type, <a href="lib/SendMessage.htm">SendMessage</a> and <a href="lib/PostMessage.htm">PostMessage</a>.</p>
+<p><code>Buffer(Size, FillByte)</code> (calling the Buffer class) creates and returns a <code>Buffer</code> object encapsulating a block of <em>Size</em> bytes of memory, initialized only if <em>FillByte</em> is specified. <code>BufferObj.Ptr</code> returns the address and <code>BufferObj.Size</code> returns or sets the size in bytes (reallocating the block of memory). Any object with Ptr and Size properties can be passed to <a href="lib/NumPut.htm">NumPut</a>, <a href="lib/NumGet.htm">NumGet</a>, <a href="lib/StrPut.htm">StrPut</a>, <a href="lib/StrGet.htm">StrGet</a>, <a href="lib/File.htm#RawRead">File.RawRead</a>, <a href="lib/File.htm#RawWrite">File.RawWrite</a> and <a href="lib/FileAppend.htm">FileAppend</a>. Any object with a <code>Ptr</code> property can be passed to <a href="lib/DllCall.htm">DllCall</a> parameters with <code>Ptr</code> type, <a href="lib/SendMessage.htm">SendMessage</a> and <a href="lib/PostMessage.htm">PostMessage</a>.</p>
 <p><code>CaretGetPos([&amp;X, &amp;Y])</code> retrieves the current coordinates of the caret (text insertion point). This ensures the X and Y coordinates always match up, and there is no caching to cause unexpected behaviour (such as A_CaretX/Y returning a value that's not in the current CoordMode).</p>
 <p><code>ClipboardAll([Data, Size])</code> creates an object containing everything on the clipboard (optionally accepting data previously retrieved from the clipboard instead of using the clipboard's current contents). The methods of reading and writing clipboard file data are different. The data format is the same, except that the data size is always 32-bit, so that the data is portable between 32-bit and 64-bit builds. See the v2 documentation for details.</p>
 <p><code>ComCall(offset, comobj, ...)</code> is equivalent to <code>DllCall(NumGet(NumGet(comobj.ptr) + offset * A_Index), "ptr", comobj.ptr, ...)</code>, but with the return type defaulting to "hresult" rather than "int".</p>
@@ -831,7 +831,7 @@ Name    := MonitorGetName(N)
 <p><code>Integer(v)</code>: See <a href="#types">Types</a> further above.</p>
 <p id="isXXX"><a href="lib/Is.htm">isXXX</a>: The legacy command "if var is type" has been replaced with a series of functions: isAlnum, isAlpha, isDigit, isFloat, isInteger, isLower, isNumber, isSpace, isUpper, isXDigit. With the exception of isFloat, isInteger and isNumber, an exception is thrown if the parameter is not a string, as implicit conversion to string may cause counter-intuitive results.</p>
 <p><code>IsSet(var)</code>, <code>IsSetRef(&amp;var)</code>: Returns true if the variable has been assigned a value (even if that value is an empty string), otherwise false. If false, attempting to read the variable within an expression would throw an error.</p>
-<p><code>Menu()</code>/<code>MenuBar()</code> returns a new Menu/MenuBar object, which has the following members corresponding to v1 Menu sub-commands. Methods: <a href="lib/MenuObj.htm#Add">Add</a>, <a href="lib/MenuObj.htm#AddStandard"><strong>Add</strong>Standard</a>, <a href="lib/MenuObj.htm#Check">Check</a>, <a href="lib/MenuObj.htm#Delete">Delete</a>, <a href="lib/MenuObj.htm#Disable">Disable</a>, <a href="lib/MenuObj.htm#Enable">Enable</a>, <a href="lib/MenuObj.htm#Insert">Insert</a>, <a href="lib/MenuObj.htm#Rename">Rename</a>, <a href="lib/MenuObj.htm#SetColor"><strong>Set</strong>Color</a>, <a href="lib/MenuObj.htm#SetIcon"><strong>Set</strong>Icon</a>, <a href="lib/MenuObj.htm#Show">Show</a>, <a href="lib/MenuObj.htm#ToggleCheck">ToggleCheck</a>, <a href="lib/MenuObj.htm#ToggleEnable">ToggleEnable</a>, <a href="lib/MenuObj.htm#Uncheck">Uncheck</a>. Properties: <a href="lib/MenuObj.htm#ClickCount">Click<strong>Count</strong></a>, <a href="lib/MenuObj.htm#Default">Default</a>, <a href="lib/MenuObj.htm#Handle">Handle</a> (replaces MenuGetHandle). <a href="Variables.htm#TrayMenu">A_TrayMenu</a> also returns a Menu object. There is no UseErrorLevel mode, no global menu names, and no explicitly deleting the menu itself (that happens when all references are released; the <a href="lib/MenuObj.htm#Delete">Delete</a> method is equivalent to v1 DeleteAll). Labels are not supported, only function objects. The <a href="lib/MenuObj.htm#AddStandard">AddStandard</a> method adds the standard menu items and allows them to be individually modified as with custom items. Unlike v1, the Win32 menu is destroyed only when the object is deleted.</p>
+<p><code>Menu()</code>/<code>MenuBar()</code> returns a new Menu/MenuBar object, which has the following members corresponding to v1 Menu sub-commands. Methods: <a href="lib/Menu.htm#Add">Add</a>, <a href="lib/Menu.htm#AddStandard"><strong>Add</strong>Standard</a>, <a href="lib/Menu.htm#Check">Check</a>, <a href="lib/Menu.htm#Delete">Delete</a>, <a href="lib/Menu.htm#Disable">Disable</a>, <a href="lib/Menu.htm#Enable">Enable</a>, <a href="lib/Menu.htm#Insert">Insert</a>, <a href="lib/Menu.htm#Rename">Rename</a>, <a href="lib/Menu.htm#SetColor"><strong>Set</strong>Color</a>, <a href="lib/Menu.htm#SetIcon"><strong>Set</strong>Icon</a>, <a href="lib/Menu.htm#Show">Show</a>, <a href="lib/Menu.htm#ToggleCheck">ToggleCheck</a>, <a href="lib/Menu.htm#ToggleEnable">ToggleEnable</a>, <a href="lib/Menu.htm#Uncheck">Uncheck</a>. Properties: <a href="lib/Menu.htm#ClickCount">Click<strong>Count</strong></a>, <a href="lib/Menu.htm#Default">Default</a>, <a href="lib/Menu.htm#Handle">Handle</a> (replaces MenuGetHandle). <a href="Variables.htm#TrayMenu">A_TrayMenu</a> also returns a Menu object. There is no UseErrorLevel mode, no global menu names, and no explicitly deleting the menu itself (that happens when all references are released; the <a href="lib/Menu.htm#Delete">Delete</a> method is equivalent to v1 DeleteAll). Labels are not supported, only function objects. The <a href="lib/Menu.htm#AddStandard">AddStandard</a> method adds the standard menu items and allows them to be individually modified as with custom items. Unlike v1, the Win32 menu is destroyed only when the object is deleted.</p>
 <p><code>MenuFromHandle(Handle)</code> returns the Menu object corresponding to a Win32 menu handle, if it was created by AutoHotkey.</p>
 <p><code>Number(v)</code>: See <a href="#types">Types</a> further above.</p>
 <p><code>Persistent(Persist := true)</code> replaces the corresponding directive, increasing flexibility.</p>
@@ -877,7 +877,7 @@ Name    := MonitorGetName(N)
 <li>A_IsUnicode (v2 is always Unicode; it can be replaced with <code>StrLen(Chr(0xFFFF))</code> or redefined with <code>global A_IsUnicode := 1</code>)</li>
 <li>A_StringCaseSense</li>
 <li>A_ThisLabel</li>
-<li>A_ThisMenu, A_ThisMenuItem, A_ThisMenuItemPos (use the <a href="lib/MenuObj.htm#Add">menu item callback's parameters</a>)</li>
+<li>A_ThisMenu, A_ThisMenuItem, A_ThisMenuItemPos (use the <a href="lib/Menu.htm#Add">menu item callback's parameters</a>)</li>
 <li>A_LoopRegSubKey (<a href="lib/LoopReg.htm#vars">A_LoopRegKey</a> now contains the root key and subkey)</li>
 <li>True and False (still exist, but are now only keywords, not variables)</li>
 </ul>
@@ -925,7 +925,7 @@ Name    := MonitorGetName(N)
 <p><code>File.Tell()</code> was removed.</p>
 <p><code>Func.IsByRef()</code> now works with built-in functions.</p>
 <h2 id="gui">Gui</h2>
-<p>Gui, GuiControl and GuiControlGet were replaced with <a href="lib/GuiObj.htm#Call">Gui()</a> and <a href="lib/GuiObj.htm">Gui</a>/<a href="lib/GuiControlObj.htm">GuiControl</a> objects, which are generally more flexible, more consistent, and easier to use.</p>
+<p>Gui, GuiControl and GuiControlGet were replaced with <a href="lib/Gui.htm#Call">Gui()</a> and <a href="lib/Gui.htm">Gui</a>/<a href="lib/GuiControl.htm">GuiControl</a> objects, which are generally more flexible, more consistent, and easier to use.</p>
 <p>A GUI is typically not referenced by name/number (although it can still be named with <code>GuiObj.Name</code>). Instead, a GUI object (and window) is created explicitly by instantiating the <code>Gui</code> class, as in <code>GuiObj := Gui()</code>. This object has methods and properties which replace the Gui sub-commands. <code>GuiObj.Add()</code> returns a GuiControl object, which has methods and properties which replace the GuiControl and GuiControlGet commands. One can store this object in a variable, or use <code>GuiObj["Name"]</code> or <code>GuiCtrlFromHwnd(hwnd)</code> to retrieve the object. It is also passed as a parameter whenever an event handler (the replacement of a g-label) is called.</p>
 <p>The usage of these methods and properties is not 1:1. Many parts have been revised to be more consistent and flexible, and to fix bugs or limitations.</p>
 <p>There are no "default" GUIs, as the target Gui or control object is always specified. LV/TV/SB functions were replaced with methods (of the control object), making it much easier to use multiple ListViews/TreeViews.</p>
@@ -937,18 +937,18 @@ Name    := MonitorGetName(N)
 <p>Arrays are used wherever a pipe-delimited list was previously used, such as to specify the items for a ListBox when creating it, when adding items, or when retrieving the selected items.</p>
 <p>Scripts can define a class which extends <code>Gui</code> and handles its own events, keeping all of the GUI logic self-contained.</p>
 <h3 id="gui-sub-commands">Gui sub-commands</h3>
-<p><strong>Gui New</strong> → <a href="lib/GuiObj.htm#Call">Gui()</a>. Passing an empty title (not omitting it) now results in an empty title, not the default title.</p>
-<p><strong>Gui Add</strong> → <a href="lib/GuiObj.htm#Add">GuiObj.Add() or GuiObj.Add<em>ControlType</em>()</a>; e.g. <code>GuiObj.Add("Edit")</code> or <code>GuiObj.AddEdit()</code>.</p>
-<p><strong>Gui Show</strong> → <a href="lib/GuiObj.htm#Show">GuiObj.Show()</a>, but it has no <em>Title</em> parameter. The title can be specified as a parameter of Gui() or via the GuiObj.Title property. The initial focus is still set to the first input-capable control with the WS_TABSTOP style (as per default message processing by the system), unless that's a Button control, in which case focus is now shifted to the Default button.</p>
-<p><strong>Gui Submit</strong> → <a href="lib/GuiObj.htm#Submit">GuiObj.Submit()</a>. It works like before, except that Submit() creates and returns a new object which contains all of the "associated variables".</p>
-<p><strong>Gui Destroy</strong> → <a href="lib/GuiObj.htm#Destroy">GuiObj.Destroy()</a>. The object still exists (until the script releases it) but cannot be used. A new GUI must be created (if needed). The window is also destroyed when the object is deleted, but the object is "kept alive" while the window is visible.</p>
-<p><strong>Gui Font</strong> → <a href="lib/GuiObj.htm#SetFont">GuiObj.SetFont()</a>. It is also possible to set a control's font directly, with GuiCtrl.SetFont().</p>
-<p><strong>Gui Color</strong> → <a href="lib/GuiObj.htm#BackColor">GuiObj.BackColor</a> sets/returns the background color. <em>ControlColor</em> (the second parameter) is not supported, but all controls which previously supported it can have a background set by the <code>+Background</code> option instead. Unlike "Gui Color", GuiObj.BackColor does not affect Progress controls or disabled/read-only Edit, DDL, ComboBox or TreeView (with -Theme) controls.</p>
-<p><strong>Gui Margin</strong> → <a href="lib/GuiObj.htm#MarginX">GuiObj.MarginX</a> and <a href="lib/GuiObj.htm#MarginY">GuiObj.MarginY</a> properties.</p>
-<p><strong>Gui Menu</strong> → <a href="lib/GuiObj.htm#MenuBar">GuiObj.MenuBar</a> sets/returns a MenuBar object created with <code>MenuBar()</code>.</p>
+<p><strong>Gui New</strong> → <a href="lib/Gui.htm#Call">Gui()</a>. Passing an empty title (not omitting it) now results in an empty title, not the default title.</p>
+<p><strong>Gui Add</strong> → <a href="lib/Gui.htm#Add">GuiObj.Add() or GuiObj.Add<em>ControlType</em>()</a>; e.g. <code>GuiObj.Add("Edit")</code> or <code>GuiObj.AddEdit()</code>.</p>
+<p><strong>Gui Show</strong> → <a href="lib/Gui.htm#Show">GuiObj.Show()</a>, but it has no <em>Title</em> parameter. The title can be specified as a parameter of Gui() or via the GuiObj.Title property. The initial focus is still set to the first input-capable control with the WS_TABSTOP style (as per default message processing by the system), unless that's a Button control, in which case focus is now shifted to the Default button.</p>
+<p><strong>Gui Submit</strong> → <a href="lib/Gui.htm#Submit">GuiObj.Submit()</a>. It works like before, except that Submit() creates and returns a new object which contains all of the "associated variables".</p>
+<p><strong>Gui Destroy</strong> → <a href="lib/Gui.htm#Destroy">GuiObj.Destroy()</a>. The object still exists (until the script releases it) but cannot be used. A new GUI must be created (if needed). The window is also destroyed when the object is deleted, but the object is "kept alive" while the window is visible.</p>
+<p><strong>Gui Font</strong> → <a href="lib/Gui.htm#SetFont">GuiObj.SetFont()</a>. It is also possible to set a control's font directly, with GuiCtrl.SetFont().</p>
+<p><strong>Gui Color</strong> → <a href="lib/Gui.htm#BackColor">GuiObj.BackColor</a> sets/returns the background color. <em>ControlColor</em> (the second parameter) is not supported, but all controls which previously supported it can have a background set by the <code>+Background</code> option instead. Unlike "Gui Color", GuiObj.BackColor does not affect Progress controls or disabled/read-only Edit, DDL, ComboBox or TreeView (with -Theme) controls.</p>
+<p><strong>Gui Margin</strong> → <a href="lib/Gui.htm#MarginX">GuiObj.MarginX</a> and <a href="lib/Gui.htm#MarginY">GuiObj.MarginY</a> properties.</p>
+<p><strong>Gui Menu</strong> → <a href="lib/Gui.htm#MenuBar">GuiObj.MenuBar</a> sets/returns a MenuBar object created with <code>MenuBar()</code>.</p>
 <p><strong>Gui Cancel/Hide/Minimize/Maximize/Restore</strong> → Gui methods of the same name.</p>
-<p><strong>Gui Flash</strong> → <a href="lib/GuiObj.htm#Flash">GuiObj.Flash()</a>, but use <code>false</code> instead of <code>Off</code>.</p>
-<p><strong>Gui Tab</strong> → <a href="lib/GuiControlObj.htm#UseTab">TabControl.UseTab()</a>. Defaults to matching a prefix of the tab name as before. Pass true for the second parameter to match the whole tab name, but unlike the v1 "Exact" mode, it is case-insensitive.</p>
+<p><strong>Gui Flash</strong> → <a href="lib/Gui.htm#Flash">GuiObj.Flash()</a>, but use <code>false</code> instead of <code>Off</code>.</p>
+<p><strong>Gui Tab</strong> → <a href="lib/GuiControl.htm#UseTab">TabControl.UseTab()</a>. Defaults to matching a prefix of the tab name as before. Pass true for the second parameter to match the whole tab name, but unlike the v1 "Exact" mode, it is case-insensitive.</p>
 <h3 id="events">Events</h3>
 <p>See <a href="lib/GuiOnEvent.htm#Events">Events (OnEvent)</a> for details of all explicitly supported GUI and GUI control events.</p>
 <p>The Size event passes 0, -1 or 1 (consistent with <a href="lib/WinGetMinMax.htm">WinGetMinMax</a>) instead of 0, 1 or 2.</p>
@@ -969,18 +969,18 @@ Name    := MonitorGetName(N)
 <p>LV/TV.Add/Modify now suppress item-change events, so such events should only be raised by user action or SendMessage.</p>
 <h3 id="removed">Removed</h3>
 <p>+Delimiter<br>
-+Hwnd<em>OutputVar</em> (use <a href="lib/GuiObj.htm#Hwnd">GuiObj.Hwnd</a> or <a href="lib/GuiControlObj.htm#Hwnd">GuiCtrl.Hwnd</a> instead)<br>
++Hwnd<em>OutputVar</em> (use <a href="lib/Gui.htm#Hwnd">GuiObj.Hwnd</a> or <a href="lib/GuiControl.htm#Hwnd">GuiCtrl.Hwnd</a> instead)<br>
 +Label<br>
 +LastFoundExist<br>
 Gui GuiName: Default</p>
 <h3 id="control-options">Control Options</h3>
 <p>+/-Background is interpreted and supported more consistently. All controls which supported "Gui Color" now support <code>+Background<i>Color</i></code> and <code>+BackgroundDefault</code> (synonymous with <code>-Background</code>), not just ListView/TreeView/StatusBar/Progress.</p>
-<p><a href="lib/GuiObj.htm#Add">GuiObj.Add</a> defaults to <code>y+m</code>/<code>x+m</code> instead of <code>yp</code>/<code>xp</code> when <code>xp</code>/<code>yp</code> or <code>xp+0</code>/<code>yp+0</code> is used. In other words, the control is placed below/to the right of the previous control instead of at exactly the same position. If a non-zero offset is used, the behaviour is the same as in v1. To use exactly the same position, specify <code>xp yp</code> together.</p>
+<p><a href="lib/Gui.htm#Add">GuiObj.Add</a> defaults to <code>y+m</code>/<code>x+m</code> instead of <code>yp</code>/<code>xp</code> when <code>xp</code>/<code>yp</code> or <code>xp+0</code>/<code>yp+0</code> is used. In other words, the control is placed below/to the right of the previous control instead of at exactly the same position. If a non-zero offset is used, the behaviour is the same as in v1. To use exactly the same position, specify <code>xp yp</code> together.</p>
 <p><code>x+m</code> and <code>y+m</code> can be followed by an additional offset, such as <code>x+m+10</code> (<code>x+m10</code> is also valid, but less readable).</p>
 <p><code>Choose</code> no longer serves as a redundant (undocumented) way to specify the value for a MonthCal. Just use the <em>Text</em> parameter, as before.</p>
 <h3 id="guicontrolget">GuiControlGet</h3>
 <h4 id="empty-sub-command">Empty sub-command</h4>
-<p>GuiControlGet's empty sub-command had two modes: the default mode, and text mode, where the fourth parameter was the word <code>Text</code>. If a control type had no single "value", GuiControlGet defaulted to returning the result of <a href="https://msdn.microsoft.com/library/ms633520">GetWindowText</a> (which isn't always visible text). Some controls had no visible text, or did not support retrieving it, so completely ignored the fourth parameter. By contrast, <a href="lib/GuiControlObj.htm#Text">GuiCtrl.Text</a> returns display text, hidden text (the same text returned by ControlGetText) or nothing at all.</p>
+<p>GuiControlGet's empty sub-command had two modes: the default mode, and text mode, where the fourth parameter was the word <code>Text</code>. If a control type had no single "value", GuiControlGet defaulted to returning the result of <a href="https://msdn.microsoft.com/library/ms633520">GetWindowText</a> (which isn't always visible text). Some controls had no visible text, or did not support retrieving it, so completely ignored the fourth parameter. By contrast, <a href="lib/GuiControl.htm#Text">GuiCtrl.Text</a> returns display text, hidden text (the same text returned by ControlGetText) or nothing at all.</p>
 <p>The table below shows the closest equivalent property or function for each mode of GuiControlGet and control type.</p>
 <table class="info">
 <tr><th>Control</th><th>Default</th><th>Text</th><th>Notes</th></tr>
@@ -1009,12 +1009,12 @@ Gui GuiName: Default</p>
 <tr><td>UpDown</td><td colspan="2">.Value</td><td></td></tr>
 </table>
 <p>ListBox: For multi-select ListBox, Text and Value return an array instead of a pipe-delimited list.</p>
-<p>ActiveX: <a href="lib/GuiControlObj.htm#Value">GuiCtrl.Value</a> returns the same object each time, whereas GuiControlGet created a new wrapper object each time. Consequently, it is no longer necessary to retain a reference to an ActiveX object for the purpose of keeping a <a href="lib/ComObjConnect.htm">ComObjConnect</a> connection alive.</p>
+<p>ActiveX: <a href="lib/GuiControl.htm#Value">GuiCtrl.Value</a> returns the same object each time, whereas GuiControlGet created a new wrapper object each time. Consequently, it is no longer necessary to retain a reference to an ActiveX object for the purpose of keeping a <a href="lib/ComObjConnect.htm">ComObjConnect</a> connection alive.</p>
 <h4 id="other-sub-commands">Other sub-commands</h4>
-<p><strong>Pos</strong> → <a href="lib/GuiControlObj.htm#GetPos">GuiCtrl.GetPos()</a></p>
-<p><strong>Focus</strong> → <a href="lib/GuiObj.htm#FocusedCtrl">GuiObj.FocusedCtrl</a>; returns a GuiControl object instead of the ClassNN.</p>
+<p><strong>Pos</strong> → <a href="lib/GuiControl.htm#GetPos">GuiCtrl.GetPos()</a></p>
+<p><strong>Focus</strong> → <a href="lib/Gui.htm#FocusedCtrl">GuiObj.FocusedCtrl</a>; returns a GuiControl object instead of the ClassNN.</p>
 <p><strong>FocusV</strong> → <code>GuiObj.FocusedCtrl.Name</code></p>
-<p><strong>Hwnd</strong> → <a href="lib/GuiControlObj.htm#Hwnd">GuiCtrl.Hwnd</a>; returns a pure integer, not a hexadecimal string.</p>
+<p><strong>Hwnd</strong> → <a href="lib/GuiControl.htm#Hwnd">GuiCtrl.Hwnd</a>; returns a pure integer, not a hexadecimal string.</p>
 <p><strong>Enabled/Visible/Name</strong> → GuiCtrl properties of the same name.</p>
 <h3 id="guicontrol">GuiControl</h3>
 <h4 id="blank-and-text-sub-commands">(Blank) and Text sub-commands</h4>
@@ -1046,15 +1046,15 @@ Gui GuiName: Default</p>
 <tr><td>UpDown</td><td colspan="2">.Value</td><td>Use the <code>+=</code> operator instead of the <code>+</code> prefix.</td></tr>
 </table>
 <h4 id="other-sub-commands-1">Other sub-commands</h4>
-<p><strong>Move</strong> → <a href="lib/GuiControlObj.htm#Move">GuiCtrl.Move(x, y, w, h)</a></p>
-<p><strong>MoveDraw</strong> → GuiCtrl.Move(x, y, w, h), <a href="lib/GuiControlObj.htm#Redraw">GuiCtrl.Redraw()</a></p>
-<p><strong>Focus</strong> → <a href="lib/GuiControlObj.htm">GuiCtrl.Focus()</a>, which now uses WM_NEXTDLGCTL instead of SetFocus, so that focusing a Button temporarily sets it as the default, consistent with tabbing to the control.</p>
-<p><strong>Enable/Disable</strong> → set <a href="lib/GuiControlObj.htm#Enabled">GuiCtrl.Enabled</a></p>
-<p><strong>Hide/Show</strong> → set <a href="lib/GuiControlObj.htm#Visible">GuiCtrl.Visible</a></p>
-<p><strong>Choose</strong> → <a href="lib/GuiControlObj.htm#Choose">GuiCtrl.Choose(n)</a>, where in is a pure integer. The <code>|n</code> or <code>||n</code> mode is not supported (use ControlChoose instead, if needed).</p>
-<p><strong>ChooseString</strong> → <a href="lib/GuiControlObj.htm#Choose">GuiCtrl.Choose(s)</a>, where s is not a pure integer. The <code>|n</code> or <code>||n</code> mode is not supported. If the string matches multiple items in a multi-select ListBox, Choose() selects them all, not just the first.</p>
-<p><strong>Font</strong> → <a href="lib/GuiControlObj.htm#SetFont">GuiCtrl.SetFont()</a></p>
-<p><strong>+/-Option</strong> → <a href="lib/GuiControlObj.htm#Opt">GuiCtrl.Opt("+/-Option")</a></p>
+<p><strong>Move</strong> → <a href="lib/GuiControl.htm#Move">GuiCtrl.Move(x, y, w, h)</a></p>
+<p><strong>MoveDraw</strong> → GuiCtrl.Move(x, y, w, h), <a href="lib/GuiControl.htm#Redraw">GuiCtrl.Redraw()</a></p>
+<p><strong>Focus</strong> → <a href="lib/GuiControl.htm">GuiCtrl.Focus()</a>, which now uses WM_NEXTDLGCTL instead of SetFocus, so that focusing a Button temporarily sets it as the default, consistent with tabbing to the control.</p>
+<p><strong>Enable/Disable</strong> → set <a href="lib/GuiControl.htm#Enabled">GuiCtrl.Enabled</a></p>
+<p><strong>Hide/Show</strong> → set <a href="lib/GuiControl.htm#Visible">GuiCtrl.Visible</a></p>
+<p><strong>Choose</strong> → <a href="lib/GuiControl.htm#Choose">GuiCtrl.Choose(n)</a>, where in is a pure integer. The <code>|n</code> or <code>||n</code> mode is not supported (use ControlChoose instead, if needed).</p>
+<p><strong>ChooseString</strong> → <a href="lib/GuiControl.htm#Choose">GuiCtrl.Choose(s)</a>, where s is not a pure integer. The <code>|n</code> or <code>||n</code> mode is not supported. If the string matches multiple items in a multi-select ListBox, Choose() selects them all, not just the first.</p>
+<p><strong>Font</strong> → <a href="lib/GuiControl.htm#SetFont">GuiCtrl.SetFont()</a></p>
+<p><strong>+/-Option</strong> → <a href="lib/GuiControl.htm#Opt">GuiCtrl.Opt("+/-Option")</a></p>
 <h3 id="other-changes">Other Changes</h3>
 <p>Progress Gui controls no longer have the PBS_SMOOTH style by default, so they are now styled according to the system visual style.</p>
 <p>The default margins and control sizes (particularly for Button controls) may differ slightly from v1 when DPI is greater than 100%.</p>
@@ -1203,7 +1203,7 @@ Arrays internal to the expression evaluator which were sized based on MAX_TOKENS
 <p>Scripts are "<a href="lib/Persistent.htm">persistent</a>" while at least one of the following conditions is satisfied:</p>
 <ul>
 <li>At least one hotkey or hotstring has been defined by the script.</li>
-<li>At least one <a href="lib/GuiObj.htm">Gui</a> (or the script's <a href="Program.htm#main-window">main window</a>) is visible.</li>
+<li>At least one <a href="lib/Gui.htm">Gui</a> (or the script's <a href="Program.htm#main-window">main window</a>) is visible.</li>
 <li>At least one script <a href="lib/SetTimer.htm">timer</a> is currently enabled.</li>
 <li>At least one <a href="lib/OnClipboardChange.htm">OnClipboardChange</a> callback function has been set.</li>
 <li>At least one <a href="lib/InputHook.htm">InputHook</a> is active.</li>
@@ -1212,7 +1212,7 @@ Arrays internal to the expression evaluator which were sized based on MAX_TOKENS
 <p>If one of the following occurs and none of the above conditions are satisfied, the script terminates.</p>
 <ul>
 <li>The last script thread finishes.</li>
-<li>A <a href="lib/GuiObj.htm">Gui</a> is closed or destroyed.</li>
+<li>A <a href="lib/Gui.htm">Gui</a> is closed or destroyed.</li>
 <li>The script's <a href="Program.htm#main-window">main window</a> is closed (but destroying it causes the script to exit regardless of persistence, as before).</li>
 <li>An <a href="lib/InputHook.htm">InputHook</a> with no <a href="lib/InputHook.htm#OnEnd">OnEnd</a> callback ends.</li>
 </ul>
