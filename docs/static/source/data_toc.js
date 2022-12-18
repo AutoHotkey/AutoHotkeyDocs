@@ -264,7 +264,7 @@ tocData = [
   [
     ["AutoTrim","lib/AutoTrim.htm"],
     ["Edit","lib/Edit.htm"],
-    ["Func()","lib/Func.htm"],
+    ["Func()","lib/Func.htm#Func"],
     ["IsByRef()","lib/IsByRef.htm"],
     ["IsFunc()","lib/IsFunc.htm"],
     ["IsLabel()","lib/IsLabel.htm"],
@@ -280,10 +280,10 @@ tocData = [
   ["Object Types","",
   [
     ["Object","lib/Object.htm"],
-    ["Enumerator Object","lib/EnumeratorObj.htm"],
+    ["Enumerator Object","lib/Enumerator.htm"],
     ["Exception Object","lib/Throw.htm#Exception"],
-    ["File Object","lib/FileObj.htm"],
-    ["Func Object","lib/FuncObj.htm"],
+    ["File Object","lib/File.htm"],
+    ["Func Object","lib/Func.htm"],
     ["Function Objects","misc/Functor.htm"],
     ["InputHook Object","lib/InputHook.htm#object"],
     ["RegExMatch Object","lib/RegExMatch.htm#MatchObject"]
