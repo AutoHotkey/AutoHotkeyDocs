@@ -947,12 +947,12 @@ function ctor_structure()
     var lang = T("en"), ver = T("v1");
     // language links. Keys are based on ISO 639-1 language name standard:
     var link = { 'v1': { 'en': 'https://www.autohotkey.com/docs/v1/',
-                         'de': 'https://ahkde.github.io/docs/',
+                         'de': 'https://ahkde.github.io/docs/v1/',
                          'ko': 'https://ahkscript.github.io/ko/docs/',
                          'pt': 'https://ahkscript.github.io/pt/docs/',
                          'zh': 'https://wyagd001.github.io/zh-cn/docs/' },
                  'v2': { 'en': 'https://www.autohotkey.com/docs/v2/',
-                         'de': 'https://ahkde.github.io/v2/docs/',
+                         'de': 'https://ahkde.github.io/docs/v2/',
                          'zh': 'https://wyagd001.github.io/v2/docs/' } }
 
     var $langList = $online.find('ul.languages')
