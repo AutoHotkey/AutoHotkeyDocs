@@ -50,7 +50,7 @@ try
 catch  ; Not found, so look for it in some other common locations.
 {
     if A_AhkPath
-        SplitPath A_AhkPath,, ahk_dir
+        SplitPath A_AhkPath,, &ahk_dir
     else if FileExist("..\..\AutoHotkey.chm")
         ahk_dir := "..\.."
     else if FileExist(A_ProgramFiles "\AutoHotkey\AutoHotkey.chm")

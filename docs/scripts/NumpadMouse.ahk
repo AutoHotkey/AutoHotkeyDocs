@@ -67,7 +67,7 @@ o------------------------------------------------------------o
 ;START OF CONFIG SECTION
 
 #SingleInstance
-#MaxHotkeysPerInterval 500
+A_MaxHotkeysPerInterval := 500
 
 ; Using the keyboard hook to implement the Numpad hotkeys prevents
 ; them from interfering with the generation of ANSI characters such
