@@ -282,6 +282,7 @@ indexData = [
   ["Break","lib/Break.htm",3,"S"],
   ["Buffer","lib/Buffer.htm",6],
   ["buffering","lib/_MaxThreadsBuffer.htm"],
+  ["built-in classes","ObjList.htm"],
   ["built-in functions","Functions.htm#BuiltIn"],
   ["built-in variables","Variables.htm#BuiltIn"],
   ["Button controls (GUI)","lib/GuiControls.htm#Button"],
