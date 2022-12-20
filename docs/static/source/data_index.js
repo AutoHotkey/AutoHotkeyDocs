@@ -687,7 +687,7 @@ indexData = [
   ["Insert method (Menu)","lib/Menu.htm#Insert",7],
   ["InsertAt method (Array)","lib/Array.htm#InsertAt",7],
   ["InsertCol method (ListView)","lib/ListView.htm#InsertCol",7],
-  ["Install","lib/FileInstall.htm"],
+  ["Install","howto/Install.htm"],
   ["installer options","Program.htm#install"],
   ["InstallKeybdHook","lib/InstallKeybdHook.htm",2],
   ["InstallMouseHook","lib/InstallMouseHook.htm",2],
