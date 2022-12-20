@@ -320,7 +320,7 @@ indexData = [
   ["class","Objects.htm#Custom_Classes",5],
   ["Class","lib/Class.htm",6],
   ["class ... extends","Objects.htm#Custom_Classes",5],
-  ["class name of a window","lib/WinGetClass.htm"],
+  ["class name of a window","misc/WinTitle.htm#ahk_class"],
   ["Class object","lib/Class.htm"],
   ["ClassNN (of a control)","lib/ControlGetClassNN.htm"],
   ["ClassNN property (GuiControl)","lib/GuiControl.htm#ClassNN",7],
