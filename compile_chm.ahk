@@ -33,7 +33,7 @@ Overwrite("Index.hhk", INDEX_CreateHHK(IndexJS))
 ; FileRead TocJS, docs\static\source\data_toc.js
 ; Overwrite("Table of Contents.hhc", TOC_CreateHHC(TocJS))
 ; IniWrite, Table of Contents.hhc, Project.hhp, OPTIONS, Contents file
-; IniWrite, % "AutoHotkey Help,Table of Contents.hhc,Index.hhk,docs\AutoHotkey.htm,docs\AutoHotkey.htm,,,,,0x73520,,0x10200e,[200,0,1080,700],0,,,,0,,0", Project.hhp, WINDOWS, Contents
+; IniWrite, % "AutoHotkey v2 Help,Table of Contents.hhc,Index.hhk,docs\index.htm,docs\index.htm,,,,,0x73520,,0x10200e,[200,0,1080,700],0,,,,0,,0", Project.hhp, WINDOWS, Contents
 
 ; Compile AutoHotkey.chm.
 RunWait %hhc% "%A_ScriptDir%\Project.hhp"
