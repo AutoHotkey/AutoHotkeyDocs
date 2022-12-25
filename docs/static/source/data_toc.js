@@ -294,7 +294,7 @@ tocData = [
     ["OutputDebug","lib/OutputDebug.htm"],
     ["Persistent","lib/Persistent.htm"]
   ]],
-  ["Object Types","lib/index.htm",
+  ["Object Types","ObjList.htm",
   [
     ["Object","lib/Object.htm"],
     ["Array Object","lib/Array.htm"],
