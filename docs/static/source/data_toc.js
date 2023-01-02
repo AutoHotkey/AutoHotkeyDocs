@@ -449,6 +449,7 @@ tocData = [
     ["WinGetControls","lib/WinGetControls.htm"],
     ["WinGetControlsHwnd","lib/WinGetControlsHwnd.htm"],
     ["WinGetCount","lib/WinGetCount.htm"],
+    ["WinGetEnabled","lib/WinGetEnabled.htm"],
     ["WinGetID","lib/WinGetID.htm"],
     ["WinGetIDLast","lib/WinGetIDLast.htm"],
     ["WinGetList","lib/WinGetList.htm"],

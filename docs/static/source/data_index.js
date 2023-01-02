@@ -1190,6 +1190,7 @@ indexData = [
   ["WinGetControls","lib/WinGetControls.htm",2],
   ["WinGetControlsHwnd","lib/WinGetControlsHwnd.htm",2],
   ["WinGetCount","lib/WinGetCount.htm",2],
+  ["WinGetEnabled","lib/WinGetEnabled.htm",2],
   ["WinGetExStyle","lib/WinGetStyle.htm",2],
   ["WinGetID","lib/WinGetID.htm",2],
   ["WinGetIDLast","lib/WinGetIDLast.htm",2],
