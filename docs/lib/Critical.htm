@@ -25,7 +25,7 @@
     <p>If blank or omitted, it defaults to On. Otherwise, specify one of the following:</p>
     <p><strong>On</strong>: The <a href="../misc/Threads.htm">current thread</a> is made critical, meaning that it cannot be interrupted by another thread.</p>
     <p><strong>Off</strong>: The current thread immediately becomes interruptible, regardless of the settings of <a href="Thread.htm">Thread Interrupt</a>. See <a href="#Off">Critical Off</a> for details.</p>
-    <p><strong>(Numeric)</strong> <span class="ver">[v1.0.47+]</span>: Specify a positive number to turn on Critical but also change the number of milliseconds between checks of the internal message queue. See <a href="#Interval">Message Check Interval</a> for details. <span class="ver">[v1.0.48+]</span>: Specifying 0 turns off Critical.</p>
+    <p><strong>(Numeric)</strong> <span class="ver">[v1.0.47+]</span>: Specify a positive number to turn on Critical but also change the number of milliseconds between checks of the internal message queue. See <a href="#Interval">Message Check Interval</a> for details. <span class="ver">[v1.0.48+]</span>: Specifying 0 turns off Critical. Specifying -1 turns on Critical but disables message checks.</p>
   </dd>
 </dl>
 
@@ -45,8 +45,15 @@
 
 <h2 id="Interval">Message Check Interval</h2>
 <p><span class="ver">[v1.0.47+]</span>: Specifying a positive number as the first parameter (e.g. <code>Critical 30</code>) turns on Critical but also changes the minimum number of milliseconds between checks of the internal message queue. If unspecified, the default is 16 milliseconds while Critical is On, and 5 ms while Critical is Off. Increasing the interval postpones the arrival of messages/events, which gives the <a href="../misc/Threads.htm">current thread</a> more time to finish. This reduces the possibility that certain <a href="OnMessage.htm">OnMessage()</a> and <a href="Gui.htm#DefaultWin">GUI events</a> will be lost due to "thread already running". However, commands that wait such as <a href="Sleep.htm">Sleep</a> and <a href="WinWait.htm">WinWait</a> will check messages regardless of this setting (a workaround is <code>DllCall("Sleep", "UInt", 500)</code>).</p>
+<p>This setting affects the following:</p>
+<ul>
+  <li>Preemptive message checks, which potentially occur before each line of code executes.</li>
+  <li>Periodic message checks during <a href="Send.htm">Send</a>, file and download operations.</li>
+</ul>
+<p>It does not affect the frequency of message checks while the script is paused or waiting.</p>
 <p>Because the system tick count generally has a granularity of 15.6 milliseconds, the minimum delta value is generally at least 15 or 16. The duration since the last check must <em>exceed</em> the interval setting in order for another check to occur. For example, a setting of 16 requires the tick count to change by 17 or greater. As a message check could occur at any time within the 15.6 millisecond window, any setting between 1 and 16 could permit two message checks within a single interval.</p>
   <p class="note"><strong>Note</strong>: Increasing the message-check interval too much may reduce the responsiveness of various events such as <a href="Gui.htm">GUI</a> window repainting.</p>
+<p><code>Critical -1</code> turns on Critical but disables message checks. This does not prevent the program from checking for messages while performing a sleep, delay or wait. It is useful in cases where dispatching messages could interfere with the code currently executing, such as while handling certain types of messages during an <a href="OnMessage.htm">OnMessage</a> callback.</p>
 
 <h2 id="Related">Related</h2>
 <p><a href="Thread.htm">Thread (command)</a>, <a href="../misc/Threads.htm">Threads</a>, <a href="_MaxThreadsPerHotkey.htm">#MaxThreadsPerHotkey</a>, <a href="_MaxThreadsBuffer.htm">#MaxThreadsBuffer</a>, <a href="OnMessage.htm">OnMessage()</a>, <a href="RegisterCallback.htm">RegisterCallback()</a>, <a href="Hotkey.htm">Hotkey</a>, <a href="Menu.htm">Menu</a>, <a href="SetTimer.htm">SetTimer</a></p>
