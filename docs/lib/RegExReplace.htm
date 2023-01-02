@@ -33,10 +33,12 @@
 
   <dt>Replacement</dt>
   <dd>
-    <p>Type: <a href="../Concepts.htm#strings">String</a></p>
-    <p id="BackRef">The string to be substituted for each match, which is plain text (not a regular expression). It may include backreferences like $1, which brings in the substring from <em>Haystack</em> that matched the first <a href="../misc/RegEx-QuickRef.htm#subpat">subpattern</a>. The simplest backreferences are $0 through $9, where $0 is the substring that matched the entire pattern, $1 is the substring that matched the first subpattern, $2 is the second, and so on. For backreferences above 9 (and optionally those below 9), enclose the number in braces; e.g. ${10}, ${11}, and so on. For <a href="RegExMatch.htm#NamedSubPat">named subpatterns</a>, enclose the name in braces; e.g. ${SubpatternName}. To specify a literal $, use $$ (this is the only character that needs such special treatment; backslashes are never needed to escape anything).</p>
+    <p>Type: <a href="../Concepts.htm#strings">String</a> or <a href="../misc/Functor.htm">Function Object</a></p>
+    <p>This parameter can be either a replacement string or a callback function, as described below.</p>
+    <p id="BackRef"><strong>String</strong>: The string to be substituted for each match, which is plain text (not a regular expression). It may include backreferences like $1, which brings in the substring from <em>Haystack</em> that matched the first <a href="../misc/RegEx-QuickRef.htm#subpat">subpattern</a>. The simplest backreferences are $0 through $9, where $0 is the substring that matched the entire pattern, $1 is the substring that matched the first subpattern, $2 is the second, and so on. For backreferences above 9 (and optionally those below 9), enclose the number in braces; e.g. ${10}, ${11}, and so on. For <a href="RegExMatch.htm#NamedSubPat">named subpatterns</a>, enclose the name in braces; e.g. ${SubpatternName}. To specify a literal $, use $$ (this is the only character that needs such special treatment; backslashes are never needed to escape anything).</p>
     <p>To convert the case of a subpattern, follow the $ with one of the following characters: U or u (uppercase), L or l (lowercase), T or t (title case, in which the first letter of each word is capitalized but all others are made lowercase). For example, both $U1 and $U{1} transcribe an uppercase version of the first subpattern.</p>
     <p>Nonexistent backreferences and those that did not match anything in <em>Haystack</em> -- such as one of the subpatterns in <span class="regex">(abc)|(xyz)</span> -- are transcribed as empty strings.</p>
+    <p><strong>Function</strong> <span class="ver">[v2.1-alpha.1+]</span>: The function object to call for each match in the string. The function accepts a single parameter (a <a href="RegExMatch.htm#MatchObject">Match object</a>) and should return the replacement text.</p>
   </dd>
 
   <dt>&amp;OutputVarCount</dt>
@@ -108,6 +110,17 @@
 <div class="ex" id="ExOutputVarCount">
 <p><a class="ex_number" href="#ExOutputVarCount"></a> Reports an empty string and stores 2 in <var>ReplacementCount</var>.</p>
 <pre>MsgBox RegExReplace("abc123abc456", "abc\d+", "", &amp;ReplacementCount)</pre>
+</div>
+
+<div class="ex" id="ExCallback">
+<p><a class="ex_number" href="#ExCallback"></a> Demonstrates basic use of a replacement callback.</p>
+<pre>MsgBox RegExReplace("123+6567=", "^(\d+)\+(\d+)=", m =&gt; m[1] + m[2])  <em>; 6690</em>
+
+MsgBox RegExReplace("01 0x20 3.14", "\d\S*", m =&gt; Format("{:.1f}", m.0))  <em>; 1.0 32.0 3.1</em>
+
+esc := Map("n", "`n", "r", "`r", "b", "`b", "t", "`t", "v", "`v", "a", "`a", "f", "`f")
+MsgBox RegExReplace("1\n2\n3\g\\", "\\(.)", m =&gt; esc.Get(m[1], m[0]))  <em>; 1`n2`n3\g\\</em>
+</pre>
 </div>
 
 </body>
