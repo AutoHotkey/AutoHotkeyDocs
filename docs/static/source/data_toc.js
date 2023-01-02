@@ -444,6 +444,7 @@ tocData = [
     ["WinActive","lib/WinActive.htm"],
     ["WinClose","lib/WinClose.htm"],
     ["WinExist","lib/WinExist.htm"],
+    ["WinGetAlwaysOnTop","lib/WinGetAlwaysOnTop.htm"],
     ["WinGetClass","lib/WinGetClass.htm"],
     ["WinGetClientPos","lib/WinGetClientPos.htm"],
     ["WinGetControls","lib/WinGetControls.htm"],

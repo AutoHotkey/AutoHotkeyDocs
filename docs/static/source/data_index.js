@@ -1185,6 +1185,7 @@ indexData = [
   ["window group","misc/WinTitle.htm#ahk_group"],
   ["window messages","misc/SendMessageList.htm"],
   ["WinExist","lib/WinExist.htm",2],
+  ["WinGetAlwaysOnTop","lib/WinGetAlwaysOnTop.htm",2],
   ["WinGetClass","lib/WinGetClass.htm",2],
   ["WinGetClientPos","lib/WinGetClientPos.htm",2],
   ["WinGetControls","lib/WinGetControls.htm",2],
