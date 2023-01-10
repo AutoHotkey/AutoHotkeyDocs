@@ -116,6 +116,42 @@ var isPhone = (document.documentElement.clientWidth <= 600);
   if (isSearchBot)
     return;
 
+  // Get user data:
+  if (!isCacheLoaded) {
+    if (isInsideCHM) {
+      var m = scriptDir.match(/mk:@MSITStore:(.*?)\\[^\\]+\.chm/i);
+      if (m[1])
+        loadScript(decodeURI(m[1]) + '\\chm_config.js', function () {
+          try {
+            $.extend(cache, overwriteProps(user, config));
+            setInitialSettings();
+          } catch (e) {}
+        });
+    }
+    else if (window.localStorage) {
+      config = JSON.parse(window.localStorage.getItem('config'));
+      $.extend(cache, overwriteProps(user, config));
+      setInitialSettings();
+    }
+    else if (navigator.cookieEnabled) {
+      config = document.cookie.match(/config=([^;]+)/);
+      config && (config = JSON.parse(config[1]));
+      $.extend(cache, overwriteProps(user, config));
+      setInitialSettings();
+    }
+  }
+  else
+    setInitialSettings();
+  
+  function setInitialSettings() {
+    // font size
+    if (!isFrameCapable && cache.fontSize != 1)
+      $('head').append('<style>#right .area {font-size:' + cache.fontSize + 'em}</style>');
+    // color theme
+    if (cache.colorTheme)
+      structure.setTheme(cache.colorTheme);
+  }
+
   // Exit the script on sites which doesn't need the sidebar:
   if (forceNoScript || cache.forceNoScript)
     return;
@@ -125,7 +161,8 @@ var isPhone = (document.documentElement.clientWidth <= 600);
   {
     if (isInsideFrame)
     {
-      $('head').append('<style>body {font-size:' + cache.fontSize + 'em}</style>');
+      if (cache.fontSize != 1)
+        $('head').append('<style>body {font-size:' + cache.fontSize + 'em}</style>');
       normalizeParentURL = function() {
         postMessageToParent('normalizeURL', [$.extend({}, window.location), document.title, supportsHistory ? history.state : null, equivPath]);
         if (cache.toc_clickItem)
@@ -226,41 +263,6 @@ var isPhone = (document.documentElement.clientWidth <= 600);
 
   // Add elements for sidebar:
   structure.build();
-
-  // Get user data:
-  if (!isCacheLoaded) {
-      if (isInsideCHM) {
-        var m = scriptDir.match(/mk:@MSITStore:(.*?)\\[^\\]+\.chm/i);
-        if (m[1])
-          loadScript(decodeURI(m[1]) + '\\chm_config.js', function () {
-            try {
-              $.extend(cache, overwriteProps(user, config));
-              setInitialSettings();
-            } catch (e) {}
-          });
-      }
-      else if (window.localStorage) {
-        config = JSON.parse(window.localStorage.getItem('config'));
-        $.extend(cache, overwriteProps(user, config));
-        setInitialSettings();
-      }
-      else if (navigator.cookieEnabled) {
-        config = document.cookie.match(/config=([^;]+)/);
-        config && (config = JSON.parse(config[1]));
-        $.extend(cache, overwriteProps(user, config));
-        setInitialSettings();
-      }
-  }
-  else
-    setInitialSettings();
-
-  function setInitialSettings() {
-    // font size
-    $('head').append('<style>#right .area {font-size:' + cache.fontSize + 'em}</style>');
-    // color theme
-    if(cache.colorTheme)
-      structure.setTheme(cache.colorTheme);
-  }
 
   // Load current URL into frame:
   if (isFrameCapable)
@@ -1430,20 +1432,16 @@ function ctor_structure()
     }
   }
   // Set color theme:
+  self.themes = [null, 'dark'];
   self.setTheme = function(id) {
-    switch (id)
-    {
-      case 0:
-        $('#current-theme').remove();
-        break;
-      case 1:
-        var link = document.createElement('link');
-        link.href = workingDir + 'static/dark.css';
-        link.rel = 'stylesheet';
-        link.type = 'text/css';
-        link.id = 'current-theme';
-        $('head').append(link);
-        break;
+    $('#current-theme').remove();
+    if (id > 0 && id < self.themes.length) {
+      var link = document.createElement('link');
+      link.href = workingDir + 'static/' + self.themes[id] + '.css';
+      link.rel = 'stylesheet';
+      link.type = 'text/css';
+      link.id = 'current-theme';
+      $('head').append(link);
     }
   };
   // Add events for ListBox items such as double-click:
