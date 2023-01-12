@@ -503,6 +503,7 @@ indexData = [
   ["EditGetLine","lib/EditGetLine.htm",2],
   ["EditGetLineCount","lib/EditGetLineCount.htm",2],
   ["EditGetSelectedText","lib/EditGetSelectedText.htm",2],
+  ["editors","Editors.htm"],
   ["EditPaste","lib/EditPaste.htm",2],
   ["Else","lib/Else.htm",3,""],
   ["Enable method (Menu)","lib/Menu.htm#Enable",7],
