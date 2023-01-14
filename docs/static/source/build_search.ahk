@@ -161,7 +161,7 @@ ScanFiles()
     
     s .= "var SearchTitles = ["
     for i, t in stitles
-        s .= Format('"{1}",', t)
+        s .= Format('"{1}",', StrReplace(t, '"', '\"'))
     s := SubStr(s,1,-1) "]`n`n"
     
     s .= "
