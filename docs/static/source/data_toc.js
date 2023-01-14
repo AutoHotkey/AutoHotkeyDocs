@@ -15,7 +15,7 @@ tocData = [
     ["Labels","misc/Labels.htm"],
     ["Threads","misc/Threads.htm"],
     ["Editors with AHK Support","misc/Editors.htm"],
-    ["Debugging Clients","misc/AHKL_DBGPClients.htm"],
+    ["Debugging Clients","AHKL_DBGPClients.htm"],
     ["Compiler Directives","misc/Ahk2ExeDirectives.htm"],
     ["Objects","Objects.htm"]
   ]],
