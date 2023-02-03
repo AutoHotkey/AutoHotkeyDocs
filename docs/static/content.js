@@ -406,10 +406,10 @@ function ctor_toc()
       if (!href)
         continue;
       // Search for items which matches the address:
-      if (href.indexOf(relPath, href.length - relPath.length) !== -1)
+      if (href.indexOf('/' + relPath, href.length - relPath.length - 1) !== -1)
         foundList.push($(tocList[i]));
       // Search for items which matches the address without anchor:
-      else if (href.indexOf(relPathNoHash, href.length - relPathNoHash.length) !== -1)
+      else if (href.indexOf('/' + relPathNoHash, href.length - relPathNoHash.length - 1) !== -1)
         foundNoHashList.push($(tocList[i]));
     }
     if (foundList.length)
