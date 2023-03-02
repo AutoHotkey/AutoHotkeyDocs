@@ -63,7 +63,7 @@
   <p>If the function is designed to store a string longer than the parameter's input value (or if the parameter is for output only), the recommended approach is to create a <a href="Buffer.htm">Buffer</a>, use the <a href="#ptr">Ptr</a> type to pass it, and use <a href="StrGet.htm">StrGet</a> to retrieve the string after the function returns, as in the <a href="#ExWsprintf">wsprintf example</a>.</p>
   <p>Otherwise, ensure that the variable is large enough before calling the function. This can be achieved by calling <code><a href="VarSetStrCapacity.htm">VarSetStrCapacity</a>(MyVar, 123)</code>, where 123 is the number of 16-bit units (loosely referred to as characters) that <em>MyVar</em> must be able to hold. If the variable is not null-terminated upon return, an error message is shown and the program exits as it is likely that memory has been corrupted via buffer overrun. This would typically indicate that the variable's capacity was insufficient.</p>
   <p>A <em>Str</em> argument must not be an <a href="../Variables.htm#Expressions">expression</a> that evaluates to a number (such as <code>i+1</code>). If it is, the function is not called and a <a href="Error.htm#TypeError">TypeError</a> is thrown.</p>
-  <p id="strp">The rarely-used <a href="#asterisk">Str*</a> arg type passes the address of a temporary variable containing the address of the string. If the function writes a new address into the temporary variable, the new string is copied into the script's variable, if a <a href="../Concepts.htm#variable-references">VarRef</a> was passed. This can be used with functions that expect something like "TCHAR **" or "LPTSTR *". However, if the function allocates memory and expects the caller to free it (such as by calling <a href="https://docs.microsoft.com/en-us/windows/win32/api/combaseapi/nf-combaseapi-cotaskmemfree">CoTaskMemFree</a>), the <code>Ptr*</code> arg type must be used instead.</p>
+  <p id="strp">The rarely-used <a href="#asterisk">Str*</a> arg type passes the address of a temporary variable containing the address of the string. If the function writes a new address into the temporary variable, the new string is copied into the script's variable, if a <a href="../Concepts.htm#variable-references">VarRef</a> was passed. This can be used with functions that expect something like "TCHAR **" or "LPTSTR *". However, if the function allocates memory and expects the caller to free it (such as by calling <a href="https://learn.microsoft.com/windows/win32/api/combaseapi/nf-combaseapi-cotaskmemfree">CoTaskMemFree</a>), the <code>Ptr*</code> arg type must be used instead.</p>
   <p class="note"><strong>Note</strong>: When passing a string to a function, be aware what <a href="../Compat.htm#DllCall"><i>type</i> of string</a> the function expects.</p></td>
 </tr>
 <tr>
@@ -136,7 +136,7 @@ str := StrGet(buf, "cp0")  <em>; Retrieve ANSI string from buffer.</em>
 <tr id="HRESULT">
   <td>HRESULT</td>
   <td>
-    <p>A 32-bit integer. This is generally used with COM functions and is valid only as a return type without any prefix or suffix. Error values (as defined by the <a href="https://docs.microsoft.com/en-us/windows/win32/api/winerror/nf-winerror-failed">FAILED macro</a>) are never returned; instead, an <a href="Error.htm#OSError">OSError</a> is thrown. Therefore, the return value is a success code in the range 0 to 2147483647.</p>
+    <p>A 32-bit integer. This is generally used with COM functions and is valid only as a return type without any prefix or suffix. Error values (as defined by the <a href="https://learn.microsoft.com/windows/win32/api/winerror/nf-winerror-failed">FAILED macro</a>) are never returned; instead, an <a href="Error.htm#OSError">OSError</a> is thrown. Therefore, the return value is a success code in the range 0 to 2147483647.</p>
     <p>HRESULT is the default return type for <a href="ComCall.htm">ComCall</a>.</p>
   </td>
 </tr>
@@ -145,7 +145,7 @@ str := StrGet(buf, "cp0")  <em>; Retrieve ANSI string from buffer.</em>
 <h2 id="error">Errors</h2>
 <p>DllCall throws an <a href="Error.htm">Error</a> under any of the following conditions:</p>
 <ul>
-  <li><a href="Error.htm#OSError">OSError</a>: The <a href="#HRESULT">HRESULT</a> return type was used and the function returned an error value (as defined by the <a href="https://docs.microsoft.com/en-us/windows/win32/api/winerror/nf-winerror-failed">FAILED macro</a>). <code>Exception.Extra</code> contains the hexadecimal error code.</li>
+  <li><a href="Error.htm#OSError">OSError</a>: The <a href="#HRESULT">HRESULT</a> return type was used and the function returned an error value (as defined by the <a href="https://learn.microsoft.com/windows/win32/api/winerror/nf-winerror-failed">FAILED macro</a>). <code>Exception.Extra</code> contains the hexadecimal error code.</li>
   <li><a href="Error.htm#TypeError">TypeError</a>: The <em>[DllFile\]Function</em> parameter is a floating point number. A string or positive integer is required.</li>
   <li><a href="Error.htm#ValueError">ValueError</a>: The <a href="#types">return type</a> or one of the specified <a href="#types">arg types</a> is invalid.</li>
   <li><a href="Error.htm#TypeError">TypeError</a>: An argument was passed a value of an unexpected type. For instance, an <a href="../Variables.htm#Expressions">expression</a> that evaluates to a number was passed to a string (<a href="#str">str</a>) argument, a non-numeric string was passed to a numeric argument, or an object was passed to an argument <em>not</em> of type <a href="#ptr">Ptr</a>.</li>
@@ -193,14 +193,14 @@ result := DllCall("CharLower", "<strong><u>Str</u></strong>", DllCall("CharUpper
 
 <h2 id="COM">Component Object Model (COM)</h2>
 <p>COM objects which are accessible to VBScript and similar languages are typically also accessible to AutoHotkey via <a href="ComObject.htm">ComObject</a>, <a href="ComObjGet.htm">ComObjGet</a> or <a href="ComObjActive.htm">ComObjActive</a> and the built-in <a href="../Objects.htm#Usage_Objects">object syntax</a>.</p>
-<p>COM objects which don't support <a href="http://msdn.microsoft.com/en-us/library/ms221608.aspx">IDispatch</a> can be used with DllCall by retrieving the address of a function from the virtual function table of the object's interface. For more details, see <a href="#ExTaskbar">the example</a> further below. However, it is usually better to use <a href="ComCall.htm">ComCall</a>, which streamlines this process.</p>
+<p>COM objects which don't support <a href="https://learn.microsoft.com/windows/win32/api/oaidl/nn-oaidl-idispatch">IDispatch</a> can be used with DllCall by retrieving the address of a function from the virtual function table of the object's interface. For more details, see <a href="#ExTaskbar">the example</a> further below. However, it is usually better to use <a href="ComCall.htm">ComCall</a>, which streamlines this process.</p>
 
 <h2 id="dotnet">.NET Framework</h2>
 <p>.NET Framework libraries are executed by a "virtual machine" known as the Common Language Runtime, or CLR. That being the case, .NET DLL files are formatted differently to normal DLL files, and generally do not contain any functions which DllCall is capable of calling.</p>
-<p>However, AutoHotkey can utilize the CLR through <a href="https://docs.microsoft.com/en-us/dotnet/standard/native-interop/com-callable-wrapper">COM callable wrappers</a>. Unless the library is also registered as a general COM component, the CLR itself must first be manually initialized via DllCall. For details, see <a href="https://www.autohotkey.com/forum/topic26191.html">.NET Framework Interop</a> (which currently utilizes DllCall and is not compatible with AutoHotkey v2).</p>
+<p>However, AutoHotkey can utilize the CLR through <a href="https://learn.microsoft.com/dotnet/standard/native-interop/com-callable-wrapper">COM callable wrappers</a>. Unless the library is also registered as a general COM component, the CLR itself must first be manually initialized via DllCall. For details, see <a href="https://www.autohotkey.com/forum/topic26191.html">.NET Framework Interop</a> (which currently utilizes DllCall and is not compatible with AutoHotkey v2).</p>
 
 <h2 id="Related">Related</h2>
-<p><a href="../Compat.htm#DllCall">Binary Compatibility</a>, <a href="Buffer.htm">Buffer object</a>, <a href="ComCall.htm">ComCall</a>, <a href="PostMessage.htm">PostMessage</a>, <a href="OnMessage.htm">OnMessage</a>, <a href="CallbackCreate.htm">CallbackCreate</a>, <a href="Run.htm">Run</a>, <a href="VarSetStrCapacity.htm">VarSetStrCapacity</a>, <a href="../Functions.htm">Functions</a>, <a href="SysGet.htm">SysGet</a>, <a href="_DllLoad.htm">#DllLoad</a>, <a href="https://docs.microsoft.com/en-au/windows/win32/apiindex/windows-api-list">Windows API Index</a></p>
+<p><a href="../Compat.htm#DllCall">Binary Compatibility</a>, <a href="Buffer.htm">Buffer object</a>, <a href="ComCall.htm">ComCall</a>, <a href="PostMessage.htm">PostMessage</a>, <a href="OnMessage.htm">OnMessage</a>, <a href="CallbackCreate.htm">CallbackCreate</a>, <a href="Run.htm">Run</a>, <a href="VarSetStrCapacity.htm">VarSetStrCapacity</a>, <a href="../Functions.htm">Functions</a>, <a href="SysGet.htm">SysGet</a>, <a href="_DllLoad.htm">#DllLoad</a>, <a href="https://learn.microsoft.com/windows/win32/apiindex/windows-api-list">Windows API Index</a></p>
 
 <h2 id="Examples">Examples</h2>
 <div class="ex" id="ExMessageBox">
@@ -425,7 +425,7 @@ SetSystemTime(YYYYMMDDHHMISS)
 <div class="ex" id="ExTaskbar">
 <p><a class="ex_number" href="#ExTaskbar"></a> Removes the active window from the taskbar for 3 seconds. Compare this to the <a href="ComCall.htm#ExTaskbar">equivalent ComCall example</a>.</p>
 <pre><em>/*
-  Methods in <a href="http://msdn.microsoft.com/en-us/library/bb774652.aspx">ITaskbarList</a>'s VTable:
+  Methods in <a href="https://learn.microsoft.com/windows/win32/api/shobjidl_core/nn-shobjidl_core-itaskbarlist">ITaskbarList</a>'s VTable:
     IUnknown:
       0 QueryInterface  -- use <a href="ComObjQuery.htm">ComObjQuery</a> instead
       1 AddRef          -- use <a href="ObjAddRef.htm">ObjAddRef</a> instead
@@ -445,10 +445,10 @@ tbl := ComObject(CLSID_TaskbarList, IID_ITaskbarList)
 
 activeHwnd := WinExist("A")
 
-DllCall(vtable(tbl.ptr,3), "ptr", tbl)                     <em>; tbl.<a href="http://msdn.microsoft.com/en-us/library/bb774650.aspx">HrInit</a>()</em>
-DllCall(vtable(tbl.ptr,5), "ptr", tbl, "ptr", activeHwnd)  <em>; tbl.<a href="http://msdn.microsoft.com/en-us/library/bb774648.aspx">DeleteTab</a>(activeHwnd)</em>
+DllCall(vtable(tbl.ptr,3), "ptr", tbl)                     <em>; tbl.<a href="https://learn.microsoft.com/windows/win32/api/shobjidl_core/nf-shobjidl_core-itaskbarlist-hrinit">HrInit</a>()</em>
+DllCall(vtable(tbl.ptr,5), "ptr", tbl, "ptr", activeHwnd)  <em>; tbl.<a href="https://learn.microsoft.com/windows/win32/api/shobjidl_core/nf-shobjidl_core-itaskbarlist-deletetab">DeleteTab</a>(activeHwnd)</em>
 Sleep 3000
-DllCall(vtable(tbl.ptr,4), "ptr", tbl, "ptr", activeHwnd)  <em>; tbl.<a href="http://msdn.microsoft.com/en-us/library/bb774646.aspx">AddTab</a>(activeHwnd)</em>
+DllCall(vtable(tbl.ptr,4), "ptr", tbl, "ptr", activeHwnd)  <em>; tbl.<a href="https://learn.microsoft.com/windows/win32/api/shobjidl_core/nf-shobjidl_core-itaskbarlist-addtab">AddTab</a>(activeHwnd)</em>
 
 <em>; Non-wrapped interface pointers must be manually freed.</em>
 ObjRelease(tbl.ptr)
