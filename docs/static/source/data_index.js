@@ -267,7 +267,7 @@ indexData = [
   ["ATan","lib/Math.htm#ATan",2],
   ["AtEOF property (File)","lib/File.htm#AtEOF",7],
   ["attributes of files and folders","lib/FileGetAttrib.htm"],
-  ["auto-execute section","Scripts.htm#auto"],
+  ["auto-execute thread","Scripts.htm#auto"],
   ["auto-replace text as you type it","Hotstrings.htm"],
   ["BackColor property (Gui)","lib/Gui.htm#BackColor",7],
   ["BackspaceIsUndo property (InputHook)","lib/InputHook.htm#BackspaceIsUndo",7],
