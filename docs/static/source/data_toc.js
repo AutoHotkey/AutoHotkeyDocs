@@ -50,11 +50,16 @@ tocData = [
       ["ComObjArray()","lib/ComObjArray.htm"],
       ["ComObjConnect()","lib/ComObjConnect.htm"],
       ["ComObjCreate()","lib/ComObjCreate.htm"],
-      ["ComObjGet()","lib/ComObjGet.htm"],
+      ["ComObject()","lib/ComObjActive.htm#ComObject"],
+      ["ComObjEnwrap()","lib/ComObjActive.htm#ComObjEnwrap"],
       ["ComObjError()","lib/ComObjError.htm"],
       ["ComObjFlags()","lib/ComObjFlags.htm"],
+      ["ComObjGet()","lib/ComObjGet.htm"],
+      ["ComObjMissing()","lib/ComObjActive.htm#ComObjMissing"],
+      ["ComObjParameter()","lib/ComObjActive.htm#ComObjParameter"],
       ["ComObjQuery()","lib/ComObjQuery.htm"],
       ["ComObjType()","lib/ComObjType.htm"],
+      ["ComObjUnwrap()","lib/ComObjActive.htm#ComObjUnwrap"],
       ["ComObjValue()","lib/ComObjValue.htm"],
       ["ObjAddRef() / ObjRelease()","lib/ObjAddRef.htm"]
     ]]

@@ -1,8 +1,8 @@
 <!DOCTYPE HTML>
 <html lang="en">
 <head>
-<title>ComObjActive() - Syntax &amp; Usage | AutoHotkey</title>
-<meta name="description" content="The ComObjActive function retrieves a running object that has been registered with OLE." />
+<title>ComObjActive() and Related Functions - Syntax &amp; Usage | AutoHotkey</title>
+<meta name="description" content="The ComObjActive function retrieves a registered COM object. ComObject wraps a value and type to pass as a parameter or return value." />
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <link href="../static/theme.css" rel="stylesheet" type="text/css" />
@@ -10,36 +10,41 @@
 </head>
 <body>
 
-<h1>ComObjActive() <span class="ver">[AHK_L 53+]</span></h1>
+<h1>ComObjActive() and Related Functions <span class="ver">[AHK_L 53+]</span></h1>
 
+<h2 id="toc">Table of Contents</h2>
+<ul>
+  <li><a href="#ComObjActive">ComObjActive()</a>: Retrieves a registered COM object.</li>
+  <li><a href="#ComObject">ComObject()</a>: Wraps a value and type to pass as a parameter or return value.</li>
+  <li><a href="#ComObjParameter">ComObjParameter()</a>: Wraps a value and type to pass as a parameter.</li>
+  <li><a href="#ComObjMissing">ComObjMissing()</a>: Creates a "missing parameter" object to pass to a COM method.</li>
+  <li><a href="#ComObjEnwrapUnwrap">ComObjEnwrap() / ComObjUnwrap()</a>: Wraps/unwraps a COM object.</li>
+  <li><a href="#Remarks">General Remarks</a></li>
+  <li><a href="#Related">Related</a></li>
+  <li><a href="#Examples">Examples</a></li>
+</ul>
+
+<h2 id="ComObjActive">ComObjActive()</h2>
 <p>Retrieves a running object that has been registered with OLE.</p>
 <pre class="Syntax">ComObject := <span class="func">ComObjActive</span>(CLSID)</pre>
 
-<p id="param">Creates an object representing a typed value to be passed as a parameter or return value.</p>
-<pre class="Syntax">ParamObj := <span class="func">ComObject</span>(VarType, Value <span class="optional">, Flags</span>)</pre>
-<hr>
-<p class="warning"><strong>Deprecated:</strong> The usages shown below are deprecated and may be altered or unavailable in a future release.</p>
-<p id="missing">Creates an object which may be used in place of an optional parameter's default value when calling a method of a COM object. <span class="ver">[v1.1.12+]</span>: This function is obsolete. Instead, simply write two consecutive commas, as in <code>Obj.Method(1,,3)</code></p>
-<pre class="Syntax">ParamObj := <span class="func">ComObjMissing</span>()</pre>
-
-<p id="enwrap">Wraps or unwraps a raw <a href="https://learn.microsoft.com/windows/win32/winauto/idispatch-interface">IDispatch</a> pointer in a usable object and automatically calls AddRef.</p>
-<pre class="Syntax">
-ComObject := <span class="func">ComObjEnwrap</span>(DispPtr)
-DispPtr := <span class="func">ComObjUnwrap</span>(ComObject)
-</pre>
-<p>To write more future-proof code, use the following instead:</p>
-<pre>ComObject := ComObject(9, DispPtr, 1), ObjAddRef(DispPtr)
-DispPtr := <a href="ComObjValue.htm">ComObjValue</a>(ComObject), ObjAddRef(DispPtr)</pre>
-<hr>
-
-<h2 id="Parameters">Parameters</h2>
+<h3 id="ComObjActive_Parameters">Parameters</h3>
 <dl>
 
   <dt>CLSID</dt>
   <dd><p>CLSID or human-readable Prog ID of the COM object to retrieve.</p></dd>
 
-  <dt>ComObject</dt>
-  <dd><p>COM object usable with <a href="../Objects.htm#Usage_Objects">object syntax</a>.</p></dd>
+</dl>
+
+<h3 id="ComObjActive_Return_Value">Return Value</h3>
+<p>This function returns a new COM wrapper object with the <a href="ComObjType.htm#vt">variant type</a> VT_DISPATCH (9).</p>
+
+<h2 id="ComObject">ComObject()</h2>
+<p>Creates an object representing a typed value to be passed as a parameter or return value.</p>
+<pre class="Syntax">ParamObj := <span class="func">ComObject</span>(VarType, Value <span class="optional">, Flags</span>)</pre>
+
+<h3 id="ComObject_Parameters">Parameters</h3>
+<dl>
 
   <dt>VarType</dt>
   <dd><p>An integer indicating the type of value. See <a href="ComObjType.htm#vt">ComObjType()</a> for a list of types.</p></dd>
@@ -48,14 +53,14 @@ DispPtr := <a href="ComObjValue.htm">ComObjValue</a>(ComObject), ObjAddRef(DispP
   <dd><p>The value to wrap. Currently only integer and pointer values are supported.</p></dd>
 
   <dt>Flags</dt>
-  <dd><p>Flags affecting the behaviour of this function and the wrapper object; see below.</p></dd>
-
-  <dt>DispPtr</dt>
-  <dd><p>Raw IDispatch pointer.</p></dd>
+  <dd><p>Flags affecting the behaviour of this function and the wrapper object; see the table below.</p></dd>
 
 </dl>
 
-<h2 id="Flags">Flags</h2>
+<h3 id="ComObject_Return_Value">Return Value</h3>
+<p>This function returns a wrapper object containing a <a href="ComObjType.htm#vt">variant type</a> and value or pointer.</p>
+
+<h3 id="Flags">Flags</h3>
 <table class="info">
   <tr>
     <th class="center">Flag</th>
@@ -74,7 +79,7 @@ DispPtr := <a href="ComObjValue.htm">ComObjValue</a>(ComObject), ObjAddRef(DispP
   </tr>
 </table>
 
-<h2 id="ByRef">ByRef <span class="ver">[v1.1.17+]</span></h2>
+<h3 id="ByRef">ByRef <span class="ver">[v1.1.17+]</span></h3>
 <p>If a wrapper object's <a href="ComObjType.htm"><em>VarType</em></a> includes the VT_BYREF (0x4000) flag, empty brackets <code>[]</code> can be used to read or write the referenced value.</p>
 <p>When creating a reference, <em>Value</em> must be the memory address of a variable or buffer with sufficient capacity to store a value of the given type. For example, the following can be used to create a variable which a VBScript function can write into:</p>
 <pre>VarSetCapacity(var, 24, 0)
@@ -84,6 +89,47 @@ vref[] := "in value"
 sc.Run("Example", vref)  <em>; sc should be initialized as in the <a href="#ByRefEx">example below</a>.</em>
 MsgBox % vref[]</pre>
 <p>Note that although any previous value is freed when a new value is assigned by <code>vref[]</code> or the COM method, the final value is not freed automatically. Freeing the value requires knowing which type it is. Because it is VT_VARIANT in this case, it can be freed by calling <a href="https://learn.microsoft.com/windows/win32/api/oleauto/nf-oleauto-variantclear">VariantClear</a> with <a href="DllCall.htm">DllCall</a> or by using a simpler method: assign an integer, such as <code>vref[] := 0</code>.</p>
+
+<h2 id="ComObjParameter">ComObjParameter()</h2>
+<p class="warning"><strong>Deprecated:</strong> This function is not recommended for use in new scripts. Use <a href="#ComObject">ComObject()</a> instead.</p>
+<p>Creates an object representing a typed value to be passed as a parameter.</p>
+<pre class="Syntax">ParamObj := <span class="func">ComObjParameter</span>(VarType, Value <span class="optional">, Flags</span>)</pre>
+<p>For details, see <a href="#ComObject">ComObject()</a> above.</p>
+
+<h2 id="ComObjMissing">ComObjMissing()</h2>
+<p class="warning"><span class="ver">[v1.1.12+]</span> <strong>Deprecated:</strong> This function is not recommended for use in new scripts. Instead, simply write two consecutive commas, as in <code>Obj.Method(1,,3)</code>.</p>
+<p>Creates an object which may be used in place of an optional parameter's default value when calling a method of a COM object.</p>
+<pre class="Syntax">ParamObj := <span class="func">ComObjMissing</span>()</pre>
+<h3 id="ComObjMissing_Return_Value">Return Value</h3>
+<p>This function returns a wrapper object with the <a href="ComObjType.htm#vt">variant type</a> VT_ERROR (0xA).</p>
+
+<div id="ComObjEnwrap"><div id="ComObjUnwrap"><h2 id="ComObjEnwrapUnwrap">ComObjEnwrap() / ComObjUnwrap()</h2></div></div>
+<p class="warning"><strong>Deprecated:</strong> These functions are not recommended for use in new scripts. See <a href="#ComObjEnwrap_Remarks">Remarks</a> below.</p>
+<p id="enwrap">Wraps or unwraps a raw <a href="https://learn.microsoft.com/windows/win32/winauto/idispatch-interface">IDispatch</a> pointer in a usable object and automatically calls AddRef.</p>
+<pre class="Syntax">
+ComObject := <span class="func">ComObjEnwrap</span>(DispPtr)
+DispPtr := <span class="func">ComObjUnwrap</span>(ComObject)
+</pre>
+
+<h3 id="ComObjEnwrap_Parameters">Parameters</h3>
+<dl>
+
+  <dt>ComObject</dt>
+  <dd><p>COM object usable with the <a href="../Objects.htm#Usage_Objects">object syntax</a>.</p></dd>
+
+  <dt>DispPtr</dt>
+  <dd><p>Raw IDispatch pointer.</p></dd>
+
+</dl>
+
+<h3 id="ComObjEnwrap_Return_Value">Return Value</h3>
+<p>ComObjEnwrap returns a COM object usable with the <a href="../Objects.htm#Usage_Objects">object syntax</a>. ComObjUnwrap returns a raw IDispatch pointer.</p>
+
+<h3 id="ComObjEnwrap_Remarks">Remarks</h3>
+<p>To write more future-proof code, use the following instead:</p>
+<pre>ComObject := ComObject(9, DispPtr, 1), ObjAddRef(DispPtr)
+DispPtr := <a href="ComObjValue.htm">ComObjValue</a>(ComObject), ObjAddRef(DispPtr)</pre>
+<p>For an example, see <a href="ComObjConnect.htm#Examples">ComObjConnect()</a>.</p>
 
 <h2 id="Remarks">General Remarks</h2>
 <p>In current versions, any function-call beginning with "ComObj" that does not match one of the other COM functions actually calls ComObjActive. For example, <code>ComObjEnwrap(DispPtr)</code> and <code>ComObjActive(DispPtr)</code> are both equivalent to <code>ComObject(DispPtr)</code> (<em>VarType</em> 9 is implied). However, this behaviour will be unavailable in a future release, so it is best to use only <code>ComObject()</code> and <code>ComObjActive()</code> as shown on this page.</p>
@@ -95,7 +141,6 @@ MsgBox % vref[]</pre>
 <p><a href="ComObjCreate.htm">ComObjCreate()</a>, <a href="ComObjGet.htm">ComObjGet()</a>, <a href="ComObjConnect.htm">ComObjConnect()</a>, <a href="ComObjError.htm">ComObjError()</a>, <a href="ComObjFlags.htm">ComObjFlags()</a>, <a href="ObjAddRef.htm">ObjAddRef() / ObjRelease()</a>, <a href="ComObjQuery.htm">ComObjQuery()</a>, <a href="https://learn.microsoft.com/windows/win32/api/oleauto/nf-oleauto-getactiveobject">GetActiveObject (Microsoft Docs)</a></p>
 
 <h2 id="Examples">Examples</h2>
-<p>ComObjUnwrap: See <a href="ComObjConnect.htm#Examples">ComObjConnect()</a>.</p>
 <div class="ex" id="ByRefEx">
 <p><a class="ex_number" href="#ByRefEx"></a> Passes a VARIANT ByRef to a COM function.</p>
 <pre>
