@@ -131,7 +131,7 @@ indexData = [
   ["A_IconHidden","Variables.htm#IconHidden",1],
   ["A_IconNumber","Variables.htm#IconNumber",1],
   ["A_IconTip","Variables.htm#IconTip",1],
-  ["A_Index","lib/Loop.htm",1],
+  ["A_Index","Variables.htm#Index",1],
   ["A_InitialWorkingDir","Variables.htm#InitialWorkingDir",1],
   ["A_Is64bitOS","Variables.htm#Is64bitOS",1],
   ["A_IsAdmin","Variables.htm#IsAdmin",1],
