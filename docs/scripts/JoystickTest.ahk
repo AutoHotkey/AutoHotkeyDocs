@@ -1,88 +1,89 @@
-﻿; Joystick Test Script
+﻿; Controller Test Script
 ; https://www.autohotkey.com
 ; This script helps determine the button numbers and other attributes
-; of your joystick. It might also reveal if your joystick is in need
-; of calibration; that is, whether the range of motion of each of its
-; axes is from 0 to 100 percent as it should be. If calibration is
-; needed, use the operating system's control panel or the software
-; that came with your joystick.
+; of your controller (gamepad, joystick, etc.). It might also reveal
+; if your controller is in need of calibration; that is, whether the
+; range of motion of each of its axes is from 0 to 100 percent as it
+; should be. If calibration is needed, use the operating system's
+; control panel or the software that came with your controller.
 
+; April 14, 2023: Renamed 'joystick' to 'controller'.
 ; July 6, 2005: Added auto-detection of joystick number.
 ; May 8, 2005 : Fixed: JoyAxes is no longer queried as a means of
 ; detecting whether the joystick is connected.  Some joysticks are
 ; gamepads and don't have even a single axis.
 
-; If you want to unconditionally use a specific joystick number, change
-; the following value from 0 to the number of the joystick (1-16).
-; A value of 0 causes the joystick number to be auto-detected:
-JoystickNumber = 0
+; If you want to unconditionally use a specific controller number, change
+; the following value from 0 to the number of the controller (1-16).
+; A value of 0 causes the controller number to be auto-detected:
+ControllerNumber = 0
 
 ; END OF CONFIG SECTION. Do not make changes below this point unless
 ; you wish to alter the basic functionality of the script.
 
-; Auto-detect the joystick number if called for:
-if JoystickNumber <= 0
+; Auto-detect the controller number if called for:
+if ControllerNumber <= 0
 {
-	Loop 16  ; Query each joystick number to find out which ones exist.
+	Loop 16  ; Query each controller number to find out which ones exist.
 	{
-		GetKeyState, JoyName, %A_Index%JoyName
-		if JoyName <>
+		GetKeyState, ContName, %A_Index%JoyName
+		if ContName <>
 		{
-			JoystickNumber = %A_Index%
+			ControllerNumber = %A_Index%
 			break
 		}
 	}
-	if JoystickNumber <= 0
+	if ControllerNumber <= 0
 	{
-		MsgBox The system does not appear to have any joysticks.
+		MsgBox The system does not appear to have any controllers.
 		ExitApp
 	}
 }
 
 #SingleInstance
 SetFormat, float, 03  ; Omit decimal point from axis position percentages.
-GetKeyState, joy_buttons, %JoystickNumber%JoyButtons
-GetKeyState, joy_name, %JoystickNumber%JoyName
-GetKeyState, joy_info, %JoystickNumber%JoyInfo
+GetKeyState, cont_buttons, %ControllerNumber%JoyButtons
+GetKeyState, cont_name, %ControllerNumber%JoyName
+GetKeyState, cont_info, %ControllerNumber%JoyInfo
 Loop
 {
 	buttons_down =
-	Loop, %joy_buttons%
+	Loop, %cont_buttons%
 	{
-		GetKeyState, joy%A_Index%, %JoystickNumber%joy%A_Index%
-		if joy%A_Index% = D
+		GetKeyState, Cont%A_Index%, %ControllerNumber%Joy%A_Index%
+		if Cont%A_Index% = D
 			buttons_down = %buttons_down%%A_Space%%A_Index%
 	}
-	GetKeyState, JoyX, %JoystickNumber%JoyX
-	axis_info = X%JoyX%
-	GetKeyState, JoyY, %JoystickNumber%JoyY
-	axis_info = %axis_info%%A_Space%%A_Space%Y%JoyY%
-	IfInString, joy_info, Z
+	GetKeyState, ContX, %ControllerNumber%JoyX
+	axis_info = X%ContX%
+	GetKeyState, ContY, %ControllerNumber%JoyY
+	axis_info = %axis_info%%A_Space%%A_Space%Y%ContY%
+	IfInString, cont_info, Z
 	{
-		GetKeyState, JoyZ, %JoystickNumber%JoyZ
-		axis_info = %axis_info%%A_Space%%A_Space%Z%JoyZ%
+		GetKeyState, ContZ, %ControllerNumber%JoyZ
+		axis_info = %axis_info%%A_Space%%A_Space%Z%ContZ%
 	}
-	IfInString, joy_info, R
+	IfInString, cont_info, R
 	{
-		GetKeyState, JoyR, %JoystickNumber%JoyR
-		axis_info = %axis_info%%A_Space%%A_Space%R%JoyR%
+		GetKeyState, ContR, %ControllerNumber%JoyR
+		axis_info = %axis_info%%A_Space%%A_Space%R%ContR%
 	}
-	IfInString, joy_info, U
+	IfInString, cont_info, U
 	{
-		GetKeyState, JoyU, %JoystickNumber%JoyU
-		axis_info = %axis_info%%A_Space%%A_Space%U%JoyU%
+		GetKeyState, ContU, %ControllerNumber%JoyU
+		axis_info = %axis_info%%A_Space%%A_Space%U%ContU%
 	}
-	IfInString, joy_info, V
+	IfInString, cont_info, V
 	{
-		GetKeyState, JoyV, %JoystickNumber%JoyV
-		axis_info = %axis_info%%A_Space%%A_Space%V%JoyV%
+		GetKeyState, ContV, %ControllerNumber%JoyV
+		axis_info = %axis_info%%A_Space%%A_Space%V%ContV%
 	}
-	IfInString, joy_info, P
+	IfInString, cont_info, P
 	{
-		GetKeyState, joyp, %JoystickNumber%JoyPOV
-		axis_info = %axis_info%%A_Space%%A_Space%POV%joyp%
+		GetKeyState, ContPOV, %ControllerNumber%JoyPOV
+		axis_info = %axis_info%%A_Space%%A_Space%POV%ContPOV%
 	}
-	ToolTip, %joy_name% (#%JoystickNumber%):`n%axis_info%`nButtons Down: %buttons_down%`n`n(right-click the tray icon to exit)
+	ToolTip, %cont_name% (#%ControllerNumber%):`n%axis_info%`nButtons Down: %buttons_down%`n`n(right-click the tray icon to exit)
 	Sleep, 100
 }
 return
