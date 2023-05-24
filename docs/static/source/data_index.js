@@ -1010,7 +1010,7 @@ indexData = [
   ["regular expressions: SetTitleMatchMode RegEx","lib/SetTitleMatchMode.htm#RegEx"],
   ["RegWrite","lib/RegWrite.htm",6,"SSSSS"],
   ["Reload","lib/Reload.htm",6,""],
-  ["remap controller","misc/RemapJoystick.htm"],
+  ["remap controller","misc/RemapController.htm"],
   ["remap keys or mouse buttons","misc/Remap.htm"],
   ["remote controls, hand-held","scripts/index.htm#WinLIRC"],
   ["remove folder/directory","lib/FileRemoveDir.htm"],
