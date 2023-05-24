@@ -7,6 +7,7 @@
 ; should be. If calibration is needed, use the operating system's
 ; control panel or the software that came with your controller.
 
+; May 24, 2023: Replaced tooltip with GUI.
 ; April 14, 2023: Renamed 'joystick' to 'controller'.
 ; July 6, 2005: Added auto-detection of joystick number.
 ; May 8, 2005 : Fixed: JoyAxes is no longer queried as a means of
@@ -20,6 +21,11 @@ ControllerNumber = 0
 
 ; END OF CONFIG SECTION. Do not make changes below this point unless
 ; you wish to alter the basic functionality of the script.
+
+Gui, +AlwaysOnTop
+Gui, Add, Text, w300, Note: For Xbox controller 2013 and newer (anything newer than the Xbox 360 controller), this script can only detect button, stick, d-pad and trigger presses/states when an AutoHotkey window is active (like this one).
+Gui, Add, Edit, w300 h300 +ReadOnly
+Gui, Show,, Controller Test Script
 
 ; Auto-detect the controller number if called for:
 if ControllerNumber <= 0
@@ -83,7 +89,10 @@ Loop
 		GetKeyState, ContPOV, %ControllerNumber%JoyPOV
 		axis_info = %axis_info%%A_Space%%A_Space%POV%ContPOV%
 	}
-	ToolTip, %cont_name% (#%ControllerNumber%):`n%axis_info%`nButtons Down: %buttons_down%`n`n(right-click the tray icon to exit)
+	GuiControl,, Edit1, %cont_name% (#%ControllerNumber%):`n%axis_info%`nButtons Down: %buttons_down%
 	Sleep, 100
 }
 return
+
+GuiClose:
+ExitApp
