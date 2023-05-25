@@ -23,7 +23,7 @@ ControllerNumber = 0
 ; you wish to alter the basic functionality of the script.
 
 Gui, +AlwaysOnTop
-Gui, Add, Text, w300, Note: For Xbox controller 2013 and newer (anything newer than the Xbox 360 controller), this script can only detect button, stick, d-pad and trigger presses/states when an AutoHotkey window is active (like this one).
+Gui, Add, Text, w300, Note: For Xbox controller 2013 and newer (anything newer than the Xbox 360 controller), this script can only detect controller events if a window it owns is active (like this one).
 Gui, Add, Edit, w300 h300 +ReadOnly
 Gui, Show,, Controller Test Script
 
