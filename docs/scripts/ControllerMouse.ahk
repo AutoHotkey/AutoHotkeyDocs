@@ -5,6 +5,10 @@
 ; virtually no CPU time. Also, it will move the cursor faster depending on how far
 ; you push the controller from center. You can personalize various settings at the
 ; top of the script.
+;
+; Note: For Xbox controller 2013 and newer (anything newer than the Xbox 360
+; controller), this script will only work if a window it owns is active,
+; such as a message box, GUI, or the script's main window.
 
 ; Increase the following value to make the mouse cursor move faster:
 ContMultiplier = 0.30
