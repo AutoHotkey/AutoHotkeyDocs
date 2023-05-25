@@ -7,7 +7,7 @@
 ; should be. If calibration is needed, use the operating system's
 ; control panel or the software that came with your controller.
 
-; May 24, 2023: Replaced tooltip with GUI.
+; May 24, 2023: Replaced ToolTip and MsgBox with GUI.
 ; April 14, 2023: Renamed 'joystick' to 'controller'.
 ; July 6, 2005: Added auto-detection of joystick number.
 ; May 8, 2005 : Fixed: JoyAxes is no longer queried as a means of
@@ -41,8 +41,8 @@ if ControllerNumber <= 0
 	}
 	if ControllerNumber <= 0
 	{
-		MsgBox The system does not appear to have any controllers.
-		ExitApp
+		GuiControl,, Edit1, The system does not appear to have any controllers.
+		return
 	}
 }
 
