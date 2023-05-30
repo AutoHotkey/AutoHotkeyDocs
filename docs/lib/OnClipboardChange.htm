@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <title>OnClipboardChange - Syntax &amp; Usage | AutoHotkey</title>
-<meta name="description" content="As function, OnClipboardChange registers a function or function object to run whenever the clipboard's content changes. As label, it is launched automatically whenever the clipboard's content changes." />
+<meta name="description" content="OnClipboardChange can be used in two different ways. As a function, it registers a function to be called automatically whenever the clipboard's content changes. As a label, it is launched automatically whenever the clipboard's content changes." />
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <link href="../static/theme.css" rel="stylesheet" type="text/css" />
@@ -11,48 +11,45 @@
 <body>
 
 <h1>OnClipboardChange</h1>
+<p>OnClipboardChange can be used in two different ways, although the first is recommended for new scripts. <a href="#function">As a function</a>, it registers a function to be called automatically whenever the clipboard's content changes. <a href="#label">As a label</a>, it is launched automatically whenever the clipboard's content changes.</p>
 
 <h2 id="function">OnClipboardChange() <span class="ver">[v1.1.20+]</span></h2>
-<p>Registers a <a href="../Functions.htm">function</a> or <a href="../misc/Functor.htm">function object</a> to run whenever the clipboard's content changes.</p>
-<pre class="Syntax"><span class="func">OnClipboardChange</span>(Func <span class="optional">, AddRemove</span>)</pre>
+<p>Registers a <a href="../Functions.htm">function</a> to be called automatically whenever the clipboard's content changes.</p>
+<pre class="Syntax"><span class="func">OnClipboardChange</span>(Callback <span class="optional">, AddRemove</span>)</pre>
 
 <h3 id="Parameters">Parameters</h3>
 <dl>
 
-  <dt>Func</dt>
-  <dd><p>A function name or <a href="../misc/Functor.htm">function object</a> to call. The function's parameter and return value are described <a href="#Func">below</a>.</p></dd>
-  
-  <dt>AddRemove</dt>
-  <dd><p>If blank or omitted, it defaults to 1 (call the function after any previously registered functions). Otherwise, specify one of the following numbers:</p>
-    <ul>
-      <li>1 = Call the function after any previously registered functions.</li>
-      <li>-1 = Call the function before any previously registered functions.</li>
-      <li>0 = Do not call the function.</li>
-    </ul>
-  <p>If an OnClipboardChange label exists, it is always called first.</p></dd>
-
-</dl>
-
-<h3 id="Func">Func</h3>
-<pre class="Syntax"><i>FunctionName</i>(Type)</pre>
-<dl>
-  <dt>Type</dt>
-  <dd><p>Contains one of the following numbers:</p>
+  <dt id="Func">Callback</dt>
+  <dd>
+    <p>A function name or <a href="../misc/Functor.htm">function object</a> to call. To pass a literal function name, enclose it in quotes.</p>
+    <p>The callback accepts one parameter and can be <a href="../Functions.htm#intro">defined</a> as follows:</p>
+    <pre class="NoIndent">MyCallback(DataType) { ...</pre>
+    <p>Although the name you give the parameter does not matter, it is assigned one of the following numbers:</p>
     <ul>
       <li>0 = Clipboard is now empty.</li>
       <li>1 = Clipboard contains something that can be expressed as text (this includes <a href="../misc/Clipboard.htm#CopiedFiles">files copied</a> from an Explorer window).</li>
       <li>2 = Clipboard contains something entirely non-text such as a picture.</li>
     </ul>
+    <p>You can omit the callback's parameter if the corresponding information is not needed.</p>
+    <p>If this is the last or only callback, the return value is ignored. Otherwise, it can return a non-zero integer to prevent subsequent callbacks from being called.</p>
   </dd>
   
-  <dt><em>Return Value</em></dt>
-  <dd><p>If this is the last or only OnClipboardChange function, the return value is ignored. Otherwise, the function can return a non-zero integer to prevent subsequent functions from being called.</p></dd>
+  <dt>AddRemove</dt>
+  <dd><p>If blank or omitted, it defaults to 1 (call the callback after any previously registered callbacks). Otherwise, specify one of the following numbers:</p>
+    <ul>
+      <li>1 = Call the callback after any previously registered callbacks.</li>
+      <li>-1 = Call the callback before any previously registered callbacks.</li>
+      <li>0 = Do not call the callback.</li>
+    </ul>
+  <p>If the OnClipboardChange label exists, it is always called first.</p></dd>
+
 </dl>
 
 <h2 id="label">OnClipboardChange Label</h2>
-<p class="warning"><strong>Deprecated:</strong> This approach is not recommended for use in new scripts. Use the <a href="#function">OnClipboardChange</a> function instead.</p>
+<p class="warning"><strong>Deprecated:</strong> The OnClipboardChange label is not recommended for use in new scripts. Use the <a href="#function">OnClipboardChange</a> function described above instead.</p>
 <p>A label named OnClipboardChange (if it exists) is launched automatically whenever any application (even the script itself) has changed the contents of the clipboard. The label also runs once when the script first starts.</p>
-<p>The built-in variable A_EventInfo contains one of the following numbers:</p>
+<p>The built-in variable <strong>A_EventInfo</strong> contains one of the following numbers:</p>
 <ul>
   <li>0 = Clipboard is now empty.</li>
   <li>1 = Clipboard contains something that can be expressed as text (this includes <a href="../misc/Clipboard.htm#CopiedFiles">files copied</a> from an Explorer window).</li>
@@ -60,8 +57,8 @@
 </ul>
 
 <h2 id="Remarks">Remarks</h2>
-<p>If the clipboard changes while an OnClipboardChange function or label is already running, that notification event is lost. If this is undesirable,  specify <a href="Critical.htm">Critical</a> as the label's first line. However, this will also buffer/defer other <a href="../misc/Threads.htm">threads</a> (such as the press of a hotkey) that occur while the OnClipboardChange thread is running.</p>
-<p>If the script itself changes the clipboard, its OnClipboardChange function or label is typically not executed immediately; that is, commands immediately below the command that changed the clipboard are likely to execute beforehand. To force the function or label to execute immediately, use a short delay such as <code><a href="Sleep.htm">Sleep</a> 20</code> after changing the clipboard.</p>
+<p>If the clipboard changes while a callback or label is already running, that notification event is lost. If this is undesirable, use <a href="Critical.htm">Critical</a>. However, this will also buffer/defer other <a href="../misc/Threads.htm">threads</a> (such as the press of a hotkey) that occur while the OnClipboardChange thread is running.</p>
+<p>If the script itself changes the clipboard, the callback or label is typically not executed immediately; that is, statements immediately below the statement that changed the clipboard are likely to execute beforehand. To force the callback or label to execute immediately, use a short delay such as <code><a href="Sleep.htm">Sleep</a> 20</code> after changing the clipboard.</p>
 
 <h2 id="Related">Related</h2>
 <p><a href="../misc/Clipboard.htm">Clipboard</a>, <a href="OnExit.htm#function">OnExit()</a>, <a href="OnExit.htm#command">OnExit</a>, <a href="OnMessage.htm">OnMessage()</a>, <a href="RegisterCallback.htm">RegisterCallback()</a></p>
@@ -69,13 +66,13 @@
 <h2 id="Examples">Examples</h2>
 <div class="ex" id="ExFnVsLabel">
 <p><a class="ex_number" href="#ExFnVsLabel"></a> Function vs. Label.</p>
-<p>Despite the different approach, both examples have the same effect; that is, they briefly display a tooltip for each clipboard change. Note that the function is not called when the script first starts; only when the contents of the clipboard changes.</p>
+<p>Despite the different syntax, both examples have the same effect, i.e. they briefly display a tooltip for each clipboard change. Note: Unlike the label, the callback does not run once when the script first starts, but only when the clipboard's content has changed.</p>
 <pre id="FunctionExample">#Persistent
 OnClipboardChange("ClipChanged")
 return
 
-ClipChanged(Type) {
-    ToolTip Clipboard data type: %Type%
+ClipChanged(DataType) {
+    ToolTip Clipboard data type: %DataType%
     Sleep 1000
     ToolTip  <em>; Turn off the tip.</em>
 }</pre>
@@ -87,6 +84,20 @@ ToolTip Clipboard data type: %A_EventInfo%
 Sleep 1000
 ToolTip  <em>; Turn off the tip.</em>
 return</pre>
+</div>
+<div class="ex" id="ExFnObj">
+<p><a class="ex_number" href="#ExFnObj"></a> Same as above but with a function object.</p>
+<pre>#Persistent
+OnClipboardChange(ClipChanged)
+return
+
+class ClipChanged {
+    Call(DataType) {
+        ToolTip Clipboard data type: %DataType%
+        Sleep 1000
+        ToolTip  <em>; Turn off the tip.</em>
+    }
+}</pre>
 </div>
 
 </body>
