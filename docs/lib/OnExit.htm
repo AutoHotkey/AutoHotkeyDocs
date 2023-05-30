@@ -1,8 +1,8 @@
 <!DOCTYPE HTML>
 <html lang="en">
 <head>
-<title>OnExit() / OnExit - Syntax &amp; Usage | AutoHotkey</title>
-<meta name="description" content="The OnExit function or command specifies a callback function or subroutine to run automatically when the script exits." />
+<title>OnExit - Syntax &amp; Usage | AutoHotkey</title>
+<meta name="description" content="OnExit can be used in two different ways. As a function, it registers a function to be called automatically whenever the script exits. As a command, it registers a subroutine to run automatically whenever the script exits." />
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <link href="../static/theme.css" rel="stylesheet" type="text/css" />
@@ -10,58 +10,69 @@
 </head>
 <body>
 
-<h1>OnExit() / OnExit</h1>
-<p>Specifies a <a href="../Functions.htm">callback function</a> or <a href="Gosub.htm">subroutine</a> to run automatically when the script exits.</p>
+<h1>OnExit</h1>
+<p>OnExit can be used in two different ways, although the first is recommended for new scripts. <a href="#function">As a function</a>, it registers a function to be called automatically whenever the script exits. <a href="#command">As a command</a>, it registers a subroutine to be called automatically whenever the script exits.</p>
 
 <h2 id="function">OnExit() <span class="ver">[v1.1.20+]</span></h2>
-<pre class="Syntax"><span class="func">OnExit</span>(Func <span class="optional">, AddRemove</span>)</pre>
+<p>Registers a <a href="../Functions.htm">function</a> to be called automatically whenever the script exits.</p>
+<pre class="Syntax"><span class="func">OnExit</span>(Callback <span class="optional">, AddRemove</span>)</pre>
 
 <h3 id="Function_Parameters">Parameters</h3>
 <dl>
 
-  <dt>Func</dt>
-  <dd><p>A function name or <a href="../misc/Functor.htm">function object</a> to call when the script is exiting. The function can optionally define parameters as shown below. If an OnExit function returns a non-zero integer, the script does not exit (with some <a href="#close">rare exceptions</a>) and no more functions are called. Otherwise, the script exits after all registered functions are called.</p>
-  <pre class="Syntax"><span class="func">ExitFunc</span>(<a href="#ExitReason">ExitReason</a>, <a href="ExitApp.htm">ExitCode</a>)</pre></dd>
-  
+  <dt>Callback</dt>
+  <dd>
+    <p>A function name or <a href="../misc/Functor.htm">function object</a> to call. To pass a literal function name, enclose it in quotes.</p>
+    <p>The callback accepts two parameters and can be <a href="../Functions.htm#intro">defined</a> as follows:</p>
+    <pre class="NoIndent">MyCallback(ExitReason, ExitCode) { ...</pre>
+    <p>Although the names you give the parameters do not matter, the following values are sequentially assigned to them:</p>
+    <ol>
+      <li>The exit reason (one of the words from the <a href="#ExitReason">table below</a>).</li>
+      <li>The exit code passed to <a href="Exit.htm">Exit</a> or <a href="ExitApp.htm">ExitApp</a>.</li>
+    </ol>
+    <p>You can omit one or more parameters from the end of the callback's parameter list if the corresponding information is not needed.</p>
+    <p>The callback can return a non-zero integer to prevent the script from exiting (with some <a href="#close">rare exceptions</a>) and calling more callbacks. Otherwise, the script exits after all registered callbacks are called.</p>
+  </dd>
+
   <dt>AddRemove</dt>
-  <dd><p>If blank or omitted, it defaults to 1 (call the function after any previously registered functions). Otherwise, specify one of the following numbers:</p>
+  <dd><p>If blank or omitted, it defaults to 1 (call the callback after any previously registered callbacks). Otherwise, specify one of the following numbers:</p>
     <ul>
-      <li>1 = Call the function after any previously registered functions.</li>
-      <li>-1 = Call the function before any previously registered functions.</li>
-      <li>0 = Do not call the function.</li>
+      <li>1 = Call the callback after any previously registered callbacks.</li>
+      <li>-1 = Call the callback before any previously registered callbacks.</li>
+      <li>0 = Do not call the callback.</li>
     </ul>
-  <p>If a label (subroutine) has been registered, it is always called first.</p>
+  <p>If a subroutine has been registered by the <a href="#command">OnExit command</a> below, that subroutine is always called first.</p>
   </dd>
 
 </dl>
 
 <h3 id="Function_Remarks">Remarks</h3>
-<p>New scripts should use a function instead of a subroutine -- this reduces the risk of accidentally creating a script which can't be exited, and ensures that the exit code passed to Exit or ExitApp is preserved.</p>
-<p>Any number of OnExit functions can be registered. If a label (subroutine) is also registered, the functions are called after the subroutine calls <a href="ExitApp.htm">ExitApp</a>. An OnExit function usually should not call ExitApp; if it does, the script terminates immediately.</p>
+<p>Any number of callbacks can be registered. If a subroutine is also registered (by the <a href="#command">OnExit command</a> below), the callbacks are called after the subroutine calls <a href="ExitApp.htm">ExitApp</a>. A callback usually should not call ExitApp; if it does, the script terminates immediately.</p>
 
 <h2 id="command">OnExit</h2>
-<p class="warning"><strong>Deprecated:</strong> This command is not recommended for use in new scripts. Use the <a href="#function">OnExit</a> function instead.</p>
+<p>Registers a <a href="../Language.htm#subroutines">subroutine</a> to be called automatically whenever the script exits.</p>
+<p class="warning"><strong>Deprecated:</strong> This command is not recommended for use in new scripts. Use the <a href="#function">OnExit</a> function instead to reduce the risk of accidentally creating a script which can't be exited, and ensures that the exit code passed to <a href="Exit.htm">Exit</a> or <a href="ExitApp.htm">ExitApp</a> is preserved.</p>
 <pre class="Syntax"><span class="func">OnExit</span> <span class="optional">, Label</span></pre>
 
 <h3 id="Command_Parameters">Parameters</h3>
 <dl>
 
   <dt>Label</dt>
-  <dd><p>If omitted, any previously registered label is unregistered. Otherwise, specify the name of the <a href="../misc/Labels.htm">label</a> whose contents will be executed (as a new <a href="../misc/Threads.htm">thread</a>) when the script exits by any means.</p></dd>
+  <dd><p>If blank or omitted, any previously registered subroutine is unregistered. Otherwise, specify the <a href="../misc/Labels.htm">label</a> of the subroutine whose contents will be executed (as a new <a href="../misc/Threads.htm">thread</a>) when the script exits by any means.</p></dd>
   
 </dl>
 
 <h3 id="Command_Remarks">Remarks</h3>
-<p><strong>IMPORTANT:</strong> Since the specified subroutine is called instead of terminating the script, that subroutine must use the <a href="ExitApp.htm">ExitApp</a> command if termination is desired.</p>
-<p>The built-in variable <strong>A_ExitReason</strong> is blank unless the OnExit subroutine  is currently running or has been called at least once by a prior exit attempt. If not blank, it is one of the words from the <a href="#ExitReason">table below</a>.</p>
+<p>Since the registered subroutine is called instead of terminating the script, that subroutine must use <a href="ExitApp.htm">ExitApp</a> if termination is desired.</p>
+<p>The built-in variable <strong>A_ExitReason</strong> is blank unless the registered subroutine is currently running or has been called at least once by a prior exit attempt. If not blank, it is one of the words from the <a href="#ExitReason">table below</a>.</p>
 
 <h2 id="Remarks">Remarks</h2>
-<p>The OnExit callback function or subroutine is called when the script exits by any means (except when it is killed by something like "End Task"). It is also called whenever the <a href="_SingleInstance.htm">#SingleInstance</a> and <a href="Reload.htm">Reload</a> commands ask a previous instance to terminate.</p>
+<p>The callback or subroutine is called when the script exits by any means (except when it is killed by something like "End Task"). It is also called whenever <a href="_SingleInstance.htm">#SingleInstance</a> and <a href="Reload.htm">Reload</a> ask a previous instance to terminate.</p>
 <p>A script can detect and optionally abort a system shutdown or logoff via <code>OnMessage(0x0011, "WM_QUERYENDSESSION")</code> (see <a href="OnMessage.htm#shutdown">OnMessage example #2</a> for a working script).</p>
-<p>The OnExit <a href="../misc/Threads.htm">thread</a> does not obey <a href="_MaxThreads.htm">#MaxThreads</a> (it will always launch when needed). In addition, while it is running, it cannot be interrupted by any <a href="../misc/Threads.htm">thread</a>, including <a href="../Hotkeys.htm">hotkeys</a>, <a href="Menu.htm">custom menu items</a>, and <a href="SetTimer.htm">timed subroutines</a>. However, it will be interrupted (and the script will terminate) if the user chooses Exit from the tray menu or main menu, or the script is asked to terminate as a result of <a href="Reload.htm">Reload</a> or <a href="_SingleInstance.htm">#SingleInstance</a>. Because of this, the OnExit callback function or subroutine should be designed to finish quickly unless the user is aware of what it is doing.</p>
-<p>If the OnExit <a href="../misc/Threads.htm">thread</a> encounters a failure condition such as a runtime error, the script will terminate. This prevents a flawed OnExit callback function or subroutine from making a script impossible to terminate.</p>
-<p>If the OnExit <a href="../misc/Threads.htm">thread</a> was launched due to an <a href="Exit.htm">Exit</a> or <a href="ExitApp.htm">ExitApp</a> command that specified an exit code, in <span class="ver">[v1.1.19]</span> and earlier that code is ignored and no longer available. In <span class="ver">[v1.1.20+]</span> the initial exit code is used unless overridden by calling <a href="ExitApp.htm">ExitApp</a> with a new exit code.</p>
-<p>Whenever an exit attempt is made, each OnExit callback function or subroutine starts off fresh with the default values for settings such as <a href="SendMode.htm">SendMode</a>. These defaults can be changed in the <a href="../Scripts.htm#auto">auto-execute section</a>.</p>
+<p>The OnExit <a href="../misc/Threads.htm">thread</a> does not obey <a href="_MaxThreads.htm">#MaxThreads</a> (it will always launch when needed). In addition, while it is running, it cannot be interrupted by any <a href="../misc/Threads.htm">thread</a>, including <a href="../Hotkeys.htm">hotkeys</a>, <a href="Menu.htm">custom menu items</a>, and <a href="SetTimer.htm">timed subroutines</a>. However, it will be interrupted (and the script will terminate) if the user chooses Exit from the tray menu or main menu, or the script is asked to terminate as a result of <a href="Reload.htm">Reload</a> or <a href="_SingleInstance.htm">#SingleInstance</a>. Because of this, the callback or subroutine should be designed to finish quickly unless the user is aware of what it is doing.</p>
+<p>If the OnExit <a href="../misc/Threads.htm">thread</a> encounters a failure condition such as a runtime error, the script will terminate. This prevents a flawed callback or subroutine from making a script impossible to terminate.</p>
+<p>If the OnExit <a href="../misc/Threads.htm">thread</a> was launched due to <a href="Exit.htm">Exit</a> or <a href="ExitApp.htm">ExitApp</a> that specified an exit code, in v1.1.19 and earlier that code is ignored and no longer available. In <span class="ver">[v1.1.20+]</span> the initial exit code is used unless overridden by calling <a href="ExitApp.htm">ExitApp</a> with a new exit code.</p>
+<p>Whenever an exit attempt is made, each callback or subroutine starts off fresh with the default values for settings such as <a href="SendMode.htm">SendMode</a>. These defaults can be changed in the <a href="../Scripts.htm#auto">auto-execute section</a>.</p>
 
 <h2 id="ExitReason">Exit Reasons</h2>
 <table class="info">
@@ -95,7 +106,7 @@
   </tr>
   <tr>
     <td>Exit</td>
-    <td>The <a href="Exit.htm">Exit</a> or <a href="ExitApp.htm">ExitApp</a> command was used (includes <a href="Menu.htm">custom menu items</a>).</td>
+    <td><a href="Exit.htm">Exit</a> or <a href="ExitApp.htm">ExitApp</a> was used (includes <a href="Menu.htm">custom menu items</a>).</td>
   </tr>
   <tr>
     <td>Reload</td>
@@ -113,32 +124,32 @@
 <h2 id="Examples">Examples</h2>
 <div class="ex" id="ExFnVsCmd">
 <p><a class="ex_number" href="#ExFnVsCmd"></a> Function vs. command.</p>
-<p>Despite the different approach, both examples have the same effect; that is, they ask the user before exiting the script. To test them, right-click the <a href="../Program.htm#tray-icon">tray icon</a> and click Exit.</p>
+<p>Despite the different syntax, both examples have the same effect, i.e. they ask the user before exiting the script. To test them, right-click the <a href="../Program.htm#tray-icon">tray icon</a> and click Exit.</p>
 <pre class="NoIndent"><a href="_Persistent.htm">#Persistent</a>  <em>; Prevent the script from exiting automatically.</em>
 OnExit("ExitFunc")
 
 ExitFunc(ExitReason, ExitCode)
 {
-    if ExitReason not in Logoff,Shutdown
+    if ExitReason not in Logoff,Shutdown  <em>; Avoid spaces around the comma.</em>
     {
         MsgBox, 4, , Are you sure you want to exit?
         IfMsgBox, No
-            return 1  <em>; OnExit functions must return non-zero to prevent exit.</em>
+            return 1  <em>; Callbacks must return non-zero to avoid exit.</em>
     }
-    <em>; Do not call ExitApp -- that would prevent other OnExit functions from being called.</em>
+    <em>; Do not call ExitApp -- that would prevent other callbacks from being called.</em>
 }</pre>
 <pre><a href="_Persistent.htm">#Persistent</a>  <em>; Prevent the script from exiting automatically.</em>
-OnExit, ExitSub  
+OnExit, ExitSub
 return
 
 ExitSub:
-if A_ExitReason not in Logoff,Shutdown  <em>; Avoid spaces around the comma in this line.</em>
+if A_ExitReason not in Logoff,Shutdown  <em>; Avoid spaces around the comma.</em>
 {
     MsgBox, 4, , Are you sure you want to exit?
     IfMsgBox, No
         return
 }
-ExitApp  <em>; A script with an OnExit subroutine will not terminate unless the subroutine uses ExitApp.</em></pre>
+ExitApp  <em>; A script with an registered subroutine will not terminate unless the subroutine uses ExitApp.</em></pre>
 </div>
 
 <div class="ex" id="ExFnObj">
