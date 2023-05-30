@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <title>OnError() - Syntax &amp; Usage | AutoHotkey</title>
-<meta name="description" content="The OnError function specifies a function to run automatically when an unhandled error occurs." />
+<meta name="description" content="The OnError function registers a function to be called automatically whenever an unhandled error occurs." />
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <link href="../static/theme.css" rel="stylesheet" type="text/css" />
@@ -11,32 +11,38 @@
 <body>
 
 <h1>OnError() <span class="ver">[v1.1.29+]</span></h1>
-<p>Specifies a <a href="../Functions.htm">function</a> to run automatically when an unhandled error occurs.</p>
+<p>Registers a <a href="../Functions.htm">function</a> to be called automatically whenever an unhandled error occurs.</p>
 
-<pre class="Syntax"><span class="func">OnError</span>(Func <span class="optional">, AddRemove</span>)</pre>
+<pre class="Syntax"><span class="func">OnError</span>(Callback <span class="optional">, AddRemove</span>)</pre>
 
 <h2 id="Parameters">Parameters</h2>
 <dl>
 
-  <dt>Func</dt>
-  <dd><p>A function name or <a href="../misc/Functor.htm">function object</a> to call when an unhandled error occurs. The function is given the exception object as a parameter, and may return a non-zero integer to block the default error dialog.</p></dd>
+  <dt>Callback</dt>
+  <dd>
+    <p>A function name or <a href="../misc/Functor.htm">function object</a> to call. To pass a literal function name, enclose it in quotes.</p>
+    <p>The callback accepts one parameter and can be <a href="../Functions.htm#intro">defined</a> as follows:</p>
+    <pre class="NoIndent">MyCallback(Exception) { ...</pre>
+    <p>Although the name you give the parameter does not matter, it is assigned the thrown value or <a href="Throw.htm#Exception">Exception</a> object. If this is an object, it can be modified to affect what the default error dialog displays.</p>
+    <p>You can omit the callback's parameter if the corresponding information is not needed.</p>
+    <p>The callback can return a non-zero integer to block the default error dialog.</p>
+  </dd>
   
   <dt>AddRemove</dt>
-  <dd><p>If blank or omitted, it defaults to 1 (call the function after any previously registered functions). Otherwise, specify one of the following numbers:</p>
+  <dd><p>If blank or omitted, it defaults to 1 (call the callback after any previously registered callbacks). Otherwise, specify one of the following numbers:</p>
     <ul>
-      <li>1 = Call the function after any previously registered functions.</li>
-      <li>-1 = Call the function before any previously registered functions.</li>
-      <li>0 = Do not call the function.</li>
+      <li>1 = Call the callback after any previously registered callbacks.</li>
+      <li>-1 = Call the callback before any previously registered callbacks.</li>
+      <li>0 = Do not call the callback.</li>
     </ul>
   </dd>
 
 </dl>
 
 <h2 id="Remarks">Remarks</h2>
-<p><em>Func</em> is called only for errors or exceptions which would normally cause an error message to be displayed. It cannot be called for a load-time error, since OnError cannot be called until after the script has loaded.</p>
-<p>If any error function returns a non-zero integer, the thread exits. If an error occurs (or an exception is thrown) within an error function, an error message is displayed for the new error and the thread exits. Otherwise, all error function are called, an error message is displayed and the thread exits.</p>
-<p><em>Func</em>'s first parameter receives the thrown value or <a href="Throw.htm#Exception">Exception</a> object. If this is an object, it can be modified to affect what the default error dialog displays.</p>
-<p><em>Func</em> is called on the current <a href="../misc/Threads.htm">thread</a>, before it exits (that is, before the call stack unwinds).</p>
+<p><em>Callback</em> is called only for errors or exceptions which would normally cause an error message to be displayed. It cannot be called for a load-time error, since OnError cannot be called until after the script has loaded.</p>
+<p>If any callback returns a non-zero integer, the thread exits. If an error occurs (or an exception is thrown) within a callback, an error message is displayed for the new error and the thread exits. Otherwise, all callbacks are called, an error message is displayed and the thread exits.</p>
+<p><em>Callback</em> is called on the current <a href="../misc/Threads.htm">thread</a>, before it exits (that is, before the call stack unwinds).</p>
 
 <h2 id="Related">Related</h2>
 <p><a href="Try.htm">Try</a>, <a href="Catch.htm">Catch</a>, <a href="Throw.htm">Throw</a>, <a href="OnExit.htm#function">OnExit()</a>, <a href="OnExit.htm#command">OnExit</a></p>
@@ -44,16 +50,27 @@
 <h2 id="Examples">Examples</h2>
 <div class="ex" id="ExBasic">
 <p><a class="ex_number" href="#ExBasic"></a> Logs errors caused by the script into a text file instead of displaying them to the user.</p>
-<pre>
-OnError("LogError")
+<pre>OnError("LogError")
 %cause% := error
 
-LogError(exception) {
-    FileAppend % "Error on line " exception.Line ": " exception.Message "`n"
+LogError(exc) {
+    FileAppend % "Error on line " exc.Line ": " exc.Message "`n"
         , errorlog.txt
     return true
-}
-</pre>
+}</pre>
+</div>
+<div class="ex" id="ExObj">
+<p><a class="ex_number" href="#ExObj"></a> Same as above but with a function object.</p>
+<pre>OnError(LogError)
+%cause% := error
+
+class LogError {
+    Call(exc) {
+        FileAppend % "Error on line " exc.Line ": " exc.Message "`n"
+            , errorlog.txt
+        return true
+    }
+}</pre>
 </div>
 
 </body>
