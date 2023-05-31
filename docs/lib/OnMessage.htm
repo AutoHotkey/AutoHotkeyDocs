@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <title>OnMessage() - Syntax &amp; Usage | AutoHotkey</title>
-<meta name="description" content="The OnMessage function specifies a function or function object to call automatically when the script receives the specified message." />
+<meta name="description" content="The OnMessage function registers a function to be called automatically whenever the script receives the specified message." />
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <link href="../static/theme.css" rel="stylesheet" type="text/css" />
@@ -12,119 +12,112 @@
 
 <h1>OnMessage()</h1>
 
-<p>Specifies a <a href="../Functions.htm">function</a> or <a href="../misc/Functor.htm">function object</a> to call automatically when the script receives the specified message.</p>
+<p>Registers a <a href="../Functions.htm">function</a> to be called automatically whenever the script receives the specified message.</p>
 
-<pre class="Syntax"><span class="func">OnMessage</span>(MsgNumber <span class="optional">, Function, MaxThreads</span>)</pre>
+<pre class="Syntax"><span class="func">OnMessage</span>(MsgNumber <span class="optional">, Callback, MaxThreads</span>)</pre>
 <h2 id="Parameters">Parameters</h2>
 <dl>
 
   <dt>MsgNumber</dt>
   <dd><p>The number of the message to monitor or query, which should be between 0 and 4294967295 (0xFFFFFFFF). If you do not wish to monitor a <a href="../misc/SendMessageList.htm">system message</a> (that is, one below 0x0400), it is best to choose a number greater than 4096 (0x1000) to the extent you have a choice. This reduces the chance of interfering with messages used internally by current and future versions of AutoHotkey.</p></dd>
 
-  <dt>Function</dt>
-  <dd><p>A <a href="../Functions.htm">function</a>'s name or, in <span class="ver">[v1.1.20+]</span>, a <a href="../misc/Functor.htm">function object</a>. To pass a literal function name, it must be enclosed in quotes.</p>
-  <p>How the function is registered and the return value of OnMessage depend on whether this parameter is a string or a function object.  See <a href="#Name_v_Object">Function Name vs Object</a> for details.</p>
+  <dt id="The_Functions_Parameters">Callback</dt>
+  <dd>
+    <p>A function name to call (or in <span class="ver">[v1.1.20+]</span> a <a href="../misc/Functor.htm">function object</a>). To pass a literal function name, enclose it in quotes.</p>
+    <p>How the callback is registered and the return value of OnMessage() depend on whether this parameter is a string or a function object. See <a href="#Name_v_Object">Function Name vs Object</a> for details.</p>
+    <p>The callback accepts four parameter and can be <a href="../Functions.htm#intro">defined</a> as follows:</p>
+    <pre class="NoIndent">MyCallback(wParam, lParam, msg, hwnd) { ...</pre>
+    <p>Although the names you give the parameters do not matter, the following values are sequentially assigned to them:</p>
+    <ol>
+      <li>The message's WPARAM value.</li>
+      <li>The message's LPARAM value.</li>
+      <li>The message number, which is useful in cases where a callback monitors more than one message.</li>
+      <li>The HWND (unique ID) of the window or control to which the message was sent. The HWND can be used with <a href="../misc/WinTitle.htm#ahk_id">ahk_id</a>.</li>
+    </ol>
+    <p>You can omit one or more parameters from the end of the callback's parameter list if the corresponding information is not needed.</p>
+    <p>WPARAM and LPARAM are unsigned 32-bit integers (from 0 to 2<sup>32</sup>-1) or signed 64-bit integers (from -2<sup>63</sup> to 2<sup>63</sup>-1) depending on whether the exe running the script is 32-bit or 64-bit. For 32-bit scripts, if an incoming parameter is intended to be a signed integer, any negative numbers can be revealed by following this example:</p>
+    <pre>if (A_PtrSize = 4 &amp;&amp; wParam &gt; 0x7FFFFFFF)  <em>; Checking <a href="../Variables.htm#PtrSize">A_PtrSize</a> ensures the script is 32-bit.</em>
+    wParam := -(~wParam) - 1</pre>
   </dd>
 
   <dt id="MaxThreads">MaxThreads <span class="ver">[v1.0.47+]</span></dt>
-  <dd><p>This integer is normally omitted, in which case the monitor function is limited to one <a href="../misc/Threads.htm">thread</a> at a time. This is usually best because otherwise, the script would process messages out of chronological order whenever the monitor function interrupts itself. Therefore, as an alternative to <em>MaxThreads</em>, consider using <em>Critical</em> as described <a href="#Critical">below</a>.</p>
-  <p>If the monitor function directly or indirectly causes the message to be sent again while the function is still running, it is necessary to specify a <em>MaxThreads</em> value greater than 1 or less than -1 to allow the monitor function to be called for the new message (if desired). Messages sent (not posted) by the script's own process to itself cannot be delayed or buffered.</p>
-  <p><span class="ver">[v1.1.20+]:</span> Specify 0 to unregister a previously registered function. If <em>Function</em> is a string, the "legacy" monitor is removed. Otherwise, only the given function object is unregistered.</p>
-  <p><span class="ver">[v1.1.20+]:</span> By default, when multiple functions are registered for a single <em>MsgNumber</em>, they are called in the order that they were registered. To register a function to be called before any previously registered functions, specify a negative value for <em>MaxThreads</em>. For example, <code>OnMessage(Msg, Fn, -2)</code> registers <code>Fn</code> to be called before any other functions previously registered for <em>Msg</em>, and allows <em>Fn</em> a maximum of 2 threads. However, if the function is already registered, the order will not change unless it is unregistered and then re-registered.</p></dd>
+  <dd><p>If blank or omitted, it defaults to 1, meaning the callback is limited to one <a href="../misc/Threads.htm">thread</a> at a time. This is usually best because otherwise, the script would process messages out of chronological order whenever the callback interrupts itself. Therefore, as an alternative to <em>MaxThreads</em>, consider using <em>Critical</em> as described <a href="#Critical">below</a>.</p>
+  <p>If the callback directly or indirectly causes the message to be sent again while the callback is still running, it is necessary to specify a <em>MaxThreads</em> value greater than 1 or less than -1 to allow the callback to be called for the new message (if desired). Messages sent (not posted) by the script's own process to itself cannot be delayed or buffered.</p>
+  <p><span class="ver">[v1.1.20+]:</span> Specify 0 to unregister a previously registered callback. If <em>Callback</em> is a string, the "legacy" monitor is removed. Otherwise, only the given function object is unregistered.</p>
+  <p><span class="ver">[v1.1.20+]:</span> By default, when multiple callbacks are registered for a single <em>MsgNumber</em>, they are called in the order that they were registered. To register a callback to be called before any previously registered callbacks, specify a negative value for <em>MaxThreads</em>. For example, <code>OnMessage(Msg, Fn, -2)</code> registers <code>Fn</code> to be called before any other callbacks previously registered for <em>Msg</em>, and allows <em>Fn</em> a maximum of 2 threads. However, if the callback is already registered, the order will not change unless it is unregistered and then re-registered.</p></dd>
 
 </dl>
 
 <h2 id="Name_v_Object">Function Name vs Object</h2>
-<p>OnMessage's return value and behavior depends on whether the <em>Function</em> parameter is a function name or an object.</p>
+<p>OnMessage's return value and behavior depends on whether the <em>Callback</em> parameter is a function name or an object.</p>
 
 <h3 id="Function_Name">Function Name</h3>
-<p>For backward compatibility, at most one function can be registered by name to monitor each unique <em>MsgNumber</em> -- this is referred to as the "legacy" monitor.</p>
-<p>When the legacy monitor is first registered, whether it is called before or after previously registered monitors depends on the <em>MaxThreads</em> parameter. Updating the monitor to call a different function does not affect the order unless the monitor is unregistered first.</p>
+<p>For backward compatibility, at most one callback can be registered by name to monitor each unique <em>MsgNumber</em> -- this is referred to as the "legacy" monitor.</p>
+<p>When the legacy monitor is first registered, whether it is called before or after previously registered monitors depends on the <em>MaxThreads</em> parameter. Updating the monitor to call a different callback does not affect the order unless the monitor is unregistered first.</p>
 <p>This registers or updates the current legacy monitor for <em>MsgNumber</em> (omit the quote marks if passing a variable):</p>
-<pre class="Syntax">Name := <span class="func">OnMessage</span>(MsgNumber, "FunctionName")</pre>
+<pre>Name := OnMessage(MsgNumber, "MyCallback")</pre>
 <p>The return value is one of the following:</p>
 <ul>
   <li>An empty string on <a href="#Failure">failure</a>.</li>
-  <li>The name of the previous function, if there was one.</li>
-  <li>Otherwise, the name of the new function.</li>
+  <li>The name of the previous callback, if there was one.</li>
+  <li>Otherwise, the name of the new callback.</li>
 </ul>
 <p>This unregisters the current legacy monitor for <em>MsgNumber</em> (if any) and returns its name (blank if none):</p>
-<pre class="Syntax">Name := <span class="func">OnMessage</span>(MsgNumber, "")</pre>
+<pre>Name := OnMessage(MsgNumber, "")</pre>
 <p>This returns the name of the current legacy monitor for <em>MsgNumber</em> (blank if none):</p>
-<pre class="Syntax">Name := <span class="func">OnMessage</span>(MsgNumber)</pre>
+<pre>Name := OnMessage(MsgNumber)</pre>
 
 <h3 id="Function_Object">Function Object</h3>
 <p>Any number of <a href="../misc/Functor.htm">function objects</a> (including <a href="Func.htm">normal functions</a>) can monitor a given <em>MsgNumber</em>.</p>
-<p>Either of these two lines registers a function object to be called <strong>after</strong> any previously registered functions:</p>
-<pre class="Syntax">
-<span class="func">OnMessage</span>(MsgNumber, FuncObj)     <em>; Option 1</em>
-<span class="func">OnMessage</span>(MsgNumber, FuncObj, 1)  <em>; Option 2 (MaxThreads = 1)</em></pre>
-<p>This registers a function object to be called <strong>before</strong> any previously registered functions:</p>
-<pre class="Syntax"><span class="func">OnMessage</span>(MsgNumber, FuncObj, -1)</pre>
+<p>Either of these two lines registers a function object to be called <u>after</u> any previously registered callbacks:</p>
+<pre>OnMessage(MsgNumber, FuncObj)     <em>; Option 1</em>
+OnMessage(MsgNumber, FuncObj, 1)  <em>; Option 2 (MaxThreads = 1)</em></pre>
+<p>This registers a function object to be called <u>before</u> any previously registered callbacks:</p>
+<pre>OnMessage(MsgNumber, FuncObj, -1)</pre>
 <p>To unregister a function object, specify 0 for <em>MaxThreads</em>:</p>
-<pre class="Syntax"><span class="func">OnMessage</span>(MsgNumber, FuncObj, 0)</pre>
+<pre>OnMessage(MsgNumber, FuncObj, 0)</pre>
 
 <h2 id="Failure">Failure</h2>
-<p>Failure occurs when <em>Function</em>:</p>
+<p>Failure occurs when <em>Callback</em>:</p>
 <ol>
   <li>is not an object, the name of a user-defined function, or an empty string;</li>
   <li>is known to require more than four parameters; or</li>
-  <li>in <span class="ver">[v1.0.48.05]</span> or older, has any <a href="../Functions.htm#ByRef">ByRef</a> or <a href="../Functions.htm#optional">optional</a> parameters.</li>
+  <li>in v1.0.48.05 or older, has any <a href="../Functions.htm#ByRef">ByRef</a> or <a href="../Functions.htm#optional">optional</a> parameters.</li>
 </ol>
-<p>In <span class="ver">[v1.1.19.03]</span> or older, failure also occurs if the script attempts to monitor a new message when there are already 500 messages being monitored.</p>
-<p>If <em>Function</em> is an object, an exception is thrown on failure. Otherwise, an empty string is returned.</p>
+<p>In v1.1.19.03 or older, failure also occurs if the script attempts to monitor a new message when there are already 500 messages being monitored.</p>
+<p>If <em>Callback</em> is an object, an exception is thrown on failure. Otherwise, an empty string is returned.</p>
 
-<h2 id="The_Functions_Parameters">The Function's Parameters</h2>
-<p>A <a href="../Functions.htm">function</a> assigned to monitor one or more messages can accept up to four parameters:</p>
-<pre>MyMessageMonitor(wParam, lParam, msg, hwnd)
-{
-    ... body of function...
-}</pre>
-<p>Although the names you give the parameters do not matter, the following information is sequentially assigned to them:</p>
-<ul>
-  <li>Parameter #1: The message's WPARAM value.</li>
-  <li>Parameter #2: The message's LPARAM value.</li>
-  <li>Parameter #3: The message number, which is useful in cases where a function monitors more than one message.</li>
-  <li>Parameter #4: The HWND (unique ID) of the window or control to which the message was sent. The HWND can be used with <a href="../misc/WinTitle.htm#ahk_id">ahk_id</a>.</li>
-</ul>
-<p>WPARAM and LPARAM are unsigned 32-bit integers (from 0 to 2<sup>32</sup>-1) or signed 64-bit integers (from -2<sup>63</sup> to 2<sup>63</sup>-1) depending on whether the exe running the script is 32-bit or 64-bit. For 32-bit scripts, if an incoming parameter is intended to be a signed integer, any negative numbers can be revealed by following this example:</p>
-<pre>if (A_PtrSize = 4 &amp;&amp; wParam &gt; 0x7FFFFFFF)  <em>; Checking <a href="../Variables.htm#PtrSize">A_PtrSize</a> ensures the script is 32-bit.</em>
-    wParam := -(~wParam) - 1</pre>
-<p>You can omit one or more parameters from the end of the list if the corresponding information is not needed. For example, a function defined as <code>MyMsgMonitor(wParam, lParam)</code> would receive only the first two parameters, and one defined as <code>MyMsgMonitor()</code> would receive none of them.</p>
-
-<h2 id="Additional_Information_Available_to_the_Function">Additional Information Available to the Function</h2>
-<p>In addition to the parameters received above, the function may also consult the values in the following built-in variables:</p>
-<ul>
-  <li><a href="../Variables.htm#Gui">A_Gui</a>: Blank unless the message was sent to a GUI window or control, in which case A_Gui is the <a href="Gui.htm#MultiWin">Gui Window number</a> (this window is also set as the function's <a href="Gui.htm#DefaultWin">default GUI window</a>).</li>
-  <li><a href="../Variables.htm#GuiControl">A_GuiControl</a>: Blank unless the message was sent to a GUI control, in which case it contains the control's variable name or other value as described at <a href="../Variables.htm#GuiControl">A_GuiControl</a>. Some controls never receive certain types of messages. For example, when the user clicks a <a href="GuiControls.htm#Text">text control</a>, the operating system sends WM_LBUTTONDOWN to the parent window rather than the control; consequently, A_GuiControl is blank.</li>
-  <li><a href="../Variables.htm#GuiX">A_GuiX</a> and <a href="../Variables.htm#GuiY">A_GuiY</a>: Both contain -2147483648 if the incoming message was sent via <a href="PostMessage.htm">SendMessage</a>. If it was sent via <a href="PostMessage.htm">PostMessage</a>, they contain the mouse cursor's coordinates (relative to the screen) at the time the message was posted.</li>
-  <li><a href="../Variables.htm#EventInfo">A_EventInfo</a>: Contains 0 if the message was sent via SendMessage. If sent via PostMessage, it contains the <a href="../Variables.htm#TickCount">tick-count time</a> the message was posted.</li>
-</ul>
-<p>A monitor function's <a href="../misc/WinTitle.htm#LastFoundWindow">last found window</a> starts off as the parent window to which the message was sent (even if it was sent to a control). If the window is hidden but not a GUI window (such as the <a href="../Program.htm#main-window">script's main window</a>), turn on <a href="DetectHiddenWindows.htm">DetectHiddenWindows</a> before using it. For example:</p>
+<h2 id="Additional_Information_Available_to_the_Callback">Additional Information Available to the Callback</h2>
+<p>In addition to the received parameters mentioned above, the callback may also consult the values in the following built-in variables:</p>
+<p><strong>A_Gui:</strong> Blank unless the message was sent to a GUI window or control, in which case A_Gui is the <a href="Gui.htm#MultiWin">Gui Window number</a> (this window is also set as the callback's <a href="Gui.htm#DefaultWin">default GUI window</a>).</p>
+<p><strong>A_GuiControl:</strong> Blank unless the message was sent to a GUI control, in which case it contains the control's variable name or other value as described at <a href="../Variables.htm#GuiControl">A_GuiControl</a>. Some controls never receive certain types of messages. For example, when the user clicks a <a href="GuiControls.htm#Text">Text control</a>, the operating system sends WM_LBUTTONDOWN to the parent window rather than the control; consequently, A_GuiControl is blank.</p>
+<p><strong>A_GuiX / A_GuiY:</strong> Both contain -2147483648 if the incoming message was sent via <a href="PostMessage.htm">SendMessage</a>. If it was sent via <a href="PostMessage.htm">PostMessage</a>, they contain the mouse cursor's coordinates (relative to the screen) at the time the message was posted.</p>
+<p><strong>A_EventInfo:</strong> Contains 0 if the message was sent via SendMessage. If sent via PostMessage, it contains the <a href="../Variables.htm#TickCount">tick-count time</a> the message was posted.</p>
+<p>A callback's <a href="../misc/WinTitle.htm#LastFoundWindow">last found window</a> starts off as the parent window to which the message was sent (even if it was sent to a control). If the window is hidden but not a GUI window (such as the <a href="../Program.htm#main-window">script's main window</a>), turn on <a href="DetectHiddenWindows.htm">DetectHiddenWindows</a> before using it. For example:</p>
 <pre>DetectHiddenWindows On
 MsgParentWindow := WinExist()  <em>; This stores the unique ID of the window to which the message was sent.</em></pre>
 
-<h2 id="What_the_Function_Should_Return">What the Function Should <em>Return</em></h2>
-<p>If a monitor function uses <a href="Return.htm">Return</a> without any parameters, or it specifies a blank value such as "" (or it never uses Return at all), the incoming message goes on to be processed normally when the function finishes. The same thing happens if the function <a href="Exit.htm">Exits</a> or causes a runtime error such as <a href="Run.htm">running</a> a nonexistent file. By contrast, returning an integer causes it to be sent immediately as a reply; that is, the program does not process the message any further. For example, a function monitoring WM_LBUTTONDOWN (0x0201) may return an integer to prevent the target window from being notified that a mouse click has occurred. In many cases (such as a message arriving via <a href="PostMessage.htm">PostMessage</a>), it does not matter which integer is returned; but if in doubt, 0 is usually safest.</p>
+<h2 id="What_the_Callback_Should_Return">What the Callback Should Return</h2>
+<p>If a callback uses <a href="Return.htm">Return</a> without any parameters, or it specifies a blank value such as "" (or it never uses Return at all), the incoming message goes on to be processed normally when the callback finishes. The same thing happens if the callback <a href="Exit.htm">exits</a> or causes a runtime error such as <a href="Run.htm">running</a> a nonexistent file. By contrast, returning an integer causes it to be sent immediately as a reply; that is, the program does not process the message any further. For example, a callback monitoring WM_LBUTTONDOWN (0x0201) may return an integer to prevent the target window from being notified that a mouse click has occurred. In many cases (such as a message arriving via <a href="PostMessage.htm">PostMessage</a>), it does not matter which integer is returned; but if in doubt, 0 is usually safest.</p>
 <p>The range of valid return values depends on whether the exe running the script is 32-bit or 64-bit. Non-empty return values must be between -2<sup>31</sup> and 2<sup>32</sup>-1 for 32-bit scripts (<code><a href="../Variables.htm#PtrSize">A_PtrSize</a> = 4</code>) and between -2<sup>63</sup> and 2<sup>63</sup>-1 for 64-bit scripts (<code><a href="../Variables.htm#PtrSize">A_PtrSize</a> = 8</code>).</p>
-<p><span class="ver">[v1.1.20+]:</span> If there are multiple functions monitoring a given message number, they are called one by one until one returns a non-empty value.</p>
+<p><span class="ver">[v1.1.20+]:</span> If there are multiple callbacks monitoring a given message number, they are called one by one until one returns a non-empty value.</p>
 
 <h2 id="Remarks">General Remarks</h2>
-<p>Unlike a normal function-call, the arrival of a monitored message calls the function as a new <a href="../misc/Threads.htm">thread</a>. Because of this, the function starts off fresh with the default values for settings such as <a href="SendMode.htm">SendMode</a> and <a href="DetectHiddenWindows.htm">DetectHiddenWindows</a>. These defaults can be changed in the <a href="../Scripts.htm#auto">auto-execute section</a>.</p>
+<p>Unlike a normal function-call, the arrival of a monitored message calls the callback as a new <a href="../misc/Threads.htm">thread</a>. Because of this, the callback starts off fresh with the default values for settings such as <a href="SendMode.htm">SendMode</a> and <a href="DetectHiddenWindows.htm">DetectHiddenWindows</a>. These defaults can be changed in the <a href="../Scripts.htm#auto">auto-execute section</a>.</p>
 <p>Messages sent to a control (rather than being posted) are not monitored because the system routes them directly to the control behind the scenes. This is seldom an issue for system-generated messages because most of them are posted.</p>
-<p>Any script that calls OnMessage anywhere is automatically <a href="_Persistent.htm">persistent</a>. It is also single-instance unless <a href="_SingleInstance.htm">#SingleInstance</a> has been used to override that.</p>
-<p id="Critical">If a message arrives while its function is still running due to a previous arrival of the same message, by default the function will not be called again; instead, the message will be treated as unmonitored. If this is undesirable, there are multiple ways it can be avoided:</p>
+<p>Any script that calls OnMessage() anywhere is automatically <a href="_Persistent.htm">persistent</a>. It is also single-instance unless the <a href="_SingleInstance.htm">#SingleInstance</a> directive has been used to override that.</p>
+<p id="Critical">If a message arrives while its callback is still running due to a previous arrival of the same message, by default the callback will not be called again; instead, the message will be treated as unmonitored. If this is undesirable, there are multiple ways it can be avoided:</p>
 <ul>
-  <li>If the message is posted rather than sent and has a number greater than 0x0311, it can be buffered until its function completes by specifying <a href="Critical.htm">Critical</a> as the first line of the function. Alternatively, <a href="Thread.htm">Thread Interrupt</a> can achieve the same effect as long as it lasts long enough for the function to finish.</li>
-  <li><span class="ver">[v1.0.46+]:</span> Using <a href="Critical.htm">Critical</a> to increase the <a href="Critical.htm#Interval">message check interval</a> gives the function more time to complete before any messages are dispatched. An interval greater than 16 may be needed for reliability. Due to the granularity of the system timer (usually 15.6 milliseconds), the default interval of 5 milliseconds (for non-Critical threads) or 15 milliseconds (for Critical threads) might appear to pass the instant after the function starts.</li>
-  <li>Ensuring that the monitor function returns quickly reduces the risk that messages will be missed due to <em>MaxThreads</em>. One way to do this is to have it queue up a future thread by <a href="PostMessage.htm">posting</a> to its own script a monitored message number greater than 0x0311. That message's function should use <a href="Critical.htm">Critical</a> as its first line to ensure that its messages are buffered. Alternatively, a <a href="SetTimer.htm">timer</a> can be used to queue up a future thread.</li>
-  <li>Specifying a higher value for the <a href="#MaxThreads">MaxThreads</a> parameter allows the function to be interrupted to process the newly-received message.</li>
+  <li>If the message is posted rather than sent and has a number greater than 0x0311, it can be buffered until its callback completes by specifying <a href="Critical.htm">Critical</a> as the first line of the callback. Alternatively, <a href="Thread.htm">Thread Interrupt</a> can achieve the same effect as long as it lasts long enough for the callback to finish.</li>
+  <li><span class="ver">[v1.0.46+]:</span> Using <a href="Critical.htm">Critical</a> to increase the <a href="Critical.htm#Interval">message check interval</a> gives the callback more time to complete before any messages are dispatched. An interval greater than 16 may be needed for reliability. Due to the granularity of the system timer (usually 15.6 milliseconds), the default interval of 5 milliseconds (for non-Critical threads) or 15 milliseconds (for Critical threads) might appear to pass the instant after the callback starts.</li>
+  <li>Ensuring that the callback returns quickly reduces the risk that messages will be missed due to <em>MaxThreads</em>. One way to do this is to have it queue up a future thread by <a href="PostMessage.htm">posting</a> to its own script a monitored message number greater than 0x0311. That message's callback should use <a href="Critical.htm">Critical</a> as its first line to ensure that its messages are buffered. Alternatively, a <a href="SetTimer.htm">timer</a> can be used to queue up a future thread.</li>
+  <li>Specifying a higher value for <a href="#MaxThreads"><em>MaxThreads</em></a> allows the callback to be interrupted to process the newly-received message.</li>
 </ul>
-<p id="buffering">If a monitored message that is numerically greater than 0x0311 is posted while the script is <a href="../misc/Threads.htm#Interrupt">uninterruptible</a>, the message is buffered; that is, its function is not called until the script becomes interruptible. However, messages which are sent rather than posted cannot be buffered as they must provide a return value. Posted messages also might not be buffered when a modal message loop is running, such as for a system dialog, ListView drag-drop operation or menu.</p>
-<p>When a monitored message arrives, if it is not buffered and the script is uninterruptible merely due to the settings of <a href="Thread.htm">Thread Interrupt</a> or <a href="Critical.htm">Critical</a>, the current thread will be interrupted so that the function can be called. However, if the script is absolutely uninterruptible -- such as while a <a href="Menu.htm">menu</a> is displayed, a <a href="SetKeyDelay.htm">KeyDelay</a>/<a href="SetMouseDelay.htm">MouseDelay</a> is in progress, or the clipboard is being <a href="_ClipboardTimeout.htm">opened</a> -- the message's function will not be called and the message will be treated as unmonitored.</p>
+<p id="buffering">If a monitored message that is numerically greater than 0x0311 is posted while the script is <a href="../misc/Threads.htm#Interrupt">uninterruptible</a>, the message is buffered; that is, its callback is not called until the script becomes interruptible. However, messages which are sent rather than posted cannot be buffered as they must provide a return value. Posted messages also might not be buffered when a modal message loop is running, such as for a system dialog, ListView drag-drop operation or menu.</p>
+<p>When a monitored message arrives, if it is not buffered and the script is uninterruptible merely due to the settings of <a href="Thread.htm">Thread Interrupt</a> or <a href="Critical.htm">Critical</a>, the current thread will be interrupted so that the callback can be called. However, if the script is absolutely uninterruptible -- such as while a <a href="Menu.htm">menu</a> is displayed, a <a href="SetKeyDelay.htm">KeyDelay</a>/<a href="SetMouseDelay.htm">MouseDelay</a> is in progress, or the clipboard is being <a href="_ClipboardTimeout.htm">opened</a> -- the message's callback will not be called and the message will be treated as unmonitored.</p>
 <p>The <a href="../misc/Threads.htm">priority</a> of OnMessage threads is always 0. Consequently, no messages are monitored or buffered when the current thread's priority is higher than 0.</p>
-<p>Caution should be used when monitoring system messages (those below 0x0400). For example, if a monitor function does not finish quickly, the response to the message might take longer than the system expects, which might cause side-effects. Unwanted behavior may also occur if a monitor function returns an integer to suppress further processing of a message, but the system expected different processing or a different response.</p>
-<p>When the script is displaying a system dialog such as <a href="MsgBox.htm">MsgBox</a>, any message posted to a control is not monitored. For example, if the script is displaying a message box and the user clicks a button in a GUI window, the WM_LBUTTONDOWN message is sent directly to the button without calling the monitor function.</p>
+<p>Caution should be used when monitoring system messages (those below 0x0400). For example, if a callback does not finish quickly, the response to the message might take longer than the system expects, which might cause side-effects. Unwanted behavior may also occur if a callback returns an integer to suppress further processing of a message, but the system expected different processing or a different response.</p>
+<p>When the script is displaying a system dialog such as <a href="MsgBox.htm">MsgBox</a>, any message posted to a control is not monitored. For example, if the script is displaying a message box and the user clicks a button in a GUI window, the WM_LBUTTONDOWN message is sent directly to the button without calling the callback.</p>
 <p>Although an external program may post messages directly to a script's thread via PostThreadMessage() or other API call, this is not recommended because the messages would be lost if the script is displaying a system window such as a <a href="MsgBox.htm">message box</a>. Instead, it is usually best to post or send the messages to the <a href="../Program.htm#main-window">script's main window</a> or one of its GUI windows.</p>
 <h2 id="Related">Related</h2>
 <p><a href="RegisterCallback.htm">RegisterCallback()</a>, <a href="OnExit.htm">OnExit</a>, <a href="OnClipboardChange.htm">OnClipboardChange</a>, <a href="PostMessage.htm">Post/SendMessage</a>, <a href="../Functions.htm">Functions</a>, <a href="../misc/SendMessageList.htm">List of Windows Messages</a>, <a href="../misc/Threads.htm">Threads</a>, <a href="Critical.htm">Critical</a>, <a href="DllCall.htm">DllCall()</a></p>
@@ -206,15 +199,15 @@ StopBlockingShutdown()
 MsgMonitor(wParam, lParam, msg)
 {
     <em>; Since returning quickly is often important, it is better to use ToolTip than</em>
-    <em>; something like MsgBox that would prevent the function from finishing:</em>
+    <em>; something like MsgBox that would prevent the callback from finishing:</em>
     ToolTip Message %msg% arrived:`nWPARAM: %wParam%`nLPARAM: %lParam%
 }
 
-<em>; The following could be used inside some other script to run the function inside the above script:</em>
+<em>; The following could be used inside some other script to run the callback inside the above script:</em>
 SetTitleMatchMode 2
 DetectHiddenWindows On
 if WinExist("Name of Receiving Script.ahk ahk_class AutoHotkey")
-    PostMessage, 0x5555, 11, 22  <em>; The message is sent  to the "<a href="../misc/WinTitle.htm#LastFoundWindow">last found window</a>" due to WinExist() above.</em>
+    PostMessage, 0x5555, 11, 22  <em>; The message is sent to the "<a href="../misc/WinTitle.htm#LastFoundWindow">last found window</a>" due to WinExist() above.</em>
 DetectHiddenWindows Off  <em>; Must not be turned off until after PostMessage.</em></pre>
 </div>
 
