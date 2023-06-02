@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <title>OnClipboardChange - Syntax &amp; Usage | AutoHotkey v2</title>
-<meta name="description" content="The OnClipboardChange function causes the specified function to be called automatically whenever the clipboard's content changes." />
+<meta name="description" content="The OnClipboardChange function registers a function to be called automatically whenever the clipboard's content changes." />
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <link href="../static/theme.css" rel="stylesheet" type="text/css" />
@@ -11,54 +11,44 @@
 <body>
 
 <h1>OnClipboardChange</h1>
+<p>Registers a <a href="../Functions.htm">function</a> to be called automatically whenever the clipboard's content changes.</p>
 
-<p>Causes the specified function to be called automatically whenever the clipboard's content changes.</p>
-
-<pre class="Syntax"><span class="func">OnClipboardChange</span> Function <span class="optional">, AddRemove</span></pre>
+<pre class="Syntax"><span class="func">OnClipboardChange</span> Callback <span class="optional">, AddRemove</span></pre>
 <h2 id="Parameters">Parameters</h2>
 <dl>
 
-  <dt>Function</dt>
+  <dt>Callback</dt>
   <dd>
     <p>Type: <a href="../misc/Functor.htm">Function Object</a></p>
-    <p>The function object to call. The function's parameter and return value are described <a href="#Function">below</a>.</p>
-  </dd>
-  
-  <dt>AddRemove</dt>
-  <dd>
-    <p>Type: <a href="../Concepts.htm#numbers">Integer</a></p>
-    <p>If omitted, it defaults to 1 (call the function after any previously registered functions). Otherwise, specify one of the following numbers:</p>
-    <ul>
-      <li>1 = Call the function after any previously registered functions.</li>
-      <li>-1 = Call the function before any previously registered functions.</li>
-      <li>0 = Do not call the function.</li>
-    </ul>
-  </dd>
-
-</dl>
-
-<h2 id="Function">Function</h2>
-<p>The function should accept one parameter:</p>
-<pre class="Syntax"><i>FunctionName</i>(Type)</pre>
-<dl>
-  <dt>Type</dt>
-  <dd>
-    <p>Type: <a href="../Concepts.htm#numbers">Integer</a></p>
-    <p>One of the following numbers:</p>
+    <p>The function to call.</p>
+    <p>The callback accepts one parameter and can be <a href="../Functions.htm#intro">defined</a> as follows:</p>
+    <pre class="NoIndent">MyCallback(DataType) { ...</pre>
+    <p>Although the name you give the parameter does not matter, it is assigned one of the following numbers:</p>
     <ul>
       <li>0 = Clipboard is now empty.</li>
       <li>1 = Clipboard contains something that can be expressed as text (this includes <a href="A_Clipboard.htm#CopiedFiles">files copied</a> from an Explorer window).</li>
       <li>2 = Clipboard contains something entirely non-text such as a picture.</li>
     </ul>
+    <p>You can omit the callback's parameter if the corresponding information is not needed, but in this case an asterisk must be specified, e.g. <code>MyCallback(*)</code>.</p>
+    <p>If this is the last or only callback, the return value is ignored. Otherwise, it can return a non-zero integer to prevent subsequent callbacks from being called.</p>
   </dd>
+  
+  <dt>AddRemove</dt>
+  <dd>
+    <p>Type: <a href="../Concepts.htm#numbers">Integer</a></p>
+    <p>If unset or omitted, it defaults to 1 (call the callback after any previously registered callbacks). Otherwise, specify one of the following numbers:</p>
+    <ul>
+      <li>1 = Call the callback after any previously registered callbacks.</li>
+      <li>-1 = Call the callback before any previously registered callbacks.</li>
+      <li>0 = Do not call the callback.</li>
+    </ul>
+  </dd>
+
 </dl>
 
-<h3 id="Return_Value">Return Value</h3>
-<p>If this is the last or only OnClipboardChange function, the return value is ignored. Otherwise, the function can return a non-zero integer to prevent subsequent functions from being called.</p>
-
 <h2 id="Remarks">Remarks</h2>
-<p>If the clipboard changes while an OnClipboardChange function is already running, that notification event is lost. If this is undesirable, use <a href="Critical.htm">Critical</a>. However, this will also buffer/defer other <a href="../misc/Threads.htm">threads</a> (such as the press of a hotkey) that occur while the OnClipboardChange thread is running.</p>
-<p>If the script itself changes the clipboard, its OnClipboardChange functions are typically not executed immediately; that is, functions immediately below the function that changed the clipboard are likely to execute beforehand. To force the functions to execute immediately, use a short delay such as <code><a href="Sleep.htm">Sleep</a> 20</code> after changing the clipboard.</p>
+<p>If the clipboard changes while a callback is already running, that notification event is lost. If this is undesirable, use <a href="Critical.htm">Critical</a>. However, this will also buffer/defer other <a href="../misc/Threads.htm">threads</a> (such as the press of a hotkey) that occur while the OnClipboardChange thread is running.</p>
+<p>If the script itself changes the clipboard, the callbacks are typically not executed immediately; that is, statements immediately below the statement that changed the clipboard are likely to execute beforehand. To force the callbacks to execute immediately, use a short delay such as <code><a href="Sleep.htm">Sleep</a> 20</code> after changing the clipboard.</p>
 
 <h2 id="Related">Related</h2>
 <p><a href="A_Clipboard.htm">A_Clipboard</a>, <a href="OnExit.htm">OnExit</a>, <a href="OnMessage.htm">OnMessage</a>, <a href="CallbackCreate.htm">CallbackCreate</a></p>
@@ -68,8 +58,8 @@
 <p><a class="ex_number" href="#ExBasic"></a> Briefly displays a tooltip for each clipboard change.</p>
 <pre>OnClipboardChange ClipChanged
 
-ClipChanged(clip_type) {
-    ToolTip "Clipboard data type: " clip_type
+ClipChanged(DataType) {
+    ToolTip "Clipboard data type: " DataType
     Sleep 1000
     ToolTip  <em>; Turn off the tip.</em>
 }</pre>
