@@ -144,8 +144,7 @@ tocData = [
       ["Until","lib/Until.htm"]
     ]],
     ["OnError()","lib/OnError.htm"],
-    ["OnExit","lib/OnExit.htm#command"],
-    ["OnExit()","lib/OnExit.htm#function"],
+    ["OnExit","lib/OnExit.htm"],
     ["Pause","lib/Pause.htm"],
     ["Reload","lib/Reload.htm"],
     ["Return","lib/Return.htm"],
