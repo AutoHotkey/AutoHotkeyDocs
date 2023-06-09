@@ -23,8 +23,11 @@
   <dd><p>The literal word <code>Reg</code> (case-insensitive). This cannot be a variable or expression.</p></dd>
 
   <dt>KeyName</dt>
-  <dd><p>The full name of the registry key such as <code>HKLM\Software</code> or <code>%FullPathOfKey%</code>.</p>
-      <p>This must start with HKEY_LOCAL_MACHINE, HKEY_USERS, HKEY_CURRENT_USER, HKEY_CLASSES_ROOT, or HKEY_CURRENT_CONFIG (or the abbreviations for each of these, such as HKLM). To access a <a href="#remote">remote registry</a>, prepend the computer name and a colon, as in this example: <code>\\workstation01:HKEY_LOCAL_MACHINE</code></p></dd>
+  <dd>
+    <p>The full name of the registry key, e.g. <code>HKLM\Software\SomeApplication</code>.</p>
+    <p>This must start with HKEY_LOCAL_MACHINE (or HKLM), HKEY_USERS (or HKU), HKEY_CURRENT_USER (or HKCU), HKEY_CLASSES_ROOT (or HKCR), or HKEY_CURRENT_CONFIG (or HKCC).</p>
+    <p>To access a <a href="#remote">remote registry</a>, prepend the computer name and a colon (or in <span class="ver">[v1.1.21+]</span> a backslash), e.g. <code>\\workstation01\HKLM</code>.</p>
+  </dd>
 
   <dt>Mode</dt>
   <dd><p>If blank or omitted, only values are included and subkeys are not recursed into. Otherwise, specify one or more of the following letters:</p>
@@ -38,7 +41,7 @@
 </dl>
 
 <h2 id="old">Old Syntax</h2>
-<p class="warning"><strong>Deprecated:</strong> This syntax is not recommended for use in new scripts. Use the <a href="#new">new syntax</a> instead.</p>
+<p class="warning"><strong>Deprecated:</strong> This syntax is not recommended for use in new scripts. Use the <a href="#new">new syntax</a> described above instead.</p>
 <pre class="Syntax"><span class="func">Loop</span>, RootKey <span class="optional">, Key, IncludeSubkeys?, Recurse?</span></pre>
 
 <h3 id="Old_Parameters">Parameters</h3>
@@ -46,10 +49,10 @@
 
   <dt>RootKey</dt>
   <dd><p>Must be either HKEY_LOCAL_MACHINE (or HKLM), HKEY_USERS (or HKU), HKEY_CURRENT_USER (or HKCU), HKEY_CLASSES_ROOT (or HKCR), or HKEY_CURRENT_CONFIG (or HKCC).</p>
-      <p>To access a <a href="#remote">remote registry</a>, prepend the computer name and a colon, as in this example: <code>\\workstation01:HKEY_LOCAL_MACHINE</code></p></dd>
+      <p>To access a <a href="#remote">remote registry</a>, prepend the computer name and a colon (or in <span class="ver">[v1.1.21+]</span> a backslash), e.g. <code>\\workstation01\HKLM</code>.</p></dd>
 
   <dt>Key</dt>
-  <dd><p>The name of the key (e.g. Software\SomeApplication). If blank or omitted, the contents of <em>RootKey</em> will be retrieved.</p></dd>
+  <dd><p>The name of the key, e.g. <code>Software\SomeApplication</code>. If blank or omitted, the contents of <em>RootKey</em> will be retrieved.</p></dd>
   
   <dt>IncludeSubkeys?</dt>
   <dd><p>If blank or omitted, it defaults to 0 (only values are retrieved). Otherwise, specify one of the following digits:</p>
@@ -71,8 +74,8 @@
 </dl>
 
 <h2 id="Remarks">Remarks</h2>
-<p>A registry-loop is useful when you want to operate on a collection registry values or subkeys, one at a time. The values and subkeys are retrieved in reverse order (bottom to top) so that <a href="RegDelete.htm">RegDelete</a> can be used inside the loop without disrupting the loop.</p>
-<p id="vars">The following variables exist within any registry-loop. If an inner registry-loop is enclosed by an outer registry-loop, the innermost loop's registry item will take precedence:</p>
+<p>A registry loop is useful when you want to operate on a collection registry values or subkeys, one at a time. The values and subkeys are retrieved in reverse order (bottom to top) so that <a href="RegDelete.htm">RegDelete</a> can be used inside the loop without disrupting the loop.</p>
+<p id="vars">The following variables exist within any registry loop. If an inner registry loop is enclosed by an outer registry loop, the innermost loop's registry item will take precedence:</p>
 <table class="info">
   <tr>
     <th abbr="Var">Variable</th>
@@ -88,7 +91,7 @@
   </tr>
   <tr>
     <td>A_LoopRegKey</td>
-    <td>The name of the root key being accessed  (HKEY_LOCAL_MACHINE, HKEY_USERS, HKEY_CURRENT_USER, HKEY_CLASSES_ROOT, or HKEY_CURRENT_CONFIG). For remote registry access, this value will <strong>not</strong> include the computer name.</td>
+    <td>The name of the root key being accessed  (HKEY_LOCAL_MACHINE, HKEY_USERS, HKEY_CURRENT_USER, HKEY_CLASSES_ROOT, or HKEY_CURRENT_CONFIG). For remote registry access, this value will <u>not</u> include the computer name.</td>
   </tr>
   <tr>
     <td>A_LoopRegSubKey</td>
@@ -99,7 +102,7 @@
     <td>The time the current subkey or any of its values was last modified. Format <a href="FileSetTime.htm">YYYYMMDDHH24MISS</a>. This variable will be empty if the currently retrieved item is not a subkey (i.e. <em>A_LoopRegType</em> is not the word KEY).</td>
   </tr>
 </table>
-<p>When used inside a registry-loop, the following commands can be used in a simplified way to indicate that the currently retrieved item should be operated upon:</p>
+<p>When used inside a registry loop, the following commands can be used in a simplified way to indicate that the currently retrieved item should be operated upon:</p>
 <table class="info">
   <tr>
     <th style="min-width: 11em;">Syntax</th>
@@ -133,9 +136,18 @@
 <p><a href="Loop.htm">Loop</a>, <a href="Break.htm">Break</a>, <a href="Continue.htm">Continue</a>, <a href="Block.htm">Blocks</a>, <a href="RegRead.htm">RegRead</a>, <a href="RegWrite.htm">RegWrite</a>, <a href="RegDelete.htm">RegDelete</a>, <a href="SetRegView.htm">SetRegView</a></p>
 
 <h2 id="Examples">Examples</h2>
+<div class="ex" id="ExNewVsOld">
+<p><a class="ex_number" href="#ExNewVsOld"></a> New syntax vs. old syntax.</p>
+<p>Despite the different syntax, both examples have the same effect: They retrieve the contents of the specified registry subkey, one item at a time.</p>
+<pre>Loop, Reg, HKEY_LOCAL_MACHINE\Software\SomeApplication
+    MsgBox %A_LoopRegName%</pre>
+<pre>Loop, HKEY_LOCAL_MACHINE, Software\SomeApplication
+    MsgBox %A_LoopRegName%</pre>
+</div>
+
 <div class="ex" id="ExRegDelete">
 <p><a class="ex_number" href="#ExRegDelete"></a> Deletes Internet Explorer's history of URLs typed by the user.</p>
-<pre>Loop, HKEY_CURRENT_USER, Software\Microsoft\Internet Explorer\TypedURLs
+<pre>Loop, Reg, HKEY_CURRENT_USER\Software\Microsoft\Internet Explorer\TypedURLs
     RegDelete</pre>
 </div>
 
