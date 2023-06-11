@@ -15,40 +15,40 @@
 
 <p>Creates a machine-code address that when called, redirects the call to a <a href="../Functions.htm">function</a> in the script.</p>
 
-<pre class="Syntax">Address := <span class="func">RegisterCallback</span>("FunctionName" <span class="optional">, Options := "", ParamCount := FormalCount, EventInfo := Address</span>)</pre>
+<pre class="Syntax">Address := <span class="func">RegisterCallback</span>(Function <span class="optional">, Options, ParamCount, EventInfo</span>)</pre>
 <h2 id="Parameters">Parameters</h2>
 <dl>
 
-  <dt>Address</dt>
-  <dd><p>Upon success, RegisterCallback() returns a numeric address that may be called by <a href="DllCall.htm">DllCall()</a> or anything else capable of calling a machine-code function. Upon failure, it returns an empty string. Failure occurs when <em>FunctionName</em>: 1)  does not exist; 2) accepts too many or too few parameters according to <em>ParamCount</em>; or 3) accepts any <a href="../Functions.htm#ByRef">ByRef parameters</a>.</p></dd>
-
-  <dt>FunctionName</dt>
+  <dt>Function</dt>
   <dd>
-      <p>A <a href="../Functions.htm">function</a>'s name, which must be enclosed in quotes if it is a literal string. This function is called automatically whenever <em>Address</em> is called. The function also receives the parameters that were passed to <em>Address</em>.</p>
-      <p><span class="ver">[v1.1.06+]:</span> A <a href="Func.htm">function reference</a> can be passed instead of a function name.</p>
+      <p>A function name (or in <span class="ver">[v1.1.06+]</span> a <a href="../misc/Functor.htm">function object</a>) to call. To pass a literal function name, enclose it in quotes. This function is called automatically whenever <em>Address</em> is called. The function also receives the parameters that were passed to <em>Address</em>.</p>
     </dd>
 
   <dt>Options</dt>
-  <dd><p>Specify zero or more of the following options. Separate each option from the next with a space (e.g. <code>C Fast</code>).</p>
-    <p id="Fast"><strong>Fast</strong> or <strong>F</strong>: Avoids starting a new <a href="../misc/Threads.htm">thread</a> each time <em>FunctionName</em> is called. Although this performs better, it must be avoided whenever the thread from which <em>Address</em> is called varies (e.g. when the callback is triggered by an incoming message). This is because <em>FunctionName</em> will be able to change global settings such as <a href="../misc/ErrorLevel.htm">ErrorLevel</a>, <a href="../Variables.htm#LastError">A_LastError</a>, and the <a href="../misc/WinTitle.htm#LastFoundWindow">last-found window</a> for whichever thread happens to be running at the time it is called. For more information, see <a href="#Threads">Remarks</a>.</p>
+  <dd><p>If blank or omitted, a new <a href="../misc/Threads.htm">thread</a> will be started each time <em>Function</em> is called, and the standard calling convention will be used. Otherwise, specify one or more of the following options. Separate each option from the next with a space (e.g. <code>C Fast</code>).</p>
+    <p id="Fast"><strong>Fast</strong> or <strong>F</strong>: Avoids starting a new <a href="../misc/Threads.htm">thread</a> each time <em>Function</em> is called. Although this performs better, it must be avoided whenever the thread from which <em>Address</em> is called varies (e.g. when the callback is triggered by an incoming message). This is because <em>Function</em> will be able to change global settings such as <a href="../misc/ErrorLevel.htm">ErrorLevel</a>, <a href="../Variables.htm#LastError">A_LastError</a>, and the <a href="../misc/WinTitle.htm#LastFoundWindow">last-found window</a> for whichever thread happens to be running at the time it is called. For more information, see <a href="#Threads">Remarks</a>.</p>
     <p><strong>CDecl</strong> or <strong>C</strong>: Makes <em>Address</em> conform to the "C" calling convention. This is typically omitted because the standard calling convention is much more common for callbacks.</p></dd>
 
   <dt>ParamCount</dt>
-  <dd><p>The number of parameters that <em>Address</em>'s caller will pass to it. If entirely omitted, it defaults to the number of mandatory parameters in the <a href="../Functions.htm#define">definition</a> of <em>FunctionName</em>. In either case, ensure that the caller passes exactly this number of parameters.</p></dd>
+  <dd><p>If blank or omitted, it defaults to the number of mandatory parameters in the <a href="../Functions.htm#define">definition</a> of <em>Function</em>. Otherwise, specify the number of parameters that <em>Address</em>'s caller will pass to it. In either case, ensure that the caller passes exactly this number of parameters.</p></dd>
 
   <dt>EventInfo</dt>
   <dd>
-      <p>An integer that <em>FunctionName</em> will see in <a href="../Variables.htm#EventInfo">A_EventInfo</a> whenever it is called via this <em>Address</em>. This is useful when <em>FunctionName</em> is called by more than one <em>Address</em>. If omitted, it defaults to <em>Address</em>. Note: Unlike other global settings, the <a href="../misc/Threads.htm">current thread</a>'s A_EventInfo is not disturbed by the <a href="#Fast">fast mode</a>.</p>
+      <p>If blank or omitted, it defaults to <em>Address</em>. Otherwise, specify an integer that <em>Function</em> will see in <a href="../Variables.htm#EventInfo">A_EventInfo</a> whenever it is called via this <em>Address</em>. This is useful when <em>Function</em> is called by more than one <em>Address</em>. Note: Unlike other global settings, the <a href="../misc/Threads.htm">current thread</a>'s A_EventInfo is not disturbed by the <a href="#Fast">fast mode</a>.</p>
       <p>If the exe running the script is 32-bit, this parameter must be between 0 and 4294967295. If the exe is 64-bit, this parameter can be a 64-bit integer. Although <a href="../Variables.htm#EventInfo">A_EventInfo</a> usually returns an unsigned integer, AutoHotkey does not fully support unsigned 64-bit integers and therefore some operations may cause the value to wrap into the signed range.</p></dd>
 
 </dl>
 
-<h2 id="The_Callback_Functions_Parameters">The Callback Function's Parameters</h2>
-<p>A <a href="../Functions.htm">function</a> assigned to a callback address may accept up to 31 parameters. <a href="../Functions.htm#optional">Optional parameters</a> are permitted, which is useful when the function is called by more than one caller.</p>
+<h2 id="Return_Value">Return Value</h2>
+<p>Upon success, RegisterCallback() returns a numeric address that may be called by <a href="DllCall.htm">DllCall()</a> or anything else capable of calling a machine-code function. Upon failure, it returns an empty string. Failure occurs when <em>Function</em>: 1) does not exist; 2) accepts too many or too few parameters according to <em>ParamCount</em>; or 3) accepts any <a href="../Functions.htm#ByRef">ByRef parameters</a>.</p>
+
+<a id="The_Callback_Functions_Parameters"></a>
+<h2 id="The_Functions_Parameters">The <em>Function</em>'s Parameters</h2>
+<p>A <a href="../Functions.htm">function</a> assigned to a callback address may accept up to 31 parameters. <a href="../Functions.htm#optional">Optional parameters</a> are permitted, which is useful when <em>Function</em> is called by more than one caller.</p>
 <p>Interpreting the parameters correctly requires some understanding of how the x86 calling conventions work. Since AutoHotkey does not have typed parameters, the callback's parameter list is assumed to consist of integers, and some reinterpretation may be required.</p>
 
 <p><strong>AutoHotkey 32-bit:</strong> All incoming parameters are unsigned 32-bit integers. Smaller types are padded out to 32 bits, while larger types are split into a series of 32-bit parameters.</p>
-<p>If an incoming parameter is intended to be a signed integer, any negative numbers can be revealed by following either of the following examples:</p>
+<p>If an incoming parameter is intended to be a signed integer, any negative numbers can be revealed by following either of the following methods:</p>
 <pre><em>; Method #1</em>
 if (wParam &gt; 0x7FFFFFFF)
     wParam := -(~wParam) - 1
@@ -69,11 +69,11 @@ wParam := wParam &lt;&lt; 32 &gt;&gt; 32</pre>
 <pre>MyString := StrGet(MyParameter)  <em>; Requires <span class="ver">[AHK_L 46+]</span></em></pre>
 <p>If an incoming parameter is the address of a structure, the individual members may be extracted by following the steps at <a href="DllCall.htm#struct">DllCall structures</a>.</p>
 
-<p id="Indirect"><strong>Receiving parameters by address</strong> <span class="ver">[AHK_L 60+]</span>: If the function is declared as <a href="../Functions.htm#Variadic">variadic</a>, its final parameter is assigned the <i>address</i> of the first callback parameter which was not assigned to a script parameter. For example:</p>
+<p id="Indirect"><strong>Receiving parameters by address</strong> <span class="ver">[AHK_L 60+]</span>: If <em>Function</em> is declared as <a href="../Functions.htm#Variadic">variadic</a>, its final parameter is assigned the <i>address</i> of the first callback parameter which was not assigned to a script parameter. For example:</p>
 <pre>
 callback := RegisterCallback("TheFunc", "F", 3)  <em>; Parameter list size must be specified.</em>
-TheFunc("TheFunc was called directly.")          <em>; Call TheFunc directly.</em>
-DllCall(callback, "float", 10.5, "int64", 42)        <em>; Call TheFunc via callback.</em>
+TheFunc("TheFunc was called directly.")  <em>; Call TheFunc directly.</em>
+DllCall(callback, "float", 10.5, "int64", 42)  <em>; Call TheFunc via callback.</em>
 TheFunc(params*) {
     if IsObject(params)
         MsgBox % params[1]
@@ -83,13 +83,14 @@ TheFunc(params*) {
 <p>Most callbacks use the <em>stdcall</em> calling convention, which requires a fixed number of parameters. In those cases, <em>ParamCount</em> must be set to the size of the parameter list, where Int64 and Double count as two 32-bit parameters.</p>
 <p>With <em>Cdecl</em> or the 64-bit calling convention, <em>ParamCount</em> only affects how many script parameters are assigned values. If omitted, all optional parameters receive their default values and are excluded from the calculations for the address stored in <em>params</em>.</p>
 
-<h2 id="What_the_Function_Should_Return">What the Function Should <em>Return</em></h2>
-<p>If the function uses <a href="Return.htm">Return</a> without any parameters, or it specifies a blank value such as "" (or it never uses Return at all), 0 is returned to the caller of the callback. Otherwise, the function should return an integer, which is then returned to the caller. AutoHotkey 32-bit truncates return values to 32-bit, while AutoHotkey 64-bit supports 64-bit return values. Returning structs larger than this (by value) is not supported.</p>
+<a id="What_the_Function_Should_Return"></a>
+<h2 id="What_Function_Should_Return">What <em>Function</em> Should Return</h2>
+<p>If <em>Function</em> uses <a href="Return.htm">Return</a> without any parameters, or it specifies a blank value such as "" (or it never uses Return at all), 0 is returned to the caller of the callback. Otherwise, <em>Function</em> should return an integer, which is then returned to the caller. AutoHotkey 32-bit truncates return values to 32-bit, while AutoHotkey 64-bit supports 64-bit return values. Returning structs larger than this (by value) is not supported.</p>
 
 <h2 id="Threads">Fast vs. Slow</h2>
-<p>The default/slow mode causes the function to start off fresh with the default values for settings such as <a href="SendMode.htm">SendMode</a> and <a href="DetectHiddenWindows.htm">DetectHiddenWindows</a>. These defaults can be changed in the <a href="../Scripts.htm#auto">auto-execute section</a>.</p>
-<p>By contrast, the <a href="#Fast">fast mode</a> inherits global settings from whichever <a href="../misc/Threads.htm">thread</a> happens to be running at the time the function is called. Furthermore, any changes the function makes to global settings (including <a href="../misc/ErrorLevel.htm">ErrorLevel</a> and the <a href="../misc/WinTitle.htm#LastFoundWindow">last-found window</a>) will go into effect for the <a href="../misc/Threads.htm">current thread</a>. Consequently, the fast mode should be used only when it is known exactly which thread(s) the function will be called from.</p>
-<p>To avoid being interrupted by itself (or any other thread), a callback may use <a href="Critical.htm">Critical</a> as its first line. However, this is not completely effective when the function is called indirectly via the arrival of a message less than 0x0312 (increasing Critical's <a href="Critical.htm#Interval">interval</a> may help). Furthermore, <a href="Critical.htm">Critical</a> does not prevent the function from doing something that might indirectly result in a call to itself, such as calling <a href="PostMessage.htm">SendMessage</a> or <a href="DllCall.htm">DllCall()</a>.</p>
+<p>The default/slow mode causes <em>Function</em> to start off fresh with the default values for settings such as <a href="SendMode.htm">SendMode</a> and <a href="DetectHiddenWindows.htm">DetectHiddenWindows</a>. These defaults can be changed in the <a href="../Scripts.htm#auto">auto-execute section</a>.</p>
+<p>By contrast, the <a href="#Fast">fast mode</a> inherits global settings from whichever <a href="../misc/Threads.htm">thread</a> happens to be running at the time <em>Function</em> is called. Furthermore, any changes <em>Function</em> makes to global settings (including <a href="../misc/ErrorLevel.htm">ErrorLevel</a> and the <a href="../misc/WinTitle.htm#LastFoundWindow">last-found window</a>) will go into effect for the <a href="../misc/Threads.htm">current thread</a>. Consequently, the fast mode should be used only when it is known exactly which thread(s) <em>Function</em> will be called from.</p>
+<p>To avoid being interrupted by itself (or any other thread), a callback may use <a href="Critical.htm">Critical</a> as its first line. However, this is not completely effective when <em>Function</em> is called indirectly via the arrival of a message less than 0x0312 (increasing Critical's <a href="Critical.htm#Interval">interval</a> may help). Furthermore, <a href="Critical.htm">Critical</a> does not prevent <em>Function</em> from doing something that might indirectly result in a call to itself, such as calling <a href="PostMessage.htm">SendMessage</a> or <a href="DllCall.htm">DllCall()</a>.</p>
 
 <h2 id="Memory">Memory</h2>
 <p>Each use of RegisterCallback() allocates a small amount of memory (32 bytes plus system overhead). Since the OS frees this memory automatically when the script exits, any script that allocates a small, <em>fixed</em> number of callbacks does not have to explicitly free the memory. By contrast, a script that calls RegisterCallback() an indefinite/unlimited number of times should explicitly call the following on any unused callbacks:</p>
