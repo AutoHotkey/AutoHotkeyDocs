@@ -328,7 +328,7 @@ tocData = [
     ["Format()","lib/Format.htm"],
     ["FormatTime","lib/FormatTime.htm"],
     ["If[Not]InString","lib/IfInString.htm"],
-    ["If var [not] in/contains MatchList","lib/IfIn.htm"],
+    ["If Var [not] in/contains MatchList","lib/IfIn.htm"],
     ["InStr()","lib/InStr.htm"],
     ["Loop (parse a string)","lib/LoopParse.htm"],
     ["Ord()","lib/Ord.htm"],
