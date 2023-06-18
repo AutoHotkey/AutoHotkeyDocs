@@ -19,14 +19,14 @@
 <dl>
 
   <dt>BarText</dt>
-  <dd><p>The text or partial text for the which the command will wait to appear. Default is blank (empty), which means to wait for the status bar to become blank. The text is case sensitive and the matching behavior is determined by <a href="SetTitleMatchMode.htm">SetTitleMatchMode</a>, similar to <em>WinTitle</em> below.</p>
+  <dd><p>If blank or omitted, the command waits for the status bar to become blank. Otherwise, specify the text or partial text for which the command will wait to appear. The text is case sensitive and the matching behavior is determined by <a href="SetTitleMatchMode.htm">SetTitleMatchMode</a>, similar to <em>WinTitle</em> below.</p>
     <p>To instead wait for the bar's text to <em>change</em>, either use <a href="StatusBarGetText.htm">StatusBarGetText</a> in a loop, or use the RegEx example at the bottom of this page.</p></dd>
 
   <dt>Timeout</dt>
-  <dd><p>The number of seconds (can contain a decimal point or be an <a href="../Variables.htm#Expressions">expression</a>) to wait before timing out, in which case <a href="../misc/ErrorLevel.htm">ErrorLevel</a> will be set to 1. Default is blank, which means the command will wait indefinitely. Specifying 0 is the same as specifying 0.5.</p></dd>
+  <dd><p>If blank or omitted, the command will wait indefinitely. Otherwise, specify the number of seconds (can contain a decimal point or be an <a href="../Variables.htm#Expressions">expression</a>) to wait before timing out, in which case <a href="../misc/ErrorLevel.htm">ErrorLevel</a> will be set to 1. Specifying 0 is the same as specifying 0.5.</p></dd>
 
   <dt>Part#</dt>
-  <dd><p>Which part number of the bar to retrieve, which can be an <a href="../Variables.htm#Expressions">expression</a>. Default 1, which is usually the part that contains the text of interest.</p></dd>
+  <dd><p>If blank or omitted, it defaults to 1, which is usually the part that contains the text of interest. Otherwise, specify the part number of the bar to retrieve, which can be an <a href="../Variables.htm#Expressions">expression</a>.</p></dd>
 
   <dt>WinTitle, WinText, ExcludeTitle, ExcludeText</dt>
   <dd>
@@ -34,7 +34,7 @@
   </dd>
 
   <dt>Interval</dt>
-  <dd><p>How often the status bar should be checked while the command is waiting (in milliseconds), which can be an <a href="../Variables.htm#Expressions">expression</a>. Default is 50. </p></dd>
+  <dd><p>If blank or omitted, it defaults to 50. Otherwise, specify how often the status bar should be checked while the command is waiting (in milliseconds), which can be an <a href="../Variables.htm#Expressions">expression</a>.</p></dd>
 
 </dl>
 
@@ -42,8 +42,8 @@
 <p><span class="ver">[v1.1.04+]</span>: This command is able to throw an exception if the status bar couldn't be accessed. For more information, see <a href="Catch.htm#RuntimeErrors">Runtime Errors</a>.</p>
 <p><a href="../misc/ErrorLevel.htm">ErrorLevel</a> is set to 1 if the command times out before a match could be found in the status bar. It is set to 2 if the status bar could not be accessed. It is set to 0 if a match is found.</p>
 <h2 id="Remarks">Remarks</h2>
-<p>StatusBarWait attempts to read the first <em>standard</em> status bar on a window (class msctls_statusbar32). Some programs use their own status bars or special versions of the MS common control. Such bars are not supported.</p>
-<p>Rather than using <a href="StatusBarGetText.htm">StatusBarGetText</a> in a loop, it is usually more efficient to use StatusBarWait because it contains optimizations that avoid the overhead that repeated calls to <a href="StatusBarGetText.htm">StatusBarGetText</a> would incur.</p>
+<p>This command attempts to read the first <em>standard</em> status bar on a window (Microsoft common control: msctls_statusbar32). Some programs use their own status bars or special versions of the MS common control, in which case such bars are not supported.</p>
+<p>Rather than using <a href="StatusBarGetText.htm">StatusBarGetText</a> in a loop, it is usually more efficient to use StatusBarWait, which contains optimizations that avoid the overhead of repeated calls to <a href="StatusBarGetText.htm">StatusBarGetText</a>.</p>
 <p>StatusBarWait determines its target window before it begins waiting for a match. If that target window is closed, the command will stop waiting even if there is another window matching the specified <em>WinTitle</em> and <em>WinText</em>.</p>
 <p>While the command is in a waiting state, new <a href="../misc/Threads.htm">threads</a> can be launched via <a href="../Hotkeys.htm">hotkey</a>, <a href="Menu.htm">custom menu item</a>, or <a href="SetTimer.htm">timer</a>.</p>
 <p>Window titles and text are case sensitive. Hidden windows are not detected unless <a href="DetectHiddenWindows.htm">DetectHiddenWindows</a> has been turned on.</p>
@@ -67,12 +67,12 @@
 </div>
 
 <div class="ex" id="ExChange">
-<p><a class="ex_number" href="#ExChange"></a> Waits for the status bar of the active window to <strong>change</strong>. This example requires <span class="ver">[v1.0.46.06+]</span>.</p>
+<p><a class="ex_number" href="#ExChange"></a> Waits for the status bar of the active window to change. This example requires <span class="ver">[v1.0.46.06+]</span>.</p>
 <pre>SetTitleMatchMode RegEx  <em>; Accept <a href="SetTitleMatchMode.htm#RegEx">regular expressions</a> for use below.</em>
 if WinExist("A")  <em>; Set the last-found window to be the active window (for use below).</em>
 {
-    StatusBarGetText, <span class="red">OrigText</span>
-    StatusBarWait, ^(?!^\Q<span class="red">%OrigText%</span>\E$)  <em>; This regular expression waits for any change to the text.</em>
+    StatusBarGetText, OrigText
+    StatusBarWait, ^(?!^\Q%OrigText%\E$)  <em>; This regular expression waits for any change to the text.</em>
 }</pre>
 </div>
 
