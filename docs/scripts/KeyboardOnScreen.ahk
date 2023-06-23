@@ -20,9 +20,9 @@ k_MenuItemHide := "Hide on-screen &keyboard"
 k_MenuItemShow := "Show on-screen &keyboard"
 
 ; To have the keyboard appear on a monitor other than the primary, specify
-; a number such as 2 for the following variable. Leave it blank to use
+; a number such as 2 for the following variable. Leave it unset to use
 ; the primary:
-k_Monitor := ""
+k_Monitor := unset
 
 ;---- End of configuration section. Don't change anything below this point
 ; unless you want to alter the basic nature of the script.
@@ -87,7 +87,7 @@ for n, k_Row in k_Layout
 ; the position of the taskbar):
 MyGui.Show("Hide") ; Required to get the window's calculated width and height.
 ; Calculate window's X-position:
-MonitorGetWorkArea(k_Monitor, &WL,, &WR, &WB)
+MonitorGetWorkArea(k_Monitor?, &WL,, &WR, &WB)
 MyGui.GetPos(,, &k_width, &k_height)
 k_xPos := (WR - WL - k_width) / 2 ; Calculate position to center it horizontally.
 ; The following is done in case the window will be on a non-primary monitor

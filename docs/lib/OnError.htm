@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <title>OnError - Syntax &amp; Usage | AutoHotkey v2</title>
-<meta name="description" content="The OnError function causes the specified function to be called automatically when an unhandled error occurs." />
+<meta name="description" content="The OnError function registers a function to be called automatically whenever an unhandled error occurs." />
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <link href="../static/theme.css" rel="stylesheet" type="text/css" />
@@ -11,64 +11,69 @@
 <body>
 
 <h1>OnError</h1>
-<p>Causes the specified function to be called automatically when an unhandled error occurs.</p>
+<p>Registers a <a href="../Functions.htm">function</a> to be called automatically whenever an unhandled error occurs.</p>
 
-<pre class="Syntax"><span class="func">OnError</span> Function <span class="optional">, AddRemove</span></pre>
+<pre class="Syntax"><span class="func">OnError</span> Callback <span class="optional">, AddRemove</span></pre>
 
 <h2 id="Parameters">Parameters</h2>
 <dl>
 
-  <dt>Function</dt>
+  <dt>Callback</dt>
   <dd>
     <p>Type: <a href="../misc/Functor.htm">Function Object</a></p>
-    <p>The function object to call when an unhandled error occurs. The function's parameters and return value are described <a href="#Function">below</a>.</p>
+    <p>The function to call.</p>
+    <p>The callback accepts two parameters and can be <a href="../Functions.htm#intro">defined</a> as follows:</p>
+    <pre class="NoIndent">MyCallback(Thrown, Mode) { ...</pre>
+    <p>Although the names you give the parameters do not matter, the following values are sequentially assigned to them:</p>
+    <ol>
+      <li>The thrown value, usually an <a href="Error.htm">Error object</a>.</li>
+      <li>The error mode: Return, Exit, or ExitApp. For details, see the <a href="#Error_Modes">table below</a>.</li>
+    </ol>
+    <p>You can omit one or more parameters from the end of the callback's parameter list if the corresponding information is not needed, but in this case an asterisk must be specified as the final parameter, e.g. <code>MyCallback(Param1, *)</code>.</p>
+    <p>The callback can return one of the following values (other values are reserved for future use and should be avoided):</p>
+    <ul>
+      <li><code>0</code>, <code>""</code> or no Return: Allow error handling to proceed as normal.</li>
+      <li><code>1</code>: Suppress the default error dialog and any remaining error callbacks.</li>
+      <li><code>-1</code>: As above, but if <em>Mode</em> (the second parameter) contains the word Return, execution of the current thread is permitted to continue.</li>
+    </ul>
   </dd>
   
   <dt>AddRemove</dt>
   <dd>
     <p>Type: <a href="../Concepts.htm#numbers">Integer</a></p>
-    <p>If omitted, it defaults to 1 (call the function after any previously registered functions). Otherwise, specify one of the following numbers:</p>
+    <p>If unset or omitted, it defaults to 1 (call the callback after any previously registered callbacks). Otherwise, specify one of the following numbers:</p>
     <ul>
-      <li>1 = Call the function after any previously registered functions.</li>
-      <li>-1 = Call the function before any previously registered functions.</li>
-      <li>0 = Do not call the function.</li>
+      <li>1 = Call the callback after any previously registered callbacks.</li>
+      <li>-1 = Call the callback before any previously registered callbacks.</li>
+      <li>0 = Do not call the callback.</li>
     </ul>
   </dd>
 
 </dl>
 
-<h2 id="Function">Function</h2>
-<p>The function should accept two parameters:</p>
-<pre class="Syntax"><i>FunctionName</i>(Thrown, Mode)</pre>
-<dl>
-  <dt>Thrown</dt>
-  <dd>
-    <p>Type: <a href="Any.htm">Any</a></p>
-    <p>The thrown value, usually an <a href="Error.htm">Error object</a>.</p>
-  </dd>
-  <dt>Mode</dt>
-  <dd>
-    <p>Type: <a href="../Concepts.htm#strings">String</a></p>
-    <p>One of the following strings:</p>
-    <ul>
-      <li><code>"Return"</code>: <em>Thrown</em> is a continuable runtime error. The thread continues if the callback returns -1; otherwise the thread exits.</li>
-      <li><code>"Exit"</code>: <em>Thrown</em> is a non-continuable runtime error or a value <a href="Throw.htm">thrown</a> by the script. The thread will exit.</li>
-      <li><code>"ExitApp"</code>: <em>Thrown</em> is a critical runtime error, such as corruption detected by DllCall. The program will exit.</li>
-    </ul>
-  </dd>
-</dl>
-
-<h3 id="Return_Value">Return Value</h3>
-<p>The callback function can return one of the following values (other values are reserved for future use and should be avoided):</p>
-<ul>
-  <li><code>0</code>, <code>""</code> or no <code>return</code>: Allow error handling to proceed as normal.</li>
-  <li><code>1</code>: Suppress the default error dialog and any remaining error callbacks.</li>
-  <li><code>-1</code>: As above, but if <em>Mode</em> is <code>"Return"</code>, execution of the current thread is permitted to continue.</li>
-</ul>
+<h2 id="Error_Modes">Error Modes</h2>
+<table class="info">
+  <tr>
+    <th>Mode</th>
+    <th abbr="Descr">Description</th>
+  </tr>
+  <tr>
+    <td>Return</td>
+    <td>The thrown value is a continuable runtime error. The thread continues if the callback returns -1; otherwise the thread exits.</td>
+  </tr>
+  <tr>
+    <td>Exit</td>
+    <td>The thrown value is a non-continuable runtime error or a value <a href="Throw.htm">thrown</a> by the script. The thread will exit.</td>
+  </tr>
+  <tr>
+    <td>ExitApp</td>
+    <td>The thrown value is a critical runtime error, such as corruption detected by DllCall. The program will exit.</td>
+  </tr>
+</table>
 
 <h2 id="Remarks">Remarks</h2>
-<p><em>Function</em> is called only for errors or exceptions which would normally cause an error message to be displayed. It cannot be called for a load-time error, since OnError cannot be called until after the script has loaded.</p>
-<p><em>Function</em> is called on the current <a href="../misc/Threads.htm">thread</a>, before it exits (that is, before the call stack unwinds).</p>
+<p><em>Callback</em> is called only for errors or exceptions which would normally cause an error message to be displayed. It cannot be called for a load-time error, since OnError cannot be called until after the script has loaded.</p>
+<p><em>Callback</em> is called on the current <a href="../misc/Threads.htm">thread</a>, before it exits (that is, before the call stack unwinds).</p>
 
 <h2 id="Related">Related</h2>
 <p><a href="Try.htm">Try</a>, <a href="Catch.htm">Catch</a>, <a href="Throw.htm">Throw</a>, <a href="OnExit.htm">OnExit</a></p>
@@ -84,8 +89,7 @@ LogError(exception, mode) {
     FileAppend "Error on line " exception.Line ": " exception.Message "`n"
         , "errorlog.txt"
     return true
-}
-</pre>
+}</pre>
 </div>
 
 <div class="ex" id="ExAccumulator">
@@ -110,7 +114,7 @@ class ErrorAccumulator
     __delete() =&gt; this.Stop()           <em>; For tying to function scope.</em>
 }
 
-<em>; This is the OnError callback function. 'errors' is given a value via Bind().</em>
+<em>; This is the OnError callback. 'errors' is given a value via Bind().</em>
 AccumulateError(errors, e, mode)
 {
     if mode != "Return" <em>; Not continuable.</em>

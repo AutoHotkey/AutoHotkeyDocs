@@ -21,8 +21,9 @@
   <dt>KeyName</dt>
   <dd>
     <p>Type: <a href="../Concepts.htm#strings">String</a></p>
-    <p>The full name of the registry key.</p>
-    <p>This must start with HKEY_LOCAL_MACHINE, HKEY_USERS, HKEY_CURRENT_USER, HKEY_CLASSES_ROOT, or HKEY_CURRENT_CONFIG (or the abbreviations for each of these, such as HKLM). To access a <a href="#remote">remote registry</a>, prepend the computer name and a backslash, as in this example: \\workstation01\HKEY_LOCAL_MACHINE</p>
+    <p>The full name of the registry key, e.g. <code>"HKLM\Software\SomeApplication"</code>.</p>
+    <p>This must start with HKEY_LOCAL_MACHINE (or HKLM), HKEY_USERS (or HKU), HKEY_CURRENT_USER (or HKCU), HKEY_CLASSES_ROOT (or HKCR), or HKEY_CURRENT_CONFIG (or HKCC).</p>
+    <p>To access a <a href="#remote">remote registry</a>, prepend the computer name and a backslash, e.g. <code>"\\workstation01\HKLM"</code>.</p>
   </dd>
   
   <dt>Mode</dt>
@@ -40,8 +41,8 @@
 </dl>
 
 <h2 id="Remarks">Remarks</h2>
-<p>A registry-loop is useful when you want to operate on a collection registry values or subkeys, one at a time. The values and subkeys are retrieved in reverse order (bottom to top) so that <a href="RegDelete.htm">RegDelete</a> and <a href="RegDeleteKey.htm">RegDeleteKey</a> can be used inside the loop without disrupting the loop.</p>
-<p id="vars">The following variables exist within any registry-loop. If an inner registry-loop is enclosed by an outer registry-loop, the innermost loop's registry item will take precedence:</p>
+<p>A registry loop is useful when you want to operate on a collection registry values or subkeys, one at a time. The values and subkeys are retrieved in reverse order (bottom to top) so that <a href="RegDelete.htm">RegDelete</a> and <a href="RegDeleteKey.htm">RegDeleteKey</a> can be used inside the loop without disrupting the loop.</p>
+<p id="vars">The following variables exist within any registry loop. If an inner registry loop is enclosed by an outer registry loop, the innermost loop's registry item will take precedence:</p>
 <table class="info">
   <tr>
     <th abbr="Var">Variable</th>
@@ -57,14 +58,14 @@
   </tr>
   <tr>
     <td>A_LoopRegKey</td>
-    <td>The full name of the key which contains the current loop item. For remote registry access, this value will <strong>not</strong> include the computer name.</td>
+    <td>The full name of the key which contains the current loop item. For remote registry access, this value will <u>not</u> include the computer name.</td>
   </tr>
   <tr>
     <td>A_LoopRegTimeModified</td>
     <td>The time the current subkey or any of its values was last modified. Format <a href="FileSetTime.htm">YYYYMMDDHH24MISS</a>. This variable will be empty if the currently retrieved item is not a subkey (i.e. <em>A_LoopRegType</em> is not the word KEY).</td>
   </tr>
 </table>
-<p>When used inside a registry-loop, the following functions can be used in a simplified way to indicate that the currently retrieved item should be operated upon:</p>
+<p>When used inside a registry loop, the following functions can be used in a simplified way to indicate that the currently retrieved item should be operated upon:</p>
 <table class="info">
   <tr>
     <th style="min-width: 11em;">Syntax</th>
@@ -106,14 +107,20 @@
 <p><a href="Loop.htm">Loop</a>, <a href="Break.htm">Break</a>, <a href="Continue.htm">Continue</a>, <a href="Block.htm">Blocks</a>, <a href="RegRead.htm">RegRead</a>, <a href="RegWrite.htm">RegWrite</a>, <a href="RegDelete.htm">RegDelete</a>, <a href="RegDeleteKey.htm">RegDeleteKey</a>, <a href="SetRegView.htm">SetRegView</a></p>
 
 <h2 id="Examples">Examples</h2>
+<div class="ex" id="ExBasic">
+<p><a class="ex_number" href="#ExBasic"></a> Retrieves the contents of the specified registry subkey, one item at a time.</p>
+<pre>Loop Reg, "HKEY_LOCAL_MACHINE\Software\SomeApplication"
+    MsgBox A_LoopRegName</pre>
+</div>
+
 <div class="ex" id="ExRegDelete">
 <p><a class="ex_number" href="#ExRegDelete"></a> Deletes Internet Explorer's history of URLs typed by the user.</p>
 <pre>Loop Reg, "HKEY_CURRENT_USER\Software\Microsoft\Internet Explorer\TypedURLs"
     RegDelete</pre>
 </div>
 
-<div class="ex" id="ExBasic">
-<p><a class="ex_number" href="#ExBasic"></a> A working test script.</p>
+<div class="ex" id="ExTest">
+<p><a class="ex_number" href="#ExTest"></a> A working test script.</p>
 <pre>Loop Reg, "HKCU\Software\Microsoft\Windows", "R KV"  <em>; Recursively retrieve keys and values.</em>
 {
     if A_LoopRegType = "key"

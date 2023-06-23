@@ -14,6 +14,7 @@ tocData = [
     ["Functions","Functions.htm"],
     ["Labels","misc/Labels.htm"],
     ["Threads","misc/Threads.htm"],
+    ["Editors with AHK Support","misc/Editors.htm"],
     ["Debugging Clients","AHKL_DBGPClients.htm"],
     ["Compiler Directives","misc/Ahk2ExeDirectives.htm"],
     ["Objects","Objects.htm"]
@@ -132,24 +133,26 @@ tocData = [
   [
     ["#Include[Again]","lib/_Include.htm"],
     ["{ ... } (block)","lib/Block.htm"],
-    ["Break","lib/Break.htm"],
     ["Catch","lib/Catch.htm"],
-    ["Continue","lib/Continue.htm"],
     ["Critical","lib/Critical.htm"],
     ["Else","lib/Else.htm"],
     ["Exit","lib/Exit.htm"],
     ["ExitApp","lib/ExitApp.htm"],
     ["Finally","lib/Finally.htm"],
-    ["For-loop","lib/For.htm"],
     ["Goto","lib/Goto.htm"],
     ["If","lib/If.htm"],
-    ["Loop","lib/Loop.htm",
+    ["Loop Statements","Language.htm#loop-statement",
     [
       ["Loop","lib/Loop.htm"],
       ["Loop Files (and folders)","lib/LoopFiles.htm"],
       ["Loop Parse (strings)","lib/LoopParse.htm"],
       ["Loop Read (file contents)","lib/LoopRead.htm"],
-      ["Loop Reg (registry)","lib/LoopReg.htm"]
+      ["Loop Reg (registry)","lib/LoopReg.htm"],
+      ["While","lib/While.htm"],
+      ["For","lib/For.htm"],
+      ["Break","lib/Break.htm"],
+      ["Continue","lib/Continue.htm"],
+      ["Until","lib/Until.htm"]
     ]],
     ["OnError","lib/OnError.htm"],
     ["OnExit","lib/OnExit.htm"],
@@ -162,9 +165,7 @@ tocData = [
     ["Switch","lib/Switch.htm"],
     ["Thread","lib/Thread.htm"],
     ["Throw","lib/Throw.htm"],
-    ["Try","lib/Try.htm"],
-    ["Until","lib/Until.htm"],
-    ["While-loop","lib/While.htm"]
+    ["Try","lib/Try.htm"]
   ]],
   ["Graphical User Interfaces","",
   [
