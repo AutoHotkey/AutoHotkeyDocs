@@ -346,7 +346,7 @@ indexData = [
   ["Cancel (Gui)","lib/Gui.htm#Cancel",7],
   ["Capacity (DriveGet)","lib/DriveGet.htm#Capacity",7],
   ["Case","lib/Switch.htm",3,"E"],
-  ["case sensitive strings","lib/StringCaseSense.htm"],
+  ["case-sensitive strings","lib/StringCaseSense.htm"],
   ["CaseSensitive property (InputHook)","lib/InputHook.htm#CaseSensitive",8],
   ["Catch","lib/Catch.htm",3,"O"],
   ["Ceil (Transform)","lib/Transform.htm#Ceil",7],
