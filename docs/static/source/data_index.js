@@ -1131,7 +1131,7 @@ indexData = [
   ["StringReplace","lib/StringReplace.htm",6,"OISSS"],
   ["StringRight","lib/StringLeft.htm",6,"OIE"],
   ["strings (concepts)","Concepts.htm#strings"],
-  ["StringSplit","lib/StringSplit.htm",6,"SISSS"],
+  ["StringSplit","lib/StringSplit.htm",6,"OISSS"],
   ["StringTrimLeft","lib/StringTrimLeft.htm",6,"OIE"],
   ["StringTrimRight","lib/StringTrimLeft.htm",6,"OIE"],
   ["StringUpper","lib/StringLower.htm",6,"OIS"],
