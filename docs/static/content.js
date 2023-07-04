@@ -165,7 +165,8 @@ var isPhone = (document.documentElement.clientWidth <= 600);
       if (cache.fontSize != 1)
         $('head').append('<style>body {font-size:' + cache.fontSize + 'em}</style>');
       normalizeParentURL = function() {
-        postMessageToParent('normalizeURL', [$.extend({}, window.location), document.title, supportsHistory ? history.state : null, equivPath]);
+        var url = getUrlParameter('url');
+        postMessageToParent('normalizeURL', [url ? {"href": url} : $.extend({}, window.location), document.title, supportsHistory ? history.state : null, equivPath]);
         if (cache.toc_clickItemTemp)
           if (supportsHistory)
             history.replaceState($.extend(history.state, {toc_clickItemTemp: cache.toc_clickItemTemp}), null, null);
