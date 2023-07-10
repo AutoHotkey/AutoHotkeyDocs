@@ -1178,6 +1178,7 @@ indexData = [
   ["times and dates (of files)","lib/FileSetTime.htm"],
   ["Tip (Menu)","lib/Menu.htm#Tip",7],
   ["title of a window","lib/WinSetTitle.htm"],
+  ["toast notification","lib/TrayTip.htm"],
   ["ToggleCheck (Menu)","lib/Menu.htm#ToggleCheck",7],
   ["ToggleEnable (Menu)","lib/Menu.htm#ToggleEnable",7],
   ["ToolTip","lib/ToolTip.htm",6,"SEEE"],
