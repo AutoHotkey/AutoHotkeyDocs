@@ -96,6 +96,7 @@ indexData = [
   [">=","Variables.htm#compare",4],
   [">>","Variables.htm#bitshift",4],
   [">>=","Variables.htm#AssignOp",4],
+  [">>>","Variables.htm#bitshift",4],
   ["|","Variables.htm#bitwise",4],
   ["|=","Variables.htm#AssignOp",4],
   ["||","Variables.htm#or",4],
