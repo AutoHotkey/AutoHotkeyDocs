@@ -1,0 +1,2 @@
+# AutoHotkeyDocs
+Documentation for AutoHotkey
