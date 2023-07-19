@@ -376,7 +376,7 @@ tocData = [
     ["StrReplace","lib/StrReplace.htm"],
     ["StrSplit","lib/StrSplit.htm"],
     ["SubStr","lib/SubStr.htm"],
-    ["Trim","lib/Trim.htm"],
+    ["Trim / LTrim / RTrim","lib/Trim.htm"],
     ["VarSetStrCapacity","lib/VarSetStrCapacity.htm"],
     ["VerCompare","lib/VerCompare.htm"]
   ]],
