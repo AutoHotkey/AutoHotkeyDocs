@@ -22,7 +22,7 @@
   <dd>The name of the output variable in which to store the result of <em>SubCommand</em>.</dd>
 
   <dt>SubCommand</dt>
-  <dd>The operation to perform, which if blank defaults to the <a href="#ID">ID</a> sub-command. See <a href="#SubCommands">Sub-commands</a>.</dd>
+  <dd>If blank or omitted, it defaults to <a href="#ID">ID</a> (retrieve the unique ID number of a window). Otherwise, specify the <a href="#SubCommands">sub-command</a> to perform.</dd>
 
   <dt>WinTitle, WinText, ExcludeTitle, ExcludeText</dt>
   <dd>
@@ -82,7 +82,7 @@
 <h3 id="List">List</h3>
 <p>Retrieves the unique ID numbers of all existing windows that match the title/text parameters.</p>
 <pre class="Syntax"><span class="func">WinGet</span>, OutputVar, List <span class="optional">, WinTitle, WinText, ExcludeTitle, ExcludeText</span></pre>
-<p>To retrieve all windows on the entire system, omit all four title/text parameters. Each ID number is stored in a variable whose name begins with <em>OutputVar</em>'s own name (to form a <a href="../misc/Arrays.htm#pseudo">pseudo-array</a>), while <em>OutputVar</em> itself is set to the number of retrieved items (0 if none). For example, if <em>OutputVar</em> is MyArray and two matching windows are discovered, MyArray1 will be set to the ID of the first window, MyArray2 will be set to the ID of the second window, and MyArray itself will be set to the number 2. Windows are retrieved in order from topmost to bottommost (according to how they are stacked on the desktop). Hidden windows are included only if <a href="DetectHiddenWindows.htm">DetectHiddenWindows</a> has been turned on. Within a <a href="../Functions.htm">function</a>, to create a pseudo-array that is global instead of local, <a href="../Functions.htm#Global">declare</a> MyArray as a global variable prior to using this command (the converse is true for <a href="../Functions.htm#AssumeGlobal">assume-global</a> functions). However, it is often also necessary to declare each variable in the set, due to a <a href="../Functions.htm#ArrayConfusion">common source of confusion</a>.</p>
+<p>To retrieve all windows on the entire system, omit all four title/text parameters. Each ID number is stored in a variable whose name begins with <em>OutputVar</em>'s own name (to form a <a href="../misc/Arrays.htm#pseudo">pseudo-array</a>), while <em>OutputVar</em> itself is set to the number of retrieved IDs (0 if none). For example, if <em>OutputVar</em> is MyArray and two matching windows are discovered, MyArray1 will be set to the ID of the first window, MyArray2 will be set to the ID of the second window, and MyArray itself will be set to the number 2. Windows are retrieved in order from topmost to bottommost (according to how they are stacked on the desktop). Hidden windows are included only if <a href="DetectHiddenWindows.htm">DetectHiddenWindows</a> has been turned on. Within a <a href="../Functions.htm">function</a>, to create a pseudo-array that is global instead of local, <a href="../Functions.htm#Global">declare</a> MyArray as a global variable prior to using this command (the converse is true for <a href="../Functions.htm#AssumeGlobal">assume-global</a> functions). However, it is often also necessary to declare each variable in the set, due to a <a href="../Functions.htm#ArrayConfusion">common source of confusion</a>.</p>
 
 <h3 id="MinMax">MinMax</h3>
 <p>Retrieves the minimized/maximized state for a window.</p>
@@ -97,14 +97,15 @@
 <h3 id="ControlList">ControlList</h3>
 <p>Retrieves the control name for each control in a window.</p>
 <pre class="Syntax"><span class="func">WinGet</span>, OutputVar, ControlList <span class="optional">, WinTitle, WinText, ExcludeTitle, ExcludeText</span></pre>
-<p>If no matching window exists or there are no controls in the window, <em>OutputVar</em> is made blank. Otherwise, each control name consists of its class name followed immediately by its sequence number (ClassNN), as shown by Window Spy.</p>
-<p>Each item except the last is terminated by a linefeed (`n). To examine the individual control names one by one, use a <a href="LoopParse.htm">parsing loop</a> as shown in <a href="#ExControlList">example #3</a> below.</p>
+<p>If no matching window exists or there are no controls in the window, <em>OutputVar</em> is made blank. Otherwise, it is set to a list of control names. Each name consists of the control's class name followed immediately by its sequence number (ClassNN), as shown by Window Spy.</p>
+<p>Each control name except the last is terminated by a linefeed (`n). To examine the individual control names one by one, use a <a href="LoopParse.htm">parsing loop</a> as shown in <a href="#ExControlList">example #3</a> below.</p>
 <p>Controls are sorted according to their Z-order, which is usually the same order as the navigation order via <kbd>Tab</kbd> if the window supports tabbing.</p>
 
 <h3 id="ControlListHwnd">ControlListHwnd <span class="ver">[v1.0.43.06+]</span></h3>
 <p>Retrieves the unique ID number for each control in a window.</p>
 <pre class="Syntax"><span class="func">WinGet</span>, OutputVar, ControlListHwnd <span class="optional">, WinTitle, WinText, ExcludeTitle, ExcludeText</span></pre>
-<p>If no matching window exists or there are no controls in the window, <em>OutputVar</em> is made blank. Otherwise, each unique ID is the <a href="ControlGet.htm#Hwnd">window handle (HWND)</a> of the control. Each item except the last is terminated by a linefeed (`n).</p>
+<p>If no matching window exists or there are no controls in the window, <em>OutputVar</em> is made blank. Otherwise, it is set to a list of unique IDs. Each ID is the <a href="ControlGet.htm#Hwnd">window handle (HWND)</a> of the control.</p>
+<p>Each ID except the last is terminated by a linefeed (`n). To examine the individual IDs one by one, use a <a href="LoopParse.htm">parsing loop</a> as shown in <a href="#ExControlList">example #3</a> below.</p>
 <p>Controls are sorted according to their Z-order, which is usually the same order as the navigation order via <kbd>Tab</kbd> if the window supports tabbing.</p>
 
 <h3 id="Transparent">Transparent</h3>
@@ -112,7 +113,7 @@
 <pre class="Syntax"><span class="func">WinGet</span>, OutputVar, Transparent <span class="optional">, WinTitle, WinText, ExcludeTitle, ExcludeText</span></pre>
 <p>See <a href="WinSet.htm">WinSet</a> for how to set transparency. <em>OutputVar</em> is made blank if: 1) the OS is older than Windows XP; 2) there are no matching windows; 3) the window has no transparency level; or 4) other conditions (caused by OS behavior) such as the window having been minimized, restored, and/or resized since it was made transparent. Otherwise, a number between 0 and 255 is stored, where 0 indicates an invisible window and 255 indicates an opaque window. For example:</p>
 <pre>MouseGetPos,,, MouseWin
-WinGet, Transparent, Transparent, ahk_id %MouseWin%  <em>; Transparency of window under the mouse cursor.</em></pre>
+WinGet, Transparent, Transparent, ahk_id %MouseWin%  <em>; Transparency of the window under the mouse cursor.</em></pre>
 
 <h3 id="TransColor">TransColor</h3>
 <p>Retrieves the color that is marked transparent in a window.</p>
