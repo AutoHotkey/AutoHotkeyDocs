@@ -14,8 +14,10 @@
 
 <p>Copies a string to a memory address or buffer, optionally converting it to a given code page.</p>
 
-<pre class="Syntax"><span class="func">StrPut</span> String <span class="optional">, Encoding := <i>None</i></span> 
-<span class="func">StrPut</span> String, Target <span class="optional">, Length</span> <span class="optional">, Encoding := <i>None</i></span>
+<pre class="Syntax">
+BytesWritten := <span class="func">StrPut</span>(String, Target <span class="optional">, Length, Encoding</span>)
+BytesWritten := <span class="func">StrPut</span>(String, Target <span class="optional">, Encoding</span>)
+ReqBufSize   := <span class="func">StrPut</span>(String <span class="optional">, Encoding</span>)
 </pre>
 <h2 id="Parameters">Parameters</h2>
 <dl>
@@ -38,9 +40,8 @@
   <dt>Length</dt>
   <dd>
     <p>Type: <a href="../Concepts.htm#numbers">Integer</a></p>
-    <p>The maximum number of <a href="../Concepts.htm#character">characters</a> to write, including the <a href="../Concepts.htm#null-termination">null-terminator</a> if required.</p>
+    <p>If unset or omitted (or when using 3-parameter mode) and if <em>Target</em> is not a plain memory address, it defaults to the buffer size, meaning it is assumed to be sufficient, such as if the buffer was allocated based on a previous call to StrPut with the same <em>String</em> and <em>Encoding</em>. Otherwise, specify the maximum number of <a href="../Concepts.htm#character">characters</a> to write, including the <a href="../Concepts.htm#null-termination">null-terminator</a> if required.</p>
     <p>If <em>Length</em> is zero or less than the projected length after conversion (or the length of the source string if conversion is not required), an exception is thrown.</p>
-    <p><em>Length</em> must not be omitted when <em>Target</em> is a plain memory address, unless the buffer size is known to be sufficient, such as if the buffer was allocated based on a previous call to StrPut with the same <em>Source</em> and <em>Encoding</em>.</p>
     <p>If <em>Target</em> is an object, specifying a <em>Length</em> that exceeds the buffer size calculated from <code><i>Target</i>.Size</code> is considered an error, even if the converted string would fit within the buffer.</p>
     <p class="warning"><strong>Note:</strong> When <em>Encoding</em> is specified, <em>Length</em> should be the size of the buffer (in characters), <strong>not</strong> the length of <em>String</em> or a substring, as conversion may increase its length.</p>
     <p class="warning"><strong>Note:</strong> <em>Length</em> is measured in characters, whereas buffer sizes are usually measured in bytes, as is StrPut's return value. To specify the buffer size in bytes, use a <a href="Buffer.htm">Buffer</a>-like object in the <em>Target</em> parameter.</p>
@@ -49,22 +50,22 @@
   <dt>Encoding</dt>
   <dd>
     <p>Type: <a href="../Concepts.htm#strings">String</a> or <a href="../Concepts.htm#numbers">Integer</a></p>
-    <p>The target encoding; for example, <code>"UTF-8"</code>, <code>"UTF-16"</code> or <code>"CP936"</code>. For numeric identifiers, the prefix "CP" can be omitted only if <em>Length</em> is specified. Specify an empty string or <code>"CP0"</code> to use the system default ANSI code page.</p>
+    <p>If unset or omitted, the string is simply copied or measured without any conversion taking place. Otherwise, specify the target encoding; for example, <code>"UTF-8"</code>, <code>"UTF-16"</code> or <code>"CP936"</code>. For numeric identifiers, the prefix "CP" can be omitted only in 4-parameter mode. Specify an empty string or <code>"CP0"</code> to use the system default ANSI code page.</p>
   </dd>
 
 </dl>
 
 <h2 id="Return_Value">Return Value</h2>
 <p>Type: <a href="../Concepts.htm#numbers">Integer</a></p>
-<p>If <em>Target</em> is omitted, this function returns the required buffer size in bytes, including space for the null-terminator.</p>
-<p>If <em>Target</em> is specified, this function returns the number of bytes written. A null-terminator is written and included in the return value only when there is sufficient space; that is, it is omitted when <em>Length</em> or <code><i>Target</i>.Size</code> (multiplied by the size of a character) exactly equals the length of the converted string.</p>
+<p>In 4- or 3-parameter mode, this function returns the number of bytes written. A null-terminator is written and included in the return value only when there is sufficient space; that is, it is omitted when <em>Length</em> or <code><i>Target</i>.Size</code> (multiplied by the size of a character) exactly equals the length of the converted string.</p>
+<p>In 2-parameter mode, this function returns the required buffer size in bytes, including space for the null-terminator.</p>
 
 <h2 id="Error_Handling">Error Handling</h2>
 <p>A <a href="Error.htm#ValueError">ValueError</a> is thrown if invalid parameters are detected, such as if the converted string would be longer than allowed by <em>Length</em> or <code><i>Target</i>.Size</code>.</p>
 <p>An <a href="Error.htm#OSError">OSError</a> is thrown if the conversion could not be performed.</p>
 
 <h2 id="Remarks">Remarks</h2>
-<p>Note that the <i>String</i> parameter is always assumed to use the <a href="../Concepts.htm#string-encoding">native encoding</a> of the current executable, whereas <i>Encoding</i> specifies the encoding of the string written to the given <i>Target</i>. If no <em>Encoding</em> is specified, the string is simply measured or copied without any conversion taking place.</p>
+<p>Note that the <i>String</i> parameter is always assumed to use the <a href="../Concepts.htm#string-encoding">native encoding</a> of the current executable, whereas <i>Encoding</i> specifies the encoding of the string written to the given <i>Target</i>. If no <em>Encoding</em> is specified, the string is simply copied or measured without any conversion taking place.</p>
 
 <h2 id="Related">Related</h2>
 <p><a href="../Concepts.htm#string-encoding">String Encoding</a>, <a href="StrGet.htm">StrGet</a>, <a href="../Compat.htm">Binary Compatibility</a>, <a href="FileEncoding.htm">FileEncoding</a>, <a href="DllCall.htm">DllCall</a>, <a href="Buffer.htm">Buffer object</a>, <a href="VarSetStrCapacity.htm">VarSetStrCapacity</a></p>

@@ -103,6 +103,7 @@ Loop Read, FavoritesFile
 ;----Open the selected favorite
 OpenFavorite(ItemName, ItemPos, *)
 {
+    control_id := 0
     ; Fetch the array element that corresponds to the selected menu item:
     path := g_Paths[ItemPos]
     if path = ""
@@ -112,28 +113,38 @@ OpenFavorite(ItemName, ItemPos, *)
         ; Activate the window so that if the user is middle-clicking
         ; outside the dialog, subsequent clicks will also work:
         WinActivate g_window_id
+        ; Retrieve the unique ID number of the Edit1 control:
+        control_id := ControlGetHwnd("Edit1", g_window_id)
         ; Retrieve any filename that might already be in the field so
         ; that it can be restored after the switch to the new folder:
-        text := ControlGetText("Edit1", g_window_id)
-        ControlSetText path, "Edit1", g_window_id
-        ControlFocus "Edit1", g_window_id
-        ControlSend "{Enter}", "Edit1", g_window_id
+        text := ControlGetText(control_id)
+        ControlSetText path, control_id
+        ControlFocus control_id
+        ControlSend "{Enter}", control_id
         Sleep 100  ; It needs extra time on some dialogs or in some cases.
-        ControlSetText text, "Edit1", g_window_id
+        ControlSetText text, control_id
         return
     }
     else if g_class = "CabinetWClass"  ; In Explorer, switch folders.
     {
-        ControlClick "ToolbarWindow323", g_window_id,,,, "NA x1 y1"
-        ControlFocus "Edit1", g_window_id
-        ControlSetText path, "Edit1", g_window_id
-        ; Tekl reported the following: "If I want to change to Folder L:\folder
-        ; then the addressbar shows http://www.L:\folder.com. To solve this,
-        ; I added a {right} before {Enter}":
-        ControlSend "{Right}{Enter}", "Edit1", g_window_id
+        if VerCompare(A_OSVersion, "10.0.22000") >= 0 ; Windows 11 and later
+            try GetActiveExplorerTab().Navigate(ExpandEnvVars(path))
+        else
+        {
+            ControlClick "ToolbarWindow323", g_window_id,,,, "NA x1 y1"
+            ; Wait until the Edit1 control exists:
+            while not control_id
+                try control_id := ControlGetHwnd("Edit1", g_window_id)
+            ControlFocus control_id
+            ControlSetText path, control_id
+            ; Tekl reported the following: "If I want to change to Folder L:\folder
+            ; then the addressbar shows http://www.L:\folder.com. To solve this,
+            ; I added a {right} before {Enter}":
+            ControlSend "{Right}{Enter}", control_id
+        }
         return
     }
-    else if g_class = "ConsoleWindowClass" ; In a console window, CD to that directory
+    else if g_class ~= "ConsoleWindowClass|CASCADIA_HOSTING_WINDOW_CLASS" ; In a console window, CD to that directory
     {
         WinActivate g_window_id ; Because sometimes the mclick deactivates it.
         SetKeyDelay 0  ; This will be in effect only for the duration of this thread.
@@ -159,9 +170,42 @@ DisplayMenu(*)
     try global g_class := WinGetClass(g_window_id)
     if g_AlwaysShowMenu = false  ; The menu should be shown only selectively.
     {
-        if !(g_class ~= "#32770|ExploreWClass|CabinetWClass|ConsoleWindowClass")
+        if !(g_class ~= "#32770|ExploreWClass|CabinetWClass|ConsoleWindowClass|CASCADIA_HOSTING_WINDOW_CLASS")
             return ; Since it's some other window type, don't display menu.
     }
     ; Otherwise, the menu should be presented for this type of window:
     g_Menu.Show()
+}
+
+; Get the WebBrowser object of the active Explorer tab for the given window,
+; or the window itself if it doesn't have tabs.  Supports IE and File Explorer.
+; https://www.autohotkey.com/boards/viewtopic.php?t=109907
+GetActiveExplorerTab(hwnd := WinExist("A")) {
+    activeTab := 0
+    try activeTab := ControlGetHwnd("ShellTabWindowClass1", hwnd) ; File Explorer (Windows 11)
+    catch
+    try activeTab := ControlGetHwnd("TabWindowClass1", hwnd) ; IE
+    for w in ComObject("Shell.Application").Windows {
+        if w.hwnd != hwnd
+            continue
+        if activeTab { ; The window has tabs, so make sure this is the right one.
+            static IID_IShellBrowser := "{000214E2-0000-0000-C000-000000000046}"
+            shellBrowser := ComObjQuery(w, IID_IShellBrowser, IID_IShellBrowser)
+            ComCall(3, shellBrowser, "uint*", &thisTab:=0)
+            if thisTab != activeTab
+                continue
+        }
+        return w
+    }
+}
+
+ExpandEnvVars(str)
+{
+    if sz:=DllCall("ExpandEnvironmentStrings", "Str", str, "Ptr", 0, "UInt", 0)
+    {
+        buf := Buffer(sz * 2)
+        if DllCall("ExpandEnvironmentStrings", "Str", str, "Ptr", buf, "UInt", sz)
+            return StrGet(buf)
+    }
+    return str
 }
