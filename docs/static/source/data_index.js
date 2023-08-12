@@ -31,6 +31,7 @@ indexData = [
   ["!==","Variables.htm#equal",4],
   ["?","Variables.htm#ternary",4],
   ["??","Variables.htm#or-maybe",4],
+  ["??=","Variables.htm#maybe-assign",4],
   [".","Variables.htm#concat",4],
   [".=","Variables.htm#AssignOp",4],
   ["' (quoted strings)","Language.htm#strings"],
