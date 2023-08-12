@@ -131,6 +131,40 @@ MsgBox "This line is not commented out."
 </table>
 <p>Unlike the read-only <a href="Variables.htm#BuiltIn">built-in variables</a>, these cannot be returned by a <a href="#dynamic-variables">dynamic reference</a>.</p>
 
+<h3 id="unset">Unset</h3>
+<p class="note">For an explanation of the general concept, see <a href="Concepts.htm#unset">Unset</a>.</p>
+<p>The keyword <code>unset</code> represents the <em>absence</em> of a value.</p>
+<p>An "unset expression" is any sub-expression which, by use of the <code>unset</code> keyword or <a href="Variables.htm#maybe">maybe operator (?)</a>, can evaluate without producing a value and without throwing an UnsetError. The typical uses of an unset expression are:</p>
+<ul>
+  <li>Signaling a function call to <a href="#optional-parameters">omit a parameter</a>. In this context, "unset" is synonymous with "omitted".</li>
+  <li>Removing the value from a variable or array element, or removing a property or map element.</li>
+  <li>Directly passing an optional value between variables or function parameters.</li>
+  <li>Allowing an unset variable, property or function call to evaluate without throwing an UnsetError.</li>
+</ul>
+<p>An unset expression may consist of:</p>
+<ul>
+  <li>The <code>unset</code> keyword.</li>
+  <li>The maybe operator (?) applied to a variable.</li>
+  <li><span class="ver">[v2.1-alpha.2+]:</span> The maybe operator (?) applied to a property, method or function call.</li>
+  <li><span class="ver">[v2.1-alpha.2+]:</span> An "optional chain" of member access immediately following the maybe operator (?).</li>
+  <li>A direct assignment with <code>:=</code> or <code>??=</code>, where the right-hand side is an unset expression.</li>
+  <li>The <a href="Variables.htm#or-maybe">or-maybe operator (??)</a>, where the right-hand side is an unset expression.</li>
+  <li>The <a href="Variables.htm#ternary">ternary operator</a>, where the true and/or false branch is an unset expression.</li>
+  <li>Parentheses enclosing an unset expression.</li>
+</ul>
+<p id="unset-valid">Unset expressions are valid only within the following contexts:</p>
+<ul>
+  <li>Being passed as a function parameter, where "unset" is analogous to "omitted".</li>
+  <li>Within an array literal, where the element is always included in <a href="lib/Array.htm#Length">Length</a> but may have no value.</li>
+  <li>On the right-hand side of <code>:</code> in an object literal, where unset properties are ignored.</li>
+  <li><span class="ver">[v2.1-alpha.2+]:</span> On the left-hand side of or-maybe, which can provide a fallback value for any subsequent operators.</li>
+  <li><span class="ver">[v2.1-alpha.2+]:</span> As the final result of a <code>return</code> statement.</li>
+  <li><span class="ver">[v2.1-alpha.2+]:</span> In a <a href="Variables.htm#deref">property name substitution</a>, where <em>unset</em> resolves to the default property (either __Item or Call).</li>
+  <li><span class="ver">[v2.1-alpha.2+]:</span> In an <a href="Language.htm#expression-statements">expression statement</a> or with <a href="Variables.htm#comma">multi-statement comma</a>, where the result is not used.</li>
+</ul>
+<p id="unset-assign">Assigning <em>unset</em> can be said to "unset" the variable, array/map element or property. Unsetting a variable or array element removes its value, while unsetting a map element or value property deletes it from the object. If the property is dynamic or implemented by __Set, the <em>value</em> parameter is omitted/unset. Whether this produces an error or some other effect depends on the property.</p>
+<p id="unset-chain">When the maybe operator (?) is used to form an optional chain, the overall chain must be explicitly marked with a final maybe (?) to show that it should be interpreted as omitting the parameter. The chain should be enclosed in parentheses if the final return value is not permitted to be unset. For example, <code>MsgBox((x?.y)?)</code> "omits" the parameter if <em>x</em> is unset, but throws an error if <em>x</em> is a value without a <em>y</em> property.</p>
+
 <h3 id="operators">Operators</h3>
 <p><em>Operators</em> take the form of a symbol or group of symbols such as <code>+</code> or <code>:=</code>, or one of the words <code>and</code>, <code>or</code>, <code>not</code>, <code>is</code>, <code>in</code> or <code>contains</code>. They take one, two or three values as input and return a value as the result. A value or sub-expression used as input for an operator is called an <em>operand</em>.</p>
 <ul>
@@ -170,14 +204,9 @@ Run "notepad.exe", "C:\"
 Run "notepad.exe",, "Min"
 Run("notepad.exe", , , &amp;notepadPID)
 </pre>
-<p id="unset">Within a <a href="Language.htm#function-calls">function call</a>, <a href="Variables.htm#square-brackets">array literal</a> or <a href="Variables.htm#curly-braces">object literal</a>, the keyword <code>unset</code> can be used to explicitly omit the parameter or value. An unset expression has one of the following effects:</p>
-<ul>
-  <li>For a user-defined function, the parameter's <a href="Functions.htm#optional">default value</a> is used.</li>
-  <li>For a built-in function, the parameter is considered to have been omitted.</li>
-  <li>For an <a href="Variables.htm#square-brackets">array literal</a> such as <code>[var?]</code>, the element is included in the array's length but is given no value.</li>
-  <li>For an <a href="Variables.htm#curly-braces">object literal</a> such as <code>{x: y?}</code>, the property is not assigned.</li>
-</ul>
-<p>The <code>unset</code> keyword can also be <a href="Functions.htm#unset">used in a function definition</a> to indicate that a parameter is optional but has no default value. When the function executes, the local variable corresponding to that parameter will have <a href="Concepts.htm#nothing">no value</a> if the parameter was omitted.</p>
+<p>The <code>unset</code> keyword can be used to explicitly or conditionally omit a parameter, such as in combination with the <a href="Variables.htm#ternary">ternary operator</a>. For example, <code>MsgBox(A_IsAdmin ? unset : "Admin is required.")</code> shows the default message if the script is running as admin.</p>
+<p>Unlike trailing commas, which are ignored when the parameter list is enclosed in parentheses, a trailing <code>unset</code> parameter would be included in the <em>length</em> of the parameter list. For example, <code>Array(unset)</code> produces an array with a length of 1.</p>
+<p>The <code>unset</code> keyword can also be <a href="Functions.htm#unset">used in a function definition</a> to indicate that a parameter is optional but has no default value. When the function executes, the local variable corresponding to that parameter will be <a href="Concepts.htm#unset">unset</a> if the parameter was omitted.</p>
 <p>The <a href="Variables.htm#maybe">maybe operator (<em>var</em><strong>?</strong>)</a> can be used to pass or omit a variable depending on whether it has a value. For example, <code>Array(MyVar?)</code> is equivalent to <code>Array(IsSet(MyVar) ? MyVar : unset)</code>.</p>
 
 <h3 id="operators-for-objects">Operators for Objects</h3>

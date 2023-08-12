@@ -20,7 +20,7 @@
     <li><a href="#strings">Strings</a></li>
     <li><a href="#numbers">Numbers</a></li>
     <li><a href="#boolean">Boolean</a></li>
-    <li><a href="#nothing">Nothing</a></li>
+    <li><a href="#unset">Unset</a></li>
     <li><a href="#objects">Objects</a></li>
     <li><a href="#object-protocol">Object Protocol</a></li>
   </ul></li>
@@ -91,12 +91,35 @@ Exception handling
 <p>AutoHotkey does not have a specific boolean type, so it uses the integer value <code>0</code> to represent false and <code>1</code> to represent true. When a value is required to be either true or false, a blank or zero value is considered false and all other values are considered true. (Objects are always considered true.)</p>
 <p>The words <code>true</code> and <code>false</code> are <a href="#built-in-variables">built-in variables</a> containing 1 and 0. They can be used to make a script more readable.</p>
 
-<h3 id="nothing">Nothing</h3>
-<p>AutoHotkey does not have a value which uniquely represents <em>nothing</em>, <em>null</em>, <em>nil</em> or <em>undefined</em>, as seen in other languages.</p>
-<p>Instead of producing a "null" or "undefined" value, any attempt to read a variable, property, array element or map item which has no value causes an <a href="lib/Error.htm#UnsetError">UnsetError</a> to be thrown. This allows errors to be identified more easily than if a null value was implicitly allowed to propagate through the code. See also: <a href="#uninitialized-variables">Uninitialized Variables</a>.</p>
-<p>A function's <a href="Language.htm#optional-parameters">optional parameters</a> can be <em>omitted</em> when the function is called, in which case the function may change its behaviour or use a default value. Parameters are usually omitted by literally omitting them from the code, but can also be omitted explicitly or conditionally by using the <code>unset</code> keyword. This special signal can only be propagated explicitly, with the <a href="Variables.htm#maybe">maybe operator (<em>var</em><strong>?</strong>)</a>. An unset parameter automatically receives its default value (if any) before the function executes.</p>
-<p>Mainly for historical reasons, an empty string is sometimes used wherever a null or undefined value would be used in other languages, such as for functions which have no explicit return value.</p>
-<p>If a <a href="#variables">variable</a> or <a href="#parameters">parameter</a> is said to be "empty" or "blank", that usually means an empty string (a string of zero length). This is not the same as omitting a parameter, although it may have the same effect in some cases.</p>
+<h3 id="unset"><span id="nothing"></span>Unset</h3>
+<p>"Unset" is used in the sense "has not been set" or in other words, "has no value".</p>
+<p>A <a href="#variables">variable</a> or array element is "unset" if it has not been assigned a value, or if its value has been removed. A <a href="#call">function call</a> or property is "unset" if it returns <code>unset</code> or the property is not defined. Within a user-defined function, a parameter is "unset" if it was omitted by the caller and has no default value.</p>
+<p>The keyword <code>unset</code> is used to represent this state. It can be used in an assignment to return a variable, array element or property to an unset state, in an array literal to include an element with no value (even at the end, where trailing commas are ignored), in a function call to explicitly or conditionally <a href="Language.htm#optional-parameters">omit a parameter</a>, or in an object literal to conditionally omit a property.</p>
+<p>By default, any attempt to use an unset variable, property, array element or return value immediately causes an <a href="lib/Error.htm#UnsetError">UnsetError</a> to be thrown. For example:</p>
+<ul>
+  <li>The assignment <code>x := y</code> will always leave <em>x</em> with a value upon completion, because if <em>y</em>  is unset, an error is thrown before the assignment is carried out.</li>
+  <li>The function call <code>f(x)</code> will always provide a value for the first parameter, because if <em>x</em> is unset, an error is thrown before the function is called.</li>
+</ul>
+<p>By throwing an error when the variable is read instead of waiting until the value is used, some common errors are detected earlier, making it easier to identify the source of the error.</p>
+<p>Sometimes a variable or expression may be expected to have no value. For example:</p>
+<ul>
+  <li>A function <a href="#parameters">parameter</a> can be declared as <a href="Language.htm#optional-parameters">optional</a> with no default value, as in <code>f(x:=unset)</code> or <code>f(x?)</code>. This allows the function to use <a href="lib/IsSet.htm">IsSet</a> to detect whether the parameter was omitted, rather than reserving a sentinel value for that purpose (such as <code>-1</code> or <code>"*N/A*"</code>, avoiding values that are normally expected for the parameter).</li>
+  <li>A script might initialize a global variable on first use. (For static variables, it is usually better to use a <a href="Functions.htm#InitStatic">static initializer</a>.)</li>
+  <li>A variable may have a meaningful value only under specific conditions.</li>
+  <li>A script may use the unset state as a signal for a script-specific condition.</li>
+</ul>
+<p>A number of tools are available for these situations:</p>
+<ul>
+  <li><a href="lib/IsSet.htm">IsSet</a> can be used to determine whether a variable or parameter has a value.</li>
+  <li><a href="lib/HasProp.htm">HasProp</a> can be used to determine whether a property exists. Note that although value properties cannot exist without a value, an existing dynamic property can return unset.</li>
+  <li>The Has method can be used for array and map elements.</li>
+  <li>The <a href="Variables.htm#maybe">maybe operator (?)</a> permits its left-hand side to be <em>unset</em>, and optionally short-circuits a <a href="Variables.htm#objdot">member access</a> chain to its right. It is permitted wherever <code>unset</code> is permitted, as described further below.</li>
+  <li>The <a href="Variables.htm#or-maybe">or-maybe operator (??)</a> evaluates its right-hand side only if the left-hand side is unset. This can be used both to provide a fallback value and as a sort of "if unset, then".</li>
+  <li>The <a href="Variables.htm#maybe-assign">maybe-assign operator (??=)</a> provides a succinct way to initialize a variable only if it wasn't already set.</li>
+</ul>
+<p>Mainly for historical reasons, an empty string is sometimes used wherever a null or undefined value would be used in other languages, such as for functions which have no explicit return value. Some of these cases are expected to be replaced with <em>unset</em> in future releases, with the new behavior being enabled by the use of a directive or other new language features.</p>
+<p><span class="ver">[v2.1-alpha.2+]:</span> <a href="lib/_DefaultReturn.htm">#DefaultReturn</a> changes the default return behavior for user-defined functions.</p>
+<p>For more technical details, see <a href="Language.htm#unset">Unset</a>.</p>
 
 <h3 id="objects">Objects</h3>
 <p>The <em>object</em> is AutoHotkey's composite or abstract data type. An object can be composed of any number of <em>properties</em> (which can be retrieved or set) and <a href="#methods"><em>methods</em></a> (which can be called). The name and effect of each property or method depends on the specific object or type of object.</p>

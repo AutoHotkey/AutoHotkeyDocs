@@ -95,10 +95,15 @@ MsgBox(1.00)  <em>; Shows 1.0</em></pre>
   <tr id="maybe">
     <td class="center"><em>var</em><strong>?</strong></td>
     <td>
-      <p><strong>Maybe</strong>. Permits the variable to be unset. This is valid only when passing a variable to an optional parameter, array element or object literal; or on the right-hand side of a direct assignment. The question mark must be followed by one of the following symbols (ignoring whitespace): <code class="no-highlight">)]},:</code>. The variable may be passed conditionally via the <a href="#ternary">ternary operator</a> or on the right-hand side of <a href="#and">AND</a>/<a href="#or">OR</a>.</p>
-      <p>The variable is typically an optional parameter, but can be any variable. For variables that are not function parameters, a <a href="lib/_Warn.htm#VarUnset">VarUnset warning</a> may still be shown at load-time if there are other references to the variable but no assignments.</p>
-      <p>This operator is currently supported only for variables. To explicitly or conditionally omit a parameter in more general cases, use the <code>unset</code> keyword.</p>
-      <p>See also: <a href="Language.htm#unset">unset (Optional Parameters)</a></p>
+      <p><strong>Maybe</strong>. Permits a variable (or in <span class="ver">[v2.1-alpha.2+]</span>, a property, method or function call) to be <a href="Concepts.htm#unset">unset</a>. This is <a href="Language.htm#unset-valid">valid only in specific contexts</a>. Excluding whitespace, the question mark should immediately follow the variable or property name (if there are no parameters) or the closing symbol of the parameter list (<code>]?</code> or <code>)?</code>); and must be followed by one of the following symbols: <code class="no-highlight">)]},:?.</code>.</p>
+      <p>For variables that are not function parameters, a <a href="lib/_Warn.htm#VarUnset">VarUnset warning</a> may still be shown at load-time if there are other references to the variable but no assignments.</p>
+      <p><span class="ver">[v2.1-alpha.2+]:</span> If the operator is immediately preceded by a property name as in <code>x.y?</code>, the expression will be <em>unset</em> if the property does not exist. By contrast, <code>(x.y)?</code> and <code>x.y[z]?</code> permit the property to <code>return unset</code> but require that the property itself exists. This effect also extends to the or-maybe operator, as in <code>(x.y) ?? z</code>.</p>
+      <p><span class="ver">[v2.1-alpha.2+]:</span> The question mark can be followed by a sequence of <a href="#objdot">member access</a> operations to form an "optional chain". If the left operand is <em>unset</em>, evaluation short-circuits the chain. For example, <code>(x?.y(z()))</code> does not evaluate <code>z()</code> or <code>.y()</code> if <em>x</em> is unset, but only <em>x</em> itself is permitted to be unset, unless additional question marks are added. A chain does not extend outside of parentheses, but a new chain can be started, as in <code>(x?.y)?.z()</code>, which permits only <em>x</em> and the return value of <em>z</em> to be unset.</p>
+      <p>An optional chain is subject to the same <a href="Language.htm#unset-valid">restrictions</a> as any unset expression, with the <a href="Language.htm#unset-chain">additional restriction</a> that a final question mark is required if it should be interpreted as omitting a parameter.</p>
+      <p>An optional chain cannot be used on the left-hand side of an assignment.</p>
+      <p><code>x?.()</code> and <code>x?.[y]</code> are equivalent to <code>x?.Call()</code> and <code>x?.__Item[y]</code> respectively, except that the object's "default" or "self" property is invoked even if it is a COM object, which may use different names.</p>
+      <p>Calling a method conditional upon the method's existence is not supported, so <code>x.y?.()</code> is treated as a syntax error.</p>
+      <p>See also: <a href="Language.htm#unset">Unset (technical details)</a>, <a href="Concepts.htm#unset">Unset (concept)</a></p>
     </td>
   </tr>
   <tr id="IncDec">
@@ -247,10 +252,11 @@ MsgBox(A || B || C) <em>; The <strong>last</strong> falsey operand is returned (
   <tr id="or-maybe">
     <td class="center bold">??</td>
     <td>
-      <p><strong>Or maybe</strong>, otherwise known as the coalescing operator. If the left operand (which must be a variable) has a value, it becomes the result and the right branch is skipped. Otherwise, the right operand becomes the result. In other words, <code>A ?? B</code> behaves like <code>A || B</code> (<a href="#or">logical-OR</a>) except that the condition is <code>IsSet(A)</code>.</p>
+      <p><strong>Or maybe</strong>, otherwise known as the coalescing operator. If the left operand has a value, it becomes the result and the right branch is skipped. Otherwise, the right operand becomes the result. In other words, <code>A ?? B</code> behaves like <code>A || B</code> (<a href="#or">logical-OR</a>) except that the condition is <code>IsSet(A)</code>.</p>
       <p>This is typically used to provide a default value when it is known that a variable or optional parameter might not already have a value. For example:</p>
       <pre>MsgBox MyVar ?? "Default value"</pre>
       <p>Since the variable is expected to sometimes be <a href="Concepts.htm#uninitialized-variables">uninitialized</a>, no error is thrown in that case. Unlike <code>IsSet(A) ? A : B</code>, a <a href="lib/_Warn.htm#VarUnset">VarUnset warning</a> may still be shown at load-time if there are other references to the variable but no assignments.</p>
+      <p><span class="ver">[v2.1-alpha.2+]:</span> The left operand can be any <a href="Language.htm#unset">unset expression</a> (while taking operator precedence into account). If the operator is preceded by a property, method or function call which is not part of an <a href="#maybe">optional chain</a>, the effect is the same as if the <a href="#maybe">maybe operator</a> was used. For example, <code>x.y ?? z</code> is equivalent to <code>(x.y?) ?? z</code>, which permits <em>y</em> to be unset but not <em>x</em>. By contrast, <code>x?.y ?? z</code> permits <em>x</em> to be unset but not <em>y</em>.</p>
     </td>
   </tr>
   <tr id="ternary">
@@ -274,14 +280,16 @@ MsgBox(A || B || C) <em>; The <strong>last</strong> falsey operand is returned (
         ^=<br>
         &gt;&gt;=<br>
         &lt;&lt;=<br>
-        &gt;&gt;&gt;=
+        &gt;&gt;&gt;=<br>
+        ??=
     </td>
     <td><p><strong>Assign</strong>. Performs an operation on the contents of a variable and stores the result back in the same variable. The simplest assignment operator is colon-equal (:=), which stores the result of an expression in a variable. For a description of what the other operators do, see their related entries in this table. For example, <code>Var //= 2</code> performs <a href="#IntegerDivide">integer division</a> to divide <em>Var</em> by 2, then stores the result back in <em>Var</em>. Similarly, <code>Var <strong>.=</strong> "abc"</code> is a shorthand way of writing <code>Var := Var <strong>.</strong> "abc"</code>.</p>
       <p>Unlike most other operators, assignments are evaluated from right to left. Consequently, a line such as <code>Var1 := Var2 := 0</code> first assigns 0 to <em>Var2</em> then assigns <em>Var2</em> to <em>Var1</em>.</p>
     <p>If an assignment is used as the input for some other operator, its value is the variable itself. For example,  the expression <code>(Var+=2) &gt; 50</code> is true if the newly-increased value in <em>Var</em> is greater than 50. It is also valid to combine an assignment with the <a href="#ref">reference operator</a>, as in <code>&amp;(Var := "initial value")</code>.</p>
     <p>The precedence of the assignment operators is automatically raised when it would avoid a syntax error or provide more intuitive behavior. For example: <code>not x:=y</code> is evaluated as <code>not (x:=y)</code>. Also, <code class="no-highlight">x==y &amp;&amp; z:=1</code> is evaluated as <code class="no-highlight">x==y &amp;&amp; (z:=1)</code>, which <a href="Functions.htm#ShortCircuit">short-circuits</a> when x doesn't equal y. Similarly, <code>++Var := X</code> is evaluated as <code>++(Var := X)</code>; and <code>Z&gt;0 ? X:=2 : Y:=2</code> is evaluated as <code>Z&gt;0 ? (X:=2) : (Y:=2)</code>.</p>
-    <p>The target variable can be <em>un-set</em> by combining a direct assignment (<code>:=</code>) with the <code>unset</code> keyword or the <a href="#maybe">maybe (<em>var</em>?)</a> operator. For example: <code>Var := unset</code>, <code>Var1 := (Var2?)</code>.</p>
+    <p>Assigning <code>unset</code> may have <a href="Language.htm#unset-assign">special meaning</a>, such as deleting a property or map element, or other effects if the target is a dynamic property. If the target is a variable, its value is removed. For example: <code>Var := unset</code>, <code>Var1 := (Var2?)</code>.</p>
     <p>An assignment can also target a property of an object, such as <code>myArray.Length += n</code> or <code>myArray[i] .= t</code>. When assigning to a property, the result of the sub-expression is the value being assigned, not a variable reference.</p>
+    <p id="maybe-assign"><span class="ver">[v2.1-alpha.2+]:</span> <code>x ??= y</code> is shorthand for <code>x := x ?? y</code>. <em>y</em> is evaluated and assigned to <em>x</em> only if <em>x</em> is <a href="Concepts.htm#unset">unset</a>. This provides a succinct way to initialize a variable, property or array/map element only if it didn't already have a value.</p>
     </td>
   </tr>
   <tr id="fat-arrow">
