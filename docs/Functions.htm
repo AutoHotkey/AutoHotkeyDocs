@@ -23,6 +23,7 @@
   <li><a href="#DynCall">Dynamically Calling a Function</a></li>
   <li><a href="#ShortCircuit">Short-circuit Boolean Evaluation</a></li>
   <li><a href="#nested">Nested Functions</a></li>
+  <li><a href="#funcexpr">Function Definition Expressions</a></li>
   <li><a href="#remarks">Return, Exit, and General Remarks</a></li>
   <li><a href="#include">Using #Include to Share Functions Among Multiple Scripts</a></li>
   <li><a href="#BuiltIn">Built-in Functions</a></li>
@@ -379,6 +380,35 @@ timertest() {
 timertest()
 </pre>
 
+<h2 id="funcexpr">Function Definition Expressions <span class="ver">[v2.1-alpha.3+]</span></h2>
+<p>A function can be defined within an expression, with limitations. For example:</p>
+<pre>
+SetTimer(
+    tick() {
+        static n := 3
+        MsgBox n--,, 'T1'
+        if n = 0
+            SetTimer tick, false
+    }, 1000)
+</pre>
+<p>Unlike a <a href="Variables.htm#fat-arrow">fat arrow</a> function, the function must have a name.</p>
+<p>The function name is not required to be at the start of a line, but can be when the function definition is enclosed in <code>()</code>, <code>[]</code> or <code>{}</code>.</p>
+<p>If the function is not enclosed in <code>()</code>, <code>[]</code> or <code>{}</code>, the open brace must be on the same line as the end of the parameter list (<a href="#otb">OTB style</a>). This is because AutoHotkey allows blocks that are not attached to a control flow statement, such as when an If statement is commented out.</p>
+<p>A parameter of a control flow statement that can have a body cannot contain a function definition, unless it is enclosed in <code>()</code>, <code>[]</code> or <code>{}</code>. For example, <code>if f() {</code> is interpreted as a function call followed by the open brace of the If statement.</p>
+<p>A function definition expression is equivalent to defining the function separately and referring to it by name. As with any other named function, the function can be referenced by name anywhere within the same scope, regardless of whether the expression that contains it has been evaluated.</p>
+<p>The close brace can be immediately followed by a parameter list to call the function. For example:</p>
+<pre>outer() {
+    local x := 1
+    (inner(y) {
+        global x := y + 1
+    })(x)
+    MsgBox "local " x
+}
+outer()
+MsgBox "global " x</pre>
+<p>Note that an expression line starting with <code>(</code> must have a <code>)</code> on the same line, otherwise it would be interpreted as a <a href="Scripts.htm#continuation-section">continuation section</a>. To avoid this when the parameter list is wrapped over multiple lines, it is sufficient to start the line with a small parenthesized expression, such as <code>(0),</code>.</p>
+<p><strong>Related:</strong> <a href="Variables.htm#fat-arrow">Fat arrow</a> functions are more concise, but only permit a single expression, and <code>return</code> is implied.</p>
+
 <h2 id="remarks">Return, Exit, and General Remarks</h2>
 <p>If the flow of execution within a function reaches the function's closing brace prior to encountering a <a href="lib/Return.htm">Return</a>, the function ends and returns an empty string to its caller. An empty string is also returned whenever the function explicitly omits <a href="lib/Return.htm">Return</a>'s parameter. <span class="ver">[v2.1-alpha.2+]:</span> If <a href="lib/_DefaultReturn.htm">#DefaultReturn unset</a> is in effect, both cases instead return <code>unset</code>.</p>
 <p>When a function uses <a href="lib/Exit.htm">Exit</a> to terminate the <a href="misc/Threads.htm">current thread</a>, its caller does not receive a return value at all. For example, the statement <code>Var := Add(2, 3)</code> would leave <code>Var</code> unchanged if <code>Add()</code> exits. The same thing happens if the function is exited because of <a href="lib/Throw.htm">Throw</a> or a runtime error (such as <a href="lib/Run.htm">running</a> a nonexistent file).</p>
@@ -387,7 +417,7 @@ timertest()
 <p>When used inside a function, <a href="lib/ListVars.htm">ListVars</a> displays a function's <a href="#Local">local variables</a> along with their contents. This can help <a href="Scripts.htm#debug">debug a script</a>.</p>
 <h2 id="Style_and_Naming_Conventions">Style and Naming Conventions</h2>
 <p>You might find that complex functions are more readable and maintainable if their special variables are given a distinct prefix. For example, naming each parameter in a function's parameter list with a leading "p" or "p_" makes their special nature easy to discern at a glance, especially when a function has several dozen <a href="#Local">local variables</a> competing for your attention. Similarly, the prefix "r" or "r_" could be used for <a href="#ByRef">ByRef parameters</a>, and "s" or "s_" could be used for <a href="#static">static variables</a>.</p>
-<p>The <a href="lib/Block.htm#otb">One True Brace (OTB) style</a> may optionally be used to define functions. For example:</p>
+<p id="otb">The <a href="lib/Block.htm#otb">One True Brace (OTB) style</a> may optionally be used to define functions. For example:</p>
 <pre>Add(x, y) {
     return x + y
 }</pre>
