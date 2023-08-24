@@ -120,7 +120,7 @@ tocData = [
     ["If Statements","Language.htm#if-statement",
     [
       ["If (expression)","lib/IfExpression.htm"],
-      ["If (traditional)","lib/IfEqual.htm"],
+      ["If (legacy)","lib/IfEqual.htm"],
       ["If Var [not] between Low and High","lib/IfBetween.htm"],
       ["If Var is [not] Type","lib/IfIs.htm"],
       ["If Var [not] in/contains MatchList","lib/IfIn.htm"],
