@@ -52,7 +52,7 @@ CopyOfVar := Var</pre>
     MsgBox The setting is too high or the wrong color is present.</pre>
 <p>In the example above, "Blue" appears in quotes because it is a literal string. To include an <em>actual</em> quote-character inside a literal string, specify two consecutive quotes as shown twice in this example: <code>"She said, <span class="red">""</span>An apple a day.<span class="red">""</span>"</code>.</p>
 <p class="warning"><strong>Note:</strong> There are several types of <a href="Language.htm#if-statement">If Statement</a> which look like expressions but are not.</p>
-<p><strong>Empty strings:</strong> To specify an empty string in an expression, use an empty pair of quotes. For example, the statement <code>if (MyVar != "")</code> would be true if <em>MyVar</em> is not blank. However, in a <a href="lib/IfEqual.htm">legacy-if</a>, a pair of empty quotes is treated literally. For example, the statement <code>if MyVar = ""</code> is true only if <em>MyVar</em> contains an actual pair of quotes. Thus, to check if a variable is blank with a legacy-if, use = or != with nothing on the right side as in this example: <code>if Var =</code>.</p>
+<p><strong>Empty strings:</strong> To specify an empty string in an expression, use an empty pair of quotes. For example, the statement <code>if (MyVar != "")</code> would be true if <em>MyVar</em> is not blank. However, in a <a href="lib/IfEqual.htm">legacy-if</a>, an empty pair of quotes is treated literally. For example, the statement <code>if MyVar = ""</code> is true only if <em>MyVar</em> contains an actual pair of quotes. Thus, to check if a variable is blank with a legacy-if, use = or != with nothing on the right side as in this example: <code>if Var =</code>.</p>
 <p>On a related note, any invalid expression such as <code>(x +* 3)</code> yields an empty string.</p>
 <p><strong>Storing the result of an expression:</strong> To assign a result to a variable, use the <a href="lib/SetExpression.htm">colon-equal operator (:=)</a>. For example:</p>
 <pre>NetPrice := Price * (1 - Discount/100)</pre>
@@ -130,7 +130,7 @@ ContinueSearch := true</pre>
     </td>
     <td><p><strong>Multiply (*):</strong> The result is an integer if both inputs are integers; otherwise, it is a floating point number.</p>
       <p id="divide"><strong>True divide (/):</strong> Unlike <a href="lib/EnvDiv.htm">EnvDiv</a>, true division yields a floating point result even when both inputs are integers. For example, <code>3/2</code> yields 1.5 rather than 1, and <code>4/2</code> yields 2.0 rather than 2.</p>
-      <p id="FloorDivide"><strong>Floor divide (//):</strong> The double-slash operator uses high-performance integer division if the two inputs are integers. For example, <code>5//3</code> is 1 and <code>5//-3</code> is -1. If either of the inputs is in floating point format, floating point division is performed and the result is truncated to the nearest integer to the left. For example, <code>5//3.0</code> is 1.0 and <code>5.0//-3</code> is -2.0. Although the result of this floating point division is an integer, it is stored in floating point format so that anything else that uses it will see it as such. For modulo, see <a href="lib/Math.htm#Mod">mod()</a>.</p>
+      <p id="FloorDivide"><strong>Floor divide (//):</strong> The double-slash operator uses high-performance integer division if the two inputs are integers. For example, <code>5//3</code> is 1 and <code>5//-3</code> is -1. If either of the inputs is in floating point format, floating point division is performed and the result is truncated to the nearest integer to the left. For example, <code>5//3.0</code> is 1.0 and <code>5.0//-3</code> is -2.0. Although the result of this floating point division is an integer, it is stored in floating point format so that anything else that uses it will see it as such. For modulo, see <a href="lib/Math.htm#Mod">Mod()</a>.</p>
     <p>The <a href="#AssignOp">*= and /= operators</a> are a shorthand way to multiply or divide the value in a variable by another value. For example, <code>Var*=2</code> produces the same result as <code>Var:=Var*2</code> (though the former performs better).</p>
     <p>Division by zero yields a blank result (empty string).</p></td>
   </tr>
@@ -234,7 +234,9 @@ ContinueSearch := true</pre>
     <td class="center bold">,</td>
     <td><p><strong>Comma (multi-statement)</strong> <span class="ver">[v1.0.46+]</span>. Commas may be used to write multiple sub-expressions on a single line. This is most commonly used to group together multiple assignments or function calls.  For example: <code>x:=1<strong>,</strong> y+=2<strong>,</strong> ++index, MyFunc()</code>. Such statements are executed in order from left to right.</p>
       <p class="note"><strong>Note:</strong> A line that begins with a comma (or any other operator) is automatically <a href="Scripts.htm#continuation">appended to</a> the line above it. See also: <a href="#CommaPerf">comma performance</a>.</p>
-      <p><span class="ver">[v1.0.46.01+]</span>: When a comma is followed immediately by a variable and an equal sign, that equal sign is automatically treated as an <a href="lib/SetExpression.htm">assignment (:=)</a>. For example, all of the following are assignments: <code>x:=1, y=2, a=b=c</code>. New scripts should not rely on this behavior as it may change. The rule applies only to plain variables and not <a href="#ref">double-derefs</a>, so the following contains only one assignment: <code>x:=1, %y%=2</code></p></td>
+      <p><span class="ver">[v1.0.46.01+]</span>: When a comma is followed immediately by a variable and an equal sign, that equal sign is automatically treated as an <a href="lib/SetExpression.htm">assignment (:=)</a>. For example, all of the following are assignments: <code>x:=1, y=2, a=b=c</code>. New scripts should not rely on this behavior as it may change. The rule applies only to plain variables and not <a href="#ref">double-derefs</a>, so the following contains only one assignment: <code>x:=1, %y%=2</code></p>
+      <p id="CommaPerf"><span class="ver">[v1.0.48+]</span>: The comma operator usually performs better than writing separate expressions, especially when assigning one variable to another (e.g. <code>x:=y, a:=b</code>). Performance continues to improve as more and more expressions are combined into a single expression; for example, it may be 35&nbsp;% faster to combine five or ten simple expressions into a single expression.</p>
+    </td>
   </tr>
 </table>
 <p>The following types of sub-expressions override precedence/order of evaluation:</p>
@@ -251,9 +253,9 @@ ContinueSearch := true</pre>
     </td>
   </tr>
   <tr>
-    <td class="center"><p><strong>mod()<br>
-        round()<br>
-    abs()</strong></p></td>
+    <td class="center"><p><strong>Mod()<br>
+        Round()<br>
+    Abs()</strong></p></td>
     <td><strong>Function call</strong>. The function name must be immediately followed by an open-parenthesis, without any spaces or tabs in between. For details, see <a href="Functions.htm">Functions</a>.</td>
   </tr>
   <tr>
@@ -283,8 +285,6 @@ ContinueSearch := true</pre>
     <td><p><span class="ver">[v1.0.97+]</span>: <strong>Object literal</strong>. Create an object or associative array. For example, <code>x := {a: b}</code> is equivalent to <code>x := Object("a", b)</code> or <code>x := Object(), x.a := b</code>. See <a href="Objects.htm#Usage_Associative_Arrays">Associative Arrays</a> for details.</p></td>
   </tr>
 </table>
-<br>
-<p id="CommaPerf"><strong>Performance:</strong> <span class="ver">[v1.0.48+]</span>: The comma operator is usually faster than writing separate expressions, especially when assigning one variable to another (e.g. <code>x:=y, a:=b</code>). Performance continues to improve as more and more expressions are combined into a single expression; for example, it may be 35&nbsp;% faster to combine five or ten simple expressions into a single expression.</p>
 
 <h2 id="BuiltIn">Built-in Variables</h2>
 <p>The variables below are built into the program and can be referenced by any script.</p>
@@ -508,17 +508,17 @@ MsgBox,  %ElapsedTime% milliseconds have elapsed.</pre>
   </tr>
   <tr id="IsSuspended">
     <td>A_IsSuspended</td>
-    <td>Contains 1 if the script is <a href="lib/Suspend.htm">suspended</a> and 0 otherwise.</td>
+    <td>Contains 1 if the script is <a href="lib/Suspend.htm">suspended</a>, otherwise 0.</td>
   </tr>
   <tr id="IsPaused">
     <td>A_IsPaused<br>
     <span class="ver">[v1.0.48+]</span></td>
-    <td>Contains 1 if the <a href="misc/Threads.htm">thread</a> immediately underneath the current thread is <a href="lib/Pause.htm">paused</a>. Otherwise it contains 0.</td>
+    <td>Contains 1 if the <a href="misc/Threads.htm">thread</a> immediately underneath the current thread is <a href="lib/Pause.htm">paused</a>, otherwise 0.</td>
   </tr>
   <tr id="IsCritical">
     <td>A_IsCritical<br>
     <span class="ver">[v1.0.48+]</span></td>
-    <td>Contains 0 if <a href="lib/Critical.htm">Critical</a> is off for the <a href="misc/Threads.htm">current thread</a>. Otherwise it contains an integer greater than zero, namely the <a href="lib/Critical.htm#Interval">message-check frequency</a> being used by Critical. Since <code>Critical 0</code> turns off critical, the current state of Critical can be saved and restored via <code>Old_IsCritical := A_IsCritical</code> followed later by <code>Critical %Old_IsCritical%</code>.</td>
+    <td>Contains 0 if <a href="lib/Critical.htm">Critical</a> is off for the <a href="misc/Threads.htm">current thread</a>. Otherwise it contains an integer greater than zero, namely the <a href="lib/Critical.htm#Interval">message-check interval</a> being used by Critical. Since <code>Critical 0</code> turns off critical, the current state of Critical can be saved and restored via <code>Old_IsCritical := A_IsCritical</code> followed later by <code>Critical %Old_IsCritical%</code>.</td>
   </tr>
   <tr id="BatchLines">
     <td>A_BatchLines</td>
@@ -526,15 +526,15 @@ MsgBox,  %ElapsedTime% milliseconds have elapsed.</pre>
   </tr>
   <tr id="ListLines">
     <td>A_ListLines<br><span class="ver">[v1.1.28+]</span></td>
-    <td>Contains 1 if <a href="lib/ListLines.htm">ListLines</a> is enabled. Otherwise it contains 0.</td>
+    <td>Contains 1 if <a href="lib/ListLines.htm">ListLines</a> is enabled, otherwise 0.</td>
   </tr>
   <tr id="TitleMatchMode">
     <td>A_TitleMatchMode</td>
-    <td>The current mode set by <a href="lib/SetTitleMatchMode.htm">SetTitleMatchMode</a>: 1, 2, 3, or RegEx.</td>
+    <td>The current mode (1, 2, 3, or RegEx) set by <a href="lib/SetTitleMatchMode.htm">SetTitleMatchMode</a>.</td>
   </tr>
   <tr id="TitleMatchModeSpeed">
     <td>A_TitleMatchModeSpeed</td>
-    <td>The current match speed (fast or slow) set by <a href="lib/SetTitleMatchMode.htm">SetTitleMatchMode</a>.</td>
+    <td>The current match speed (Fast or Slow) set by <a href="lib/SetTitleMatchMode.htm">SetTitleMatchMode</a>.</td>
   </tr>
   <tr id="DetectHiddenWindows">
     <td>A_DetectHiddenWindows</td>
@@ -566,7 +566,7 @@ MsgBox,  %ElapsedTime% milliseconds have elapsed.</pre>
   </tr>
   <tr id="SendMode">
     <td>A_SendMode</td>
-    <td><span class="ver">[v1.1.23+]</span>: The current mode (Event, Input, Play or InputThenPlay) set by  <a href="lib/SendMode.htm">SendMode</a>.</td>
+    <td><span class="ver">[v1.1.23+]</span>: The current mode (Event, Input, Play, or InputThenPlay) set by <a href="lib/SendMode.htm">SendMode</a>.</td>
   </tr>
   <tr id="SendLevel">
     <td>A_SendLevel</td>
@@ -609,7 +609,7 @@ MsgBox,  %ElapsedTime% milliseconds have elapsed.</pre>
     A_CoordModeMouse<br>
     A_CoordModeCaret<br>
     A_CoordModeMenu</td>
-    <td><span class="ver">[v1.1.23+]</span>: The current mode (Window, Client or Screen) set by <a href="lib/CoordMode.htm">CoordMode</a>.</td>
+    <td><span class="ver">[v1.1.23+]</span>: The current mode (Window, Client, or Screen) set by <a href="lib/CoordMode.htm">CoordMode</a>.</td>
   </tr>
   <tr id="RegView">
     <td>A_RegView</td>
@@ -617,7 +617,7 @@ MsgBox,  %ElapsedTime% milliseconds have elapsed.</pre>
   </tr>
   <tr id="IconHidden">
     <td>A_IconHidden</td>
-    <td>Contains 1 if the <a href="Program.htm#tray-icon">tray icon</a> is currently hidden or 0 otherwise. The icon can be hidden via <a href="lib/_NoTrayIcon.htm">#NoTrayIcon</a> or the <a href="lib/Menu.htm">Menu</a> command.</td>
+    <td>Contains 1 if the <a href="Program.htm#tray-icon">tray icon</a> is currently hidden, otherwise 0. The icon can be hidden via <a href="lib/_NoTrayIcon.htm">#NoTrayIcon</a> or the <a href="lib/Menu.htm">Menu</a> command.</td>
   </tr>
   <tr id="IconTip">
     <td>A_IconTip</td>
@@ -640,7 +640,11 @@ MsgBox,  %ElapsedTime% milliseconds have elapsed.</pre>
   </tr>
   <tr id="TimeIdle">
     <td>A_TimeIdle</td>
-    <td>The number of milliseconds that have elapsed since the system last received keyboard, mouse, or other input. This is useful for determining whether the user is away. Physical input from the user as well as artificial input generated by <strong>any</strong> program or script (such as the <a href="lib/Send.htm">Send</a> or <a href="lib/MouseMove.htm">MouseMove</a> commands) will reset this value back to zero. Since this value tends to increase by increments of 10, do not check whether it is equal to another value. Instead, check whether it is greater or less than another value. For example: <code>IfGreater, A_TimeIdle, 600000, MsgBox, The last keyboard or mouse activity was at least 10 minutes ago</code>.</td>
+    <td>
+      <p>The number of milliseconds that have elapsed since the system last received keyboard, mouse, or other input. This is useful for determining whether the user is away. Physical input from the user as well as artificial input generated by <u>any</u> program or script (such as the <a href="lib/Send.htm">Send</a> or <a href="lib/MouseMove.htm">MouseMove</a> commands) will reset this value back to zero. Since this value tends to increase by increments of 10, do not check whether it is equal to another value. Instead, check whether it is greater or less than another value. For example:</p>
+      <pre>If A_TimeIdle &gt; 600000
+    MsgBox, Last activity was 10 minutes ago</pre>
+    </td>
   </tr>
   <tr id="TimeIdlePhysical">
     <td>A_TimeIdlePhysical</td>
@@ -770,7 +774,7 @@ MsgBox,  %ElapsedTime% milliseconds have elapsed.</pre>
     <td>ComSpec <span class="ver">[v1.0.43.08+]</span><br>
     A_ComSpec <span class="ver">[v1.1.28+]</span></td>
     <td>
-      <p>Contains the same string as the environment's ComSpec variable. Often used with <a href="lib/Run.htm">Run/RunWait</a>. For example:</p>
+      <p>Contains the same string as the ComSpec environment variable, which is usually the full path to the command prompt executable (cmd.exe). Often used with <a href="lib/Run.htm">Run/RunWait</a>. For example:</p>
       <pre class="NoIndent no-highlight">C:\Windows\system32\cmd.exe</pre>
     </td>
   </tr>
@@ -917,7 +921,7 @@ if A_OSVersion in WIN_NT4,WIN_95,WIN_98,WIN_ME  <em>; Note: No spaces around com
   </tr>
   <tr id="IsAdmin">
     <td>A_IsAdmin</td>
-    <td><p>If the current user has admin rights, this variable contains 1. Otherwise, it contains 0.</p>
+    <td><p>Contains 1 if the current user has admin rights, otherwise 0.</p>
     <p id="RequireAdmin">To have the script restart itself as admin (or show a prompt to the user requesting admin), use <a href="lib/Run.htm#RunAs">Run *RunAs</a>. However, note that running the script as admin causes all programs launched by the script to also run as admin. For a possible alternative, see <a href="FAQ.htm#uac">the FAQ</a>.</p>
     </td>
   </tr>
