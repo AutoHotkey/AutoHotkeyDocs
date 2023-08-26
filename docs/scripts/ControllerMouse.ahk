@@ -3,7 +3,7 @@
 ; This script converts a controller (gamepad, joystick, etc.) into a three-button
 ; mouse. It allows each button to drag just like a mouse button and it uses
 ; virtually no CPU time. Also, it will move the cursor faster depending on how far
-; you push the controller from center. You can personalize various settings at the
+; you push the stick from center. You can personalize various settings at the
 ; top of the script.
 ;
 ; Note: For Xbox controller 2013 and newer (anything newer than the Xbox 360
@@ -13,10 +13,10 @@
 ; Increase the following value to make the mouse cursor move faster:
 ContMultiplier := 0.30
 
-; Decrease the following value to require less controller displacement-from-center
-; to start moving the mouse.  However, you may need to calibrate your controller
+; Decrease the following value to require less stick displacement-from-center
+; to start moving the mouse.  However, you may need to calibrate your stick
 ; -- ensuring it's properly centered -- to avoid cursor drift. A perfectly tight
-; and centered controller could use a value of 1:
+; and centered stick could use a value of 1:
 ContThreshold := 3
 
 ; Change the following to true to invert the Y-axis, which causes the mouse to
@@ -57,7 +57,7 @@ if InvertYAxis
 else
     YAxisMultiplier := 1
 
-SetTimer WatchController, 10  ; Monitor the movement of the controller.
+SetTimer WatchController, 10  ; Monitor the movement of the stick.
 
 JoyInfo := GetKeyState(ControllerNumber "JoyInfo")
 if InStr(JoyInfo, "P")  ; Controller has POV control, so use it as a mouse wheel.
