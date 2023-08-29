@@ -14,12 +14,7 @@
 
 <p>Retrieves type information from a COM object.</p>
 
-<pre class="Syntax">VarType := <span class="func">ComObjType</span>(ComObj)
-IName   := <span class="func">ComObjType</span>(ComObj, "Name")
-IID     := <span class="func">ComObjType</span>(ComObj, "IID")
-CName   := <span class="func">ComObjType</span>(ComObj, "Class")
-CLSID   := <span class="func">ComObjType</span>(ComObj, "CLSID")
-</pre>
+<pre class="Syntax">Info := <span class="func">ComObjType</span>(ComObj <span class="optional">, InfoType</span>)</pre>
 
 <h2 id="Parameters">Parameters</h2>
 <dl>
@@ -30,49 +25,21 @@ CLSID   := <span class="func">ComObjType</span>(ComObj, "CLSID")
     <p>A wrapper object containing a COM object or typed value.</p>
   </dd>
 
-  <dt>Param2</dt>
+  <dt>InfoType</dt>
   <dd>
     <p>Type: <a href="../Concepts.htm#strings">String</a></p>
-    <p>The second parameter is a string indicating the type information to retrieve.</p>
+    <p>If omitted, an integer <a href="#vt">variant type code</a> indicating the type of value contained by the COM wrapper object will be retrieved. Otherwise, specify one of the following strings indicating the type information to retrieve:</p>
+    <p><strong>Name:</strong> The name of the object's default interface.</p>
+    <p><strong>IID:</strong> The globally unique identifier (GUID) of the object's default interface.</p>
+    <p><strong>Class:</strong> The object's class name. Note that this is not the same as a Prog ID (a Prog ID is a name used to identify the class in the system registry, or for <a href="ComObject.htm">ComObject</a>).</p>
+    <p><strong>CLSID:</strong> The globally unique identifier (GUID) of the object's class. Classes are often registered by CLSID under the <code>HKCR\CLSID</code> registry key.</p>
   </dd>
 
 </dl>
 
 <h2 id="Return_Value">Return Value</h2>
-<p>The return value depends on the value of <em>Param2</em>:</p>
-<table class="info">
-  <tr>
-    <th style="min-width: 5em;">Param2</th>
-    <th abbr="Type">Return Type</th>
-    <th abbr="Return">Return Value</th>
-  </tr>
-  <tr>
-    <td>Omitted</td>
-    <td><a href="../Concepts.htm#numbers">Integer</a></td>
-    <td>A <a href="#vt">variant type code</a> which indicates the type of value contained by the COM wrapper object.</td>
-  </tr>
-  <tr>
-    <td><code>"Name"</code></td>
-    <td><a href="../Concepts.htm#strings">String</a></td>
-    <td>The name of the object's default interface.</td>
-  </tr>
-  <tr>
-    <td><code>"IID"</code></td>
-    <td><a href="../Concepts.htm#strings">String</a></td>
-    <td>The globally unique identifier (GUID) of the object's default interface.</td>
-  </tr>
-  <tr>
-    <td><code>"Class"</code></td>
-    <td><a href="../Concepts.htm#strings">String</a></td>
-    <td>The object's class name. Note that this is not the same as a Prog ID (a Prog ID is a name used to identify the class in the system registry, or for <a href="ComObject.htm">ComObject</a>).</td>
-  </tr>
-  <tr>
-    <td><code>"CLSID"</code></td>
-    <td><a href="../Concepts.htm#strings">String</a></td>
-    <td>The globally unique identifier (GUID) of the object's class. Classes are often registered by CLSID under the <code>HKCR\CLSID</code> registry key.</td>
-  </tr>
-</table>
-<p>An empty string is returned if either parameter is invalid or if the requested type information could not be retrieved.</p>
+<p>Type: <a href="../Concepts.htm#numbers">Integer</a> or <a href="../Concepts.htm#strings">String</a></p>
+<p>The return value depends on the value of <em>InfoType</em>. An empty string is returned if either parameter is invalid or if the requested type information could not be retrieved.</p>
 
 <h2 id="vt">Variant Type Constants</h2>
 <p>COM uses the following values to identify basic data types:</p>
@@ -113,8 +80,8 @@ VT_BYREF     := 0x4000  <em>; Pointer to another type of value</em>
 <h2 id="General_Remarks">General Remarks</h2>
 <p>In most common cases, return values from methods or properties of COM objects are converted to an appropriate data type supported by AutoHotkey. Types which aren't specifically handled are coerced to strings via <a href="https://learn.microsoft.com/windows/win32/api/oleauto/nf-oleauto-variantchangetype">VariantChangeType</a>; if this fails or if the variant type contains the VT_ARRAY or VT_BYREF flag, an object containing both the value and its type is returned instead.</p>
 <p>For any variable <i>x</i>, if <code>ComObjType(x)</code> returns an integer, <i>x</i> contains a COM object wrapper.</p>
-<p>If <em>Param2</em> is <code>"Name"</code> or <code>"IID"</code>, type information is retrieved via the <a href="https://learn.microsoft.com/windows/win32/api/oaidl/nf-oaidl-idispatch-gettypeinfo">IDispatch::GetTypeInfo</a> interface method. <em>ComObj</em>'s variant type must be VT_DISPATCH.</p>
-<p>If <em>Param2</em> is <code>"Class"</code> or <code>"CLSID"</code>, type information is retrieved via the <a href="https://learn.microsoft.com/windows/win32/api/ocidl/nf-ocidl-iprovideclassinfo-getclassinfo">IProvideClassInfo::GetClassInfo</a> interface method. <em>ComObj</em>'s variant type must be VT_DISPATCH or VT_UNKNOWN, and the object must implement the IProvideClassInfo interface (some objects do not).</p>
+<p>If <em>InfoType</em> is <code>"Name"</code> or <code>"IID"</code>, type information is retrieved via the <a href="https://learn.microsoft.com/windows/win32/api/oaidl/nf-oaidl-idispatch-gettypeinfo">IDispatch::GetTypeInfo</a> interface method. <em>ComObj</em>'s variant type must be VT_DISPATCH.</p>
+<p>If <em>InfoType</em> is <code>"Class"</code> or <code>"CLSID"</code>, type information is retrieved via the <a href="https://learn.microsoft.com/windows/win32/api/ocidl/nf-ocidl-iprovideclassinfo-getclassinfo">IProvideClassInfo::GetClassInfo</a> interface method. <em>ComObj</em>'s variant type must be VT_DISPATCH or VT_UNKNOWN, and the object must implement the IProvideClassInfo interface (some objects do not).</p>
 
 <h2 id="Related">Related</h2>
 <p><a href="ComObjValue.htm">ComObjValue</a>, <a href="ComValue.htm">ComValue</a>, <a href="ComObject.htm">ComObject</a>, <a href="ComObjGet.htm">ComObjGet</a>, <a href="ComObjActive.htm">ComObjActive</a></p>

@@ -13,7 +13,7 @@
 <h1>LoadPicture</h1>
 
 <p>Loads a picture from file and returns a bitmap or icon handle.</p>
-<pre class="Syntax">Handle := <span class="func">LoadPicture</span>(Filename <span class="optional">, Options, &amp;ImageType</span>)</pre>
+<pre class="Syntax">Handle := <span class="func">LoadPicture</span>(Filename <span class="optional">, Options, &amp;OutImageType</span>)</pre>
 
 <h2 id="Parameters">Parameters</h2>
 <dl>
@@ -27,33 +27,32 @@
   <dt>Options</dt>
   <dd>
     <p>Type: <a href="../Concepts.htm#strings">String</a></p>
-    <p>A string of zero or more of the following options, with each separated from the last by a space or tab:</p>
+    <p>If blank or omitted, it defaults to no options. Otherwise, specify a string of one or more of the following options, each separated from the next with a space or tab:</p>
     <p><strong>W</strong><em>n</em> and <strong>H</strong><em>n</em>: The width and height to load the image at, where <em>n</em> is an integer. If one dimension is omitted or -1, it is calculated automatically based on the other dimension, preserving aspect ratio. If both are omitted, the image's original size is used. If either dimension is 0, the original size is used for that dimension. For example: <code>"w80 h50"</code>, <code>"w48 h-1"</code> or <code>"w48"</code> (preserve aspect ratio), <code>"h0 w100"</code> (use original height but override width).</p>
-    <p><strong>Icon</strong><em>n</em>: Indicates which icon to load from a file with multiple icons (generally an EXE or DLL file). For example, <code>"Icon2"</code> loads the file's second icon. Any supported image format can be converted to an icon by specifying <code>"Icon1"</code>. However, the icon is converted back to a bitmap if the <em>ImageType</em> parameter is omitted.</p>
+    <p><strong>Icon</strong><em>n</em>: Indicates which icon to load from a file with multiple icons (generally an EXE or DLL file). For example, <code>"Icon2"</code> loads the file's second icon. Any supported image format can be converted to an icon by specifying <code>"Icon1"</code>. However, the icon is converted back to a bitmap if the <em>OutImageType</em> parameter is omitted.</p>
     <p><strong>GDI+:</strong> Use GDI+ to load the image, if available. For example, <code>"GDI+ w100"</code>.</p>
   </dd>
   
-  <dt>&amp;ImageType</dt>
+  <dt>&amp;OutImageType</dt>
   <dd>
     <p>Type: <a href="../Concepts.htm#variable-references">VarRef</a></p>
-    <p>A reference to the output variable in which to store a number indicating the type of handle being returned: 0 (IMAGE_BITMAP), 1 (IMAGE_ICON) or 2 (IMAGE_CURSOR).</p>
-    <p>If this parameter is omitted, the return value is always a bitmap handle (icons/cursors are converted if necessary). This is because reliably using or deleting an icon/cursor/bitmap handle requires knowing which type it is.</p>
+    <p>If omitted, the corresponding value will not be stored, and the return value will always be a bitmap handle (icons/cursors are converted if necessary) because reliably using or deleting an icon/cursor/bitmap handle requires knowing which type it is. Otherwise, specify a reference to the output variable in which to store a number indicating the type of handle being returned: 0 (IMAGE_BITMAP), 1 (IMAGE_ICON) or 2 (IMAGE_CURSOR).</p>
   </dd>
 
 </dl>
 
 <h2 id="Return_Value">Return Value</h2>
 <p>Type: <a href="../Concepts.htm#numbers">Integer</a></p>
-<p>This function returns a <a href="../misc/ImageHandles.htm">bitmap or icon handle</a> depending on whether a picture or icon is specified.</p>
+<p>This function returns a <a href="../misc/ImageHandles.htm">bitmap or icon handle</a> depending on whether a picture or icon is specified and whether the <em>&amp;OutImageType</em> parameter is present or not.</p>
 
 <h2 id="Remarks">Remarks</h2>
-<p>LoadPicture also supports <a href="../misc/ImageHandles.htm">the handle syntax</a>, such as for creating a resized image based on an icon or bitmap which has already been loaded into memory, or converting an icon to a bitmap by omitting <em>ImageType</em>.</p>
+<p>LoadPicture also supports <a href="../misc/ImageHandles.htm">the handle syntax</a>, such as for creating a resized image based on an icon or bitmap which has already been loaded into memory, or converting an icon to a bitmap by omitting <em>&amp;OutImageType</em>.</p>
 <p>If the image needs to be freed from memory, call whichever function is appropriate for the type of handle.</p>
-<pre>if (not ImageType)  <em>; IMAGE_BITMAP (0) or the ImageType parameter was omitted.</em>
+<pre>if (not OutImageType)  <em>; IMAGE_BITMAP (0) or the OutImageType parameter was omitted.</em>
     DllCall("DeleteObject", "ptr", Handle)
-else if (ImageType = 1)  <em>; IMAGE_ICON</em>
+else if (OutImageType = 1)  <em>; IMAGE_ICON</em>
     DllCall("DestroyIcon", "ptr", Handle)
-else if (ImageType = 2)  <em>; IMAGE_CURSOR</em>
+else if (OutImageType = 2)  <em>; IMAGE_CURSOR</em>
     DllCall("DestroyCursor", "ptr", Handle)</pre>
 
 <h2 id="Related">Related</h2>
