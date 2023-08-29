@@ -15,11 +15,7 @@
 <p>Retrieves type information from a COM object.</p>
 
 <pre class="Syntax">
-VarType := <span class="func">ComObjType</span>(ComObject)           <em>; Requires <span class="ver">[v1.0.91+]</span></em>
-IName   := <span class="func">ComObjType</span>(ComObject, "Name")
-IID     := <span class="func">ComObjType</span>(ComObject, "IID")
-CName   := <span class="func">ComObjType</span>(ComObject, "Class")  <em>; Requires <span class="ver">[v1.1.26+]</span></em>
-CLSID   := <span class="func">ComObjType</span>(ComObject, "CLSID")  <em>; Requires <span class="ver">[v1.1.26+]</span></em></pre>
+Info := <span class="func">ComObjType</span>(ComObject <span class="optional">, InfoType</span>)</pre>
 
 <h2 id="Parameters">Parameters</h2>
 <dl>
@@ -27,22 +23,20 @@ CLSID   := <span class="func">ComObjType</span>(ComObject, "CLSID")  <em>; Requi
   <dt>ComObject</dt>
   <dd><p>A wrapper object containing a COM object or typed value.</p></dd>
   
-  <dt>Param2</dt>
-  <dd><p>The second parameter is a string indicating the type information to retrieve.</p></dd>
+  <dt>InfoType</dt>
+  <dd>
+    <p><span class="ver">[v1.0.91+]</span>: If omitted, an integer <a href="#vt">variant type code</a> indicating the type of value contained by the COM wrapper object will be retrieved.</p>
+    <p>Otherwise, specify one of the following strings indicating the type information to retrieve:</p>
+    <p><strong>Name:</strong> The name of the object's default interface.</p>
+    <p><strong>IID:</strong> The globally unique identifier (GUID) of the object's default interface.</p>
+    <p><strong>Class</strong> <span class="ver">[v1.1.26+]</span>: The object's class name. Note that this is not the same as a Prog ID (a Prog ID is a name used to identify the class in the system registry, or for <a href="ComObjCreate.htm">ComObjCreate</a>).</p>
+    <p><strong>CLSID</strong> <span class="ver">[v1.1.26+]</span>: The globally unique identifier (GUID) of the object's class. Classes are often registered by CLSID under the <code>HKCR\CLSID</code> registry key.</p>
+  </dd>
 
 </dl>
 
 <h2 id="Return_Value">Return Value</h2>
-<p>The return value depends on the value of <em>Param2</em>:</p>
-<table class="info">
-  <tr><th style="min-width: 5em;">Param2</th><th abbr="Return">Return Value</th></tr>
-  <tr><td>Omitted</td><td><span class="ver">[v1.0.91+]</span>: An integer <a href="#vt">variant type code</a> indicating the type of value contained by the COM wrapper object.</td></tr>
-  <tr><td><code>"Name"</code></td><td>The name of the object's default interface.</td></tr>
-  <tr><td><code>"IID"</code></td><td>The globally unique identifier (GUID) of the object's default interface.</td></tr>
-  <tr><td><code>"Class"</code></td><td><span class="ver">[v1.1.26+]</span>: The object's class name. Note that this is not the same as a Prog ID (a Prog ID is a name used to identify the class in the system registry, or for <a href="ComObjCreate.htm">ComObjCreate</a>).</td></tr>
-  <tr><td><code>"CLSID"</code></td><td><span class="ver">[v1.1.26+]</span>: The globally unique identifier (GUID) of the object's class. Classes are often registered by CLSID under the <code>HKCR\CLSID</code> registry key.</td></tr>
-</table>
-<p>An empty string is returned if either parameter is invalid or if the requested type information could not be retrieved.</p>
+<p>The return value depends on the value of <em>InfoType</em>. An empty string is returned if either parameter is invalid or if the requested type information could not be retrieved.</p>
 
 <h2 id="vt">Variant Type Constants</h2>
 <pre>
@@ -82,8 +76,8 @@ VT_BYREF     := 0x4000  <em>; Pointer to another type of value</em>
 <h2 id="General_Remarks">General Remarks</h2>
 <p>In most common cases, return values from methods or properties of COM objects are converted to an appropriate data type supported by AutoHotkey. Types which aren't specifically handled are coerced to strings via <a href="https://learn.microsoft.com/windows/win32/api/oleauto/nf-oleauto-variantchangetype">VariantChangeType</a>; if this fails or if the variant type contains the VT_ARRAY or VT_BYREF flag, an object containing both the value and its type is returned instead.</p>
 <p>For any variable <i>x</i>, if <code>ComObjType(x)</code> returns an integer, <i>x</i> contains a COM object wrapper.</p>
-<p>If <em>Param2</em> is <code>"Name"</code> or <code>"IID"</code>, type information is retrieved via the <a href="https://learn.microsoft.com/windows/win32/api/oaidl/nf-oaidl-idispatch-gettypeinfo">IDispatch::GetTypeInfo</a> interface method. <em>ComObject</em>'s variant type must be VT_DISPATCH.</p>
-<p>If <em>Param2</em> is <code>"Class"</code> or <code>"CLSID"</code>, type information is retrieved via the <a href="https://learn.microsoft.com/windows/win32/api/ocidl/nf-ocidl-iprovideclassinfo-getclassinfo">IProvideClassInfo::GetClassInfo</a> interface method. <em>ComObject</em>'s variant type must be VT_DISPATCH or VT_UNKNOWN, and the object must implement the IProvideClassInfo interface (some objects do not).</p>
+<p>If <em>InfoType</em> is <code>"Name"</code> or <code>"IID"</code>, type information is retrieved via the <a href="https://learn.microsoft.com/windows/win32/api/oaidl/nf-oaidl-idispatch-gettypeinfo">IDispatch::GetTypeInfo</a> interface method. <em>ComObject</em>'s variant type must be VT_DISPATCH.</p>
+<p>If <em>InfoType</em> is <code>"Class"</code> or <code>"CLSID"</code>, type information is retrieved via the <a href="https://learn.microsoft.com/windows/win32/api/ocidl/nf-ocidl-iprovideclassinfo-getclassinfo">IProvideClassInfo::GetClassInfo</a> interface method. <em>ComObject</em>'s variant type must be VT_DISPATCH or VT_UNKNOWN, and the object must implement the IProvideClassInfo interface (some objects do not).</p>
 
 <h2 id="Related">Related</h2>
 <p><a href="ComObjValue.htm">ComObjValue()</a>, <a href="ComObjCreate.htm">ComObjCreate()</a>, <a href="ComObjGet.htm">ComObjGet()</a>, <a href="ComObjActive.htm">ComObjActive()</a></p>
