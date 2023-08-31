@@ -207,7 +207,7 @@ ScanFile(filename)
     files_map[href] := file_index
 
     h1 := ""
-    try h1 := doc.getElementsByTagName("h1")[0] ; Use h1 instead of doc.title to avoid suffixes such as "| AutoHotkey".
+    try h1 := doc.getElementsByTagName("h1").0 ; Use h1 instead of doc.title to avoid suffixes such as "| AutoHotkey".
     if not h1 {
         D("skipping file with no h1: " filename)
         return
