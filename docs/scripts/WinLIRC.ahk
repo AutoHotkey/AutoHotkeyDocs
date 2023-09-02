@@ -9,7 +9,7 @@
 
 ; Here are the steps to use this script:
 ; 1) Configure WinLIRC to recognize your remote control and its buttons.
-;    WinLIRC is at http://winlirc.sourceforge.net
+;    WinLIRC is at https://sourceforge.net/projects/winlirc/
 ; 2) Edit the WinLIRC path, address, and port in the CONFIG section below.
 ; 3) Launch this script. It will start the WinLIRC server if needed.
 ; 4) Press some buttons on your remote control. A small window will
