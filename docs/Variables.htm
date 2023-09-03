@@ -316,6 +316,7 @@ sumfn := Sum</pre>
     <td><p><strong>Comma (multi-statement)</strong>. Commas may be used to write multiple sub-expressions on a single line. This is most commonly used to group together multiple assignments or function calls.  For example: <code>x:=1<strong>,</strong> y+=2<strong>,</strong> ++index, MyFunc()</code>. Such statements are executed in order from left to right.</p>
       <p class="note"><strong>Note:</strong> A line that begins with a comma (or any other operator) is automatically <a href="Scripts.htm#continuation">appended to</a> the line above it. See also: <a href="#CommaPerf">comma performance</a>.</p>
       <p>Comma is also used to delimit the parameters of a function call or control flow statement. To include a multi-statement expression in a parameter list, enclose it in an extra set of parentheses. For example, <code>MyFn((x, y))</code> evaluates both x and y but passes y as the first and only parameter of MyFn.</p>
+      <p id="CommaPerf">The comma operator usually performs better than writing separate expressions, especially when assigning one variable to another (e.g. <code>x:=y, a:=b</code>). Performance continues to improve as more and more expressions are combined into a single expression; for example, it may be 35&nbsp;% faster to combine five or ten simple expressions into a single expression.</p>
     </td>
   </tr>
 </table>
@@ -363,8 +364,6 @@ sumfn := Sum</pre>
     </td>
   </tr>
 </table>
-<br>
-<p id="CommaPerf"><strong>Performance:</strong> The comma operator is usually faster than writing separate expressions, especially when assigning one variable to another (e.g. <code>x:=y, a:=b</code>). Performance continues to improve as more and more expressions are combined into a single expression; for example, it may be 35&nbsp;% faster to combine five or ten simple expressions into a single expression.</p>
 
 <h2 id="BuiltIn">Built-in Variables</h2>
 <p>The variables below are built into the program and can be referenced by any script.</p>
@@ -573,15 +572,15 @@ MsgBox ElapsedTime " milliseconds have elapsed."</pre>
   </tr>
   <tr id="IsSuspended">
     <td>A_IsSuspended</td>
-    <td>Contains 1 if the script is <a href="lib/Suspend.htm">suspended</a> and 0 otherwise.</td>
+    <td>Contains 1 if the script is <a href="lib/Suspend.htm">suspended</a>, otherwise 0.</td>
   </tr>
   <tr id="IsPaused">
     <td>A_IsPaused</td>
-    <td>Contains 1 if the <a href="misc/Threads.htm">thread</a> immediately underneath the current thread is <a href="lib/Pause.htm">paused</a>. Otherwise it contains 0.</td>
+    <td>Contains 1 if the <a href="misc/Threads.htm">thread</a> immediately underneath the current thread is <a href="lib/Pause.htm">paused</a>, otherwise 0.</td>
   </tr>
   <tr id="IsCritical">
     <td>A_IsCritical</td>
-    <td>Contains 0 if <a href="lib/Critical.htm">Critical</a> is off for the <a href="misc/Threads.htm">current thread</a>. Otherwise it contains an integer greater than zero, namely the <a href="lib/Critical.htm#Interval">message-check frequency</a> being used by Critical. The current state of Critical can be saved and restored via <code>Old_IsCritical := A_IsCritical</code> followed later by <code>A_IsCritical := Old_IsCritical</code>.</td>
+    <td>Contains 0 if <a href="lib/Critical.htm">Critical</a> is off for the <a href="misc/Threads.htm">current thread</a>. Otherwise it contains an integer greater than zero, namely the <a href="lib/Critical.htm#Interval">message-check interval</a> being used by Critical. The current state of Critical can be saved and restored via <code>Old_IsCritical := A_IsCritical</code> followed later by <code>A_IsCritical := Old_IsCritical</code>.</td>
   </tr>
   <tr id="ListLines">
     <td>A_ListLines</td>
@@ -589,7 +588,7 @@ MsgBox ElapsedTime " milliseconds have elapsed."</pre>
   </tr>
   <tr id="TitleMatchMode">
     <td>A_TitleMatchMode</td>
-    <td>Can be used to get or set the title match mode. Possible values are 1, 2, 3 and RegEx. For details, see <a href="lib/SetTitleMatchMode.htm">SetTitleMatchMode</a>.</td>
+    <td>Can be used to get or set the title match mode. Possible values are 1, 2, 3, and RegEx. For details, see <a href="lib/SetTitleMatchMode.htm">SetTitleMatchMode</a>.</td>
   </tr>
   <tr id="TitleMatchModeSpeed">
     <td>A_TitleMatchModeSpeed</td>
@@ -609,7 +608,7 @@ MsgBox ElapsedTime " milliseconds have elapsed."</pre>
   </tr>
   <tr id="SendMode">
     <td>A_SendMode</td>
-    <td>Can be used to get or set the send mode. Possible values are Event, Input, Play and InputThenPlay. For details, see <a href="lib/SendMode.htm">SendMode</a>.</td>
+    <td>Can be used to get or set the send mode. Possible values are Event, Input, Play, and InputThenPlay. For details, see <a href="lib/SendMode.htm">SendMode</a>.</td>
   </tr>
   <tr id="SendLevel">
     <td>A_SendLevel</td>
@@ -656,7 +655,7 @@ MsgBox ElapsedTime " milliseconds have elapsed."</pre>
     A_CoordModeMouse<br>
     A_CoordModeCaret<br>
     A_CoordModeMenu</td>
-    <td>Can be used to get or set the area to which coordinates are to be relative. Possible values are Screen, Window and Client. For details, see <a href="lib/CoordMode.htm">CoordMode</a>.</td>
+    <td>Can be used to get or set the area to which coordinates are to be relative. Possible values are Screen, Window, and Client. For details, see <a href="lib/CoordMode.htm">CoordMode</a>.</td>
   </tr>
   <tr id="RegView">
     <td>A_RegView</td>
@@ -700,9 +699,11 @@ MsgBox ElapsedTime " milliseconds have elapsed."</pre>
   </tr>
   <tr id="TimeIdle">
     <td>A_TimeIdle</td>
-    <td>The number of milliseconds that have elapsed since the system last received keyboard, mouse, or other input. This is useful for determining whether the user is away. Physical input from the user as well as artificial input generated by <strong>any</strong> program or script (such as the <a href="lib/Send.htm">Send</a> or <a href="lib/MouseMove.htm">MouseMove</a> functions) will reset this value back to zero. Since this value tends to increase by increments of 10, do not check whether it is equal to another value. Instead, check whether it is greater or less than another value. For example:
-<pre>if A_TimeIdle &gt; 600000
-    MsgBox "The last keyboard or mouse activity was at least 10 minutes ago."</pre></td>
+    <td>
+      <p>The number of milliseconds that have elapsed since the system last received keyboard, mouse, or other input. This is useful for determining whether the user is away. Physical input from the user as well as artificial input generated by <strong>any</strong> program or script (such as the <a href="lib/Send.htm">Send</a> or <a href="lib/MouseMove.htm">MouseMove</a> functions) will reset this value back to zero. Since this value tends to increase by increments of 10, do not check whether it is equal to another value. Instead, check whether it is greater or less than another value. For example:</p>
+      <pre>if A_TimeIdle &gt; 600000
+    MsgBox "Last activity was 10 minutes ago"</pre>
+    </td>
   </tr>
   <tr id="TimeIdlePhysical">
     <td>A_TimeIdlePhysical</td>
@@ -771,7 +772,7 @@ MsgBox ElapsedTime " milliseconds have elapsed."</pre>
   </tr>
   <tr id="ComSpec">
     <td>A_ComSpec</td>
-    <td><p>Contains the same string as the environment's ComSpec variable. Often used with <a href="lib/Run.htm">Run/RunWait</a>. For example:</p>
+    <td><p>Contains the same string as the ComSpec environment variable, which is usually the full path to the command prompt executable (cmd.exe). Often used with <a href="lib/Run.htm">Run/RunWait</a>. For example:</p>
       <pre class="NoIndent no-highlight">C:\Windows\system32\cmd.exe</pre>
     </td>
   </tr>
@@ -903,7 +904,7 @@ MsgBox ElapsedTime " milliseconds have elapsed."</pre>
   </tr>
   <tr id="IsAdmin">
     <td>A_IsAdmin</td>
-    <td><p>If the current user has admin rights, this variable contains 1. Otherwise, it contains 0.</p>
+    <td><p>Contains 1 if the current user has admin rights, otherwise 0.</p>
     <p id="RequireAdmin">To have the script restart itself as admin (or show a prompt to the user requesting admin), use <a href="lib/Run.htm#RunAs">Run *RunAs</a>. However, note that running the script as admin causes all programs launched by the script to also run as admin. For a possible alternative, see <a href="FAQ.htm#uac">the FAQ</a>.</p>
     </td>
   </tr>
