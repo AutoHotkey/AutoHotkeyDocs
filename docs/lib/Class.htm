@@ -21,6 +21,11 @@
 
 <h2 id="toc">Table of Contents</h2>
 <ul class="indent">
+  <li><a href="#StaticMethods">Static Methods</a>:
+    <ul>
+      <li><a href="#StaticCall">Call</a>: Creates a new Class object.</li>
+    </ul>
+  </li>
   <li><a href="#Methods">Methods</a>:
     <ul>
       <li><a href="#Call">Call</a>: Constructs a new instance of the class.</li>
@@ -32,6 +37,36 @@
     </ul>
   </li>
 </ul>
+
+<h2 id="StaticMethods">Static Methods</h2>
+
+<div class="methodShort" id="StaticCall"><h3>Call</h3>
+<p>Creates a new Class object without a Prototype.</p>
+<pre class="Syntax">ClassObj := <span class="func">Class</span>()</pre>
+<p><span class="ver">[v2.1-alpha.3+]:</span> Creates a new Class object based on <em>BaseClass</em> or Object.</p>
+<pre class="Syntax">ClassObj := <span class="func">Class</span>(<span class="optional">Name, BaseClass, Args*</span>)
+ClassObj := <span class="func">Class</span>(<span class="optional">BaseClass, Args*</span>)</pre>
+<dl>
+  <dt>Name</dt>
+  <dd>
+    <p>Type: <a href="../Concepts.htm#strings">String</a></p>
+    <p>If omitted, it defaults to "". Otherwise, specify the class name to assign to <code>ClassObj.Prototype.__Class</code>.</p>
+  </dd>
+  <dt>BaseClass</dt>
+  <dd>
+    <p>Type: Class</p>
+    <p>If omitted, it defaults to Object. Otherwise, specify the base class. <code>ClassObj.Base</code> is set to this, while <code>ClassObj.Prototype.Base</code> is set to <code>BaseClass.Prototype</code>.</p>
+  </dd>
+  <dt>Args*</dt>
+  <dd>
+    <p>If specified, any other parameters are passed to <a href="../Objects.htm#static__New">static __New</a>, as in <code>ClassObj.__New(Args*)</code>.</p>
+  </dd>
+</dl>
+<p class="note"><strong>Note:</strong> This applies when literally calling "Class" itself, not when <a href="#Call">calling classes</a>.</p>
+<p><code>Class()</code> can be used to construct a new Class object based on <code>Class.Prototype</code>. However, this new object initially has no Call method as it is not a subclass of <a href="Object.htm">Object</a>. It can become a subclass of Object by assigning to <a href="Object.htm#Base">Base</a>, or the Call method can be reimplemented or copied from another class. A <a href="#Prototype">Prototype</a> must also be created and assigned to the class before it can be instantiated with the standard Call method.</p>
+<p><span class="ver">[v2.1-alpha.3+]:</span> <code>Class</code> can be called with parameters. For backward-compatibility, it behaves as described in the paragraph above when the parameter count is zero. Otherwise (even if a parameter is explicitly <code>unset</code>), a Prototype is created automatically based on <code>BaseClass.Prototype</code>. This enables scripts to create Prototype objects which are based on native types other than Object, such as Map and Array, at runtime.</p>
+<p>One example use is to <a href="../Structs.htm#defprop">create a struct definition at runtime</a>.</p>
+</div>
 
 <h2 id="Methods">Methods</h2>
 
@@ -48,7 +83,7 @@ Obj := ClassObj.<span class="func">Call</span>(Params*)</pre>
   <li>Return the new object.</li>
 </ul>
 <p>Call can be overridden within a class definition by defining a static method, such as <code>static Call()</code>. This allows classes to modify or prevent the construction of new instances.</p>
-<p>Note that <code>Class()</code> (literally using "Class" in this case) can be used to construct a new Class object based on <code>Class.Prototype</code>. However, this new object initially has no Call method as it is not a subclass of <a href="Object.htm">Object</a>. It can become a subclass of Object by assigning to <a href="Object.htm#Base">Base</a>, or the Call method can be reimplemented or copied from another class. A <a href="#Prototype">Prototype</a> must also be created and assigned to the class before it can be instantiated with the standard Call method.</p>
+<p>This is a static method in the sense that it belongs to a class (such as Object), but at the same time it is an instance method of the class object, which is an instance of Class. The class Class itself has a <a href="#StaticCall">static Call method</a>. In other words, <code>Class()</code> can be called to create a new class object at runtime.</p>
 </div>
 
 <h2 id="Properties">Properties</h2>

@@ -41,6 +41,7 @@
       <p id="cdecl">The word <em>Cdecl</em> is normally omitted because most functions use the standard calling convention rather than the "C" calling convention (functions such as wsprintf that accept a varying number of arguments are one exception to this). Note that most object-oriented C++ functions use the <i>thiscall</i> convention, which is not supported.</p>
       <p>If present, the word <em>Cdecl</em> should be listed before the return type (if any). Separate each word from the next with a space or tab. For example: <code>"Cdecl Str"</code>.</p>
       <p>Since a separate "C" calling convention does not exist in 64-bit code, <i>Cdecl</i> may be specified but has no effect on 64-bit builds of AutoHotkey.</p>
+      <p><span class="ver">[v2.1-alpha.2+]:</span> Specifying <em>Cdecl</em> has no effect even on 32-bit builds, and can always be omitted. Prior versions used the <em>Cdecl</em> option only to determine whether to check the stack pointer (ESP) after the call. This is now done unconditionally, but functions which do not accept parameters are assumed to be <em>Cdecl</em> (as either call would not change ESP).</p>
       <p><em>ReturnType</em>: If the function returns a 32-bit signed integer (Int), BOOL, or nothing at all, <em>ReturnType</em> may be omitted. Otherwise, specify one of the argument types from the <a href="#types">types table</a> below. The <a href="#asterisk">asterisk suffix</a> is also supported.</p>
   </dd>
 
@@ -140,6 +141,14 @@ str := StrGet(buf, "cp0")  <em>; Retrieve ANSI string from buffer.</em>
     <p>HRESULT is the default return type for <a href="ComCall.htm">ComCall</a>.</p>
   </td>
 </tr>
+<tr id="Class">
+  <td><em>Class</em></td>
+  <td>
+    <p><span class="ver">[v2.1-alpha.3+]:</span> A <a href="../Structs.htm">structure</a> or <a href="../Structs.htm#abstract">abstract type</a> to pass by value. <em>Class</em> should be a reference to the class object defining the structure. The class and other arg types can be bound with <a href="Func.htm#Bind">Bind</a> to create a function object which can be called more naturally, without repeating the parameter types or conversion code each time it is called.</p>
+    <p>If the parameter value is not an instance of the class, one is constructed automatically (without calling the static Call method) and its <a href="../Structs.htm#abstract">__value property</a> is assigned the parameter value (or <code>unset</code> if the parameter is omitted).</p>
+    <p>For example, this arg type would be used with the <a href="https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-windowfrompoint">WindowFromPoint</a> function, as it accepts a POINT struct by value. By contrast, <a href="https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getwindowrect">GetWindowRect</a> does not accept a RECT, but a pointer to a RECT.</p>
+  </td>
+</tr>
 </table>
 
 <h2 id="error">Errors</h2>
@@ -151,8 +160,8 @@ str := StrGet(buf, "cp0")  <em>; Retrieve ANSI string from buffer.</em>
   <li><a href="Error.htm#TypeError">TypeError</a>: An argument was passed a value of an unexpected type. For instance, an <a href="../Variables.htm#Expressions">expression</a> that evaluates to a number was passed to a string (<a href="#str">str</a>) argument, a non-numeric string was passed to a numeric argument, or an object was passed to an argument <em>not</em> of type <a href="#ptr">Ptr</a>.</li>
   <li><a href="Error.htm">Error</a>: The specified <em>DllFile</em> could not be accessed or loaded. If no explicit path was specified for <em>DllFile</em>, the file must exist in the system's PATH or <a href="../Variables.htm#WorkingDir">A_WorkingDir</a>. This error might also occur if the user lacks permission to access the file, or if AutoHotkey is 32-bit and the DLL is 64-bit or vice versa.</li>
   <li><a href="Error.htm">Error</a>: The specified function could not be found inside the DLL.</li>
-  <li><a href="Error.htm">Error</a>: The function was called but it aborted with a fatal exception. <code>Exception.Extra</code> contains the exception code. For example, 0xC0000005 means "access violation". In such cases, the thread is aborted (if <a href="Try.htm">try</a> is not used), but any <a href="#asterisk">asterisk variables</a> are still updated. An example of a fatal exception is dereferencing an invalid pointer such as NULL (0). Since a <a href="#cdecl">Cdecl</a> function never produces the error described in the next paragraph, it may generate an exception when too few arguments are passed to it.</li>
-  <li><a href="Error.htm">Error</a>: The function was called but was passed too many or too few arguments. <code>Exception.Extra</code> contains the number of bytes by which the argument list was incorrect. If it is positive, too many arguments (or arguments that were too large) were passed, or the call requires <a href="#cdecl">CDecl</a>. If it is negative, too few arguments were passed. This situation should be corrected to ensure reliable operation of the function. The presence of this error may also indicate that an exception occurred. Note that due to the x64 calling convention, 64-bit builds never raise this error.</li>
+  <li><a href="Error.htm">Error</a>: The function was called but it aborted with a fatal exception. <code>Exception.Extra</code> contains the exception code. For example, 0xC0000005 means "access violation". In such cases, the thread is aborted (if <a href="Try.htm">try</a> is not used), but any <a href="#asterisk">asterisk variables</a> are still updated. An example of a fatal exception is dereferencing an invalid pointer such as NULL (0). Since a <a href="#cdecl">Cdecl</a> or x64 function never produces the error described in the next paragraph, it may generate an exception when too few arguments are passed to it.</li>
+  <li><a href="Error.htm">Error</a>: The function was called but was passed too many or too few arguments. <code>Exception.Extra</code> contains the number of bytes by which the argument list was incorrect. If it is positive, too many arguments (or arguments that were too large) were passed, or (prior to <span class="ver">[v2.1-alpha.2]</span>) the call requires <a href="#cdecl">CDecl</a>. If it is negative, too few arguments were passed. This situation should be corrected to ensure reliable operation of the function. The presence of this error may also indicate that an exception occurred. Note that due to the x64 calling convention, 64-bit builds never raise this error.</li>
 </ul>
 
 <h2 id="except">Native Exceptions and A_LastError</h2>
@@ -175,6 +184,7 @@ Loop 500
 
 <h2 id="struct">Structures and Arrays</h2>
 <p>A structure is a collection of <em>members</em> (fields) stored adjacently in memory. Most members tend to be integers.</p>
+<p class="note"><strong>Note:</strong> Typed properties are the recommended way to define structures in v2.1-alpha.3+. See <a href="Structs.htm">Structures</a>.</p>
 <p>Functions that accept the address of a structure (or a memory-block array) can be called by allocating memory by some means and passing the memory address to the function. The <a href="Buffer.htm">Buffer</a> object is recommended for this purpose. The following steps are generally used:</p>
 <p>1) Call <code>MyStruct := Buffer(123, 0)</code> to allocate a buffer to hold the structure's data. Replace <code>123</code> with a number that is at least as large as the size of the structure, in bytes. Specifying zero as the last parameter is optional; it initializes all members to be binary zero, which is typically used to avoid calling NumPut as often in the next step.</p>
 <p>2) If the target function uses the values initially in the structure, call <code><a href="NumPut.htm">NumPut</a>("UInt", 123, MyStruct, 4)</code> to initialize any members that should be non-zero. Replace <code>123</code> with the integer to be put into the target member (or specify <code>StrPtr(Var)</code> to store the address of a string). Replace <code>4</code> with the offset of the target member (see step #4 for description of "offset"). Replace <code>"UInt"</code> with the appropriate type, such as <code>"Ptr"</code> if the member is a pointer or handle.</p>

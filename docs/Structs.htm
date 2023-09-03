@@ -1,0 +1,272 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+  <title>Structures | AutoHotkey v2</title>
+<meta name="description" content="How to use typed properties and define structures." />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<link href="static/theme.css" rel="stylesheet" type="text/css" />
+<script src="static/content.js" type="text/javascript"></script>
+</head>
+<body>
+
+<h1>Structures</h1>
+<p>A structure or <em>struct</em> is a collection of <em>members</em> (fields) stored adjacently in memory.</p>
+<p>Structs are most often used with external functions via <a href="lib/DllCall.htm">DllCall</a>, or with Gui controls via <a href="lib/SendMessage.htm">SendMessage</a>. In those cases, the memory offset of each field relative to the start of the struct must exactly match the offset expected by the external function or control, usually as defined in an SDK or documentation meant for C/C++ developers.</p>
+<p>In AutoHotkey v2.0 and earlier, structs were typically "defined" by allocating memory with <a href="lib/Buffer.htm">Buffer</a> (or other means) and directly manipulating it with <a href="lib/NumPut.htm">NumPut</a> and <a href="lib/NumGet.htm">NumGet</a>. This requires calculating the offset of each individual field as needed, so is a laborious and error-prone process. Fields are generally not referenced by name, making the code hard to read and maintain.</p>
+<p class="warning"><strong>Warning:</strong> This is preliminary documentation for v2.1. Specifics may change with each alpha release.</p>
+<p>With v2.1, structs can instead be created through the use of typed properties in a class. Each typed property corresponds to a field. Usually a <a href="#classdef">class definition</a> is used, but a structured class can also be <a href="#defprop">constructed at runtime</a>. Offsets and struct sizes are calculated automatically based on the sequence of typed properties.</p>
+
+<h2 id="classdef">Using a Class Definition</h2>
+<p>Within a <a href="Objects.htm#Custom_Classes">class definition</a>, a typed property is defined by writing a colon and type expression or reserved type name after the property name. For example:</p>
+<pre>class POINT {
+    x : i32, y : i32
+}</pre>
+<p>All fields are zero-initialized when the object is constructed, before initializers are evaluated. A field can be initialized to some other value by including an assignment after the type. For example:</p>
+<pre>class LVINSERTMARK {
+    cbSize      : u32 := ObjGetDataSize(this)
+    dwFlags     : u32
+    iItem       : i32
+    dwReserved  : u32
+}</pre>
+<p>A struct is instantiated like any other object:</p>
+<pre>im := LVINSERTMARK()</pre>
+<p>Fields defined by a subclass are always placed after fields defined by the base class. For example, when class StructB extends StructA, the layout is the same as if StructB extends Object but begins with a nested StructA. However, inherited properties are accessed directly, not through a nested struct.</p>
+
+<h2 id="defprop">Using DefineProp</h2>
+<p>A struct can be defined at runtime by creating a <a href="lib/Class.htm">Class</a> object and adding typed properties to its <a href="lib/Class.htm#Prototype">Prototype</a> with <a href="lib/Object.htm#DefineProp">DefineProp</a>. For example:</p>
+<pre>POINT := Class(Object)  <em>; Specify the base class so a Prototype is created automatically.</em>
+POINT.Prototype.DefineProp 'x', {type: 'i32'}
+POINT.Prototype.DefineProp 'y', {type: 'i32'}
+pt := POINT()
+</pre>
+<p>Typically the class object (POINT) would be defined once and used to create many instances (pt).</p>
+<p>Unlike declarations in a class definition, literal reserved type names such as "i32" must be quoted when calling DefineProp.</p>
+<p>As with a class definition, fields can be inherited from the prototype's base.</p>
+
+<h2 id="type-specs">Type Specifiers</h2>
+<p>A type specifier in a class definition can be:</p>
+<ul>
+  <li>A literal (unquoted) reserved type name, such as <code>i32</code>.</li>
+  <li>An exact class name, such as <code>MyClass.MyNestedClass</code>.</li>
+  <li>An integer indicating the size of the property, in which case the property's value is its address, and cannot be assigned.</li>
+  <li>An expression enclosed in parentheses which returns a class object or a reserved type name (quoted if literal).</li>
+  <li>An expression starting with an identifier, optionally followed by a parameter list (making it a function call), optionally followed by any number of property or method calls.</li>
+</ul>
+<p>Type specifiers are evaluated in sequence with static property initializers, when the class is initialized (not each time it is instantiated).</p>
+<p>If an expression is used, it must evaluate to a class object, a string (a reserved type name) or an integer (size in bytes). It is evaluated in the context of <a href="Objects.htm#static__New">static __Init()</a>; i.e. <code>this</code> refers to the class object.</p>
+<p>If the type is a class, it must have at least one typed property; i.e. it must define a struct. A property of this type would typically be known as a nested struct, but such classes can also represent more <a href="#abstract">abstract</a> types such as smart pointers, arrays, enums, specialized string types, or types that are restricted to specific values.</p>
+<p class="note"><strong>Note:</strong> If a property is declared with type <code>MyObject</code>, this does not mean it can hold a <em>reference</em> to any MyObject, but rather that MyObject defines the type of the property.</p>
+
+<h3 id="type-names">Reserved Type Names</h3>
+<p>Currently the following type names are reserved. When written literally, they must be quoted when used with DefineProp. When used in a class definition, they may only be quoted if enclosed within parentheses. The convention is currently a single letter indicating the basic type and a suffix indicating the size of the type (in bits, if it is a number).</p>
+<ul>
+  <li><code>i8</code>, <code>i16</code>, <code>i32</code> and <code>i64</code> are signed integers, with i32 being 32-bit.</li>
+  <li><code>u8</code>, <code>u16</code>, <code>u32</code> and <code>u64</code> are unsigned integers, with u32 being 32-bit.</li>
+  <li><code>iptr</code> and <code>uptr</code> are integers; 32-bit when A_PtrSize = 4 and 64-bit when A_PtrSize = 8.</li>
+  <li><code>f32</code> and <code>f64</code> are floating-point numbers.</li>
+</ul>
+<p>Type names are case-insensitive.</p>
+<p>These reserved names may be replaced by proper classes in future, likely after module support is added (to reduce the number of new names being introduced into the global scope).</p>
+
+<h2>Nested Structs</h2>
+<p>Nested structs are constructed in order of definition, prior to initialization of the outer struct. The nested struct's own field initializers are evaluated and <a href="Objects.htm#Custom_NewDelete">__New</a> is called (without parameters) before before any initializers in the outer struct.</p>
+<p class="note"><strong>Note:</strong> Due to their specific needs for memory allocation and initialization, nested structs are constructed directly, not by calling the static Call method of the class.</p>
+<p>When the outer struct is about to be deleted, <a href="Objects.htm#Custom_NewDelete">__Delete</a> is called for the outer struct first, followed by each nested struct (if defined) in reverse order of definition. The memory of the outer struct is deleted only after all destructors are called.</p>
+<p>By default, the property corresponding to a nested struct returns a reference to the nested struct, and cannot be assigned a value. This can be overridden by defining a getter and/or setter for the <a href="#abstract">__value</a> property. If a setter is defined and no getter, the struct itself is still returned by default.</p>
+
+<h3 id="sized">Untyped Binary Data</h3>
+<p>If a property's type specifier is an integer, it is interpreted as the size of the property, in bytes. When the property is evaluated, the address of the property itself is returned, rather than any value contained by the property. This is generally only useful when defining an abstract type, such as a fixed-size string or array.</p>
+
+<h3 id="abstract">Abstract Types</h3>
+<p>A struct can be used to implement a variety of abstract types, such as smart pointers, arrays, enums, specialized string types, or types that are restricted to specific values. For example, this implements a bool type like in C++:</p>
+<pre>class bool {
+    value : u8  <em>; This property name has no special meaning.</em>
+    __value {
+        get => this.value
+        set => this.value := !!value
+    }
+}
+
+class Example {
+    bInformed : bool
+    __new() {
+        for value in [false, "truthy", 3] {
+            this.bInformed := value
+            MsgBox value " converts to " this.bInformed
+        }
+    }
+}
+
+Example()</pre>
+<p>The __value property is also used by DllCall. For example, when the bool class is used as a DllCall parameter type, any incoming parameter value is automatically converted to 0 or 1 by <code>!!value</code>.</p>
+<p>There are a variety of conventions for strings in structs and DllCall. Currently typed properties have no built-in support for strings or arrays, but they can be implemented by scripts using these mechanisms. The <a href="#ExCString">CString</a> and <a href="#ExBSTR">BSTR</a> examples demonstrate this.</p>
+
+<h2 id="Examples">Examples</h2>
+<div class="ex" id="ExBind">
+<p><a class="ex_number" href="#ExBind"></a> Shows the class name of the window/control under the mouse cursor.</p>
+<pre>class Point {
+    x : i32, y : i32
+}
+<em>; Use the class itself to pass by value.</em>
+WindowFromPoint := DllCall.Bind("WindowFromPoint", Point, unset, "uptr")
+<em>; Use "ptr" to pass by reference.</em>
+GetCursorPos := DllCall.Bind("GetCursorPos", "ptr", unset)
+
+pt := Point()
+GetCursorPos(pt)
+MsgBox WinGetClass(WindowFromPoint(pt))</pre>
+</div>
+
+<div class="ex" id="ExMONITORINFO">
+<p><a class="ex_number" href="#ExMONITORINFO"></a> Retrieves information about the monitor containing the mouse cursor, using nested structs.</p>
+<pre>class RECT {
+    Left : i32
+    Top : i32
+    Right : i32
+    Bottom : i32
+}
+
+class MONITORINFO {
+    cbSize : i32 := 40
+    rcMonitor : RECT
+    rcWork : RECT
+    dwFlags : i32
+}
+
+DllCall("GetCursorPos", "uint64*", &point:=0)
+hMonitor := DllCall("MonitorFromPoint", "int64", point, "uint", 0, "ptr")
+DllCall("user32\GetMonitorInfo", "ptr", hMonitor, "ptr", MI := MONITORINFO())
+MsgBox(
+(
+    "Monitor info from point:
+    Left: " MI.rcMonitor.Left "
+    Top: " MI.rcMonitor.Top "
+    Right: " MI.rcMonitor.Right "
+    Bottom: " MI.rcMonitor.Bottom "
+    WALeft: " MI.rcWork.Left "
+    WATop: " MI.rcWork.Top "
+    WARight: " MI.rcWork.Right "
+    WABottom: " MI.rcWork.Bottom "
+    Primary: " MI.dwFlags
+))</pre>
+</div>
+
+<div class="ex" id="ExCString">
+<p><a class="ex_number" href="#ExCString"></a> Defines a struct containing a fixed-size string with a specific encoding.</p>
+<pre><em>; Define a reusable "meta-class" or "generic class" for C-style strings.
+; Calling CString itself returns a new class for use in a type expression.</em>
+class CString {
+    static Call(n, cp:="UTF-16") {
+        p := {base: this.Prototype}
+        p.UnitSize := StrPut("", cp)  <em>; Size in bytes of a single "character".</em>
+        p.Codepage := cp
+        p.Size := n * p.UnitSize  <em>; Total size of any field of this type.</em>
+        p.DefineProp('Ptr', {type: p.Size})  <em>; See <a href="#sized">Untyped Binary Data</a>.</em>
+        return {Prototype: p}
+    }
+    __value {
+        get => StrGet(this,, this.Codepage)
+        set => StrPut(value, this,, this.Codepage)
+    }
+}
+
+<em>; Define a struct containing a string of at most 32 UTF-8 code units.</em>
+class XStruct {
+  str : CString(32, "UTF-8")
+}
+
+x := XStruct()
+x.str := "Hello!"
+MsgBox x.str
+</pre></div>
+
+<div class="ex" id="ExOut">
+<p><a class="ex_number" href="#ExOut"></a> Defines an arg type struct which assigns output to a VarRef, like the <a href="lib/DllCall.htm#asterisk">pointer suffix</a>.</p>
+<pre>
+class Point {
+    x : i32, y : i32
+}
+GetCursorPos := DllCall.Bind("GetCursorPos", Out(Point), unset)
+
+GetCursorPos(&mp1)  <em>; Let the call construct a new struct.</em>
+GetCursorPos(mp2 := Point())  <em>; Provide a struct to receive the output.</em>
+
+MsgBox mp1.x "," mp1.y "`n" mp2.x "," mp2.y
+
+Out(sc) {
+    oc := Class(Object)
+    oc.Prototype
+        .DefineProp('p', {type: 'uptr'})
+        .DefineProp('__value', {
+            set: set_out_value(this, value) {
+                if value is VarRef
+                    this.p := ObjGetDataPtr(%value% := sc())
+                else if value is sc
+                    this.p := ObjGetDataPtr(value)
+                else
+                    throw TypeError('Expected a VarRef or ' sc.Prototype.__Class ' but got a ' type(value), -1)
+            }
+        })
+    return oc
+}
+</pre></div>
+
+<div class="ex" id="ExBSTR">
+<p><a class="ex_number" href="#ExBSTR"></a> Defines a struct which handles conversion of strings to/from BSTR.</p>
+<pre>
+MsgBox DllCall("oleaut32\SysStringLen", BSTR, "abc" Chr(0) "123")
+MsgBox DllCall("oleaut32\SysAllocString", "wstr", "xyz", BSTR)
+
+class BSTR {  <em>; This type can also be used in a struct.</em>
+    ptr : uptr
+    size => DllCall("oleaut32\SysStringByteLen", "ptr", this, "uint")
+    __value {
+        get => StrGet(this)
+        set {
+            if this.ptr  <em>; In case of use in a struct.</em>
+                this.__delete()
+            this.ptr := DllCall("oleaut32\SysAllocStringLen", "wstr", value, "uint", StrLen(value), "ptr")
+        }
+    }
+    __delete => DllCall("oleaut32\SysFreeString", "ptr", this)
+}
+</pre>
+</div>
+</div>
+
+<div class="ex" id="Exlldiv">
+<p><a class="ex_number" href="#Exlldiv"></a> Calls a function that returns a struct by value.</p>
+<pre>
+class lldiv_t {
+    quot : i64, rem : i64
+}
+res := DllCall("ucrtbase\lldiv", "int64", 31558149, "int64", 3600, lldiv_t)
+MsgBox Format("Earth orbit: {} hours and {} seconds.", res.quot, res.rem)
+</pre>
+</div>
+
+<div class="ex" id="ExHMODULE">
+<p><a class="ex_number" href="#ExHMODULE"></a> Defines a return type struct for error-checking and automatic cleanup.</p>
+<pre>
+class LoadedHModule {
+    ptr : uptr
+    __value => this.ptr ? this : throw(OSError(A_LastError, -1))
+    __delete() => DllCall("FreeLibrary", "ptr", this)
+}
+
+check
+gdip := DllCall("LoadLibrary", "str", "gdiplus", LoadedHModule)
+check
+gdip := unset
+check
+
+DllCall("LoadLibrary", "str", "this is bound to fail", LoadedHModule) <em>; OSError(126)</em>
+
+<em>; By contrast with LoadLibrary, a zero return value from GetModuleHandle
+; is expected, and a non-zero handle should not be freed automatically.</em>
+check() => MsgBox(DllCall("GetModuleHandle", "str", "gdiplus", "ptr") ? "Loaded" : "Not loaded")
+</pre>
+</div>
+
+</body>

@@ -244,9 +244,11 @@ other.test()</pre>
 <p>The following shows most of the elements of a class definition:</p>
 <pre>class ClassName extends BaseClassName
 {
-    InstanceVar := <i>Expression</i>
+    InstanceVar := <i>InitExpression</i>
     
-    static ClassVar := <i>Expression</i>
+    StructField : <i>TypeExpression</i> := <i>InitExpression</i>
+    
+    static ClassVar := <i>InitExpression</i>
 
     class NestedClass
     {
@@ -291,15 +293,21 @@ other.test()</pre>
 <p>An <em>instance variable</em> is one that each instance of the class has its own copy of. They are declared and behave like normal assignments, but the <code>this.</code> prefix is omitted (only directly within the class body):</p>
 <pre>InstanceVar := Expression</pre>
 <p>These declarations are evaluated each time a new instance of the class is created with <a href="lib/Class.htm#Call"><em>ClassName</em>()</a>, after all base-class declarations are evaluated but before <a href="#Custom_NewDelete">__New</a> is called. This is achieved by automatically creating a method named <em>__Init</em> containing a call to <code>super.__Init()</code> and inserting each declaration into it. Therefore, a single class definition must not contain both an __Init method and an instance variable declaration.</p>
-<p><em>Expression</em> can access other instance variables and methods via <code>this</code>. Global variables may be read, but not assigned. An additional assignment (or use of the <a href="Variables.htm#ref">reference operator</a>) within the expression will generally create a variable local to the __Init method. For example, <code>x := y := 1</code> would set <code>this.x</code> and a local variable <code>y</code> (which would be freed once all initializers have been evaluated).</p>
+<p><em>InitExpression</em> can access other instance variables and methods via <code>this</code>. Global variables may be read, but not assigned. An additional assignment (or use of the <a href="Variables.htm#ref">reference operator</a>) within the expression will generally create a variable local to the __Init method. For example, <code>x := y := 1</code> would set <code>this.x</code> and a local variable <code>y</code> (which would be freed once all initializers have been evaluated).</p>
 <p>To access an instance variable (even within a method), always specify the target object; for example, <code><b>this</b>.InstanceVar</code>.</p>
 <p>Declarations like <code>x.y := z</code> are also supported, provided that <code>x</code> was previously defined in this class. For example, <code>x := {}, x.y := 42</code> declares <code>x</code> and also initializes <code>this.x.y</code>.</p>
+
+<h4 id="Custom_Classes_field">Struct Fields <span class="ver">[v2.1-alpha.3+]</h4>
+<p>A struct field is an instance variable with a type specifier.</p>
+<pre>StructField : <i>TypeSpecifier</i> := <i>InitExpression</i></pre>
+<p><em>TypeSpecifier</em> is a reserved type name or type expression defining the type of the property. See <a href="Structs.htm">Structures</a> and <a href="Structs.htm#type-specs">Type Specifiers</a> for details.</p>
+<p><em>InitExpression</em> is optional. If present, the property is initialized in the same way as any other instance variable.</p>
 
 <h4 id="Custom_Classes_staticvar">Static/Class Variables</h4>
 <p>Static/class variables belong to the class itself, but their values can be inherited by subclasses. They are declared like instance variables, but using the static keyword:</p>
 <pre>static ClassVar := Expression</pre>
 <p>These declarations are evaluated only once, when the class is <a href="#static__New">initialized</a>. A static method named <em>__Init</em> is automatically defined for this purpose.</p>
-<p>Each declaration acts as a normal property assignment, with the class object as the target. <em>Expression</em> has the same interpretation as for instance variables, except that <code>this</code> refers to the class itself.</p>
+<p>Each declaration acts as a normal property assignment, with the class object as the target. <em>InitExpression</em> has the same interpretation as for instance variables, except that <code>this</code> refers to the class itself.</p>
 <p>To assign to a class variable anywhere else, always specify the class object; for example, <code><b>ClassName</b>.ClassVar := Value</code>. If a subclass does not own a property by that name, <code><i>Subclass</i>.ClassVar</code> can also be used to retrieve the value; so if the value is a reference to an object, subclasses will share that object by default. However, <code><i>Subclass</i>.ClassVar := y</code> would store the value in <em>Subclass</em>, not in <em>ClassName</em>.</p>
 <p>Declarations like <code>static x.y := z</code> are also supported, provided that <code>x</code> was previously defined in this class. For example, <code>static x := {}, x.y := 42</code> declares <code>x</code> and also initializes <code><i>ClassName</i>.x.y</code>.  Because <a href="lib/Class.htm#Prototype">Prototype</a> is implicitly defined in each class, <code>static Prototype.sharedValue := 1</code> can be used to set values which are dynamically inherited by all instances of the class (until shadowed by a property on the instance itself).</p>
 
