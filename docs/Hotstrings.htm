@@ -31,24 +31,24 @@
 <p>To define a hotstring, enclose the triggering abbreviation between pairs of colons as in this example:</p>
 <pre>::btw::by the way</pre>
 <p>In the above example, the abbreviation btw will be automatically replaced with "by the way" whenever you type it (however, by default you must type an <a href="#EndChars">ending character</a> after typing btw, such as <kbd>Space</kbd>, <kbd>.</kbd>, or <kbd>Enter</kbd>).</p>
-<p id="auto">The "by the way" example above is known as an auto-replace hotstring because the typed text is automatically erased and replaced by the string specified after the second pair of colons. By contrast, a hotstring may also be defined to perform any custom action as in the following examples. Note that the functions must appear <u>beneath</u> the hotstring:</p>
+<p id="auto">The "by the way" example above is known as an auto-replace hotstring because the typed text is automatically erased and replaced by the string specified after the second pair of colons. By contrast, a hotstring may also be defined to perform any custom action as in the following examples. Note that the <a href="Concepts.htm#statement">statements</a> must appear <u>beneath</u> the abbreviation within the hotstring's <a href="Functions.htm">function body</a>:</p>
 <pre>::btw::
 {
     MsgBox 'You typed "btw".'
 }
 
-:*:]d::  <em>; This hotstring replaces "]d" with the current date and time via the functions below.</em>
+:*:]d::  <em>; This hotstring replaces "]d" with the current date and time via the statement below.</em>
 {
-    SendInput <a href="lib/FormatTime.htm">FormatTime</a>(, "M/d/yyyy h:mm tt")  <em>; It will look like 9/1/2005 3:53 PM</em>
+    Send <a href="lib/FormatTime.htm">FormatTime</a>(, "M/d/yyyy h:mm tt")  <em>; It will look like 9/1/2005 3:53 PM</em>
 }</pre>
-<p>In the above, the braces serve to define a <a href="Functions.htm">function body</a> for each hotstring. The opening brace may also be specified on the same line as the double-colon to support the <a href="lib/Block.htm#otb">OTB (One True Brace) style</a>.</p>
+<p>In the above, the braces serve to define a function body for each hotstring. The opening brace may also be specified on the same line as the double-colon to support the <a href="lib/Block.htm#otb">OTB (One True Brace) style</a>.</p>
 <p>Even though the two examples above are not auto-replace hotstrings, the abbreviation you type is erased by default. This is done via automatic backspacing, which can be disabled via the <a href="#b0">b0 option</a>.</p>
 <p id="ThisHotkey">When a hotstring is triggered, the name of the hotstring is passed as its first parameter named <code>ThisHotkey</code> (which excludes the trailing colons). For example:</p>
 <pre>:X:btw::MsgBox ThisHotkey  <em>; Reports :X:btw</em></pre>
 <p>With few exceptions, this is similar to the built-in variable <a href="Variables.htm#ThisHotkey">A_ThisHotkey</a>. The parameter name can be changed by using a <a href="#Function">named function</a>.</p>
 
 <h2 id="EndChars">Ending Characters</h2>
-<p>Unless the <a href="#Asterisk">asterisk option</a> is in effect, you must type an <em>ending character</em> after a hotstring's abbreviation to trigger it. Ending characters initially consist of the following: <strong>-()[]{}':;"/\,.?!`n `t</strong> (note that `n is <kbd>Enter</kbd>, `t is <kbd>Tab</kbd>, and there is a plain space between `n and `t). This set of characters can be changed by editing the following example, which sets the new ending characters for <u>all</u> hotstrings, not just the ones beneath it:</p>
+<p>Unless the <a href="#Asterisk">asterisk option</a> is in effect, you must type an <em>ending character</em> after a hotstring's abbreviation to trigger it. Ending characters initially consist of the following: <strong>-()[]{}':;"/\,.?!`n`s`t</strong> (note that `n is <kbd>Enter</kbd>, `s is <kbd>Space</kbd>, and `t is <kbd>Tab</kbd>). This set of characters can be changed by editing the following example, which sets the new ending characters for <u>all</u> hotstrings, not just the ones beneath it:</p>
 <pre>#Hotstring EndChars -()[]{}:;'"/\,.?!`n`s`t</pre>
 <p>The ending characters can be changed while the script is running by calling the <a href="lib/Hotstring.htm">Hotstring</a> function as demonstrated below:</p>
 <pre>Hotstring("EndChars", "-()[]{}:;")</pre>
@@ -92,7 +92,7 @@
 <p id="z"><strong>Z:</strong> This rarely-used option resets the hotstring recognizer after each triggering of the hotstring. In other words, the script will begin waiting for an entirely new hotstring, eliminating from consideration anything you previously typed. This can prevent unwanted triggerings of hotstrings. To illustrate, consider the following hotstring:</p>
 <pre>:b0*?:11::
 {
-    SendInput "xx"
+    Send "xx"
 }</pre>
 <p>Since the above lacks the Z option, typing 111 (three consecutive 1's) would trigger the hotstring twice because the middle 1 is the <em>last</em> character of the first triggering but also the <em>first</em> character of the second triggering. By adding the letter Z in front of b0, you would have to type four 1's instead of three to trigger the hotstring twice. Use <strong>Z0</strong> to turn this option back off.</p>
 <h2 id="continuation">Long Replacements</h2>
@@ -117,9 +117,8 @@ By default, the hard carriage return (Enter) between the previous line and this 
 <p>Author: <a href="http://www.biancolo.com/blog/autocorrect/">Jim Biancolo</a> and <a href="https://en.wikipedia.org/wiki/Wikipedia:Lists_of_common_misspellings">Wikipedia's Lists of Common Misspellings</a></p>
 
 <h2 id="remarks">Remarks</h2>
-<p><a href="Variables.htm#Expressions">Expressions</a> are not currently supported within the replacement text. To work around this, don't make such hotstrings <a href="#auto">auto-replace</a>. Instead, use the <a href="lib/Send.htm#SendInput">SendInput</a> function beneath the abbreviation, followed by a line containing only the word Return.</p>
-<p>To send an extra space or tab after a replacement, include the space or tab at the end of the replacement but make the last character an accent/backtick (`). For example:</p>
-<pre>:*:btw::By the way `</pre>
+<p><a href="Variables.htm#Expressions">Expressions</a> are not currently supported within the replacement text. To work around this, don't make such hotstrings <a href="#auto">auto-replace</a>. Instead, use the <a href="lib/Send.htm">Send</a> function in the body of the hotstring or in combination with the <a href="#X">X (execute) option</a>.</p>
+<p>To send an extra space or tab after a replacement, include the <a href="misc/EscapeChar.htm">escape sequence</a> <code>`s</code> or <code>`t</code> at the end of the replacement, e.g. <code>:*:btw::by the way`s</code>.</p>
 <p id="ReplaceBrace">For an auto-replace hotstring which doesn't use the <a href="#T">Text</a> or <a href="#raw">Raw</a> mode, sending a <code>{</code> alone, or one preceded only by white-space, requires it being enclosed in a pair of brackets, for example <code>:*:brace::{{}</code> and <code>:*:space_brace:: {{}</code>. Otherwise it is interpreted as the opening brace for the hotstring's function to support the <a href="lib/Block.htm#otb">OTB (One True Brace) style</a>.</p>
 <p id="NoMouse">By default, any click of the left or right mouse button will reset the hotstring recognizer. In other words, the script will begin waiting for an entirely new hotstring, eliminating from consideration anything you previously typed (if this is undesirable, specify the line <code><a href="lib/_Hotstring.htm">#Hotstring</a> NoMouse</code> anywhere in the script). This "reset upon mouse click" behavior is the default because each click typically moves the text insertion point (caret) or sets keyboard focus to a new control/field. In such cases, it is usually desirable to: 1) fire a hotstring even if it lacks the <a href="#Question">question mark option</a>; 2) prevent a firing when something you type after clicking the mouse accidentally forms a valid abbreviation with what you typed before.</p>
 <p id="focus-reset">The hotstring recognizer checks the active window each time a character is typed, and resets if a different window is active than before. If the active window changes but reverts before any characters are typed, the change is not detected (but the hotstring recognizer may be reset for some other reason). The hotstring recognizer can also be reset by calling <code><a href="lib/Hotstring.htm#Reset">Hotstring "Reset"</a></code>.</p>
@@ -127,7 +126,7 @@ By default, the hard carriage return (Enter) between the previous line and this 
 <p>Although single-colons within hotstring definitions do not need to be <a href="misc/EscapeChar.htm">escaped</a> unless they precede the double-colon delimiter, backticks and those semicolons having a space or tab to their left must always be escaped. See <a href="misc/EscapeChar.htm">Escape Sequences</a> for a complete list.</p>
 <p>Although the <a href="lib/Send.htm">Send function</a>'s special characters such as {Enter} are supported in <a href="#auto">auto-replacement text</a> (unless the <a href="#raw">raw option</a> is used), the hotstring abbreviations themselves do not use this. Instead, specify `n for <kbd>Enter</kbd> and `t (or a literal tab) for <kbd>Tab</kbd> (see <a href="misc/EscapeChar.htm">Escape Sequences</a> for a complete list). For example, the hotstring <code>:*:ab`t::</code> would be triggered when you type "ab" followed by a tab.</p>
 <p>Spaces and tabs are treated literally within hotstring definitions. For example, the following would produce two different results: <code>::btw::by the way</code> and <code>::btw:: by the way</code>.</p>
-<p>Each hotstring abbreviation can be no more than 40 characters long. The program will warn you if this length is exceeded. By contrast, the length of hotstring's replacement text is limited to about 5000 characters when the <a href="#SendMode">sending mode</a> is at its default of SendInput. That limit can be removed by switching to one of the other <a href="#SendMode">sending modes</a>, or by using <a href="lib/Send.htm#SendPlayDetail">SendPlay</a> or <a href="lib/Send.htm#SendEvent">SendEvent</a> in the body of the hotstring.</p>
+<p>Each hotstring abbreviation can be no more than 40 characters long. The program will warn you if this length is exceeded. By contrast, the length of hotstring's replacement text is limited to about 5000 characters when the <a href="#SendMode">sending mode</a> is at its default of SendInput. That limit can be removed by switching to one of the other <a href="#SendMode">sending modes</a>, or by using <a href="lib/Send.htm#SendPlayDetail">SendPlay</a> or <a href="lib/Send.htm#SendEvent">SendEvent</a> in the body of the hotstring or in combination with the <a href="#X">X (execute) option</a>.</p>
 <p>The order in which hotstrings are defined determines their precedence with respect to each other. In other words, if more than one hotstring matches something you type, only the one listed first in the script will take effect. Related topic: <a href="#variant">context-sensitive hotstrings</a>.</p>
 <p>Any backspacing you do is taken into account for the purpose of detecting hotstrings. However, the use of <kbd>&uarr;</kbd>, <kbd>&rarr;</kbd>, <kbd>&darr;</kbd>, <kbd>&larr;</kbd>, <kbd>PgUp</kbd>, <kbd>PgDn</kbd>, <kbd>Home</kbd>, and <kbd>End</kbd> to navigate within an editor will cause the hotstring recognition process to reset. In other words, it will begin waiting for an entirely new hotstring.</p>
 <p>A hotstring may be typed even when the active window is ignoring your keystrokes. In other words, the hotstring will still fire even though the triggering abbreviation is never visible. In addition, you may still press <kbd>Backspace</kbd> to undo the most recently typed keystroke (even though you can't see the effect).</p>
