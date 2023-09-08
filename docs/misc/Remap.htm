@@ -124,7 +124,7 @@ a::b
 <p id="actually">When a script is launched, each remapping is translated into a pair of <a href="../Hotkeys.htm">hotkeys</a>. For example, a script containing <code>a::b</code> actually contains the following two hotkeys instead:</p>
 <pre>*a::
 {
-    SetKeyDelay -1   <em>; If the destination key is a mouse button, SetMouseDelay is used instead.</em>
+    SetKeyDelay -1   <em>; If the destination key is a mouse button/wheel, SetMouseDelay is used instead.</em>
     Send "<a href="../lib/Send.htm#blind">{Blind}</a>{b DownR}"  <em>; <a href="../lib/Send.htm#DownR">DownR</a> is like Down except that other Send functions in the script won't assume "b" should stay down during their Send.</em>
 }
 
@@ -145,6 +145,8 @@ a::b
 }</pre>
   </li>
   <li>When the source is a <a href="../Hotkeys.htm#combo">custom combination</a>, the wildcard modifier (*) is omitted to allow the hotkeys to work.</li>
+  <li>{Blind} is adjusted to include any modifiers which are explicitly specified for the source key and not the destination key, to allow those modifiers to be released by Send. For example, <code>^a::b</code> uses <code>{Blind^}</code> so that the sent <kbd>B</kbd> is not modified by <kbd>Ctrl</kbd>, but can be combined with other modifier keys. <code>&lt;^a::b</code> uses <code>{Blind&lt;^}</code> in <span class="ver">[v2.1-alpha.5+]</span> but <code>{Blind^}</code> in earlier versions (which may produce unexpected results if used in combination with RCtrl). For details, see <a href="../lib/Send.htm#blind">Blind mode</a>.</li>
+  <li><span class="ver">[v2.1-alpha.5+]</span>: When either the source or the destination is WheelDown, WheelUp, WheelLeft or WheelRight, the key-up hotkey and DownR suffix are omitted.</li>
 </ol>
 <p>Note that SetKeyDelay's second parameter (<a href="../lib/SetKeyDelay.htm#dur">press duration</a>) is omitted in the hotkeys above. This is because press-duration does not apply to down-only or up-only events such as <code>{b down}</code> and <code>{b up}</code>. However, it does apply to changes in the state of the modifier keys (Shift, Ctrl, Alt, and Win), which affects remappings such as <code>a::B</code> or <code>a::^b</code>. Consequently, any press-duration a script puts into effect during <a href="../Scripts.htm#auto">script startup</a> will apply to all such remappings.</p>
 <p>Since remappings are translated into hotkeys as described above, the <a href="../lib/Suspend.htm">Suspend</a> function affects them. Similarly, the <a href="../lib/Hotkey.htm">Hotkey</a> function can disable or modify a remapping. For example, the following two functions would disable the remapping <code>a::b</code>.</p>
@@ -155,7 +157,7 @@ Hotkey "*a up", "Off"</pre>
 <p>To disable a key rather than remapping it, make it a hotkey that simply <a href="../lib/Return.htm">returns</a>. For example, <code>F1::return</code> would disable <kbd>F1</kbd>.</p>
 <p>The following keys are not supported by the built-in remapping method:</p>
 <ul>
-  <li>The mouse wheel (WheelUp/Down/Left/Right).</li>
+  <li>The mouse wheel (WheelUp/Down/Left/Right), except in <span class="ver">[v2.1-alpha.5+]</span>.</li>
   <li>"Pause" as a destination key name (since it matches the name of a built-in function). Instead use <code>vk13</code> or the corresponding scan code.</li>
   <li>Curly braces {} as destination keys. Instead use the <a href="../lib/Send.htm#vk">VK/SC method</a>; e.g. <code>x::+sc01A</code> and <code>y::+sc01B</code>.</li>
 </ul>
