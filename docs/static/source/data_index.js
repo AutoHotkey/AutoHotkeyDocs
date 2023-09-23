@@ -380,7 +380,7 @@ indexData = [
   ["Close (Process)","lib/Process.htm#Close",7],
   ["close a window","lib/WinClose.htm"],
   ["Close method (File)","lib/File.htm#Close",8],
-  ["CLSID List (My Computer, etc.)","misc/CLSID-List.htm"],
+  ["CLSID List (Recycle Bin, etc.)","misc/CLSID-List.htm"],
   ["Color (Gui)","lib/Gui.htm#Color",7],
   ["Color (Menu)","lib/Menu.htm#Color",7],
   ["color names, RGB/HTML","lib/Progress.htm#colors"],
