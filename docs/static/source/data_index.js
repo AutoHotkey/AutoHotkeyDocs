@@ -1027,6 +1027,7 @@ indexData = [
   ["SetCapsLockState","lib/SetNumScrollCapsLockState.htm",2],
   ["SetColor method (Menu)","lib/Menu.htm#SetColor",7],
   ["SetControlDelay","lib/SetControlDelay.htm",2],
+  ["SetCue method (GuiControl)","lib/GuiControl.htm#SetCue",7],
   ["SetDefaultMouseSpeed","lib/SetDefaultMouseSpeed.htm",2],
   ["SetFont method (Gui)","lib/Gui.htm#SetFont",7],
   ["SetFont method (GuiControl)","lib/GuiControl.htm#SetFont",7],
