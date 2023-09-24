@@ -16,6 +16,7 @@
 <ul>
   <li><a href="#intro">Introduction and Simple Examples</a></li>
   <li><a href="#param">Parameters</a></li>
+  <li><a href="#ByRef">ByRef Parameters</a></li>
   <li><a href="#optional">Optional Parameters</a>
     <ul>
       <li><a href="#unset">Unset Parameters</a></li>
@@ -67,7 +68,13 @@ Add 2, 3  <em>; Parentheses can be omitted if used at the start of a line.</em><
 
 <h2 id="param">Parameters</h2>
 <p>When a function is defined, its parameters are listed in parentheses next to its name (there must be no spaces between its name and the open-parenthesis). If a function does not accept any parameters, leave the parentheses empty; for example: <code>GetCurrentTimestamp()</code>.</p>
-<p id="ByRef"><strong>ByRef Parameters:</strong> From the function's point of view, parameters are essentially the same as <a href="#Local">local variables</a> unless they are marked as <em>ByRef</em> as in this example:</p>
+<p>Known limitation:</p>
+<ul>
+  <li>If a parameter in a function-call resolves to a variable (e.g. <code>Var</code> or <code>++Var</code> or <code>Var*=2</code>), other parameters to its left or right can alter that variable before it is passed to the function. For example, <code>MyFunc(Var, Var++)</code> would unexpectedly pass 1 and 0 when <em>Var</em> is initially 0, because the first <em>Var</em> is not dereferenced until the function call is executed. Since this behavior is counterintuitive, it might change in a future release.</li>
+</ul>
+
+<h2 id="ByRef">ByRef Parameters</h2>
+<p>From the function's point of view, parameters are essentially the same as <a href="#Local">local variables</a> unless they are marked as <em>ByRef</em> as in this example:</p>
 <pre>a := 1, b := 2
 Swap(&amp;a, &amp;b)
 MsgBox a ',' b
@@ -91,8 +98,9 @@ Swap(&amp;Left, &amp;Right)
 <p>Known limitations:</p>
 <ul>
   <li>It is not possible to construct a VarRef for a property of an object (such as <code>foo.bar</code>), <a href="lib/A_Clipboard.htm">A_Clipboard</a> or any other <a href="Variables.htm#BuiltIn">built-in variable</a>, so those cannot be passed <em>ByRef</em>.</li>
-  <li>If a parameter in a function-call resolves to a variable (e.g. <code>Var</code> or <code>++Var</code> or <code>Var*=2</code>), other parameters to its left or right can alter that variable before it is passed to the function. For example, <code>MyFunc(Var, Var++)</code> would unexpectedly pass 1 and 0 when <em>Var</em> is initially 0, because the first <em>Var</em> is not dereferenced until the function call is executed. Since this behavior is counterintuitive, it might change in a future release.</li>
+  <li id="NoIsByRef">If the parameter is optional, it is not possible to determine whether the variable referenced by the parameter is a newly created local variable or one supplied by the caller. One alternative is to use a non-ByRef parameter, but pass it a <a href="Concepts.htm#variable-references">VarRef</a> anyway, and have the function <a href="Variables.htm#deref">explicitly dereference it</a> or pass it to another function's ByRef parameter (without using the <code>&amp;</code> operator).</li>
 </ul>
+
 <h2 id="optional">Optional Parameters</h2>
 <p>When defining a function, one or more of its parameters can be marked as optional.</p>
 <p>Append <code>:=</code> followed by a literal number, quoted/literal string such as "fox" or "", or an expression that should be evaluated each time the parameter needs to be initialized with its default value. For example, <code>X:=[]</code> would create a new Array each time.</p>
