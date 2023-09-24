@@ -188,6 +188,7 @@ tocData = [
     ["OnCommand method","lib/GuiOnCommand.htm"],
     ["OnEvent method","lib/GuiOnEvent.htm"],
     ["OnMessage","lib/OnMessage.htm"],
+    ["OnMessage method","lib/GuiOnMessage.htm"],
     ["OnNotify method","lib/GuiOnNotify.htm"],
     ["Standard Windows Fonts","misc/FontsStandard.htm"],
     ["Styles for a window/control","misc/Styles.htm"],
