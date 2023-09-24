@@ -345,7 +345,7 @@ indexData = [
   ["close a window","lib/WinClose.htm"],
   ["Close method (File)","lib/File.htm#Close",7],
   ["Closure","Functions.htm#closures",6],
-  ["CLSID List (My Computer, etc.)","misc/CLSID-List.htm"],
+  ["CLSID List (Recycle Bin, etc.)","misc/CLSID-List.htm"],
   ["coalescing operator","Variables.htm#or-maybe"],
   ["color names, RGB/HTML","misc/Colors.htm"],
   ["color of pixels","lib/PixelSearch.htm"],
