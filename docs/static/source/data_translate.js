@@ -13,6 +13,7 @@ translateData = {
   "Control Flow Statements":true,
   "Declarations":true,
   "Operators":true,
+  "Built-in Classes":true,
   "Built-in Methods/Properties":true,
   "Ahk2Exe Compiler":true,
   "S̲earch":true,
