@@ -5,10 +5,6 @@
 
 #SingleInstance Force
 
-WM_NOTIFY    := 0x004E
-UDM_GETBUDDY := 0x046A
-UDN_DELTAPOS := 0xFFFFFD2E
-
 SetFormat, Float, 0.1
 
 ; *** UpDown properties ***
@@ -33,13 +29,13 @@ Gui, Add, UpDown, -2
 Gui, Add, Edit, ym +Right
 Gui, Add, UpDown, -2
 ; Set initial positions for all UpDown controls
-GuiControl, , Edit1, %UpDown4_fPos%
-GuiControl, , Edit2, %UpDown6_fPos%
+GuiControl,, Edit1, %UpDown4_fPos%
+GuiControl,, Edit2, %UpDown6_fPos%
 Gui, Show
 
-OnMessage(WM_NOTIFY, "WM_NOTIFY")
+OnMessage(0x004E, "WM_NOTIFY")  ; 0x004E is WM_NOTIFY
 
-Return
+return
 
 GuiClose:
 GuiEscape:
@@ -47,20 +43,24 @@ ExitApp
 
 WM_NOTIFY(wParam, lParam, Msg, hWnd)
 {
-    Global UDM_GETBUDDY, UDN_DELTAPOS
+    static is64Bit := (A_PtrSize = 8) ? true : false
+    static UDM_GETBUDDY := 0x046A
+    static UDN_DELTAPOS := 0xFFFFFD2E
 
-    NMUPDOWN_NMHDR_hwndFrom := NumGet(lParam + 0, 0, "UInt")
-    NMUPDOWN_NMHDR_idFrom   := NumGet(lParam + 0, 4, "UInt")
-    NMUPDOWN_NMHDR_code     := NumGet(lParam + 0, 8, "UInt")
-    ; NMUPDOWN_iPos           := NumGet(lParam + 0, 12, "Int")
-    NMUPDOWN_iDelta         := NumGet(lParam + 0, 16, "Int")
+    NMUPDOWN_NMHDR_hwndFrom := NumGet(lParam+0, 0, "UInt")
+    NMUPDOWN_NMHDR_idFrom   := NumGet(lParam+0, is64Bit?8:4, "UInt")
+    NMUPDOWN_NMHDR_code     := NumGet(lParam+0, is64Bit?16:8, "UInt")
+    ; NMUPDOWN_iPos           := NumGet(lParam+0, is64Bit?20:12, "Int")
+    NMUPDOWN_iDelta         := NumGet(lParam+0, is64Bit?28:16, "Int")
 
     UpDown_fIncrement := UpDown%NMUPDOWN_NMHDR_idFrom%_fIncrement
 
-    If (NMUPDOWN_NMHDR_code = UDN_DELTAPOS && UpDown_fIncrement != "")
+    if (NMUPDOWN_NMHDR_code = UDN_DELTAPOS && UpDown_fIncrement != "")
     {
-        If (BuddyCtrl_hWnd := DllCall("User32\SendMessage", "UInt", NMUPDOWN_NMHDR_hWndFrom, "UInt", UDM_GETBUDDY, "UInt", 0, "UInt", 0))
+        SendMessage, UDM_GETBUDDY, 0, 0,, ahk_id %NMUPDOWN_NMHDR_hwndFrom%
+        if (ErrorLevel != "FAIL")
         {
+            BuddyCtrl_hWnd := ErrorLevel
             UpDown_ID := NMUPDOWN_NMHDR_idFrom
 
             UpDown_fRangeMin := (UpDown%UpDown_ID%_fRangeMin != "")
@@ -70,27 +70,27 @@ WM_NOTIFY(wParam, lParam, Msg, hWnd)
                 ? UpDown%UpDown_ID%_fRangeMax
                 : UpDown_fRangeMin + Abs(UpDown_fIncrement) * 100
 
-            ControlGetText, BuddyCtrl_Text, , ahk_id %BuddyCtrl_hWnd%
+            ControlGetText, BuddyCtrl_Text,, ahk_id %BuddyCtrl_hWnd%
             BuddyCtrl_Text += NMUPDOWN_iDelta * UpDown_fIncrement
             BuddyCtrl_Text := (BuddyCtrl_Text < UpDown_fRangeMin)
                 ? UpDown_fRangeMin
                 : (BuddyCtrl_Text > UpDown_fRangeMax)
                 ? UpDown_fRangeMax
                 : BuddyCtrl_Text
-            ControlSetText, , %BuddyCtrl_Text%, ahk_id %BuddyCtrl_hWnd%
+            ControlSetText,, %BuddyCtrl_Text%, ahk_id %BuddyCtrl_hWnd%
 
             ; Done; discard proposed change
-            Return True
+            return true
         }
-        Else
+        else
         {
             ; No buddy control
-            Return False
+            return false
         }
     }
-    Else
+    else
     {
         ; Not UDN_DELTAPOS, or unit-incremented UpDown control
-        Return False
+        return false
     }
 }
