@@ -319,7 +319,7 @@ indexData = [
   ["Ceil","lib/Math.htm#Ceil",2],
   ["Changelog","ChangeLog.htm"],
   ["Check method (Menu)","lib/Menu.htm#Check",7],
-  ["Checkbox controls (GUI)","lib/GuiControls.htm#Checkbox"],
+  ["CheckBox controls (GUI)","lib/GuiControls.htm#CheckBox"],
   ["choose file","lib/FileSelect.htm"],
   ["choose folder","lib/DirSelect.htm"],
   ["Choose method (GuiControl)","lib/GuiControl.htm#Choose",7],
