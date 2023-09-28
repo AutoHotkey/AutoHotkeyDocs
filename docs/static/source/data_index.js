@@ -355,7 +355,7 @@ indexData = [
   ["Changelog","AHKL_ChangeLog.htm"],
   ["Check (Control)","lib/Control.htm#Check",7],
   ["Check (Menu)","lib/Menu.htm#Check",7],
-  ["Checkbox controls (GUI)","lib/GuiControls.htm#Checkbox"],
+  ["CheckBox controls (GUI)","lib/GuiControls.htm#CheckBox"],
   ["Checked (ControlGet)","lib/ControlGet.htm#Checked",7],
   ["Choice (ControlGet)","lib/ControlGet.htm#Choice",7],
   ["Choose (Control)","lib/Control.htm#Choose",7],
