@@ -1,11 +1,9 @@
-﻿; Custom Increments for UpDown Controls -- by numEric
+﻿; Custom Increments for UpDown Controls (based on the v1 script by numEric)
 ; https://www.autohotkey.com
 ; This script demonstrates how to change an UpDown's increment to a value
 ; other than 1 (such as 5 or 0.1).
 
-#SingleInstance Force
-
-SetFormat, Float, 0.1
+#SingleInstance
 
 ; *** UpDown properties ***
 ; UpDown<Ctrl_ID>_fIncrement: Custom increment to be used by control UpDown<Ctrl_ID>.
@@ -24,22 +22,18 @@ UpDown6_fPos       := 10
 ; This is recommended when creating non-unitary UpDown controls, because
 ; it prevents a glitch that may otherwise occur when the control is greatly
 ; solicited (e.g. when using the mouse wheel to scroll the value).
-Gui, Add, Edit, +Right
-Gui, Add, UpDown, -2
-Gui, Add, Edit, ym +Right
-Gui, Add, UpDown, -2
+G := Gui()
+G.OnEvent("Escape", (*) => ExitApp())
+E1 := G.Add("Edit", "+Right")
+G.Add("UpDown", "-2")
+E2 := G.Add("Edit", "ym +Right")
+G.Add("UpDown", "-2")
 ; Set initial positions for all UpDown controls
-GuiControl,, Edit1, %UpDown4_fPos%
-GuiControl,, Edit2, %UpDown6_fPos%
-Gui, Show
+E1.Value := UpDown4_fPos
+E2.Value := UpDown6_fPos
+G.Show()
 
-OnMessage(0x004E, "WM_NOTIFY")  ; 0x004E is WM_NOTIFY
-
-return
-
-GuiClose:
-GuiEscape:
-ExitApp
+OnMessage(0x004E, WM_NOTIFY)  ; 0x004E is WM_NOTIFY
 
 WM_NOTIFY(wParam, lParam, Msg, hWnd)
 {
@@ -47,37 +41,39 @@ WM_NOTIFY(wParam, lParam, Msg, hWnd)
     static UDM_GETBUDDY := 0x046A
     static UDN_DELTAPOS := 0xFFFFFD2E
 
-    NMUPDOWN_NMHDR_hwndFrom := NumGet(lParam+0, 0, "UInt")
-    NMUPDOWN_NMHDR_idFrom   := NumGet(lParam+0, is64Bit?8:4, "UInt")
-    NMUPDOWN_NMHDR_code     := NumGet(lParam+0, is64Bit?16:8, "UInt")
-    ; NMUPDOWN_iPos           := NumGet(lParam+0, is64Bit?20:12, "Int")
-    NMUPDOWN_iDelta         := NumGet(lParam+0, is64Bit?28:16, "Int")
+    NMUPDOWN_NMHDR_hwndFrom := NumGet(lParam, 0, "UInt")
+    NMUPDOWN_NMHDR_idFrom   := NumGet(lParam, is64Bit?8:4, "UInt")
+    NMUPDOWN_NMHDR_code     := NumGet(lParam, is64Bit?16:8, "UInt")
+    ; NMUPDOWN_iPos           := NumGet(lParam, is64Bit?20:12, "Int")
+    NMUPDOWN_iDelta         := NumGet(lParam, is64Bit?28:16, "Int")
 
     UpDown_fIncrement := UpDown%NMUPDOWN_NMHDR_idFrom%_fIncrement
 
-    if (NMUPDOWN_NMHDR_code = UDN_DELTAPOS && UpDown_fIncrement != "")
+    if (NMUPDOWN_NMHDR_code = UDN_DELTAPOS && IsSet(UpDown_fIncrement))
     {
-        SendMessage, UDM_GETBUDDY, 0, 0,, ahk_id %NMUPDOWN_NMHDR_hwndFrom%
-        if (ErrorLevel != "FAIL")
+        try BuddyCtrl_hWnd := SendMessage(UDM_GETBUDDY, 0, 0, NMUPDOWN_NMHDR_hwndFrom)
+        if IsSet(BuddyCtrl_hWnd)
         {
-            BuddyCtrl_hWnd := ErrorLevel
             UpDown_ID := NMUPDOWN_NMHDR_idFrom
 
-            UpDown_fRangeMin := (UpDown%UpDown_ID%_fRangeMin != "")
+            UpDown_fRangeMin := (IsSet(UpDown%UpDown_ID%_fRangeMin))
                 ? UpDown%UpDown_ID%_fRangeMin
                 : 0
-            UpDown_fRangeMax := (UpDown%UpDown_ID%_fRangeMax != "")
+            UpDown_fRangeMax := (IsSet(UpDown%UpDown_ID%_fRangeMax))
                 ? UpDown%UpDown_ID%_fRangeMax
                 : UpDown_fRangeMin + Abs(UpDown_fIncrement) * 100
 
-            ControlGetText, BuddyCtrl_Text,, ahk_id %BuddyCtrl_hWnd%
+            BuddyCtrl_Text := ControlGetText(BuddyCtrl_hWnd) || 0
             BuddyCtrl_Text += NMUPDOWN_iDelta * UpDown_fIncrement
             BuddyCtrl_Text := (BuddyCtrl_Text < UpDown_fRangeMin)
                 ? UpDown_fRangeMin
                 : (BuddyCtrl_Text > UpDown_fRangeMax)
                 ? UpDown_fRangeMax
                 : BuddyCtrl_Text
-            ControlSetText,, %BuddyCtrl_Text%, ahk_id %BuddyCtrl_hWnd%
+            BuddyCtrl_Text := IsFloat(BuddyCtrl_Text)
+                ? Format("{:0.1f}", BuddyCtrl_Text)
+                : BuddyCtrl_Text
+            ControlSetText(BuddyCtrl_Text, BuddyCtrl_hWnd)
 
             ; Done; discard proposed change
             return true
