@@ -450,24 +450,32 @@ function ctor_index()
   var self = this;
   self.dataPath = scriptDir + '/source/data_index.js';
   self.create = function(input, filter) { // Create and add the index links.
-    var output = '';
+    var output = '', label, path, type;
+    var type_name = {2: T("function"), 6: T("class")};
     input.sort(function(a, b) {
       var textA = a[0].toLowerCase(), textB = b[0].toLowerCase()
       return textA.localeCompare(textB);
     });
     for (var i = 0, len = input.length; i < len; i++)
     {
-      if (filter != -1 && input[i][2] != filter)
+      label = input[i][0];
+      path = input[i][1];
+      type = input[i][2];
+      if (filter != -1 && type != filter)
         continue;
+      // Append type name for ambiguities:
+      if (filter == -1 && type && type_name[type])
+        if (input[i-1] && input[i-1][0] == label || input[i+1] && input[i+1][0] == label)
+          label += ' (' + type_name[type] + ')'
       var a = document.createElement("a");
-      a.href = workingDir + input[i][1];
+      a.href = workingDir + path;
       a.setAttribute("tabindex", "-1");
       if (isIE8)
-        a.innerHTML = input[i][0];
+        a.innerHTML = label;
       else
       {
-        a.setAttribute("data-content", input[i][0]);
-        a.setAttribute("aria-label", input[i][0]);
+        a.setAttribute("data-content", label);
+        a.setAttribute("aria-label", label);
       }
       output += a.outerHTML;
     }
