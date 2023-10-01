@@ -1971,19 +1971,19 @@ function ctor_features()
         els.dir.push(out);
         return '<dir></dir>';
       });
-      // built-in functions:
-      els.order.push('bif'); els.bif = [];
-      innerHTML = innerHTML.replace(new RegExp('\\b(' + syntax[2].single.join('|') + ')\\b(?=$|\\(|\\s(?!\\s*' + assignOp + '))', 'gi'), function(_, BIF) {
-        out = wrap(BIF, 'bif', 2);
-        els.bif.push(out);
-        return '<bif></bif>';
-      });
       // built-in classes:
       els.order.push('cls'); els.cls = [];
       innerHTML = innerHTML.replace(new RegExp('\\b(' + syntax[6].single.join('|') + ')\\b', 'gi'), function(_, CLS) {
         out = wrap(CLS, 'cls', 6);
         els.cls.push(out);
         return '<cls></cls>';
+      });
+      // built-in functions:
+      els.order.push('bif'); els.bif = [];
+      innerHTML = innerHTML.replace(new RegExp('\\b(' + syntax[2].single.join('|') + ')\\b(?=$|\\(|\\s(?!\\s*' + assignOp + '))', 'gi'), function(_, BIF) {
+        out = wrap(BIF, 'bif', 2);
+        els.bif.push(out);
+        return '<bif></bif>';
       });
       // control flow statements:
       els.order.push('cfs'); els.cfs = [];
