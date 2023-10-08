@@ -86,7 +86,7 @@ MyBtn.OnEvent("Click", MyBtn_Click)  <em>; Call MyBtn_Click when clicked.</em>
 </pre>
 <p>Appearance:</p>
 <img src="../static/ctrl_button.png" alt="Button" />
-<p>The <a href="GuiOnEvent.htm#Click">Click</a> event is raised whenever the user clicks the button or presses <kbd>Space</kbd> or <kbd>Enter</kbd> while it has the focus.</p>
+<p>Whenever the user clicks the button or presses <kbd>Space</kbd> or <kbd>Enter</kbd> while it has the focus, the <a href="GuiOnEvent.htm#Click">Click</a> event is raised.</p>
 <p>The <a href="GuiOnEvent.htm#DoubleClick">DoubleClick</a>, <a href="GuiOnEvent.htm#Focus">Focus</a> and <a href="GuiOnEvent.htm#LoseFocus">LoseFocus</a> events are also supported. As these events are only raised if the control has the BS_NOTIFY (0x4000) style, it is added automatically by <a href="GuiOnEvent.htm">OnEvent</a>.</p>
 <p id="DefaultButton">The example above includes the word <strong>Default</strong> in its <em>Options</em> to make "OK" the default button. The default button's <a href="GuiOnEvent.htm#Click">Click event</a> is automatically triggered whenever the user presses <kbd>Enter</kbd>, except when the keyboard focus is on a different button or a multi-line edit control having the <a href="#WantReturn">WantReturn</a> style. To later change the default button to another button, follow this example, which makes the Cancel button become the default: <code>MyGui["Cancel"].<a href="GuiControl.htm#Opt">Opt</a>("+Default")</code>. To later change the window to have no default button, follow this example: <code>MyGui["OK"].Opt("-Default")</code>.</p>
 <p>An ampersand (&amp;) may be used in the button name to underline one of its letters. For example:</p>
@@ -126,7 +126,7 @@ MyBtn.OnEvent("Click", MyBtn_Click)  <em>; Call MyBtn_Click when clicked.</em>
 <p>Other controls which are not directly supported by AutoHotkey can be also embedded into a GUI window. In order to do so, include in <em>Options</em> the word <strong>Class</strong> followed by the Win32 class name of the desired control. Examples:</p>
 <pre>MyGui.Add("Custom", "ClassComboBoxEx32")  <em>; Adds a <a href="https://learn.microsoft.com/windows/win32/controls/comboboxex-control-reference">ComboBoxEx</a> control.</em>
 MyGui.Add("Custom", "ClassScintilla")  <em>; Adds a <a href="https://scintilla.org/">Scintilla</a> control. Note that the SciLexer.dll library must be loaded before the control can be added.</em></pre>
-<p>AutoHotkey uses the standard Windows control text routines when text is to be retrieved/replaced in the control via <code>MyGui.Add</code> or <code>GuiCtrl.Value</code>.</p>
+<p>AutoHotkey uses the standard Windows control text routines when text is to be retrieved/replaced in the control via <a href="Gui.htm#Add">MyGui.Add</a> or <a href="GuiControl.htm#Value">GuiCtrl.Value</a>.</p>
 <p><strong>Events:</strong> Since the meaning of each notification code depends on the control which sent it, <a href="GuiOnEvent.htm">OnEvent</a> is not supported for Custom controls. However, if the control sends notifications in the form of a WM_NOTIFY or WM_COMMAND message, the script can use <a href="GuiOnNotify.htm">OnNotify</a> or <a href="GuiOnCommand.htm">OnCommand</a> to detect them.</p>
 <p>Here is an example that shows how to add and use an <a href="https://learn.microsoft.com/windows/win32/controls/ip-address-control-reference">IP address control</a>:</p>
 <pre>MyGui := Gui()
@@ -308,7 +308,7 @@ MyEdit.Value := FileRead("C:\My File.txt")</pre>
 <p class="note"><strong>Note:</strong> Some keys are displayed the same even though they are retrieved as different names. For example, both <code>^Numpad7</code> and <code>^NumpadHome</code> might be displayed as Ctrl + Num 7.</p>
 <p>By default, the control starts off with no hotkey specified. To instead have a default, specify its modifiers and name as the last parameter as in this example: <code>MyGui.Add("Hotkey", "vChosenHotkey", "^!p")</code>. The only modifiers supported are ^ (Ctrl), ! (Alt), and + (Shift). See the <a href="../KeyList.htm">key list</a> for available key names.</p>
 <p>Whenever the user changes the control's content (by pressing a key), the <a href="GuiOnEvent.htm#Change">Change</a> event is raised.</p>
-<p class="note"><strong>Note:</strong> The event is raised even when an incomplete hotkey is present. For example, if the user holds down <kbd>Ctrl</kbd>, the event is raised once and <a href="GuiControl.htm#Value">Value</a> returns only a circumflex (^). When the user completes the hotkey, the event is raised again and <a href="GuiControl.htm#Value">Value</a> returns the complete hotkey.</p>
+<p class="note"><strong>Note:</strong> The event is raised even when an incomplete hotkey is present. For example, if the user holds down <kbd>Ctrl</kbd>, the event is raised once and <a href="GuiControl.htm#Value">GuiCtrl.Value</a> returns only a circumflex (^). When the user completes the hotkey, the event is raised again and <a href="GuiControl.htm#Value">GuiCtrl.Value</a> returns the complete hotkey.</p>
 <p>To restrict the types of hotkeys the user may enter, include the word <strong>Limit</strong> followed by the sum of one or more of the following numbers:</p>
 <ul>
   <li>1: Prevent unmodified keys</li>
@@ -336,13 +336,19 @@ MyGui.AddLink(, 'Links may be used anywhere in the text like &lt;a id="A"&gt;thi
 
 <p>Whenever the user clicks on a link, the <a href="GuiOnEvent.htm#Click">Click</a> event is raised. If the control has no Click callback (registered by calling <a href="GuiOnEvent.htm">OnEvent</a>), the link's HREF is automatically executed as though passed to the <a href="Run.htm">Run</a> function.</p>
 <pre>MyGui := Gui()
-Link := MyGui.Add("Link",
-    , 'Click to run &lt;a href="notepad" id="notepad"&gt;Notepad&lt;/a&gt; or open '
-    . '&lt;a id="help" href="https://www.autohotkey.com/docs/"&gt;online help&lt;/a&gt;.')
+LinkText := 'Click to run &lt;a href="notepad" id="notepad"&gt;Notepad&lt;/a&gt; or open &lt;a id="help" href="https://www.autohotkey.com/docs/"&gt;online help&lt;/a&gt;.'
+Link := MyGui.Add("Link", "w200", LinkText)
 Link.OnEvent("Click", Link_Click)
 Link_Click(Ctrl, ID, HREF)
 {
-    if MsgBox("ID: " ID "`nHREF: " HREF "`n`nExecute this link?",, "y/n") = "yes"
+    MsgText := Format("
+    (
+        ID: {1}
+        HREF: {2}
+
+        Execute this link?
+    )", ID, HREF)
+    if MsgBox(MsgText,, "y/n") = "yes"
         Run(HREF)
 }
 MyGui.Show()</pre>
@@ -357,7 +363,7 @@ MyGui.Show()</pre>
 <img src="../static/ctrl_list.png" alt="ListBox" />
 <p id="ChooseLB">To have one of the items pre-selected when the window first appears, include in <em>Options</em> the word <strong>Choose</strong> followed immediately by the number of an item to be pre-selected. For example, <code>Choose5</code> would pre-select the fifth item. To have multiple items pre-selected, use <a href="GuiControl.htm#Choose">GuiCtrl.Choose</a> multiple times (requires the <a href="#ListBoxMulti">Multi</a> option). After the control is created, use <a href="GuiControl.htm#Value">GuiCtrl.Value</a>, <a href="GuiControl.htm#Text">GuiCtrl.Text</a> or <a href="GuiControl.htm#Choose">GuiCtrl.Choose</a> to change the selection, and <a href="GuiControl.htm#Add">GuiCtrl.Add</a> or <a href="GuiControl.htm#Delete">GuiCtrl.Delete</a> to add or remove entries from the list.</p>
 <p>If the <a href="#ListBoxMulti">Multi</a> option is absent, <a href="GuiControl.htm#Value">GuiCtrl.Value</a> returns the position number of the currently selected item (the first item is 1, the second is 2, etc.) or 0 if there is no item selected. To get the selected item's text instead, use <a href="GuiControl.htm#Text">GuiCtrl.Text</a>. If the <a href="#ListBoxMulti">Multi</a> option is used, <a href="GuiControl.htm#Value">GuiCtrl.Value</a> and <a href="GuiControl.htm#Text">GuiCtrl.Text</a> return an array of items instead of a single item.</p>
-<p><a href="Gui.htm#Submit">MyGui.Submit</a> stores <a href="GuiControl.htm#Text">GuiCtrl.Text</a> by default, but stores <a href="GuiControl.htm#Value">GuiCtrl.Value</a> instead if the word <strong>AltSubmit</strong> is in the control's <em>Options</em>.</p>
+<p><a href="Gui.htm#Submit">MyGui.Submit</a> stores <a href="GuiControl.htm#Text">GuiCtrl.Text</a>, unless the word <strong>AltSubmit</strong> is in the control's <em>Options</em>, in which case it stores <a href="GuiControl.htm#Value">GuiCtrl.Value</a>.</p>
 <p>Whenever the user selects or deselects one or more items, the <a href="GuiOnEvent.htm#Change">Change</a> event is raised. The <a href="GuiOnEvent.htm#DoubleClick">DoubleClick</a>, <a href="GuiOnEvent.htm#Focus">Focus</a> and <a href="GuiOnEvent.htm#LoseFocus">LoseFocus</a> events are also supported.</p>
 <p id="LBRedraw">When adding a large number of items to a ListBox, performance may be improved by using <code>MyListBox.Opt("-Redraw")</code> prior to the operation, and <code>MyListBox.Opt("+Redraw")</code> afterward. See <a href="GuiControl.htm#redraw-remarks">Redraw</a> for more details.</p>
 
@@ -397,7 +403,7 @@ MyGui.Show()</pre>
 <p>The today-string at the bottom of the control can be clicked to select today's date. In addition, the year and month name are clickable and allow easy selection of a new year or month.</p>
 <p><strong>Keyboard navigation:</strong> Keyboard navigation is fully supported in MonthCal, but only if it has the keyboard focus. For supported keyboard shortcuts, see <a href="#DateTime_Keyboard_Navigation">DateTime's keyboard navigation</a> (within the drop-down calendar).</p>
 <p>When <a href="Gui.htm#Submit">MyGui.Submit</a> or <a href="GuiControl.htm#Value">GuiCtrl.Value</a> is used, the return value is the selected date in YYYYMMDD format (without any time portion). However, when the <a href="#MonthCalMulti">multi-select</a> option is in effect, the minimum and maximum dates are retrieved with a dash between them (e.g. <code class="no-highlight">20050101-20050108</code>). If only a single date was selected in a multi-select calendar, the minimum and maximum are both present but identical. <a href="StrSplit.htm">StrSplit</a> can be used to separate the dates. For example, the following would put the minimum in Date[1] and the maximum in Date[2]: <code>Date := StrSplit(MyMonthCal.Value, "-")</code>.</p>
-<p>The <a href="GuiOnEvent.htm#Change">Change</a> event is raised when the user changes the selection.</p>
+<p>Whenever the user changes the selection, the <a href="GuiOnEvent.htm#Change">Change</a> event is raised.</p>
 <p>When specifying dates in the YYYYMMDD format, the MM and/or DD portions may be omitted, in which case they are assumed to be 1. For example, <code class="no-highlight">200205</code> is seen as 20020501, and <code class="no-highlight">2005</code> is seen as 20050101.</p>
 
 <h3 id="MonthCal_Options">MonthCal Options</h3>
@@ -462,7 +468,7 @@ MyGui["MyProgress"].Value := 50  <em>; Set the current position to 50.</em></pre
 <p>For the last parameter, specify the label to display to the right of the radio button. This label is typically used as a prompt or description, and it may include linefeeds (`n) to start new lines. If a width (W) is specified in <em>Options</em> but no <a href="Gui.htm#R">rows (R)</a> or height (H), the control's text will be word-wrapped as needed, and the control's height will be set automatically.</p>
 <p>Specify the word <strong>Checked</strong> in <em>Options</em> to have the button start off in the "on" state. The word Checked may optionally be followed immediately by a 0 or 1 to indicate the starting state: 0 for unchecked and 1 for checked. In other words, <code>"Checked"</code> and <code>"Checked" VarContainingOne</code> are the same.</p>
 <p><a href="GuiControl.htm#Value">GuiCtrl.Value</a> returns the number 1 for "on" and 0 for "off". To instead retrieve the position number of the selected radio option within a radio group, <a href="GuiControl.htm#Name">name</a> only one of the radio buttons and use <a href="Gui.htm#submit-radio">MyGui.Submit</a>.</p>
-<p>The <a href="GuiOnEvent.htm#Click">Click</a> event is raised whenever the user turns on the button. Unlike the single-variable mode in the previous paragraph, the event callback must be registered for each button in a radio group for which it should be called. This allows the flexibility to ignore the clicks of certain buttons. </p>
+<p>Whenever the user turns on the button, the <a href="GuiOnEvent.htm#Click">Click</a> event is raised. Unlike the single-variable mode in the previous paragraph, the event callback must be registered for each button in a radio group for which it should be called. This allows the flexibility to ignore the clicks of certain buttons. </p>
 <p>The <a href="GuiOnEvent.htm#DoubleClick">DoubleClick</a>, <a href="GuiOnEvent.htm#Focus">Focus</a> and <a href="GuiOnEvent.htm#LoseFocus">LoseFocus</a> events are also supported. As these events are only raised if the control has the BS_NOTIFY (0x4000) style, it is added automatically by <a href="GuiOnEvent.htm">OnEvent</a>.</p>
 <p>Known limitation: Certain desktop themes might not display a radio button's text properly. If this occurs, try including <code>-Wrap</code> (minus Wrap) in the control's options. However, this also prevents having more than one line of text.</p>
 
@@ -530,57 +536,52 @@ SB.SetText("There are " . RowCount . " rows selected.")</pre>
 SB.SetText("There are " . RowCount . " rows selected.")</pre>
 <p>Appearance:</p>
 <img src="../static/ctrl_status.png" alt="StatusBar" />
-<p>The simplest use of a status bar is to call <a href="#SB_SetText">SB.SetText</a> whenever something changes that should be reported to the user. To report more than one piece of information, divide the bar into sections via <a href="#SB_SetParts">SB.SetParts</a>. To display icon(s) in the bar, call <a href="#SB_SetIcon">SB.SetIcon</a>.</p>
+<p>The simplest use of a status bar is to call the <a href="#SB_SetText">SetText method</a> whenever something changes that should be reported to the user. To report more than one piece of information, divide the bar into sections via the <a href="#SB_SetParts">SetParts method</a>. To display icon(s) in the bar, call the <a href="#SB_SetIcon">SetIcon method</a>.</p>
 
 <h3 id="StatusBar_Methods">StatusBar Methods</h3>
 
 <div class="methodShort" id="SB_SetText">
 <h3>SetText</h3>
 <p>Displays <em>NewText</em> in the specified part of the status bar.</p>
-<pre class="Syntax">Success := SB.<span class="func">SetText</span>(NewText <span class="optional">, PartNumber, Style</span>)</pre>
+<pre class="Syntax">SB.<span class="func">SetText</span>(NewText <span class="optional">, PartNumber, Style</span>)</pre>
 <dl><dt>NewText</dt><dd>
 <p>Type: <a href="../Concepts.htm#strings">String</a></p>
 <p>Up to two tab characters (`t) may be present anywhere in <em>NewText</em>: anything to the right of the first tab is centered within the part, and anything to the right of the second tab is right-justified.</p></dd><dt>PartNumber</dt><dd>
 <p>Type: <a href="../Concepts.htm#numbers">Integer</a></p>
-<p>If <em>PartNumber</em> is omitted, it defaults to 1. Otherwise, specify an integer between 1 and 256.</p></dd><dt>Style</dt><dd>
+<p>If omitted, it defaults to 1. Otherwise, specify an integer between 1 and 256.</p></dd><dt>Style</dt><dd>
 <p>Type: <a href="../Concepts.htm#numbers">Integer</a></p>
-<p>If <em>Style</em> is omitted, it defaults to 0, which uses a traditional border that makes that part of the bar look sunken. Otherwise, specify 1 to have no border or 2 to have border that makes that part of the bar look raised.</p></dd></dl>
+<p>If omitted, it defaults to 0, which uses a traditional border that makes that part of the bar look sunken. Otherwise, specify 1 to have no border or 2 to have border that makes that part of the bar look raised.</p></dd></dl>
 </div>
 
 <div class="methodShort" id="SB_SetParts">
 <h3>SetParts</h3>
-<p>Divides the bar into multiple sections according to the specified widths (in pixels), and returns a non-zero value (the status bar's <a href="GuiControl.htm#Hwnd">HWND</a>).</p>
-<pre class="Syntax">Hwnd := SB.<span class="func">SetParts</span>(<span class="optional">Width1, Width2, ... Width255</span>)</pre>
+<p>Divides the bar into multiple sections according to the specified widths (in pixels).</p>
+<pre class="Syntax">SB.<span class="func">SetParts</span>(<span class="optional">Width1, Width2, ... Width255</span>)</pre>
 <dl><dt>Width1 ... Width255</dt><dd>
 <p>Type: <a href="../Concepts.htm#numbers">Integer</a></p>
 <p>If all parameters are omitted, the bar is restored to having only a single, long part. Otherwise, specify the width of each part except the last (the last will fill the remaining width of the bar). For example, <code>SB.SetParts(50, 50)</code> would create three parts: the first two of width 50 and the last one of all the remaining width.</p></dd></dl>
-<p>Note: Any parts "deleted" by <code>SB.SetParts()</code> will start off with no text the next time they are shown (furthermore, their icons are automatically destroyed).</p></div>
+<p>This method returns the status bar's <a href="GuiControl.htm#Hwnd">HWND</a>.</p>
+<p>Any parts "deleted" by this method will start off with no text the next time they are shown (furthermore, their icons are automatically destroyed).</p></div>
 
 <div class="methodShort" id="SB_SetIcon">
 <h3>SetIcon</h3>
-<p>Displays a small icon to the left of the text in the specified part, and returns the icon's handle.</p>
-<pre class="Syntax">HICON := SB.<span class="func">SetIcon</span>(Filename <span class="optional">, IconNumber, PartNumber</span>)</pre>
+<p>Displays a small icon to the left of the text in the specified part.</p>
+<pre class="Syntax">SB.<span class="func">SetIcon</span>(FileName <span class="optional">, IconNumber, PartNumber</span>)</pre>
 <dl><dt>FileName</dt><dd>
 <p>Type: <a href="../Concepts.htm#strings">String</a></p>
-<p>The path of an icon or image file. For a list of supported formats, see <a href="#IconSupport">the Picture control</a>.</p>
-<p>A <a href="../misc/ImageHandles.htm">bitmap or icon handle</a> can be used instead of a filename. For example, <code>SB.SetIcon("HICON:" handle)</code>.</p></dd>
+<p>The path to an icon or image file, or a <a href="../misc/ImageHandles.htm">bitmap or icon handle</a> such as <code>"HICON:" handle</code>. For a list of supported formats, see <a href="#IconSupport">the Picture control</a>.</p></dd>
 <dt>IconNumber</dt><dd>
 <p>Type: <a href="../Concepts.htm#numbers">Integer</a></p>
-<p>To use an icon group other than the first one in the file, specify its number for <em>IconNumber</em>. For example, <code>SB.SetIcon("Shell32.dll", 2)</code> would use the default icon from the second icon group. If <em>IconNumber</em> is negative, its absolute value is assumed to be the resource ID of an icon within an executable file.</p></dd><dt>PartNumber</dt><dd>
+<p>If omitted, it defaults to 1 (the first icon group). Otherwise, specify the number of the icon group to be used in the file. For example, <code>SB.SetIcon("Shell32.dll", 2)</code> would use the default icon from the second icon group. If negative, its absolute value is assumed to be the resource ID of an icon within an executable file.</p></dd><dt>PartNumber</dt><dd>
 <p>Type: <a href="../Concepts.htm#numbers">Integer</a></p>
-<p>If <em>PartNumber</em> is omitted, it defaults to 1. Otherwise, specify an integer between 1 and 256.</p></dd></dl>
-<p>Note: The HICON is a system resource that can be safely ignored by most scripts because it is destroyed automatically when the status bar's window is destroyed. Similarly, any old icon is destroyed when <code>SB.SetIcon()</code> replaces it with a new one. This can be avoided via:</p>
-<pre>MyGui.Opt("+LastFound")
-<a href="SendMessage.htm">SendMessage</a>(0x040F, part_number - 1, my_hIcon, "msctls_statusbar321")  <em>; 0x040F is SB_SETICON.</em></pre></div>
-
-<div class="methodShort" id="SB_SetProgress">
-<h3>SetProgress</h3>
-<p>Creates and controls a progress bar inside the status bar. This function is available at <a href="https://www.autohotkey.com/forum/topic37754.html">www.autohotkey.com/forum/topic37754.html</a></p></div>
+<p>If omitted, it defaults to 1. Otherwise, specify an integer between 1 and 256.</p></dd></dl>
+<p>This method returns the icon's handle (HICON). The HICON is a system resource that can be safely ignored by most scripts because it is destroyed automatically when the status bar's window is destroyed. Similarly, any old icon is destroyed when this method replaces it with a new one. This can be avoided via:</p>
+<pre><a href="SendMessage.htm">SendMessage</a>(0x040F, PartNumber - 1, HICON, SB)  <em>; 0x040F is SB_SETICON.</em></pre></div>
 
 <h3 id="StatusBar_Usage">StatusBar Usage</h3>
 <p><strong>Reacting to mouse clicks:</strong> Whenever the user clicks on the bar, the <a href="GuiOnEvent.htm#Click">Click</a>, <a href="GuiOnEvent.htm#DoubleClick">DoubleClick</a> or <a href="GuiOnEvent.htm#ContextMenu">ContextMenu</a> event is raised, and the <em>Info</em> or <em>Item</em> parameter contains the part number. However, the part number might be a very large integer if the user clicks near the sizing grip at the right side of the bar.</p>
 <p><strong>Font and color:</strong> Although the font size, face, and style can be set via <a href="Gui.htm#SetFont">MyGui.SetFont</a> (just like normal controls), the text color cannot be changed. The status bar's background color may be changed by specifying in <em>Options</em> the word <strong>Background</strong> followed immediately by a color name (see <a href="../misc/Colors.htm">color chart</a>) or RGB value (the 0x prefix is optional). Examples: <code>BackgroundSilver</code>, <code>BackgroundFFDD99</code>, <code>BackgroundDefault</code>. Note that the control must have Classic Theme appearance. Thus, the <code>-Theme</code> option must be specified along with the Background option, e.g. <code>-Theme BackgroundSilver</code>.</p>
-<p><strong>Hiding the StatusBar:</strong> Upon creation, the bar can be hidden via <code>MyStatusBar := MyGui.Add("StatusBar", "Hidden")</code>. To hide it sometime after creation, use <code>MyStatusBar.Visible := false</code>. To show it, use <code>MyStatusBar.Visible := true</code>. Note: Hiding the bar does not reduce the height of the window. If that is desired, one easy way is <code>MyGui.Show("<a href="Gui.htm#AutoSize">AutoSize</a>")</code>.</p>
+<p><strong>Hiding the StatusBar:</strong> Upon creation, the bar can be hidden via <code>SB := MyGui.Add("StatusBar", "Hidden")</code>. To hide it sometime after creation, use <code>SB.Visible := false</code>. To show it, use <code>SB.Visible := true</code>. Note: Hiding the bar does not reduce the height of the window. If that is desired, one easy way is <code>MyGui.Show("<a href="Gui.htm#AutoSize">AutoSize</a>")</code>.</p>
 <p><strong>Styles (rarely used):</strong> See the <a href="../misc/Styles.htm#StatusBar">StatusBar styles table</a>.</p>
 <p><strong>Known limitations:</strong> 1) Any control that overlaps the status bar might sometimes get drawn on top of it.  One way to avoid this is to dynamically shrink such controls via <a href="GuiOnEvent.htm#Size">Size</a> event. 2) There is a limit of one status bar per window.</p>
 <p><strong>Example:</strong> <a href="TreeView.htm#ExAdvanced">Example #1</a> at the bottom of the TreeView page demonstrates a multipart status bar.</p>
@@ -605,7 +606,7 @@ SB.SetText("There are " . RowCount . " rows selected.")</pre>
 <div class="methodShort" id="Tab_UseTab">
 <h3>UseTab</h3>
 <p>Specifies the tab to which subsequently created controls will be added.</p>
-<pre class="Syntax">GuiCtrl.<span class="func">UseTab</span>(<span class="optional">Value, ExactMatch</span>)</pre>
+<pre class="Syntax">Tab.<span class="func">UseTab</span>(<span class="optional">Value, ExactMatch</span>)</pre>
 <dl>
   <dt>Value</dt><dd>
     <p>Type: <a href="../Concepts.htm#numbers">Integer</a> or <a href="../Concepts.htm#strings">String</a></p>
@@ -620,7 +621,7 @@ SB.SetText("There are " . RowCount . " rows selected.")</pre>
 </div>
 
 <h3 id="Tab_Usage">Tab Usage</h3>
-<p id="ChooseTab">To have one of the tabs pre-selected when the window first appears, include in <em>Options</em> the word <strong>Choose</strong> followed immediately by the number of a tab to be pre-selected. For example, <code>Choose5</code> would pre-select the fifth tab (as with other options, it can also be a variable such as <code>"Choose" Var</code>). After the control is created, use <a href="GuiControl.htm#Value">Value</a>, <a href="GuiControl.htm#Text">Text</a> or <a href="GuiControl.htm#Choose">Choose</a> to change the selected tab, and <a href="GuiControl.htm#Add">Add</a> or <a href="GuiControl.htm#Delete">Delete</a> to add or remove tabs.</p>
+<p id="ChooseTab">To have one of the tabs pre-selected when the window first appears, include in <em>Options</em> the word <strong>Choose</strong> followed immediately by the number of a tab to be pre-selected. For example, <code>Choose5</code> would pre-select the fifth tab (as with other options, it can also be a variable such as <code>"Choose" Var</code>). After the control is created, use <a href="GuiControl.htm#Value">GuiCtrl.Value</a>, <a href="GuiControl.htm#Text">GuiCtrl.Text</a> or <a href="GuiControl.htm#Choose">GuiCtrl.Choose</a> to change the selected tab, and <a href="GuiControl.htm#Add">GuiCtrl.Add</a> or <a href="GuiControl.htm#Delete">GuiCtrl.Delete</a> to add or remove tabs.</p>
 <p id="UseTab_Usage">After creating a Tab control, subsequently added controls automatically belong to its first tab. This can be changed at any time by using the <a href="#Tab_UseTab">UseTab method</a> as follows (in this case, <em>Tab</em> is the <a href="GuiControl.htm">GuiControl object</a> of the first tab control and <em>Tab2</em> of the second one):</p>
 <pre>Tab.UseTab()  <em>; Future controls are not part of any tab control.</em>
 Tab.UseTab(3)  <em>; Future controls are owned by the third tab of the current tab control.</em>
@@ -629,7 +630,7 @@ Tab.UseTab("Name")  <em>; Future controls are owned by the tab whose name starts
 Tab.UseTab("Name", true)  <em>; Same as above but requires exact match (not case-sensitive).</em></pre>
 <p>It is also possible to use any of the examples above to assign controls to a tab or tab-control that does not yet exist (except in the case of the <em>Name</em> method). But in that case, the relative positioning options described below are not supported.</p>
 <p id="Tab_Positioning1"><strong>Positioning:</strong> When each tab of a Tab control receives its first sub-control, that sub-control will have a special default position under the following conditions: 1) The X and Y coordinates are both omitted, in which case the first sub-control is positioned at the upper-left corner of the tab control's interior (with a standard <a href="Gui.htm#MarginX">margin</a>), and sub-controls beyond the first are positioned beneath the previous control; 2) The <a href="Gui.htm#PosPlus">X+n and/or Y+n</a> positioning options are specified, in which case the sub-control is positioned relative to the upper-left corner of the tab control's interior. For example, specifying <code class="no-highlight">x+10 y+10</code> would position the control 10 pixels right and 10 pixels down from the upper left corner.</p>
-<p><strong>Current tab:</strong> <a href="GuiControl.htm#Value">GuiCtrl.Value</a> returns the position number of the currently selected tab (the first tab is 1, the second is 2, etc.). To get its text instead, use <a href="GuiControl.htm#Text">GuiCtrl.Text</a>. <a href="Gui.htm#Submit">MyGui.Submit</a> stores <a href="GuiControl.htm#Text">GuiCtrl.Text</a> by default, but stores <a href="GuiControl.htm#Value">GuiCtrl.Value</a> instead if the word <strong>AltSubmit</strong> is in the control's <em>Options</em>.</p>
+<p><strong>Current tab:</strong> <a href="GuiControl.htm#Value">GuiCtrl.Value</a> returns the position number of the currently selected tab (the first tab is 1, the second is 2, etc.). To get its text instead, use <a href="GuiControl.htm#Text">GuiCtrl.Text</a>. <a href="Gui.htm#Submit">MyGui.Submit</a> stores <a href="GuiControl.htm#Text">GuiCtrl.Text</a>, unless the word <strong>AltSubmit</strong> is in the control's <em>Options</em>, in which case it stores <a href="GuiControl.htm#Value">GuiCtrl.Value</a>.</p>
 <p><strong>Detecting tab selection:</strong> Whenever the user switches tabs, the <a href="GuiOnEvent.htm#Change">Change</a> event is raised.</p>
 <p id="Tab_Keyboard"><strong>Keyboard navigation:</strong> The user may press <kbd>Ctrl</kbd>+<kbd>PgDn</kbd>/<kbd>PgUp</kbd> to navigate from page to page in a tab control; if the keyboard focus is on a control that does not belong to a Tab control, the window's first Tab control will be navigated. <kbd>Ctrl</kbd>+<kbd>Tab</kbd> and <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Tab</kbd> may also be used except that they will not work if the currently focused control is a multi-line Edit control.</p>
 <p id="Tab_Limits"><strong>Limits:</strong> Each window may have no more than 255 tab controls. Each tab control may have no more than 256 tabs (pages). In addition, a tab control may not contain other tab controls.</p>
@@ -739,7 +740,7 @@ MyGui.AddUpDown("vMyUpDown Range1-10", 5)</pre>
 <p><strong>Left:</strong> Puts the UpDown on the left side of its buddy rather than the right.</p>
 <p><strong>Range:</strong> Sets the range to be something other than 0 to 100. After the word Range, specify the minimum, a dash, and maximum. For example, <code class="no-highlight">Range1-1000</code> would allow a number between 1 and 1000 to be selected; <code class="no-highlight">Range-50-50</code> would allow a number between -50 and 50; and <code class="no-highlight">Range-10--5</code> would allow a number between -10 and -5. The minimum and maximum may be swapped to cause the arrows to move in the opposite of their normal direction. The broadest allowable range is -2147483648-2147483647. Finally, if the buddy control is a <a href="#ListBox">ListBox</a>, the range defaults to 32767-0 for verticals and the inverse for horizontals (<a href="#Horz">Horz</a>).</p>
 <p><strong>Wrap:</strong> Causes the control to wrap around to the other end of its range when the user attempts to go beyond the minimum or maximum. Without <em>Wrap</em>, the control stops when the minimum or maximum is reached.</p>
-<p><strong>16:</strong> Specify -16 (minus 16) to cause a vertical UpDown to be isolated; that is, it will have no buddy. This also causes the control to obey any specified width, height, and position rather than conforming to the size of its buddy control. In addition, an isolated UpDown tracks its own position internally. This position can be retrieved normally by means such as <a href="Gui.htm#Submit">MyGui.Submit</a>.</p>
+<p><strong>16:</strong> Specify -16 (minus 16) to cause a vertical UpDown to be isolated; that is, it will have no buddy. This also causes the control to obey any specified width, height, and position rather than conforming to the size of its buddy control. In addition, an isolated UpDown tracks its own position internally. This position can be retrieved normally by means such as <a href="Gui.htm#Submit">MyGui.Submit</a> or <a href="GuiControl.htm#Value">GuiCtrl.Value</a>.</p>
 <p id="UpDownSep"><strong>0x80:</strong> Include 0x80 in <em>Options</em> to omit the thousands separator that is normally present between every three decimal digits in the buddy control. However, this style is normally not used because the separators are omitted from the number whenever the script retrieves it from the UpDown control itself (rather than its buddy control).</p>
 <p><strong>Increments other than 1:</strong> <a href="../scripts/index.htm#Custom_Increments_for_UpDown_Controls">This script</a> demonstrates how to change an UpDown's increment to a value other than 1 (such as 5 or 0.1).</p>
 <p><strong>Hexadecimal number format:</strong> The number format displayed inside the buddy control may be changed from decimal to hexadecimal by following this example:</p>
