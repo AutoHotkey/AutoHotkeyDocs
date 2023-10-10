@@ -28,14 +28,14 @@
   <dd>
     <p>Type: <a href="../Concepts.htm#strings">String</a> or <a href="../misc/Functor.htm">Function Object</a></p>
     <p>The function, method or object to call when the event is raised.</p>
-    <p>If the GUI has an event sink (that is, if <a href="Gui.htm#Call">Gui()</a>'s <em>EventObj</em> parameter was specified), this parameter may be the name of a method belonging to the event sink.</p>
-    <p>Otherwise, this parameter must be a <a href="../misc/Functor.htm">function object</a>.</p>
+    <p>If the GUI has an event sink (that is, if <a href="Gui.htm#Call">Gui()</a>'s <em>EventObj</em> parameter was specified), this parameter may be the name of a method belonging to the event sink. Otherwise, this parameter must be a <a href="../misc/Functor.htm">function object</a>.</p>
+    <p>For details about the parameters, return value, naming, and more, see the following sections.</p>
   </dd>
   
   <dt>AddRemove</dt>
   <dd>
     <p>Type: <a href="../Concepts.htm#numbers">Integer</a></p>
-    <p>If omitted, it defaults to 1 (call the callback after any previously registered callbacks). Otherwise, specify one of the following numbers:</p>
+    <p>If omitted, it defaults to 1. Otherwise, specify one of the following numbers:</p>
     <ul>
       <li>1 = Call the callback after any previously registered callbacks.</li>
       <li>-1 = Call the callback before any previously registered callbacks.</li>
@@ -49,7 +49,7 @@
 <p>Since <em>Callback</em> can be an object, it can be a <a href="../misc/Functor.htm#BoundFunc">BoundFunc object</a> which inserts additional parameters at the beginning of the parameter list and then calls another function. This is a general technique not specific to OnEvent, so is generally ignored by the rest of this documentation.</p>
 <p>The callback's first explicit parameter is the <a href="Gui.htm">Gui</a> or <a href="GuiControl.htm">GuiControl</a> object which raised the event. The only exception is that this parameter is omitted when a Gui <a href="Gui.htm#EventObj">handles its own events</a>, since <code>this</code> already contains a reference to the Gui.</p>
 <p>Many events pass additional parameters about the event, as described for each event.</p>
-<p>As with all methods or functions called dynamically, the callback is not required to declare parameters which the callback itself does not need, but in this case an asterisk must be specified as the final parameter. If an event has more parameters than are declared by the callback, they will simply be ignored (unless the callback is <a href="../Functions.htm#Variadic">variadic</a>).</p>
+<p>As with all methods or functions called dynamically, the callback is not required to declare parameters which the callback itself does not need, but in this case an asterisk must be specified as the final parameter, e.g. <code>MyCallback(Param1, *)</code>. If an event has more parameters than are declared by the callback, they will simply be ignored (unless the callback is <a href="../Functions.htm#Variadic">variadic</a>).</p>
 <p>The callback can declare more parameters than the event provides if (and only if) the additional parameters are declared optional. However, the use of optional parameters is not recommended as future versions of the program may extend an event with additional parameters, in which case the optional parameters would stop receiving their default values.</p>
 
 <h2 id="Callback_Return_Value">Callback Return Value</h2>
@@ -99,16 +99,16 @@
 <h3 id="Close">Close</h3>
 <p>Launched when the user or another program attempts to close the window, such as by pressing the X button in its title bar, selecting "Close" from its system menu, or calling <a href="WinClose.htm">WinClose</a>.</p>
 <pre class="Syntax">Gui_<span class="func">Close</span>(GuiObj)</pre>
-<p>By default, the window is automatically hidden after the callback returns, or if no callbacks were registered. A callback can prevent this by returning 1 (or <code>true</code>), which will also prevent any remaining callbacks from being called. The callback can hide the window immediately by calling <a href="Gui.htm#Hide">Gui.Hide</a>, or destroy the window by calling <a href="Gui.htm#Destroy">Gui.Destroy</a>.</p>
+<p>By default, the window is automatically hidden after the callback returns, or if no callbacks were registered. A callback can prevent this by returning 1 (or <code>true</code>), which will also prevent any remaining callbacks from being called. The callback can hide the window immediately by calling <a href="Gui.htm#Hide">GuiObj.Hide</a>, or destroy the window by calling <a href="Gui.htm#Destroy">GuiObj.Destroy</a>.</p>
 <p>For example, this GUI shows a confirmation prompt before closing:</p>
-<pre>myGui := Gui()
-myGui.AddText("", "Press Alt+F4 or the X button in the title bar.")
-myGui.OnEvent("Close", myGui_Close)
-myGui_Close(thisGui) {  <em>; Declaring this parameter is optional.</em>
+<pre>MyGui := Gui()
+MyGui.AddText("", "Press Alt+F4 or the X button in the title bar.")
+MyGui.OnEvent("Close", MyGui_Close)
+MyGui_Close(thisGui) {  <em>; Declaring this parameter is optional.</em>
     if MsgBox("Are you sure you want to close the GUI?",, "y/n") = "No"
         return true  <em>; true = 1</em>
 }
-myGui.Show</pre>
+MyGui.Show</pre>
 
 <h3 id="ContextMenu">ContextMenu</h3>
 <p>Launched whenever the user right-clicks anywhere in the window except the title bar and menu bar.  It is also launched in response to pressing <kbd>Menu</kbd> or <kbd>Shift</kbd>+<kbd>F10</kbd>.</p>
@@ -119,12 +119,15 @@ myGui.Show</pre>
   <dt>Item</dt><dd>
     <p>Type: <a href="../Concepts.htm#numbers">Integer</a></p>
     <p>When a ListBox, ListView, or TreeView is the target of the context menu (as determined by <em>GuiCtrlObj</em>), <em>Item</em> specifies which of the control's items is the target.</p>
-    <p><a href="GuiControls.htm#ListBox">ListBox</a>: The number of the currently focused row. Note that a standard ListBox does not focus an item when it is right-clicked, so this might not be the clicked item.</p>
-    <p><a href="ListView.htm">ListView</a> and <a href="TreeView.htm">TreeView</a>: For right-clicks, <em>Item</em> contains the clicked item's ID or row number (or 0 if the user clicked somewhere other than an item). For the AppsKey and Shift-F10, <em>Item</em> contains the selected item's ID or row number.</p></dd>
+    <p><a href="GuiControls.htm#ListBox">ListBox</a>: The position number of the currently focused item. Note that a standard ListBox does not focus an item when it is right-clicked, so this might not be the clicked item.</p>
+    <p><a href="ListView.htm">ListView</a> and <a href="TreeView.htm">TreeView</a>: For right-clicks, <em>Item</em> contains the clicked item's row number or ID (or 0 if the user clicked somewhere other than an item). For <kbd>Menu</kbd> and <kbd>Shift</kbd>+<kbd>F10</kbd>, <em>Item</em> contains the selected item's row number or ID.</p></dd>
   <dt>IsRightClick</dt><dd>
     <p>Type: <a href="../Concepts.htm#boolean">Integer (boolean)</a></p>
-    <p><code>True</code> if the user clicked the right mouse button.<br>
-    <code>False</code> if the user pressed <kbd>Menu</kbd> or <kbd>Shift</kbd>+<kbd>F10</kbd>.</p></dd>
+    <p>One of the following values:</p>
+    <ul>
+      <li>1 (true) = The user clicked the right mouse button.</li>
+      <li>0 (false) = The user pressed <kbd>Menu</kbd> or <kbd>Shift</kbd>+<kbd>F10</kbd>.</li>
+    </ul></dd>
   <dt>X, Y</dt><dd>
     <p>Type: <a href="../Concepts.htm#numbers">Integer</a></p>
     <p>The X and Y coordinates of where the script should display the menu (e.g. <code>MyContextMenu.<a href="Menu.htm#Show">Show</a> X, Y</code>). Coordinates are relative to the upper-left corner of the window's client area.</p></dd>
@@ -195,7 +198,7 @@ myGui.Show</pre>
   <dt>Info</dt>
   <dd>
     <p>Type: <a href="../Concepts.htm#numbers">Integer</a></p>
-    <p>For <a href="GuiControls.htm#Slider">Slider</a> controls, <em>Info</em> is a numeric value indicating how the slider moved. For details, see <a href="GuiControls.htm#slider-change">Detecting Changes (Slider)</a>.</p>
+    <p><a href="GuiControls.htm#Slider">Slider</a>: A numeric value indicating how the slider moved. For details, see <a href="GuiControls.htm#slider-change">Detecting Changes</a>.</p>
     <p>For all other controls, <em>Info</em> currently has no meaning.</p>
   </dd>
 </dl>
@@ -210,16 +213,16 @@ Link_<span class="func">Click</span>(GuiCtrlObj, Info, Href)</pre>
   <dt>Info</dt>
   <dd>
     <p>Type: <a href="../Concepts.htm#numbers">Integer</a></p>
-    <p>ListView: The row number of the clicked item, or 0 if the mouse was not over an item.</p>
-    <p>TreeView: The ID of the clicked item, or 0 if the mouse was not over an item.</p>
-    <p>Link: The link's ID attribute (a string) if it has one, otherwise the link's index (an integer).</p>
-    <p>StatusBar: The part number of the clicked section (however, the part number might be a very large integer if the user clicks near the sizing grip at the right side of the bar).</p>
+    <p><a href="GuiControls.htm#ListView">ListView</a>: The row number of the clicked item, or 0 if the mouse was not over an item.</p>
+    <p><a href="GuiControls.htm#TreeView">TreeView</a>: The ID of the clicked item, or 0 if the mouse was not over an item.</p>
+    <p><a href="GuiControls.htm#Link">Link</a>: The link's ID attribute (a string) if it has one, otherwise the link's index (an integer).</p>
+    <p><a href="GuiControls.htm#StatusBar">StatusBar</a>: The part number of the clicked section (however, the part number might be a very large integer if the user clicks near the sizing grip at the right side of the bar).</p>
     <p>For all other controls, <em>Info</em> currently has no meaning.</p>
   </dd>
   <dt>Href</dt>
   <dd>
     <p>Type: <a href="../Concepts.htm#strings">String</a></p>
-    <p>Link: The link's HREF attribute. Note that if a Click event callback is registered, the HREF attribute is not automatically executed.</p>
+    <p><a href="GuiControls.htm#Link">Link</a>: The link's HREF attribute. Note that if a Click event callback is registered, the HREF attribute is not automatically executed.</p>
   </dd>
 </dl>
 <p>Applies to: <a href="GuiControls.htm#Text">Text</a>, <a href="GuiControls.htm#Pic">Pic</a>, <a href="GuiControls.htm#Button">Button</a>, <a href="GuiControls.htm#CheckBox">CheckBox</a>, <a href="GuiControls.htm#Radio">Radio</a>, <a href="ListView.htm">ListView</a>, <a href="TreeView.htm">TreeView</a>, <a href="GuiControls.htm#Link">Link</a>, <a href="GuiControls.htm#StatusBar">StatusBar</a>.</p>
@@ -231,8 +234,8 @@ Link_<span class="func">Click</span>(GuiCtrlObj, Info, Href)</pre>
   <dt>Info</dt>
   <dd>
     <p>Type: <a href="../Concepts.htm#numbers">Integer</a></p>
-    <p>ListView, TreeView and StatusBar: Same as for the <a href="#Click">Click</a> event.</p>
-    <p>ListBox: The position of the focused item. Double-clicking empty space below the last item usually focuses the last item and leaves the selection as it was.</p>
+    <p><a href="GuiControls.htm#ListView">ListView</a>, <a href="GuiControls.htm#TreeView">TreeView</a> and <a href="GuiControls.htm#StatusBar">StatusBar</a>: Same as for the <a href="#Click">Click</a> event.</p>
+    <p><a href="GuiControls.htm#ListBox">ListBox</a>: The position number of the currently focused item. Double-clicking empty space below the last item usually focuses the last item and leaves the selection as it was.</p>
   </dd>
 </dl>
 <p>Applies to: <a href="GuiControls.htm#Text">Text</a>, <a href="GuiControls.htm#Pic">Pic</a>, <a href="GuiControls.htm#Button">Button</a>, <a href="GuiControls.htm#CheckBox">CheckBox</a>, <a href="GuiControls.htm#Radio">Radio</a>, <a href="GuiControls.htm#ComboBox">ComboBox</a>, <a href="GuiControls.htm#ListBox">ListBox</a>, <a href="ListView.htm">ListView</a>, <a href="TreeView.htm">TreeView</a>, <a href="GuiControls.htm#StatusBar">StatusBar</a>.</p>
@@ -253,7 +256,7 @@ Link_<span class="func">Click</span>(GuiCtrlObj, Info, Href)</pre>
 <p>Raised when the user right-clicks the control or presses <kbd>Menu</kbd> or <kbd>Shift</kbd>+<kbd>F10</kbd> while the control has the keyboard focus.</p>
 <pre class="Syntax">Ctrl_<span class="func">ContextMenu</span>(GuiCtrlObj, Item, IsRightClick, X, Y)</pre>
 <p>For details, see <a href="#ContextMenu">ContextMenu</a>.</p>
-<p>Applies to: All controls except Edit and MonthCal (and the Edit control within a ComboBox), which have their own standard context menu.</p>
+<p>Applies to: All controls except <a href="GuiControls.htm#Edit">Edit</a> and <a href="GuiControls.htm#MonthCal">MonthCal</a> (and the Edit control within a <a href="GuiControls.htm#ComboBox">ComboBox</a>), which have their own standard context menu.</p>
 
 <span id="LoseFocus"></span><h3 id="Focus">Focus / LoseFocus</h3>
 <p>Raised when the control gains or loses the keyboard focus.</p>
