@@ -450,6 +450,10 @@ function ctor_index()
   var self = this;
   self.dataPath = scriptDir + '/source/data_index.js';
   self.create = function(input, filter) { // Create and add the index links.
+
+    if (!retrieveData(translate.dataPath, "translate_data", "translateData", self.create.bind(null, input, filter)))
+      return;
+
     var output = '', label, path, type;
     var type_name = {2: T("function"), 6: T("class")};
     input.sort(function(a, b) {
