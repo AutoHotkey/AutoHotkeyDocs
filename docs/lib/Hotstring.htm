@@ -14,20 +14,17 @@
 
 <p>Creates, modifies, enables, or disables a <a href="../Hotstrings.htm">hotstring</a> while the script is running.</p>
 
-<pre class="Syntax">
-<span class="func">Hotstring</span>(String <span class="optional">, Replacement, OnOffToggle</span>)
+<pre class="Syntax"><span class="func">Hotstring</span>(String <span class="optional">, Replacement, OnOffToggle</span>)
 <span class="func">Hotstring</span>(<a href="#NewOptions">NewOptions</a>)
-OldValue := <span class="func">Hotstring</span>("<a href="#EndChars">EndChars</a>" <span class="optional">, NewValue</span>)
-OldValue := <span class="func">Hotstring</span>("<a href="#MouseReset">MouseReset</a>" <span class="optional">, NewValue</span>)
-<span class="func">Hotstring</span>("Reset")
-</pre>
+<span class="func">Hotstring</span>(<a href="#SubFunctions">SubFunction</a> <span class="optional">, Value1</span>)</pre>
+
 <h2 id="Parameters">Parameters</h2>
 <dl>
 
   <dt>String</dt>
   <dd>
     <p>The hotstring's trigger string, preceded by <a href="../Hotstrings.htm">the usual colons</a> and <a href="../Hotstrings.htm#Options">option characters</a>. For example, <code>"::btw"</code> or <code>":*:]d"</code>.</p>
-    <p><em>String</em> may be matched to an existing hotstring by considering <a href="../Hotstrings.htm#C">case-sensitivity (C)</a>, <a href="../Hotstrings.htm#Question">word-sensitivity (?)</a>, activation criteria (as set by <a href="_If.htm">#If</a>, <a href="_IfWinActive.htm">#IfWin</a> or <a href="Hotkey.htm#IfWin">Hotkey, If</a>) and the trigger string. For example, <code>"::btw"</code> and <code>"::BTW"</code> match unless the case-sensitive mode was enabled as a default, while <code>":C:btw"</code> and <code>":C:BTW"</code> never match. The <code>C</code> and <code>?</code> options may be included in <em>String</em> or set as defaults by the <a href="_Hotstring.htm">#Hotstring</a> directive or a previous call to <a href="#NewOptions">this function</a>.</p>
+    <p><em>String</em> may be matched to an existing hotstring by considering <a href="../Hotstrings.htm#C">case-sensitivity (C)</a>, <a href="../Hotstrings.htm#Question">word-sensitivity (?)</a>, activation criteria (as set by <a href="_If.htm">#If</a>, <a href="_IfWinActive.htm">#IfWin</a> or <a href="Hotkey.htm#IfWin">Hotkey, If</a>) and the trigger string. For example, <code>"::btw"</code> and <code>"::BTW"</code> match unless the case-sensitive mode was enabled as a default, while <code>":C:btw"</code> and <code>":C:BTW"</code> never match. The <code>C</code> and <code>?</code> options may be included in <em>String</em> or set as defaults by the <a href="_Hotstring.htm">#Hotstring</a> directive or a previous use of <em>NewOptions</em>.</p>
     <p>If the hotstring already exists, any options specified in <em>String</em> are put into effect, while all other options are left as is. However, since hotstrings with <code>C</code> or <code>?</code> are considered distinct from other hotstrings, it is not possible to add or remove these options. Instead, turn off the existing hotstring and create a new one.</p>
     <p>When a hotstring is first created -- either by the Hotstring function or a <a href="../Hotstrings.htm">double-colon label</a> in the script -- its trigger string and sequence of option characters becomes the permanent name of that hotstring as reflected by <a href="../Variables.htm#ThisHotkey">A_ThisHotkey</a>. This name does not change even if the Hotstring function later accesses the hotstring with different option characters.</p>
     <p>If the <a href="../Hotstrings.htm#X">X (execute) option</a> is present in <em>String</em> (not just set as a default), the <em>Replacement</em> parameter is interpreted as a label or function name instead of replacement text. This has no effect if <em>Replacement</em> is an object.</p>
@@ -38,7 +35,7 @@ OldValue := <span class="func">Hotstring</span>("<a href="#MouseReset">MouseRese
     <p>The replacement string, or a <a href="../misc/Labels.htm">label</a>, <a href="../Functions.htm">function</a> or <a href="../misc/Functor.htm">function object</a> to call (as a new <a href="../misc/Threads.htm">thread</a>) when the hotstring triggers.</p>
     <p>By default, all strings are treated as replacement text. To specify a label or function by name, include the <a href="../Hotstrings.htm#X">X (execute)</a> option in <em>String</em>. Both normal labels and <a href="../Hotkeys.htm">hotkey</a>/<a href="../Hotstrings.htm">hotstring</a> labels can be used, and the trailing colon(s) should not be included. If a function and a label exist with the same name, the label takes precedence. To use the function instead, pass a <a href="Func.htm">function reference</a>.</p>
     <p>This parameter can be left blank if the hotstring already exists, in which case its replacement will not be changed. This is useful to change only the hotstring's options, or to turn it on or off.</p>
-    <p class="note"><strong>Note:</strong> If this parameter is specified but the hotstring is disabled from a previous use of this function, the hotstring will remain disabled. To prevent this, include the word <code>"On"</code> in <em>OnOffToggle</em>.</p>
+    <p class="note"><strong>Note:</strong> If this parameter is specified but the hotstring is disabled from a previous use of this function, the hotstring will remain disabled. To prevent this, specify <code>"On"</code> for <em>OnOffToggle</em>.</p>
   </dd>
 
   <dt>OnOffToggle</dt>
@@ -50,7 +47,47 @@ OldValue := <span class="func">Hotstring</span>("<a href="#MouseReset">MouseRese
     <p><span class="ver">[v1.1.30+]</span>: The values 1 (or <code>true</code>), 0 (or <code>false</code>) and -1 may be used in place of On, Off and Toggle, respectively.</p>
   </dd>
 
+  <dt>NewOptions</dt>
+  <dd id="NewOptions">
+    <p>To set new default options for subsequently created hotstrings, pass the options to the Hotstring function without any leading or trailing colon. For example: <code>Hotstring("T")</code>.</p>
+    <p>Turning on <a href="../Hotstrings.htm#C">case-sensitivity (C)</a> or <a href="../Hotstrings.htm#Question">word-sensitivity (?)</a> also affects which existing hotstrings will be found by any subsequent calls to the Hotstring function. For example, <code>Hotstring(":T:btw")</code> will find <code>::BTW</code> by default, but not if <code>Hotstring("C")</code> or <code><a href="_Hotstring.htm">#Hotstring</a> C</code> is in effect. This can be undone or overridden by passing a mutually-exclusive option; for example, <code>C0</code> and <code>C1</code> override <code>C</code>.</p>
+  </dd>
+
+  <dt>SubFunction, Value1</dt>
+  <dd>
+    <p>These parameters are dependent upon each other and their usage is described below.</p>
+  </dd>
+
 </dl>
+
+<h2 id="SubFunctions">Sub-functions</h2>
+<p>For <em>SubFunction</em>, specify one of the following:</p>
+<ul>
+  <li><a href="#EndChars">EndChars</a>: Retrieves or modifies the set of ending characters.</li>
+  <li><a href="#MouseReset">MouseReset</a>: Controls whether mouse clicks reset the hotstring recognizer.</li>
+  <li><a href="#Reset">Reset</a> <span class="ver">[v1.1.28.01+]</span>: Immediately resets the hotstring recognizer.</li>
+</ul>
+
+<h3 id="EndChars">EndChars</h3>
+<p>Retrieves or modifies the set of characters used as <a href="../Hotstrings.htm#EndChars">ending characters</a> by the hotstring recognizer.</p>
+<pre class="Syntax">OldValue := <span class="func">Hotstring</span>("EndChars" <span class="optional">, NewValue</span>)</pre>
+<p>For example:</p>
+<pre>prev_chars := Hotstring("EndChars", "-()[]{}':;""/\,.?!`n `t")
+MsgBox The previous value was: %prev_chars%</pre>
+<p><a href="#EndChars">#Hotstring EndChars</a> also affects this setting.</p>
+<p>It is currently not possible to specify a different set of end characters for each hotstring.</p>
+
+<h3 id="MouseReset">MouseReset</h3>
+<p>Retrieves or modifies the global setting which controls whether mouse clicks reset the hotstring recognizer, as described <a href="../Hotstrings.htm#NoMouse">here</a>.</p>
+<pre class="Syntax">OldValue := <span class="func">Hotstring</span>("MouseReset" <span class="optional">, NewValue</span>)</pre>
+<p><em>NewValue</em> should be 1 (true) to enable mouse click detection and resetting of the hotstring recognizer, or 0 (false) to disable it. The return value is the setting which was in effect before the function was called.</p>
+<p>The <a href="_InstallMouseHook.htm">mouse</a> hook may be installed or removed if justified by the changes made by this function.</p>
+<p><a href="_Hotstring.htm">#Hotstring NoMouse</a> also affects this setting, and is equivalent to specifying <code>false</code> for <em>NewValue</em>.</p>
+
+<h3 id="Reset">Reset <span class="ver">[v1.1.28.01+]</span></h3>
+<p>Immediately resets the hotstring recognizer.</p>
+<pre class="Syntax"><span class="func">Hotstring</span>("Reset")</pre>
+<p>In other words, the script will begin waiting for an entirely new hotstring, eliminating from consideration anything you previously typed.</p>
 
 <h2 id="Errors">Errors</h2>
 <p>This function throws an exception if the parameters are invalid or a memory allocation fails. It does not affect <a href="../misc/ErrorLevel.htm">ErrorLevel</a>.</p>
@@ -79,40 +116,17 @@ Hotstring("::btw", "by the way")</pre>
 <p>If more than one variant of a hotstring is eligible to fire, only the one created earliest will fire.</p>
 <p>For more information about IfWin, see <a href="_IfWinActive.htm#gen">#IfWin's General Remarks</a>.</p>
 
-<h2 id="EndChars">EndChars</h2>
-<pre class="Syntax">OldValue := <span class="func">Hotstring</span>("EndChars" <span class="optional">, NewValue</span>)</pre>
-<p>Retrieves or modifies the set of characters used as <a href="../Hotstrings.htm#EndChars">ending characters</a> by the hotstring recognizer. For example:</p>
-<pre>prev_chars := Hotstring("EndChars", "-()[]{}':;""/\,.?!`n `t")
-MsgBox The previous value was: %prev_chars%</pre>
-<p><a href="#EndChars">#Hotstring EndChars</a> also affects this setting.</p>
-<p>It is currently not possible to specify a different set of end characters for each hotstring.</p>
-
-<h2 id="MouseReset">MouseReset</h2>
-<pre class="Syntax">OldValue := <span class="func">Hotstring</span>("MouseReset" <span class="optional">, NewValue</span>)</pre>
-<p>Retrieves or modifies the global setting which controls whether mouse clicks reset the hotstring recognizer, as described <a href="../Hotstrings.htm#NoMouse">here</a>. <em>NewValue</em> should be 1 (true) to enable mouse click detection and resetting of the hotstring recognizer, or 0 (false) to disable it. The return value is the setting which was in effect before the function was called.</p>
-<p>The <a href="_InstallMouseHook.htm">mouse</a> hook may be installed or removed if justified by the changes made by this function.</p>
-<p><a href="_Hotstring.htm">#Hotstring NoMouse</a> also affects this setting, and is equivalent to specifying <code>false</code> for <em>NewValue</em>.</p>
-
-<h2 id="Reset">Reset <span class="ver">[v1.1.28.01+]</span></h2>
-<pre class="Syntax"><span class="func">Hotstring</span>("Reset")</pre>
-<p>Immediately resets the hotstring recognizer. In other words, the script will begin waiting for an entirely new hotstring, eliminating from consideration anything you previously typed.</p>
-
-<h2 id="NewOptions">Setting Default Options</h2>
-<pre class="Syntax"><span class="func">Hotstring</span>(NewOptions)</pre>
-<p>To set new default options for subsequently created hotstrings, pass the options to the Hotstring function without any leading or trailing colon. For example: <code>Hotstring("T")</code>.</p>
-<p>Turning on <a href="../Hotstrings.htm#C">case-sensitivity (C)</a> or <a href="../Hotstrings.htm#Question">word-sensitivity (?)</a> also affects which existing hotstrings will be found by any subsequent calls to the Hotstring function. For example, <code>Hotstring(":T:btw")</code> will find <code>::BTW</code> by default, but not if <code>Hotstring("C")</code> or <code><a href="_Hotstring.htm">#Hotstring</a> C</code> is in effect. This can be undone or overridden by passing a mutually-exclusive option; for example, <code>C0</code> and <code>C1</code> override <code>C</code>.</p>
-
 <h2 id="Related">Related</h2>
 <p><a href="../Hotstrings.htm">Hotstrings</a>, <a href="_IfWinActive.htm">#IfWinActive/Exist</a>, <a href="_MaxThreadsPerHotkey.htm">#MaxThreadsPerHotkey</a>, <a href="Suspend.htm">Suspend</a>, <a href="../misc/Threads.htm">Threads</a>, <a href="Thread.htm">Thread</a>, <a href="Critical.htm">Critical</a></p>
 
 <h2 id="Examples">Examples</h2>
 
 <div class="ex" id="ExHelper">
-<p><a class="ex_number" href="#ExHelper"></a> Hotstring Helper. The following script might be useful if you are a heavy user of hotstrings. It's based on <a href="../Hotstrings.htm#Helper">the script created by Andreas Borutta</a>. By pressing <kbd>Win</kbd>+<kbd>H</kbd> (or another hotkey of your choice), the currently selected text can be turned into a hotstring.  For example, if you have "by the way" selected in a word processor, pressing <kbd>Win</kbd>+<kbd>H</kbd> will prompt you for its abbreviation (e.g. btw) and then add the new hotstring to the script. The hotstring will be activated without reloading the script.</p>
+<p><a class="ex_number" href="#ExHelper"></a> Hotstring Helper. The following script might be useful if you are a heavy user of hotstrings. It's based on <a href="../Hotstrings.htm#Helper">the script created by Andreas Borutta</a>. By pressing <kbd>Win</kbd>+<kbd>H</kbd> (or another hotkey of your choice), the currently selected text can be turned into a hotstring. For example, if you have "by the way" selected in a word processor, pressing <kbd>Win</kbd>+<kbd>H</kbd> will prompt you for its abbreviation (e.g. btw) and then add the new hotstring to the script. The hotstring will be activated without reloading the script.</p>
 <pre>#h::  <em>; Win+H hotkey
 ; Get the text currently selected. The clipboard is used instead of
 ; "ControlGet Selected" because it works in a greater variety of editors
-; (namely word processors).  Save the current clipboard contents to be
+; (namely word processors). Save the current clipboard contents to be
 ; restored later. Although this handles only plain text, it seems better
 ; than nothing:</em>
 ClipboardOld := Clipboard
