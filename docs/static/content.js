@@ -455,7 +455,7 @@ function ctor_index()
       return;
 
     var output = '', label, path, type;
-    var type_name = {2: T("function"), 6: T("class")};
+    var type_name = {2: T("function"), 4: T("operator"), 6: T("class")};
     input.sort(function(a, b) {
       var textA = a[0].toLowerCase(), textB = b[0].toLowerCase()
       return textA.localeCompare(textB);

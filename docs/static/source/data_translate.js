@@ -14,6 +14,7 @@ translateData = {
   "Control Flow Statements":true,
   "Declarations":true,
   "Operators":true,
+  "operator":true,
   "Built-in Classes":true,
   "class":true,
   "Built-in Methods/Properties":true,
