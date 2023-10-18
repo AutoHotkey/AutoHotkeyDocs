@@ -1218,7 +1218,7 @@ indexData = [
   ["Uncheck (Menu)","lib/Menu.htm#Uncheck",7],
   ["Unicode (Transform)","lib/Transform.htm#Unicode",7],
   ["Unicode text and clipboard","lib/Transform.htm"],
-  ["uninitialised variables","Concepts.htm#uninitialised-variables"],
+  ["uninitialized variables","Concepts.htm#uninitialized-variables"],
   ["Unlock (Drive)","lib/Drive.htm#Unlock",7],
   ["Until","lib/Until.htm",3,"E"],
   ["UpdateManifest directive (Ahk2Exe)","misc/Ahk2ExeDirectives.htm#UpdateManifest",99],
