@@ -25,14 +25,14 @@
 <dl>
 
   <dt>Target</dt>
-  <dd><p>A document, URL, executable file (.exe, .com, .bat, etc.), shortcut (.lnk), <a href="#CLSID">CLSID</a>, or <a href="#verbs">system verb</a> to launch (see remarks). If <em>Target</em> is a local file and no path was specified with it, <a href="../Variables.htm#WorkingDir">A_WorkingDir</a> will be searched first. If no matching file is found there, the system will search for and launch the file if it is integrated ("known"), e.g. by being contained in one of the PATH folders.</p>
+  <dd><p>A document, URL, executable file (.exe, .com, .bat, etc.), shortcut (.lnk), <a href="#CLSID">CLSID</a>, or <a href="#verbs">system verb</a> to launch (see remarks). If <em>Target</em> is a local file and no path was specified with it, how the file is located typically depends on the type of file and other conditions. See <a href="#Interpretation_of_Target">Interpretation of Target</a> for details.</p>
       <p>To pass parameters, add them immediately after the program or document name as follows:</p>
       <pre>Run, MyProgram.exe Param1 Param2</pre>
       <p>If the program/document name or a parameter contains spaces, it is safest to enclose it in double quotes as follows (even though it may work without them in some cases):</p>
       <pre>Run, "My Program.exe" "param with spaces"</pre></dd>
 
   <dt>WorkingDir</dt>
-  <dd><p>If blank or omitted, the script's own working directory (<a href="../Variables.htm#WorkingDir">A_WorkingDir</a>) will be used. Otherwise, specify the working directory for <em>Target</em>. Do not enclose the name in double quotes even if it contains spaces.</p></dd>
+  <dd><p>If blank or omitted, the script's own working directory (<a href="../Variables.htm#WorkingDir">A_WorkingDir</a>) will be used. Otherwise, specify the initial working directory to be used by the new process. This typically also affects relative paths in <em>Target</em>, but interpretation of command-line parameters depends on the target program. Do not enclose the name in double quotes even if it contains spaces.</p></dd>
 
   <dt>Options</dt>
   <dd><p>If blank or omitted, <em>Target</em> will be launched normally and a warning dialog will be shown whenever <em>Target</em> could not be launched. Otherwise, specify one or more of the following options:</p>
@@ -52,6 +52,20 @@
 <p><span class="ver">[v1.1.04+]</span>: This command is able to throw an exception on failure. For more information, see <a href="Catch.htm#RuntimeErrors">Runtime Errors</a>.</p>
 <p>Run: Does not set <a href="../misc/ErrorLevel.htm">ErrorLevel</a> unless UseErrorLevel (above) is in effect, in which case ErrorLevel is set to the word ERROR upon failure or 0 upon success.</p>
 <p>RunWait: Sets ErrorLevel to the program's exit code (a signed 32-bit integer). If UseErrorLevel is in effect and the launch failed, the word ERROR is stored.</p>
+<h2 id="Interpretation_of_Target">Interpretation of Target</h2>
+<p>Run/RunWait itself does not interpret command-line parameters or search for the target file. Instead, it attempts to execute the target as follows:</p>
+<ul>
+  <li>If no verb is specified, <em>Target</em> is passed as-is to the <em>lpCommandLine</em> parameter of <a href="https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-createprocessw">CreateProcess</a>.</li>
+  <li>If a verb is specified or CreateProcess fails, and <a href="RunAs.htm">RunAs</a> is not in effect, <a href="https://learn.microsoft.com/en-us/windows/win32/api/shellapi/nf-shellapi-shellexecuteexw">ShellExecuteEx</a> is attempted.</li>
+</ul>
+<p>If <em>Target</em> specifies a name but not a directory, the system will search for and launch the file if it is integrated ("known"), e.g. by being contained in one of the PATH folders. The exact search order depends on whether CreateProcess and/or ShellExecuteEx is called. If CreateProcess is called, the application directory (which contains the AutoHotkey interpreter or compiled script) takes precedence over the working directory specified by <em>WorkingDir</em>. To avoid this, specify the directory; e.g. <code>.\program.exe</code>.</p>
+<p>When ShellExecuteEx is being attempted, <em>Target</em> is interpreted as follows:</p>
+<ul>
+  <li>The substring of <em>Target</em> ending at the first space or tab may be either a <a href="#verbs">predefined verb name</a> or an asterisk followed by a verb name. If present, the optional asterisk, verb name and a single delimiting space or tab are excluded from further consideration. Verb names containing spaces or tabs are not supported, but symbols such as hyphen are permitted.</li>
+  <li>If a leading double-quote mark is present, the substring between that and the next double-quote mark is considered to be the target file or action.</li>
+  <li>Otherwise, the first substring which ends at a space and is either an existing file (specified by absolute path or relative to <em>WorkingDir</em>) or ends in .exe, .bat, .com, .cmd or .hta is considered the action. This allows file types such as .ahk, .vbs or .lnk to accept parameters while still allowing "known" executables such as wordpad.exe to be launched without an absolute path.</li>
+  <li>A single delimiting space is ignored, if present, and the remainder of <em>Target</em> is passed as-is to CreateProcess or ShellExecuteEx as command-line parameters.</li>
+</ul>
 <h2 id="Remarks">Remarks</h2>
 <p>Unlike Run, RunWait will wait until <em>Target</em> is closed or exits, at which time <a href="../misc/ErrorLevel.htm">ErrorLevel</a> will be set to the program's exit code (as a signed 32-bit integer). Some programs will appear to return immediately even though they are still running; these programs spawn another process.</p>
 <p>If <em>Target</em> contains any commas, they must be <a href="../misc/EscapeChar.htm">escaped</a> as highlighted three times in the following example:</p>
