@@ -1072,7 +1072,7 @@ indexData = [
   ["SetProp directive (Ahk2Exe)","misc/Ahk2ExeDirectives.htm#SetProp",99],
   ["SetRegView","lib/SetRegView.htm",6,"S"],
   ["SetScrollLockState","lib/SetNumScrollCapsLockState.htm",6,"S"],
-  ["SetStoreCapsLockMode","lib/SetStoreCapslockMode.htm",6,"S"],
+  ["SetStoreCapsLockMode","lib/SetStoreCapsLockMode.htm",6,"S"],
   ["SetTimer","lib/SetTimer.htm",6,"SSE"],
   ["SetTitleMatchMode","lib/SetTitleMatchMode.htm",6,"S"],
   ["SetWinDelay","lib/SetWinDelay.htm",6,"E"],
