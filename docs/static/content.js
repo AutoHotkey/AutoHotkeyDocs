@@ -339,6 +339,8 @@ function ctor_toc()
       return;
     if (!retrieveData(deprecate.dataPath, "deprecate_data", "deprecateData", self.modify))
       return;
+    if (!retrieveData(translate.dataPath, "translate_data", "translateData", self.modify))
+      return;
 
     $toc = $('#left div.toc').html(self.create(cache.toc_data));
     $tocList = $toc.find('li > span');
