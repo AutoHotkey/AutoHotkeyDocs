@@ -453,9 +453,6 @@ function ctor_index()
   self.dataPath = scriptDir + '/source/data_index.js';
   self.create = function(input, filter) { // Create and add the index links.
 
-    if (!retrieveData(translate.dataPath, "translate_data", "translateData", self.create.bind(null, input, filter)))
-      return;
-
     var output = '', label, path, type;
     var type_name = {2: T("function"), 4: T("operator"), 6: T("class")};
     input.sort(function(a, b) {
@@ -490,6 +487,8 @@ function ctor_index()
   self.modify = function() { // Modify the elements of the index tab.
 
     if (!retrieveData(self.dataPath, "index_data", "indexData", self.modify))
+      return;
+    if (!retrieveData(translate.dataPath, "translate_data", "translateData", self.modify))
       return;
 
     var $index = $('#left div.index');
