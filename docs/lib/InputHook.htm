@@ -117,7 +117,10 @@ if (ih.Input = CtrlC)
   <dd>
   <p>Type: <a href="../Concepts.htm#strings">String</a></p>
   <p>A list of keys. Braces are used to enclose key names, virtual key codes or scan codes, similar to the <a href="Send.htm">Send</a> function. For example, <code>{Enter}.{{}</code> would apply to <kbd>Enter</kbd>, <kbd>.</kbd> and <kbd>{</kbd>. Specifying a key by name, by <code>{vkNN}</code> or by <code>{scNNN}</code> may produce three different results; see below for details.</p>
-  <p id="all-keys">Specify the string <code>{All}</code> (case-insensitive) on its own to apply <em>KeyOptions</em> to all VK and all SC. KeyOpt may then be called a second time to remove options from specific keys.</p></dd>
+  <p id="all-keys">Specify the string <code>{All}</code> (case-insensitive) on its own to apply <em>KeyOptions</em> to all VK and all SC, including <code>{vkE7}</code> and <code>{sc000}</code> as described below. KeyOpt may then be called a second time to remove options from specific keys.</p>
+  <p id="sc000">Specify <code>{sc000}</code> to apply <em>KeyOptions</em> to all events which lack a scan code.</p>
+  <p id="vke7">Specify <code>{vkE7}</code> to apply <em>KeyOptions</em> to Unicode events, such as those sent by <code>SendEvent "{U+221e}"</code> or <code>SendEvent "{Text}&infin;"</code>.</p>
+  </dd>
   <dt>KeyOptions</dt>
   <dd>
   <p>Type: <a href="../Concepts.htm#strings">String</a></p>
@@ -135,7 +138,11 @@ if (ih.Input = CtrlC)
 <p>Options can be set by both virtual key code (VK) and scan code (SC), and are accumulative.</p>
 <p>When a key is specified by name, the options are set either by VK or by SC. Where two physical keys share the same VK but differ by SC (such as <kbd>Up</kbd> and <kbd>NumpadUp</kbd>), they are handled by SC. By contrast, if a VK number is used, it will apply to any physical key which produces that VK (and this may vary over time as it depends on the active keyboard layout).</p>
 <p>Removing an option by VK number does not affect any options that were set by SC, or vice versa. However, when an option is removed by key name and that name is handled by VK, the option is also removed for the corresponding SC (according to the script's keyboard layout). This allows keys to be excluded by name after applying an option to <a href="#all-keys">all keys</a>.</p>
-<p>If <code>+V</code> is set by VK and <code>+S</code> is set by SC (or vice versa), <code>+V</code> takes precedence.</p>
+<p>If an option is applied to <code>{All}</code> or to both the VK and the SC corresponding to an event, </p>
+<p>To prevent an option from affecting a key, the option must be removed from both the VK and the SC of that key, or sc000 if the key has no SC. This also applies to Unicode packets To prevent an option from affecting Unicode packets, the option must be removed from both vkE7 and sc000.</p>
+<p id="U">Unicode events, such as those sent by <code>SendEvent "{U+221e}"</code> or <code>SendEvent "{Text}&infin;"</code>, are affected by options which have been set for either <a href="#vke7">vkE7</a> or <a href="#sc000">sc000</a>. Any option applied to <a href="#all-keys">{All}</a> is applied to both vkE7 and sc000, so to exclude Unicode events, remove the option from both. For example:</p>
+<pre>InputHookObj.KeyOpt("{All}", "+I")  <em>; Ignore text produced by any event</em>
+InputHookObj.KeyOpt("{vkE7}{sc000}", "-I")  <em>; except Unicode events.</em></pre>
 </div>
 
 <div class="methodShort" id="Start"><h3>Start</h3>
