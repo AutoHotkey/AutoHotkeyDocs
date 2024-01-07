@@ -333,6 +333,7 @@ indexData = [
   ["class ... extends","Objects.htm#Custom_Classes",5],
   ["class name of a window","misc/WinTitle.htm#ahk_class"],
   ["Class object","lib/Class.htm"],
+  ["classes, built-in","ObjList.htm"],
   ["ClassNN (of a control)","lib/ControlGetClassNN.htm"],
   ["ClassNN property (Gui.Control)","lib/GuiControl.htm#ClassNN",7],
   ["Clear method (Map)","lib/Map.htm#Clear",7],
