@@ -1276,5 +1276,6 @@ indexData = [
   ["WS_* (GUI styles)","misc/Styles.htm"],
   ["XButton","KeyList.htm#mouse-advanced"],
   ["YYYYMMDDHH24MISS","lib/FileSetTime.htm#YYYYMMDD"],
-  ["ZeroDivisionError","lib/Error.htm#ZeroDivisionError",6]
+  ["ZeroDivisionError","lib/Error.htm#ZeroDivisionError",6],
+  ["ZIP files (copying their contents)","lib/FileCopyDir.htm"]
 ];
