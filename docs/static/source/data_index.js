@@ -1304,5 +1304,6 @@ indexData = [
   ["WriteNumType method (File)","lib/File.htm#WriteNum",8],
   ["WS_* (GUI styles)","misc/Styles.htm"],
   ["XButton","KeyList.htm#mouse-advanced"],
-  ["YYYYMMDDHH24MISS","lib/FileSetTime.htm#YYYYMMDD"]
+  ["YYYYMMDDHH24MISS","lib/FileSetTime.htm#YYYYMMDD"],
+  ["ZIP files (copying their contents)","lib/FileCopyDir.htm"]
 ];
