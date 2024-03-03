@@ -305,7 +305,7 @@ other.test()</pre>
 <p>Declarations like <code>static x.y := z</code> are also supported, provided that <code>x</code> was previously defined in this class. For example, <code>static x := {}, x.y := 42</code> declares <code>x</code> and also initializes <code><i>ClassName</i>.x.y</code>.  Because <a href="lib/Class.htm#Prototype">Prototype</a> is implicitly defined in each class, <code>static Prototype.sharedValue := 1</code> can be used to set values which are dynamically inherited by all instances of the class (until shadowed by a property on the instance itself).</p>
 
 <h4 id="Custom_Classes_class">Nested Classes</h4>
-<p>Nested class definitions allow a class object to be associated with a static/class variable of the outer class instead of a separate global variable. In the example above, <code>class NestedClass</code> constructs a <a href="lib/Class.htm">Class</a> object and stores it in <code>ClassName.NestedClass</code>. Subclasses could inherit <em>NestedClass</em> or override it with their own nested class (in which case <code>(<i>WhichClass</i>.NestedClass)()</code> could be used to instantiate whichever class is appropriate).</p>
+<p>Nested class definitions allow a class object to be associated with a static/class variable of the outer class instead of a separate global variable. In the example above, <code>class NestedClass</code> constructs a <a href="lib/Class.htm">Class</a> object and stores it in <code>ClassName.NestedClass</code>. Subclasses could inherit <em>NestedClass</em> or override it with their own nested class (in which case <code><i>WhichClass</i>.NestedClass()</code> could be used to instantiate whichever class is appropriate).</p>
 <pre>
 class NestedClass
 {
@@ -313,7 +313,12 @@ class NestedClass
 }
 </pre>
 <p>Nesting a class does not imply any particular relationship to the outer class. The nested class is not instantiated automatically, nor do instances of the nested class have any connection with an instance of the outer class, unless the script explicitly makes that connection.</p>
-<p>However, due to the way methods work for <a href="lib/Object.htm">Objects</a>, <code><i>WhichClass</i>.NestedClass()</code> implicitly passes <em>WhichClass</em> as the first parameter, equivalent to <code><i>WhichClass</i>.NestedClass.Call(<i>WhichClass</i>)</code>. Unless <code>static Call()</code> is overridden, this parameter is automatically passed to <a href="#Custom_NewDelete">__New</a>.</p>
+<p>Each nested class definition produces a dynamic property with <em>get</em> and <em>call</em> accessor functions instead of a simple value property. This is to support the following behaviour (where class X contains the nested class Y):</p>
+<ul>
+<li><code>X.Y()</code> does not pass X to <code>X.Y.Call</code> and ultimately <code>__New</code>, which would otherwise happen because this is the normal behaviour for function objects called as methods (which is how the nested class is being used here).</li>
+<li><code>X.Y := 1</code> is an error by default (the property is read-only).</li>
+<li>Referring to or calling the class for the first time causes it to be initialized.</li>
+</ul>
 
 <h4 id="Custom_Classes_method">Methods</h4>
 <p>Method definitions look identical to function definitions. Each method definition creates a <a href="lib/Func.htm">Func</a> with a hidden first parameter named <code>this</code>, and defines a property which is used to call the method or retrieve its function object.</p>
