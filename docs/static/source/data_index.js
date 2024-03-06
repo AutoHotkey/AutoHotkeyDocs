@@ -632,6 +632,7 @@ indexData = [
   ["GroupClose","lib/GroupClose.htm",6,"SS"],
   ["GroupDeactivate","lib/GroupDeactivate.htm",6,"SS"],
   ["Gui","lib/Gui.htm",6,"SSSS"],
+  ["Gui control options","lib/Gui.htm#ControlOptions"],
   ["Gui control types","lib/GuiControls.htm"],
   ["Gui styles reference","misc/Styles.htm"],
   ["GuiClose (label)","lib/Gui.htm#GuiClose"],
