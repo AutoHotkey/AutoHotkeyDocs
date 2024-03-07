@@ -635,6 +635,7 @@ indexData = [
   ["GroupDeactivate","lib/GroupDeactivate.htm",2],
   ["Gui","lib/Gui.htm",6],
   ["Gui","lib/Gui.htm#Call",2],
+  ["Gui control options","lib/Gui.htm#Add"],
   ["Gui control types","lib/GuiControls.htm"],
   ["Gui events","lib/GuiOnEvent.htm"],
   ["Gui property (Gui.Control)","lib/GuiControl.htm#Gui",7],
