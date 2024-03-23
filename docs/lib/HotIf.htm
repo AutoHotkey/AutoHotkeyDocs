@@ -1,8 +1,8 @@
 <!DOCTYPE HTML>
 <html lang="en">
 <head>
-<title>HotIf - Syntax &amp; Usage | AutoHotkey v2</title>
-<meta name="description" content="The HotIf function specifies the criteria for subsequently created or modified hotkey variants." />
+<title>HotIf / HotIfWin... - Syntax &amp; Usage | AutoHotkey v2</title>
+<meta name="description" content="The HotIf and HotIfWin functions specify the criteria for subsequently created or modified hotkey variants and hotstring variants." />
 <meta name="ahk:equiv-v1" content="lib/Hotkey.htm" />
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -11,42 +11,37 @@
 </head>
 <body>
 
-<h1>HotIf / HotIfWin</h1>
+<h1>HotIf / HotIfWin...</h1>
 
-<p>Specifies the criteria for subsequently created or modified hotkey <a href="Hotkey.htm#variant">variants</a>.</p>
-<p>Contents:</p>
-<ul>
-  <li><a href="#If">HotIf</a></li>
-  <li><a href="#IfWin">HotIfWin...</a></li>
-  <li><a href="#remarks">General Remarks</a></li>
-  <li><a href="#examples">Examples</a></li>
-</ul>
+<p>Specifies the criteria for subsequently created or modified <a href="Hotkey.htm#variant">hotkey variants</a> and <a href="Hotstring.htm#variant">hotstring variants</a>.</p>
 
 <h2 id="If">HotIf</h2>
 <pre class="Syntax">
 <span class="func">HotIf</span> <span class="optional">"Expression"</span>
-<span class="func">HotIf</span> <span class="optional">Function</span>
+<span class="func">HotIf</span> <span class="optional">Callback</span>
 </pre>
 
 <h3 id="HotIf_Parameters">Parameters</h3>
 <dl>
 
-  <dt id="if-blank">(parameter omitted)</dt>
-  <dd><p>Sets blank criteria (turns off context-sensitivity).</p></dd>
-
-  <dt id="if-expr">"Expression"</dt>
+  <dt>"Expression"</dt>
   <dd>
     <p>Type: <a href="../Concepts.htm#strings">String</a></p>
-    <p>Sets the criteria to an existing <a href="_HotIf.htm">#HotIf</a> expression. <em>Expression</em> is usually written as a <a href="../Language.htm#strings">quoted string</a>, but can also be a variable or expression which returns text matching a #HotIf expression. Although this function is unable to create new expressions, it can create new hotkeys using an existing expression. See <a href="_HotIf.htm#ExDynamic">#HotIf example 5</a>.</p>
+    <p>If omitted, blank criteria will be set (turns off context-sensitivity). Otherwise, the criteria will be set to an existing <a href="_HotIf.htm">#HotIf</a> expression. The expression is usually written as a <a href="../Language.htm#strings">quoted string</a>, but can also be a variable or expression which returns text matching a #HotIf expression.</p>
     <p class="note"><strong>Note:</strong> The HotIf function uses the string that you pass to it, not the original source code.  <a href="../misc/EscapeChar.htm">Escape sequences</a> are resolved when the script loads, so only the resulting characters are considered; for example, <code>HotIf 'x = "`t"'</code> and <code>HotIf 'x = "' A_Tab '"'</code> both correspond to <code>#HotIf x = "`t"</code>.</p>
+    <p>For an example, see <a href="_HotIf.htm#ExDynamic">#HotIf example #5</a>.</p>
   </dd>
   
-  <dt id="if-func">Function</dt>
+  <dt>Callback</dt>
   <dd>
     <p>Type: <a href="../misc/Functor.htm">Function Object</a></p>
-    <p>Sets the criteria to a given function object. Subsequently-created hotkeys will only execute if calling the given function object yields a non-zero number. This is like <code>HotIf "Expression"</code>, except that each hotkey can have many <a href="Hotkey.htm#variant">variants</a> (one per object). <em>Function</em> must be an object with a <em>call</em> method taking one parameter, the <a href="../Hotkeys.htm#ThisHotkey">name</a> of the hotkey.</p>
+    <p>If omitted, blank criteria will be set (turns off context-sensitivity). Otherwise, the criteria will be set to a given function object. Subsequently-created hotkeys and hotstrings will only execute if the callback returns a non-zero number. This is like <code>HotIf "Expression"</code>, except that each hotkey and hotstring can have many <a href="Hotkey.htm#variant">hotkey variants</a> or <a href="Hotstring.htm#variant">hotstring variants</a> (one per object).</p>
+    <p>The callback accepts one parameter and can be <a href="../Functions.htm#intro">defined</a> as follows:</p>
+    <pre class="NoIndent">MyCallback(HotkeyName) { ...</pre>
+    <p>Although the name you give the parameter does not matter, it is assigned the <a href="../Hotkeys.htm#ThisHotkey">hotkey name</a> or <a href="../Hotstrings.htm#ThisHotkey">hotstring name</a>.</p>
+    <p>You can omit the callback's parameter if the corresponding information is not needed, but in this case an asterisk must be specified, e.g. <code>MyCallback(*)</code>.</p>
     <p>Once passed to the HotIf function, the object will never be deleted (but memory will be reclaimed by the OS when the process exits).</p>
-    <p>The <a href="Hotkey.htm#ExampleIfFn">"three-key combination" Hotkey example</a> uses this mode of HotIf.</p>
+    <p>For an example, see <a href="#ExHotIfCallback">example #2</a> below or <a href="Hotkey.htm#ExampleIfFn">Hotkey example #6</a>.</p>
   </dd>
 
 </dl>
@@ -62,36 +57,70 @@
 <h3 id="HotIfWin_Parameters">Parameters</h3>
 <dl>
 
-  <dt>(all parameters omitted)</dt>
-  <dd><p>Sets blank criteria (turns off context-sensitivity).</p></dd>
-
   <dt>WinTitle, WinText</dt>
   <dd>
     <p>Type: <a href="../Concepts.htm#strings">String</a></p>
-    <p>Specifies the window title and other criteria that should be used to identify a window. Depending on which function is called, affected hotkeys and hotstrings are active only while a matching window is active, exists, is not active, or does not exist.</p>
-    <p>Since the parameters are evaluated before the function is called, any variable reference becomes permanent at that moment. In other words, subsequent changes to the contents of the variable are not seen by existing hotkeys.</p>
-    <p><em>WinTitle</em> and <em>WinText</em> have the same meaning as for <a href="WinActive.htm">WinActive</a> or <a href="WinExist.htm">WinExist</a>, but only strings can be used, and they are evaluated according to the default settings for <a href="SetTitleMatchMode.htm">SetTitleMatchMode</a> and <a href="DetectHiddenWindows.htm">DetectHiddenWindows</a> as set by the <a href="../Scripts.htm#auto">auto-execute thread</a>. See <a href="../misc/WinTitle.htm">WinTitle</a> for details.</p>
+    <p>If both are omitted, blank criteria will be set (turns off context-sensitivity). Otherwise, specify for <em>WinTitle</em> a <a href="../misc/WinTitle.htm">window title or other criteria</a> to identify the target window and/or for <em>WinText</em> a substring from a single text element of the target window (as revealed by the included Window Spy utility). Depending on which function is called, affected hotkeys and hotstrings are in effect only while the target window is active, exists, is not active, or does not exist.</p>
+    <p>Since the parameters are evaluated before the function is called, any variable reference becomes permanent at that moment. In other words, subsequent changes to the contents of the variable are not seen by existing hotkeys and hotstrings.</p>
+    <p><em>WinTitle</em> and <em>WinText</em> have the same meaning as for <a href="WinActive.htm">WinActive</a> or <a href="WinExist.htm">WinExist</a>, but only strings can be used, and they are evaluated according to the default settings for <a href="SetTitleMatchMode.htm">SetTitleMatchMode</a> and <a href="DetectHiddenWindows.htm">DetectHiddenWindows</a> as set by the <a href="../Scripts.htm#auto">auto-execute thread</a>.</p>
+    <p>For an example, see <a href="#ExHotIfWin">example #1</a> below.</p>
+
   </dd>
 
 </dl>
 
 <h2 id="Error_Handling">Error Handling</h2>
-<p>An exception is thrown if HotIf's parameter is invalid, such as if it does not match an existing expression and is not a valid callback function.</p>
+<p>An exception is thrown if HotIf's parameter is invalid, such as if it does not match an existing expression or is not a valid callback function.</p>
 
 <h2 id="remarks">General Remarks</h2>
-<p>HotIf allows context-sensitive <a href="../Hotkeys.htm">hotkeys</a> to be created and modified while the script is running (by contrast, the <a href="_HotIf.htm">#HotIf</a> directive is positional and takes effect before the script begins executing). For example:</p>
+<p>The HotIf and HotIfWin functions allow context-sensitive <a href="../Hotkeys.htm">hotkeys</a> and <a href="../Hotstrings.htm">hotstrings</a> to be created and modified while the script is running (by contrast, the <a href="_HotIf.htm">#HotIf</a> directive is positional and takes effect before the script begins executing). For example:</p>
 <pre>HotIfWinActive "ahk_class Notepad"
 Hotkey "^!e", MyFuncForNotepad  <em>; Creates a hotkey that works only in Notepad.</em></pre>
-<p>Using HotIf puts context sensitivity into effect for all subsequently created <a href="../Hotkeys.htm">hotkeys</a> in the current <a href="../misc/Threads.htm">thread</a>, and affects which hotkey variants the <a href="Hotkey.htm">Hotkey</a> function modifies. Only the most recent call to any of the HotIf functions in the current thread will be in effect.</p>
-<p>To turn off context sensitivity (such as to make subsequently-created hotkeys work in all windows), call any HotIf function but omit the parameters. For example: <code>HotIf</code> or <code>HotIfWinActive</code>.</p>
-<p>Before HotIf is used in a hotkey or hotstring <a href="../misc/Threads.htm">thread</a>, the Hotkey and Hotstring functions default to the same context as the hotkey or hotstring that launched the thread. In other words, <code>Hotkey A_ThisHotkey, "Off"</code> turns off the current hotkey even if it is context-sensitive. All other threads default to creating or modifying global hotkeys, unless that default is overridden by using HotIf during <a href="../Scripts.htm#auto">script startup</a>.</p>
-<p>When a mouse or keyboard hotkey is disabled via a HotIf function or directive, it performs its native function; that is, it passes through to the active window as though there is no such hotkey. However, controller hotkeys always pass through, whether they are disabled or not.</p>
+<p>Using HotIf or one of the HotIfWin functions puts context sensitivity into effect for all subsequently created <a href="../Hotkeys.htm">hotkeys</a> and <a href="../Hotstrings.htm">hotstrings</a> in the current <a href="../misc/Threads.htm">thread</a>, and affects which hotkey variants the <a href="Hotkey.htm">Hotkey</a> function modifies and which hotstring variants the <a href="Hotstring.htm">Hotstring</a> function modifies. Only the most recent call to the HotIf or HotIfWin function in the current thread will be in effect.</p>
+<p>To turn off context sensitivity (such as to make subsequently-created hotkeys and hotstrings work in all windows), call HotIf or one of the HotIfWin functions but omit the parameters. For example: <code>HotIf</code> or <code>HotIfWinActive</code>.</p>
+<p>Before HotIf or one of the HotIfWin functions is used in a hotkey or hotstring <a href="../misc/Threads.htm">thread</a>, the <a href="Hotkey.htm">Hotkey</a> and <a href="Hotstring.htm">Hotstring</a> functions default to the same context as the hotkey or hotstring that launched the thread. In other words, <code>Hotkey A_ThisHotkey, "Off"</code> turns off the current hotkey even if it is context-sensitive. All other threads default to creating or modifying global hotkeys and hotstrings, unless that default is overridden by using HotIf or one of the HotIfWin functions during <a href="../Scripts.htm#auto">script startup</a>.</p>
+<p>When a mouse or keyboard hotkey is disabled via HotIf, one of the HotIfWin functions, or the <a href="_HotIf.htm">#HotIf</a> directive, it performs its native function; that is, it passes through to the active window as though there is no such hotkey. However, controller hotkeys always pass through, whether they are disabled or not.</p>
 
 <h2 id="Related">Related</h2>
-<p><a href="Hotkey.htm">Hotkey</a> (function), <a href="../Hotkeys.htm">Hotkeys</a> (general), <a href="_HotIf.htm">#HotIf</a>, <a href="../misc/Threads.htm">Threads</a></p>
+<p><a href="../Hotkeys.htm">Hotkeys</a>, <a href="../Hotstrings.htm">Hotstrings</a>, <a href="Hotkey.htm">Hotkey function</a>, <a href="Hotstring.htm">Hotstring function</a>, <a href="_HotIf.htm">#HotIf</a>, <a href="../misc/Threads.htm">Threads</a></p>
 
 <h2 id="examples">Examples</h2>
-<p>See <a href="Hotkey.htm#examples">Hotkey</a> for examples.</p>
+<div class="ex" id="ExHotIfWin">
+<p><a class="ex_number" href="#ExHotIfWin"></a> Similar to <a href="_HotIf.htm#ExBasic">#HotIf example #1</a>, this creates two hotkeys and one hotstring which only work when Notepad is active, and one hotkey which works for any window except Notepad. The main difference is that this example creates context-sensitive hotkeys and hotstrings at runtime, while the #HotIf example creates them at loadtime.</p>
+<pre>HotIfWinActive "ahk_class Notepad"
+Hotkey "^!a", ShowMsgBox
+Hotkey "#c", ShowMsgBox
+Hotstring "::btw", "This replacement text will occur only in Notepad."
+HotIfWinActive
+Hotkey "#c", (*) =&gt; MsgBox("You pressed Win-C in a window other than Notepad.")
+
+ShowMsgBox(HotkeyName)
+{
+    MsgBox "You pressed " HotkeyName " while Notepad is active."
+}</pre>
+</div>
+<div class="ex" id="ExHotIfCallback">
+<p><a class="ex_number" href="#ExHotIfCallback"></a> Similar to the example above, but with a callback.</p>
+<pre>HotIf MyCallback
+Hotkey "^!a", ShowMsgBox
+Hotkey "#c", ShowMsgBox
+Hotstring "::btw", "This replacement text will occur only in Notepad."
+HotIf
+Hotkey "#c", (*) =&gt; MsgBox("You pressed Win-C in a window other than Notepad.")
+
+MyCallback(*)
+{
+    if WinActive("ahk_class Notepad")
+        return true
+    else
+        return false
+}
+
+ShowMsgBox(HotkeyName)
+{
+    MsgBox "You pressed " HotkeyName " while Notepad is active."
+}</pre>
+</div>
 
 </body>
 </html>

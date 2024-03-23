@@ -26,20 +26,27 @@
     <p>Name of the hotkey's activation key, including any <a href="../Hotkeys.htm#Symbols">modifier symbols</a>. For example, specify <code>#c</code> for the <kbd>Win</kbd>+<kbd>C</kbd> hotkey.</p>
     <p>If <em>KeyName</em> already exists as a hotkey -- either by the Hotkey function or a <a href="../Hotkeys.htm">double-colon label</a> in the script -- that hotkey will be updated with the values of the function's other parameters.</p>
     <p>When specifying an <em>existing</em> hotkey, <em>KeyName</em> is not case-sensitive. However, the names of keys must be spelled the same as in the existing hotkey (e.g. Esc is not the same as Escape for this purpose). Also, the order of <a href="../Hotkeys.htm#Symbols">modifier symbols</a> such as <code>^!+#</code> does not matter. <a href="GetKeyName.htm">GetKeyName</a> can be used to retrieve the standard spelling of a key name.</p>
-    <p>When a hotkey is first created -- either by the Hotkey function or the <a href="../Hotkeys.htm">double-colon syntax</a> in the script -- its key name and the ordering of its modifier symbols becomes the permanent name of that hotkey as reflected by <a href="../Variables.htm#ThisHotkey">A_ThisHotkey</a> and <em>Action</em>'s parameter. This name is shared by all <a href="_HotIf.htm#variant">variants</a> of the hotkey, and does not change even if the Hotkey function later accesses the hotkey with a different symbol ordering.</p>
+    <p>When a hotkey is first created -- either by the Hotkey function or the <a href="../Hotkeys.htm">double-colon syntax</a> in the script -- its key name and the ordering of its modifier symbols becomes the permanent name of that hotkey as reflected by <a href="../Hotkeys.htm#ThisHotkey">ThisHotkey</a>. This name is shared by all <a href="_HotIf.htm#variant">variants</a> of the hotkey, and does not change even if the Hotkey function later accesses the hotkey with a different symbol ordering.</p>
     <p>If the hotkey variant already exists, its behavior is updated according to whether <em>KeyName</em> includes or excludes the <a href="../Hotkeys.htm#Tilde">tilde (~) prefix</a>.</p>
     <p>The <a href="../Hotkeys.htm#prefixdollar">use hook ($) prefix</a> can be added to existing hotkeys. This prefix affects all variants of the hotkey and cannot be removed.</p>
   </dd>
 
   <dt>Action</dt>
   <dd>
-      <p>Type: <a href="../Concepts.htm#strings">String</a> or <a href="../misc/Functor.htm">Function Object</a></p>
-      <p>An action name or a function to execute (as a new <a href="../misc/Threads.htm">thread</a>) when the hotkey is pressed. This can be a <a href="../misc/Functor.htm">function object</a>, a <a href="../Hotkeys.htm">hotkey</a> name without trailing colons, or one of the special values listed below.</p>
-      <p>If <em>Action</em> is a function, it is called with one parameter, the <a href="../Hotkeys.htm#ThisHotkey">name</a> of the hotkey. Hotkeys defined with the <a href="../Hotkeys.htm">double-colon syntax</a> automatically use the parameter name <code>ThisHotkey</code>. Hotkeys can also be <a href="../Hotkeys.htm#Function">assigned a function name</a> without the Hotkey function.</p>
-      <p>If <em>Action</em> is a hotkey name, its original function is used; specifically, the original function of the hotkey variant corresponding to the current <a href="HotIf.htm">HotIf</a> criteria. This is usually used to restore a hotkey's original function after having changed it, but can be used to assign the function of a different hotkey, provided that both hotkeys use the same HotIf criteria.</p>
-      <p>This parameter can be left blank if <em>KeyName</em> already exists as a hotkey, in which case its action will not be changed. This is useful to change only the hotkey's <em>Options</em>.</p>
-      <p class="note"><strong>Note:</strong> If the function is specified but the hotkey is disabled from a previous use of the Hotkey function, the hotkey will remain disabled. To prevent this, include the word ON in <em>Options</em>.</p>
-      <p>This parameter can also be one of the following special values:</p>
+      <p>Type: <a href="../misc/Functor.htm">Function Object</a> or <a href="../Concepts.htm#strings">String</a></p>
+      <p>If omitted and <em>KeyName</em> already exists as a hotkey, its action will not be changed. This is useful to change only the hotkey's <em>Options</em>. Otherwise, specify a callback, a <a href="../Hotkeys.htm">hotkey</a> name without trailing colons, or one of the special values listed below.</p>
+      <hr>
+      <p>Specify the function to call (as a new <a href="../misc/Threads.htm">thread</a>) when the hotkey is pressed.</p>
+      <p>The callback accepts one parameter and can be <a href="../Functions.htm#intro">defined</a> as follows:</p>
+      <pre class="NoIndent">MyCallback(HotkeyName) { ...</pre>
+      <p>Although the name you give the parameter does not matter, it is assigned the <a href="../Hotkeys.htm#ThisHotkey">hotkey name</a>.</p>
+      <p>You can omit the callback's parameter if the corresponding information is not needed, but in this case an asterisk must be specified, e.g. <code>MyCallback(*)</code>.</p>
+      <p>Hotkeys defined with the <a href="../Hotkeys.htm">double-colon syntax</a> automatically use the parameter name <code>ThisHotkey</code>. Hotkeys can also be <a href="../Hotkeys.htm#Function">assigned a function name</a> without the Hotkey function.</p>
+      <p class="note"><strong>Note:</strong> If a callback is specified but the hotkey is disabled from a previous use of the Hotkey function, the hotkey will remain disabled. To prevent this, include the word ON in <em>Options</em>.</p>
+      <hr>
+      <p>Specify a hotkey name to use its original function; specifically, the original function of the hotkey variant corresponding to the current <a href="HotIf.htm">HotIf</a> criteria. This is usually used to restore a hotkey's original function after having changed it, but can be used to assign the function of a different hotkey, provided that both hotkeys use the same HotIf criteria.</p>
+      <hr>
+      <p>Specify one of the following special values:</p>
       <p><strong>On:</strong> The hotkey becomes enabled. No action is taken if the hotkey is already On.</p>
       <p><strong>Off:</strong> The hotkey becomes disabled. No action is taken if the hotkey is already Off.</p>
       <p><strong>Toggle:</strong> The hotkey is set to the opposite state (enabled or disabled).</p>
@@ -68,7 +75,7 @@
 <table class="info">
   <tr>
     <th abbr="Class">Error Class</th>
-    <th>Message</th>
+    <th>.Message</th>
     <th style="width: 50%;" abbr="Descr">Description</th>
   </tr>
   <tr>
@@ -81,7 +88,7 @@
     <td>For example, using the mouse wheel as a prefix in a hotkey such as <code>WheelDown &amp; Enter</code> is not supported. <a href="Error.htm#Extra">Exception.Extra</a> contains the prefix key.</td>
   </tr>
   <tr>
-    <td>This AltTab hotkey must have exactly one modifier/prefix</td>
+    <td>This AltTab hotkey must have exactly one modifier/prefix.</td>
     <td rowspan="2">The <em>KeyName</em> parameter is not suitable for use with the <a href="../Hotkeys.htm#alttab">AltTab or ShiftAltTab</a> actions. A combination of (at most) two keys is required. For example: <code>RControl &amp; RShift::AltTab</code>. <a href="Error.htm#Extra">Exception.Extra</a> contains <em>KeyName</em>.</td>
   </tr>
   <tr>
@@ -107,7 +114,7 @@
 try
     Hotkey "^!p"
 catch TargetError
-    MsgBox "The hotkey does not exist or it has no variant for the current If criteria."
+    MsgBox "The hotkey does not exist or it has no variant for the current HotIf criteria."
 </pre>
 
 <h2 id="Remarks">Remarks</h2>
@@ -120,16 +127,16 @@ catch TargetError
 <p>Once a script has at least one hotkey, it becomes <a href="../Scripts.htm#persistent">persistent</a>, meaning that <a href="ExitApp.htm">ExitApp</a> rather than <a href="Exit.htm">Exit</a> should be used to terminate it.</p>
 
 <h2 id="variant">Variant (Duplicate) Hotkeys</h2>
-<p>A particular hotkey can be created more than once if each definition has different If criteria. These are known as <em>hotkey variants</em>. For example:</p>
+<p>A particular hotkey can be created more than once if each definition has different <a href="HotIf.htm">HotIf</a> criteria. These are known as <em>hotkey variants</em>. For example:</p>
 <pre>HotIfWinActive "ahk_class Notepad"
 Hotkey "^!c", MyFuncForNotepad
 HotIfWinActive "ahk_class WordPadClass"
 Hotkey "^!c", MyFuncForWordPad
 HotIfWinActive
 Hotkey "^!c", MyFuncForAllOtherWindows</pre>
-<p>If more than one variant of a hotkey is eligible to fire, only the one created earliest will fire. The exception to this is the global variant (the one with no If criteria): It always has the lowest precedence, and thus will fire only if no other variant is eligible.</p>
+<p>If more than one variant of a hotkey is eligible to fire, only the one created earliest will fire. The exception to this is the global variant (the one with no HotIf criteria): It always has the lowest precedence, and thus will fire only if no other variant is eligible.</p>
 <p>When creating duplicate hotkeys, the order of <a href="../Hotkeys.htm#Symbols">modifier symbols</a> such as <code>^!+#</code> does not matter. For example, <code>"^!c"</code> is the same as <code>"!^c"</code>. However, keys must be spelled consistently. For example, <em>Esc</em> is not the same as <em>Escape</em> for this purpose (though the case does not matter). Finally, any hotkey with a <a href="../Hotkeys.htm#wildcard">wildcard prefix (*)</a> is entirely separate from a non-wildcard one; for example, <code>"*F1"</code> and <code>"F1"</code> would each have their own set of variants.</p>
-<p>For more information about context-sensitive hotkeys, see <a href="_HotIf.htm#general-remarks">#HotIf's General Remarks</a>.</p>
+<p>For more information, see <a href="HotIf.htm">HotIf</a> and <a href="_HotIf.htm#general-remarks">#HotIf's General Remarks</a>.</p>
 
 <h2 id="Related">Related</h2>
 <p><a href="../Hotkeys.htm#Symbols">Hotkey Symbols</a>, <a href="HotIf.htm">HotIf</a>, <a href="../Variables.htm#ThisHotkey">A_ThisHotkey</a>, <a href="_MaxThreadsBuffer.htm">#MaxThreadsBuffer</a>, <a href="_MaxThreadsPerHotkey.htm">#MaxThreadsPerHotkey</a>, <a href="Suspend.htm">Suspend</a>, <a href="../misc/Threads.htm">Threads</a>, <a href="Thread.htm">Thread</a>, <a href="Critical.htm">Critical</a>, <a href="Return.htm">Return</a>, <a href="Menu.htm">Menu object</a>, <a href="SetTimer.htm">SetTimer</a></p>

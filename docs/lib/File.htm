@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <title>File Object - Methods &amp; Properties | AutoHotkey v2</title>
-<meta name="description" content="The file object provides an interface for a file to perform actions, such as reading or writing data, or to retrieve or set values, such as length." />
+<meta name="description" content="The file object provides an interface for file input/output, such as reading or writing text or retrieving its length." />
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <link href="../static/theme.css" rel="stylesheet" type="text/css" />
@@ -13,7 +13,7 @@
 <h1>File Object</h1>
 <pre class="NoIndent">class File extends Object</pre>
 
-<p>Provides an interface for file input/output. <a href="FileOpen.htm">FileOpen</a> returns an object of this type.</p>
+<p>Provides an interface for file input/output, such as reading or writing text or retrieving its length. <a href="FileOpen.htm">FileOpen</a> returns an object of this type.</p>
 
 <p>"FileObj" is used below as a placeholder for any File object, as "File" is the class itself.</p>
 <p>In addition to the methods and property inherited from <a href="Object.htm">Object</a>, File objects have the following predefined methods and properties.</p>
@@ -25,12 +25,12 @@
       <li><a href="#Read">Read</a>: Reads a string of characters from the file and advances the file pointer.</li>
       <li><a href="#Write">Write</a>: Writes a string of characters to the file and advances the file pointer.</li>
       <li><a href="#ReadLine">ReadLine</a>: Reads a line of text from the file and advances the file pointer.</li>
-      <li><a href="#WriteLine">WriteLine</a>: Writes a string of characters followed by <code>`n</code> or <code>`r`n</code> depending on the flags used to open the file. Advances the file pointer.</li>
+      <li><a href="#WriteLine">WriteLine</a>: Writes a line of text to the file and advances the file pointer.</li>
       <li><a href="#ReadNum">Read<em>NumType</em></a>: Reads a number from the file and advances the file pointer.</li>
       <li><a href="#WriteNum">Write<em>NumType</em></a>: Writes a number to the file and advances the file pointer.</li>
       <li><a href="#RawRead">RawRead</a>: Reads raw binary data from the file into memory and advances the file pointer.</li>
       <li><a href="#RawWrite">RawWrite</a>: Writes raw binary data to the file and advances the file pointer.</li>
-      <li><a href="#Seek">Seek</a>: Moves the file pointer. If the second parameter is omitted, it is equivalent to <code>FileObj.Pos := Distance</code>.</li>
+      <li><a href="#Seek">Seek</a>: Moves the file pointer.</li>
       <li><a href="#Close">Close</a>: Closes the file, flushes any data in the cache to disk and releases the share locks.</li>
     </ul>
   </li>
@@ -38,7 +38,7 @@
     <ul>
       <li><a href="#Pos">Pos</a>: Retrieves or sets the position of the file pointer.</li>
       <li><a href="#Length">Length</a>: Retrieves or sets the size of the file.</li>
-      <li><a href="#AtEOF">AtEOF</a>: Retrieves a non-zero value if the file pointer has reached the end of the file.</li>
+      <li><a href="#AtEOF">AtEOF</a>: Retrieves a non-zero number if the file pointer has reached the end of the file.</li>
       <li><a href="#Encoding">Encoding</a>: Retrieves or sets the text encoding used by this file object.</li>
       <li><a href="#Handle">Handle</a>: Retrieves a system file handle, intended for use with DllCall.</li>
     </ul>
@@ -50,72 +50,91 @@
 <div class="methodShort" id="Read"><h3>Read</h3>
 <p>Reads a string of characters from the file and advances the file pointer.</p>
 <pre class="Syntax">String := FileObj.<span class="func">Read</span>(<span class="optional">Characters</span>)</pre>
+<h4 id="Read_Parameters">Parameters</h4>
 <dl>
   <dt>Characters</dt>
   <dd>
     <p>Type: <a href="../Concepts.htm#numbers">Integer</a></p>
-    <p>The maximum number of characters to read. If omitted, the rest of the file is read and returned as one string. If the File object was created from a handle to a non-seeking device such as a console buffer or pipe, omitting this parameter may cause the method to fail or return only what data is currently available.</p>
+    <p>If omitted, the rest of the file is read and returned as one string. Otherwise, specify the maximum number of characters to read. If the File object was created from a handle to a non-seeking device such as a console buffer or pipe, omitting this parameter may cause the method to fail or return only what data is currently available.</p>
   </dd>
 </dl>
-<p>Returns a string.</p>
+<h4 id="Read_Return_Value">Return Value</h4>
+<p>Type: <a href="../Concepts.htm#strings">String</a></p>
+<p>This method returns the string of characters that were read.</p>
 </div>
 
 <div class="methodShort" id="Write"><h3>Write</h3>
 <p>Writes a string of characters to the file and advances the file pointer.</p>
-<pre class="Syntax">FileObj.<span class="func">Write</span>(String)</pre>
+<pre class="Syntax">BytesWritten := FileObj.<span class="func">Write</span>(String)</pre>
+<h4 id="Write_Parameters">Parameters</h4>
 <dl>
   <dt>String</dt>
   <dd>
     <p>Type: <a href="../Concepts.htm#strings">String</a></p>
-    <p>A string to write.</p>
+    <p>The string to write.</p>
   </dd>
 </dl>
-<p>Returns the number of bytes (not characters) that were written.</p>
+<h4 id="Write_Return_Value">Return Value</h4>
+<p>Type: <a href="../Concepts.htm#numbers">Integer</a></p>
+<p>This method returns the number of bytes (not characters) that were written.</p>
 </div>
 
 <div class="methodShort" id="ReadLine"><h3>ReadLine</h3>
 <p>Reads a line of text from the file and advances the file pointer.</p>
 <pre class="Syntax">TextLine := FileObj.<span class="func">ReadLine</span>()</pre>
-<p>Returns a line of text, excluding the line ending.</p>
+<h4 id="ReadLine_Return_Value">Return Value</h4>
+<p>Type: <a href="../Concepts.htm#strings">String</a></p>
+<p>This method returns a line of text, excluding the line ending.</p>
+<h4 id="ReadLine_Remarks">Remarks</h4>
 <p>Lines up to 65,534 characters long can be read. If the length of a line exceeds this, the remainder of the line is returned by subsequent calls to this method.</p></div>
 
 <div class="methodShort" id="WriteLine"><h3>WriteLine</h3>
-<p>Writes a string of characters followed by <code>`n</code> or <code>`r`n</code> depending on the flags used to open the file. Advances the file pointer.</p>
-<pre class="Syntax">FileObj.<span class="func">WriteLine</span>(<span class="optional">String</span>)</pre>
+<p>Writes a line of text to the file and advances the file pointer.</p>
+<pre class="Syntax">BytesWritten := FileObj.<span class="func">WriteLine</span>(<span class="optional">String</span>)</pre>
+<h4 id="WriteLine_Parameters">Parameters</h4>
 <dl>
   <dt>String</dt>
   <dd>
     <p>Type: <a href="../Concepts.htm#strings">String</a></p>
-    <p>An optional string to write.</p>
+    <p>If blank or omitted, an empty line will be written. Otherwise, specify the string to write, which is always followed by <code>`n</code> or <code>`r`n</code>, depending on the EOL flags used to open the file.</p>
   </dd>
 </dl>
-<p>Returns the number of bytes (not characters) that were written.</p>
+<h4 id="WriteLine_Return_Value">Return Value</h4>
+<p>Type: <a href="../Concepts.htm#numbers">Integer</a></p>
+<p>This method returns the number of bytes (not characters) that were written.</p>
 </div>
 
 <div class="methodShort" id="ReadNum"><h3>Read<i>NumType</i></h3>
 <p>Reads a number from the file and advances the file pointer.</p>
 <pre class="Syntax">Num := FileObj.<span class="func">Read<i>NumType</i></span>()</pre>
 <p><em>NumType</em> is either UInt, Int, Int64, Short, UShort, Char, UChar, Double, or Float. These type names have the same meanings as with <a href="DllCall.htm#types">DllCall</a>.</p>
-<p>Returns a number if the read was successful, otherwise an empty string. If the number of bytes read is non-zero but less than the size of <em>NumType</em>, the missing bytes are assumed to be zero.</p>
+<h4 id="ReadNum_Return_Value">Return Value</h4>
+<p>Type: <a href="../Concepts.htm#numbers">Integer</a>, <a href="../Concepts.htm#numbers">Float</a> or <a href="../Concepts.htm#nothing">String (empty)</a></p>
+<p>On success, this method returns a number. On failure, it returns an empty string.</p>
+<h4 id="ReadNum_Remarks">Remarks</h4>
+<p>If the number of bytes read is non-zero but less than the size of <em>NumType</em>, the missing bytes are assumed to be zero.</p>
 </div>
 
 <div class="methodShort" id="WriteNum"><h3>Write<i>NumType</i></h3>
 <p>Writes a number to the file and advances the file pointer.</p>
-<pre class="Syntax">FileObj.<span class="func">Write<i>NumType</i></span>(Num)</pre>
-<dl>
+<pre class="Syntax">BytesWritten := FileObj.<span class="func">Write<i>NumType</i></span>(Num)</pre>
+<p><em>NumType</em> is either UInt, Int, Int64, Short, UShort, Char, UChar, Double, or Float. These type names have the same meanings as with <a href="DllCall.htm#types">DllCall</a>.</p>
+<h4 id="WriteNum_Parameters">Parameters</h4><dl>
   <dt>Num</dt>
   <dd>
     <p>Type: <a href="../Concepts.htm#numbers">Integer</a> or <a href="../Concepts.htm#numbers">Float</a></p>
-    <p>A number to write.</p>
+    <p>The number to write.</p>
   </dd>
 </dl>
-<p><em>NumType</em> is either UInt, Int, Int64, Short, UShort, Char, UChar, Double, or Float. These type names have the same meanings as with <a href="DllCall.htm#types">DllCall</a>.</p>
-<p>Returns the number of bytes that were written. For instance, WriteUInt returns 4 if successful.</p>
+<h4 id="WriteNum_Return_Value">Return Value</h4>
+<p>Type: <a href="../Concepts.htm#numbers">Integer</a></p>
+<p>This method returns the number of bytes that were written. For example, <code>FileObj.WriteUInt(42)</code> returns 4 if successful.</p>
 </div>
 
 <div class="methodShort" id="RawRead"><h3>RawRead</h3>
 <p>Reads raw binary data from the file into memory and advances the file pointer.</p>
-<pre class="Syntax">FileObj.<span class="func">RawRead</span>(Buffer <span class="optional">, Bytes</span>)</pre>
+<pre class="Syntax">BytesRead := FileObj.<span class="func">RawRead</span>(Buffer <span class="optional">, Bytes</span>)</pre>
+<h4 id="RawRead_Parameters">Parameters</h4>
 <dl>
   <dt>Buffer</dt>
   <dd>
@@ -130,12 +149,15 @@
     <p>The maximum number of bytes to read. This is optional when <em>Buffer</em> is an object; otherwise, it is required.</p>
   </dd>
 </dl>
-<p>Returns the number of bytes that were read.</p>
+<h4 id="RawRead_Return_Value">Return Value</h4>
+<p>Type: <a href="../Concepts.htm#numbers">Integer</a></p>
+<p>This method returns the number of bytes that were read.</p>
 </div>
 
 <div class="methodShort" id="RawWrite"><h3>RawWrite</h3>
 <p>Writes raw binary data to the file and advances the file pointer.</p>
-<pre class="Syntax">FileObj.<span class="func">RawWrite</span>(Data <span class="optional">, Bytes</span>)</pre>
+<pre class="Syntax">BytesWritten := FileObj.<span class="func">RawWrite</span>(Data <span class="optional">, Bytes</span>)</pre>
+<h4 id="RawWrite_Parameters">Parameters</h4>
 <dl>
   <dt>Data</dt>
   <dd>
@@ -148,13 +170,15 @@
     <p>The number of bytes to write. This is optional when <em>Data</em> is an object or string; otherwise, it is required.</p>
   </dd>
 </dl>
-<p>Returns the number of bytes that were written.</p>
+<h4 id="RawWrite_Return_Value">Return Value</h4>
+<p>Type: <a href="../Concepts.htm#numbers">Integer</a></p>
+<p>This method returns the number of bytes that were written.</p>
 </div>
 
 <div class="methodShort" id="Seek"><h3>Seek</h3>
 <p>Moves the file pointer.</p>
-<pre class="Syntax">FileObj.<span class="func">Seek</span>(Distance <span class="optional">, Origin</span>)
-</pre>
+<pre class="Syntax">IsMoved := FileObj.<span class="func">Seek</span>(Distance <span class="optional">, Origin</span>)</pre>
+<h4 id="Seek_Parameters">Parameters</h4>
 <dl>
   <dt>Distance</dt>
   <dd>
@@ -164,15 +188,19 @@
   <dt>Origin</dt>
   <dd>
     <p>Type: <a href="../Concepts.htm#numbers">Integer</a></p>
-    <p>Starting point for the file pointer move. Must be one of the following:</p>
+    <p>If omitted, it defaults to 2 when <em>Distance</em> is negative and 0 otherwise. Otherwise, specify one of the following numbers to indicate the starting point for the file pointer move:</p>
     <ul>
       <li>0 (SEEK_SET): Beginning of the file. <i>Distance</i> must be zero or greater.</li>
       <li>1 (SEEK_CUR): Current position of the file pointer.</li>
       <li>2 (SEEK_END): End of the file. <i>Distance</i> should usually be negative.</li>
     </ul>
-    <p>If omitted, <i>Origin</i> defaults to SEEK_END when <em>Distance</em> is negative and SEEK_SET otherwise.</p></dd>
+  </dd>
 </dl>
-<p>Returns a non-zero value if successful, otherwise zero.</p>
+<h4 id="Seek_Return_Value">Return Value</h4>
+<p>Type: <a href="../Concepts.htm#boolean">Integer (boolean)</a></p>
+<p>On success, this method returns 1 (true). On failure, it returns 0 (false).</p>
+<h4 id="Seek_Remarks">Remarks</h4>
+<p>This method is equivalent to <code>FileObj.Pos := Distance</code>, if <em>Distance</em> is not negative and <em>Origin</em> is omitted or 0 (SEEK_SET).</p>
 </div>
 
 <div class="methodShort" id="Close"><h3>Close</h3>
@@ -183,44 +211,44 @@
 <h2 id="Properties">Properties</h2>
 
 <div class="methodShort" id="Pos"><h3>Pos</h3>
-<p>Retrieves or sets the current position of the file pointer.</p>
-<pre class="Syntax">Pos := FileObj.Pos</pre>
-<pre class="Syntax">FileObj.Pos := NewPos</pre>
-<p>Equivalent to <code>FileObj.Seek(NewPos)</code>.</p>
-<p>The position is a byte offset from the beginning of the file, where 0 is the first byte. When data is written to or read from the file, the file pointer automatically moves to the next byte after that data.</p>
+<p>Retrieves or sets the position of the file pointer.</p>
+<pre class="Syntax">CurrentPos := FileObj.<span class="func">Pos</span></pre>
+<pre class="Syntax">FileObj.<span class="func">Pos</span> := NewPos</pre>
+<p><em>CurrentPos</em> and <em>NewPos</em> are a byte offset from the beginning of the file, where 0 is the first byte. When data is written to or read from the file, the file pointer automatically moves to the next byte after that data.</p>
+<p>This property is equivalent to <code>FileObj.Seek(NewPos)</code>.</p>
 </div>
 
 <div class="methodShort" id="Length"><h3>Length</h3>
 <p>Retrieves or sets the size of the file.</p>
-<pre class="Syntax">FileSize := FileObj.Length</pre>
-<pre class="Syntax">FileObj.Length := NewSize</pre>
-<p><em>FileSize</em> and <em>NewSize</em> is the size of the file, in bytes.</p>
+<pre class="Syntax">CurrentSize := FileObj.<span class="func">Length</span></pre>
+<pre class="Syntax">FileObj.<span class="func">Length</span> := NewSize</pre>
+<p><em>CurrentSize</em> and <em>NewSize</em> are the size of the file, in bytes.</p>
 <p>This property should be used only with an actual file. If the File object was created from a handle to a pipe, it may return the amount of data currently available in the pipe's internal buffer, but this behaviour is not guaranteed.</p></div>
 
 <div class="methodShort" id="AtEOF"><h3>AtEOF</h3>
-  <p>Retrieves a non-zero value if the file pointer has reached the end of the file, otherwise zero.</p>
-<pre class="Syntax">IsAtEOF := FileObj.AtEOF</pre>
+  <p>Retrieves a non-zero number if the file pointer has reached the end of the file, otherwise zero.</p>
+<pre class="Syntax">IsAtEOF := FileObj.<span class="func">AtEOF</span></pre>
   <p>This property should be used only with an actual file. If the File object was created from a handle to a non-seeking device such as a console buffer or pipe, the returned value may not be meaningful, as such devices do not logically have an "end of file".</p></div>
 
 <div class="methodShort" id="Encoding"><h3>Encoding</h3>
 <p>Retrieves or sets the text encoding used by this file object.</p>
-<pre class="Syntax">RetrievedEncoding := FileObj.Encoding</pre>
-<pre class="Syntax">FileObj.Encoding := NewEncoding</pre>
+<pre class="Syntax">CurrentEncoding := FileObj.<span class="func">Encoding</span></pre>
+<pre class="Syntax">FileObj.<span class="func">Encoding</span> := NewEncoding</pre>
   <p><em>NewEncoding</em> may be a numeric code page identifier (see <a href="https://learn.microsoft.com/windows/win32/intl/code-page-identifiers">Microsoft Docs</a>) or one of the following strings.</p>
-  <p><em>RetrievedEncoding</em> is one of the following strings:</p>
+  <p><em>CurrentEncoding</em> is one of the following strings:</p>
   <ul>
 	<li><code class="no-highlight">UTF-8</code>: Unicode UTF-8, equivalent to CP65001.</li>
 	<li><code class="no-highlight">UTF-16</code>: Unicode UTF-16 with little endian byte order, equivalent to CP1200.</li>
 	<li><code>CP<i>nnn</i></code>: a code page with numeric identifier <i>nnn</i>.</li>
   </ul>
-  <p><em>RetrievedEncoding</em> is never a value with the <code>-RAW</code> suffix, regardless of how the file was opened or whether it contains a byte order mark (BOM). Setting <em>NewEncoding</em> never causes a BOM to be added or removed, as the BOM is normally written to the file when it is first created.</p>
+  <p><em>CurrentEncoding</em> is never a value with the <code>-RAW</code> suffix, regardless of how the file was opened or whether it contains a byte order mark (BOM). Setting <em>NewEncoding</em> never causes a BOM to be added or removed, as the BOM is normally written to the file when it is first created.</p>
   <p>Setting <em>NewEncoding</em> to <code class="no-highlight">UTF-8-RAW</code> or <code class="no-highlight">UTF-16-RAW</code> is valid, but the <code>-RAW</code> suffix is ignored. This only applies to <code>FileObj.Encoding</code>, not <a href="FileOpen.htm">FileOpen</a>.</p>
 </div>
 
 <div class="methodShort" id="Handle"><h3>Handle</h3>
-  <p>Returns a system file handle, intended for use with DllCall. See <a href="https://learn.microsoft.com/windows/win32/api/fileapi/nf-fileapi-createfilea">CreateFile</a>.</p>
-<pre class="Syntax">FileObj.Handle</pre>
-<p>File objects internally buffer reads or writes. If data has been written into the object's internal buffer, it is committed to disk before the handle is returned. If the buffer contains data read from file, it is discarded and the actual file pointer is reset to the logical position indicated by <code>FileObj.Pos</code>.</p></div>
+  <p>Returns a system file handle, intended for use with <a href="DllCall.htm">DllCall</a>. See <a href="https://learn.microsoft.com/windows/win32/api/fileapi/nf-fileapi-createfilea">CreateFile</a>.</p>
+<pre class="Syntax">Handle := FileObj.<span class="func">Handle</span></pre>
+<p>File objects internally buffer reads or writes. If data has been written into the object's internal buffer, it is committed to disk before the handle is returned. If the buffer contains data read from file, it is discarded and the actual file pointer is reset to the logical position indicated by the <a href="#Pos">Pos</a> property.</p></div>
 
 </body>
 </html>

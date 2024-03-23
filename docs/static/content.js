@@ -339,6 +339,8 @@ function ctor_toc()
       return;
     if (!retrieveData(deprecate.dataPath, "deprecate_data", "deprecateData", self.modify))
       return;
+    if (!retrieveData(translate.dataPath, "translate_data", "translateData", self.modify))
+      return;
 
     $toc = $('#left div.toc').html(self.create(cache.toc_data));
     $tocList = $toc.find('li > span');
@@ -450,24 +452,33 @@ function ctor_index()
   var self = this;
   self.dataPath = scriptDir + '/source/data_index.js';
   self.create = function(input, filter) { // Create and add the index links.
-    var output = '';
+
+    var output = '', label, path, type;
+    var type_name = {2: T("function"), 4: T("operator"), 6: T("class")};
     input.sort(function(a, b) {
       var textA = a[0].toLowerCase(), textB = b[0].toLowerCase()
       return textA.localeCompare(textB);
     });
     for (var i = 0, len = input.length; i < len; i++)
     {
-      if (filter != -1 && input[i][2] != filter)
+      label = input[i][0];
+      path = input[i][1];
+      type = input[i][2];
+      if (filter != -1 && type != filter)
         continue;
+      // Append type name for ambiguities:
+      if (filter == -1 && type && type_name[type])
+        if (input[i-1] && input[i-1][0] == label || input[i+1] && input[i+1][0] == label)
+          label += ' (' + type_name[type] + ')'
       var a = document.createElement("a");
-      a.href = workingDir + input[i][1];
+      a.href = workingDir + path;
       a.setAttribute("tabindex", "-1");
       if (isIE8)
-        a.innerHTML = input[i][0];
+        a.innerHTML = label;
       else
       {
-        a.setAttribute("data-content", input[i][0]);
-        a.setAttribute("aria-label", input[i][0]);
+        a.setAttribute("data-content", label);
+        a.setAttribute("aria-label", label);
       }
       output += a.outerHTML;
     }
@@ -476,6 +487,8 @@ function ctor_index()
   self.modify = function() { // Modify the elements of the index tab.
 
     if (!retrieveData(self.dataPath, "index_data", "indexData", self.modify))
+      return;
+    if (!retrieveData(translate.dataPath, "translate_data", "translateData", self.modify))
       return;
 
     var $index = $('#left div.index');
@@ -1971,19 +1984,19 @@ function ctor_features()
         els.dir.push(out);
         return '<dir></dir>';
       });
-      // built-in functions:
-      els.order.push('bif'); els.bif = [];
-      innerHTML = innerHTML.replace(new RegExp('\\b(' + syntax[2].single.join('|') + ')\\b(?=$|\\(|\\s(?!\\s*' + assignOp + '))', 'gi'), function(_, BIF) {
-        out = wrap(BIF, 'bif', 2);
-        els.bif.push(out);
-        return '<bif></bif>';
-      });
       // built-in classes:
       els.order.push('cls'); els.cls = [];
       innerHTML = innerHTML.replace(new RegExp('\\b(' + syntax[6].single.join('|') + ')\\b', 'gi'), function(_, CLS) {
         out = wrap(CLS, 'cls', 6);
         els.cls.push(out);
         return '<cls></cls>';
+      });
+      // built-in functions:
+      els.order.push('bif'); els.bif = [];
+      innerHTML = innerHTML.replace(new RegExp('\\b(' + syntax[2].single.join('|') + ')\\b(?=$|\\(|\\s(?!\\s*' + assignOp + '))', 'gi'), function(_, BIF) {
+        out = wrap(BIF, 'bif', 2);
+        els.bif.push(out);
+        return '<bif></bif>';
       });
       // control flow statements:
       els.order.push('cfs'); els.cfs = [];

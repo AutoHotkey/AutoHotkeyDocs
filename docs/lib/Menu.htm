@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <title>Menu/MenuBar Object - Methods &amp; Properties | AutoHotkey v2</title>
-<meta name="description" content="The Menu/MenuBar object provides an interface for menus or menu bars to perform actions, such as adding menu items, or to retrieve or set values, such as the default menu item." />
+<meta name="description" content="The Menu/MenuBar object provides an interface to create and modify a menu or menu bar, add and modify menu items, and retrieve information about the menu or menu bar." />
 <meta name="ahk:equiv-v1" content="lib/Menu.htm" />
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -12,7 +12,7 @@
 <body>
 
 <h1>Menu/MenuBar Object</h1>
-<p>Used to modify and display menus or menu bars.</p>
+<p>Provides an interface to create and modify a menu or menu bar, add and modify menu items, and retrieve information about the menu or menu bar.</p>
 <pre class="NoIndent">class Menu extends Object</pre>
 <p>Menu objects are used to define, modify and display popup menus. <a href="#Call">Menu()</a>, <a href="MenuFromHandle.htm">MenuFromHandle</a> and <a href="../Variables.htm#TrayMenu">A_TrayMenu</a> return an object of this type.</p>
 <pre class="NoIndent">class MenuBar extends Menu</pre>
@@ -33,9 +33,9 @@
       <li><a href="#Add">Add</a>: Adds or modifies a menu item.</li>
       <li><a href="#AddStandard">AddStandard</a>: Adds the standard tray menu items.</li>
       <li><a href="#Check">Check</a>: Adds a visible checkmark next to a menu item.</li>
-      <li><a href="#Delete">Delete</a>: Deletes a menu item or all menu items.</li>
-      <li><a href="#Disable">Disable</a>: Changes a menu item to a gray color to indicate that the user cannot select it.</li>
-      <li><a href="#Enable">Enable</a>: Allows the user to once again select a menu item if was previously disabled (grayed).</li>
+      <li><a href="#Delete">Delete</a>: Deletes one or all menu items.</li>
+      <li><a href="#Disable">Disable</a>: Grays out a menu item to indicate that the user cannot select it.</li>
+      <li><a href="#Enable">Enable</a>: Allows the user to once again select a menu item if it was previously disabled (grayed out).</li>
       <li><a href="#Insert">Insert</a>: Inserts a new item before the specified item.</li>
       <li><a href="#Rename">Rename</a>: Renames a menu item.</li>
       <li><a href="#SetColor">SetColor</a>: Changes the background color of the menu.</li>
@@ -69,8 +69,10 @@
 <h3>Call</h3>
 <p>Creates a new Menu or MenuBar object.</p>
 <pre class="Syntax">
-MyMenu := <span class="func">Menu</span>()
-MyMenuBar := <span class="func">MenuBar</span>()
+MyMenu := Menu()
+MyMenuBar := MenuBar()
+MyMenu := Menu.<span class="func">Call</span>()
+MyMenuBar := MenuBar.<span class="func">Call</span>()
 </pre>
 </div>
 
@@ -78,44 +80,45 @@ MyMenuBar := <span class="func">MenuBar</span>()
 <div class="methodShort" id="Add">
 <h3>Add</h3>
 <p>Adds or modifies a menu item.</p>
-<pre class="Syntax">MyMenu.<span class="func">Add</span>(<span class="optional">MenuItemName, Function-or-Submenu, Options</span>)</pre>
+<pre class="Syntax">MyMenu.<span class="func">Add</span>(<span class="optional">MenuItemName, CallbackOrSubmenu, Options</span>)</pre>
+<h4 id="Add_Parameters">Parameters</h4>
 <dl>
-  <dt>MenuItemName</dt><dd>
+  <dt>MenuItemName</dt>
+  <dd>
     <p>Type: <a href="../Concepts.htm#strings">String</a></p>
-    <p>The text to display on the menu item, or the position&amp; of an existing item to modify. See <a href="#MenuItemName">MenuItemName</a>.</p></dd>
-  <dt>Function-or-Submenu</dt><dd>
+    <p>The text to display on the menu item, or the position of an existing item to modify. See <a href="#MenuItemName">MenuItemName</a>.</p>
+  </dd>
+  <dt id="CallbackOrSubmenu">CallbackOrSubmenu</dt>
+  <dd>
     <p>Type: <a href="../misc/Functor.htm">Function Object</a> or <strong>Menu</strong></p>
-    <p>A <a href="../misc/Functor.htm">function object</a> to call as a new <a href="../misc/Threads.htm">thread</a> when the menu item is selected, or a reference to a Menu object to use as a submenu.</p>
-    <p>This parameter is required when creating a new item, but optional when updating the <em>Options</em> of an existing item.</p>
-  <p id="CallbackParams">The function should accept the following parameters:</p>
-<pre class="Syntax"><i>FunctionName</i>(ItemName, ItemPos, MyMenu)</pre>
-    </dd>
-  <dt>Options</dt><dd>
+    <p>The function to call as a new <a href="../misc/Threads.htm">thread</a> when the menu item is selected, or a reference to a Menu object to use as a submenu.</p>
+    <p>This parameter is required when creating a new item, but optional when updating the options of an existing item.</p>
+    <p>The callback accepts three parameters and can be <a href="../Functions.htm#intro">defined</a> as follows:</p>
+    <pre class="NoIndent">MyCallback(ItemName, ItemPos, MyMenu) { ...</pre>
+    <p>Although the names you give the parameters do not matter, the following values are sequentially assigned to them:</p>
+    <ol>
+      <li>The name of the menu item.</li>
+      <li>The position number of the menu item.</li>
+      <li>The Menu object of the menu to which the menu item was added.</li>
+    </ol>
+    <p>You can omit one or more parameters from the end of the callback's parameter list if the corresponding information is not needed, but in this case an asterisk must be specified as the final parameter, e.g. <code>MyCallback(Param1, *)</code>.</p>
+  </dd>
+  <dt id="Options">Options</dt>
+  <dd>
     <p>Type: <a href="../Concepts.htm#strings">String</a></p>
-  <p>If not omitted, <em>Options</em> must be a space- or tab-delimited list of one or more of the following options:</p>
-<table class="info">
-  <tr>
-    <th>Option</th>
-    <th abbr="Descr">Description</th>
-  </tr>
-  <tr><td>P<em>n</em></td>
-  <td>Specify for <em>n</em> the menu item's <a href="../misc/Threads.htm">thread priority</a>, e.g. <code>P1</code>. If this option is omitted when adding a menu item, the priority will be 0, which is the standard default. If omitted when updating a menu item, the item's priority will not be changed. Use a decimal (not hexadecimal) number as the priority.</td></tr>
-  <tr><td>+Radio</td>
-  <td>If the item is checked, a bullet point is used instead of a check mark.</td></tr>
-  <tr><td>+Right</td>
-  <td>The item is right-justified within the menu bar. This only applies to <a href="Gui.htm#MenuBar">menu bars</a>, not popup menus or submenus.</td></tr>
-  <tr><td>+Break</td>
-  <td>The item begins a new column in a popup menu.</td></tr>
-  <tr><td>+BarBreak</td>
-  <td>As above, but with a dividing line between columns.</td></tr>
-</table>
-<p>The plus sign (+) is optional and can be replaced with minus (-) to remove the option, as in <code>-Radio</code>. Options are not case-sensitive.</p>
-<p>To change an existing item's options without affecting its callback or submenu, simply omit the <em>Callback-or-Submenu</em> parameter.</p>
+    <p>If blank or omitted, it defaults to no options. Otherwise, specify one or more options from the list below (not case-sensitive). Separate each option from the next with a space or tab. To remove an option, precede it with a minus sign. To add an option, a plus sign is permitted but not required.</p>
+    <p><strong>P</strong><em>n</em>: Specify for <em>n</em> the menu item's <a href="../misc/Threads.htm">thread priority</a>, e.g. <code>P1</code>. If this option is omitted when adding a menu item, the priority will be 0, which is the standard default. If omitted when updating a menu item, the item's priority will not be changed. Use a decimal (not hexadecimal) number as the priority.</p>
+    <p><strong>Radio:</strong> If the item is checked, a bullet point is used instead of a check mark.</p>
+    <p><strong>Right:</strong> The item is right-justified within the menu bar. This only applies to <a href="Gui.htm#MenuBar">menu bars</a>, not popup menus or submenus.</p>
+    <p><strong>Break:</strong> The item begins a new column in a popup menu.</p>
+    <p><strong>BarBreak:</strong> As above, but with a dividing line between columns.</p>
+<p>To change an existing item's options without affecting its callback or submenu, simply omit the <em>CallbackOrSubmenu</em> parameter.</p>
   </dd>
 </dl>
-<p>This is a multipurpose method that adds a menu item, updates one with a new submenu or callback, or converts one from a normal item into a submenu (or vice versa). If <em>MenuItemName</em> does not yet exist, it will be added to the menu. Otherwise, <em>MenuItemName</em> is updated with the newly specified <em>Callback-or-Submenu</em> and/or <em>Options</em>.</p>
+<h4 id="Add_Remarks">Remarks</h4>
+<p>This is a multipurpose method that adds a menu item, updates one with a new submenu or callback, or converts one from a normal item into a submenu (or vice versa). If <em>MenuItemName</em> does not yet exist, it will be added to the menu. Otherwise, <em>MenuItemName</em> is updated with the newly specified <em>CallbackOrSubmenu</em> and/or <em>Options</em>.</p>
 <p>To add a menu separator line, omit all three parameters.</p>
-<p><em>Add</em> always adds new menu items at the bottom of the menu, but <a href="#Insert">Insert</a> can be used to insert an item before an existing custom menu item.</p>
+<p>This method always adds new menu items at the bottom of the menu, while the <a href="#Insert">Insert</a> method can be used to insert an item before an existing custom menu item.</p>
 </div>
 
 <div class="methodShort" id="AddStandard">
@@ -164,154 +167,219 @@ MyMenuBar := <span class="func">MenuBar</span>()
 
 <div class="methodShort" id="Check">
 <h3>Check</h3>
-<p>Adds a visible checkmark in the menu next to <em>MenuItemName</em> (if there isn't one already).</p>
+<p>Adds a visible checkmark in the menu next to a menu item (if there isn't one already).</p>
 <pre class="Syntax">MyMenu.<span class="func">Check</span>(MenuItemName)</pre>
+<h4 id="Check_Parameters">Parameters</h4>
 <dl>
-  <dt>MenuItemName</dt><dd>
+  <dt>MenuItemName</dt>
+  <dd>
     <p>Type: <a href="../Concepts.htm#strings">String</a></p>
-    <p>The name or position of a menu item. See <a href="#MenuItemName">MenuItemName</a>.</p></dd>
+    <p>The name or position of a menu item. See <a href="#MenuItemName">MenuItemName</a>.</p>
+  </dd>
 </dl>
 </div>
 
 <div class="methodShort" id="Delete">
 <h3>Delete</h3>
-<p>Deletes a menu item or all custom menu items.</p>
+<p>Deletes one or all menu items.</p>
 <pre class="Syntax">MyMenu.<span class="func">Delete</span>(<span class="optional">MenuItemName</span>)</pre>
+<h4 id="Delete_Parameters">Parameters</h4>
 <dl>
-  <dt>MenuItemName</dt><dd>
+  <dt>MenuItemName</dt>
+  <dd>
     <p>Type: <a href="../Concepts.htm#strings">String</a></p>
-    <p>The name or position of a menu item. See <a href="#MenuItemName">MenuItemName</a>.</p></dd>
+    <p>If omitted, all menu items are deleted from the menu, leaving the menu empty. Otherwise, specify the name or position of a menu item. See <a href="#MenuItemName">MenuItemName</a>.</p>
+  </dd>
 </dl>
-<p>If <em>MenuItemName</em> is omitted, all items are deleted from the menu, leaving the menu empty. An empty menu still exists and thus any other menus that use it as a submenu will retain those submenus.</p>
+<h4 id="Delete_Remarks">Remarks</h4>
+<p>An empty menu still exists and thus any other menus that use it as a submenu will retain those submenus.</p>
 <p>To delete a separator line, identify it by its position in the menu. For example, use <code>MyMenu.Delete("3&amp;")</code> if there are two items preceding the separator.</p>
 <p>If the <em>default</em> menu item is deleted, the effect will be similar to having set <code>MyMenu.Default := ""</code>.</p>
 </div>
 
 <div class="methodShort" id="Disable">
 <h3>Disable</h3>
-<p>Changes <em>MenuItemName</em> to a gray color to indicate that the user cannot select it.</p>
+<p>Grays out a menu item to indicate that the user cannot select it.</p>
 <pre class="Syntax">MyMenu.<span class="func">Disable</span>(MenuItemName)</pre>
+<h4 id="Disable_Parameters">Parameters</h4>
 <dl>
-  <dt>MenuItemName</dt><dd>
+  <dt>MenuItemName</dt>
+  <dd>
     <p>Type: <a href="../Concepts.htm#strings">String</a></p>
-    <p>The name or position of a menu item. See <a href="#MenuItemName">MenuItemName</a>.</p></dd>
+    <p>The name or position of a menu item. See <a href="#MenuItemName">MenuItemName</a>.</p>
+  </dd>
 </dl>
 </div>
 
 <div class="methodShort" id="Enable">
 <h3>Enable</h3>
-<p>Allows the user to once again select <em>MenuItemName</em> if it was previously disabled (grayed).</p>
+<p>Allows the user to once again select a menu item if it was previously disabled (grayed out).</p>
 <pre class="Syntax">MyMenu.<span class="func">Enable</span>(MenuItemName)</pre>
+<h4 id="Enable_Parameters">Parameters</h4>
 <dl>
-  <dt>MenuItemName</dt><dd>
+  <dt>MenuItemName</dt>
+  <dd>
     <p>Type: <a href="../Concepts.htm#strings">String</a></p>
-    <p>The name or position of a menu item. See <a href="#MenuItemName">MenuItemName</a>.</p></dd>
+    <p>The name or position of a menu item. See <a href="#MenuItemName">MenuItemName</a>.</p>
+  </dd>
 </dl>
 </div>
 
 <div class="methodShort" id="Insert">
 <h3>Insert</h3>
 <p>Inserts a new item before the specified item.</p>
-<pre class="Syntax">MyMenu.<span class="func">Insert</span>(<span class="optional">ItemToInsertBefore, NewItemName, Callback-or-Submenu, Options</span>)</pre>
+<pre class="Syntax">MyMenu.<span class="func">Insert</span>(<span class="optional">MenuItemName, ItemToInsert, CallbackOrSubmenu, Options</span>)</pre>
+<h4 id="Insert_Parameters">Parameters</h4>
 <dl>
-  <dt>ItemToInsertBefore</dt><dd>
+  <dt>MenuItemName</dt>
+  <dd>
     <p>Type: <a href="../Concepts.htm#strings">String</a></p>
-    <p>The name of an existing item or a position&amp; between 1 and the current number of items plus 1 (following the same rules as <a href="#MenuItemName">MenuItemName</a>). Items can also be appended by omitting <em>ItemToInsertBefore</em>.</p></dd>
-  <dt>NewItemName</dt><dd>
+    <p>If blank or omitted, <em>ItemToInsert</em> will be added at the bottom of the menu. Otherwise, specify the name or position of an existing custom menu item before which <em>ItemToInsert</em> should be inserted. See <a href="#MenuItemName">MenuItemName</a>.</p>
+  </dd>
+  <dt>ItemToInsert</dt>
+  <dd>
     <p>Type: <a href="../Concepts.htm#strings">String</a></p>
-    <p>The text to display on the menu item. Unlike <a href="#Add">Add</a>, this cannot be a position.</p></dd>
+    <p>The name of a new menu item to insert before <em>MenuItemName</em>. Unlike the <a href="#Add">Add</a> method, a new item is always created, even if <em>ItemToInsert</em> matches the name of an existing item.</p>
+  </dd>
+  <dt>CallbackOrSubmenu</dt>
+  <dd>
+    <p>See the Add method's <a href="#CallbackOrSubmenu">CallbackOrSubmenu parameter</a>.</p>
+  </dd>
+  <dt>Options</dt>
+  <dd>
+    <p>See the Add method's <a href="#Options">Options parameter</a>.</p>
+  </dd>
 </dl>
-<p>The remaining parameters behave as per the <a href="#Add">Add</a> method, except that <em>Insert</em> creates a new item even if <em>NewItemName</em> matches the name of an existing item.</p>
+<h4 id="Insert_Remarks">Remarks</h4>
+<p>To insert a menu separator line before an existing custom menu item, omit all parameters except <em>MenuItemName</em>. To add a menu separator line at the bottom of the menu, omit all parameters.</p>
 </div>
 
 <div class="methodShort" id="Rename">
 <h3>Rename</h3>
-<p>Renames <em>MenuItemName</em> to <em>NewName</em>.</p>
+<p>Renames a menu item.</p>
 <pre class="Syntax">MyMenu.<span class="func">Rename</span>(MenuItemName <span class="optional">, NewName</span>)</pre>
+<h4 id="Rename_Parameters">Parameters</h4>
 <dl>
-  <dt>MenuItemName</dt><dd>
+  <dt>MenuItemName</dt>
+  <dd>
     <p>Type: <a href="../Concepts.htm#strings">String</a></p>
-    <p>The name or position of a menu item. See <a href="#MenuItemName">MenuItemName</a>.</p></dd>
-  <dt>NewName</dt><dd>
+    <p>The name or position of a menu item. See <a href="#MenuItemName">MenuItemName</a>.</p>
+  </dd>
+  <dt>NewName</dt>
+  <dd>
     <p>Type: <a href="../Concepts.htm#strings">String</a></p>
-    <p>The new name. If empty or omitted, <em>MenuItemName</em> will be converted into a separator line.</p></dd>
+    <p>If blank or omitted, <em>MenuItemName</em> will be converted into a separator line. Otherwise, specify the new name.</p>
+  </dd>
 </dl>
+<h4 id="Rename_Remarks">Remarks</h4>
 <p>The menu item's current callback or submenu is unchanged.</p>
-<p>A separator line can be converted to a normal item by specifying the position of the separator such as <code>"1&"</code> for <em>MenuItemName</em> and a non-blank name for <em>NewName</em>, and then using the <em>Add</em> method to give the item a callback or submenu.</p>
+<p>A separator line can be converted to a normal item by specifying the position of the separator such as <code>"1&"</code> for <em>MenuItemName</em> and a non-blank name for <em>NewName</em>, and then using the <a href="#Add">Add</a> method to give the item a callback or submenu.</p>
 </div>
 
 <div class="methodShort" id="SetColor">
 <h3>SetColor</h3>
-<p>Changes the background color of the menu to <em>ColorValue</em>.</p>
+<p>Changes the background color of the menu.</p>
 <pre class="Syntax">MyMenu.<span class="func">SetColor</span>(<span class="optional">ColorValue, ApplyToSubmenus</span>)</pre>
+<h4 id="SetColor_Parameters">Parameters</h4>
+
 <dl>
-  <dt>ColorValue</dt><dd>
+  <dt>ColorValue</dt>
+  <dd>
     <p>Type: <a href="../Concepts.htm#strings">String</a> or <a href="../Concepts.htm#numbers">Integer</a></p>
-    <p>One of the 16 primary <a href="../misc/Colors.htm">HTML color names</a>, a hexadecimal RGB color string (the 0x prefix is optional), or a pure numeric RGB color value. Omit <em>ColorValue</em> (or specify an empty string or the word "Default") to restore the menu to its default color. Example values: <code>"Silver"</code>, <code>"FFFFAA"</code>, <code>0xFFFFAA</code>, <code>"Default"</code>.</p></dd>
-  <dt>ApplyToSubmenus</dt><dd>
+    <p>If blank or omitted, it defaults to the word Default, which restores the default color of the menu. Otherwise, specify one of the 16 primary <a href="../misc/Colors.htm">HTML color names</a>, a hexadecimal RGB color string (the 0x prefix is optional), or a pure numeric RGB color value. Example values: <code>"Silver"</code>, <code>"FFFFAA"</code>, <code>0xFFFFAA</code>, <code>"Default"</code>.</p>
+  </dd>
+  <dt>ApplyToSubmenus</dt>
+  <dd>
     <p>Type: <a href="../Concepts.htm#boolean">Boolean</a></p>
-    <p>1 (true) if the color should be applied to all of this menu's submenus, otherwise 0 (false). Defaults to 1 (true).</p></dd>
+    <p>If omitted, it defaults to true.</p>
+    <p>If <strong>true</strong>, the color will be applied to all of the menu's submenus.</p>
+    <p>If <strong>false</strong>, the color will be applied to the menu only.</p>
+  </dd>
 </dl>
 </div>
 
 <div class="methodShort" id="SetIcon">
 <h3>SetIcon</h3>
-<p>Sets the icon to be displayed next to <em>MenuItemName</em>.</p>
+<p>Sets the icon to be displayed next to a menu item.</p>
 <pre class="Syntax">MyMenu.<span class="func">SetIcon</span>(MenuItemName, FileName <span class="optional">, IconNumber, IconWidth</span>)</pre>
+<h4 id="SetIcon_Parameters">Parameters</h4>
 <dl>
-  <dt>MenuItemName</dt><dd>
-    <p>Type: <a href="../Concepts.htm#strings">String</a></p>     <p>The name or position of a menu item. See <a href="#MenuItemName">MenuItemName</a>.</p></dd>
-  <dt>FileName</dt><dd>
+  <dt>MenuItemName</dt>
+  <dd>
     <p>Type: <a href="../Concepts.htm#strings">String</a></p>
-    <p>The path of an icon or image file. For a list of supported formats, see <a href="GuiControls.htm#IconSupport">the Picture control</a>.</p>
-  <p>A <a href="../misc/ImageHandles.htm">bitmap or icon handle</a> can be used instead of a filename. For example, <code>"HICON:" handle</code>.</p>
-  <p>Omit <em>FileName</em> or specify an empty string or <code>"*"</code> to remove the item's current icon.</p></dd>
-  <dt>IconNumber</dt><dd>
+    <p>The name or position of a menu item. See <a href="#MenuItemName">MenuItemName</a>.</p>
+  </dd>
+  <dt>FileName</dt>
+  <dd>
+    <p>Type: <a href="../Concepts.htm#strings">String</a></p>
+    <p>The path to an icon or image file, or a <a href="../misc/ImageHandles.htm">bitmap or icon handle</a> such as <code>"HICON:" handle</code>. For a list of supported formats, see <a href="GuiControls.htm#IconSupport">the Picture control</a>.</p>
+    <p>Specify an empty string or <code>"*"</code> to remove the item's current icon.</p>
+  </dd>
+  <dt>IconNumber</dt>
+  <dd>
     <p>Type: <a href="../Concepts.htm#numbers">Integer</a></p>
-    <p>To use an icon group other than the first one in the file, specify its number for <em>IconNumber</em> (if omitted, it defaults to 1). If <em>IconNumber</em> is negative, its absolute value is assumed to be the resource ID of an icon within an executable file.</p></dd>
-  <dt>IconWidth</dt><dd>
+    <p>If omitted, it defaults to 1 (the first icon group). Otherwise, specify the number of the icon group to be used in the file. For example, <code>MyMenu.SetIcon(MenuItemName, "Shell32.dll", 2)</code> would use the default icon from the second icon group. If negative, its absolute value is assumed to be the resource ID of an icon within an executable file.</p>
+  </dd>
+  <dt>IconWidth</dt>
+  <dd>
     <p>Type: <a href="../Concepts.htm#numbers">Integer</a></p>
-    <p>The desired width of the icon. If the icon group indicated by <em>IconNumber</em> contains multiple icon sizes, the closest match is used and the icon is scaled to the specified size. See the Examples section for usage examples.</p></dd>
+    <p>If omitted, it defaults to the width of a small icon recommended by the OS (usually 16 pixels). If 0, the original width is used. Otherwise, specify the desired width of the icon, in pixels. If the icon group indicated by <em>IconNumber</em> contains multiple icon sizes, the closest match is used and the icon is scaled to the specified size.</p>
+  </dd>
 </dl>
-<p>Currently it is necessary to specify "actual size" when setting the icon to preserve transparency, e.g.
-<code>MyMenu.SetIcon "My menu item", "Filename.png",, 0</code>.</p>
-<p>A <a href="../misc/ImageHandles.htm">bitmap or icon handle</a> can be used instead of a filename. For example, <code>"HBITMAP:" handle</code>.</p>
+<h4 id="SetIcon_Remarks">Remarks</h4>
+<p>Currently it is necessary to specify the "actual size" when setting the icon to preserve transparency, e.g.
+<code>MyMenu.SetIcon(MenuItemName, "Filename.png",, 0)</code>.</p>
 </div>
 
 <div class="methodShort" id="Show">
 <h3>Show</h3>
-<p>Displays the menu, allowing the user to select an item with arrow keys, menu shortcuts (underlined letters), or the mouse.</p>
+<p>Displays the menu.</p>
 <pre class="Syntax">MyMenu.<span class="func">Show</span>(<span class="optional">X, Y, Wait</span>)</pre>
+<h4 id="Show_Parameters">Parameters</h4>
 <dl>
-  <dt>X, Y</dt><dd>
+  <dt>X, Y</dt>
+  <dd>
     <p>Type: <a href="../Concepts.htm#numbers">Integer</a></p>
-    <p>The coordinates at which to display the menu. If both X and Y are omitted, the menu is displayed at the current position of the mouse cursor. If only one of them is omitted, the mouse cursor's position will be used for it. X and Y are relative to the active window's client area by default. To override this default, use <code><a href="CoordMode.htm">CoordMode</a> "Menu", <i>Mode</i></code> or <code>A_CoordModeMenu := <i>Mode</i></code>.</p></dd>
-  <dt>Wait <span class="ver">[v2.1-alpha.1+]</span></dt><dd>
+    <p>If omitted, the menu will be shown near the mouse cursor. Otherwise, specify the X and Y coordinates at which to display the upper left corner of the menu. The coordinates are relative to the active window's client area unless overridden by using <a href="CoordMode.htm">CoordMode</a> or <a href="../Variables.htm#CoordMode">A_CoordModeMenu</a>.</p>
+  </dd>
+  <dt>Wait <span class="ver">[v2.1-alpha.1+]</span></dt>
+  <dd>
     <p>Type: <a href="../Concepts.htm#boolean">Boolean</a></p>
     <p>If this parameter is 1 (true), the method will not return until after the menu is closed. Specify 0 (false) to return immediately, allowing the script to continue execution while the menu is being displayed.</p>
-    <p>The default value of this parameter depends on the menu style. If the script has applied the MNS_MODELESS style (typically via DllCall), the default is 0 (no wait); otherwise, the default is 1 (wait).</p></dd>
+    <p>The default value of this parameter depends on the menu style. If the script has applied the MNS_MODELESS style (typically via DllCall), the default is 0 (no wait); otherwise, the default is 1 (wait).</p>
+  </dd>
 </dl>
-<p>Any popup menu can be shown, including submenus and the tray menu. However, an exception is thrown if <em>Menu</em> is a MenuBar object.</p>
+<h4 id="Show_Remarks">Remarks</h4>
+<p>Displaying the menu allows the user to select an item with arrow keys, menu shortcuts (underlined letters), or the mouse.</p>
+<p>Any popup menu can be shown, including submenus and the tray menu. However, an exception is thrown if <em>MyMenu</em> is a MenuBar object.</p>
 </div>
 
 <div class="methodShort" id="ToggleCheck">
 <h3>ToggleCheck</h3>
 <p>Adds a checkmark if there wasn't one; otherwise, removes it.</p>
 <pre class="Syntax">MyMenu.<span class="func">ToggleCheck</span>(MenuItemName)</pre>
+<h4 id="ToggleCheck_Parameters">Parameters</h4>
 <dl>
-  <dt>MenuItemName</dt><dd>
-    <p>Type: <a href="../Concepts.htm#strings">String</a></p>     <p>The name or position of a menu item. See <a href="#MenuItemName">MenuItemName</a>.</p></dd>
+  <dt>MenuItemName</dt>
+  <dd>
+    <p>Type: <a href="../Concepts.htm#strings">String</a></p>
+    <p>The name or position of a menu item. See <a href="#MenuItemName">MenuItemName</a>.</p>
+  </dd>
 </dl>
 <p><span class="ver">[v2.1-alpha.7+]</span>: Returns 1 if the item is now checked, or 0 if now unchecked.</p>
 </div>
 
 <div class="methodShort" id="ToggleEnable">
 <h3>ToggleEnable</h3>
-<p>Disables <em>MenuItemName</em> if it was previously enabled; otherwise, enables it.</p>
+<p>Disables a menu item if it was previously enabled; otherwise, enables it.</p>
 <pre class="Syntax">MyMenu.<span class="func">ToggleEnable</span>(MenuItemName)</pre>
+<h4 id="ToggleEnable_Parameters">Parameters</h4>
 <dl>
-  <dt>MenuItemName</dt><dd>
-    <p>Type: <a href="../Concepts.htm#strings">String</a></p>     <p>The name or position of a menu item. See <a href="#MenuItemName">MenuItemName</a>.</p></dd>
+  <dt>MenuItemName</dt>
+  <dd>
+    <p>Type: <a href="../Concepts.htm#strings">String</a></p>
+    <p>The name or position of a menu item. See <a href="#MenuItemName">MenuItemName</a>.</p>
+  </dd>
 </dl>
 <p><span class="ver">[v2.1-alpha.7+]</span>: Returns 1 if the item is now enabled, or 0 if now unchecked.</p>
 </div>
@@ -320,9 +388,13 @@ MyMenuBar := <span class="func">MenuBar</span>()
 <h3>Uncheck</h3>
 <p>Removes the checkmark (if there is one) from a menu item.</p>
 <pre class="Syntax">MyMenu.<span class="func">Uncheck</span>(MenuItemName)</pre>
+<h4 id="Uncheck_Parameters">Parameters</h4>
 <dl>
-  <dt>MenuItemName</dt><dd>
-    <p>Type: <a href="../Concepts.htm#strings">String</a></p>     <p>The name or position of a menu item. See <a href="#MenuItemName">MenuItemName</a>.</p></dd>
+  <dt>MenuItemName</dt>
+  <dd>
+    <p>Type: <a href="../Concepts.htm#strings">String</a></p>
+    <p>The name or position of a menu item. See <a href="#MenuItemName">MenuItemName</a>.</p>
+  </dd>
 </dl>
 </div>
 
@@ -330,31 +402,19 @@ MyMenuBar := <span class="func">MenuBar</span>()
 <div class="methodShort" id="ClickCount">
 <h3>ClickCount</h3>
 <p>Retrieves or sets how many times the <a href="../Program.htm#tray-icon">tray icon</a> must be clicked to select its default menu item.</p>
-<pre class="Syntax">MyMenu.ClickCount := Count</pre>
-<dl>
-  <dt>Count</dt><dd>
-    <p>Type: <a href="../Concepts.htm#numbers">Integer</a></p>
-    <p>Specify 1 to allow a single-click to select the tray menu's default menu item. Specify 2 to return to the default behavior (double-click).</p></dd>
-</dl>
-<p>For example: <code>A_TrayMenu.ClickCount := 1</code></p>
+<pre class="Syntax">CurrentCount := MyMenu.<span class="func">ClickCount</span></pre>
+<pre class="Syntax">MyMenu.<span class="func">ClickCount</span> := NewCount</pre>
+<p><em>CurrentCount</em> is <em>NewCount</em> if assigned, otherwise 2 by default.</p>
+<p><em>NewCount</em> can be 1 to allow a single-click to select the tray menu's default menu item, or 2 to return to the default behavior (double-click). Any other value is invalid and throws an exception.</p>
 </div>
 
 <div class="methodShort" id="Default">
 <h3>Default</h3>
 <p>Retrieves or sets the default menu item.</p>
-<pre class="Syntax">CurrentDefault := MyMenu.Default</pre>
-<dl>
-  <dt>CurrentDefault</dt><dd>
-    <p>Type: <a href="../Concepts.htm#strings">String</a></p>
-    <p>The name of the default menu item, or an empty string if there is no default.</p></dd>
-</dl>
-<pre class="Syntax">MyMenu.Default := MenuItemName</pre>
-<dl>
-  <dt>MenuItemName</dt><dd>
-    <p>Type: <a href="../Concepts.htm#strings">String</a></p>
-    <p>The name or position of a menu item. See <a href="#MenuItemName">MenuItemName</a>.</p>
-  <p>If <em>MenuItemName</em> is an empty string, there will be no default.</p></dd>
-</dl>
+<pre class="Syntax">CurrentDefault := MyMenu.<span class="func">Default</span></pre>
+<pre class="Syntax">MyMenu.<span class="func">Default</span> := MenuItemName</pre>
+<p><em>CurrentDefault</em> is the name of the default menu item, or an empty string if there is no default.</p>
+<p><em>MenuItemName</em> is the name or position of a menu item. See <a href="#MenuItemName">MenuItemName</a>. If <em>MenuItemName</em> is an empty string, there will be no default.</p>
 <p>Setting the default item makes that item's font bold (setting a default item in menus other than the tray menu is currently purely cosmetic). When the user double-clicks the <a href="../Program.htm#tray-icon">tray icon</a>, its default menu item is selected (even if the item is disabled). If there is no default, double-clicking has no effect.</p>
 <p>The default item for the tray menu is initially <code>&amp;Open</code>, if present. Adding <code>&amp;Open</code> to the tray menu by calling <a href="#AddStandard">AddStandard</a> or changing <a href="../Variables.htm#AllowMainWindow">A_AllowMainWindow</a> also causes it to become the default item if there wasn't one already.</p>
 <p>If the default item is deleted, the menu is left without one.</p>
@@ -363,7 +423,7 @@ MyMenuBar := <span class="func">MenuBar</span>()
 <div class="methodShort" id="Handle">
 <h3>Handle</h3>
 <p>Returns a handle to a <a href="#Win32_Menus">Win32 menu</a> (a handle of type <code>HMENU</code>), constructing it if necessary.</p>
-<pre class="Syntax">MyMenu.Handle</pre>
+<pre class="Syntax">Handle := MyMenu.<span class="func">Handle</span></pre>
 <p>The returned handle is valid only until the Win32 menu is destroyed, which typically occurs when the Menu object is freed. Once the menu is destroyed, the operating system may reassign the handle value to any menus subsequently created by the script or any other program.</p>
 </div>
 
@@ -387,7 +447,7 @@ MyMenuBar := <span class="func">MenuBar</span>()
 <p>If a menu ever becomes completely empty -- such as by using <code>MyMenu.Delete()</code> -- it cannot be shown. If the tray menu becomes empty, right-clicking and double-clicking the <a href="../Program.htm#tray-icon">tray icon</a> will have no effect (in such cases it is usually better to use <a href="_NoTrayIcon.htm">#NoTrayIcon</a>).</p>
 <p>If a menu item's callback is already running and the user selects the same menu item again, a new <a href="../misc/Threads.htm">thread</a> will be created to run that same callback, interrupting the previous thread. To instead buffer such events until later, use <a href="Critical.htm">Critical</a> as the callback's first line (however, this will also buffer/defer other threads such as the press of a hotkey).</p>
 <p>Whenever a function is called via a menu item, it starts off fresh with the default values for settings such as <a href="SendMode.htm">SendMode</a>. These defaults can be changed during <a href="../Scripts.htm#auto">script startup</a>.</p>
-<p>When building a menu whose contents are not always the same, one approach is to point all such menu items to the same function and have that function refer to its <a href="#CallbackParams">parameters</a> to determine what action to take. Alternatively, a <a href="../misc/Functor.htm">function object</a>, <a href="../Functions.htm#closures">closure</a> or <a href="../Variables.htm#fat-arrow">fat arrow function</a> can be used to bind one or more values or variables to the menu item's callback function.</p>
+<p>When building a menu whose contents are not always the same, one approach is to point all such menu items to the same function and have that function refer to its <a href="#CallbackOrSubmenu">parameters</a> to determine what action to take. Alternatively, a <a href="../misc/Functor.htm">function object</a>, <a href="../Functions.htm#closures">closure</a> or <a href="../Variables.htm#fat-arrow">fat arrow function</a> can be used to bind one or more values or variables to the menu item's callback function.</p>
 
 <h2 id="Related">Related</h2>
 <p><a href="Gui.htm">GUI</a>, <a href="../misc/Threads.htm">Threads</a>, <a href="Thread.htm">Thread</a>, <a href="Critical.htm">Critical</a>, <a href="_NoTrayIcon.htm">#NoTrayIcon</a>, <a href="../Functions.htm">Functions</a>, <a href="Return.htm">Return</a>, <a href="SetTimer.htm">SetTimer</a></p>
@@ -409,79 +469,79 @@ MenuHandler(ItemName, ItemPos, MyMenu) {
 <p><a class="ex_number" href="#ExPopup"></a> Creates a popup menu that is displayed when the user presses a hotkey.</p>
 <pre><em>; Create the popup menu by adding some items to it.</em>
 MyMenu := Menu()
-MyMenu.Add "Item 1", MenuHandler
-MyMenu.Add "Item 2", MenuHandler
-MyMenu.Add  <em>; Add a separator line.</em>
+MyMenu.Add("Item 1", MenuHandler)
+MyMenu.Add("Item 2", MenuHandler)
+MyMenu.Add()  <em>; Add a separator line.</em>
 
 <em>; Create another menu destined to become a submenu of the above menu.</em>
 Submenu1 := Menu()
-Submenu1.Add "Item A", MenuHandler
-Submenu1.Add "Item B", MenuHandler
+Submenu1.Add("Item A", MenuHandler)
+Submenu1.Add("Item B", MenuHandler)
 
 <em>; Create a submenu in the first menu (a right-arrow indicator). When the user selects it, the second menu is displayed.</em>
-MyMenu.Add "My Submenu", Submenu1
+MyMenu.Add("My Submenu", Submenu1)
 
-MyMenu.Add  <em>; Add a separator line below the submenu.</em>
-MyMenu.Add "Item 3", MenuHandler  <em>; Add another menu item beneath the submenu.</em>
+MyMenu.Add()  <em>; Add a separator line below the submenu.</em>
+MyMenu.Add("Item 3", MenuHandler)  <em>; Add another menu item beneath the submenu.</em>
 
 MenuHandler(Item, *) {
-    MsgBox "You selected " Item
+    MsgBox("You selected " Item)
 }
 
-#z::MyMenu.Show  <em>; i.e. press the Win-Z hotkey to show the menu.</em></pre>
+#z::MyMenu.Show()  <em>; i.e. press the Win-Z hotkey to show the menu.</em></pre>
 </div>
 
 <div class="ex" id="ExTray">
 <p><a class="ex_number" href="#ExTray"></a> Demonstrates some of the various menu object members.</p>
 <pre>#SingleInstance
 Persistent
-tray := A_TrayMenu <em>; For convenience.</em>
-tray.delete <em>; Delete the standard items.</em>
-tray.add <em>; separator</em>
-tray.add "TestToggleCheck", TestToggleCheck
-tray.add "TestToggleEnable", TestToggleEnable
-tray.add "TestDefault", TestDefault
-tray.add "TestAddStandard", TestAddStandard
-tray.add "TestDelete", TestDelete
-tray.add "TestDeleteAll", TestDeleteAll
-tray.add "TestRename", TestRename
-tray.add "Test", Test
+Tray := A_TrayMenu <em>; For convenience.</em>
+Tray.Delete() <em>; Delete the standard items.</em>
+Tray.Add() <em>; separator</em>
+Tray.Add("TestToggleCheck", TestToggleCheck)
+Tray.Add("TestToggleEnable", TestToggleEnable)
+Tray.Add("TestDefault", TestDefault)
+Tray.Add("TestAddStandard", TestAddStandard)
+Tray.Add("TestDelete", TestDelete)
+Tray.Add("TestDeleteAll", TestDeleteAll)
+Tray.Add("TestRename", TestRename)
+Tray.Add("Test", Test)
 
 <em>;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;</em>
 
 TestToggleCheck(*)
 {
-    tray.ToggleCheck "TestToggleCheck"
-    tray.Enable "TestToggleEnable" <em>; Also enables the next test since it can't undo the disabling of itself.</em>
-    tray.add "TestDelete", TestDelete <em>; Similar to above.</em>
+    Tray.ToggleCheck("TestToggleCheck")
+    Tray.Enable("TestToggleEnable") <em>; Also enables the next test since it can't undo the disabling of itself.</em>
+    Tray.Add("TestDelete", TestDelete) <em>; Similar to above.</em>
 }
 
 TestToggleEnable(*)
 {
-    tray.ToggleEnable "TestToggleEnable"
+    Tray.ToggleEnable("TestToggleEnable")
 }
 
 TestDefault(*)
 {
-    if tray.default = "TestDefault"
-        tray.default := ""
+    if Tray.Default = "TestDefault"
+        Tray.Default := ""
     else
-        tray.default := "TestDefault"
+        Tray.Default := "TestDefault"
 }
 
 TestAddStandard(*)
 {
-    tray.addStandard
+    Tray.AddStandard()
 }
 
 TestDelete(*)
 {
-    tray.delete "TestDelete"
+    Tray.Delete("TestDelete")
 }
 
 TestDeleteAll(*)
 {
-    tray.delete
+    Tray.Delete()
 }
 
 TestRename(*)
@@ -497,12 +557,12 @@ TestRename(*)
         OldName := "renamed"
         NewName := "TestRename"
     }
-    tray.rename OldName, NewName
+    Tray.Rename(OldName, NewName)
 }
 
 Test(Item, *)
 {
-    MsgBox 'You selected "' Item '"'
+    MsgBox("You selected " Item)
 }</pre>
 </div>
 
@@ -520,7 +580,7 @@ MyMenuBar.Add("&amp;File", FileMenu)
 MyGui := Gui()
 MyGui.MenuBar := MyMenuBar
 MyGui.Add("Button",, "Exit This Example").OnEvent("Click", (*) =&gt; WinClose())
-MyGui.Show
+MyGui.Show()
 
 MenuHandler(*) {
     <em>; For this example, the menu items don't do anything.</em>
@@ -531,9 +591,9 @@ MenuHandler(*) {
 <p><a class="ex_number" href="#ExDllCall"></a> Reports the number of items in a menu and the ID of the last item.</p>
 <pre>
 MyMenu := Menu()
-MyMenu.Add "Item 1", NoAction
-MyMenu.Add "Item 2", NoAction
-MyMenu.Add "Item B", NoAction
+MyMenu.Add("Item 1", NoAction)
+MyMenu.Add("Item 2", NoAction)
+MyMenu.Add("Item B", NoAction)
 
 <em>; Retrieve the number of items in a menu.</em>
 item_count := DllCall("GetMenuItemCount", "ptr", MyMenu.Handle)
@@ -541,7 +601,7 @@ item_count := DllCall("GetMenuItemCount", "ptr", MyMenu.Handle)
 <em>; Retrieve the ID of the last item.</em>
 last_id := DllCall("GetMenuItemID", "ptr", MyMenu.Handle, "int", item_count-1)
 
-MsgBox "MyMenu has " item_count " items, and its last item has ID " last_id
+MsgBox("MyMenu has " item_count " items, and its last item has ID " last_id)
 
 NoAction(*) {
     <em>; Do nothing.</em>

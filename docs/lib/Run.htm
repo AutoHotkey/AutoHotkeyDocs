@@ -27,7 +27,7 @@ ExitCode := <span class="func">RunWait</span>(Target <span class="optional">, Wo
   <dt>Target</dt>
   <dd>
       <p>Type: <a href="../Concepts.htm#strings">String</a></p>
-      <p>A document, URL, executable file (.exe, .com, .bat, etc.), shortcut (.lnk), <a href="#CLSID">CLSID</a>, or <a href="#verbs">system verb</a> to launch (see remarks). If <em>Target</em> is a local file and no path was specified with it, <a href="../Variables.htm#WorkingDir">A_WorkingDir</a> will be searched first. If no matching file is found there, the system will search for and launch the file if it is integrated ("known"), e.g. by being contained in one of the PATH folders.</p>
+      <p>A document, URL, executable file (.exe, .com, .bat, etc.), shortcut (.lnk), <a href="#CLSID">CLSID</a>, or <a href="#verbs">system verb</a> to launch (see remarks). If <em>Target</em> is a local file and no path was specified with it, how the file is located typically depends on the type of file and other conditions. See <a href="#Interpretation_of_Target">Interpretation of Target</a> for details.</p>
       <p>To pass parameters, add them immediately after the program or document name as follows:</p>
       <pre>Run 'MyProgram.exe Param1 Param2'</pre>
       <p>If the program/document name or a parameter contains spaces, it is safest to enclose it in double quotes as follows (even though it may work without them in some cases):</p>
@@ -37,7 +37,7 @@ ExitCode := <span class="func">RunWait</span>(Target <span class="optional">, Wo
   <dt>WorkingDir</dt>
   <dd>
       <p>Type: <a href="../Concepts.htm#strings">String</a></p>
-      <p>If blank or omitted, the script's own working directory (<a href="../Variables.htm#WorkingDir">A_WorkingDir</a>) will be used. Otherwise, specify the working directory for <em>Target</em>.</p>
+      <p>If blank or omitted, the script's own working directory (<a href="../Variables.htm#WorkingDir">A_WorkingDir</a>) will be used. Otherwise, specify the initial working directory to be used by the new process. This typically also affects relative paths in <em>Target</em>, but interpretation of command-line parameters depends on the target program.</p>
   </dd>
 
   <dt>Options</dt>
@@ -71,13 +71,27 @@ catch
     MsgBox "File does not exist."
 </pre>
 <p>The built-in variable <a href="../Variables.htm#LastError">A_LastError</a> is set to the result of the operating system's GetLastError() function.</p>
+<h2 id="Interpretation_of_Target">Interpretation of Target</h2>
+<p>Run/RunWait itself does not interpret command-line parameters or search for the target file. Instead, it attempts to execute the target as follows:</p>
+<ul>
+  <li>If no verb is specified, <em>Target</em> is passed as-is to the <em>lpCommandLine</em> parameter of <a href="https://learn.microsoft.com/windows/win32/api/processthreadsapi/nf-processthreadsapi-createprocessw">CreateProcess</a>.</li>
+  <li>If a verb is specified or CreateProcess fails, and <a href="RunAs.htm">RunAs</a> is not in effect, <a href="https://learn.microsoft.com/windows/win32/api/shellapi/nf-shellapi-shellexecuteexw">ShellExecuteEx</a> is attempted.</li>
+</ul>
+<p>If <em>Target</em> specifies a name but not a directory, the system will search for and launch the file if it is integrated ("known"), e.g. by being contained in one of the PATH folders. The exact search order depends on whether CreateProcess and/or ShellExecuteEx is called. If CreateProcess is called, the application directory (which contains the AutoHotkey interpreter or compiled script) takes precedence over the working directory specified by <em>WorkingDir</em>. To avoid this, specify the directory; e.g. <code>.\program.exe</code>.</p>
+<p>When ShellExecuteEx is being attempted, <em>Target</em> is interpreted as follows:</p>
+<ul>
+  <li>The substring of <em>Target</em> ending at the first space or tab may be either a <a href="#verbs">predefined verb name</a> or an asterisk followed by a verb name. If present, the optional asterisk, verb name and a single delimiting space or tab are excluded from further consideration. Verb names containing spaces or tabs are not supported, but symbols such as hyphen are permitted.</li>
+  <li>If a leading double-quote mark is present, the substring between that and the next double-quote mark is considered to be the target file or action.</li>
+  <li>Otherwise, the first substring which ends at a space and is either an existing file (specified by absolute path or relative to <em>WorkingDir</em>) or ends in .exe, .bat, .com, .cmd or .hta is considered the action. This allows file types such as .ahk, .vbs or .lnk to accept parameters while still allowing "known" executables such as wordpad.exe to be launched without an absolute path.</li>
+  <li>A single delimiting space is ignored, if present, and the remainder of <em>Target</em> is passed as-is to CreateProcess or ShellExecuteEx as command-line parameters.</li>
+</ul>
 <h2 id="Remarks">Remarks</h2>
 <p>When running a program via <a href="../Variables.htm#ComSpec">ComSpec</a> (cmd.exe) -- perhaps because you need to redirect the program's input or output -- if the path or name of the executable contains spaces, the entire string should be enclosed in an outer pair of quotes. In the following example, the outer quotes are highlighted in yellow:</p>
 <pre>Run A_ComSpec ' /c <span class="style3">"</span>"C:\My Utility.exe" "param 1" "second param" &gt;"C:\My File.txt"<span class="style3">"</span>'</pre>
 <p>Performance may be slightly improved if <em>Target</em> is an exact path, e.g. <code>Run 'C:\Windows\Notepad.exe "C:\My Documents\Test.txt"'</code> rather than <code>Run "C:\My Documents\Test.txt"</code>.</p>
 <p id="CLSID">Special <a href="../misc/CLSID-List.htm">CLSIDs</a> may be opened via Run. Most of them can be opened by using the shell: prefix. Some can be opened without it. For example:</p>
 <pre>Run "shell:::{D20EA4E1-3957-11D2-A40B-0C5020524153}"  <em>; Windows Tools.</em>
-Run "::{20D04FE0-3AEA-1069-A2D8-08002B30309D}"  <em>; My Computer folder.</em>
+Run "::{20D04FE0-3AEA-1069-A2D8-08002B30309D}"  <em>; This PC (formerly My Computer or Computer).</em>
 Run "::{645FF040-5081-101B-9F08-00AA002F954E}"  <em>; Recycle Bin.</em></pre>
 <p id="verbs">System verbs correspond to actions available in a file's right-click menu in the Explorer. If a file is launched without a verb, the default verb (usually "open") for that particular file type will be used. If specified, the verb should be followed by the name of the target file. The following verbs are currently supported:</p>
 <table class="info">
@@ -185,7 +199,7 @@ Persistent  <em>; Keep the script from exiting, otherwise the properties dialog 
 <p><a class="ex_number" href="#ExCLSID"></a> Run is able to launch <a href="../misc/CLSID-List.htm">CLSIDs</a>:</p>
 <p>The following opens the Recycle Bin.</p>
 <pre>Run "::{645FF040-5081-101B-9F08-00AA002F954E}"</pre>
-<p>The following opens the My Computer directory.</p>
+<p>The following opens This PC (formerly My Computer or Computer).</p>
 <pre>Run "::{20D04FE0-3AEA-1069-A2D8-08002B30309D}"</pre>
 </div>
 
@@ -231,7 +245,7 @@ RunWaitMany(commands) {
 {
     shell := ComObject("WScript.Shell")
     exec := shell.Exec("AutoHotkey.exe /ErrorStdOut *")
-    exec.StdIn.Write(script)
+    exec.StdIn.Write(Script)
     exec.StdIn.Close()
     if Wait
         return exec.StdOut.ReadAll()

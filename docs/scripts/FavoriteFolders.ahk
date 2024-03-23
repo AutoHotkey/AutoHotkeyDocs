@@ -128,7 +128,9 @@ OpenFavorite(ItemName, ItemPos, *)
     else if g_class = "CabinetWClass"  ; In Explorer, switch folders.
     {
         if VerCompare(A_OSVersion, "10.0.22000") >= 0 ; Windows 11 and later
+        {
             try GetActiveExplorerTab().Navigate(ExpandEnvVars(path))
+        }
         else
         {
             ControlClick "ToolbarWindow323", g_window_id,,,, "NA x1 y1"

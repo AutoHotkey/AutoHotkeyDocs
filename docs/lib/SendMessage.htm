@@ -35,21 +35,23 @@
 
   <dt>Control</dt>
   <dd>
-    <p>Type: <a href="../Concepts.htm#strings">String</a>, <a href="../Concepts.htm#numbers">Integer</a> or <a href="../Objects.htm">Object</a></p>
+    <p>Type: <a href="../Concepts.htm#strings">String</a>, <a href="../Concepts.htm#numbers">Integer</a> or <a href="../Concepts.htm#objects">Object</a></p>
     <p>If omitted, the message will be sent directly to the target window rather than one of its controls. Otherwise, specify the control's ClassNN, text or HWND, or an object with a <code>Hwnd</code> property. For details, see <a href="Control.htm#Parameter">The Control Parameter</a>.</p>
     <p>If this parameter specifies a HWND (as an integer or object), it is not required to be the HWND of a control (child window). That is, it can also be the HWND of a top-level window.</p>
   </dd>
 
   <dt>WinTitle, WinText, ExcludeTitle, ExcludeText</dt>
   <dd>
-    <p>Type: <a href="../Concepts.htm#strings">String</a>, <a href="../Concepts.htm#numbers">Integer</a> or <a href="../Objects.htm">Object</a></p>
-    <p>If each of these is blank or omitted, the <a href="../misc/WinTitle.htm#LastFoundWindow">Last Found Window</a> will be used. Otherwise, specify for <em>WinTitle</em> a <a href="../misc/WinTitle.htm">window title or other criteria</a> to identify the target window and/or for <em>WinText</em> a substring from a single text element of the target window (as revealed by the included Window Spy utility). Hidden text elements are detected if <a href="DetectHiddenText.htm">DetectHiddenText</a> has been turned on. Windows whose title or text contains <em>ExcludeTitle</em> or <em>ExcludeText</em> will not be considered.</p>
+    <p>Type: <a href="../Concepts.htm#strings">String</a>, <a href="../Concepts.htm#numbers">Integer</a> or <a href="../Concepts.htm#objects">Object</a></p>
+    <p>If each of these is blank or omitted, the <a href="../misc/WinTitle.htm#LastFoundWindow">Last Found Window</a> will be used. Otherwise, specify for <em>WinTitle</em> a <a href="../misc/WinTitle.htm">window title or other criteria</a> to identify the target window and/or for <em>WinText</em> a substring from a single text element of the target window (as revealed by the included Window Spy utility).</p>
+    <p><em>ExcludeTitle</em> and <em>ExcludeText</em> can be used to exclude one or more windows by their title or text. Their specification is similar to <em>WinTitle</em> and <em>WinText</em>, except that <em>ExcludeTitle</em> does not recognize any criteria other than the window title.</p>
+    <p>Window titles and text are case-sensitive. By default, hidden windows are not detected and hidden text elements are detected, unless changed with <a href="DetectHiddenWindows.htm">DetectHiddenWindows</a> and <a href="DetectHiddenText.htm">DetectHiddenText</a>. By default, a window title can contain <em>WinTitle</em> or <em>ExcludeTitle</em> anywhere inside it to be a match, unless changed with <a href="SetTitleMatchMode.htm">SetTitleMatchMode</a>.</p>
   </dd>
 
   <dt>Timeout</dt>
   <dd>
     <p>Type: <a href="../Concepts.htm#numbers">Integer</a></p>
-    <p>If omitted, it defaults to 5000. Otherwise, specify the maximum number of milliseconds to wait for the target window to process the message. If the message is not processed within this time, a <a href="Error.htm#TimeoutError">TimeoutError</a> is thrown.</p>
+    <p>If omitted, it defaults to 5000. Otherwise, specify the maximum number of milliseconds to wait for the target window to process the message. If the message is not processed within this time, a <a href="Error.htm#TimeoutError">TimeoutError</a> is thrown. Specify 0 to wait indefinitely. A negative number causes SendMessage to time out immediately.</p>
   </dd>
 
 </dl>
@@ -65,7 +67,7 @@
 <h2 id="Error_Handling">Error Handling</h2>
 <p>A <a href="Error.htm#TargetError">TargetError</a> is thrown if the window or control could not be found.</p>
 <p>A <a href="Error.htm#TimeoutError">TimeoutError</a> is thrown if the message timed out.</p>
-<p>An <a href="Error.htm#OSError">OSError</a> is thrown if a message could not be sent. For example, if the target window is running at a higher integrity level than the script (i.e. it is running as admin while the script is not), messages may be blocked.</p>
+<p>An <a href="Error.htm#OSError">OSError</a> is thrown if the message could not be sent. For example, if the target window is running at a higher integrity level than the script (i.e. it is running as admin while the script is not), messages may be blocked.</p>
 
 <h2 id="Remarks">Remarks</h2>
 <p>This function should be used with caution because sending a message to the wrong window (or sending an invalid message) might cause unexpected behavior or even crash the target application. This is because most applications are not designed to expect certain types of messages from external sources.</p>
@@ -78,7 +80,6 @@ SendMessage 0x000C, 0, StrPtr("New Title")  <em>; 0X000C is WM_SETTEXT</em></pre
 <pre>SendMessage 0x001A,,,, 0xFFFF  <em>; 0x001A is WM_SETTINGCHANGE</em></pre>
 <p>To have a script receive a message, use <a href="OnMessage.htm">OnMessage</a>.</p>
 <p>See the <a href="../misc/SendMessage.htm">Message Tutorial</a> for an introduction to using this function.</p>
-<p>Window titles and text are case-sensitive. Hidden windows are not detected unless <a href="DetectHiddenWindows.htm">DetectHiddenWindows</a> has been turned on.</p>
 
 <h2 id="Related">Related</h2>
 <p><a href="PostMessage.htm">PostMessage</a>, <a href="../misc/SendMessageList.htm">Message List</a>, <a href="../misc/SendMessage.htm">Message Tutorial</a>, <a href="OnMessage.htm">OnMessage</a>, <a href="../misc/Winamp.htm">Automating Winamp</a>, <a href="DllCall.htm">DllCall</a>, <a href="ControlSend.htm">ControlSend</a>, <a href="MenuSelect.htm">MenuSelect</a></p>
@@ -86,7 +87,7 @@ SendMessage 0x000C, 0, StrPtr("New Title")  <em>; 0X000C is WM_SETTEXT</em></pre
 <h2 id="Examples">Examples</h2>
 
 <div class="ex" id="ExMonitorPower">
-<p><a class="ex_number" href="#ExMonitorPower"></a> Turns off the monitor via hotkey. In the SendMessage line, replace the number 2 with -1 to turn the monitor on or replace it with 1 to activate the monitor's low-power mode.</p>
+<p><a class="ex_number" href="#ExMonitorPower"></a> Turns off the monitor via hotkey. In the SendMessage line, replace the number 2 with -1 to turn on the monitor, or replace it with 1 to activate the monitor's low-power mode.</p>
 <pre>#o::  <em>; Win+O hotkey</em>
 {
     Sleep 1000  <em>; Give user a chance to release keys (in case their release would wake up the monitor again).
@@ -113,9 +114,9 @@ SendMessage 0x000C, 0, StrPtr("New Title")  <em>; 0X000C is WM_SETTEXT</em></pre
 <div class="ex" id="ExWinamp">
 <p><a class="ex_number" href="#ExWinamp"></a> Asks Winamp which track number is currently active (see <a href="../misc/Winamp.htm">Automating Winamp</a> for more information).</p>
 <pre>SetTitleMatchMode 2
-track := SendMessage(0x0400, 0, 120,, "- Winamp")
-track++  <em>; Winamp's count starts at 0, so adjust by 1.</em>
-MsgBox "Track #" track " is active or playing."
+TrackNumber := SendMessage(0x0400, 0, 120,, "- Winamp")
+TrackNumber++  <em>; Winamp's count starts at 0, so adjust by 1.</em>
+MsgBox "Track #" TrackNumber " is active or playing."
 </pre>
 </div>
 
@@ -123,8 +124,8 @@ MsgBox "Track #" track " is active or playing."
 <p><a class="ex_number" href="#ExPID"></a> Finds the process ID of an AHK script (an alternative to <a href="WinGetPID.htm">WinGetPID</a>).</p>
 <pre>SetTitleMatchMode 2
 DetectHiddenWindows true
-pid := SendMessage(0x0044, 0x405, 0, , "SomeOtherScript.ahk - AutoHotkey v")
-MsgBox pid " is the process id."</pre>
+PID := SendMessage(0x0044, 0x405, 0, , "SomeOtherScript.ahk - AutoHotkey v")
+MsgBox PID " is the process id."</pre>
 </div>
 
 </body>
