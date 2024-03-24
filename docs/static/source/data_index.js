@@ -1130,6 +1130,7 @@ indexData = [
   ["StrReplace","lib/StrReplace.htm",2],
   ["StrSplit","lib/StrSplit.htm",2],
   ["StrTitle","lib/StrLower.htm",2],
+  ["StructFromPtr","Structs.htm#pointers",2],
   ["structures","Structs.htm"],
   ["structures, via DllCall","lib/DllCall.htm#struct"],
   ["StrUpper","lib/StrLower.htm",2],
