@@ -97,8 +97,34 @@ Swap(&amp;Left, &amp;Right)
 <p>When passing large strings to a function, <em>ByRef</em> enhances performance and conserves memory by avoiding the need to make a copy of the string. Similarly, using <em>ByRef</em> to send a long string back to the caller usually performs better than something like <code>Return HugeString</code>. However, what the function receives is not a reference to the string, but a reference to the <em>variable</em>. Future improvements might supersede the use of ByRef for these purposes.</p>
 <p>Known limitations:</p>
 <ul>
-  <li>It is not possible to construct a VarRef for a property of an object (such as <code>foo.bar</code>), <a href="lib/A_Clipboard.htm">A_Clipboard</a> or any other <a href="Variables.htm#BuiltIn">built-in variable</a>, so those cannot be passed <em>ByRef</em>.</li>
+  <li><span class="ver">[v2.1-alpha.10]</span>: There is currently no built-in support for retrieving a reference to a property (<code>foo.bar</code>), but it can be emulated with a <a href="#virtual-reference">virtual reference</a>.</li>
   <li id="NoIsByRef">If the parameter is optional, it is not possible to determine whether the variable referenced by the parameter is a newly created local variable or one supplied by the caller. One alternative is to use a non-ByRef parameter, but pass it a <a href="Concepts.htm#variable-references">VarRef</a> anyway, and have the function <a href="Variables.htm#deref">explicitly dereference it</a> or pass it to another function's ByRef parameter (without using the <code>&amp;</code> operator).</li>
+</ul>
+<h3 id="virtual-reference">Virtual Reference <span class="ver">[v2.1-alpha.10]</span></h3>
+<p>Any object with a <code>__value</code> property can be passed to a ByRef parameter or an output parameter of a built-in function. The property must be defined prior to calling the function. For example:</p>
+<pre>PostInc(&amp;n) =&gt; n++
+
+b := Bit()
+
+MsgBox PostInc(b) <em>; 0</em>
+MsgBox b.__value  <em>; 1</em>
+       PostInc(b) <em>; Error: Value out of range</em>
+
+class Bit {
+    v : u8 := 0
+    __value {
+        get =&gt; this.v
+        set {
+            if value &lt; 0 || value &gt; 1
+                throw ValueError("Value out of range", -1, value)
+            this.v := value
+        }
+    }
+}</pre>
+<p>If <code>value is Object</code>, the function automatically verifies <code>HasProp(value, "__value")</code> when it binds the object to the parameter. However, a value property, getter or setter must still exist when the parameter is evaluated or assigned. The property cannot be defined by a <a href="Objects.htm#Meta_Functions">meta-function</a> unless the object is a COM object (i.e. from another instance of AutoHotkey).</p>
+<p>Known limitations:</p>
+<ul>
+  <li>__Value may be evaluated twice when the <code>++</code>/<code>--</code> operator is applied to a virtual reference.</li>
 </ul>
 
 <h2 id="optional">Optional Parameters</h2>
