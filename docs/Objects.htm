@@ -549,18 +549,18 @@ parent.child := child  <em>; parent: 2, child: 2</em></pre>
 <p>A cycle is often less obvious than this, and can involve several objects. For example, <a href="lib/Gui.htm#ExRefCycle">ShowRefCycleGui</a> demonstrates a cycle involving a Gui, MenuBar, Menu and closures. The use of a separate object to handle GUI events is also prone to cycles, if the handler object has a reference to the GUI.</p>
 <p>Non-cyclic references to an object can also cause issues. For instance, objects with a dependency on built-in functions like SetTimer or OnMessage generally cause the program to hold an indirect reference to the object. This would prevent the object from being deleted, which means that it cannot use __New and __Delete to manage the timer or message monitor.</p>
 <p>Below are several strategies for solving issues like those described above.</p>
-<p id="ref-avoid-cycles"><strong>Avoid cycles</strong>: If reference cycles are a problem, avoid creating them. For example, either <code>parent.child</code> or <code>child.parent</code> would not be set. This is often not practical, as related objects may need a way to refer to each other.</p>
+<p id="ref-avoid-cycles"><strong>Avoid cycles:</strong> If reference cycles are a problem, avoid creating them. For example, either <code>parent.child</code> or <code>child.parent</code> would not be set. This is often not practical, as related objects may need a way to refer to each other.</p>
 <p>When defining event handlers for <a href="lib/GuiOnEvent.htm">OnEvent (Gui)</a>, avoid capturing the source Gui in a closure or bound function and instead utilize the Gui or Gui.Control parameter. Likewise for <a href="lib/Menu.htm#Add">Add (Menu)</a> and the callback's Menu parameter, but of course, a menu item which needs to refer to a Gui cannot use this approach.</p>
 <p>In some cases, the other object can be retrieved by an indirect method which doesn't rely on a counted reference. For example, retain a HWND and use <code>GuiFromHwnd(hwnd)</code> to retrieve a <a href="lib/Gui.htm">Gui</a> object. Retaining a reference is not necessary to prevent deletion while the window is visible, as the Gui itself handles this.</p>
-<p id="ref-break-cycles"><strong>Break cycles</strong>: If the script can avoid relying on reference counting and instead manage the lifetime of the object directly, it needs only break the cycle when the objects are to be deleted:</p>
+<p id="ref-break-cycles"><strong>Break cycles:</strong> If the script can avoid relying on reference counting and instead manage the lifetime of the object directly, it needs only break the cycle when the objects are to be deleted:</p>
 <pre>child.parent := unset  <em>; parent: 1, child: 2</em>
 child := unset  <em>; parent: 1, child: 1</em>
 parent := unset  <em>; both deleted</em></pre>
-<p id="ref-dispose"><strong>Dispose</strong>: __Delete is called precisely when the last reference is released, so one might come to think of a simple assignment like <code>myGui := ""</code> as a cleanup step which triggers deletion of the object. Sometimes this is done explicitly when the object is no longer needed, but it is neither reliable nor truly showing the intent of the code. An alternative pattern is to define a Dispose or Destroy method which frees the object's resources, and design it to do nothing if called a second time. It can then also be called from __Delete, as a safeguard.</p>
+<p id="ref-dispose"><strong>Dispose:</strong> __Delete is called precisely when the last reference is released, so one might come to think of a simple assignment like <code>myGui := ""</code> as a cleanup step which triggers deletion of the object. Sometimes this is done explicitly when the object is no longer needed, but it is neither reliable nor truly showing the intent of the code. An alternative pattern is to define a Dispose or Destroy method which frees the object's resources, and design it to do nothing if called a second time. It can then also be called from __Delete, as a safeguard.</p>
 <p>An object following this pattern would still need to break any reference cycles when it is <em>disposed</em>, otherwise some memory would not be reclaimed, and __Delete would not be called for other objects referenced by the object.</p>
 <p>Cycles caused by a Gui object's event handlers, MenuBar or event sink object are automatically "broken" when <a href="lib/Gui.htm#Destroy">Destroy</a> is called, as it releases those objects. (This is demonstrated in the <a href="lib/Gui.htm#ExRefCycle">ShowRefCycleGui example</a>.) However, this would not break cycles caused by new properties which the script has added, as Destroy does not delete them.</p>
 <p>Similar to the Dispose pattern, <a href="lib/InputHook.htm">InputHook</a> has a Stop method which must be called explicitly, so it does not rely on __Delete to signal when its operation should end. While operating, the program effectively holds a reference to the object which prevents it from being deleted, but this becomes a strength rather than a flaw: event callbacks can still be called and will receive the InputHook as a parameter. When the operation ends, the internal reference is released and the InputHook is deleted if the script has no reference to it.</p>
-<p id="ref-ptr"><strong>Pointers</strong>: Storing any number of pointer values does not affect the reference count of the object, since a pointer is just an integer. A pointer retrieved with <a href="#ObjPtr">ObjPtr</a> can be used to produce a reference by passing it to <a href="#ObjFromPtr">ObjFromPtrAddRef</a>. The AddRef version of the function must be used because the reference count will be decremented when the temporary reference is automatically released.</p>
+<p id="ref-ptr"><strong>Pointers:</strong> Storing any number of pointer values does not affect the reference count of the object, since a pointer is just an integer. A pointer retrieved with <a href="#ObjPtr">ObjPtr</a> can be used to produce a reference by passing it to <a href="#ObjFromPtr">ObjFromPtrAddRef</a>. The AddRef version of the function must be used because the reference count will be decremented when the temporary reference is automatically released.</p>
 <p>For example, suppose that an object needs to update some properties each second. A timer holds a reference to the callback function, which has the object bound as a parameter. Normally this would prevent the object from being deleted before the timer is deleted. Storing a pointer instead of a reference allows the object to be deleted regardless of the timer, so it can be managed automatically by __New and __Delete.</p>
 <pre>a := SomeClass()
 Sleep 5500  <em>; Let the timer run 5 times.</em>
@@ -568,13 +568,13 @@ a := ""
 Sleep 3500  <em>; Prevent exit temporarily to show that the timer has stopped.</em>
 
 class SomeClass {
-	__New() {
+    __New() {
         <em>; The closure must be stored so that the timer can be deleted later.
         ; Synthesize a counted reference each time the method needs to be called.</em>
         this.Timer := (p =&gt; ObjFromPtrAddRef(p).Update()).Bind(ObjPtr(this))
         SetTimer this.Timer, 1000
     }
-	__Delete() {
+    __Delete() {
         SetTimer this.Timer, 0
         <em>; If this object is truly deleted, all properties will be
         ; deleted and the following __Delete method will be called.
@@ -584,21 +584,21 @@ class SomeClass {
     <em>; This is just to demonstrate that the timer is running.
     ; Hypothetically, this class has some other purpose.</em>
     count := 0
-	Update() =&gt; ToolTip(++this.count)
+    Update() =&gt; ToolTip(++this.count)
 }</pre>
 <p>A drawback of this approach is that the pointer is not directly usable as an object, and is not recognized as such by <a href="lib/Type.htm">Type</a> or the <a href="AHKL_DBGPClients.htm">debugger</a>. The script must be absolutely certain not to use the pointer after the object is deleted, as doing so is invalid and the result would be indeterminate.</p>
 <p>If the pointer-reference is needed in multiple places, encapsulating it might make sense. For instance, <code>b := ObjFromPtrAddRef.Bind(ObjPtr(this))</code> would produce a <a href="misc/Functor.htm#BoundFunc">BoundFunc</a> which can be called (<code>b()</code>) to retrieve the reference, while <code>((this, p) =&gt; ObjFromPtrAddRef(p)).Bind(ObjPtr(this))</code> can be used as a property getter (the property would return a reference).</p>
-<p id="ref-uncounted"><strong>Uncounted references</strong>: If the object's reference count accounts for a reference, we call it a <em>counted reference</em>, otherwise we call it an <em>uncounted reference</em>. The idea of the latter is to allow the script to store a reference which does not prevent the object from being deleted.</p>
+<p id="ref-uncounted"><strong>Uncounted references:</strong> If the object's reference count accounts for a reference, we call it a <em>counted reference</em>, otherwise we call it an <em>uncounted reference</em>. The idea of the latter is to allow the script to store a reference which does not prevent the object from being deleted.</p>
 <p class="note"><strong>Note:</strong> This is about how the object's reference count relates to a given reference as per the script's logic, and doesn't affect the nature of the reference itself. The program will still attempt to release the reference automatically at whatever time it would normally, so the terms <em>weak reference</em> and <em>strong reference</em> are unsuitable.</p>
-<p>A counted reference can be turned into an uncounted reference by simply decrementing the object's reference count. This <strong>must</strong> be reversed before the reference is released, which <strong>must</strong> occur before the object is deleted. Since the point of an uncounted reference is to allow the object to be deleted without first manually unsetting the reference, generally the count must be corrected within that object's own <a href="#Custom_NewDelete">__Delete</a> method.</p>
+<p>A counted reference can be turned into an uncounted reference by simply decrementing the object's reference count. This <u>must</u> be reversed before the reference is released, which <u>must</u> occur before the object is deleted. Since the point of an uncounted reference is to allow the object to be deleted without first manually unsetting the reference, generally the count must be corrected within that object's own <a href="#Custom_NewDelete">__Delete</a> method.</p>
 <p>For example, __New and __Delete from the previous example can be replaced with the following.</p>
-<pre>	__New() {
+<pre>    __New() {
         <em>; The BoundFunc must be stored so that the timer can be deleted later.</em>
         SetTimer this.Timer := this.Update.Bind(this), 1000
         <em>; Decrement ref count to compensate for the AddRef done by Bind.</em>
         ObjRelease(ObjPtr(this))
     }
-	__Delete() {
+    __Delete() {
         <em>; Increment ref count so that the ref within the BoundFunc
         ; can be safely released.</em>
         ObjPtrAddRef(this)
