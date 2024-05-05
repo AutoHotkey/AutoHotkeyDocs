@@ -971,6 +971,7 @@ indexData = [
   ["properties of a file or folder","lib/Run.htm"],
   ["PropertyError","lib/Error.htm#MemberError",6],
   ["PropRef","lib/PropRef.htm",6],
+  ["Props method (Object)","lib/Object.htm#Props",7],
   ["Prototype property (Class)","lib/Class.htm#Prototype",7],
   ["Ptr property (Buffer)","lib/Buffer.htm#Ptr",7],
   ["Push method (Array)","lib/Array.htm#Push",7],
