@@ -281,6 +281,8 @@ FindMatches(*)
                 MatchFound := true
                 Loop Parse, SearchText, "`s"
                 {
+                    if A_LoopField = ""
+                        continue
                     if !InStr(Name, A_LoopField)
                     {
                         MatchFound := false
