@@ -20,6 +20,7 @@
 <ul>
   <li><a href="#Standard_Properties">Standard Properties</a></li>
   <li><a href="#new">Error()</a></li>
+  <li><a href="#Show">Show</a></li>
   <li><a href="#error-types">Error Types</a></li>
   <li><a href="#Related">Related</a></li>
 </ul>
@@ -30,6 +31,7 @@
 <p id="Extra"><strong>Extra:</strong> A string value relating to the error, if available. If this value can be converted to a non-empty string, the standard error dialog displays a line with "Specifically:" followed by this string.</p>
 <p id="File"><strong>File:</strong> The full path of the script file which contains the line at which the error occurred, or at which the Error object was constructed.</p>
 <p id="Line"><strong>Line:</strong> The line number at which the error occurred, or at which the Error object was constructed.</p>
+<p id="Hint"><strong>Hint</strong> <span class="ver">[v2.1-alpha.10+]</span>: A string of text to place near the bottom of the standard error dialog, above the stack trace link (if present). This property is not defined by default in the standard Error classes. If left undefined, a default hint is used, usually indicating that the thread will exit. An empty string can be used to suppress the default hint.</p>
 <p id="Stack"><strong>Stack:</strong> A string representing the call stack at the time the Error object was constructed. Each line may be formatted as follows:</p>
 <dl>
   <dt><code><i>File</i> (<i>Line</i>) : [<i>What</i>] <i>SourceCode</i>`r`n</code></dt>
@@ -40,7 +42,7 @@
   <dd>Indicates that the stack trace was truncated, and there are <em>N</em> more stack entries not shown. Currently the <code>Stack</code> property cannot exceed 2047 characters.</dd>
 </dl>
 
-<p class="warning"><strong>Note:</strong> The standard error dialog requires <em>Message</em>, <em>Extra</em>, <em>File</em> and <em>Line</em> to be <a href="Object.htm">own value properties</a>.</p>
+<p class="warning"><strong>Note:</strong> The standard error dialog requires <em>Message</em>, <em>Extra</em>, <em>File</em>, <em>Line</em> and <em>Hint</em> to be <a href="Object.htm">own value properties</a>.</p>
 
 <h2 id="new">Error()</h2>
 <p>Creates an Error object.</p>
@@ -78,6 +80,40 @@ catch as e
 SomeFunction() {
     throw Error("Fail", -1)
 }</pre>
+
+<h2 id="Show">Show <span class="ver">[v2.1-alpha.10+]</span></h2>
+<p>Shows a standard script error dialog.</p>
+<pre class="Syntax">NewError.<span class="func">Show</span>(<span class="optional">Mode</span>)</pre>
+<h3>Parameters</h3>
+<dl>
+  <dt>Mode</dt>
+  <dd>
+    <p>Type: <a href="../Concepts.htm#strings">String</a></p>
+    <p>If omitted, it defaults to Return. Otherwise, specify one of the following words:</p>
+    <p><strong>Return</strong>: Shows the leading text "Error:" and the Continue and Abort buttons.</p>
+    <p><strong>Exit</strong>: Shows the leading text "Error:" and the Abort button.</p>
+    <p><strong>ExitApp</strong>: Shows the leading text "Critical Error:" and the Abort button. The script exits when the dialog is closed.</p>
+    <p><strong>Warn</strong>: Shows the leading text "Warning:" and the Continue button.</p>
+  </dd>
+</dl>
+<h3>Return Value</h3>
+<p>Type: <a href="../Concepts.htm#numbers">Integer</a></p>
+<p>If the Return mode is used, the return value is -1 if the dialog was closed by the Continue button. Otherwise, the return value is 1.</p>
+<h3>Remarks</h3>
+<p>If present, the <a href="#Standard_Properties">standard properties</a> Message, Extra, File, Line, Hint and Stack are used to determine the content of the dialog. If blank, the corresponding element of the dialog is omitted. In particular, File can be removed to hide the "vicinity lines" normally shown in the dialog. If File does not correspond to the main script or an #include file, only the file name and line number are shown.</p>
+<p>Message can contain multiple lines of text, in which case the first line is rendered with the title font and subsequent lines are rendered with the default font.</p>
+<p>The <em>Mode</em> parameter and return value are compatible with <a href="OnError.htm">OnError</a> callbacks. For example:</p>
+<pre>
+#Requires AutoHotkey v2.1-alpha.10
+<em>; This is an anonymous function definition being passed to the OnError function.
+; This syntax requires v2.1-alpha.3+, but Show requires v2.1-alpha.10+.</em>
+OnError (err, mode) {
+    err.File := unset
+    err.Line := unset
+    return err.Show(mode)
+}
+throw ValueError("This value is not 42", -1, 41)
+</pre>
 
 <h2 id="error-types">Error Types</h2>
 
