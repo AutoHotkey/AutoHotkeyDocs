@@ -1,0 +1,93 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+  <title>Modules | AutoHotkey v2</title>
+<meta name="description" content="About modules and how to use them." />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<link href="static/theme.css" rel="stylesheet" type="text/css" />
+<script src="static/content.js" type="text/javascript"></script>
+</head>
+<body>
+
+<h1>Modules <span class="ver">[v2.1-alpha.11+]</span></h1>
+<p>A module is basically a script within the script. Each module has its own:</p>
+<ul>
+  <li><em>Global namespace</em> for variables, functions and classes.</li>
+  <li><em>Body</em>, sometimes referred to as an auto-execute section.</li>
+  <li><em><a href="lib/Export.htm">Exports</a></em>, which can be <a href="lib/Import.htm">imported</a> by another module.</li>
+  <li><em>Unique name</em>, used to import the module or whatever it exports.</li>
+</ul>
+<p>Splitting the components of a script into modules can make the components easier to reuse and maintain.</p>
+<p>By default, all lines of code and global variables (including functions and classes) are added to an implicitly-defined module named "__Main". The script can start a new module with <a href="lib/_Module.htm">#Module</a> or load one from a <a href="Scripts.htm#lib">Lib folder</a> with <a href="lib/Import.htm">Import</a>.</p>
+<p>Variables, classes and functions can be exported with an <a href="lib/Export.htm">Export</a> declaration to make them accessible to other modules. An <a href="lib/Import.htm">Import</a> declaration can be used to add a module or some or all of its exports into another module's global namespace.</p>
+<p>All modules implicitly import from the built-in "AHK" module, which contains all built-in classes, variables and functions. A declaration or assignment within a module can reuse the name of a built-in class or function, in which case that class or function is not accessible except through the AHK module (e.g. <code>Import AHK</code>, <code>AHK.MsgBox()</code>). However, built-in (<code>A_</code>) variables do not require a declaration or explicit import to allow assignment, and their names cannot be reused. <code>A_Args</code> is the exception (it is a normal variable defined in __Main).</p>
+<p>Module names exist in their own independent namespace. A module name is added to a module's global namespace only when imported, and conflicts can be resolved by giving the imported module an alias within the destination module.</p>
+<p><a href="lib/_Include.htm">#Include</a> is able to include a file once per module.</p>
+<p><a href="lib/_Warn.htm">#Warn</a> affects only the current module. Each module starts with the default settings for warnings.</p>
+
+<h2 id="Execution">Execution</h2>
+<p>The body of a module is executed at program startup, by the <a href="Scripts.htm#auto">auto-execute thread</a>. The order of execution is currently as follows, but is subject to change:</p>
+<ul>
+  <li>For each module, starting with the most recently-defined/loaded module and working backward:
+  <ul>
+    <li>For each import, if the imported module has not been executed (or begun executing its imports), execute that module first.</li>
+    <li>Execute the module itself.</li>
+  </ul></li>
+</ul>
+<p>The ideal would be to always execute a module before any module which depends on it, but this may be impossible if there is a cyclic import. For instance, if any module imports the default module (__Main, such as to access its global variables), __Main will always execute before the other module. This can be avoided by moving shared variables, functions and classes into a separate module and importing that instead of __Main.</p>
+
+<h2 id="Examples">Examples</h2>
+
+<div class="ex" id="ExSimple"><p><a class="ex_number" href="#ExSimple"></a> Each module has its own global variables (<code>MyVar</code> and <code>ShowVar</code>).</p>
+<pre>
+import Other
+MyVar := 1
+      ShowVar()  <em>; Our MyVar is 1.</em>
+Other.ShowVar()  <em>; Other MyVar is still 2.</em>
+MsgBox "Within main, Other.MyVar = " (Other.MyVar ?? "inaccessible")
+ShowVar() =&gt; MsgBox("Main MyVar = " MyVar)
+
+#Module Other
+MyVar := 2
+export ShowVar() =&gt; MsgBox("Other MyVar = " MyVar)
+</pre></div>
+
+<div class="ex" id="ExAlias"><p><a class="ex_number" href="#ExAlias"></a> Use an alias to resolve a conflict. Each module has its own <code>Calculate</code>, which takes precedence over any wildcard import.</p>
+<pre>
+import {Calculate as CalculateX} from X
+import * from Y
+
+MyVar := 1
+MsgBox Calculate()
+MsgBox CalculateX()
+MsgBox Check(3)
+MsgBox "X = " (X ?? "not imported")
+MsgBox "Y = " (Y ?? "not imported")
+
+Calculate() =&gt; 1
+
+#Module X
+export Calculate() =&gt; 2
+
+#Module Y
+export Calculate() =&gt; 3
+export Check(n) =&gt; n = Calculate()
+</pre></div>
+
+<div class="ex" id="ExAHK"><p><a class="ex_number" href="#ExAHK"></a> Access shadowed built-in functions.</p>
+<pre>
+import AHK
+
+MsgBox "Hello, world!",, "T2"
+
+<em>; Add the Info icon by default.</em>
+MsgBox(Text?, Title?, Options:="") {
+    return AHK.MsgBox(Text?, Title?, "Iconi " Options)
+}
+
+#Module Other
+MsgBox "Other still has the original MsgBox.",, "T2"
+</pre></div>
+
+</body>

@@ -18,6 +18,7 @@ tocData = [
     ["Debugging Clients","AHKL_DBGPClients.htm"],
     ["Compiler Directives","misc/Ahk2ExeDirectives.htm"],
     ["Objects","Objects.htm"],
+	["Modules","Modules.htm"],
     ["Structures","Structs.htm"]
   ]],
   ["Frequently Asked Questions","FAQ.htm"],
