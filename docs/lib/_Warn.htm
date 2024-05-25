@@ -23,7 +23,9 @@
   <dd>
     <p>Type: <a href="../Concepts.htm#strings">String</a></p>
 
-    <p>If omitted, it defaults to <em>All</em>. Otherwise, specify the type of warning to enable or disable.</p>
+    <p><span class="ver">[v2.1-alpha.12+]</span>: If omitted, the program-wide default warning mode is changed. This is used by any warning types which are enabled by default or set to <strong>On</strong>. <a href="../Modules.htm">Modules</a> are expected </p>
+    <p><span class="ver">[v2.0]</span>: If omitted, it defaults to <em>All</em>.</p>
+    <p>Otherwise, specify the type of warning to enable or disable.</p>
     <p id="VarUnset"><strong>VarUnset:</strong> Before the script starts to run, display a warning for the first reference to each variable which is never used in any of the following ways:</p>
     <ul>
       <li>As the target of a direct, non-dynamic assignment such as <code>MyVar := ""</code>.</li>
@@ -49,18 +51,25 @@ MsgBox g        <em>; Without the declaration, the above assigned to a local "g"
   <dd>
     <p>Type: <a href="../Concepts.htm#strings">String</a></p>
 
-    <p>If omitted, it defaults to <em>MsgBox</em>. Otherwise, specify a value indicating how warnings should be delivered.</p>
+    <p>If omitted, it defaults to <em>On</em>. Otherwise, specify a value indicating how warnings should be delivered.</p>
     <p><strong>MsgBox:</strong> Show a message box describing the warning. Note that once the message box is dismissed, the script will continue as usual.</p>
     <p><strong>StdOut:</strong> Send a description of the warning to <em>stdout</em> (the program's standard output stream), along with the filename and line number. This allows fancy editors such as SciTE to capture warnings without disrupting the script - the user can later jump to each offending line via the editor's output pane.</p>
     <p><strong>OutputDebug:</strong> Send a description of the warning to the debugger for display. If a debugger is not active, this will have no effect. For more details, see <a href="OutputDebug.htm">OutputDebug</a>.</p>
+    <p><strong>On</strong> <span class="ver">[v2.1-alpha.12+]</span><strong>:</strong> Enables the given <em>WarningType</em> using the program-wide default mode, which defaults to MsgBox. A separate <code>#Warn <i>WarningMode</i></code> directive can be used to change the default mode.</p>
     <p><strong>Off:</strong> Disable warnings of the given <em>WarningType</em>.</p>
   </dd>
 
 </dl>
 <h2 id="Remarks">Remarks</h2>
 	<p>If this directive is unspecified in the script, all warnings are enabled and use the MsgBox mode, except for LocalSameAsGlobal, which is disabled.</p>
-<p>The checks which produce VarUnset, LocalSameAsGlobal and Unreachable warnings are performed after all directives have been parsed, but before the script executes. Therefore, the location in the script is not significant (and, like other directives, #Warn cannot be executed conditionally).</p>
-<p>However, the ordering of multiple #Warn directives is significant: the last occurrence that sets a given warning determines the mode for that warning.  So, for example, the two statements below have the combined effect of enabling all warnings except LocalSameAsGlobal:</p>
+<p><span class="ver">[v2.1-alpha.12+]</span>: Each <a href="../Modules.htm">module</a> has its own warning settings. Modules defined with <a href="#_Module">#Module</a> default to the same settings as the previous module. For the default module and modules loaded by <a href="#Import">Import</a>, VarUnset and Unreachable default to On and LocalSameAsGlobal defaults to Off.</p>
+<p><span class="ver">[v2.1-alpha.12+]</span>: A program-wide default mode can be set by using <code>#Warn <i>WarningMode</i></code>, with any mode except On. The last such directive affects all warnings which are enabled by default, and all warnings for which <em>WarningMode</em> was set to On. <code>#Warn Off</code> causes those warnings to be ignored. The following special cases also exist:</p>
+<ul>
+  <li><code>#Warn</code>: Turns on VarUnset and Unreachable and turns off LocalSameAsGlobal for the current module.</li>
+  <li><code>#Warn On</code>: Turns on VarUnset and Unreachable for the current module.</li>
+</ul>
+<p>The checks which produce VarUnset, LocalSameAsGlobal and Unreachable warnings are performed after all directives have been parsed, but before the script executes. Therefore, the location within a module is not significant (and, like other directives, #Warn cannot be executed conditionally).</p>
+<p>However, the ordering of multiple #Warn directives is significant when <em>WarningType</em> is specified: the last occurrence that sets a given warning determines the mode for that warning.  So, for example, the two statements below have the combined effect of enabling all warnings except LocalSameAsGlobal (which is also the default configuration):</p>
 <pre>#Warn All
 #Warn LocalSameAsGlobal, Off
 </pre>
@@ -68,18 +77,28 @@ MsgBox g        <em>; Without the declaration, the above assigned to a local "g"
 <p><a href="../Functions.htm#Local">Local and Global Variables</a></p>
 <h2 id="Examples">Examples</h2>
 <div class="ex" id="ExAllOff">
-<p><a class="ex_number" href="#ExAllOff"></a> Disables all warnings. Not recommended.</p>
+<p><a class="ex_number" href="#ExAllOff"></a> Disables all warnings for the current module. Not recommended.</p>
 <pre>#Warn All, Off</pre>
 </div>
 
+<div class="ex" id="ExAll">
+<p><a class="ex_number" href="#ExAll"></a> Enables every type of warning for the current module. <span class="ver">[v2.1-alpha.12+]</span>: Uses the program-wide default mode.</p>
+<pre>#Warn All</pre>
+</div>
+
 <div class="ex" id="ExOmitted">
-<p><a class="ex_number" href="#ExOmitted"></a> Enables every type of warning and shows each warning in a message box.</p>
+<p><a class="ex_number" href="#ExOmitted"></a> For v2.1, sets only the default warnings to be enabled with the program-wide default mode. For v2.0, enables all warnings and sets mode to MsgBox.</p>
 <pre>#Warn</pre>
 </div>
 
 <div class="ex" id="ExLSAGOutputDebug">
 <p><a class="ex_number" href="#ExLSAGOutputDebug"></a> Sends a warning to OutputDebug for each undeclared local variable which has the same name as a global variable.</p>
 <pre>#Warn LocalSameAsGlobal, OutputDebug</pre>
+</div>
+
+<div class="ex" id="ExDefaultStdOut">
+<p><a class="ex_number" href="#ExDefaultStdOut"></a> <span class="ver">[v2.1-alpha.12+]</span>: Causes warnings to be delivered via StdOut, unless a mode has been specified for the warning.</p>
+<pre>#Warn StdOut</pre>
 </div>
 
 </body>
