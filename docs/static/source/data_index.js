@@ -128,6 +128,7 @@ indexData = [
   ["A_EndChar","Variables.htm#EndChar",1],
   ["A_EventInfo","Variables.htm#EventInfo",1],
   ["A_FileEncoding","Variables.htm#FileEncoding",1],
+  ["A_HotIf","Variables.htm#HotIf",1],
   ["A_HotkeyInterval","lib/A_MaxHotkeysPerInterval.htm",1],
   ["A_HotkeyModifierTimeout","lib/A_HotkeyModifierTimeout.htm",1],
   ["A_Hour","Variables.htm#Hour",1],
