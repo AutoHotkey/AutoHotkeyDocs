@@ -96,6 +96,7 @@ var isFirefox = typeof InstallTrigger !== 'undefined'; // Firefox 1.0+
 var isSafari = Object.prototype.toString.call(window.HTMLElement).indexOf('Constructor') > 0; // At least Safari 3+: "[object HTMLElementConstructor]"
 var isIE = /*@cc_on!@*/false || !!document.documentMode; // Internet Explorer 6-11
 var isIE8 = !-[1,]; // Internet Explorer 8 or below
+var isIE9 = navigator.userAgent.match(/MSIE 9/); // Internet Explorer 9
 var isEdge = !isIE && !!window.StyleMedia; // Edge 20+
 var isChrome = !!window.chrome && (!!window.chrome.webstore || !!window.chrome.csi); // Chrome 1+
 var isBlink = (isChrome || isOpera) && !!window.CSS; // Blink engine detection
@@ -896,11 +897,12 @@ function ctor_structure()
     if (isIE)
     {
       template = template.replace('<div id="right" tabIndex="-1"><div class="load"><div class="lds-dual-ring"></div></div>', '<div id="right" tabIndex="-1">');
-      if (isIE8)
+      if (isIE8 || isIE9)
       {
         template = template.replace('<div class="quick"><button class="header" title="Collapse or uncollapse the quick reference" data-translate aria-label="title"><div class="chevron"></div><span data-translate data-content="Quick reference"></span></button><div class="main"></div></div>', '');
-        template = template.replace(/ data-content="(.*?)">/g, '>$1');
       }
+      if (isIE8)
+         template = template.replace(/ data-content="(.*?)">/g, '>$1');
     }
     if (!isFrameCapable)
       template = template.replace('<iframe class="hidden" frameBorder="0" id="frame" src="" role="main">', '<div class="area" role="main">');
@@ -910,12 +912,23 @@ function ctor_structure()
   };
   self.modify = function() { // Modify elements added via build.
 
-    if (!retrieveData(translate.dataPath, "translate_data", "translateData", self.modify))
-      return;
-
     // --- If phone, hide and overlap sidebar ---
 
     if (isPhone) { self.displaySidebar(false); $('#left').addClass('phone') }
+
+    // --- 100% tab contents height in IE8 and IE9 (used to disable the quick ref) ---
+
+    if (isIE8 || isIE9)
+    {
+      var tabs = document.querySelectorAll('#left .tab');
+      for (var i = 0; i < tabs.length; i++)
+        tabs[i].className += ' no-quick';
+    }
+
+    // --- Wait for translation data ---
+
+    if (!retrieveData(translate.dataPath, "translate_data", "translateData", self.modify))
+      return;
 
     // --- Add events ---
 
@@ -1084,7 +1097,7 @@ function ctor_structure()
 
     // --- Apply events for navbar's quick reference ---
 
-    if (!isIE8)
+    if (!isIE8 && !isIE9)
     {
       $quick_header = $('#left .quick .header');
       $quick_main = $('#left .quick .main');
@@ -1225,7 +1238,7 @@ function ctor_structure()
 
     self.showTab(cache.clickTab);
     self.displaySidebar(cache.displaySidebar);
-    self.collapseQuickRef(isIE8 ? true : cache.collapseQuickRef);
+    self.collapseQuickRef(isIE8 || isIE9 ? true : cache.collapseQuickRef);
 
     // --- Resize the sidebar's width via mouse ---
 
@@ -1313,12 +1326,8 @@ function ctor_structure()
       var h2 = h2s[i];
       var el = document.createElement("a");
       el.href = workingDir + relPath + ((h2.id) ? ('#' + h2.id) : '');
-      if (isIE8)
-        el.innerHTML = h2.innerText;
-      else {
-        el.setAttribute("data-content", h2.innerText);
-        el.setAttribute("aria-label", h2.innerText);
-      }
+      el.setAttribute("data-content", h2.innerText);
+      el.setAttribute("aria-label", h2.innerText);
       var span = document.createElement("span");
       span.innerHTML = el.outerHTML;
       var li = document.createElement("li");
@@ -1646,7 +1655,7 @@ function ctor_features()
   // --- Gather headings to show them in the navbar's quick reference ---
 
   self.gatherHeadingsForQuickRef = function() {
-    if (isIE8)
+    if (isIE8 || isIE9)
       return;
     var hs = self.content.querySelectorAll('h2');
     var list = [];
