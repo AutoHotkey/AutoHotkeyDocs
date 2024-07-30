@@ -1827,14 +1827,15 @@ function ctor_features()
   // --- Add syntax highlighting for AutoHotkey code ---
 
   self.addSyntaxColors = function(pres) {
+    var docs_path = scriptDir + '/../';
     if (typeof highlighter == 'undefined')
     {
       if (!retrieveData(index.dataPath, "index_data", "indexData", function() { self.addSyntaxColors(pres); }))
         return;
-      loadScript(scriptDir + '/highlighter/highlighter.js', function() { highlighter.addSyntaxColors(pres, cache.index_data); });
+      loadScript(scriptDir + '/highlighter/highlighter.js', function() { highlighter.addSyntaxColors(pres, cache.index_data, docs_path); });
     }
     else
-      highlighter.addSyntaxColors(pres, cache.index_data);
+      highlighter.addSyntaxColors(pres, cache.index_data, docs_path);
   };
 
   // --- Add footer at the bottom of the site ---
