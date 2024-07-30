@@ -4,7 +4,7 @@ function ctor_highlighter()
   var self = this;
   self.syntax = [];
   self.assignOp = "(?:&lt;&lt;|<<|&gt;&gt;|>>|\\/\\/|\\^|&amp;|&|\\||\\.|\\/|\\*|-|\\+|:)=";
-  self.addSyntaxColors = function(pres, index_data)
+  self.addSyntaxColors = function(pres, index_data, docs_path)
   {
     // Add syntax highlighting for AutoHotkey code.
     // Don't have to be pre elements, e.g. code elements are also possible.
@@ -20,6 +20,11 @@ function ctor_highlighter()
         7 - built-in method/property
         99 - Ahk2Exe compiler
     */
+    // Following will be removed:
+    if (typeof docs_path == 'undefined')
+      if (typeof scriptDir != 'undefined')
+        var docs_path = scriptDir + '/../';
+    // ---
     if (!-[1,]) // Exclude Internet Explorer 8 or below
       return;
     if (!self.syntax.length)
@@ -326,9 +331,9 @@ function ctor_highlighter()
       {
         var a = document.createElement('a');
         if (typeof TypeOrLink == 'number')
-          a.href = scriptDir + '/../' + index_data[syntax[TypeOrLink].dict[match.toLowerCase()]][1];
+          a.href = docs_path + index_data[syntax[TypeOrLink].dict[match.toLowerCase()]][1];
         else
-          a.href = scriptDir + '/../' + TypeOrLink;
+          a.href = docs_path + TypeOrLink;
         a.innerHTML = match;
         span.appendChild(a);
       } else
