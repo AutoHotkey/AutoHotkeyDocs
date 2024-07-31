@@ -231,7 +231,7 @@ function ctor_highlighter()
       innerHTML = innerHTML.replace(new RegExp('\\b(' + syntax[6].single.join('|') + ')\\b(\\s*,|\\s*<(?:em|sct)><\\/(?:em|sct)>\\s*,|$|,|\\s(?!\\s*' + self.assignOp + '))(.*?$(?:(?:\\s*?(,|<cont>).*?$))*)', "gim"), function(_, CMD, SEP, PARAMS)
       {
         // Get type of every parameter:
-        var types = cache.index_data[syntax[6].dict[CMD.toLowerCase()]][3];
+        var types = index_data[syntax[6].dict[CMD.toLowerCase()]][3];
         // Temporary exclude (...), {...} and [...]:
         sub = [];
         PARAMS = PARAMS.replace(/[({\[][^({\[]*[\]})]/g, function(c)
@@ -281,7 +281,7 @@ function ctor_highlighter()
         {
           if (VAL1)
           {
-            var cfs = cache.index_data[syntax[3].dict[(IF + ' ... ' + BETWEEN + ' ... ' + AND).toLowerCase()]];
+            var cfs = index_data[syntax[3].dict[(IF + ' ... ' + BETWEEN + ' ... ' + AND).toLowerCase()]];
             if (cfs)
               out = wrap(IF, 'cfs', cfs[1]) + ' ' + INPUT + ' ' + wrap(BETWEEN, 'cfs', cfs[1]) + ' ' + processStrParam(VAL1) + ' ' + wrap(AND, 'cfs', cfs[1]) + ' ' + processStrParam(VAL2);
             else
@@ -289,7 +289,7 @@ function ctor_highlighter()
           }
           else if (INPUT)
           {
-            var cfs = cache.index_data[syntax[3].dict[(IF + ' ... ' + BETWEEN).toLowerCase()]];
+            var cfs = index_data[syntax[3].dict[(IF + ' ... ' + BETWEEN).toLowerCase()]];
             if (cfs)
               out = wrap(IF, 'cfs', cfs[1]) + ' ' + INPUT + ' ' + wrap(BETWEEN, 'cfs', cfs[1]) + ' ' + ((cfs[3][1] == "S") ? processStrParam(VAL) : VAL);
             else
@@ -300,7 +300,7 @@ function ctor_highlighter()
         {
           var cfs = CFS.toLowerCase();
           // Get type of every parameter:
-          var types = cache.index_data[syntax[3].dict[cfs]][3];
+          var types = index_data[syntax[3].dict[cfs]][3];
           // legacy if-statement:
           if (cfs == 'if')
             if (m = PARAMS.match(/^([^.(:]+?)(&gt;=|&gt;|&lt;&gt;|&lt;=|&lt;|!=|=)(.*)$/))
