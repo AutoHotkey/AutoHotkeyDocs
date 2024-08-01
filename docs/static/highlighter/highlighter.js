@@ -38,7 +38,8 @@ function ctor_highlighter()
       // Skip pre.no-highlight elements:
       if (pre.className.indexOf('no-highlight') != -1)
         continue;
-      pre.className += ' highlight';
+      if (pre.className.indexOf('highlight') == -1)
+        pre.className += ' highlight';
       // Temporary remove elements which interfering with syntax detection:
       els.order.push('various'); els.various = [];
       els.order.push('em'); els.em = [];
