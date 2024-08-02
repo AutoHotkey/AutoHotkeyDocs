@@ -73,7 +73,7 @@ function ctor_highlighter()
         return PRE + '<sct></sct>';
       });
       els.order.push('mct'); els.mct = [];
-      innerHTML = innerHTML.replace(/(^\s*\/\*[\s\S]*?^\s*(\*\/|$(?![\r\n])))/gm, function(COMMENT)
+      innerHTML = innerHTML.replace(/(^\s*\/\*[\s\S]*?(^\s*\*\/|\*\/\s*$|$(?![\r\n])))/gm, function(COMMENT)
       {
         out = wrap(COMMENT, 'cmt', null);
         els.mct.push(out);
