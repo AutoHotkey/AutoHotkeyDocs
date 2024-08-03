@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <title>Pause - Syntax &amp; Usage | AutoHotkey v2</title>
-<meta name="description" content="The Pause function pauses the script's current thread." />
+<meta name="description" content="The Pause function pauses the script's current thread or sets the pause state of the underlying thread." />
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <link href="../static/theme.css" rel="stylesheet" type="text/css" />
@@ -12,19 +12,19 @@
 
 <h1>Pause</h1>
 
-<p>Pauses the script's <a href="../misc/Threads.htm">current thread</a>.</p>
+<p>Pauses the script's <a href="../misc/Threads.htm">current thread</a> or sets the pause state of the underlying thread.</p>
 
 <pre class="Syntax">
-<span class="func">Pause</span> <span class="optional">NewState</span>
+<span class="func">Pause</span> <span class="optional">UnderlyingThreadState</span>
 </pre>
 <h2 id="Parameters">Parameters</h2>
 <dl>
 
-  <dt>NewState</dt>
+  <dt>UnderlyingThreadState</dt>
   <dd>
     <p>Type: <a href="../Concepts.htm#numbers">Integer</a></p>
     <p>If omitted, the <a href="../misc/Threads.htm">current thread</a> is paused. Otherwise, specify one of the following values:</p>
-    <p><code>1</code> or <code>True</code>: Marks the thread beneath the current thread as paused so that when it resumes, it will finish the function it was running (if any) and then enter a paused state. If there is no thread beneath the current thread, the script itself is paused, which prevents <a href="SetTimer.htm">timers</a> from running (this effect is the same as having used the menu item "Pause Script" while the script has no threads).</p>
+    <p><code>1</code> or <code>True</code>: Marks the underlying thread as paused. The current thread is not paused and continues running. When it finishes, the underlying thread resumes any interrupted function the underlying thread was running. Once the underlying thread finishes the function (if any), it enters a paused state. If there is no thread underneath the current thread, the script itself is paused, which prevents <a href="SetTimer.htm">timers</a> from running (this effect is the same as having used the menu item "Pause Script" while the script has no threads).</p>
     <p><code>0</code> or <code>False</code>: Unpauses the underlying thread.</p>
     <p><code>-1</code>: Toggles the pause state of the underlying thread.</p>
   </dd>
@@ -33,8 +33,8 @@
 
 <h2 id="Remarks">Remarks</h2>
 <p>By default, the script can also be paused via its <a href="../Program.htm#tray-icon">tray icon</a> or <a href="../Program.htm#main-window">main window</a>.</p>
-<p>Unlike <a href="Suspend.htm">Suspend</a> -- which disables <a href="../Hotkeys.htm">hotkeys</a> and <a href="../Hotstrings.htm">hotstrings</a> -- turning on pause will freeze the thread (the <a href="../misc/Threads.htm">current thread</a> if <em>NewState</em> was omitted, otherwise the underlying thread). As a side-effect, any interrupted threads beneath it will lie dormant.</p>
-<p>Whenever any thread is paused, <a href="SetTimer.htm">timers</a> will not run. By contrast, explicitly launched threads such as <a href="../Hotkeys.htm">hotkeys</a> and <a href="Menu.htm">menu items</a> can still be launched; but when their <a href="../misc/Threads.htm">threads</a> finish, the underlying thread will still be paused. In other words, each thread can be paused independently of the others.</p>
+<p>Unlike <a href="Suspend.htm">Suspend</a> -- which disables <a href="../Hotkeys.htm">hotkeys</a> and <a href="../Hotstrings.htm">hotstrings</a> -- turning on pause will freeze the thread (the <a href="../misc/Threads.htm">current thread</a> if <em>UnderlyingThreadState</em> was omitted, otherwise the underlying thread). As a side-effect, any interrupted threads underneath it will lie dormant until the current thread is unpaused and finishes.</p>
+<p>Whenever any thread or the script itself is paused, <a href="SetTimer.htm">timers</a> will not run. By contrast, explicitly launched threads such as <a href="../Hotkeys.htm">hotkeys</a> and <a href="Menu.htm">menu items</a> can still be launched; but when their <a href="../misc/Threads.htm">threads</a> finish, the underlying thread will still be paused. In other words, each thread can be paused independently of the others.</p>
 <p>The <a href="../Program.htm#tray-icon">tray icon</a> changes to <img src="../static/ahk16_pause.png" alt="a green icon with a Pause symbol" style="vertical-align:-.2em;"> (or to <img src="../static/ahk16_pause_suspend.png" alt="a green icon with a transparent Pause symbol" style="vertical-align:-.2em;"> if the script is also <a href="Suspend.htm">suspended</a>), whenever the script's <a href="../misc/Threads.htm">current thread</a> is in a paused state. This icon change can be avoided by freezing the icon, which is achieved by using <code><a href="TraySetIcon.htm">TraySetIcon</a>(,, true)</code>.</p>
 <p>To disable <a href="SetTimer.htm">timers</a> without pausing the script, use <a href="Thread.htm#NoTimers">Thread NoTimers</a>.</p>
 <p>A script is always halted (though not officially paused) while it is displaying any kind of <a href="Menu.htm">menu</a> (tray menu, menu bar, GUI context menu, etc.)</p>
