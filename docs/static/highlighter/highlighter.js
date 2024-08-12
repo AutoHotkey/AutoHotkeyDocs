@@ -21,11 +21,6 @@ function ctor_highlighter()
         8 - built-in method/property
         99 - Ahk2Exe compiler
     */
-    // Following will be removed:
-    if (typeof docs_path == 'undefined')
-      if (typeof scriptDir != 'undefined')
-        var docs_path = scriptDir + '/../';
-    // ---
     if (!-[1,]) // Exclude Internet Explorer 8 or below
       return;
     if (!self.syntax.length)

@@ -279,20 +279,6 @@ var isPhone = (document.documentElement.clientWidth <= 600);
 
   // Modify the site:
   document.getElementsByTagName('body')[0].className += ' body';
-  // Following will be removed:
-  if (typeof (window.getComputedStyle) != 'undefined')
-  {
-    var body = document.getElementsByTagName('body')[0];
-    var compstyles = window.getComputedStyle(body);
-    if (compstyles.getPropertyValue('position') != 'fixed')
-    {
-      body.style.height = '100%';
-      body.style.width = '100%';
-      body.style.position = 'fixed';
-      body.style.margin = '0em';
-    }
-  }
-  // ---
   structure.modify();
   if (!isFrameCapable)
     $(document).ready(features.add);
