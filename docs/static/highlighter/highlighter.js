@@ -283,7 +283,7 @@ function ctor_highlighter()
       els.order.push('hotstr'); els.hotstr = [];
       innerHTML = innerHTML.replace(/^(\s*)(:.*?:)(.*?)(::)(.*)/mg, function(_, PRE, HOTSTR1, ABBR, HOTSTR2, REPL)
       {
-        out = PRE + wrap(HOTSTR1, 'lab', null) + wrap(ABBR, 'str', null) + wrap(HOTSTR2, 'lab', null) + (HOTSTR1.match(/x/i) ? REPL : wrap(REPL, 'str', null));
+        out = PRE + wrap(HOTSTR1, 'lab', null) + wrap(ABBR, 'str', null) + wrap(HOTSTR2, 'lab', null) + ((HOTSTR1.match(/x/i) || (REPL.match(/^\s*\{\s*(?=<(?:em|sct)><\/(?:em|sct)>|$)/i))) ? REPL : wrap(REPL, 'str', null));
         els.hotstr.push(out);
         return '<hotstr></hotstr>';
       });
