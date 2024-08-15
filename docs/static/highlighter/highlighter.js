@@ -244,6 +244,9 @@ function ctor_highlighter()
       innerHTML = innerHTML.replace(new RegExp('\\b(' + syntax[3].single.join('|') + ')\\b($|,|{|(?=\\()|\\s(?!\\s*' + self.assignOp + '))(.*?)(?=<(?:em|sct)></(?:em|sct)>|$|{|\\b(' + syntax[3].single.join('|') + ')\\b)', 'gim'), function(ASIS, CFS, SEP, PARAMS)
       {
         var cfs = CFS.toLowerCase();
+        // Skip switch's case or default (will be handled below):
+        if (cfs == 'case' || cfs == 'default')
+          return ASIS;
         // Skip param processing if the statement uses parentheses:
         if (PARAMS.charAt(0) == '(')
         {
@@ -280,6 +283,14 @@ function ctor_highlighter()
         els.cfs_1w.push(out);
         return '<cfs_1w></cfs_1w>';
       });
+      // case/default control flow statements:
+      els.order.push('cfs_switch'); els.cfs_switch = [];
+      innerHTML = innerHTML.replace(/^(\s*)(case|default)\b(?=.*?:)/gim, function(_, PRE, CFS)
+      {
+        out = PRE + wrap(CFS, 'cfs', 3);
+        els.cfs_switch.push(out);
+        return '<cfs_switch></cfs_switch>';
+      });
       // hotstrings:
       els.order.push('hotstr'); els.hotstr = [];
       innerHTML = innerHTML.replace(/^(\s*)(:.*?:)(.*?)(::)(.*)/mg, function(_, PRE, HOTSTR1, ABBR, HOTSTR2, REPL)
@@ -298,8 +309,10 @@ function ctor_highlighter()
       });
       // labels:
       els.order.push('lab'); els.lab = [];
-      innerHTML = innerHTML.replace(/^(\s*)([^\s{(]+?:)(?=\s*(<(em|sct)><\/(em|sct)>|$))/mg, function(_, PRE, LABEL)
+      innerHTML = innerHTML.replace(/^(\s*)([^\s{(]+?:)(?=\s*(<(em|sct)><\/(em|sct)>|$))/mg, function(ASIS, PRE, LABEL)
       {
+        if (LABEL == '<cfs_switch></cfs_switch>:')
+          return ASIS;
         out = PRE + wrap(LABEL, 'lab', null);
         els.lab.push(out);
         return '<lab></lab>';
