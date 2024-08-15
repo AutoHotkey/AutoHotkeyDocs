@@ -226,16 +226,12 @@ function ctor_highlighter()
       });
       // 2-word control flow statements (e.g. for ... in):
       els.order.push('cfs_2w'); els.cfs_2w = [];
-      innerHTML = innerHTML.replace(new RegExp('\\b(' + syntax[3][0].join('|') + ')(\\s+(?:\\S+|\\S*(?:\\s*,\\s*\\S*)*)\\s+|\\s+)(' + syntax[3][1].join('|') + ')(\\s+.+?)(?=<(?:em|sct)></(?:em|sct)>|$|{)', 'gim'), function(ASIS, IF, INPUT, BETWEEN, VAL)
+      innerHTML = innerHTML.replace(new RegExp('\\b(' + syntax[3][0].join('|') + ')(\\s+(?:\\S+|\\S*(?:\\s*,\\s*\\S*)*)\\s+|\\s+)(' + syntax[3][1].join('|') + ')(\\s+.+?)(?=<(?:em|sct)></(?:em|sct)>|$|{)', 'gim'), function(ASIS, WORD1, INPUT1, WORD2, INPUT2)
       {
-        if (INPUT)
-        {
-          var cfs = index_data[syntax[3].dict[(IF + ' ... ' + BETWEEN).toLowerCase()]];
-          if (cfs)
-            out = wrap(IF, 'cfs', cfs[1]) + INPUT + wrap(BETWEEN, 'cfs', cfs[1]) + ((cfs[3][1] == "S") ? processStrParam(VAL) : VAL);
-          else
-            out = ASIS;
-        }
+        var cfs = index_data[syntax[3].dict[(WORD1 + ' ... ' + WORD2).toLowerCase()]];
+        if (!cfs)
+          return ASIS;
+        out = wrap(WORD1, 'cfs', cfs[1]) + INPUT1 + wrap(WORD2, 'cfs', cfs[1]) + INPUT2;
         els.cfs_2w.push(out);
         return '<cfs_2w></cfs_2w>';
       });
