@@ -224,60 +224,61 @@ function ctor_highlighter()
         els.bif.push(out);
         return '<bif></bif>';
       });
-      // control flow statements:
-      els.order.push('cfs'); els.cfs = [];
-      innerHTML = innerHTML.replace(new RegExp('\\b(' + syntax[3][0].join('|') + ')(\\s+(?:\\S+|\\S*(?:\\s*,\\s*\\S*)*)\\s+|\\s+)(' + syntax[3][1].join('|') + ')(\\s+.+?)(?=<(?:em|sct)></(?:em|sct)>|$|{)|\\b(' + syntax[3].single.join('|') + ')\\b($|,|{|(?=\\()|\\s(?!\\s*' + self.assignOp + '))(.*?)(?=<(?:em|sct)></(?:em|sct)>|$|{|\\b(' + syntax[3].single.join('|') + ')\\b)', 'gim'), function(ASIS, IF, INPUT, BETWEEN, VAL, CFS, SEP, PARAMS)
+      // 2-word control flow statements (e.g. for ... in):
+      els.order.push('cfs_2w'); els.cfs_2w = [];
+      innerHTML = innerHTML.replace(new RegExp('\\b(' + syntax[3][0].join('|') + ')(\\s+(?:\\S+|\\S*(?:\\s*,\\s*\\S*)*)\\s+|\\s+)(' + syntax[3][1].join('|') + ')(\\s+.+?)(?=<(?:em|sct)></(?:em|sct)>|$|{)', 'gim'), function(ASIS, IF, INPUT, BETWEEN, VAL)
       {
-        if (IF)
+        if (INPUT)
         {
-          if (INPUT)
-          {
-            var cfs = index_data[syntax[3].dict[(IF + ' ... ' + BETWEEN).toLowerCase()]];
-            if (cfs)
-              out = wrap(IF, 'cfs', cfs[1]) + INPUT + wrap(BETWEEN, 'cfs', cfs[1]) + ((cfs[3][1] == "S") ? processStrParam(VAL) : VAL);
-            else
-              out = ASIS;
-          }
+          var cfs = index_data[syntax[3].dict[(IF + ' ... ' + BETWEEN).toLowerCase()]];
+          if (cfs)
+            out = wrap(IF, 'cfs', cfs[1]) + INPUT + wrap(BETWEEN, 'cfs', cfs[1]) + ((cfs[3][1] == "S") ? processStrParam(VAL) : VAL);
+          else
+            out = ASIS;
         }
-        else
+        els.cfs_2w.push(out);
+        return '<cfs_2w></cfs_2w>';
+      });
+      // 1-word control flow statements (e.g. if):
+      els.order.push('cfs_1w'); els.cfs_1w = [];
+      innerHTML = innerHTML.replace(new RegExp('\\b(' + syntax[3].single.join('|') + ')\\b($|,|{|(?=\\()|\\s(?!\\s*' + self.assignOp + '))(.*?)(?=<(?:em|sct)></(?:em|sct)>|$|{|\\b(' + syntax[3].single.join('|') + ')\\b)', 'gim'), function(ASIS, CFS, SEP, PARAMS)
+      {
+        var cfs = CFS.toLowerCase();
+        // Skip param processing if the statement uses parentheses:
+        if (PARAMS.charAt(0) == '(')
         {
-          var cfs = CFS.toLowerCase();
-          // Skip param processing if the statement uses parentheses:
-          if (PARAMS.charAt(0) == '(')
+          out = wrap(CFS, 'cfs', 3);
+          els.cfs_1w.push(out);
+          return '<cfs_1w></cfs_1w>' + SEP + PARAMS;
+        }
+        // Get type of every parameter:
+        var types = index_data[syntax[3].dict[cfs]][3];
+        // Temporary exclude (...), {...} and [...]:
+        sub = [];
+        PARAMS = PARAMS.replace(/[({\[][^({\[]*[\]})]/g, function(c)
+        {
+          index = sub.push(c) - 1;
+          return '<sub ' + index + '></sub>';
+        });
+        // Split params:
+        PARAMS = PARAMS.split(',');
+        // Iterate params and recompose them:
+        for (n in PARAMS)
+        {
+          // Restore (...), {...} and [...] previously excluded:
+          PARAMS[n] = PARAMS[n].replace(/<sub (\d+)><\/sub>/g, function(_, index)
           {
-            out = wrap(CFS, 'cfs', 3);
-            els.cfs.push(out);
-            return '<cfs></cfs>' + SEP + PARAMS;
-          }
-          // Get type of every parameter:
-          var types = index_data[syntax[3].dict[cfs]][3];
-          // Temporary exclude (...), {...} and [...]:
-          sub = [];
-          PARAMS = PARAMS.replace(/[({\[][^({\[]*[\]})]/g, function(c)
-          {
-            index = sub.push(c) - 1;
-            return '<sub ' + index + '></sub>';
+            return sub[index];
           });
-          // Split params:
-          PARAMS = PARAMS.split(',');
-          // Iterate params and recompose them:
-          for (n in PARAMS)
-          {
-            // Restore (...), {...} and [...] previously excluded:
-            PARAMS[n] = PARAMS[n].replace(/<sub (\d+)><\/sub>/g, function(_, index)
-            {
-              return sub[index];
-            });
-            if (PARAMS[n].match(/^\s*%\s/)) // Skip forced expression parameter:
-              continue;
-            if (types[n] == 'S') // string
-              PARAMS[n] = processStrParam(PARAMS[n]);
-          }
-          PARAMS = PARAMS.join(',');
-          out = wrap(CFS, 'cfs', 3) + SEP + PARAMS;
+          if (PARAMS[n].match(/^\s*%\s/)) // Skip forced expression parameter:
+            continue;
+          if (types[n] == 'S') // string
+            PARAMS[n] = processStrParam(PARAMS[n]);
         }
-        els.cfs.push(out);
-        return '<cfs></cfs>';
+        PARAMS = PARAMS.join(',');
+        out = wrap(CFS, 'cfs', 3) + SEP + PARAMS;
+        els.cfs_1w.push(out);
+        return '<cfs_1w></cfs_1w>';
       });
       // hotstrings:
       els.order.push('hotstr'); els.hotstr = [];
