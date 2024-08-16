@@ -1,23 +1,13 @@
-#NoEnv
-SetBatchLines, -1
-SetWorkingDir %A_ScriptDir%
-
-if (A_PtrSize = 8) {
-    try
-        RunWait "%A_AhkPath%\..\AutoHotkeyU32.exe" "%A_ScriptFullPath%"
-    catch
-        MsgBox 16,, This script must be run with AutoHotkey 32-bit, due to use of the ScriptControl COM component.
-    ExitApp
-}
+#Requires AutoHotkey v2 ; prefer 32-bit
 
 ; Change this path if the loop below doesn't find your hhc.exe,
 ; or leave it as-is if hhc.exe is somewhere in %PATH%.
 hhc := "hhc.exe"
 
 ; Try to find hhc.exe, since it's not in %PATH% by default.
-for i, env_var in ["ProgramFiles", "ProgramFiles(x86)", "ProgramW6432"]
+for env_var in ["ProgramFiles", "ProgramFiles(x86)", "ProgramW6432"]
 {
-    EnvGet Programs, %env_var%
+    Programs := EnvGet(env_var)
     if (Programs && FileExist(checking := Programs "\HTML Help Workshop\hhc.exe"))
     {
         hhc := checking
@@ -25,18 +15,18 @@ for i, env_var in ["ProgramFiles", "ProgramFiles(x86)", "ProgramW6432"]
     }
 }
 
-FileRead IndexJS, docs\static\source\data_index.js
+IndexJS := FileRead("docs\static\source\data_index.js")
 Overwrite("Index.hhk", INDEX_CreateHHK(IndexJS))
 
-; Use old sidebar:
-; FileDelete, docs\static\content.js
-; FileRead TocJS, docs\static\source\data_toc.js
+; Uncomment the following lines to use the old sidebar:
+; try FileDelete("docs\static\content.js")
+; TocJS := FileRead("docs\static\source\data_toc.js")
 ; Overwrite("Table of Contents.hhc", TOC_CreateHHC(TocJS))
-; IniWrite, Table of Contents.hhc, Project.hhp, OPTIONS, Contents file
-; IniWrite, % "AutoHotkey v2 Help,Table of Contents.hhc,Index.hhk,docs\index.htm,docs\index.htm,,,,,0x73520,,0x10200e,[200,0,1080,700],0,,,,0,,0", Project.hhp, WINDOWS, Contents
+; IniWrite("Table of Contents.hhc", "Project.hhp", "OPTIONS", "Contents file")
+; IniWrite("AutoHotkey v2 Help,Table of Contents.hhc,Index.hhk,docs\index.htm,docs\index.htm,,,,,0x73520,,0x10200e,[200,0,1080,700],0,,,,0,,0", "Project.hhp", "WINDOWS", "Contents")
 
 ; Compile AutoHotkey.chm.
-RunWait %hhc% "%A_ScriptDir%\Project.hhp"
+RunWait(hhc ' "' A_ScriptDir '\Project.hhp"')
 
 Overwrite(File, Text)
 {
@@ -45,12 +35,11 @@ Overwrite(File, Text)
 
 TOC_CreateHHC(data)
 {
-    ComObjError(false)
-    sc := ComObjCreate("ScriptControl")
+    sc := ComObject("ScriptControl")
     sc.Language := "JScript"
     sc.ExecuteStatement(data)
-    output =
-    ( LTrim
+    content := "
+    (
     <!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
     <html>
     <body>
@@ -58,71 +47,100 @@ TOC_CreateHHC(data)
     <param name="Window Styles" value="0x800025">
     <param name="ImageType" value="Folder">
     </object>
-    )
-    output .= TOC_CreateListCallback("", sc.Eval("tocData"))
-    output .= "`n</body>`n</html>`n"
-    return % output
-}
+    )"
+    content .= createList(sc.Eval("tocData"))
+    content .= "`n</body>`n</html>`n"
+    return content
 
-TOC_CreateListCallback(byref output, data)
-{
-    output .= "`n<ul>`n"
-    Loop % data.length
+    createList(items, list := "")
     {
-        i := A_Index - 1
-
-        output .= "<li><object type=""text/sitemap"">"
-
-        if data[i][0]
+        list .= "`n<ul>`n"
+        for item in items
         {
-            Transform, param_name, HTML, % data[i][0]
-            output .= "<param name=""Name"" value=""" param_name """>"
+            list .= '<li><object type="text/sitemap">'
+            list .= '<param name="Name" value="' EncodeHTML(item.0) '">'
+            if item.1
+                list .= '<param name="Local" value="docs/' EncodeHTML(item.1) '">'
+            list .= "</object>"
+            if item.hasOwnProperty(2)
+                list .= createList(item.2)
+            list .= "`n"
         }
-        if data[i][1]
-        {
-            Transform, param_local, HTML, % data[i][1]
-            output .= "<param name=""Local"" value=""docs/" param_local """>"
-        }
-
-        output .= "</object>"
-
-        if data[i][2]
-            output .= TOC_CreateListCallback(output, data[i][2])
-
-        output .= "`n"
+        list .= "</ul>"
+        return list
     }
-    output .= "</ul>"
-    return % output
 }
 
 INDEX_CreateHHK(data)
 {
-    ComObjError(false)
-    sc := ComObjCreate("ScriptControl")
+    sc := ComObject("ScriptControl")
     sc.Language := "JScript"
     sc.ExecuteStatement(data)
-    data := sc.Eval("indexData")
-    output =
-    ( LTrim
+    content := "
+    (
     <!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
     <html>
     <body>
-    )
-    output .= "`n<ul>`n"
-    Loop % data.length
+    )"
+    content .= "`n<ul>`n"
+    for item in sc.Eval("indexData")
     {
-        i := A_Index - 1
-
-        output .= "<li><object type=""text/sitemap"">"
-
-        Transform, param_name, HTML, % data[i][0]
-        output .= "<param name=""Name"" value=""" param_name """>"
-        Transform, param_local, HTML, % data[i][1]
-        output .= "<param name=""Local"" value=""docs/" param_local """>"
-
-        output .= "</object>`n"
+        content .= '<li><object type="text/sitemap">'
+        content .= '<param name="Name" value="' EncodeHTML(item.0) '">'
+        content .= '<param name="Local" value="docs/' EncodeHTML(item.1) '">'
+        content .= "</object>`n"
     }
-    output .= "</ul>"
-    output .= "`n</body>`n</html>`n"
-    return % output
+    content .= "</ul>"
+    content .= "`n</body>`n</html>`n"
+    return content
+}
+
+; https://www.autohotkey.com/docs/v2/scripts/index.htm#HTML_Entities_Encoding
+EncodeHTML(String, Flags := 1)
+{
+    static TRANS_HTML_NAMED := 1
+    static TRANS_HTML_NUMBERED := 2
+    static ansi := ["euro", "#129", "sbquo", "fnof", "bdquo", "hellip", "dagger", "Dagger", "circ", "permil", "Scaron", "lsaquo", "OElig", "#141", "#381", "#143", "#144", "lsquo", "rsquo", "ldquo", "rdquo", "bull", "ndash", "mdash", "tilde", "trade", "scaron", "rsaquo", "oelig", "#157", "#382", "Yuml", "nbsp", "iexcl", "cent", "pound", "curren", "yen", "brvbar", "sect", "uml", "copy", "ordf", "laquo", "not", "shy", "reg", "macr", "deg", "plusmn", "sup2", "sup3", "acute", "micro", "para", "middot", "cedil", "sup1", "ordm", "raquo", "frac14", "frac12", "frac34", "iquest", "Agrave", "Aacute", "Acirc", "Atilde", "Auml", "Aring", "AElig", "Ccedil", "Egrave", "Eacute", "Ecirc", "Euml", "Igrave", "Iacute", "Icirc", "Iuml", "ETH", "Ntilde", "Ograve", "Oacute", "Ocirc", "Otilde", "Ouml", "times", "Oslash", "Ugrave", "Uacute", "Ucirc", "Uuml", "Yacute", "THORN", "szlig", "agrave", "aacute", "acirc", "atilde", "auml", "aring", "aelig", "ccedil", "egrave", "eacute", "ecirc", "euml", "igrave", "iacute", "icirc", "iuml", "eth", "ntilde", "ograve", "oacute", "ocirc", "otilde", "ouml", "divide", "oslash", "ugrave", "uacute", "ucirc", "uuml", "yacute", "thorn", "yuml"]
+    static unicode := {0x20AC:1, 0x201A:3, 0x0192:4, 0x201E:5, 0x2026:6, 0x2020:7, 0x2021:8, 0x02C6:9, 0x2030:10, 0x0160:11, 0x2039:12, 0x0152:13, 0x2018:18, 0x2019:19, 0x201C:20, 0x201D:21, 0x2022:22, 0x2013:23, 0x2014:24, 0x02DC:25, 0x2122:26, 0x0161:27, 0x203A:28, 0x0153:29, 0x0178:32}
+
+    out  := ""
+    for i, char in StrSplit(String)
+    {
+        code := Ord(char)
+        switch code
+        {
+            case 10: out .= "<br>`n"
+            case 34: out .= "&quot;"
+            case 38: out .= "&amp;"
+            case 60: out .= "&lt;"
+            case 62: out .= "&gt;"
+            default:
+            if (code >= 160 && code <= 255)
+            {
+                if (Flags & TRANS_HTML_NAMED)
+                    out .= "&" ansi[code-127] ";"
+                else if (Flags & TRANS_HTML_NUMBERED)
+                    out .= "&#" code ";"
+                else
+                    out .= char
+            }
+            else if (code > 255)
+            {
+                if (Flags & TRANS_HTML_NAMED && unicode.HasOwnProp(code))
+                    out .= "&" ansi[unicode.%code%] ";"
+                else if (Flags & TRANS_HTML_NUMBERED)
+                    out .= "&#" code ";"
+                else
+                    out .= char
+            }
+            else
+            {
+                if (code >= 128 && code <= 159)
+                    out .= "&" ansi[code-127] ";"
+                else
+                    out .= char
+            }
+        }
+    }
+    return out
 }
