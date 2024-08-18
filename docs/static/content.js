@@ -1820,10 +1820,10 @@ function ctor_features()
     {
       if (!retrieveData(index.dataPath, "index_data", "indexData", function() { self.addSyntaxColors(pres); }))
         return;
-      loadScript(scriptDir + '/highlighter/highlighter.js', function() { highlighter.addSyntaxColors(pres, cache.index_data, docs_path); });
+      loadScript(scriptDir + '/highlighter/highlighter.js', function() { highlighter.addSyntaxColors(pres, cache.index_data, docs_path, false); });
     }
     else
-      highlighter.addSyntaxColors(pres, cache.index_data, docs_path);
+      highlighter.addSyntaxColors(pres, cache.index_data, docs_path, false);
   };
 
   // --- Add footer at the bottom of the site ---

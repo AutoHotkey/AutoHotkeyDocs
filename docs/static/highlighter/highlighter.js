@@ -4,7 +4,7 @@ function ctor_highlighter()
   var self = this;
   self.syntax = [];
   self.assignOp = "(?:&lt;&lt;|<<|&gt;&gt;|>>|\\/\\/|\\^|&amp;|&|\\||\\.|\\/|\\*|-|\\+|:)=";
-  self.addSyntaxColors = function(pres, index_data, docs_path)
+  self.addSyntaxColors = function(pres, index_data, docs_path, new_tab)
   {
     // Add syntax highlighting for AutoHotkey code.
     // Don't have to be pre elements, e.g. code elements are also possible.
@@ -336,6 +336,8 @@ function ctor_highlighter()
       if (TypeOrLink != null)
       {
         var a = document.createElement('a');
+        if (new_tab)
+          a.target = '_blank';
         if (typeof TypeOrLink == 'number')
           a.href = docs_path + index_data[syntax[TypeOrLink].dict[match.toLowerCase()]][1];
         else
