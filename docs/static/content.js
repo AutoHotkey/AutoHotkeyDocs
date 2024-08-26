@@ -91,6 +91,7 @@ var isFrameCapable = !cache.forceNoFrame && (isInsideCHM || supportsHistory);
 var isInsideFrame = (window.self !== window.top);
 var isSearchBot = navigator.userAgent.match(/googlebot|bingbot|slurp/i);
 var isTouch = !!("ontouchstart" in window) || !!(navigator.msMaxTouchPoints);
+// http://stackoverflow.com/a/9851769
 var isOpera = (!!window.opr && !!opr.addons) || !!window.opera || navigator.userAgent.indexOf(' OPR/') >= 0; // Opera 8.0+
 var isFirefox = typeof InstallTrigger !== 'undefined'; // Firefox 1.0+
 var isSafari = Object.prototype.toString.call(window.HTMLElement).indexOf('Constructor') > 0; // At least Safari 3+: "[object HTMLElementConstructor]"
@@ -1731,6 +1732,7 @@ function ctor_features()
         continue;
       var isSyntax = (pre.className.indexOf('Syntax') != -1);
       var isNoHighlight = (pre.className.indexOf('no-highlight') != -1);
+      var supportsBlob = (typeof Blob != 'undefined');
       var parent = document.createElement('pre'); parent.className = 'parent ' + pre.className;
       if (isSyntax || isNoHighlight)
         pre.className = 'origin no-highlight';
@@ -1748,7 +1750,7 @@ function ctor_features()
       else
         sel.setAttribute("data-content", 'S');
       buttons.appendChild(sel);
-      if (!isSyntax && !isNoHighlight) {
+      if (supportsBlob && !isSyntax && !isNoHighlight) {
         var dwn = document.createElement('a');
         dwn.className = 'downloadCode';
         dwn.title = T("Download code");
@@ -1792,8 +1794,6 @@ function ctor_features()
           var downloadLink = document.createElement("a");
           downloadLink.download = fileNameToSaveAs;
           downloadLink.innerHTML = "Download File";
-
-          // http://stackoverflow.com/a/9851769
 
           if (isIE || isEdge) {
             navigator.msSaveBlob(textFileAsBlob, fileNameToSaveAs);

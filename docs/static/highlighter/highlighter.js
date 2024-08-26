@@ -4,7 +4,7 @@ function ctor_highlighter()
   var self = this;
   self.syntax = [];
   self.assignOp = "(?:&lt;&lt;|<<|&gt;&gt;|>>|\\/\\/|\\^|&amp;|&|\\||\\.|\\/|\\*|-|\\+|:)=";
-  self.addSyntaxColors = function(pres, index_data, docs_path, new_tab)
+  self.addSyntaxColors = function(codes, index_data, docs_path, new_tab)
   {
     // Add syntax highlighting for AutoHotkey code.
     // Don't have to be pre elements, e.g. code elements are also possible.
@@ -26,39 +26,57 @@ function ctor_highlighter()
       self.syntax = sortByType(index_data);
     var syntax = self.syntax;
     // Traverse pre elements:
-    for (var i = 0; i < pres.length; i++)
+    for (var i = 0; i < codes.length; i++)
     {
-      var pre = pres[i], els = [];
+      var pre = code = codes[i], els = [];
       els.order = [];
       // Skip pre.no-highlight elements:
       if (pre.className.indexOf('no-highlight') != -1)
         continue;
+      // Add highlight class if not available:
       if (pre.className.indexOf('highlight') == -1)
         pre.className += ' highlight';
+      // Convert to pre>code if necessary:
+      if (pre.tagName == 'PRE')
+      {
+        if (pre.firstChild.tagName != 'CODE')
+        {
+          code = document.createElement('code');
+          code.className = 'highlight';
+          code.innerHTML = pre.innerHTML;
+          pre.innerHTML = '';
+          pre.appendChild(code);
+        }
+        else
+        {
+          code = pre.firstChild;
+          code.className += ' highlight';
+        }
+      }
       // Temporary remove elements which interfering with syntax detection:
       els.order.push('various'); els.various = [];
       els.order.push('em'); els.em = [];
-      for (var ii = 0; ii < pre.children.length; ii++)
+      for (var ii = 0; ii < code.children.length; ii++)
       {
-        var child = pre.children[ii];
+        var child = code.children[ii];
         if (child.tagName == 'EM')
         {
           els.em.push(child.outerHTML);
-          pre.replaceChild(document.createElement('em'), child);
+          code.replaceChild(document.createElement('em'), child);
         }
         else if (child.href && child.getAttribute("href").substring(0, 4) != "http")
         {
-          pre.replaceChild(document.createTextNode(child.innerText), child);
+          code.replaceChild(document.createTextNode(child.innerText), child);
           ii--;
         }
         else if (child.attributes.length || child.children.length)
         {
           els.various.push(child.outerHTML);
-          pre.replaceChild(document.createElement('various'), child);
+          code.replaceChild(document.createElement('various'), child);
         }
       }
-      // Store pre content into a variable to improve performance:
-      var innerHTML = pre.innerHTML;
+      // Store code content into a variable to improve performance:
+      var innerHTML = code.innerHTML;
       // comments:
       els.order.push('sct'); els.sct = [];
       innerHTML = innerHTML.replace(/(\s|^)(;.*?)$/gm, function(_, PRE, COMMENT)
@@ -314,11 +332,11 @@ function ctor_highlighter()
         return '<lab></lab>';
       });
       // Release changes:
-      pre.innerHTML = innerHTML;
+      code.innerHTML = innerHTML;
       // Restore elements:
       for (var k = els.order.length - 1; k >= 0; k--)
       {
-        var children = pre.querySelectorAll(els.order[k]);
+        var children = code.querySelectorAll(els.order[k]);
         for (var kk = 0; kk < children.length; kk++)
         {
           var child = children[kk];
@@ -327,6 +345,16 @@ function ctor_highlighter()
           else
             child.outerHTML = els[els.order[k]][kk];
         }
+      }
+      // Add line numbers:
+      if (pre.tagName == 'PRE' && pre.className.indexOf('line-numbers') != -1)
+      {
+        var span = document.createElement('span');
+        span.className = 'line-numbers-rows';
+        var count = code.innerHTML.split(/\n(?!$)/).length;
+        for (var k = 0; k < count; k++)
+          span.appendChild(document.createElement('span'));
+        code.appendChild(span);
       }
     }
     function wrap(match, className, TypeOrLink)
