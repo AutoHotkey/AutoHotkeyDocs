@@ -102,7 +102,7 @@ function ctor_highlighter()
       });
       // function definitions:
       els.order.push('fun'); els.fun = [];
-      innerHTML = innerHTML.replace(/^(\s*?static\s*?|\s*?)(\S*?)(?=\(.*?\)\s*(<(em|sct)><\/(em|sct)>\s*)*{)/mg, function(ASIS, PRE, DEFINITION)
+      innerHTML = innerHTML.replace(/^(\s*?static\s*?|\s*?)([A-Za-z0-9_\#@\$\u00A0-\uFFFF]+?)(?=\(.*?\)\s*(<(em|sct)><\/(em|sct)>\s*)*{)/mg, function(ASIS, PRE, DEFINITION)
       {
         if (DEFINITION.match(/^(while|if)$/i))
           return ASIS;
