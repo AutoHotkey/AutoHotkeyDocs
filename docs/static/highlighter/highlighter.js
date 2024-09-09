@@ -182,11 +182,11 @@ function ctor_highlighter()
       });
       // declarations:
       els.order.push('dec'); els.dec = [];
-      innerHTML = innerHTML.replace(new RegExp('(^\\s*)(' + syntax[5].single.join('|') + ')\\b(?=\\s|$)', 'gim'), function(_, PRE, DEC)
+      innerHTML = innerHTML.replace(new RegExp('((?:^|::)\\s*)(' + syntax[5].single.join('|') + ')\\b(?=\\s|$)', 'gim'), function(_, PRE, DEC)
       {
-        out = PRE + wrap(DEC, 'dec', 5);
+        out = wrap(DEC, 'dec', 5);
         els.dec.push(out);
-        return '<dec></dec>';
+        return PRE + '<dec></dec>';
       });
       // ByRef:
       els.order.push('byref'); els.byref = [];
