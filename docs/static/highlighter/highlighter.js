@@ -129,14 +129,6 @@ function ctor_highlighter()
         els.cont.push(out);
         return PRE + '<cont></cont>';
       });
-      // built-in vars:
-      els.order.push('biv'); els.biv = [];
-      innerHTML = innerHTML.replace(new RegExp('\\b(' + syntax[1].single.join('|') + ')\\b', 'gi'), function(_, BIV)
-      {
-        out = wrap(BIV, 'biv', 1);
-        els.biv.push(out);
-        return '<biv></biv>';
-      });
       // strings:
       els.order.push('str'); els.str = [];
       innerHTML = innerHTML.replace(/((")[\s\S]*?\2)/gm, function(_, STRING)
@@ -170,6 +162,14 @@ function ctor_highlighter()
         out = '.' + wrap(PROPERTY, 'prp', null);
         els.prp.push(out);
         return '<prp></prp>';
+      });
+      // built-in vars:
+      els.order.push('biv'); els.biv = [];
+      innerHTML = innerHTML.replace(new RegExp('\\b(' + syntax[1].single.join('|') + ')\\b', 'gi'), function(_, BIV)
+      {
+        out = wrap(BIV, 'biv', 1);
+        els.biv.push(out);
+        return '<biv></biv>';
       });
       // declaration: class ... extends
       els.order.push('dec_cls'); els.dec_cls = [];
@@ -431,10 +431,12 @@ function ctor_highlighter()
       });
       // handle %...%:
       var out = '', lastIndex = 0;
-      var re = /%[^,\s]+?%/g;
+      var re = /%([^,\s]+?)%/g;
       while (m = re.exec(param))
       {
-        out += wrap(param.slice(lastIndex, m.index), 'str', null) + m[0];
+        out += wrap(param.slice(lastIndex, m.index), 'str', null) + '%';
+        out += (syntax[1].dict[m[1].toLowerCase()]) ? wrap(m[1], 'biv', 1) : m[1];
+        out += '%';
         lastIndex = re.lastIndex;
       }
       out += wrap(param.slice(lastIndex), 'str', null);
