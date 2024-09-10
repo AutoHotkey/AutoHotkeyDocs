@@ -449,30 +449,29 @@ function ctor_highlighter()
       {
         entry = index_data[i][0];
         type = index_data[i][2];
+        if (typeof type == 'undefined')
+          continue;
         syntax[type] = syntax[type] || [];
-        if (typeof type !== 'undefined')
+        if (entry.substr(entry.length - 2) == '()')
+          entry = entry.substr(0, entry.length - 2);
+        if (entry.indexOf(' ... ') != -1)
         {
-          if (entry.substr(entry.length - 2) == '()')
-            entry = entry.substr(0, entry.length - 2);
-          if (entry.indexOf(' ... ') != -1)
+          part = entry.split(' ... ');
+          for (k in part)
           {
-            part = entry.split(' ... ');
-            for (k in part)
-            {
-              syntax[type][k] = syntax[type][k] || [];
-              if (syntax[type][k].indexOf(part[k]) == -1)
-                syntax[type][k].push(part[k]);
-            }
+            syntax[type][k] = syntax[type][k] || [];
+            if (syntax[type][k].indexOf(part[k]) == -1)
+              syntax[type][k].push(part[k]);
           }
-          else
-            (syntax[type].single = syntax[type].single || []).push(entry);
-          (syntax[type].dict = syntax[type].dict || {})[entry.toLowerCase()] = i;
-          if (entry.indexOf(', ') != -1)
-          {
-            entry = entry.toLowerCase().replace(', ', ' ');
-            syntax[type].single.push(entry);
-            (syntax[type].dict = syntax[type].dict || {})[entry] = i;
-          }
+        }
+        else
+          (syntax[type].single = syntax[type].single || []).push(entry);
+        (syntax[type].dict = syntax[type].dict || {})[entry.toLowerCase()] = i;
+        if (entry.indexOf(', ') != -1)
+        {
+          entry = entry.toLowerCase().replace(', ', ' ');
+          syntax[type].single.push(entry);
+          (syntax[type].dict = syntax[type].dict || {})[entry] = i;
         }
       }
       return syntax;
