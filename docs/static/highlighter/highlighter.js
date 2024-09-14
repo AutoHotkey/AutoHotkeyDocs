@@ -259,11 +259,17 @@ function ctor_highlighter()
         if (PARAMS.length > types.length) // For the last param of any command.
           PARAMS.push(PARAMS.splice(types.length - 1).join(','));
 
-        if (CMD.toLowerCase() == "msgbox") // For MsgBox.
+        if (CMD.toLowerCase() == "msgbox" && PARAMS.length > 1) // For MsgBox.
         {
-          if (PARAMS[0] && !PARAMS[0].match(/^(\s*(<(em|sct)><\/\3>|$)|\s*<num><\/num>)/)) // 1-parameter mode
+          var p1_isNum = PARAMS[0].match(/^\s*(<num><\/num>)?\s*$/);
+          var p1_isExp = PARAMS[0].match(/^\s*%\s/);
+          var p1_isOptions = p1_isNum || (p1_isExp && PARAMS[1]);
+          var p4_isNum = PARAMS[3] && PARAMS[3].match(/^\s*(<num><\/num>)?\s*($|<(em|sct)><\/\3>)/);
+          var p4_isExp = PARAMS[3] && PARAMS[3].match(/^\s*%/);
+          var p4_isTimeout = p1_isOptions && (p4_isNum || p4_isExp);
+          if (!p1_isOptions) // 1-parameter mode
             PARAMS.push(PARAMS.splice(0).join(','));
-          if (PARAMS[3] && !PARAMS[3].match(/^(\s*(<(em|sct)><\/\3>|$)|\s*<num><\/num>)/)) // 3-parameter mode
+          else if (PARAMS[3] && !p4_isTimeout) // 3-parameter mode
             PARAMS.push(PARAMS.splice(2).join(','));
         }
         // Iterate params and recompose them:
