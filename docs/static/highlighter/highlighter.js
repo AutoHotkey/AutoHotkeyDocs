@@ -173,7 +173,7 @@ function ctor_highlighter()
       });
       // declaration: class ... extends
       els.order.push('dec_cls'); els.dec_cls = [];
-      innerHTML = innerHTML.replace(/(^\s*)(class)(\s+\S+\s+)(extends)\b/gim, function(_, PRE, CLASS, INPUT, EXTENDS)
+      innerHTML = innerHTML.replace(/((?:^|\})\s*)(class)(\s+\S+\s+)(extends)\b/gim, function(_, PRE, CLASS, INPUT, EXTENDS)
       {
         var link = index_data[syntax[5].dict['class']][1];
         els.dec_cls.push(wrap(CLASS, 'dec', link));
@@ -182,7 +182,7 @@ function ctor_highlighter()
       });
       // declarations:
       els.order.push('dec'); els.dec = [];
-      innerHTML = innerHTML.replace(new RegExp('((?:^|::)\\s*)(' + syntax[5].single.join('|') + ')\\b(?=\\s|$)', 'gim'), function(_, PRE, DEC)
+      innerHTML = innerHTML.replace(new RegExp('((?:^|::|\\{|\\})\\s*)(' + syntax[5].single.join('|') + ')\\b(?=\\s|$)', 'gim'), function(_, PRE, DEC)
       {
         out = wrap(DEC, 'dec', 5);
         els.dec.push(out);
