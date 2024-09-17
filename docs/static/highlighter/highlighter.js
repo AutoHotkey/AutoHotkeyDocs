@@ -139,13 +139,13 @@ function ctor_highlighter()
       });
       // legacy assignments:
       els.order.push('assign'); els.assign = [];
-      innerHTML = innerHTML.replace(/^([ \t]*[^(,\s]*?)([ \t]*=[ \t]*)(.*?)(?=<(?:em|sct)><\/(?:em|sct)>|$)/gim, function(ASIS, VAR, OP, VAL)
+      innerHTML = innerHTML.replace(/((?:^|::|\{|\})[ \t]*)([A-Za-z0-9_\#@\$%\u00A0-\uFFFF]+?)([ \t]*=[ \t]*)(.*?)(?=<(?:em|sct)><\/(?:em|sct)>|$)/gim, function(ASIS, PRE, VAR, OP, VAL)
       {
-        if ('^:!*/&^+-|~.='.indexOf(VAR.slice(-1)) != -1)
+        if (VAL.indexOf('<cont></cont>') != -1)
           return ASIS;
         out = processStrParam(VAL);
         els.assign.push(out);
-        return VAR + OP + '<assign></assign>';
+        return PRE + VAR + OP + '<assign></assign>';
       });
       // methods:
       els.order.push('met'); els.met = [];
