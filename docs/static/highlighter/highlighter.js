@@ -319,8 +319,8 @@ function ctor_highlighter()
         else
         {
           var cfs = CFS.toLowerCase();
-          // Get type of every parameter:
-          var types = index_data[syntax[3].dict[cfs]][3];
+          var type_or_link = 3;
+          var types = index_data[syntax[3].dict[cfs]][3]; // parameter types
           // legacy if-statement:
           if (cfs == 'if')
             if (m = PARAMS.match(/^([^.(:]+?)(&gt;=|&gt;|&lt;&gt;|&lt;=|&lt;|!=|=)(.*)$/))
@@ -339,6 +339,17 @@ function ctor_highlighter()
           });
           // Split params:
           PARAMS = PARAMS.split(',');
+          // Handle specialized loops:
+          if (cfs == 'loop' && PARAMS.length > 1)
+          {
+            if (m = PARAMS[0].match(/^\s*(files|parse|read|reg)\s*$/i))
+            {
+              var index_entry = index_data[syntax[3].dict['loop, ' + m[1].toLowerCase()]];
+              type_or_link = index_entry[1];
+              types = 'X' + index_entry[3];
+              PARAMS[0] = wrap(PARAMS[0], 'cfs', type_or_link);
+            }
+          }
           // Iterate params and recompose them:
           for (n in PARAMS)
           {
@@ -353,7 +364,7 @@ function ctor_highlighter()
               PARAMS[n] = processStrParam(PARAMS[n]);
           }
           PARAMS = PARAMS.join(',');
-          out = wrap(CFS, 'cfs', 3) + SEP + PARAMS;
+          out = wrap(CFS, 'cfs', type_or_link) + SEP + PARAMS;
         }
         els.cfs.push(out);
         return '<cfs></cfs>';
@@ -455,6 +466,7 @@ function ctor_highlighter()
       {
         entry = index_data[i][0];
         type = index_data[i][2];
+        skip = index_data[i][4] || false;
         if (typeof type == 'undefined')
           continue;
         syntax[type] = syntax[type] || [];
@@ -470,15 +482,9 @@ function ctor_highlighter()
               syntax[type][k].push(part[k]);
           }
         }
-        else
+        else if (!skip)
           (syntax[type].single = syntax[type].single || []).push(entry);
         (syntax[type].dict = syntax[type].dict || {})[entry.toLowerCase()] = i;
-        if (entry.indexOf(', ') != -1)
-        {
-          entry = entry.toLowerCase().replace(', ', ' ');
-          syntax[type].single.push(entry);
-          (syntax[type].dict = syntax[type].dict || {})[entry] = i;
-        }
       }
       return syntax;
     }
