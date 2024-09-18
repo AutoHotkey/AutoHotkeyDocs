@@ -208,13 +208,13 @@ function ctor_highlighter()
       els.order.push('dir'); els.dir = [];
       innerHTML = innerHTML.replace(new RegExp('(' + syntax[0].single.join('|') + ')\\b($|[\\s,])(.*?)(?=<(?:em|sct)></(?:em|sct)>|$)', 'gim'), function(_, DIR, SEP, PARAMS)
       {
-        // Get type of every parameter:
-        var types = index_data[syntax[0].dict[DIR.toLowerCase()]][3];
+        var dir = DIR.toLowerCase();
+        var types = index_data[syntax[0].dict[dir]][3]; // parameter types
         // Temporary exclude (...), {...} and [...]:
-        sub = [];
+        var sub = [];
         PARAMS = PARAMS.replace(/[({\[][^({\[]*[\]})]/g, function(c)
         {
-          index = sub.push(c) - 1;
+          var index = sub.push(c) - 1;
           return '<sub ' + index + '></sub>';
         });
         // Split params:
@@ -244,13 +244,13 @@ function ctor_highlighter()
       els.order.push('cmd'); els.cmd = [];
       innerHTML = innerHTML.replace(new RegExp('\\b(' + syntax[6].single.join('|') + ')\\b(\\s*,|\\s*<(?:em|sct)><\\/(?:em|sct)>\\s*,|$|,|\\s(?!\\s*' + self.assignOp + '))(.*?$(?:(?:\\s*?(,|<cont>).*?$))*)', "gim"), function(_, CMD, SEP, PARAMS)
       {
-        // Get type of every parameter:
-        var types = index_data[syntax[6].dict[CMD.toLowerCase()]][3];
+        var cmd = CMD.toLowerCase();
+        var types = index_data[syntax[6].dict[cmd]][3]; // parameter types
         // Temporary exclude (...), {...} and [...]:
-        sub = [];
+        var sub = [];
         PARAMS = PARAMS.replace(/[({\[][^({\[]*[\]})]/g, function(c)
         {
-          index = sub.push(c) - 1;
+          var index = sub.push(c) - 1;
           return '<sub ' + index + '></sub>';
         });
         // Split params:
@@ -258,8 +258,8 @@ function ctor_highlighter()
         // Detect smart comma handling:
         if (PARAMS.length > types.length) // For the last param of any command.
           PARAMS.push(PARAMS.splice(types.length - 1).join(','));
-
-        if (CMD.toLowerCase() == "msgbox" && PARAMS.length > 1) // For MsgBox.
+        // Handle MsgBox:
+        if (cmd == "msgbox" && PARAMS.length > 1)
         {
           var p1_isNum = PARAMS[0].match(/^\s*(<num><\/num>)?\s*$/);
           var p1_isExp = PARAMS[0].match(/^\s*%\s/);
@@ -326,15 +326,16 @@ function ctor_highlighter()
             if (m = PARAMS.match(/^([^.(:]+?)(&gt;=|&gt;|&lt;&gt;|&lt;=|&lt;|!=|=)(.*)$/))
             {
               var VAR = m[1], OP = m[2], VAL = m[3];
-              out = wrap(CFS, 'cfs', 'lib/IfEqual.htm') + SEP + VAR + OP + processStrParam(VAL);
+              var link = index_data[syntax[3].dict['ifequal']][1];
+              out = wrap(CFS, 'cfs', link) + SEP + VAR + OP + processStrParam(VAL);
               els.cfs.push(out);
               return '<cfs></cfs>';
             }
           // Temporary exclude (...), {...} and [...]:
-          sub = [];
+          var sub = [];
           PARAMS = PARAMS.replace(/[({\[][^({\[]*[\]})]/g, function(c)
           {
-            index = sub.push(c) - 1;
+            var index = sub.push(c) - 1;
             return '<sub ' + index + '></sub>';
           });
           // Split params:
