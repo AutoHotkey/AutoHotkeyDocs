@@ -187,8 +187,8 @@ function ctor_highlighter()
       els.order.push('dir'); els.dir = [];
       innerHTML = innerHTML.replace(new RegExp('(' + syntax[0].single.join('|') + ')\\b($|[\\s,])(.*?)(?=<(?:em|sct)></(?:em|sct)>|$)', 'gim'), function(_, DIR, SEP, PARAMS)
       {
-        // Get type of every parameter:
-        var types = index_data[syntax[0].dict[DIR.toLowerCase()]][3];
+        var dir = DIR.toLowerCase();
+        var types = index_data[syntax[0].dict[dir]][3]; // parameter types
         // Skip param processing if first param is an expression:
         if (types[0] == 'E')
         {
@@ -197,10 +197,10 @@ function ctor_highlighter()
           return '<dir></dir>' + SEP + PARAMS;
         }
         // Temporary exclude (...), {...} and [...]:
-        sub = [];
+        var sub = [];
         PARAMS = PARAMS.replace(/[({\[][^({\[]*[\]})]/g, function(c)
         {
-          index = sub.push(c) - 1;
+          var index = sub.push(c) - 1;
           return '<sub ' + index + '></sub>';
         });
         // Split params:
@@ -258,23 +258,37 @@ function ctor_highlighter()
       innerHTML = innerHTML.replace(new RegExp('\\b(' + syntax[3].single.join('|') + ')\\b($|,|{|(?=\\()|\\s(?!\\s*' + self.assignOp + '))(.*?)(?=<(?:em|sct)></(?:em|sct)>|$|{|\\b(' + syntax[3].single.join('|') + ')\\b)', 'gim'), function(ASIS, CFS, SEP, PARAMS)
       {
         var cfs = CFS.toLowerCase();
+        var types = index_data[syntax[3].dict[cfs]][3]; // parameter types
         // Skip switch's case or default (will be handled below):
         if (cfs == 'case' || cfs == 'default')
           return ASIS;
-        // Skip param processing if the statement uses parentheses:
+        // Skip param processing for statements using parentheses:
         if (PARAMS.charAt(0) == '(')
         {
           out = wrap(CFS, 'cfs', 3);
           els.cfs_1w.push(out);
           return '<cfs_1w></cfs_1w>' + SEP + PARAMS;
         }
-        // Get type of every parameter:
-        var types = index_data[syntax[3].dict[cfs]][3];
+        // Skip param processing for loops:
+        if (cfs == 'loop')
+        {
+          var type_or_link = 3;
+          if (m = PARAMS.match(/^\s*(files|parse|read|reg)(?=\s|,)/i)) // specialized loops
+          {
+            CFS = CFS + SEP + m[0];
+            type_or_link = index_data[syntax[3].dict['loop ' + m[1].toLowerCase()]][1];
+            SEP = '';
+            PARAMS = PARAMS.substr(m[0].length);
+          }
+          out = wrap(CFS, 'cfs', type_or_link);
+          els.cfs_1w.push(out);
+          return '<cfs_1w></cfs_1w>' + SEP + PARAMS;
+        }
         // Temporary exclude (...), {...} and [...]:
-        sub = [];
+        var sub = [];
         PARAMS = PARAMS.replace(/[({\[][^({\[]*[\]})]/g, function(c)
         {
-          index = sub.push(c) - 1;
+          var index = sub.push(c) - 1;
           return '<sub ' + index + '></sub>';
         });
         // Split params:
@@ -404,6 +418,7 @@ function ctor_highlighter()
       {
         entry = index_data[i][0];
         type = index_data[i][2];
+        skip = index_data[i][4] || false;
         if (typeof type == 'undefined')
           continue;
         syntax[type] = syntax[type] || [];
@@ -417,7 +432,7 @@ function ctor_highlighter()
               syntax[type][k].push(part[k]);
           }
         }
-        else
+        else if (!skip)
           (syntax[type].single = syntax[type].single || []).push(entry);
         (syntax[type].dict = syntax[type].dict || {})[entry.toLowerCase()] = i;
       }
