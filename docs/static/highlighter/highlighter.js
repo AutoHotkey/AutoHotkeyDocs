@@ -259,9 +259,6 @@ function ctor_highlighter()
       {
         var cfs = CFS.toLowerCase();
         var types = index_data[syntax[3].dict[cfs]][3]; // parameter types
-        // Skip switch's case or default (will be handled below):
-        if (cfs == 'case' || cfs == 'default')
-          return ASIS;
         // Skip param processing for statements using parentheses:
         if (PARAMS.charAt(0) == '(')
         {
