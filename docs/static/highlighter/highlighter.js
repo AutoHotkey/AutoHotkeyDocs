@@ -259,8 +259,11 @@ function ctor_highlighter()
         {
           var cfs = CFS.toLowerCase(), out, link;
           var types = index_data[syntax[3].dict[cfs]][3]; // parameter types
-          if (SEP == '(' && !cfs.match(/^(while|if)$/i))
-            return ASIS;
+          if (SEP == '(')
+            if (cfs == 'if' || cfs == 'while')
+              return PRE + ph('cfs', wrap(CFS, 'cfs', 3)) + expressions(SEP + PARAMS);
+            else
+              return ASIS;
           if (PARAMS[0] == '{')
             return PRE + ph('cfs', wrap(CFS, 'cfs', 3)) + SEP + PARAMS;
           if (!types)
@@ -409,14 +412,14 @@ function ctor_highlighter()
       var key_names = '(?:L|R|M)Button|XButton[1-2]|Wheel(?:Down|Up|Left|Right)|CapsLock|Space|Tab|Enter|Return|Escape|Esc|Backspace|BS|ScrollLock|Delete|Del|Insert|Ins|Home|End|PgUp|PgDn|Up|Down|Left|Right|Numpad(?:[0-9]|Dot|Ins|End|Down|PgDn|Left|Clear|Right|Home|Up|PgUp|Del|Div|Mult|Add|Sub|Enter)|NumLock|F(?:2[0-4]|1[0-9]|[1-9])|LWin|RWin|(?:L|R)?(?:Control|Ctrl|Shift|Alt)|Browser_(?:Back|Forward|Refresh|Stop|Search|Favorites|Home)|Volume_(?:Mute|Down|Up)|Media_(?:Next|Prev|Stop|Play_Pause)|Launch_(?:Mail|Media|App1|App2)|AppsKey|PrintScreen|CtrlBreak|Pause|Break|Help|Sleep|SC[0-9a-f]{1,3}|VK[0-9a-f]{1,2}|Joy(?:3[0-2]|2[0-9]|1[0-9]|[1-9])|\\S|&.+?;';
       return innerHTML.replace(new RegExp('^(\\s*)((?:(?:[#!^+*~$]|&lt;|&gt;)*(?:' + key_names + ')(?:\\s+up)?|~?(?:' + key_names + ')\\s+&amp;\\s+~?(?:' + key_names + ')(?:\\s+up)?)::)([\\t ]*)(.*)(?=\\s+<(?:em|sct)\\d+></(?:em|sct)\\d+>|$)', 'gim'), function(ASIS, PRE, HK, SPACE, ACTION)
       {
-        var out = PRE + ph('hk', wrap(HK, 'lab', null));
+        var out = PRE + ph('hk', wrap(HK, 'lab', null)) + SPACE;
         if (ACTION == '')
           return out;
         var act = statements(ACTION);
         var quote_count = ACTION.split('"').length - 1;
         if (act === ACTION && quote_count == 1)
             return ASIS;
-        return out + SPACE + act;
+        return out + act;
       });
     }
     /** Searches for labels, formats them and replaces them with placeholders. */
