@@ -415,6 +415,8 @@ function ctor_highlighter()
         var out = PRE + ph('hk', wrap(HK, 'lab', null)) + SPACE;
         if (ACTION == '')
           return out;
+        if (/^(control|sleep)$/i.test(ACTION))
+          return out + ACTION;
         var act = statements(ACTION);
         var quote_count = ACTION.split('"').length - 1;
         if (act === ACTION && quote_count == 1)
