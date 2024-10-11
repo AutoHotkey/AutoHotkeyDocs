@@ -168,7 +168,7 @@ function ctor_highlighter()
       });
     }
     /** Searches for continuation sections, formats them and replaces them with placeholders. */
-    function continuation_sections(innerHTML, forced_opts, is_inside_quotes)
+    function continuation_sections(innerHTML, forced_opts, is_inside_quotes, is_literal)
     {
       return innerHTML.replace(/([\r\n]*?^\s*\()(.*)([\s\S]*?)(^\s*\))/gm, function(ASIS, OPEN, OPTS, CONT, CLOSE)
       {
@@ -192,10 +192,15 @@ function ctor_highlighter()
           else
             CONT = wrap(CONT, 'str', null);
         }
-        else if (opts.indexOf('%') == -1)
-          CONT = string_with_var_refs(CONT);
+        else if (is_literal)
+        {
+          if (opts.indexOf('%') == -1)
+            CONT = string_with_var_refs(CONT);
+          else
+            CONT = wrap(CONT, 'str', null);
+        }
         else
-          CONT = wrap(CONT, 'str', null);
+          CONT = expressions(CONT);
         return ph('cont', OPEN + OPTS + CONT + CLOSE, ASIS);
 
         /**
@@ -443,7 +448,7 @@ function ctor_highlighter()
     /** Searches for strings, formats them and replaces them with placeholders. */
     function strings(innerHTML)
     {
-      return innerHTML.replace(/((").*?\2)+/gm, function(STRING)
+      return innerHTML.replace(/((")[\s\S]*?\2)+/gm, function(STRING)
       {
         var out = '', lastIndex = 0, m;
         STRING = escape_sequences(STRING, '(?!^)""(?!$)|`.');
@@ -580,19 +585,34 @@ function ctor_highlighter()
     {
       for (n in params)
       {
-        var forced_exp = params[n].match(/^\s*%\s/);
+        var param = params[n];
         var param_type = types[n];
-        p = /([\s\S]*?)(\s*<(?:em|sct)\d+><\/(?:em|sct)\d+>(?!<cont\d+>)[\s\S]*|)$/.exec(params[n]);
-        if (param_type == 'E' || forced_exp) // expression
-          params[n] = expressions(p[1]) + p[2];
-        else if (param_type == 'I' || param_type == 'O') // InputVar or OutputVar
-          params[n] = expressions(p[1]) + p[2];
-        else if (param_type == 'S') // string
-          params[n] = string_param(p[1]) + p[2];
-        else
-          params[n] = p[1] + p[2];
+        var forced_exp = param.match(/^\s*%\s/);
+        var out = '', lastIndex = 0, m, part;
+        var regex = /\s*<((?:sct|mct|em)\d+)><\/\1>/g;
+        while (m = regex.exec(param))
+        {
+          if ((part = param.slice(lastIndex, m.index)) != '')
+            out += format_by_type(part);
+          out += m[0];
+          lastIndex = regex.lastIndex;
+        }
+        if ((part = param.slice(lastIndex)) != '')
+          out += format_by_type(part);
+        params[n] = out;
       }
       return params.join(',');
+
+      function format_by_type(param_part)
+      {
+        if (param_type == 'E' || forced_exp) // expression
+          return expressions(param_part);
+        else if (param_type == 'I' || param_type == 'O') // InputVar or OutputVar
+          return expressions(param_part);
+        else if (param_type == 'S') // string
+          return string_param(param_part);
+        return param_part;
+      }
     }
     /** Wraps a syntax keyword or any string in `<span>` and optionally `<a>`.
      * @param {string} KeywordOrString - A syntax keyword such as `MsgBox` or any string.
@@ -684,26 +704,19 @@ function ctor_highlighter()
      */
     function string_with_cont_sections(string, is_literal)
     {
-      var out = '', lastIndex = 0, m;
+      var out = '', lastIndex = 0, m, part;
       var regex = /<(cont\d+)><\/\1>/g;
       while (m = regex.exec(string))
       {
-        if (is_literal)
-        {
-          out += wrap(string.slice(lastIndex, m.index), 'str', null)
-          out += continuation_sections(els_raw[m[1]], '%');
-        }
-        else
-        {
-          out += string_with_var_refs(string.slice(lastIndex, m.index));
-          out += continuation_sections(els_raw[m[1]]);
-        }
+        part = string.slice(lastIndex, m.index);
+        if (part != '')
+          out += is_literal ? wrap(part, 'str', null) : string_with_var_refs(part);
+        out += continuation_sections(els_raw[m[1]], is_literal ? '%' : '', false, true);
         lastIndex = regex.lastIndex;
       }
-      if (is_literal)
-        out += wrap(string.slice(lastIndex), 'str', null);
-      else
-        out += string_with_var_refs(string.slice(lastIndex));
+      part = string.slice(lastIndex);
+      if (part != '')
+        out += is_literal ? wrap(part, 'str', null) : string_with_var_refs(part);
       return out;
     }
     /**
