@@ -231,7 +231,7 @@ function ctor_highlighter()
       {
         var dec = DEC.toLowerCase();
         if (dec == 'class' && VARS) // class statements:
-          if (m = VARS.match(/^([A-Za-z0-9_\#@\$\u00A0-\uFFFF]+)(?:(\s+?)(extends)(\s+?)([A-Za-z0-9_\#@\$\u00A0-\uFFFF]+))?(.*)$/i))
+          if (m = VARS.match(/^([a-z0-9_\#@\$\u00A0-\uFFFF]+)(?:(\s+?)(extends)(\s+?)([a-z0-9_\#@\$\u00A0-\uFFFF]+))?(.*)$/i))
           {
             var link = index_data[syntax[5].dict['class']][1];
             var out = wrap(DEC, 'dec', link) + SEP + expressions(m[1]);
@@ -276,19 +276,19 @@ function ctor_highlighter()
           // legacy if statements:
           if (cfs == 'if')
           {
-            if (m = PARAMS.match(/^([A-Za-z0-9_\#@\$%\u00A0-\uFFFF]+?)(\s*?)(&gt;=|>=|&gt;|>|&lt;&gt;|<>|&lt;=|<=|&lt;|<|!=|=)(\s*?)(.*?)$/i))
+            if (m = PARAMS.match(/^([a-z0-9_\#@\$%\u00A0-\uFFFF]+?)(\s*?)(&gt;=|>=|&gt;|>|&lt;&gt;|<>|&lt;=|<=|&lt;|<|!=|=)(\s*?)(.*?)$/i))
             {
               link = index_data[syntax[3].dict['ifequal']][1];
               out = wrap(CFS, 'cfs', link) + SEP + expressions(m[1]) + m[2] + m[3] + m[4] + string_param(m[5]);
               return PRE + ph('cfs', out);
             }
-            else if (m = PARAMS.match(/^([A-Za-z0-9_\#@\$%\u00A0-\uFFFF]+?)(\s+?)((?:not\s+?)?(?:between))(\s+?)(.*?)(\s+?)(and)(\s+?)(.*?)$/i))
+            else if (m = PARAMS.match(/^([a-z0-9_\#@\$%\u00A0-\uFFFF]+?)(\s+?)((?:not\s+?)?(?:between))(\s+?)(.*?)(\s+?)(and)(\s+?)(.*?)$/i))
             {
               link = index_data[syntax[3].dict['if between']][1];
               out = wrap(CFS, 'cfs', link) + SEP + expressions(m[1]) + m[2] + wrap(m[3], 'cfs', link) + m[4] + string_param(m[5]) + m[6] + wrap(m[7], 'cfs', link) + m[8] + string_param(m[9]);
               return PRE + ph('cfs', out);
             }
-            else if (m = PARAMS.match(/^([A-Za-z0-9_\#@\$%\u00A0-\uFFFF]+?)(\s+?)((?:not\s+?)?(in|contains)|(is)(?:\s+?not)?)(\s+?)(.*?)$/i))
+            else if (m = PARAMS.match(/^([a-z0-9_\#@\$%\u00A0-\uFFFF]+?)(\s+?)((?:not\s+?)?(in|contains)|(is)(?:\s+?not)?)(\s+?)(.*?)$/i))
             {
               link = index_data[syntax[3].dict['if ' + (m[4] || m[5]).toLowerCase()]][1];
               out = wrap(CFS, 'cfs', link) + SEP + expressions(m[1]) + m[2] + wrap(m[3], 'cfs', link) + m[6] + string_param(m[7]);
@@ -307,7 +307,7 @@ function ctor_highlighter()
           // for statements:
           else if (cfs == 'for')
           {
-            if (m = PARAMS.match(/^(\s*(?:,\s*)?[A-Za-z0-9_\#@\$\u00A0-\uFFFF]+?(?:\s*,\s*[A-Za-z0-9_\#@\$\u00A0-\uFFFF]+?)*(?:\s*,)?)(\s+)(in)(\s)(.+)$/i))
+            if (m = PARAMS.match(/^(\s*(?:,\s*)?[a-z0-9_\#@\$\u00A0-\uFFFF]+?(?:\s*,\s*[a-z0-9_\#@\$\u00A0-\uFFFF]+?)*(?:\s*,)?)(\s+)(in)(\s)(.+)$/i))
             {
               link = index_data[syntax[3].dict['for']][1];
               out = wrap(CFS, 'cfs', link) + SEP + m[1] + m[2] + wrap(m[3], 'cfs', link) + m[4] + expressions(m[5]);
@@ -351,10 +351,10 @@ function ctor_highlighter()
           // MsgBox commands:
           if (cmd == 'msgbox' && PARAMS.length > 1)
           {
-            var p1_isNum = PARAMS[0].match(new RegExp('^\\s*\\+?(\\b(' + self.num + ')\\b)?\\s*$'));
+            var p1_isNum = PARAMS[0].match(new RegExp('^\\s*\\+?(\\b(' + self.num + ')\\b)?\\s*$', 'm'));
             var p1_isExp = PARAMS[0].match(/^\s*%\s/);
             var p1_isOptions = p1_isNum || (p1_isExp && PARAMS[1]);
-            var p4_isNum = PARAMS[3] && PARAMS[3].match(new RegExp('^\\s*(\\b(' + self.num + ')\\b)?\\s*($|<((?:em|sct)\\d+)></\\3>)'));
+            var p4_isNum = PARAMS[3] && PARAMS[3].match(new RegExp('^\\s*(\\b(' + self.num + ')\\b)?\\s*($|<((?:em|sct)\\d+)></\\3>)', 'm'));
             var p4_isExp = PARAMS[3] && PARAMS[3].match(/^\s*%/);
             var p4_isTimeout = p1_isOptions && (p4_isNum || p4_isExp);
             if (!p1_isOptions) // 1-parameter mode
@@ -422,11 +422,11 @@ function ctor_highlighter()
           return out;
         if (/^(control|sleep)$/i.test(ACTION))
           return out + ACTION;
-        var act = statements(ACTION);
         var quote_count = ACTION.split('"').length - 1;
-        if (act === ACTION && quote_count == 1)
+        if (quote_count == 1)
             return ASIS;
-        return out + act;
+        return out + statements(ACTION);
+
       });
     }
     /** Searches for labels, formats them and replaces them with placeholders. */
@@ -440,7 +440,7 @@ function ctor_highlighter()
     /** Searches for legacy assignments, formats them and replaces them with placeholders. */
     function legacy_assignments(innerHTML)
     {
-      return innerHTML.replace(/((?:^|\{|\})\s*)([A-Za-z0-9_\#@\$%\u00A0-\uFFFF]+?)([ \t]*=[ \t]*)(.*?)(?=<(?:em|sct)\d+><\/(?:em|sct)\d+>|$)/gim, function(_, PRE, VAR, OP, VAL)
+      return innerHTML.replace(/((?:^|\{|\})\s*)([a-z0-9_\#@\$%\u00A0-\uFFFF]+?)([ \t]*=[ \t]*)(.*?)(?=<(?:em|sct)\d+><\/(?:em|sct)\d+>|$)/gim, function(_, PRE, VAR, OP, VAL)
       {
         return PRE + VAR + OP + ph('assign', string_param(VAL));
       });
