@@ -329,7 +329,7 @@ function ctor_highlighter()
               return PRE + ph('cfs', out);
             }
             // OTB:
-            else if (PARAMS.length == 1 && (m = PARAMS[0].match(/^(\s*%\s|)(.*?)(\s*\{\s*)$/)))
+            else if (PARAMS.length == 1 && (m = PARAMS[0].match(/^(\s*%\s|)(.*?)(\s*\{[\s\S]*)/)))
             {
               PARAMS = m[1] + (m[1] ? expressions : string_param)(m[2]) + m[3];
               return PRE + ph('cfs', wrap(CFS, 'cfs', 3) + SEP + PARAMS);
