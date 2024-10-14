@@ -172,9 +172,10 @@ function ctor_highlighter()
     {
       return innerHTML.replace(/([\r\n]*?^\s*\()(.*)([\s\S]*?)(^\s*\))/gm, function(ASIS, OPEN, OPTS, CONT, CLOSE)
       {
-        var opts = (OPTS + ' ' + forced_opts).split(/\s+/i);
-        if (opts.indexOf(')') != -1)
-          return ASIS;
+        var opts = (OPTS + (forced_opts ? ' ' + forced_opts : '')).split(/\s+/);
+        for (var i in opts)
+          if (opts[i].indexOf(')') != -1 && !/^join/i.test(opts[i]))
+            return OPEN + OPTS + continuation_sections(CONT + CLOSE);
         if (opts.indexOf('comments') == -1 && opts.indexOf('comment') == -1 && opts.indexOf('com') == -1 && opts.indexOf('c') == -1)
           CONT = resolve_placeholders(CONT, 'em|sct');
         if (opts.indexOf('`') == -1)
