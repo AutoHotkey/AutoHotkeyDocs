@@ -236,7 +236,7 @@ function ctor_highlighter()
     /** Searches for control flow statements, formats them and replaces them with placeholders. */
     function control_flow_statements(innerHTML)
     {
-      innerHTML = innerHTML.replace(new RegExp('((?:^|\\{|\\})\\s*)\\b(' + syntax[3].join('|') + ')\\b(\\s+<(?:em|sct)\\d+></(?:em|sct)\\d+>\\s*,|\\(|$|\\s(?!\\s*' + self.assignOp + '))(.*?(?=\\s*<(?:em|sct)\\d+></(?:em|sct)\\d+>(?!<cont\\d+>)|$|\\s*{)(?:(?:.*[\\n\\r]\\s*?(?:,|<sct\\d+>|<cont\\d+>).*?(?=\\s*<(?:em|sct)\\d+></(?:em|sct)\\d+>|$)))*)', 'gim'), function(ASIS, PRE, CFS, SEP, PARAMS)
+      innerHTML = innerHTML.replace(new RegExp('((?:^|\\{|\\})\\s*)\\b(' + syntax[3].join('|') + ')\\b(\\s+<(?:em|sct)\\d+></(?:em|sct)\\d+>\\s*,|\\(|\\{|$|\\s(?!\\s*' + self.assignOp + '))(.*?(?=\\s*<(?:em|sct)\\d+></(?:em|sct)\\d+>(?!<cont\\d+>)|$|\\s*{)(?:(?:.*[\\n\\r]\\s*?(?:,|<sct\\d+>|<cont\\d+>).*?(?=\\s*<(?:em|sct)\\d+></(?:em|sct)\\d+>|$)))*)', 'gim'), function(ASIS, PRE, CFS, SEP, PARAMS)
       {
         var cfs = CFS.toLowerCase(), out, link;
         var types = index_data[syntax[3].dict[cfs]][3]; // parameter types
