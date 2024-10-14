@@ -440,9 +440,13 @@ function ctor_highlighter()
     /** Searches for legacy assignments, formats them and replaces them with placeholders. */
     function legacy_assignments(innerHTML)
     {
-      return innerHTML.replace(/((?:^|\{|\})\s*)([a-z0-9_\#@\$%\u00A0-\uFFFF]+?)([ \t]*=[ \t]*)(.*?)(?=<(?:em|sct)\d+><\/(?:em|sct)\d+>|$)/gim, function(_, PRE, VAR, OP, VAL)
+      return innerHTML.replace(/((?:^|\{|\})\s*)([a-z0-9_\#@\$%\u00A0-\uFFFF]+?[ \t]*((?:\+|-)?=)[ \t]*)(.*?(?=\s*<(?:em|sct)\d+><\/(?:em|sct)\d+>(?!<cont\d+>)|$)(?:(?:.*[\n\r]\s*?(?:,|<sct\d+>|<cont\d+>).*?(?=\s*<(?:em|sct)\d+><\/(?:em|sct)\d+>|$)))*)/gim, function(_, PRE, VAR_OP, OP, PARAMS)
       {
-        return PRE + VAR + OP + ph('assign', string_param(VAL));
+         var types = (OP == '+=' || OP == '-=') ? 'ES' : 'S'; // parameter types
+        PARAMS = param_list_to_array(PARAMS);
+        PARAMS = merge_excess_params(PARAMS, types);
+        PARAMS = param_array_to_list(PARAMS, types);
+        return PRE + expressions(VAR_OP) + ph('assign', PARAMS);
       });
     }
     /** Searches for strings, formats them and replaces them with placeholders. */
