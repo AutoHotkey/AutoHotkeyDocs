@@ -62,7 +62,7 @@ function ctor_highlighter()
           code.className += ' highlight';
         }
       }
-      // Temporary remove HTML elements interfering with syntax detection:
+      // Temporarily remove HTML elements interfering with syntax detection:
       for (var ii = 0; ii < code.children.length; ii++)
       {
         var child = code.children[ii];
@@ -370,19 +370,20 @@ function ctor_highlighter()
       // switch's case keyword:
       innerHTML = innerHTML.replace(new RegExp('((?:^|\\{|\\})\\s*)\\b(case)\\b(\\s*,\\s*|\\s+)(.*?:(?!=).*?)(?=\\s*<(?:em|sct)\\d+><\/(?:em|sct)\\d+>|$)', 'gim'), function(ASIS, PRE, CFS, SEP, PARAMS)
       {
-        // Temporary exclude colon-using elements:
-        var sub = [];
-        PARAMS = PARAMS.replace(/".*?"|\(.*\)|\[.*\]|\{.*\}|:=|.*?\?.*?:/g, function(c)
-        {
-          return '<sub' + (sub.push(c) - 1) + '>';
-        });
+        // Temporarily exclude colon-using elements:
+        var temp = {order: []};
+        PARAMS = temp_exclude(temp, PARAMS, /".*?"/g);
+        PARAMS = temp_exclude(temp, PARAMS, /\([^(]*\)|\[[^[]*\]|\{[^{]*\}/g);
+        PARAMS = temp_exclude(temp, PARAMS, /:=/g);
+        PARAMS = temp_exclude(temp, PARAMS, /.*?\?.*?:/g);
+        // Separate case value from statement:
         var i = PARAMS.indexOf(':');
         if (i == -1)
           return ASIS;
         var parts = [PARAMS.slice(0, i), PARAMS.slice(i + 1)];
         // Restore excluded elements:
         for (n in parts)
-          parts[n] = parts[n].replace(/<sub(\d+)>/g, function(_, i) { return sub[i]; });
+          parts[n] = temp_restore(temp, parts[n]);
         parts[0] = expressions(parts[0]);
         parts[1] = statements(parts[1]);
         return PRE + ph('cfs', wrap(CFS, 'cfs', 3) + SEP + parts.join(':'));
@@ -535,12 +536,11 @@ function ctor_highlighter()
     function param_list_to_array(params)
     {
       params = escape_sequences(params);
-      // Temporary exclude comma-using elements:
-      var sub = [];
-      params = params.replace(/\(.*\)|\[.*\]|\{.*\}/g, function(c)
-      {
-        return '<sub' + (sub.push(c) - 1) + '>';
-      });
+      // Temporarily exclude comma-using elements:
+      var temp = {order: []};
+      params = temp_exclude(temp, params, /".*?"/g);
+      params = temp_exclude(temp, params, /\([^(]*\)|\[[^[]*\]|\{[^{]*\}/g);
+      // Split parameters:
       params = params.split(',');
       // Search for forced expressions and adjust param list:
       var params_new = [];
@@ -567,7 +567,7 @@ function ctor_highlighter()
       }
       // Restore excluded elements:
       for (n in params_new)
-        params_new[n] = params_new[n].replace(/<sub(\d+)>/g, function(_, i) { return sub[i]; });
+        params_new[n] = temp_restore(temp, params_new[n]);
       return params_new;
     }
     /** Merges excess parameters with the last valid parameter.
@@ -659,6 +659,36 @@ function ctor_highlighter()
       if (raw)
         els_raw[tagName] = raw;
       return '<' + tagName + '></' + tagName + '>';
+    }
+    /**
+     * Temporarily exclude syntax parts to facilitate syntax detection.
+     * @param {object} temp - An object with order property.
+     * @param {string} syntax - The syntax to check, e.g. `abc "," xyz`.
+     * @param {RegExp} regex - The syntax part(s) to exclude temporarily, e.g. `/".*?"/g`.
+     * @returns {string} The modified syntax, e.g. `abc <temp1> xyz`.
+     */
+    function temp_exclude(temp, syntax, regex)
+    {
+      return syntax.replace(regex, function(c) {
+        var name = 'temp' + temp.order.length;
+        temp[name] = c; temp.order.push(name);
+        return '<' + name + '>';
+      });
+    }
+    /**
+     * Restore syntax parts excluded via temp_exclude function.
+     * @param {object} temp - An object with order property.
+     * @param {string} modified_syntax - The modified syntax, e.g. `abc <temp1> xyz`.
+     * @returns {string} The restored syntax, e.g. `abc "," xyz`.
+     */
+    function temp_restore(temp, modified_syntax)
+    {
+      for (var i = temp.order.length - 1; i >= 0; i--)
+      {
+        var name = temp.order[i];
+        modified_syntax = modified_syntax.replace('<' + name + '>', temp[name]);
+      }
+      return modified_syntax;
     }
     /**
      * Converts a parameter to a legacy string parameter.
