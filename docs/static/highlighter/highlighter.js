@@ -223,14 +223,14 @@ function ctor_highlighter()
     /** Searches for directives, formats them and replaces them with placeholders. */
     function directives(innerHTML)
     {
-      return innerHTML.replace(new RegExp('(' + syntax[0].join('|') + ')\\b($|\\s|(?=<cont\\d+></cont\\d+>))(.*?)(?=\\s+<(?:em|sct)\\d+></(?:em|sct)\\d+>|$)', 'gim'), function(_, DIR, SEP, PARAMS)
+      return innerHTML.replace(new RegExp('((?:^|\\{|\\})\\s*)(' + syntax[0].join('|') + ')\\b($|\\s|(?=<cont\\d+></cont\\d+>))(.*?)(?=\\s+<(?:em|sct)\\d+></(?:em|sct)\\d+>|$)', 'gim'), function(_, PRE, DIR, SEP, PARAMS)
       {
         var dir = DIR.toLowerCase();
         var types = index_data[syntax[0].dict[dir]][3]; // parameter types
         PARAMS = param_list_to_array(PARAMS);
         PARAMS = merge_excess_params(PARAMS, types);
         PARAMS = param_array_to_list(PARAMS, types);
-        return ph('dir', wrap(DIR, 'dir', 0) + SEP + PARAMS);
+        return PRE + ph('dir', wrap(DIR, 'dir', 0) + SEP + PARAMS);
       });
     }
     /** Searches for control flow statements, formats them and replaces them with placeholders. */
