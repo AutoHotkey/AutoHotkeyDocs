@@ -174,7 +174,7 @@ function ctor_highlighter()
       {
         var opts = (OPTS + (forced_opts ? ' ' + forced_opts : '')).split(/\s+/);
         for (var i in opts)
-          if (opts[i].indexOf(')') != -1 && !/^join/i.test(opts[i]))
+          if (opts[i].indexOf(')') != -1 && !opts[i].match(/^join/i))
             return OPEN + OPTS + continuation_sections(CONT + CLOSE);
         if (opts.indexOf('comments') == -1 && opts.indexOf('comment') == -1 && opts.indexOf('com') == -1 && opts.indexOf('c') == -1)
           CONT = resolve_placeholders(CONT, 'em|sct');
@@ -398,19 +398,21 @@ function ctor_highlighter()
     /** Searches for hotstrings, formats them and replaces them with placeholders. */
     function hotstrings(innerHTML)
     {
-      return innerHTML.replace(/^(\s*)(:.*?:)(.*)(::)(.*)(?=<(?:em|sct)\d+><\/(?:em|sct)\d+>|$)/mg, function(ASIS, PRE, HS1, ABBR, HS2, REPL)
+      return innerHTML.replace(/^(\s*)(:.*?:)(.*)(::)(.*?(?=\s+<(?:em|sct)\d+><\/(?:em|sct)\d+>(?!<cont\d+>)|\s*$)(?:(?:.*[\n\r]\s*?(?:<sct\d+>|<cont\d+>).*?(?=\s*<(?:em|sct)\d+><\/(?:em|sct)\d+>|$)))*)/mg, function(ASIS, PRE, HS1, ABBR, HS2, REPL)
       {
         if (ASIS.indexOf('`::') != -1)
           return hotstrings(escape_sequences(innerHTML, '`::'));
-        ABBR = wrap(escape_sequences(ABBR), 'str', null);
-        if (HS1.match(/x/i)) // execute option
-          REPL = statements(REPL);
-        else if (/<cont\d+>/.test(REPL))
-          REPL = string_with_cont_sections(REPL, true);
-        else
-          REPL = wrap(escape_sequences(REPL), 'str', null);
-        var out = PRE + wrap(HS1, 'lab', null) + ABBR + wrap(HS2, 'lab', null) + REPL;
-        return ph('hs', out);
+        var out = wrap(HS1, 'lab', null) + wrap(escape_sequences(ABBR), 'str', null) + wrap(HS2, 'lab', null);
+        if (REPL != '')
+        {
+          if (HS1.match(/x/i)) // execute option
+            out += statements(REPL);
+          else if (REPL.match(/<cont\d+>/))
+            out += string_with_cont_sections(REPL, true);
+          else
+            out += wrap(escape_sequences(REPL), 'str', null);
+        }
+        return PRE + ph('hs', out);
       });
     }
     /** Searches for hotkeys, formats them and replaces them with placeholders. */
@@ -419,16 +421,17 @@ function ctor_highlighter()
       var key_names = '(?:L|R|M)Button|XButton[1-2]|Wheel(?:Down|Up|Left|Right)|CapsLock|Space|Tab|Enter|Return|Escape|Esc|Backspace|BS|ScrollLock|Delete|Del|Insert|Ins|Home|End|PgUp|PgDn|Up|Down|Left|Right|Numpad(?:[0-9]|Dot|Ins|End|Down|PgDn|Left|Clear|Right|Home|Up|PgUp|Del|Div|Mult|Add|Sub|Enter)|NumLock|F(?:2[0-4]|1[0-9]|[1-9])|LWin|RWin|(?:L|R)?(?:Control|Ctrl|Shift|Alt)|Browser_(?:Back|Forward|Refresh|Stop|Search|Favorites|Home)|Volume_(?:Mute|Down|Up)|Media_(?:Next|Prev|Stop|Play_Pause)|Launch_(?:Mail|Media|App1|App2)|AppsKey|PrintScreen|CtrlBreak|Pause|Break|Help|Sleep|SC[0-9a-f]{1,3}|VK[0-9a-f]{1,2}|Joy(?:3[0-2]|2[0-9]|1[0-9]|[1-9])|\\S|&.+?;';
       return innerHTML.replace(new RegExp('^(\\s*)((?:(?:[#!^+*~$]|&lt;|&gt;)*(?:' + key_names + ')(?:\\s+up)?|~?(?:' + key_names + ')\\s+&amp;\\s+~?(?:' + key_names + ')(?:\\s+up)?)::)([\\t ]*)(.*)(?=\\s+<(?:em|sct)\\d+></(?:em|sct)\\d+>|$)', 'gim'), function(ASIS, PRE, HK, SPACE, ACTION)
       {
-        var out = PRE + ph('hk', wrap(HK, 'lab', null)) + SPACE;
-        if (ACTION == '')
-          return out;
-        if (/^(control|sleep)$/i.test(ACTION))
-          return out + ACTION;
-        var quote_count = ACTION.split('"').length - 1;
-        if (quote_count == 1)
+        var out = wrap(HK, 'lab', null) + SPACE;
+        if (ACTION != '')
+        {
+          if ((ACTION.split('"').length - 1) == 1) // quote count
             return ASIS;
-        return out + statements(ACTION);
-
+          if (ACTION.match(/^(control|sleep)$/i))
+            out += ACTION;
+          else
+            out += statements(ACTION);
+        }
+        return PRE + ph('hk', out);
       });
     }
     /** Searches for labels, formats them and replaces them with placeholders. */
@@ -701,7 +704,7 @@ function ctor_highlighter()
       param = escape_sequences(param);
       if (m = param.match(new RegExp('^(\\s*(?:\\+|-)?\\s*)\\b(' + self.num + ')\\b(\\s*)$'))) // number
         return m[1] + wrap(m[2], 'num', null) + m[3];
-      if (/<cont\d+>/.test(param)) // continuation section
+      if (param.match(/<cont\d+>/)) // continuation section
         param = string_with_cont_sections(param);
       else
         param = string_with_var_refs(param);
