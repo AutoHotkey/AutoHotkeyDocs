@@ -324,7 +324,9 @@ function ctor_highlighter()
         var out = wrap(HS1, 'lab', null) + wrap(ABBR, 'str', null) + wrap(HS2, 'lab', null);
         if (REPL != '')
         {
-          if (HS1.match(/x/i)) // execute option
+          if (REPL.match(/^\s*\{$/))
+            out += REPL;
+          else if (HS1.match(/x/i)) // execute option
             out += statements(REPL);
           else if (REPL.match(/<cont\d+>/))
             out += string_with_cont_sections(REPL, true);
