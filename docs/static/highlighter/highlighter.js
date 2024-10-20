@@ -353,7 +353,7 @@ function ctor_highlighter()
             var p1_isNum = PARAMS[0].match(new RegExp('^\\s*\\+?(\\b(' + self.num + ')\\b)?\\s*$', 'm'));
             var p1_isExp = PARAMS[0].match(/^\s*%\s/);
             var p1_isOptions = p1_isNum || (p1_isExp && PARAMS[1]);
-            var p4_isNum = PARAMS[3] && PARAMS[3].match(new RegExp('^\\s*(\\b(' + self.num + ')\\b)?\\s*($|<((?:em|sct)\\d+)></\\3>)', 'm'));
+            var p4_isNum = PARAMS[3] && PARAMS[3].match(new RegExp('^\\s*(\\b(' + self.num + ')\\b)?\\s*($|<(em|sct)\\d+></(em|sct)\\d+>)', 'm'));
             var p4_isExp = PARAMS[3] && PARAMS[3].match(/^\s*%/);
             var p4_isTimeout = p1_isOptions && (p4_isNum || p4_isExp);
             if (!p1_isOptions) // 1-parameter mode
