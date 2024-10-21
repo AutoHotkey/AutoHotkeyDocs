@@ -93,9 +93,9 @@ function ctor_highlighter()
         innerHTML = comments(innerHTML);
         innerHTML = function_definitions(innerHTML);
         innerHTML = continuation_sections(innerHTML);
+        innerHTML = hotkeys(innerHTML);
         innerHTML = escape_sequences(innerHTML);
         innerHTML = hotstrings(innerHTML);
-        innerHTML = hotkeys(innerHTML);
         innerHTML = declarations(innerHTML);
         innerHTML = directives(innerHTML);
         innerHTML = control_flow_statements(innerHTML);
@@ -167,18 +167,32 @@ function ctor_highlighter()
     {
       return innerHTML.replace(/([\r\n]*?^\s*\()(.*)([\s\S]*?)(^\s*\))/gm, function(ASIS, OPEN, OPTS, CONT, CLOSE)
       {
+        var allow_comments = false;
+        var allow_escape_sequences = true;
         var opts = (OPTS + (forced_opts ? ' ' + forced_opts : '')).split(/\s+/);
         for (var i in opts)
-          if ((opts[i].indexOf(')') != -1 || opts[i].indexOf('(') != -1) && !opts[i].match(/^join/i))
+        {
+          var opt = opts[i];
+          if (opt.match(/[()]/) && !opt.match(/^join/i))
             return OPEN + OPTS + continuation_sections(CONT + CLOSE);
-        if (opts.indexOf('comments') == -1 && opts.indexOf('comment') == -1 && opts.indexOf('com') == -1 && opts.indexOf('c') == -1)
+          else if (opt.match(/^c(omments?|om)?$/i))
+            allow_comments = true;
+          else if (opt == '`')
+            allow_escape_sequences = false;
+        }
+        if (!allow_comments)
           CONT = resolve_placeholders(CONT, 'em|sct');
-        if (opts.indexOf('`') == -1)
-          CONT = escape_sequences(CONT);
         if (is_literal)
+        {
+          if (allow_escape_sequences)
+            CONT = escape_sequences(CONT);
           CONT = (has_var_refs) ? string_with_var_refs(CONT) : wrap(CONT, 'str', null);
+        }
         else
+        {
+          CONT = strings(CONT, allow_escape_sequences);
           CONT = expressions(CONT);
+        }
         return ph('cont', OPEN + OPTS + CONT + CLOSE, ASIS);
 
         /**
@@ -291,9 +305,9 @@ function ctor_highlighter()
       // switch's case keyword:
       innerHTML = innerHTML.replace(new RegExp('(^\\s*[{}]?\\s*)\\b(case)\\b(\\s*,\\s*|\\s+)(.*?:(?!=).*?)(?=\\s*<(?:em|sct)\\d+><\/(?:em|sct)\\d+>|$)', 'gim'), function(ASIS, PRE, CFS, SEP, PARAMS)
       {
+        PARAMS = strings(PARAMS);
         // Temporarily exclude colon-using elements:
         var temp = {order: []};
-        PARAMS = temp_exclude(temp, PARAMS, /("|').*?\1/g);
         PARAMS = temp_exclude(temp, PARAMS, /\([^(]*\)|\[[^[]*\]|\{[^{]*\}/g);
         PARAMS = temp_exclude(temp, PARAMS, /:=/g);
         PARAMS = temp_exclude(temp, PARAMS, /.*?\?.*?:/g);
@@ -364,11 +378,14 @@ function ctor_highlighter()
       });
     }
     /** Searches for strings, formats them and replaces them with placeholders. */
-    function strings(innerHTML)
+    function strings(innerHTML, escape)
     {
+      var escape = (typeof escape == 'undefined') ? true : escape;
       return innerHTML.replace(/(("|')[\s\S]*?\2)+/gm, function(STRING)
       {
         var out = '', lastIndex = 0, m;
+        if (escape)
+          STRING = escape_sequences(STRING);
         var regex = /<(cont\d+)><\/\1>/g;
         while (m = regex.exec(STRING))
         {
@@ -456,7 +473,6 @@ function ctor_highlighter()
     {
       // Temporarily exclude comma-using elements:
       var temp = {order: []};
-      // params = temp_exclude(temp, params, /".*?"/g);
       params = temp_exclude(temp, params, /("|').*?\1/g);
       params = temp_exclude(temp, params, /\([^(]*\)|\[[^[]*\]|\{[^{]*\}/g);
       // Split parameters:
