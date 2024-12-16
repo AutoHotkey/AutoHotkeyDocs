@@ -1,440 +1,894 @@
-<!DOCTYPE HTML>
-<html lang="en">
-<head>
-<title>Scripts - Definition &amp; Usage | AutoHotkey v1</title>
-<meta name="description" content="Learn details about scripts in general, splitting long lines, compiling a script, passing command line parameters, codepage and debugging." />
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-<meta http-equiv="X-UA-Compatible" content="IE=edge">
-<link href="static/theme.css" rel="stylesheet" type="text/css" />
-<script src="static/content.js" type="text/javascript"></script>
-</head>
-<body>
+#SingleInstance Force
+setkeydelay, -1
+setmousedelay, -1
+setbatchlines, -1
+SetTitleMatchMode 2
 
-<h1>Scripts</h1>
-<p>Related topics:</p>
-<ul>
-  <li><a href="Program.htm">Using the Program</a>: How to use AutoHotkey, in general.</li>
-  <li><a href="Concepts.htm">Concepts and Conventions</a>: General explanation of various concepts utilised by AutoHotkey.</li>
-  <li><a href="Language.htm">Scripting Language</a>: Specific details about syntax (how to write scripts).</li>
-</ul>
+CoordMode, Tooltip, Relative
+CoordMode, Pixel, Relative
+CoordMode, Mouse, Relative
 
-<h2 id="toc">Table of Contents</h2>
-<ul>
-  <li><a href="#intro">Introduction</a></li>
-  <li><a href="#auto">The Top of the Script (the Auto-execute Section)</a>: This portion executes automatically when the script starts.</li>
-  <li><a href="#continuation">Splitting a Long Line into a Series of Shorter Ones</a>: This can improve a script's readability and maintainability.</li>
-  <li><a href="#ahk2exe">Convert a Script to an EXE (Ahk2Exe)</a>: Convert a .ahk script into a .exe file that can run on any PC.</li>
-  <li><a href="#cmd">Passing Command Line Parameters to a Script</a>: The variables %1%, %2%, etc. contain the incoming parameters.</li>
-  <li><a href="#cp">Script File Codepage</a>: Using non-ASCII characters safely in scripts.</li>
-  <li><a href="#debug">Debugging a Script</a>: How to find the flaws in a misbehaving script.</li>
-</ul>
-<h2 id="intro">Introduction</h2>
-<p>Each script is a plain text file containing lines to be executed by the program (AutoHotkey.exe). A script may also contain <a href="Hotkeys.htm">hotkeys</a> and <a href="Hotstrings.htm">hotstrings</a>, or even consist entirely of them. However, in the absence of hotkeys and hotstrings, a script will perform its commands sequentially from top to bottom the moment it is launched.</p>
-<p>The program loads the script into memory line by line, and each line may be up to 16,383 characters long. During loading, the script is <a href="misc/Performance.htm">optimized</a> and validated. Any syntax errors will be displayed, and they must be corrected before the script can run.</p>
-<h2 id="auto">The Top of the Script (the Auto-execute Section)</h2>
-<p>After the script has been loaded, it begins executing at the top line, continuing until a <a href="lib/Return.htm">Return</a>, <a href="lib/ExitApp.htm">Exit</a>, the script's first <a href="Hotkeys.htm">hotkey/hotstring label</a>, or the physical end of the script is encountered (whichever comes first). This top portion of the script is referred to as the <em>auto-execute section</em>, but it is really just a <a href="Language.htm#subroutines">subroutine</a> which is called after program startup.</p>
-<p class="warning"><strong>Note:</strong> While the script's <em>first</em> hotkey/hotstring label has the same effect as <a href="lib/Return.htm">return</a>, other hotkeys and labels do not.</p>
-<p id="persistent">If the script is not <a href="lib/_Persistent.htm">persistent</a>, it will terminate after the auto-execute section has completed. Otherwise, it will stay running in an idle state, responding to events such as <a href="Hotkeys.htm">hotkeys</a>, <a href="Hotstrings.htm">hotstrings</a>, <a href="lib/Gui.htm#label">GUI events</a>, <a href="lib/Menu.htm">custom menu items</a>, and <a href="lib/SetTimer.htm">timers</a>. A script is automatically persistent if it contains hotkeys, hotstrings, <a href="lib/OnMessage.htm">OnMessage()</a> or <a href="lib/Gui.htm">GUI</a>, and in a few other cases. The <a href="lib/_Persistent.htm">#Persistent</a> directive can also be used to explicitly make the script persistent.</p>
-<p>Every <a href="misc/Threads.htm">thread</a> launched by a <a href="Hotkeys.htm">hotkey</a>, <a href="Hotstrings.htm">hotstring</a>, <a href="lib/Menu.htm"> menu item</a>, <a href="lib/Gui.htm#label">GUI event</a>, or <a href="lib/SetTimer.htm">timer</a> starts off fresh with the default values for the following attributes as set in the auto-execute section. If unset, the standard defaults will apply (as documented on each of the following pages): <a href="lib/AutoTrim.htm">AutoTrim</a>, <a href="lib/CoordMode.htm">CoordMode</a>, <a href="lib/Critical.htm">Critical</a>, <a href="lib/DetectHiddenText.htm">DetectHiddenText</a>, <a href="lib/DetectHiddenWindows.htm">DetectHiddenWindows</a>, <a href="lib/FileEncoding.htm">FileEncoding</a>, <a href="lib/ListLines.htm">ListLines</a>, <a href="lib/SendLevel.htm">SendLevel</a>, <a href="lib/SendMode.htm">SendMode</a>, <a href="lib/SetBatchLines.htm">SetBatchLines</a>, <a href="lib/SetControlDelay.htm">SetControlDelay</a>, <a href="lib/SetDefaultMouseSpeed.htm">SetDefaultMouseSpeed</a>, <a href="lib/SetFormat.htm">SetFormat</a>, <a href="lib/SetKeyDelay.htm">SetKeyDelay</a>, <a href="lib/SetMouseDelay.htm">SetMouseDelay</a>, <a href="lib/SetRegView.htm">SetRegView</a>, <a href="lib/SetStoreCapsLockMode.htm">SetStoreCapsLockMode</a>, <a href="lib/SetTitleMatchMode.htm">SetTitleMatchMode</a>, <a href="lib/SetWinDelay.htm">SetWinDelay</a>, <a href="lib/StringCaseSense.htm">StringCaseSense</a>, and <a href="lib/Thread.htm">Thread</a>.</p>
-<p>If the auto-execute section takes a long time to complete (or never completes), the default values for the above settings will be put into effect after 100 milliseconds. When the auto-execute section finally completes (if ever), the defaults are updated again to be those that were in effect at the end of the auto-execute section. Thus, it's usually best to make any desired changes to the defaults at the top of scripts that contain <a href="Hotkeys.htm">hotkeys</a>, <a href="Hotstrings.htm">hotstrings</a>, <a href="lib/SetTimer.htm">timers</a>, or <a href="lib/Menu.htm">custom menu items</a>. Also note that each <a href="misc/Threads.htm">thread</a> retains its own collection of the above settings. Changes made to those settings will not affect other <a href="misc/Threads.htm">threads</a>.</p>
+;     GENERAL SETTINGS     ====================================================================================================;
 
-<h2 id="continuation">Splitting a Long Line into a Series of Shorter Ones</h2>
-<p>Long lines can be divided up into a collection of smaller ones to improve readability and maintainability. This does not reduce the script's execution speed because such lines are merged in memory the moment the script launches.</p>
-<p id="continuation-line"><strong>Method #1:</strong> A line that starts with "and", "or",  ||, &amp;&amp;, a comma, or a <a href="Variables.htm#concat">period</a> is automatically merged with the line directly above it (in <span class="ver">[v1.0.46+]</span>, the same is true for all other <a href="Variables.htm#Operators">expression operators</a> except ++ and --). In the following example, the second line is appended to the first because it begins with a comma:</p>
-<pre>FileAppend, This is the text to append.`n   <em>; A comment is allowed here.</em>
-    , %A_ProgramFiles%\SomeApplication\LogFile.txt  <em>; Comment.</em></pre>
-<p>Similarly, the following lines would get merged into a single line because the last two start with "and" or "or":</p>
-<pre>if (Color = "Red" or Color = "Green"  or Color = "Blue"   <em>; Comment.</em>
-    <strong>or</strong> Color = "Black" or Color = "Gray" or Color = "White")   <em>; Comment.</em>
-    <strong>and</strong> ProductIsAvailableInColor(Product, Color)   <em>; Comment.</em></pre>
-<p>The <a href="Variables.htm#ternary">ternary operator</a> is also a good candidate:</p>
-<pre>ProductIsAvailable := (Color = "Red")
-    <strong>?</strong> false  <em>; We don't have any red products, so don't bother calling the function.</em>
-    <strong>:</strong> ProductIsAvailableInColor(Product, Color)</pre>
-<p>Although the indentation used in the examples above is optional, it might improve clarity by indicating which lines belong to ones above them. Also, it is not necessary to include extra spaces for lines starting with the words "AND" and "OR"; the program does this automatically. Finally, blank lines or <a href="Language.htm#comments">comments</a> may be added between or at the end of any of the lines in the above examples.</p>
-<p id="continuation-section"><strong>Method #2:</strong> This method should be used to merge a large number of lines or when the lines are not suitable for Method #1. Although this method is especially useful for <a href="Hotstrings.htm">auto-replace hotstrings</a>, it can also be used with any command or <a href="Variables.htm#Expressions">expression</a>. For example:</p>
-<pre><em>; EXAMPLE #1:</em>
-Var =
-(
-A line of text.
-<i>By default</i>, the hard carriage return (Enter) between the previous line and this one will be stored as a linefeed (`n).
-    <i>By default</i>, the spaces to the left of this line will also be stored (the same is true for tabs).
-<i>By default</i>, variable references such as %Var% are resolved to the variable's contents.
-)
+; Set to true to automatically lower graphics to 1
+AutoLowerGraphics := true
+AutoGraphicsDelay := 50
 
-<em>; EXAMPLE #2 - expression syntax (recommended):</em>
-Var := "
-(
-Same as above, except that variable references such as %Var% are not resolved.
-Instead, specify variables as follows:" Var "
-)"
+; Set to true to automatically zoom in the camera
+AutoZoomInCamera := true
+AutoZoomDelay := 50
 
-<em>; EXAMPLE #3:</em>
-FileAppend,  <em>; The comma is required in this case.</em>
-(
-Line 1 of the text.
-Line 2 of the text. By default, a linefeed (`n) is present between lines.
-), C:\My File.txt</pre>
-<p>In the examples above, a series of lines is bounded at the top and bottom by a pair of parentheses. This is known as a <em>continuation section</em>. Notice that the bottom line contains <a href="lib/FileAppend.htm">FileAppend</a>'s last parameter after the closing parenthesis. This practice is optional; it is done in cases like this so that the comma will be seen as a parameter-delimiter rather than a literal comma.</p>
-<p>The default behavior of a continuation section can be overridden by including one or more of the following options to the right of the section's opening parenthesis. If more than one option is present, separate each one from the previous with a space. For example: <code>( LTrim Join| %</code>.</p>
-<p id="Join"><strong>Join</strong><em>String</em>: Specifies how lines should be connected together. If this option is not used, each line except the last will be followed by a linefeed character (`n). If <em>String</em> is omitted, lines are connected directly to each other without any characters in between. Otherwise, specify for <em>String</em> a string of up to 15 characters. For example, <code>Join`s</code> would insert a space after each line except the last (<code>`s</code> indicates a literal space -- it is a special escape sequence recognized only by this option). Another example is <code>Join`r`n</code>, which inserts CR+LF between lines. Similarly, <code>Join|</code> inserts a pipe between lines. To have the final line in the section also ended by <em>String</em>, include a blank line immediately above the section's closing parenthesis.</p>
-<p>Known limitation: If <em>String</em>'s last character is a colon, it must not be the last option on the line. For example, <code>(Join:</code> is treated as the label "(Join" and <code>(LTrim Join:</code> is unsupported, but <code>(Join: C</code> is okay.</p>
-<p id="LTrim"><strong>LTrim:</strong> Omits spaces and tabs at the beginning of each line. This is primarily used to allow the continuation section to be indented. Also, this option may be turned on for multiple continuation sections by specifying <code>#LTrim</code> on a line by itself. The #LTrim directive is positional: it affects all continuation sections physically beneath it. The setting may be turned off via <code>#LTrim Off</code>.</p>
-<p><strong>RTrim0</strong> (RTrim followed by a zero): Turns off the omission of spaces and tabs from the end of each line.</p>
-<p id="CommentOption"><strong>Comments</strong> (or <strong>Comment</strong> or <strong>Com</strong> or <strong>C</strong>) <span class="ver">[v1.0.45.03+]</span>: Allows <a href="Language.htm#comments">semicolon comments</a> inside the continuation section (but not <code>/*..*/</code>). Such comments (along with any spaces and tabs to their left) are entirely omitted from the joined result rather than being treated as literal text. Each comment can appear to the right of a line or on a new line by itself.</p>
-<p><strong>%</strong> (percent sign): Treats percent signs as literal rather than as variable references. This avoids the need to <a href="misc/EscapeChar.htm">escape</a> each percent sign to make it literal. This option is not needed in places where percent signs are already literal, such as <a href="Hotstrings.htm">auto-replace hotstrings</a>.</p>
-<p><strong>,</strong> (comma): Treats commas as delimiters rather than as literal commas. This rarely-used option is necessary only for the commas between command parameters because in <a href="Functions.htm">function calls</a>, the type of comma does not matter. Also, this option transforms only those commas that actually delimit parameters. In other words, once the command's final parameter is reached (or there are no parameters), subsequent commas are treated as literal commas regardless of this option.</p>
-<p id="accent"><strong>`</strong> (accent): Treats each backtick character literally rather than as an <a href="misc/EscapeChar.htm">escape character</a>. This also prevents commas and percent signs from being explicitly and individually escaped. In addition, it prevents the translation of any explicitly specified escape sequences such as `r and `t.</p>
-<p id="non-continuation"><strong>)</strong> <span class="ver">[v1.1.01+]</span>: If a closing parenthesis appears in the continuation section's options (except as a parameter of the <a href="#Join">Join</a> option), the line is reinterpreted as an expression instead of the beginning of a continuation section. This allows expressions like <code>(x.y)[z]()</code> to work without the need to escape the opening parenthesis.</p>
+; Set to true to check for camera mode and enable it
+AutoEnableCameraMode := true
+AutoCameraDelay := 5
 
-<h3 id="continuation-remarks">Remarks</h3>
-<p><a href="misc/EscapeChar.htm">Escape sequences</a> such as `n (linefeed) and `t (tab) are supported inside the continuation section except when the <a href="#accent">accent (`) option</a> has been specified.</p>
-<p>When the <a href="#CommentOption">comment option</a> is absent, semicolon and /*..*/ comments are not supported within the interior of a continuation section because they are seen as literal text. However, comments can be included on the bottom and top lines of the section. For example:</p>
-<pre>FileAppend,   <em>; Comment.
-; Comment.</em>
-( LTrim Join    <em>; Comment.</em>
-    &nbsp;; This is <strong>not</strong> a comment; it is literal. Include the word <i>Comments</i> in the line above to make it a comment.
-), C:\File.txt   <em>; Comment.</em></pre>
-<p>As a consequence of the above, semicolons never need to be <a href="misc/EscapeChar.htm">escaped</a> within a continuation section.</p>
-<p>A continuation section cannot produce a line whose total length is greater than 16,383 characters (if it tries, the program will alert you the moment the script is launched). One way to work around this is to do a series of concatenations into a variable.  For example:</p>
-<pre>Var := "
-(
-...
-)"
-Var .= "`n  <em>; Add more text to the variable via another continuation section.</em>
-(
-...
-)"
-FileAppend, %Var%, C:\My File.txt</pre>
-<p>Since a closing parenthesis indicates the end of a continuation section, to have a line start with literal closing parenthesis, precede it with an accent/backtick: <code>`)</code>.</p>
-<p>A continuation section can be immediately followed by a line containing the open-parenthesis of another continuation section. This allows the options mentioned above to be varied during the course of building a single line.</p>
-<p>The piecemeal construction of a continuation section by means of <a href="lib/_Include.htm">#Include</a> is not supported.</p>
+; Set to true to automatically look down
+AutoLookDownCamera := true
+AutoLookDelay := 200
 
-<h2 id="ahk2exe">Convert a Script to an EXE (Ahk2Exe)</h2>
-<p>A script compiler (courtesy of fincs, with additions by TAC109) is included with the program.</p>
-<p>Once a script is compiled, it becomes a standalone executable; that is, AutoHotkey.exe is not required in order to run the script. The compilation process creates an executable file which contains the following: the AutoHotkey interpreter, the script, any files it <a href="lib/_Include.htm">includes</a>, and any files it has incorporated via the <a href="lib/FileInstall.htm">FileInstall</a> command. <span class="ver">[v1.1.33+]</span>: Additional files can be included using <a href="misc/Ahk2ExeDirectives.htm">compiler directives</a>.</p>
-<p>The same compiler is used for v1.1 and v2 scripts. The compiler distinguishes script versions by checking the major version of the base file supplied.</p>
-<h3 id="ahk2exe-toc">Compiler Topics</h3>
-<ul>
-  <li><a href="#ahk2exe-run">Running the Compiler</a></li>
-  <li><a href="#ahk2exe-base">Base Executable File</a></li>
-  <li><a href="#CompilerDirectives">Script Compiler Directives</a></li>
-  <li><a href="#mpress">Compressing Compiled Scripts</a></li>
-  <li><a href="#information">Background Information</a></li>
-</ul>
-<h3 id="ahk2exe-run">Running the Compiler</h3>
-<p>Ahk2Exe can be used in the following ways:</p>
-<ul>
-  <li>
-    <p><strong>GUI Interface:</strong> Run the "Convert .ahk to .exe" item in the Start Menu. (After invoking the GUI, there may be a pause before the window is shown; see <a href="#information">Background Information</a> for more details.)</p>
-  </li>
-  <li>
-    <p><strong>Right-click:</strong> Within an open Explorer window, right-click any .ahk file and select "Compile Script" (only available if the script compiler option was chosen when AutoHotkey was installed). This creates an EXE file of the same base filename as the script, which appears after a short time in the same directory. Note: The EXE file is produced using the same custom icon, .bin file and <a href="#mpress">compression</a> setting that were last saved in Method #1 above, or as specified by any relevant <a href="misc/Ahk2ExeDirectives.htm">compiler directive</a> in the script.</p>
-  </li>
-  <li id="ahk2exeCmd">
-    <p><strong>Command Line:</strong> The compiler can be run from the command line by using the parameters shown below. If any command line parameters are used, the script is compiled immediately unless <code class="no-highlight">/gui</code> is used. All parameters are optional, except that there must be one <code class="no-highlight">/gui</code> or <code class="no-highlight">/in</code> parameter.</p>
-    <style>
-      #param_pairs td:not(:last-child) {
-        white-space: nowrap;
-      }
-    </style>
-    <table class="info" id="param_pairs">
-      <tr>
-        <th abbr="Param">Parameter pair</th>
-        <th>Meaning</th>
-      </tr>
-      <tr id="SlashIn">
-        <td>/in <i>script_name</i></td>
-        <td>The path and name of the script to compile. This is mandatory if any other parameters are used, unless <code class="no-highlight">/gui</code> is used.</td>
-      </tr>
-      <tr id="SlashOut">
-        <td>/out <i>exe_name</i></td>
-        <td>The path\name of the output .exe to be created. Default is the directory\base_name of the input file plus extension of .exe, or any relevant <a href="misc/Ahk2ExeDirectives.htm">compiler directive</a> in the script.</td>
-      </tr>
-      <tr id="slashIcon">
-        <td>/icon <i>icon_name</i></td>
-        <td>The icon file to be used. Default is the last icon saved in the GUI interface, or any <a href="misc/Ahk2ExeDirectives.htm#SetMainIcon">SetMainIcon</a> compiler directive in the script.</td>
-      </tr>
-      <tr id="SlashBase">
-        <td>/base <i>file_name</i></td>
-        <td><span class="ver">[v1.1.33.10+]</span>: The base file to be used (a .bin file or in <span class="ver">[v1.1.34+]</span> an .exe file). The major version of the base file used must be the same as the version of the script to be compiled. Default is the last base file name saved in the GUI interface, or any <a href="misc/Ahk2ExeDirectives.htm#Bin">Base</a> compiler directive in the script.</td>
-      </tr>
-      <tr id="SlashResourceID">
-        <td>/resourceid <i>name</i></td>
-        <td><span class="ver">[v1.1.34+]</span>: Assigns a non-standard resource ID to be used for the main script for compilations which use an <a href="#SlashBase">.exe base file</a> (see <a href="Program.htm#embedded-scripts">Embedded Scripts</a>). Numeric resource IDs should consist of a hash sign (#) followed by a decimal number. Default is #1, or any <a href="misc/Ahk2ExeDirectives.htm#ResourceID">ResourceID</a> compiler directive in the script.</td>
-      </tr>
-      <tr id="SlashCp">
-        <td>/cp <i>codepage</i></td>
-        <td><span class="ver">[v1.1.23.01+]</span>: Overrides the default codepage used to read script files. For a list of possible values, see <a href="https://learn.microsoft.com/windows/win32/intl/code-page-identifiers">Code Page Identifiers</a>. Note that Unicode scripts should begin with a byte-order-mark (BOM), rendering the use of this parameter unnecessary.</td>
-      </tr>
-      <tr id="SlashCompress">
-        <td>/compress <i>n</i></td>
-        <td><span class="ver">[v1.1.33+]</span>: <a href="#mpress">Compress</a> the exe? 0 = no, 1 = use MPRESS if present, 2 = use UPX if present. Default is the last setting saved in the GUI interface.</td>
-      </tr>
-      <tr id="SlashGui">
-        <td>/gui</td>
-        <td><span class="ver">[v1.1.33+]</span>: Shows the GUI instead of immediately compiling. The other parameters can be used to override the settings last saved in the GUI. <code>/in</code> is optional in this case.</td>
-      </tr>
-      <tr id="SlashGuiSilent">
-        <td>/silent [verbose]</td>
-        <td><span class="ver">[v1.1.33.10+]</span>: Disables all message boxes and instead outputs errors to the standard error stream (stderr); or to the standard output stream (stdout) if stderr fails. Other messages are also output to stdout. Optionally enter the word <code>verbose</code> to output status messages to stdout as well.</td>
-      </tr>
-      <tr id="SlashAhk">
-        <td class="warning"><strong>Deprecated:</strong><br>/ahk <i>file_name</i></td>
-        <td class="warning"><span class="ver">[v1.1.33+]</span>: The path\name of AutoHotkey.exe to be used as a utility when compiling the script.</td>
-      </tr>
-      <tr id="SlashMpress">
-        <td class="warning"><strong>Deprecated:</strong><br>/mpress <i>0or1</i></td>
-        <td class="warning"><a href="#mpress">Compress</a> the exe with MPRESS? 0 = no, 1 = yes. Default is the last setting used in the GUI interface.</td>
-      </tr>
-      <tr id="SlashBin">
-        <td class="warning"><strong>Deprecated:</strong><br>/bin <i>file_name</i></td>
-        <td class="warning">The .bin file to be used. Default is the last .bin file name saved in the GUI interface.</td>
-      </tr>
-    </table>
-    <p>For example:</p>
-    <pre class="no-highlight">Ahk2Exe.exe /in "MyScript.ahk" /icon "MyIcon.ico"</pre>
-  </li>
-</ul>
-<p>Notes:</p>
-<ul>
-  <li>Parameters containing spaces must be enclosed in double quotes.</li>
-  <li>Compiling does not typically improve the performance of a script.</li>
-  <li>In <span class="ver">[v1.1.01+]</span>, password protection and the /NoDecompile switch are not supported.</li>
-  <li><a href="lib/_NoTrayIcon.htm">#NoTrayIcon</a> and <code><a href="lib/Menu.htm#MainWindow">Menu, Tray, MainWindow</a></code> affect the behavior of compiled scripts.</li>
-  <li>The built-in variable <a href="Variables.htm#IsCompiled">A_IsCompiled</a> contains 1 if the script is running in compiled form. Otherwise, it is blank.</li>
-  <li><span class="ver">[v1.0.43+]</span>: When parameters are passed to Ahk2Exe, a message indicating the success or failure of the compiling process is written to stdout. Although the message will not appear at the command prompt, it can be "caught" by means such as redirecting output to a file. </li>
-  <li> <span class="ver">[v1.1.22.03+]</span>: Additionally in the case of a failure, Ahk2Exe has exit codes indicating the kind of error that occurred. These error codes can be found at <a href="https://github.com/AutoHotkey/Ahk2Exe/blob/master/ErrorCodes.md">GitHub (ErrorCodes.md)</a>.</li>
-</ul>
-<p>The compiler's source code and newer versions can be found at <a href="https://github.com/AutoHotkey/Ahk2Exe">GitHub</a>.</p>
+; Set to true to automatically blur the camera
+AutoBlurCamera := true
+AutoBlurDelay := 50
 
-<h3 id="ahk2exe-base">Base Executable File</h3>
-<p>Each compiled script .exe is based on an executable file which implements the interpreter. The base files included in the Compiler directory have the ".bin" extension; these are versions of the interpreter which do not include the capability to load external script files. Instead, the program looks for a Win32 (RCDATA) resource named "&gt;AUTOHOTKEY SCRIPT&lt;" and loads that, or fails if it is not found.</p>
-<p><span class="ver">[v1.1.34+]</span>: The standard AutoHotkey executable files can also be used as the base of a compiled script, by embedding a Win32 (RCDATA) resource with ID 1. (Additional scripts can be added with the <a href="misc/Ahk2ExeDirectives.htm#AddResource">AddResource</a> compiler directive.) This allows the compiled script .exe to be used with the <a href="#SlashScript">/script</a> switch to execute scripts other than the main embedded script. For more details, see <a href="Program.htm#embedded-scripts">Embedded Scripts</a>.</p>
+; How long to wait after fishing before restarting
+RestartDelay := 1000
 
-<h3 id="CompilerDirectives">Script Compiler Directives</h3>
-<p><span class="ver">[v1.1.33+]</span>: Script compiler directives allow the user to specify details of how a script is to be compiled. Some of the features are:</p>
-<ul>
-  <li>Ability to change the version information (such as the name, description, version...).</li>
-  <li>Ability to add resources to the compiled script.</li>
-  <li>Ability to tweak several miscellaneous aspects of compilation.</li>
-  <li>Ability to remove code sections from the compiled script and vice versa.</li>
-</ul>
-<p>See <a href="misc/Ahk2ExeDirectives.htm">Script Compiler Directives</a> for more details.</p>
+; How long to hold the cast for before releasing
+HoldRodCastDuration := 1000
 
-<h3 id="mpress">Compressing Compiled Scripts</h3>
-<p>Ahk2Exe optionally uses MPRESS or <span class="ver">[v1.1.33+]</span> UPX freeware to compress compiled scripts. If <strong>MPRESS.exe</strong> and/or <strong>UPX.exe</strong> has been copied to the "Compiler" subfolder where AutoHotkey was installed, either can be used to compress the .exe as directed by the <code>/compress</code> parameter or the GUI setting. </p>
-<p><strong>MPRESS:</strong> <a href="https://www.autohotkey.com/mpress/mpress_web.htm">archived official website</a> (downloads and information) | <a href="https://www.autohotkey.com/mpress/mpress.219.zip">direct download</a> (95 KB)</p>
-<p><strong>UPX:</strong> <a href="https://upx.github.io/">official website</a> (downloads and information)</p>
-<p><strong>Note:</strong> While compressing the script executable prevents casual inspection of the script's source code using a plain text editor like Notepad or a PE resource editor, it does not prevent the source code from being extracted by tools dedicated to that purpose.</p>
+; How long to wait for the bobber to land in water
+WaitForBobberDelay := 1000
 
-<h3 id="information">Background Information</h3>
- <p>In <span class="ver">[v1.1.33.10+]</span>, the following folder structure is supported, where the running version of <code>Ahk2Exe.exe</code> is in the first \Compiler directory shown below:</p>
-<pre class="no-highlight">\AutoHotkey 
-   AutoHotkeyA32.exe 
-   AutoHotkeyU32.exe
-   AutoHotkeyU64.exe
-   \Compiler
-      Ahk2Exe.exe  <em>; the master version of Ahk2Exe</em>
-      ANSI 32-bit.bin
-      Unicode 32-bit.bin
-      Unicode 64-bit.bin
-   \AutoHotkey v2.0-a135
-      AutoHotkey32.exe
-      AutoHotkey64.exe
-      \Compiler
-   \v2.0-beta.1
-      AutoHotkey32.exe
-      AutoHotkey64.exe</pre>
-<p>The base file search algorithm runs for a short amount of time when Ahk2Exe starts, and works as follows:</p>
-<p>Qualifying AutoHotkey .exe files and all .bin files are searched for in the compiler's directory, the compiler's parent directory, and any of the compiler's sibling directories with directory names that start with <code>AutoHotkey</code> or <code>V</code>, but do not start with <code>AutoHotkey_H</code>. The selected directories are searched recursively. Any AutoHotkey.exe files found are excluded, leaving files such as AutoHotkeyA32.exe, AutoHotkey64.exe, etc. plus all .bin files found. All .exe files that are included must have a name starting with <code>AutoHotkey</code> and a file description containing the word <code>AutoHotkey</code>, and  must have a version of <code class="no-highlight">1.1.34+</code> or <code class="no-highlight">2.0-a135+</code>.</p>
-<p>A version of the AutoHotkey interpreter is also needed (as a utility) for a successful compile, and one is selected using a similar algorithm. In most cases the version of the interpreter used will match the version of the base file selected by the user for the compile.</p>
+; Set this to your navigation key, IMPORTANT
+NavigationKey := "\"
 
+;     SHAKE SETTINGS     ====================================================================================================;
 
-<h2 id="cmd">Passing Command Line Parameters to a Script</h2>
-<p>Scripts support command line parameters. The format is:</p>
-<pre>AutoHotkey.exe [<i>Switches</i>] [<i>Script Filename</i>] [<i>Script Parameters</i>]</pre>
-<p>And for compiled scripts, the format is:</p>
-<pre>CompiledScript.exe [<i>Switches</i>] [<i>Script Parameters</i>]</pre>
-<p><strong>Switches:</strong> Zero or more of the following:</p>
-<table class="info">
-  <tr><th>Switch</th><th>Meaning</th><th class="wrap" abbr="Compiled?">Works compiled?</th></tr>
-  <tr id="SlashF">
-    <td>/f or /force</td>
-    <td>Launch unconditionally, skipping any warning dialogs. This has the same effect as <a href="lib/_SingleInstance.htm">#SingleInstance Off</a>.</td>
-    <td>Yes</td>
-  </tr>
-  <tr id="SlashR">
-    <td>/r or /restart</td>
-    <td>Indicate that the script is being restarted and should attempt to close a previous instance of the script (this is also used by the <a href="lib/Reload.htm">Reload</a> command, internally).</td>
-    <td>Yes</td>
-  </tr>
-  <tr id="ErrorStdOut">
-    <td>/ErrorStdOut<br><br>/ErrorStdOut=<em>Encoding</em></td>
-    <td>
-      <p>Send syntax errors that prevent a script from launching to the standard error stream (stderr) rather than displaying a dialog. See <a href="lib/_ErrorStdOut.htm">#ErrorStdOut</a> for details. This can be combined with /iLib to validate the script without running it.</p>
-      <p><span class="ver">[v1.1.33+]</span>: An <a href="lib/FileEncoding.htm">encoding</a> can optionally be specified. For example, <code>/ErrorStdOut=UTF-8</code> encodes messages as UTF-8 before writing them to stderr.</p>
-    </td>
-    <td>Yes</td>
-  </tr>
-  <tr id="SlashDebug">
-    <td>/Debug</td>
-    <td><span class="ver">[AHK_L 11+]</span>: Connect to a debugging client. For more details, see <a href="#idebug">Interactive Debugging</a>.</td>
-    <td>No</td>
-  </tr>
-  <tr id="CPn">
-    <td>/CP<i>n</i></td>
-    <td>
-      <p><span class="ver">[AHK_L 51+]</span>: Overrides the default codepage used to read script files. For more details, see <a href="#cp">Script File Codepage</a>.</p>
-      <p><span class="ver">[v1.1.33+]</span>: If "Default to UTF-8" is enabled in the installer, the ".ahk" file type is registered with a command line including <code>/CP65001</code>. This causes all scripts launched through the shell (Explorer) to default to UTF-8 in the absence of a UTF-16 byte order mark. Scripts launched by running AutoHotkey.exe directly still default to <code>CP0</code>, as the <code>/CP65001</code> switch is absent.</p>
-    </td>
-    <td>No</td>
-  </tr>
-  <tr>
-    <td>/iLib <em>"OutFile"</em></td>
-    <td>
-      <p><span class="ver">[v1.0.47+]</span>: AutoHotkey loads the script but does not run it. For each script file which is auto-included via <a href="Functions.htm#lib">the library mechanism</a>, two lines are written to the file specified by <em>OutFile</em>. These lines are written in the following format, where <em>LibDir</em> is the full path of the Lib folder and <em>LibFile</em> is the filename of the library:</p>
-<pre>#Include LibDir\
-#IncludeAgain LibDir\LibFile.ahk</pre>
-      <p>If the output file exists, it is overwritten. <em>OutFile</em> can be <code>*</code> to write the output to stdout.</p>
-      <p>If the script contains syntax errors, the output file may be empty. The process exit code can be used to detect this condition; if there is a syntax error, the exit code is 2. The /ErrorStdOut switch can be used to suppress or capture the error message.</p>
-    </td>
-    <td>No</td>
-  </tr>
-  <tr id="SlashInclude">
-    <td>/include <em>"IncFile"</em></td>
-    <td>
-      <p><span class="ver">[v1.1.34+]</span>: <a href="lib/_Include.htm">Includes</a> a file prior to the main script. Only a single file can be included by this method. When the script is <a href="lib/Reload.htm">reloaded</a>, this switch is automatically passed to the new instance.</p>
-    </td>
-    <td>No</td>
-  </tr>
-  <tr id="SlashScript">
-    <td>/script</td>
-    <td>
-      <p><span class="ver">[v1.1.34+]</span>: When used with a compiled script based on an .exe file, this switch causes the program to ignore the main embedded script. This allows a compiled script .exe to execute external script files or embedded scripts other than the main one. Other switches not normally supported by compiled scripts can be used but must be listed to the right of this switch. For example:</p>
-      <pre class="no-highlight">CompiledScript.exe /script /ErrorStdOut MyScript.ahk "Script's arg 1"</pre>
-      <p>If the current executable file does not have an embedded script, this switch is permitted but has no effect.</p>
-      <p>This switch is not supported by compiled scripts which are based on a .bin file.</p>
-      <p>See also: <a href="#ahk2exe-base">Base Executable File (Ahk2Exe)</a></p>
-    </td>
-    <td>N/A</td>
-  </tr>
-</table>
+; Change to "Navigation" or "Click"
+ShakeMode := "Click"
 
-<p id="defaultfile"><strong>Script Filename:</strong> This can be omitted if there are no <em>Script Parameters</em>. If omitted (such as if you run AutoHotkey directly from the Start menu), the program looks for a script file called <code><i>AutoHotkey</i>.ahk</code> in the following locations, in this order:</p>
-<ul>
-  <li>The directory which contains the <a href="Variables.htm#AhkPath">AutoHotkey executable</a>.</li>
-  <li>The current user's <a href="Variables.htm#MyDocuments">Documents</a> folder.</li>
-</ul>
-<p>The filename <code><i>AutoHotkey</i>.ahk</code> depends on the name of the executable used to run the script. For example, if you rename AutoHotkey.exe to MyScript.exe, it will attempt to find MyScript.ahk. If you run AutoHotkeyU32.exe without parameters, it will look for AutoHotkeyU32.ahk.</p>
-<p>Note: In old versions prior to <a href="AHKL_ChangeLog.htm#L51">revision 51</a>, the program looked for AutoHotkey.ini in the working directory or AutoHotkey.ahk in My Documents.</p>
-<p><span class="ver">[v1.1.17+]</span>: Specify an asterisk (*) for the filename to read the script text from standard input (stdin). For an example, see <a href="lib/Run.htm#ExecScript">ExecScript()</a>.</p>
-<p><span class="ver">[v1.1.34+]</span>: If the current executable file has <a href="Program.htm#embedded-scripts">embedded scripts</a>, this parameter can be an asterisk followed by the resource name or ID of an embedded script. For compiled scripts (i.e. if an embedded script with the ID #1 exists), this parameter must be preceded by the <code>/script</code> switch.</p>
-<p id="cmd_args"><strong>Script Parameters:</strong> The string(s) you want to pass into the script, with each separated from the next by one or more spaces. Any parameter that contains spaces should be enclosed in quotation marks. If you want to pass an empty string as a parameter, specify two consecutive quotation marks. A literal quotation mark may be passed in by preceding it with a backslash (\"). Consequently, any trailing slash in a quoted parameter (such as "C:\My Documents<span class="red">\"</span>) is treated as a literal quotation mark (that is, the script would receive the string C:\My Documents<span class="red">"</span>). To remove such quotes, use <code><a href="lib/StringReplace.htm">StringReplace</a>, 1, 1, <span class="red">"</span>,, All</code>.</p>
-<p><span class="ver">[v1.1.27+]</span>: Incoming parameters, if present, are stored as an array in the built-in variable <strong>A_Args</strong>, and can be accessed using <a href="Objects.htm#Usage_Simple_Arrays">array syntax</a>. <code>A_Args[1]</code> contains the first parameter. The following example exits the script when too few parameters are passed to it:</p>
-<pre>if A_Args.Length() &lt; 3
-{
-    MsgBox % "This script requires at least 3 parameters but it only received " A_Args.Length() "."
-    ExitApp
-}</pre>
-<p>If the number of parameters passed into a script varies (perhaps due to the user dragging and dropping a set of files onto a script), the following example can be used to extract them one by one:</p>
-<pre>for n, param in A_Args  <em>; For each parameter:</em>
-{
-    MsgBox Parameter number %n% is %param%.
-}
-</pre>
-<p>If the parameters are file names, the following example can be used to convert them to their case-corrected long names (as stored in the file system), including complete/absolute path:</p>
-<pre>for n, GivenPath in A_Args  <em>; For each parameter (or file dropped onto a script):</em>
-{
-    Loop Files, %GivenPath%, FD  <em>; Include files and directories.</em>
-        LongPath := A_LoopFileFullPath
-    MsgBox The case-corrected long path name of file`n%GivenPath%`nis:`n%LongPath%
-}</pre>
-<p><strong>Known limitation:</strong> dragging files onto a .ahk script may fail to work properly if 8-dot-3 (short) names have been turned off in an NTFS file system. One work-around is to <a href="#ahk2exe">compile</a> the script then drag the files onto the resulting EXE.</p>
-<p id="cmd_args_old"><strong>Legacy:</strong> The command line parameters are also stored in the <a href="Variables.htm">variables</a> %1%, %2%, and so on, as in versions prior to <span class="ver">[v1.1.27]</span>. In addition, %0% contains the number of parameters passed (0 if none). However, these variables cannot be referenced directly in an expression because they would be seen as numbers rather than variables. The following example exits the script when too few parameters are passed to it:</p>
-<pre>if 0 &lt; 3  <em>; The left side of a <a href="lib/IfEqual.htm">non-expression if-statement</a> is always the name of a variable.</em>
-{
-    MsgBox This script requires at least 3 parameters but it only received %0%.
-    ExitApp
-}</pre>
-<p>If the number of parameters passed into a script varies (perhaps due to the user dragging and dropping a set of files onto a script), the following example can be used to extract them one by one:</p>
-<pre>Loop, %0%  <em>; For each parameter:</em>
-{
-    param := %A_Index%  <em>; Fetch the contents of the variable whose name is contained in A_Index.</em>
-    MsgBox, 4,, Parameter number %A_Index% is %param%.  Continue?
-    IfMsgBox, No
-        break
-}</pre>
-<p>If the parameters are file names, the following example can be used to convert them to their case-corrected long names (as stored in the file system), including complete/absolute path:</p>
-<pre>Loop %0%  <em>; For each parameter (or file dropped onto a script):</em>
-{
-    GivenPath := %A_Index%  <em>; Fetch the contents of the variable whose name is contained in A_Index.</em>
-    Loop %GivenPath%, 1
-        LongPath := A_LoopFileLongPath
-    MsgBox The case-corrected long path name of file`n%GivenPath%`nis:`n%LongPath%
-}</pre>
+; Color range to scan for fish bar
+FishBarColorTolerance := 0
 
-<h2 id="cp">Script File Codepage <span class="ver">[AHK_L 51+]</span></h2>
-<p>In order for non-ASCII characters to be read correctly from file, the encoding used when the file was saved (typically by the text editor) must match what AutoHotkey uses when it reads the file. If it does not match, characters will be decoded incorrectly. AutoHotkey uses the following rules to decide which encoding to use:</p>
-<ul>
-  <li>If the file begins with a UTF-8 or UTF-16 (LE) byte order mark, the appropriate codepage is used and the <a href="#CPn">/CP<i>n</i></a> switch is ignored.</li>
-  <li>If the <a href="#CPn">/CP<i>n</i></a> switch is passed on the command-line, codepage <i>n</i> is used. For a list of possible values, see <a href="https://learn.microsoft.com/windows/win32/intl/code-page-identifiers">Code Page Identifiers</a>.
-  <p class="note"><strong>Note:</strong> The "Default to UTF-8" option in the AutoHotkey <span class="ver">[v1.1.33+]</span> installer adds <code>/CP65001</code> to the command line for all scripts launched via the shell (Explorer).</p></li>
-  <li>In all other cases, the system default ANSI codepage is used.</li>
-</ul>
-<p>Note that this applies only to script files loaded by AutoHotkey, not to file I/O within the script itself. <a href="lib/FileEncoding.htm">FileEncoding</a> controls the default encoding of files read or written by the script, while <a href="lib/IniRead.htm">IniRead</a> and <a href="lib/IniWrite.htm">IniWrite</a> always deal in UTF-16 or ANSI.</p>
-<p>As all text is converted (where necessary) to the <a href="Compat.htm#Format">native string format</a>, characters which are invalid or don't exist in the native codepage are replaced with a placeholder: ANSI '?' or Unicode '&#65533;'. In Unicode builds, this should only occur if there are encoding errors in the script file or the codepages used to save and load the file don't match.</p>
-<p><a href="lib/RegWrite.htm">RegWrite</a> may be used to set the default for scripts launched from Explorer (e.g. by double-clicking a file):</p>
-<pre><em>; Uncomment the appropriate line below or leave them all commented to
-;   reset to the default of the current build.  Modify as necessary:
-; codepage := 0        ; System default ANSI codepage
-; codepage := 65001    ; UTF-8
-; codepage := 1200     ; UTF-16
-; codepage := 1252     ; ANSI Latin 1; Western European (Windows)</em>
-if (codepage != "")
-    codepage := " /CP" . codepage
-cmd="%A_AhkPath%"%codepage% "`%1" `%*
-key=AutoHotkeyScript\Shell\Open\Command
-if A_IsAdmin    <em>; Set for all users.</em>
-    RegWrite, REG_SZ, HKCR, %key%,, %cmd%
-else            <em>; Set for current user only.</em>
-    RegWrite, REG_SZ, HKCU, Software\Classes\%key%,, %cmd%</pre>
-<p>This assumes AutoHotkey has already been installed. Results may be less than ideal if it has not.</p>
+; Seconds for click shake to be considered failed
+ClickShakeFailsafe := 20
+; Color range to scan for "shake" text
+ClickShakeColorTolerance := 1
+; Delay between each scan in miliseconds
+ClickScanDelay := 100
+; How many scans before clicking regardless of repeats
+RepeatBypassCounter := 10
 
-<h2 id="debug">Debugging a Script</h2>
-<p>Commands such as <a href="lib/ListVars.htm">ListVars</a> and <a href="lib/Pause.htm">Pause</a> can help you debug a script. For example, the following two lines, when temporarily inserted at carefully chosen positions, create "break points" in the script:</p>
-<pre>ListVars
-Pause</pre>
-<p>When the script encounters these two lines, it will display the current contents of all variables for your inspection. When you're ready to resume, un-pause the script via the File or Tray menu. The script will then continue until reaching the next "break point" (if any).</p>
-<p>It is generally best to insert these "break points" at positions where the active window does not matter to the script, such as immediately before a WinActivate command. This allows the script to properly resume operation when you un-pause it.</p>
-<p>The following commands are also useful for debugging: <a href="lib/ListLines.htm">ListLines</a>, <a href="lib/KeyHistory.htm">KeyHistory</a>, and <a href="lib/OutputDebug.htm">OutputDebug</a>.</p>
-<p>Some common errors, such as typos and missing "global" declarations, can be detected by <a href="lib/_Warn.htm">enabling warnings</a>.</p>
-<h3 id="idebug">Interactive Debugging <span class="ver">[AHK_L 11+]</span></h3>
-<p>Interactive debugging is possible with a supported <a href="AHKL_DBGPClients.htm">DBGp client</a>. Typically the following actions are possible:</p>
-<ul>
-  <li>Set and remove breakpoints on lines - pause execution when a <a href="https://en.wikipedia.org/wiki/Breakpoint">breakpoint</a> is reached.</li>
-  <li>Step through code line by line - step into, over or out of functions and subroutines.</li>
-  <li>Inspect all variables or a specific variable.</li>
-  <li>View the stack of running subroutines and functions.</li>
-</ul>
-<p>Note that this functionality is disabled for compiled scripts which are <a href="#ahk2exe-base">based on a BIN file</a>. For compiled scripts based on an EXE file, /debug must be specified after <a href="#SlashScript">/script</a>.</p>
-<p>To enable interactive debugging, first launch a supported debugger client then launch the script with the <b>/Debug</b> command-line switch.</p>
-<pre class="Syntax">AutoHotkey.exe /Debug<span class="optional">=<i>SERVER</i>:<i>PORT</i></span> ...</pre>
-<p><i>SERVER</i> and <i>PORT</i> may be omitted.  For example, the following are equivalent:</p>
-<pre class="no-highlight">AutoHotkey /Debug "myscript.ahk"
-AutoHotkey /Debug=localhost:9000 "myscript.ahk"</pre>
-<p id="debug_attach"><span class="ver">[AHK_L 59+]</span>: To attach the debugger to a script which is already running, send it a message as shown below:</p>
-<pre>ScriptPath := "" <em>; SET THIS TO THE FULL PATH OF THE SCRIPT</em>
-DetectHiddenWindows On
-if WinExist(ScriptPath " ahk_class AutoHotkey")
-    <em>; Optional parameters:
-    ;   wParam  = the IPv4 address of the debugger client, as a 32-bit integer.
-    ;   lParam  = the port which the debugger client is listening on.</em>
-    PostMessage DllCall("RegisterWindowMessage", "Str", "AHK_ATTACH_DEBUGGER")
-</pre>
-<p>Once the debugger client is connected, it may detach without terminating the script by sending the "detach" DBGp command.</p>
+; Seconds for navigation shake to be considered failed
+NavigationShakeFailsafe := 30
+; Delay between each "S+Enter" in miliseconds
+NavigationSpamDelay := 10
 
-<h2 id="Script_Showcase">Script Showcase</h2>
-<p>See <a href="scripts/">this page</a> for some useful scripts.</p>
-</body>
-</html>
+;     MINIGAME SETTINGS     ====================================================================================================;
+
+; Bar size is automatically calculated, set manual value to override
+ManualBarSize := 0
+; Seconds for calculation to be considered failed
+BarCalculationFailsafe := 10
+; Color range to scan for initial white bar
+BarSizeCalculationColorTolerance := 15
+
+; Color range to scan for minigame white bar
+WhiteBarColorTolerance := 5
+; Color range to scan for minigame arrow
+ArrowColorTolerance := 0
+
+; Amount of clicks per action cycle
+StabilizerLoop := 10
+; Ratio for bar side maximum hold (1 = max bar|0.5 = half bar)
+SideBarRatio := 0.8
+; Multiplier for how long to wait at the sides to prevent bounce
+SideBarWaitMultiplier := 4.5
+
+; Strength for moving right in correct zone
+StableRightMultiplier := 2
+; Counter strafe after moving right in correct zone
+StableRightDivision := 1.3
+; Strength for moving left in correct zone
+StableLeftMultiplier := 1.8
+; Counter strafe after moving left in correct zone
+StableLeftDivision := 1.3
+
+; Strength for moving right when in wrong zone
+UnstableRightMultiplier := 2.4
+; Counter strafe after moving right in wrong zone
+UnstableRightDivision := 1.3
+; Strength for moving left when in wrong zone
+UnstableLeftMultiplier := 2.4
+; Counter strafe after moving left in wrong zone
+UnstableLeftDivision := 1.3
+
+; Strength for moving right after a shift in the middle
+RightAnkleBreakMultiplier := 0.9
+; Strength for moving left after a shift in the middle
+LeftAnkleBreakMultiplier := 0.5
+
+;====================================================================================================;
+
+if (AutoLowerGraphics != true and AutoLowerGraphics != false)
+	{
+	msgbox, AutoLowerGraphics must be set to true or false! (check your spelling)
+	exitapp
+	}
+	
+if (AutoEnableCameraMode != true and AutoEnableCameraMode != false)
+	{
+	msgbox, AutoEnableCameraMode must be set to true or false! (check your spelling)
+	exitapp
+	}
+	
+if (AutoZoomInCamera != true and AutoZoomInCamera != false)
+	{
+	msgbox, AutoZoomInCamera must be set to true or false! (check your spelling)
+	exitapp
+	}
+	
+if (AutoLookDownCamera != true and AutoLookDownCamera != false)
+	{
+	msgbox, AutoLookDownCamera must be set to true or false! (check your spelling)
+	exitapp
+	}
+	
+if (AutoBlurCamera != true and AutoBlurCamera != false)
+	{
+	msgbox, AutoBlurCamera must be set to true or false! (check your spelling)
+	exitapp
+	}
+	
+if (ShakeMode != "Navigation" and ShakeMode != "Click")
+	{
+	msgbox, ShakeMode must be set to "Click" or "Navigation"! (check your spelling)
+	exitapp
+	}
+
+;====================================================================================================;
+
+WinActivate, Roblox
+if WinActive("Roblox")
+	{
+	WinMaximize, Roblox
+	}
+else
+	{
+	msgbox, where roblox bruh
+	exitapp
+	}
+	
+;====================================================================================================;
+
+send {lbutton up}
+send {rbutton up}
+send {shift up}
+
+;====================================================================================================;
+
+Calculations:
+WinGetActiveStats, Title, WindowWidth, WindowHeight, WindowLeft, WindowTop
+
+CameraCheckLeft := WindowWidth/2.8444
+CameraCheckRight := WindowWidth/1.5421
+CameraCheckTop := WindowHeight/1.28
+CameraCheckBottom := WindowHeight
+
+ClickShakeLeft := WindowWidth/4.6545
+ClickShakeRight := WindowWidth/1.2736
+ClickShakeTop := WindowHeight/14.08
+ClickShakeBottom := WindowHeight/1.3409
+
+FishBarLeft := WindowWidth/3.3160
+FishBarRight := WindowWidth/1.4317
+FishBarTop := WindowHeight/1.1871
+FishBarBottom := WindowHeight/1.1512
+
+FishBarTooltipHeight := WindowHeight/1.0626
+
+ResolutionScaling := 2560/WindowWidth
+
+LookDownX := WindowWidth/2
+LookDownY := WindowHeight/4
+
+runtimeS := 0
+runtimeM := 0
+runtimeH := 0
+
+TooltipX := WindowWidth/20
+Tooltip1 := (WindowHeight/2)-(20*9)
+Tooltip2 := (WindowHeight/2)-(20*8)
+Tooltip3 := (WindowHeight/2)-(20*7)
+Tooltip4 := (WindowHeight/2)-(20*6)
+Tooltip5 := (WindowHeight/2)-(20*5)
+Tooltip6 := (WindowHeight/2)-(20*4)
+Tooltip7 := (WindowHeight/2)-(20*3)
+Tooltip8 := (WindowHeight/2)-(20*2)
+Tooltip9 := (WindowHeight/2)-(20*1)
+Tooltip10 := (WindowHeight/2)
+Tooltip11 := (WindowHeight/2)+(20*1)
+Tooltip12 := (WindowHeight/2)+(20*2)
+Tooltip13 := (WindowHeight/2)+(20*3)
+Tooltip14 := (WindowHeight/2)+(20*4)
+Tooltip15 := (WindowHeight/2)+(20*5)
+Tooltip16 := (WindowHeight/2)+(20*6)
+Tooltip17 := (WindowHeight/2)+(20*7)
+Tooltip18 := (WindowHeight/2)+(20*8)
+Tooltip19 := (WindowHeight/2)+(20*9)
+Tooltip20 := (WindowHeight/2)+(20*10)
+
+tooltip, Made By AsphaltCake, %TooltipX%, %Tooltip1%, 1
+tooltip, Runtime: 0h 0m 0s, %TooltipX%, %Tooltip2%, 2
+
+tooltip, Press "P" to Start, %TooltipX%, %Tooltip4%, 4
+tooltip, Press "O" to Reload, %TooltipX%, %Tooltip5%, 5
+tooltip, Press "M" to Exit, %TooltipX%, %Tooltip6%, 6
+
+if (AutoLowerGraphics == true)
+	{
+	tooltip, AutoLowerGraphics: true, %TooltipX%, %Tooltip8%, 8
+	}
+else
+	{
+	tooltip, AutoLowerGraphics: false, %TooltipX%, %Tooltip8%, 8
+	}
+	
+if (AutoEnableCameraMode == true)
+	{
+	tooltip, AutoEnableCameraMode: true, %TooltipX%, %Tooltip9%, 9
+	}
+else
+	{
+	tooltip, AutoEnableCameraMode: false, %TooltipX%, %Tooltip9%, 9
+	}
+	
+if (AutoZoomInCamera == true)
+	{
+	tooltip, AutoZoomInCamera: true, %TooltipX%, %Tooltip10%, 10
+	}
+else
+	{
+	tooltip, AutoZoomInCamera: false, %TooltipX%, %Tooltip10%, 10
+	}
+	
+if (AutoLookDownCamera == true)
+	{
+	tooltip, AutoLookDownCamera: true, %TooltipX%, %Tooltip11%, 11
+	}
+else
+	{
+	tooltip, AutoLookDownCamera: false, %TooltipX%, %Tooltip11%, 11
+	}
+	
+if (AutoBlurCamera == true)
+	{
+	tooltip, AutoBlurCamera: true, %TooltipX%, %Tooltip12%, 12
+	}
+else
+	{
+	tooltip, AutoBlurCamera: false, %TooltipX%, %Tooltip12%, 12
+	}
+
+tooltip, Navigation Key: "%NavigationKey%", %TooltipX%, %Tooltip14%, 14
+
+if (ShakeMode == "Click")
+	{
+	tooltip, Shake Mode: "Click", %TooltipX%, %Tooltip16%, 16
+	}
+else
+	{
+	tooltip, Shake Mode: "Navigation", %TooltipX%, %Tooltip16%, 16
+	}
+return
+
+;====================================================================================================;
+
+runtime:
+runtimeS++
+if (runtimeS >= 60)
+	{
+	runtimeS := 0
+	runtimeM++
+	}
+if (runtimeM >= 60)
+	{
+	runtimeM := 0
+	runtimeH++
+	}
+
+if WinActive("Roblox")
+	{
+	tooltip, Runtime: %runtimeH%h %runtimeM%m %runtimeS%s, %TooltipX%, %Tooltip2%, 2
+	}
+else
+	{
+	exitapp
+	}
+return
+
+;====================================================================================================;
+
+$o:: reload
+$m:: exitapp
+$p::
+
+;====================================================================================================;
+
+gosub, Calculations
+settimer, runtime, 1000
+
+tooltip, Press "O" to Reload, %TooltipX%, %Tooltip4%, 4
+tooltip, Press "M" to Exit, %TooltipX%, %Tooltip5%, 5
+
+tooltip, , , , 6
+tooltip, , , , 10
+tooltip, , , , 11
+tooltip, , , , 12
+tooltip, , , , 14
+tooltip, , , , 16
+
+tooltip, Current Task: AutoLowerGraphics, %TooltipX%, %Tooltip7%, 7
+tooltip, F10 Count: 0/20, %TooltipX%, %Tooltip9%, 9
+f10counter := 0
+if (AutoLowerGraphics == true)
+	{
+	send {shift}
+	tooltip, Action: Press Shift, %TooltipX%, %Tooltip8%, 8
+	sleep %AutoGraphicsDelay%
+	send {shift down}
+	tooltip, Action: Hold Shift, %TooltipX%, %Tooltip8%, 8
+	sleep %AutoGraphicsDelay%
+	loop, 20
+		{
+		f10counter++
+		tooltip, F10 Count: %f10counter%/20, %TooltipX%, %Tooltip9%, 9
+		send {f10}
+		tooltip, Action: Press F10, %TooltipX%, %Tooltip8%, 8
+		sleep %AutoGraphicsDelay%
+		}
+	send {shift up}
+	tooltip, Action: Release Shift, %TooltipX%, %Tooltip8%, 8
+	sleep %AutoGraphicsDelay%
+	}
+
+tooltip, Current Task: AutoZoomInCamera, %TooltipX%, %Tooltip7%, 7
+tooltip, Scroll In: 0/20, %TooltipX%, %Tooltip9%, 9
+tooltip, Scroll Out: 0/1, %TooltipX%, %Tooltip10%, 10
+scrollcounter := 0
+if (AutoZoomInCamera == true)
+	{
+	sleep %AutoZoomDelay%
+	loop, 20
+		{
+		scrollcounter++
+		tooltip, Scroll In: %scrollcounter%/20, %TooltipX%, %Tooltip9%, 9
+		send {wheelup}
+		tooltip, Action: Scroll In, %TooltipX%, %Tooltip8%, 8
+		sleep %AutoZoomDelay%
+		}
+	send {wheeldown}
+	tooltip, Scroll Out: 1/1, %TooltipX%, %Tooltip10%, 10
+	tooltip, Action: Scroll Out, %TooltipX%, %Tooltip8%, 8
+	AutoZoomDelay := AutoZoomDelay*5
+	sleep %AutoZoomDelay%
+	}
+	
+tooltip, , , , 10
+
+tooltip, Current Task: AutoEnableCameraMode, %TooltipX%, %Tooltip7%, 7
+tooltip, Right Count: 0/10, %TooltipX%, %Tooltip9%, 9
+rightcounter := 0
+if (AutoEnableCameraMode == true)
+	{
+	PixelSearch, , , CameraCheckLeft, CameraCheckTop, CameraCheckRight, CameraCheckBottom, 0xFFFFFF, 0, Fast
+	if (ErrorLevel == 0)
+		{
+		sleep %AutoCameraDelay%
+		send {2}
+		tooltip, Action: Presss 2, %TooltipX%, %Tooltip8%, 8
+		sleep %AutoCameraDelay%
+		send {1}
+		tooltip, Action: Press 1, %TooltipX%, %Tooltip8%, 8
+		sleep %AutoCameraDelay%
+		send {%NavigationKey%}
+		tooltip, Action: Press %NavigationKey%, %TooltipX%, %Tooltip8%, 8
+		sleep %AutoCameraDelay%
+		loop, 10
+			{
+			rightcounter++
+			tooltip, Right Count: %rightcounter%/10, %TooltipX%, %Tooltip9%, 9
+			send {right}
+			tooltip, Action: Press Right, %TooltipX%, %Tooltip8%, 8
+			sleep %AutoCameraDelay%
+			}
+		send {enter}
+		tooltip, Action: Press Enter, %TooltipX%, %Tooltip8%, 8
+		sleep %AutoCameraDelay%
+		}
+	}
+
+RestartMacro:
+
+tooltip, , , , 9
+
+tooltip, Current Task: AutoLookDownCamera, %TooltipX%, %Tooltip7%, 7
+if (AutoLookDownCamera == true)
+	{
+	send {rbutton up}
+	sleep %AutoLookDelay%
+	mousemove, LookDownX, LookDownY
+	tooltip, Action: Position Mouse, %TooltipX%, %Tooltip8%, 8
+	sleep %AutoLookDelay%
+	send {rbutton down}
+	tooltip, Action: Hold Right Click, %TooltipX%, %Tooltip8%, 8
+	sleep %AutoLookDelay%
+	DllCall("mouse_event", "UInt", 0x01, "UInt", 0, "UInt", 10000)
+	tooltip, Action: Move Mouse Down, %TooltipX%, %Tooltip8%, 8
+	sleep %AutoLookDelay%
+	send {rbutton up}
+	tooltip, Action: Release Right Click, %TooltipX%, %Tooltip8%, 8
+	sleep %AutoLookDelay%
+	mousemove, LookDownX, LookDownY
+	tooltip, Action: Position Mouse, %TooltipX%, %Tooltip8%, 8
+	sleep %AutoLookDelay%
+	}
+	
+tooltip, Current Task: AutoBlurCamera, %TooltipX%, %Tooltip7%, 7	
+if (AutoBlurCamera == true)
+	{
+	sleep %AutoBlurDelay%
+	send {m}
+	tooltip, Action: Press M, %TooltipX%, %Tooltip8%, 8
+	sleep %AutoBlurDelay%
+	}
+
+tooltip, Current Task: Casting Rod, %TooltipX%, %Tooltip7%, 7
+send {lbutton down}
+tooltip, Action: Casting For %HoldRodCastDuration%ms, %TooltipX%, %Tooltip8%, 8
+sleep %HoldRodCastDuration%
+send {lbutton up}
+tooltip, Action: Waiting For Bobber (%WaitForBobberDelay%ms), %TooltipX%, %Tooltip8%, 8
+sleep %WaitForBobberDelay%
+
+if (ShakeMode == "Click")
+goto ClickShakeMode
+else if (ShakeMode == "Navigation")
+goto NavigationShakeMode
+
+;====================================================================================================;
+
+ClickShakeFailsafe:
+ClickFailsafeCount++
+tooltip, Failsafe: %ClickFailsafeCount%/%ClickShakeFailsafe%, %TooltipX%, %Tooltip14%, 14
+if (ClickFailsafeCount >= ClickShakeFailsafe)
+	{
+	settimer, ClickShakeFailsafe, off
+	ForceReset := true
+	}
+return
+
+ClickShakeMode:
+
+tooltip, Current Task: Shaking, %TooltipX%, %Tooltip7%, 7
+tooltip, Click X: None, %TooltipX%, %Tooltip8%, 8
+tooltip, Click Y: None, %TooltipX%, %Tooltip9%, 9
+
+tooltip, Click Count: 0, %TooltipX%, %Tooltip11%, 11
+tooltip, Bypass Count: 0/%RepeatBypassCounter%, %TooltipX%, %Tooltip12%, 12
+
+tooltip, Failsafe: 0/%ClickShakeFailsafe%, %TooltipX%, %Tooltip14%, 14
+
+ClickFailsafeCount := 0
+ClickCount := 0
+ClickShakeRepeatBypassCounter := 0
+MemoryX := 0
+MemoryY := 0
+ForceReset := false
+
+settimer, ClickShakeFailsafe, 1000
+
+ClickShakeModeRedo:
+if (ForceReset == true)
+	{
+	tooltip, , , , 11
+	tooltip, , , , 12
+	tooltip, , , , 14
+	goto RestartMacro
+	}
+sleep %ClickScanDelay%
+PixelSearch, , , FishBarLeft, FishBarTop, FishBarRight, FishBarBottom, 0x5B4B43, %FishBarColorTolerance%, Fast
+if (ErrorLevel == 0)
+	{
+	settimer, ClickShakeFailsafe, off
+	tooltip, , , , 9
+	tooltip, , , , 11
+	tooltip, , , , 12
+	tooltip, , , , 14
+	goto BarMinigame
+	}
+else
+	{
+	PixelSearch, ClickX, ClickY, ClickShakeLeft, ClickShakeTop, ClickShakeRight, ClickShakeBottom, 0xFFFFFF, %ClickShakeColorTolerance%, Fast
+	if (ErrorLevel == 0)
+		{
+		tooltip, Click X: %ClickX%, %TooltipX%, %Tooltip8%, 8
+		tooltip, Click Y: %ClickY%, %TooltipX%, %Tooltip9%, 9
+		if (ClickX != MemoryX and ClickY != MemoryY)
+			{
+			ClickShakeRepeatBypassCounter := 0
+			tooltip, Bypass Count: %ClickShakeRepeatBypassCounter%/%RepeatBypassCounter%, %TooltipX%, %Tooltip12%, 12
+			ClickCount++
+			click, %ClickX%, %ClickY%
+			tooltip, Click Count: %ClickCount%, %TooltipX%, %Tooltip11%, 11
+			MemoryX := ClickX
+			MemoryY := ClickY
+			goto ClickShakeModeRedo
+			}
+		else
+			{
+			ClickShakeRepeatBypassCounter++
+			tooltip, Bypass Count: %ClickShakeRepeatBypassCounter%/%RepeatBypassCounter%, %TooltipX%, %Tooltip12%, 12
+			if (ClickShakeRepeatBypassCounter >= RepeatBypassCounter)
+				{
+				MemoryX := 0
+				MemoryY := 0
+				}
+			goto ClickShakeModeRedo
+			}
+		}
+	else
+		{
+		goto ClickShakeModeRedo
+		}
+	}
+
+;====================================================================================================;
+
+NavigationShakeFailsafe:
+NavigationFailsafeCount++
+tooltip, Failsafe: %NavigationFailsafeCount%/%NavigationShakeFailsafe%, %TooltipX%, %Tooltip10%, 10
+if (NavigationFailsafeCount >= NavigationShakeFailsafe)
+	{
+	settimer, NavigationShakeFailsafe, off
+	ForceReset := true
+	}
+return
+
+NavigationShakeMode:
+
+tooltip, Current Task: Shaking, %TooltipX%, %Tooltip7%, 7
+tooltip, Attempt Count: 0, %TooltipX%, %Tooltip8%, 8
+
+tooltip, Failsafe: 0/%NavigationShakeFailsafe%, %TooltipX%, %Tooltip10%, 10
+
+NavigationFailsafeCount := 0
+NavigationCounter := 0
+ForceReset := false
+settimer, NavigationShakeFailsafe, 1000
+send {%NavigationKey%}
+NavigationShakeModeRedo:
+if (ForceReset == true)
+	{
+	tooltip, , , , 10
+	goto RestartMacro
+	}
+sleep %NavigationSpamDelay%
+PixelSearch, , , FishBarLeft, FishBarTop, FishBarRight, FishBarBottom, 0x5B4B43, %FishBarColorTolerance%, Fast
+if (ErrorLevel == 0)
+	{
+	settimer, NavigationShakeFailsafe, off
+	goto BarMinigame
+	}
+else
+	{
+	NavigationCounter++
+	tooltip, Attempt Count: %NavigationCounter%, %TooltipX%, %Tooltip8%, 8
+	sleep 1
+	send {s}
+	sleep 1
+	send {enter}
+	goto NavigationShakeModeRedo
+	}
+
+;====================================================================================================;
+
+BarCalculationFailsafe:
+BarCalcFailsafeCounter++
+tooltip, Failsafe: %BarCalcFailsafeCounter%/%BarCalculationFailsafe%, %TooltipX%, %Tooltip10%, 10
+if (BarCalcFailsafeCounter >= BarCalculationFailsafe)
+	{
+	settimer, BarCalculationFailsafe, off
+	ForceReset := true
+	}
+return
+
+BarMinigame:
+
+tooltip, Current Task: Calculating Bar Size, %TooltipX%, %Tooltip7%, 7
+tooltip, Bar Size: Not Found, %TooltipX%, %Tooltip8%, 8
+tooltip, Failsafe: 0/%BarCalculationFailsafe%, %TooltipX%, %Tooltip10%, 10
+
+ForceReset := false
+BarCalcFailsafeCounter := 0
+settimer, BarCalculationFailsafe, 1000
+
+BarMinigameRedo:
+if (ForceReset == true)
+	{
+	tooltip, , , , 10
+	goto RestartMacro
+	}
+PixelSearch, BarX, , FishBarLeft, FishBarTop, FishBarRight, FishBarBottom, 0xFFFFFF, %BarSizeCalculationColorTolerance%, Fast
+if (ErrorLevel == 0)
+	{
+	settimer, BarCalculationFailsafe, off
+	if (ManualBarSize != 0)
+		{
+		WhiteBarSize := ManualBarSize
+		goto BarMinigameSingle
+		}
+	WhiteBarSize := (FishBarRight-(BarX-FishBarLeft))-BarX
+	goto BarMinigameSingle
+	}
+sleep 1
+goto BarMinigameRedo
+
+;====================================================================================================;
+
+BarMinigameSingle:
+
+tooltip, Current Task: Playing Bar Minigame, %TooltipX%, %Tooltip7%, 7
+tooltip, Bar Size: %WhiteBarSize%, %TooltipX%, %Tooltip8%, 8
+
+tooltip, Direction: None, %TooltipX%, %Tooltip10%, 10
+tooltip, Forward Delay: None, %TooltipX%, %Tooltip11%, 11
+tooltip, Counter Delay: None, %TooltipX%, %Tooltip12%, 12
+tooltip, Ankle Delay: None, %TooltipX%, %Tooltip13%, 13
+
+tooltip, Side Delay: None, %TooltipX%, %Tooltip15%, 15
+
+HalfBarSize := WhiteBarSize/2
+SideDelay := 0
+AnkleBreakDelay := 0
+DirectionalToggle := "Disabled"
+AtLeastFindWhiteBar := false
+
+MaxLeftToggle := false
+MaxRightToggle := false
+MaxLeftBar := FishBarLeft+WhiteBarSize*SideBarRatio
+MaxRightBar := FishBarRight-WhiteBarSize*SideBarRatio
+
+tooltip, |, %MaxLeftBar%, %FishBarTooltipHeight%, 18
+tooltip, |, %MaxRightBar%, %FishBarTooltipHeight%, 17
+
+BarMinigame2:
+sleep 1
+PixelSearch, FishX, , FishBarLeft, FishBarTop, FishBarRight, FishBarBottom, 0x5B4B43, %FishBarColorTolerance%, Fast
+if (ErrorLevel == 0)
+	{
+	tooltip, ., %FishX%, %FishBarTooltipHeight%, 20
+	if (FishX < MaxLeftBar)
+		{
+		if (MaxLeftToggle == false)
+			{
+			tooltip, <, %MaxLeftBar%, %FishBarTooltipHeight%, 19
+			tooltip, Direction: Max Left, %TooltipX%, %Tooltip10%, 10
+			tooltip, Forward Delay: Infinite, %TooltipX%, %Tooltip11%, 11
+			tooltip, Counter Delay: None, %TooltipX%, %Tooltip12%, 12
+			tooltip, Ankle Delay: 0, %TooltipX%, %Tooltip13%, 13
+			DirectionalToggle := "Right"
+			MaxLeftToggle := true
+			send {lbutton up}
+			sleep 1
+			send {lbutton up}
+			sleep %SideDelay%
+			AnkleBreakDelay := 0
+			SideDelay := 0
+			tooltip, Side Delay: 0, %TooltipX%, %Tooltip15%, 15
+			}
+		goto BarMinigame2
+		}
+	else if (FishX > MaxRightBar)
+		{
+		if (MaxRightToggle == false)
+			{
+			tooltip, >, %MaxRightBar%, %FishBarTooltipHeight%, 19
+			tooltip, Direction: Max Right, %TooltipX%, %Tooltip10%, 10
+			tooltip, Forward Delay: Infinite, %TooltipX%, %Tooltip11%, 11
+			tooltip, Counter Delay: None, %TooltipX%, %Tooltip12%, 12
+			tooltip, Ankle Delay: 0, %TooltipX%, %Tooltip13%, 13
+			DirectionalToggle := "Left"
+			MaxRightToggle := true
+			send {lbutton down}
+			sleep 1
+			send {lbutton down}
+			sleep %SideDelay%
+			AnkleBreakDelay := 0
+			SideDelay := 0
+			tooltip, Side Delay: 0, %TooltipX%, %Tooltip15%, 15
+			}
+		goto BarMinigame2
+		}
+	MaxLeftToggle := false
+	MaxRightToggle := false
+	PixelSearch, BarX, , FishBarLeft, FishBarTop, FishBarRight, FishBarBottom, 0xFFFFFF, %WhiteBarColorTolerance%, Fast
+	if (ErrorLevel == 0)
+		{
+		AtLeastFindWhiteBar := true
+		BarX := BarX+(WhiteBarSize/2)
+		if (BarX > FishX)
+			{
+			tooltip, <, %BarX%, %FishBarTooltipHeight%, 19
+			tooltip, Direction: <, %TooltipX%, %Tooltip10%, 10
+			Difference := (BarX-FishX)*ResolutionScaling*StableLeftMultiplier
+			CounterDifference := Difference/StableLeftDivision
+			tooltip, Forward Delay: %Difference%, %TooltipX%, %Tooltip11%, 11
+			tooltip, Counter Delay: %CounterDifference%, %TooltipX%, %Tooltip12%, 12
+			send {lbutton up}
+			if (DirectionalToggle == "Right")
+				{
+				tooltip, Ankle Delay: 0, %TooltipX%, %Tooltip13%, 13
+				sleep %AnkleBreakDelay%
+				AnkleBreakDelay := 0
+				}
+			else
+				{
+				AnkleBreakDelay := AnkleBreakDelay+(Difference-CounterDifference)*LeftAnkleBreakMultiplier
+				SideDelay := AnkleBreakDelay/LeftAnkleBreakMultiplier*SideBarWaitMultiplier
+				tooltip, Ankle Delay: %AnkleBreakDelay%, %TooltipX%, %Tooltip13%, 13
+				tooltip, Side Delay: %SideDelay%, %TooltipX%, %Tooltip15%, 15
+				}
+			sleep %Difference%
+			PixelSearch, FishX, , FishBarLeft, FishBarTop, FishBarRight, FishBarBottom, 0x5B4B43, %FishBarColorTolerance%, Fast
+				{
+				if (FishX < MaxLeftBar)
+				goto BarMinigame2
+				}
+			send {lbutton down}
+			sleep %CounterDifference%
+			loop, %StabilizerLoop%
+				{
+				send {lbutton down}
+				send {lbutton up}
+				}
+			DirectionalToggle := "Left"
+			}
+		else
+			{
+			tooltip, >, %BarX%, %FishBarTooltipHeight%, 19
+			tooltip, Direction: >, %TooltipX%, %Tooltip10%, 10
+			Difference := (FishX-BarX)*ResolutionScaling*StableRightMultiplier
+			CounterDifference := Difference/StableRightDivision
+			tooltip, Forward Delay: %Difference%, %TooltipX%, %Tooltip11%, 11
+			tooltip, Counter Delay: %CounterDifference%, %TooltipX%, %Tooltip12%, 12
+			send {lbutton down}
+			if (DirectionalToggle == "Left")
+				{
+				tooltip, Ankle Delay: 0, %TooltipX%, %Tooltip13%, 13
+				sleep %AnkleBreakDelay%
+				AnkleBreakDelay := 0
+				}
+			else
+				{
+				AnkleBreakDelay := AnkleBreakDelay+(Difference-CounterDifference)*RightAnkleBreakMultiplier
+				SideDelay := AnkleBreakDelay/RightAnkleBreakMultiplier*SideBarWaitMultiplier
+				tooltip, Ankle Delay: %AnkleBreakDelay%, %TooltipX%, %Tooltip13%, 13
+				tooltip, Side Delay: %SideDelay%, %TooltipX%, %Tooltip15%, 15
+				}
+			sleep %Difference%
+			PixelSearch, FishX, , FishBarLeft, FishBarTop, FishBarRight, FishBarBottom, 0x5B4B43, %FishBarColorTolerance%, Fast
+				{
+				if (FishX > MaxRightBar)
+				goto BarMinigame2
+				}
+			send {lbutton up}
+			sleep %CounterDifference%
+			loop, %StabilizerLoop%
+				{
+				send {lbutton down}
+				send {lbutton up}
+				}
+			DirectionalToggle := "Right"
+			}
+		}
+	else
+		{
+		if (AtLeastFindWhiteBar == false)
+			{
+			send {lbutton down}
+			send {lbutton up}
+			goto BarMinigame2
+			}
+		PixelSearch, ArrowX, , FishBarLeft, FishBarTop, FishBarRight, FishBarBottom, 0x878584, %ArrowColorTolerance%, Fast
+		if (ArrowX > FishX)
+			{
+			tooltip, <, %ArrowX%, %FishBarTooltipHeight%, 19
+			tooltip, Direction: <<<, %TooltipX%, %Tooltip10%, 10
+			Difference := HalfBarSize*UnstableLeftMultiplier
+			CounterDifference := Difference/UnstableLeftDivision
+			tooltip, Forward Delay: %Difference%, %TooltipX%, %Tooltip11%, 11
+			tooltip, Counter Delay: %CounterDifference%, %TooltipX%, %Tooltip12%, 12
+			send {lbutton up}
+			if (DirectionalToggle == "Right")
+				{
+				tooltip, Ankle Delay: 0, %TooltipX%, %Tooltip13%, 13
+				sleep %AnkleBreakDelay%
+				AnkleBreakDelay := 0
+				}
+			else
+				{
+				AnkleBreakDelay := AnkleBreakDelay+(Difference-CounterDifference)*LeftAnkleBreakMultiplier
+				SideDelay := AnkleBreakDelay/LeftAnkleBreakMultiplier*SideBarWaitMultiplier
+				tooltip, Ankle Delay: %AnkleBreakDelay%, %TooltipX%, %Tooltip13%, 13
+				tooltip, Side Delay: %SideDelay%, %TooltipX%, %Tooltip15%, 15
+				}
+			sleep %Difference%
+			PixelSearch, FishX, , FishBarLeft, FishBarTop, FishBarRight, FishBarBottom, 0x5B4B43, %FishBarColorTolerance%, Fast
+				{
+				if (FishX < MaxLeftBar)
+				goto BarMinigame2
+				}
+			send {lbutton down}
+			sleep %CounterDifference%
+			loop, %StabilizerLoop%
+				{
+				send {lbutton down}
+				send {lbutton up}
+				}
+			DirectionalToggle := "Left"
+			}
+		else
+			{
+			tooltip, >, %ArrowX%, %FishBarTooltipHeight%, 19
+			tooltip, Direction: >>>, %TooltipX%, %Tooltip10%, 10
+			Difference := HalfBarSize*UnstableRightMultiplier
+			CounterDifference := Difference/UnstableRightDivision
+			tooltip, Forward Delay: %Difference%, %TooltipX%, %Tooltip11%, 11
+			tooltip, Counter Delay: %CounterDifference%, %TooltipX%, %Tooltip12%, 12
+			send {lbutton down}
+			if (DirectionalToggle == "Left")
+				{
+				tooltip, Ankle Delay: 0, %TooltipX%, %Tooltip13%, 13
+				sleep %AnkleBreakDelay%
+				AnkleBreakDelay := 0
+				}
+			else
+				{
+				AnkleBreakDelay := AnkleBreakDelay+(Difference-CounterDifference)*RightAnkleBreakMultiplier
+				SideDelay := AnkleBreakDelay/RightAnkleBreakMultiplier*SideBarWaitMultiplier
+				tooltip, Ankle Delay: %AnkleBreakDelay%, %TooltipX%, %Tooltip13%, 13
+				tooltip, Side Delay: %SideDelay%, %TooltipX%, %Tooltip15%, 15
+				}
+			sleep %Difference%
+			PixelSearch, FishX, , FishBarLeft, FishBarTop, FishBarRight, FishBarBottom, 0x5B4B43, %FishBarColorTolerance%, Fast
+				{
+				if (FishX > MaxRightBar)
+				goto BarMinigame2
+				}
+			send {lbutton up}
+			sleep %CounterDifference%
+			loop, %StabilizerLoop%
+				{
+				send {lbutton down}
+				send {lbutton up}
+				}
+			DirectionalToggle := "Right"
+			}
+		}
+	goto BarMinigame2
+	}
+else
+	{
+	tooltip, , , , 10
+	tooltip, , , , 11
+	tooltip, , , , 12
+	tooltip, , , , 13
+	tooltip, , , , 15
+	tooltip, , , , 17
+	tooltip, , , , 18
+	tooltip, , , , 19
+	tooltip, , , , 20
+	sleep %RestartDelay%
+	goto RestartMacro
+	}
