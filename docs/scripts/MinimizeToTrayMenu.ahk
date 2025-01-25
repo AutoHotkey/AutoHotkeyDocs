@@ -48,14 +48,14 @@ Hotkey g_UnHotkey, UnMinimize
 OnExit RestoreAllThenExit
 
 if g_StandardMenu = true
-    A_TrayMenu.Add
+    A_TrayMenu.Add()
 else
 {
-    A_TrayMenu.Delete
-    A_TrayMenu.Add "E&xit and Unhide All", RestoreAllThenExit
+    A_TrayMenu.Delete()
+    A_TrayMenu.Add("E&xit and Unhide All", RestoreAllThenExit)
 }
-A_TrayMenu.Add "&Unhide All Hidden Windows", RestoreAll
-A_TrayMenu.Add  ; Another separator line to make the above more special.
+A_TrayMenu.Add("&Unhide All Hidden Windows", RestoreAll)
+A_TrayMenu.Add()  ; Another separator line to make the above more special.
 
 g_MaxLength := 260  ; Reduce this to restrict the width of the menu.
 
@@ -146,7 +146,7 @@ Minimize(*)
     ; Add the item to the array and to the menu:
     if AlreadyExists = false
     {
-        A_TrayMenu.Add ActiveTitle, RestoreFromTrayMenu
+        A_TrayMenu.Add(ActiveTitle, RestoreFromTrayMenu)
         g_WindowIDs.Push(ActiveID)
         g_WindowTitles.Push(ActiveTitle)
     }
@@ -155,7 +155,7 @@ Minimize(*)
 
 RestoreFromTrayMenu(ThisMenuItem, *)
 {
-    A_TrayMenu.Delete ThisMenuItem
+    A_TrayMenu.Delete(ThisMenuItem)
     ; Find window based on its unique title stored as the menu item name:
     for WindowTitle in g_WindowTitles
     {
@@ -185,7 +185,7 @@ UnMinimize(*)
         
         ; Get the menu name of the last window minimized and remove it
         MenuToRemove := g_WindowTitles.Pop()
-        A_TrayMenu.Delete MenuToRemove
+        A_TrayMenu.Delete(MenuToRemove)
     }
 }
 
@@ -207,7 +207,7 @@ RestoreAll(*)
         ; Do it this way vs. DeleteAll so that the sep. line and first
         ; item are retained:
         MenuToRemove := g_WindowTitles[A_Index]
-        A_TrayMenu.Delete MenuToRemove
+        A_TrayMenu.Delete(MenuToRemove)
     }
     ; Free up all slots:
     global g_WindowIDs := []

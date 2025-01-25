@@ -33,9 +33,9 @@ MyGui.SetFont("s" k_FontSize " " k_FontStyle, k_FontName)
 MyGui.MarginY := 0, MyGui.MarginX := 0
 
 ;---- Alter the tray icon menu:
-A_TrayMenu.Delete
-A_TrayMenu.Add k_MenuItemHide, k_ShowHide
-A_TrayMenu.Add "&Exit", (*) => ExitApp()
+A_TrayMenu.Delete()
+A_TrayMenu.Add(k_MenuItemHide, k_ShowHide)
+A_TrayMenu.Add("&Exit", (*) => ExitApp())
 A_TrayMenu.Default := k_MenuItemHide
 
 ;---- Add a button for each key:
@@ -113,14 +113,14 @@ k_ShowHide(*)
     static isVisible := true
     if isVisible
     {
-        MyGui.Hide
-        A_TrayMenu.Rename k_MenuItemHide, k_MenuItemShow
+        MyGui.Hide()
+        A_TrayMenu.Rename(k_MenuItemHide, k_MenuItemShow)
         isVisible := false
     }
     else
     {
-        MyGui.Show
-        A_TrayMenu.Rename k_MenuItemShow, k_MenuItemHide
+        MyGui.Show()
+        A_TrayMenu.Rename(k_MenuItemShow, k_MenuItemHide)
         isVisible := true
     }
 }
