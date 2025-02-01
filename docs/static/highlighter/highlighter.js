@@ -312,7 +312,7 @@ function ctor_highlighter()
         var out = wrap(HS1, 'lab', null) + wrap(ABBR, 'str', null) + wrap(HS2, 'lab', null);
         if (REPL != '')
         {
-            if (REPL.match(new RegExp('^' + r_s + '*\\{$')))
+          if (REPL.match(new RegExp('^' + r_s + '*\\{$', 'm')))
             out += REPL;
           else if (resolve_placeholders(HS1, 'esc').match(/x/i)) // execute option
             out += statements(REPL);
