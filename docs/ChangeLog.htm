@@ -14,6 +14,28 @@
 <p><a href="v2-changes.htm">Changes from v1.1 to v2.0</a> covers the differences between v1.1 and v2.0.</p>
 <p>For full technical details of changes, refer to <a href="https://github.com/AutoHotkey/AutoHotkey/tree/alpha">GitHub</a>.</p>
 
+<h2 id="v2.1-alpha.16">2.1-alpha.16 - February 2, 2025</h2>
+<p>Added disableWindowFiltering to the manifest embedded in each EXE, allowing more windows to be detected.</p>
+<p>Changed the default DPI awareness mode from system to per-monitor v2.</p>
+<p>Implemented basic support for per-monitor DPI awareness, including:</p>
+<ul>
+  <li>Automatically adjusting the font of the script's main window.</li>
+  <li>Automatically adjusting the position, size and font size of GUI controls.</li>
+  <li>Using the DPI of the GUI in font size calculations instead of system DPI.</li>
+</ul>
+<p>For details, see <a href="lib/Gui.htm#DPIResize">DPIResize (Gui)</a>.</p>
+
+<h3>Default DPI Awareness</h3>
+<p>This change should affect scripts only in the scenarios described under <a href="misc/DPIScaling.htm#OS_DPI_Scaling">OS DPI Scaling</a>. Understanding the implications of the change requires a general understanding of <a href="misc/DPIScaling.htm">DPI Scaling</a> and more specifically two phenomena which affect system DPI aware scripts when there is a DPI mismatch:</p>
+<ul>
+  <li>The script's windows are bitmap-scaled by the system. This generally allows GUI windows to remain usable across DPI transitions without any effort from the script, but any window not at system DPI looks blurry.</li>
+  <li>Coordinates are virtualized; that is, translated between physical pixels and a coordinate space based on system DPI. The virtualized coordinates make sense in relation to the script's own automatically-scaled windows, but tend to be unexpected in scripts which work with external windows.</li>
+</ul>
+<p>Per-monitor DPI awareness disables DPI virtualization and bitmap-scaling, and therefore requires the program to react to DPI changes, such as by resizing the GUI and its controls. The built-in scaling is not expected to be perfect, and will require additional help from the script in some cases.</p>
+<p>Scripts which do not work well with the new default can restore the previous mode within a more limited context, as described in <a href="misc/DPIScaling.htm#Mixed_Settings">DPI Scaling - Mixed Settings</a>.</p>
+<p>Scripts which were designed to <a href="misc/DPIScaling.htm#Workarounds">opt in to per-monitor mode</a> should be relatively unaffected by this change. Such scripts might have previously observed the mode unexpectedly reverting under specific conditions, because the script's main window is created before the script sets the mode. See <a href="misc/DPIScaling.htm#New_Threads">DPI Scaling - New Threads</a> for details.</p>
+<p>Hard-coded screen coordinates and offsets for secondary screens may need to be adjusted, but that would already be the case if display settings were changed.</p>
+
 <h2 id="v2.1-alpha.15">2.1-alpha.15 - January 25, 2025</h2>
 <p>Fixed HotIf(obj) not finding existing criterion.</p>
 <p>Fixed #DefaultReturn with nested functions or class var initializers.</p>
