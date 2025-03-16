@@ -275,6 +275,7 @@ indexData = [
   ["ASin","lib/Math.htm#ASin",2],
   ["assigning values to variables","Variables.htm#AssignOp"],
   ["ATan","lib/Math.htm#ATan",2],
+  ["ATan2","lib/Math.htm#ATan2",2],
   ["AtEOF property (File)","lib/File.htm#AtEOF",7],
   ["attributes of files and folders","lib/FileGetAttrib.htm"],
   ["auto-execute thread","Scripts.htm#auto"],
