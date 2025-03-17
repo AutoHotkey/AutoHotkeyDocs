@@ -1,0 +1,159 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+<title>Changes from v2.0 to v2.1 | AutoHotkey v2</title>
+<meta name="description" content="Changes between v2.0 and v2.1." />
+<meta name="ahk:equiv-v1" content="AHKL_ChangeLog.htm" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<link href="static/theme.css" rel="stylesheet" type="text/css" />
+<script src="static/content.js" type="text/javascript"></script>
+</head>
+<body>
+<h1>Changes from v2.0 to v2.1</h1>
+
+<h2>High Impact</h2>
+<p>These changes may prevent v2.0 scripts from working as expected in the current release.</p>
+<p>Added <a href="Modules.htm">Modules</a>, <a href="lib/_Module.htm">#Module</a>, <a href="lib/Import.htm">Import</a> and <a href="lib/Export.htm">Export</a>.</p>
+<p class="warning"><strong>Warning:</strong> Interpretation of the new keywords <code>Import</code> and <code>Export</code> may prevent scripts from working if they used those names for variables or functions. This will be fixed (although such scripts will still not be able to fully utilize the features of v2.1).</p>
+
+<h3 id="Modeless_Menus">Modeless Menus</h3>
+<p>The Tray menu and <a href="lib/Menu.htm#Show">Menu.Show</a> now use modeless menus to allow new threads to launch without freezing the menu. OS support for modeless menus has some bugs relating to Z-order and ability to click the first item in a submenu. Modeless menus are currently enabled by default, but this may be changed if workarounds are not found for these bugs.</p>
+
+<h3 id="Default_DPI_Awareness">Default DPI Awareness</h3>
+<p>Changed the default DPI awareness mode from system to per-monitor v2.</p>
+<p>This change should affect scripts only in the scenarios described under <a href="misc/DPIScaling.htm#OS_DPI_Scaling">OS DPI Scaling</a>. Understanding the implications of the change requires a general understanding of <a href="misc/DPIScaling.htm">DPI Scaling</a> and more specifically two phenomena which affect system DPI aware scripts when there is a DPI mismatch:</p>
+<ul>
+  <li>The script's windows are bitmap-scaled by the system. This generally allows GUI windows to remain usable across DPI transitions without any effort from the script, but any window not at system DPI looks blurry.</li>
+  <li>Coordinates are virtualized; that is, translated between physical pixels and a coordinate space based on system DPI. The virtualized coordinates make sense in relation to the script's own automatically-scaled windows, but tend to be unexpected in scripts which work with external windows.</li>
+</ul>
+<p>Per-monitor DPI awareness disables DPI virtualization and bitmap-scaling, and therefore requires the program to react to DPI changes, such as by resizing the GUI and its controls. This is now done automatically by default unless the script disables <a href="lib/Gui.htm#DPIResize">DPIResize</a> for the GUI or control. The built-in scaling is not expected to be perfect, and will require additional help from the script in some cases.</p>
+<p>Scripts which do not work well with the new default can restore the previous mode within a more limited context, as described in <a href="misc/DPIScaling.htm#Mixed_Settings">DPI Scaling - Mixed Settings</a>.</p>
+<p>Scripts which were designed to <a href="misc/DPIScaling.htm#Workarounds">opt in to per-monitor mode</a> should be relatively unaffected by this change. Such scripts might have previously observed the mode unexpectedly reverting under specific conditions, because the script's main window is created before the script sets the mode. See <a href="misc/DPIScaling.htm#New_Threads">DPI Scaling - New Threads</a> for details.</p>
+<p>Hard-coded screen coordinates and offsets for secondary screens may need to be adjusted, but that would already be the case if display settings were changed.</p>
+
+<h2>Low Impact</h2>
+<p>These changes should not prevent v2.0 scripts from working, but may affect the behaviour of the program. This includes some changes to behaviour which was previously undocumented (and therefore not something a script should have relied on), and some changes to documented behaviour which should generally not require changes to existing scripts.</p>
+<p><a href="lib/InputHook.htm">InputHook</a>: Removing an option from an SC-based key by name with <a href="lib/InputHook.htm#KeyOpt">KeyOpt</a> now also removes the option from the corresponding VK (the reverse was already true).</p>
+<p><a href="lib/ListVars.htm">ListVars</a> now shows unset vars as "varname: unset" instead of showing string length and capacity.</p>
+<p><a href="lib/MouseGetPos.htm">MouseGetPos</a> now throws OSError if the mouse position cannot be determined.</p>
+<p><a href="lib/RegExReplace.htm">RegExReplace</a> no longer truncates <em>Replacement</em> at the first null character (if any).</p>
+<p>Showing the tray menu no longer stalls the current thread.</p>
+<p><code>#Warn</code> with no parameters now turns on VarUnset and Unreachable and turns off LocalSameAsGlobal for the current <a href="Modules.htm">module</a>, instead of enabling all warnings and setting to MsgBox mode (like <code>#Warn All, MsgBox</code>).</p>
+<p>Added a <a href="lib/_Warn.htm#UTF8">warning</a> for UTF-8 decoding errors in script files.</p>
+<p><a href="misc/WinTitle.htm">WinTitle</a> parameters with two different <a href="misc/WinTitle.htm#ahk_id">ahk_id</a> values now yield no match instead of arbitrarily ignoring one of the two values.</p>
+<p>Added disableWindowFiltering to the manifest embedded in each EXE, allowing more windows to be detected.</p>
+<p>Changed the following to use ASCII-only case insensitivity instead of locale case insensitivity: UseTab method (excluding Exact mode, which was already ASCII-only), Choose method and Text property (Tab control); Add method (Menu).</p>
+<ul>
+  <li>Now consistent with case insensitivity of variable, property and GUI control names.</li>
+  <li>If the intention is to identify a previously added item, it is best (and generally expected) to use the exact same string. Non-ASCII letters such as "À" must be specified in the original case. Canonically equivalent Unicode sequences which are not binary equivalent are no longer considered equal even if they appear identical (e.g. LATIN SMALL LETTER A WITH RING ABOVE (U+00e5) and LATIN SMALL LETTER A + COMBINING RING ABOVE (U+0061 U+030a), which appear as "å").</li>
+  <li>Certain Unicode characters are no longer erroneously ignored for the purpose of comparisons. For example, a menu item name consisting only of these characters was previously considered equal to the divider (empty name): ⮙⮝⮛⮟</li>
+</ul>
+<p>Property setters defined in a class now allow the <code>value</code> parameter to be omitted (unset) so that assignments like <code>x.y := unset</code> can be handled. Setters which aren't designed to account for this may start executing the setter and throw UnsetError when <code>value</code> is evaluated, instead of throwing an Error immediately when the setter is called.</p>
+
+<h3>New Return Values</h3>
+<p>Some functions which previously always returned "" (without that being documented) now return a more useful value:</p>
+<p><a href="lib/HotIf.htm">HotIf</a> now returns the previous value of <a href="Variables.htm#HotIf">A_HotIf</a>.</p>
+<p>The <a href="lib/Menu.htm#ToggleCheck">ToggleCheck</a> and <a href="lib/Menu.htm#ToggleEnable">ToggleEnable</a> methods of <a href="lib/Menu.htm">Menu</a> now return the new state.</p>
+
+<h3>Keyboard Input</h3>
+<p>Changed text input collection and dead key handling.</p>
+<ul>
+  <li>Fixes some obscure issues and reduces the risk of affecting dead key handling by the active window.</li>
+  <li>Dead keys with the S and I InputHook options no longer affect input collection.</li>
+  <li>InputHook M option now permits Numpad digits to be collected while Alt is held, and no longer contributes to Alt+nnnn input if the digit keys are suppressed.</li>
+  <li>Chained dead keys are supported up to 3 dead keys in sequence.</li>
+</ul>
+<p>Changed InputHook handling of {dead key}{BS} so BS cancels out dead key.</p>
+<p>Changed remapping to utilize left/right modifiers in Blind; e.g. <code>&gt;^a::b</code> remaps RCtrl-A to B and LCtrl-RCtrl-A to LCtrl-B, instead of just B.</p>
+<p>Changed <code>Ctrl::Alt</code> to not send an unsuppressed <code>{Ctrl up}</code>. This was originally intended to work around an issue with system handling of the modifier keys, but was superseded by a better workaround in v2.0.8.</p>
+
+<h3>Debugger</h3>
+<p>Improved DBGp property and context commands:</p>
+<ul>
+  <li>Inherited properties are included as direct children of the object's property element.</li>
+  <li>Property getters and function calls permit multiple parameters.</li>
+  <li>Property names can be used as parameters.</li>
+</ul>
+<p>Changed the default DBGp max_children to 1000 and max_depth to 1.</p>
+<p>Changed debugger to list properties defined by the Prototype for non-Object classes such as VarRef and ComValue, instead of a hard-coded (possibly empty) set of pseudo-properties.</p>
+<p>Changed debugger classname attribute of Prototype objects to include the class name (e.g. "SomeClass.Prototype").</p>
+<p>Changed debugger to never list the natively-defined __Class or Base properties.</p>
+<p>Global, local and static variable declarations with multiple initializers are now evaluated as a single expression, so there is no need to step over each initializer individually while debugging.</p>
+
+<h3>DPI Awareness</h3>
+<p>Implemented basic support for per-monitor DPI awareness, including:</p>
+<ul>
+  <li>Automatically adjusting the font of the script's main window.</li>
+  <li>Automatically adjusting the position, size and font size of GUI controls.</li>
+  <li>Using the DPI of the GUI in font size calculations instead of system DPI.</li>
+</ul>
+<p>For details, see <a href="lib/Gui.htm#DPIResize">DPIResize (Gui)</a>.</p>
+
+
+<h2>Backward-Compatible</h2>
+<p>These additions should generally not affect v2.0 scripts at all.</p>
+
+<h3>Syntax and Core Objects</h3>
+<p>Added <a href="Functions.htm#funcexpr">function definition expressions</a>.</p>
+<p>Added typed properties (<a href="Structs.htm">structures</a>).</p>
+<p>Added support for returning <code>unset</code> from functions and properties, and allowing or handling it with the <a href="Variables.htm#maybe">maybe (?)</a> and <a href="Variables.htm#or-maybe">or-maybe (??)</a> operators.</p>
+<p>Added optional chaining with the maybe operator (<code>a?.b</code>).</p>
+<p>Added the <a href="Variables.htm#maybe-assign">maybe-assign operator (??=)</a>.</p>
+<p>Improved load-time validation for <code>unset</code>, <code>?</code> and <code>??</code>.</p>
+<p>Added an experimental directive, <a href="lib/_DefaultReturn.htm">#DefaultReturn unset|""</a>.</p>
+<p>Removed a length limitation for parameter default strings (but not expressions).</p>
+<p>Added <a href="lib/Object.htm#Props">Object.Prototype.Props()</a>, which enumerates own and inherited properties.</p>
+<p>Implemented <a href="Functions.htm#virtual-reference">virtual references</a>:</p>
+<ul>
+  <li>Any object with a __value property may act as a virtual reference.</li>
+  <li>Virtual references are accepted by &amp;ByRef parameters, built-in output parameters and the dereference operator (%ref%).</li>
+  <li>The reference operator (&amp;) permits built-in/virtual variables.</li>
+  <li>The reference operator (&amp;) can be used with a property (with no parameters); e.g. <code>&amp;x.y</code> invokes <code>x.__ref('y')</code>.</li>
+  <li><a href="lib/Object.htm#__Ref">Object.Prototype.__Ref</a> retrieves a nested struct or <a href="lib/PropRef.htm">PropRef</a> (a virtual reference to a property).</li>
+  <li>VarRef and ComValueRef have a __value property.</li>
+</ul>
+<p><a href="lib/Class.htm#StaticCall">Class.Call</a> now accepts additional optional parameters to facilitate creating classes dynamically. In particular, this enables scripts to dynamically create Prototype objects which are based on native types other than Object, such as Map and Array.</p>
+
+<h3>Keyboard and Mouse</h3>
+<p>Added support for left/right modifiers in {Blind}, as in <code>{Blind&gt;^}</code>.</p>
+<p>Added support for using WheelUp, WheelDown, WheelLeft and WheelRight on either side of a remapping.</p>
+<p>Optimized auto-replace hotstrings to avoid retyping an identical leading part, where feasible.</p>
+<p>Added InputHook <a href="lib/InputHook.htm#option-h">H option</a> to allow intercepting hotkeys.</p>
+
+<h3>Built-in Functions</h3>
+<p><a href="lib/Math.htm#ATan2">ATan2</a>: New function.</p>
+<p><a href="lib/DllCall.htm">DllCall</a>: <a href="lib/DllCall.htm#cdecl">CDecl</a> can now be omitted regardless of which calling convention the function uses.</p>
+<p><a href="lib/Edit.htm">Edit</a>: Added an optional <em>Filename</em> parameter.</p>
+<p><a href="lib/FileCreateShortcut.htm">FileCreateShortcut</a>: The <em>ShortcutKey</em> parameter now permits the <code>^</code>, <code>+</code> and <code>!</code> modifiers.</p>
+<p><a href="lib/ImageSearch.htm">ImageSearch</a>: X and Y can now be omitted.</p>
+<p><a href="lib/PixelSearch.htm">PixelSearch</a>: X and Y can now be omitted.</p>
+<p><a href="lib/ProcessWait.htm">ProcessWait</a>: ListLines now shows "STILL WAITING" if it was interrupted and resumed waiting, as it already did for WinWait.</p>
+<p><a href="lib/RegExReplace.htm">RegExReplace</a>: <em>Replacement</em> can now be a callback function instead of replacement text.</p>
+<p><a href="lib/Throw.htm">Throw</a>: Now a function, for greater flexibility.</p>
+<p><a href="lib/TraySetIcon.htm">TraySetIcon</a>: Now updates the icon of the script's <a href="Program.htm#main-window">main window</a>.</p>
+<p><a href="lib/WinGetAlwaysOnTop.htm">WinGetAlwaysOnTop</a>: New function.</p>
+<p><a href="lib/WinGetEnabled.htm">WinGetEnabled</a>: New function.</p>
+
+<h3>Built-in Variables</h3>
+<p>Added <a href="Variables.htm#HookInstalled">A_KeybdHookInstalled</a> and <a href="Variables.htm#HookInstalled">A_MouseHookInstalled</a>.</p>
+<p>Added <a href="Variables.htm#HotIf">A_HotIf</a>.</p>
+
+<h3>Built-in Classes</h3>
+<p><a href="lib/Error.htm">Error</a>: New method <a href="lib/Error.htm#Show">Show</a>.</p>
+<p><a href="lib/Gui.htm">Gui</a>:</p>
+<ul>
+  <li>New method <a href="lib/Gui.htm#OnMessage">OnMessage</a>.</li>
+  <li>New method <a href="lib/GuiControl.htm#SetCue">SetCue</a> for Edit and ComboBox controls.</li>
+</ul>
+<p><a href="lib/Menu.htm">Menu</a>: Added <em>Wait</em> parameter (#3) to <a href="lib/Menu.htm#Show">Menu.Prototype.Show</a>.</p>
+
+<h3>Optimizations</h3>
+<p>These improve performance but otherwise do not affect behaviour.</p>
+<p>Optimized Pause to allow the OS-level thread to sleep until messages are received, instead of polling the pause state frequently. In testing, this reduced CPU usage from 0.04% to 0.00%.</p>
+<p>Optimized ProcessWaitClose and RunWait to allow the OS-level thread to sleep until the process handle is signaled or messages are received. This reduced CPU usage (as above) and improved the response time.</p>
+<p>Optimized dialog window class checks.</p>
+<p>Optimized ternary by removing a redundant check for numericness.</p>
+
+</body>
+</html>

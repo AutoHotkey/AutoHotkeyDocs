@@ -11,12 +11,16 @@
 </head>
 <body>
 <h1>Changes &amp; New Features</h1>
-<p><a href="v2-changes.htm">Changes from v1.1 to v2.0</a> covers the differences between v1.1 and v2.0.</p>
+<p>For an overview of changes in major and minor releases, see the following:</p>
+<ul>
+  <li><a href="v2-changes.htm">Changes from v1.1 to v2.0</a></li>
+  <li><a href="v2.1-changes.htm">Changes from v2.0 to v2.1</a></li>
+</ul>
 <p>For full technical details of changes, refer to <a href="https://github.com/AutoHotkey/AutoHotkey/tree/alpha">GitHub</a>.</p>
 
 <h2 id="v2.1-alpha.16">2.1-alpha.16 - February 2, 2025</h2>
 <p>Added disableWindowFiltering to the manifest embedded in each EXE, allowing more windows to be detected.</p>
-<p>Changed the default DPI awareness mode from system to per-monitor v2.</p>
+<p>Changed the <a href="v2.1-changes.htm#Default_DPI_Awareness">default DPI awareness</a> mode from system to per-monitor v2.</p>
 <p>Implemented basic support for per-monitor DPI awareness, including:</p>
 <ul>
   <li>Automatically adjusting the font of the script's main window.</li>
@@ -25,18 +29,8 @@
 </ul>
 <p>For details, see <a href="lib/Gui.htm#DPIResize">DPIResize (Gui)</a>.</p>
 
-<h3>Default DPI Awareness</h3>
-<p>This change should affect scripts only in the scenarios described under <a href="misc/DPIScaling.htm#OS_DPI_Scaling">OS DPI Scaling</a>. Understanding the implications of the change requires a general understanding of <a href="misc/DPIScaling.htm">DPI Scaling</a> and more specifically two phenomena which affect system DPI aware scripts when there is a DPI mismatch:</p>
-<ul>
-  <li>The script's windows are bitmap-scaled by the system. This generally allows GUI windows to remain usable across DPI transitions without any effort from the script, but any window not at system DPI looks blurry.</li>
-  <li>Coordinates are virtualized; that is, translated between physical pixels and a coordinate space based on system DPI. The virtualized coordinates make sense in relation to the script's own automatically-scaled windows, but tend to be unexpected in scripts which work with external windows.</li>
-</ul>
-<p>Per-monitor DPI awareness disables DPI virtualization and bitmap-scaling, and therefore requires the program to react to DPI changes, such as by resizing the GUI and its controls. The built-in scaling is not expected to be perfect, and will require additional help from the script in some cases.</p>
-<p>Scripts which do not work well with the new default can restore the previous mode within a more limited context, as described in <a href="misc/DPIScaling.htm#Mixed_Settings">DPI Scaling - Mixed Settings</a>.</p>
-<p>Scripts which were designed to <a href="misc/DPIScaling.htm#Workarounds">opt in to per-monitor mode</a> should be relatively unaffected by this change. Such scripts might have previously observed the mode unexpectedly reverting under specific conditions, because the script's main window is created before the script sets the mode. See <a href="misc/DPIScaling.htm#New_Threads">DPI Scaling - New Threads</a> for details.</p>
-<p>Hard-coded screen coordinates and offsets for secondary screens may need to be adjusted, but that would already be the case if display settings were changed.</p>
-
 <h2 id="v2.1-alpha.15">2.1-alpha.15 - January 25, 2025</h2>
+<p><strong>Changes applicable only to alpha users:</strong></p>
 <p>Fixed HotIf(obj) not finding existing criterion.</p>
 <p>Fixed #DefaultReturn with nested functions or class var initializers.</p>
 <p>Fixed named function hotkeys with parameter default expressions.</p>
@@ -140,15 +134,7 @@
 <p>Changed how KeyOpt (InputHook) applies option removal for SC-based keys.</p>
 <p>Changed WinTitles with two different ahk_id values to yield no match.</p>
 <p>Changed RegExReplace to support binary zero in Replacement.</p>
-<p>Implemented <a href="Functions.htm#virtual-reference">virtual references</a>:</p>
-<ul>
-  <li>Any object with a __value property may act as a virtual reference.</li>
-  <li>Virtual references are accepted by &amp;ByRef parameters, built-in output parameters and the dereference operator (%ref%).</li>
-  <li>The reference operator (&amp;) permits built-in/virtual variables.</li>
-  <li>The reference operator (&amp;) can be used with a property (with no parameters); e.g. <code>&amp;x.y</code> invokes <code>x.__ref('y')</code>.</li>
-  <li>Object.Prototype.__Ref retrieves a nested struct or PropRef (a virtual reference to a property).</li>
-  <li>VarRef and ComValueRef have a __value property.</li>
-</ul>
+<p>Implemented <a href="Functions.htm#virtual-reference">virtual references</a>.</p>
 <p>Added Object.Prototype.Props(), which enumerates own and inherited properties.</p>
 <p>Improved DBGp property and context commands:</p>
 <ul>
@@ -240,11 +226,6 @@
 <h2 id="v2.1-alpha.8">2.1-alpha.8 - December 23, 2023</h2>
 <p>Optimized auto-replace hotstrings to avoid retyping an identical leading part, where feasible.</p>
 <p>Changed the following to use ASCII-only case insensitivity instead of locale case insensitivity: UseTab method (excluding Exact mode, which was already ASCII-only), Choose method and Text property (Tab control); Add method (Menu).</p>
-<ul>
-  <li>Now consistent with case insensitivity of variable, property and GUI control names.</li>
-  <li>If the intention is to identify a previously added item, it is best (and generally expected) to use the exact same string. Non-ASCII letters such as "À" must be specified in the original case. Canonically equivalent Unicode sequences which are not binary equivalent are no longer considered equal even if they appear identical (e.g. LATIN SMALL LETTER A WITH RING ABOVE (U+00e5) and LATIN SMALL LETTER A + COMBINING RING ABOVE (U+0061 U+030a), which appear as "å").</li>
-  <li>Certain Unicode characters are no longer erroneously ignored for the purpose of comparisons. For example, a menu item name consisting only of these characters was previously considered equal to the divider (empty name): ⮙⮝⮛⮟</li>
-</ul>
 <p><strong>Changes applicable only to alpha users:</strong></p>
 <p>Fixed A_ThisFunc and dynamic references in parameter default expressions.</p>
 
@@ -338,7 +319,7 @@
 <p>Changed DllCall to permit CDecl to be omitted for all functions (see <a href="lib/DllCall.htm#cdecl">CDecl</a>).</p>
 <p>Revised parsing of statements. Global, local and static variable declarations with multiple initializers are now evaluated as one, so there is no need to step over each initializer individually while debugging.</p>
 <p>Changed ListVars to show unset vars as "varname: unset".</p>
-<p>Changed Throw to be a function, permitting thrown errors to be continuable (see <a href="lib/Throw.htm#Remarks">Throw</a>).</p>
+<p>Changed Throw to be a function, <strike>permitting thrown errors to be continuable</strike> (see <a href="lib/Throw.htm#Remarks">Throw</a>).</p>
 <p><strong>Changes applicable only to alpha users:</strong></p>
 <p>Changed <code>(...)?</code> and <code>(...) ?? x</code> to never enable unset return. This eliminates inconsistencies, such as:</p>
 <ul>
