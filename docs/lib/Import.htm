@@ -18,13 +18,18 @@
 <span class="func">Import</span> ModuleName <span class="optional"><span class="func">as</span> ModuleAlias</span>
 <span class="func">Import</span> { ExportName <span class="optional"><span class="func">as</span> Alias</span>, ... } <span class="func">from</span> ModuleName</span>
 <span class="func">Import</span> * <span class="func">from</span> ModuleName
+<span class="func"><span class="optional">Export</span> Import</span> ModuleName <span class="optional"><span class="func">as</span> ModuleAlias { *, ExportName ... }</span> <span class="ver">[v2.1-alpha.17+]</span>
 </pre>
 
 <h2 id="Parameters">Parameters</h2>
 <dl>
 
   <dt>ModuleName</dt>
-  <dd>A module name, either as specified with <a href="_Module.htm">#Module</a> or matching the base name of a script (.ahk) file in a <a href="../Scripts.htm#lib">Lib folder</a>.</dd>
+  <dd>
+    <p>A module name, path or resource specifier. It must be either a valid <a href="../Concepts.htm#names">identifier</a> or a <a href="../Language.htm#strings">literal string</a>, but either syntax can be used when importing a module defined by <a href="_Module.htm">#Module</a> or a file.</p>
+    <p>Paths can be absolute or relative to any of the <a href="../Modules.htm#Search_Path">search directories</a>.</p>
+    <p>To load an <a href="../Program.htm#embedded-scripts">embedded script</a> as a module, specify an asterisk followed by the resource name. For example: <code>"*RESNAME"</code></p>
+  </dd>
   
   <dt>ModuleAlias</dt>
   <dd>An identifier to use within the current module to refer to the imported module's <a href="Export.htm#Remarks">default export</a>.</dd>
@@ -38,14 +43,16 @@
 </dl>
 
 <h2 id="Imported_Modules">Import from File</h2>
-<p>Imports are processed after the main script file has been parsed, in an unspecified order. If <em>ModuleName</em> does not match a module defined by #Module or previously imported from file, Import attempts to locate a module file in a <a href="../Scripts.htm#lib">Lib folder</a>.</p>
-<p>Currently a module file's name must be "<em>ModuleName</em>.ahk". Future versions may allow directories as modules or module packages (e.g. A or A.B &rarr; "Lib\A\__init.ahk").</p>
+<p>Imports are processed after the main script file has been parsed, in an unspecified order. If <em>ModuleName</em> (excluding quote marks) does not match a module defined by <a href="_Module.htm">#Module</a> or previously imported from file, Import attempts to locate a module file and load it. For details, see <a href="../Modules.htm#Search_Path">Search Path</a>.</p>
 
 <h2 id="Imported_Names">Imported Names</h2>
-<p>If <em>from</em> is used, the module's default export is not added to the current module's global namespace unless <em>ModuleAlias</em> is specified. By contrast, <code>Import MyModule</code> adds the module's default export as <em>MyModule</em>.</p>
+<p>If <code>from</code> or <code>{}</code> is used or the module name is quoted, the module's default export is not added to the current module's global namespace unless <em>ModuleAlias</em> is specified. By contrast, <code>Import MyModule</code> adds the module's default export as <em>MyModule</em>.</p>
 <p>If <code>*</code> is used, each unassigned and undeclared name in the current module may implicitly resolve to a name exported from <em>ModuleName</em>. If a name is exported from multiple imported modules, the last import takes precedence. Explicit imports and other declarations take precedence over implicit imports, regardless of order.</p>
 <p class="note"><strong>Note:</strong> An implicitly imported variable cannot be the target of an assignment, as the presence of an assignment would cause a new variable to be created in the current module.</p>
 <p>A load-time error is raised if any name used in an explicit import is also used in some other declaration within the current module.</p>
+
+<h2 id="Export">Export <span class="ver">[v2.1-alpha.17+]</span></h2>
+<p>If the <code>Export</code> keyword is used, all explicitly imported names are also exported from the current module.</p>
 
 <h2 id="Remarks">Remarks</h2>
 <p>Import statements are recognized only when not enclosed by a function or block.</p>

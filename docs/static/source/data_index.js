@@ -262,6 +262,7 @@ indexData = [
   ["ahk_id","misc/WinTitle.htm#ahk_id"],
   ["ahk_pid","misc/WinTitle.htm#ahk_pid"],
   ["Ahk2Exe","Scripts.htm#ahk2exe"],
+  ["AhkImportPath","Modules.htm#Search_Path"],
   ["alnum","lib/Is.htm"],
   ["alpha","lib/Is.htm"],
   ["AltGr","Hotkeys.htm#AltGr"],
