@@ -28,6 +28,7 @@
   </li>
   <li><a href="#multi">Multiple Criteria</a></li>
   <li><a href="#LastFoundWindow">Last Found Window</a></li>
+  <li><a href="#Performance">Performance</a></li>
 </ul>
 
 <a id="Matching"></a>
@@ -150,6 +151,26 @@ else
     WinActivate <em>; Use the window found by WinExist.</em>
     WinMove 40, 40 <em>; Same as above.</em>
 }</pre>
+
+<h2 id="Performance">Performance</h2>
+<p class="note"><strong>Note:</strong> The following details are for the purpose of guiding optimizations, and are not to be taken as guarantees of future behaviour.</p>
+<p>With some exceptions, a window is generally located by enumerating all top-level windows and evaluating the criteria specified by <var>WinTitle</var> and other parameters against each candidate window. This process generally does not cause a perceptible delay, but can affect the performance of scripts. The following factors affect the cost of enumeration:</p>
+<ul>
+  <li>The number of top-level windows currently in existence, regardless of other factors. This is inherent to the <a href="https://learn.microsoft.com/windows/win32/api/winuser/nf-winuser-enumwindows">EnumWindows</a> function, which most likely creates an internal list of windows in Z order before beginning enumeration.</li>
+  <li>The number of top-level windows evaluated by AutoHotkey before finding a match.</li>
+  <li>The specific criteria being evaluated.</li>
+</ul>
+<p>Enumeration is not needed when <a href="#ahk_id">ahk_id/HWND</a>, the <a href="#LastFoundWindow">Last Found Window</a> or the <a href="#ActiveWindow">active window</a> is used, so it is best to make use of these rather than repeatedly identifying the window by title, class and/or process.</p>
+<p>Each candidate window's title, class, process ID and process name or path are retrieved only if criteria have been specified which require it.</p>
+<p>Retrieving a process path is slower than retrieving a process name. <a href="#ahk_exe">ahk_exe</a> causes the process path to be retrieved if the RegEx title matching mode is active or the value contains a backslash (<code>\</code>); otherwise only the process name is retrieved. <a href="#ahk_pid">ahk_pid</a> is faster but can only specify one process which the script has already identified.</p>
+<p><span class="ver">[v2.0+]</span>: Specifying a title, <a href="#ahk_class">ahk_class</a> or <a href="#ahk_exe">ahk_exe</a> causes the respective attribute to be retrieved once for each candidate window, and again each time the type of criteria changes. For example, if every second item in a window group with 10 items uses ahk_exe, the process name may be retrieved 5 times for each candidate window; but if those 5 items are grouped together, the process name should be retrieved only once for each candidate window.</p>
+<p><span class="ver">[v2.1-alpha.18+]</span>: The window title, class name or process name/path of each candidate window are retrieved only if and when they are first needed. Criteria are considered in the following order: PID, title, class, process name/path, group. For instance, if only a title and class are specified and <a href="../lib/DetectHiddenWindows.htm">DetectHiddenWindows</a> is off, the title of every visible top-level window must be retrieved, but the class name is retrieved only when the title matches.</p>
+<p><span class="ver">[v2.1-alpha.18+]</span>: If <a href="#ahk_class">ahk_class</a> is used with a non-RegEx <a href="../lib/SetTitleMatchMode.htm">title matching mode</a>, AutoHotkey attempts to locate the window by calling <a href="https://learn.microsoft.com/windows/win32/api/winuser/nf-winuser-findwindoww">FindWindow</a> once before falling back to EnumWindows. This allows the window search to complete much more quickly in any of the following cases:</p>
+<ul>
+  <li>The title matching mode is 1 or 2 (which is the default), there are windows with the given class name, and the first such window (in Z order) matches all criteria.</li>
+  <li>The title matching mode is 3, there are windows with the given class name and title, <em>ignoring case</em>, and the first such window (in Z order) matches all criteria. Note that while FindWindow ignores case, AutoHotkey verifies the result with a case-sensitive comparison.</li>
+  <li>There are no windows of that class.</li>
+</ul>
 
 </body>
 </html>
