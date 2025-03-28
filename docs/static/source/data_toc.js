@@ -297,7 +297,8 @@ tocData = [
     ["ListLines","lib/ListLines.htm"],
     ["ListVars","lib/ListVars.htm"],
     ["OutputDebug","lib/OutputDebug.htm"],
-    ["Persistent","lib/Persistent.htm"]
+    ["Persistent","lib/Persistent.htm"],
+	["Props","lib/Props.htm"]
   ]],
   ["Object Types","ObjList.htm",
   [
