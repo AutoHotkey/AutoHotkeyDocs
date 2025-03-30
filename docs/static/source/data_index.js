@@ -73,6 +73,7 @@ indexData = [
   ["#NoTrayIcon","lib/_NoTrayIcon.htm",0,""],
   ["#Requires","lib/_Requires.htm",0,"S"],
   ["#SingleInstance","lib/_SingleInstance.htm",0,"S"],
+  ["#StructPack","lib/StructPack.htm",0,"S"],
   ["#SuspendExempt","lib/_SuspendExempt.htm",0,"S"],
   ["#UseHook","lib/_UseHook.htm",0,"S"],
   ["#Warn","lib/_Warn.htm",0,"SS"],
