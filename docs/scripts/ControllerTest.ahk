@@ -13,6 +13,7 @@
 ; May 8, 2005 : Fixed: JoyAxes is no longer queried as a means of
 ; detecting whether the joystick is connected.  Some joysticks are
 ; gamepads and don't have even a single axis.
+; October, 2025 Added option to skip a controller if you have multiple.
 
 ; If you want to unconditionally use a specific controller number, change
 ; the following value from 0 to the number of the controller (1-16).
@@ -21,11 +22,6 @@ ControllerNumber = 0
 
 ; END OF CONFIG SECTION. Do not make changes below this point unless
 ; you wish to alter the basic functionality of the script.
-
-Gui, +AlwaysOnTop
-Gui, Add, Text, w300, Note: For Xbox controller 2013 and newer (anything newer than the Xbox 360 controller), this script can only detect controller events if a window it owns is active (like this one).
-Gui, Add, Edit, w300 h300 +ReadOnly
-Gui, Show,, Controller Test Script
 
 ; Auto-detect the controller number if called for:
 if ControllerNumber <= 0
@@ -36,7 +32,9 @@ if ControllerNumber <= 0
 		if ContName <>
 		{
 			ControllerNumber = %A_Index%
-			break
+			MsgBox, 4, Found controller number %A_Index%, Controller found at index %A_Index%.  `n`nSelect this one [Yes], or keep searching for more [No]?
+			IfMsgBox Yes
+				break
 		}
 	}
 	if ControllerNumber <= 0
@@ -45,6 +43,11 @@ if ControllerNumber <= 0
 		return
 	}
 }
+
+Gui, +AlwaysOnTop
+Gui, Add, Text, w300, Note: For Xbox controller 2013 and newer (anything newer than the Xbox 360 controller), this script can only detect controller events if a window it owns is active (like this one).
+Gui, Add, Edit, w300 h300 +ReadOnly
+Gui, Show,, Controller Test Script
 
 #SingleInstance
 SetFormat, float, 03  ; Omit decimal point from axis position percentages.
