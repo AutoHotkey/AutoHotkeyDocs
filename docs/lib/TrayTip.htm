@@ -6,6 +6,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <link href="../static/theme.css" rel="stylesheet" type="text/css" />
+<link href="../static/dark.css" rel="stylesheet" type="text/css" media="(prefers-color-scheme: dark)" id="dark_css" />
 <script src="../static/content.js" type="text/javascript"></script>
 <style type="text/css">
   .sized1 {
@@ -30,7 +31,7 @@
   <dd>
     <p>Type: <a href="../Concepts.htm#strings">String</a></p>
     <p>If blank or omitted, the text will be entirely omitted from the traytip, making it vertically shorter. Otherwise, specify the message to display. Only the first 255 characters will be displayed.</p>
-    <p>Carriage return (`r) or linefeed (`n) may be used to create multiple lines of text. For example: <code>Line1`nLine2</code>.</p>
+    <p>Carriage return (`r) or linefeed (`n) may be used to create multiple lines of text. For example: <code class="no-highlight">Line1`nLine2</code>.</p>
     <p>If <em>Text</em> is long, it can be broken up into several shorter lines by means of a <a href="../Scripts.htm#continuation">continuation section</a>, which might improve readability and maintainability.</p>
   </dd>
 
@@ -61,19 +62,19 @@
         <td>Info icon</td>
         <td class="right">1</td>
         <td class="right">0x1</td>
-        <td><code>Iconi</code></td>
+        <td><code class="no-highlight">Iconi</code></td>
       </tr>
       <tr>
         <td>Warning icon</td>
         <td class="right">2</td>
         <td class="right">0x2</td>
-        <td><code>Icon!</code></td>
+        <td><code class="no-highlight">Icon!</code></td>
       </tr>
       <tr>
         <td>Error icon</td>
         <td class="right">3</td>
         <td class="right">0x3</td>
-        <td><code>Iconx</code></td>
+        <td><code class="no-highlight">Iconx</code></td>
       </tr>
       <tr>
         <td><a href="TraySetIcon.htm">Tray icon</a></td>
@@ -85,7 +86,7 @@
         <td>Do not play the notification sound.</td>
         <td class="right">16</td>
         <td class="right">0x10</td>
-        <td><code>Mute</code></td>
+        <td><code class="no-highlight">Mute</code></td>
       </tr>
       <tr>
         <td>Use the large version of the icon.</td>
@@ -126,7 +127,7 @@ HideTrayTip() {
 <img src="../static/dlg_traytip.png" alt="TrayTip" />
 <p id="Windows10"><strong>Windows 10 and later</strong> replace all balloon windows with toast notifications by default (this can be overridden via group policy). Calling TrayTip multiple times will usually cause multiple notifications to be placed in a "queue" instead of each notification replacing the last.</p>
 <p>TrayTip has no effect if the script lacks a <a href="../Program.htm#tray-icon">tray icon</a> (via <a href="_NoTrayIcon.htm">#NoTrayIcon</a> or <code><a href="../Variables.htm#IconHidden">A_IconHidden</a> := true</code>). TrayTip also has no effect if the following REG_DWORD value exists and has been set to 0:</p>
-<pre>HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced &gt;&gt; EnableBalloonTips</pre>
+<pre class="no-highlight">HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced &gt;&gt; EnableBalloonTips</pre>
 <p>On a related note, there is a tooltip displayed whenever the user hovers the mouse over the script's <a href="../Program.htm#tray-icon">tray icon</a>. The contents of this tooltip can be changed via: <code><a href="../Variables.htm#IconTip">A_IconTip</a> := "My New Text"</code>.</p>
 
 <h2 id="Related">Related</h2>
@@ -160,6 +161,27 @@ RefreshTrayTip  <em>; Call it once to get it started right away.</em>
 RefreshTrayTip()
 {
     TrayTip "This is a more permanent traytip.", "Refreshed traytip", "Mute"
+}</pre>
+</div>
+
+<div class="ex" id="ExOnMessage">
+<p><a class="ex_number" href="#ExOnMessage"></a> Shows a message box whenever a traytip is left-clicked, timed out, closed, shown, queued, or disappeared. Press <kbd>F1</kbd> to test this example. For details, see <a href="https://learn.microsoft.com/windows/win32/api/shellapi/nf-shellapi-shell_notifyicona">Shell_NotifyIcon (Microsoft Docs)</a>.</p>
+<pre>OnMessage 0x404, AHK_NOTIFYICON
+
+F1::TrayTip("foo", "bar")
+
+AHK_NOTIFYICON(wParam, lParam, msg, hwnd)
+{
+    if (hwnd != A_ScriptHwnd)
+        return
+    if (lParam = 1029) <em>; NIN_BALLOONUSERCLICK</em>
+        MsgBox "Traytip was left-clicked."
+    if (lParam = 1028) <em>; NIN_BALLOONTIMEOUT</em>
+        MsgBox "Traytip timed out or was closed or right-clicked."
+    if (lParam = 1026) <em>; NIN_BALLOONSHOW</em>
+        MsgBox "Traytip was shown or queued."
+    if (lParam = 1027) <em>; NIN_BALLOONHIDE</em>
+        MsgBox "Traytip disappeared, but not due to timeout or user interaction."
 }</pre>
 </div>
 

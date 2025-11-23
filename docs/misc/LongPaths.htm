@@ -6,6 +6,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <link href="../static/theme.css" rel="stylesheet" type="text/css" />
+<link href="../static/dark.css" rel="stylesheet" type="text/css" media="(prefers-color-scheme: dark)" id="dark_css" />
 <script src="../static/content.js" type="text/javascript"></script>
 </head>
 
@@ -17,21 +18,21 @@
   <li>Functions provided by the operating system generally limit paths to 259 characters, with some exceptions.</li>
   <li>Code for dealing with paths within the program may rely on the first limitation to simplify the code, effectively placing another 259 character limitation.</li>
 </ol>
-<p>These limitations are often referred to as "MAX_PATH limitations", after the constant <code>MAX_PATH</code>, which has the value 260. One character is generally reserved for a null terminator, leaving 259 characters for the actual path.</p>
+<p>These limitations are often referred to as "MAX_PATH limitations", after the constant <code class="no-highlight">MAX_PATH</code>, which has the value 260. One character is generally reserved for a null terminator, leaving 259 characters for the actual path.</p>
 <p>AutoHotkey removes the second kind in most cases, which enables the script to work around the first kind. There are two ways to do this:</p>
 <ul>
   <li>Long paths can be enabled for AutoHotkey and all other long-path-aware programs on Windows 10. Refer to the <a href="https://learn.microsoft.com/windows/win32/fileio/naming-a-file#enable-long-paths-in-windows-10-version-1607-and-later">Microsoft documentation</a> for details. In short, this enables most functions to transparently work with long paths, but requires Windows 10 version 1607 or later.</li>
-  <li>In many cases, prefixing the path with <code>\\?\</code> enables it to exceed the usual limit. However, some system functions do not support it (or long paths in general). See <a href="#limitations">Known Limitations</a> for details.</li>
+  <li>In many cases, prefixing the path with <code class="no-highlight">\\?\</code> enables it to exceed the usual limit. However, some system functions do not support it (or long paths in general). See <a href="#limitations">Known Limitations</a> for details.</li>
 </ul>
 
 <h2 id="prefix">Long Path Prefix</h2>
-<p>If supported by the underlying system function, the <code>\\?\</code> prefix -- for example, in <code>\\?\C:\My Folder</code> -- increases the limit to 32,767 characters. However, it does this by skipping <a href="https://learn.microsoft.com/archive/blogs/jeremykuhne/path-normalization">path normalization</a>. Some elements of the path which would normally be removed or altered by normalization instead become part of the file's actual path. Care must be taken as this can allow the creation of paths that "normal" programs cannot access.</p>
+<p>If supported by the underlying system function, the <code class="no-highlight">\\?\</code> prefix -- for example, in <code class="no-highlight">\\?\C:\My Folder</code> -- increases the limit to 32,767 characters. However, it does this by skipping <a href="https://learn.microsoft.com/archive/blogs/jeremykuhne/path-normalization">path normalization</a>. Some elements of the path which would normally be removed or altered by normalization instead become part of the file's actual path. Care must be taken as this can allow the creation of paths that "normal" programs cannot access.</p>
 <p>In particular, normalization:</p>
 <ul>
   <li>Resolves relative paths such as <code class="no-highlight">dir\file.ext</code>, <code class="no-highlight">\file.ext</code> and <code class="no-highlight">C:file.ext</code> (note the absence of a slash).</li>
-  <li>Resolves relative components such as <code>\..</code> and <code>\.</code>.</li>
-  <li>Canonicalizes component/directory separators, replacing <code>/</code> with <code>\</code> and eliminating redundant separators.</li>
-  <li>Trims certain characters, such as a single period at the end of a component (<code class="no-highlight">dir.\file</code>) or trailing spaces and periods (<code>dir\filename . .</code>).</li>
+  <li>Resolves relative components such as <code class="no-highlight">\..</code> and <code class="no-highlight">\.</code>.</li>
+  <li>Canonicalizes component/directory separators, replacing <code class="no-highlight">/</code> with <code class="no-highlight">\</code> and eliminating redundant separators.</li>
+  <li>Trims certain characters, such as a single period at the end of a component (<code class="no-highlight">dir.\file</code>) or trailing spaces and periods (<code class="no-highlight">dir\filename . .</code>).</li>
 </ul>
 <p>A path can be normalized explicitly by passing it to <a href="https://learn.microsoft.com/windows/win32/api/fileapi/nf-fileapi-getfullpathnamew">GetFullPathName</a> via the function defined below, before applying the prefix. For example:</p>
 <pre>MsgBox "\\?\" NormalizePath("..\file.ext")</pre>
@@ -41,7 +42,7 @@
     DllCall("GetFullPathName", "str", path, "uint", cc, "ptr", buf, "ptr", 0)
     return StrGet(buf)
 }</pre>
-<p>A path with the <code>\\?\</code> prefix can also be normalized by this function. However, in that case the working directory is never used, and the root is <code>\\?\</code> (for example, <code>\\?\C:\..</code> resolves to <code>\\?\</code> whereas <code>C:\..</code> resolves to <code>C:\</code>).</p>
+<p>A path with the <code class="no-highlight">\\?\</code> prefix can also be normalized by this function. However, in that case the working directory is never used, and the root is <code class="no-highlight">\\?\</code> (for example, <code class="no-highlight">\\?\C:\..</code> resolves to <code class="no-highlight">\\?\</code> whereas <code class="no-highlight">C:\..</code> resolves to <code class="no-highlight">C:\</code>).</p>
 
 <h2 id="limitations">Known Limitations</h2>
 <p>Even when the path itself is not limited to 259 characters, each component (file or directory name) cannot exceed the hard limit imposed by the file system (usually 255 characters).</p>
@@ -58,7 +59,7 @@
   <li><a href="../lib/DriveSetLabel.htm">DriveSetLabel</a> and <a href="../lib/Drive.htm">DriveGet variants</a> (except <a href="../lib/DriveGetType.htm">DriveGetType</a>)</li>
   <li>Built-in variables which return special folder paths (for which long paths might be impossible anyway): <a href="../Variables.htm#AppData">A_AppData</a>, <a href="../Variables.htm#Desktop">A_Desktop</a>, <a href="../Variables.htm#MyDocuments">A_MyDocuments</a>, <a href="../Variables.htm#ProgramFiles">A_ProgramFiles</a>, <a href="../Variables.htm#Programs">A_Programs</a>, <a href="../Variables.htm#StartMenu">A_StartMenu</a>, <a href="../Variables.htm#Startup">A_Startup</a> and Common variants, <a href="../Variables.htm#Temp">A_Temp</a> and <a href="../Variables.htm#WinDir">A_WinDir</a></li>
 </ul>
-<p><a href="../lib/SetWorkingDir.htm">SetWorkingDir</a> and <a href="../Variables.htm#WorkingDir">A_WorkingDir</a> support long paths only when Windows 10 long path awareness is enabled, since the <code>\\?\</code> prefix cannot be used. If the working directory exceeds MAX_PATH, it becomes impossible to launch programs with <a href="../lib/Run.htm">Run</a>. These limitations are imposed by the OS.</p>
+<p><a href="../lib/SetWorkingDir.htm">SetWorkingDir</a> and <a href="../Variables.htm#WorkingDir">A_WorkingDir</a> support long paths only when Windows 10 long path awareness is enabled, since the <code class="no-highlight">\\?\</code> prefix cannot be used. If the working directory exceeds MAX_PATH, it becomes impossible to launch programs with <a href="../lib/Run.htm">Run</a>. These limitations are imposed by the OS.</p>
 <p>It does not appear to be possible to run an executable with a full path which exceeds MAX_PATH. That being the case, it would not be possible to fully test any changes aimed at supporting longer executable paths. Therefore, MAX_PATH limits have been left in place for the following:</p>
 <ul>
   <li><a href="WinTitle.htm#ahk_exe">ahk_exe</a></li>

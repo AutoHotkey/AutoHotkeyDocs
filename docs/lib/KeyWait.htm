@@ -6,6 +6,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <link href="../static/theme.css" rel="stylesheet" type="text/css" />
+<link href="../static/dark.css" rel="stylesheet" type="text/css" media="(prefers-color-scheme: dark)" id="dark_css" />
 <script src="../static/content.js" type="text/javascript"></script>
 </head>
 <body>
@@ -22,7 +23,7 @@
   <dd>
       <p>Type: <a href="../Concepts.htm#strings">String</a></p>
       <p>This can be just about any single character from the keyboard or one of the key names from the <a href="../KeyList.htm">key list</a>, such as a mouse/controller button. Controller attributes other than buttons are not supported.</p>
-      <p>An explicit virtual key code such as <code>vkFF</code> may also be specified. This is useful in the rare case where a key has no name and produces no visible character when pressed. Its virtual key code can be determined by following the steps at the bottom of the <a href="../KeyList.htm#SpecialKeys">key list page</a>.</p></dd>
+      <p>An explicit virtual key code such as <code class="no-highlight">vkFF</code> may also be specified. This is useful in the rare case where a key has no name and produces no visible character when pressed. Its virtual key code can be determined by following the steps at the bottom of the <a href="../KeyList.htm#SpecialKeys">key list page</a>.</p></dd>
 
   <dt>Options</dt>
   <dd>
@@ -31,8 +32,8 @@
       <p>Otherwise, specify a string of one or more of the following options (in any order, with optional spaces in between):</p>
       <p><strong>D:</strong> Wait for the key to be pushed down.</p>
       <p><strong>L:</strong> Check the logical state of the key, which is the state that the OS and the active window believe the key to be in (not necessarily the same as the physical state). This option is ignored for controller buttons.</p>
-      <p><strong>T:</strong> Timeout (e.g. <code>T3</code>). The number of seconds to wait before timing out and returning 0. If the key or button achieves the specified state, the function will not wait for the timeout to expire. Instead, it will immediately return 1.</p>
-      <p>The timeout value can be a floating point number such as 2.5, but it should not be a hexadecimal value such as 0x03.</p></dd>
+      <p><strong>T:</strong> Timeout (e.g. <code class="no-highlight">T3</code>). The number of seconds to wait before timing out and returning 0. If the key or button achieves the specified state, the function will not wait for the timeout to expire. Instead, it will immediately return 1. The timeout value can be a floating point number such as 2.5, but it should not be a hexadecimal value such as 0x03.</p>
+  </dd>
 
 </dl>
 
@@ -47,11 +48,21 @@
 <pre>KeyWait "Control"  <em>; Wait for both Control and Alt to be released.</em>
 KeyWait "Alt"</pre>
 <p>To wait for any one key among a set of keys to be pressed down, see <a href="InputHook.htm#ExAnyKey">InputHook example #4</a>.</p>
+<p>Modifier key hotkeys (<code>Ctrl::</code>, <code>Control::</code>, <code>Alt::</code>, and <code>Shift::</code>), <a href="../Hotkeys.htm#prefix">prefix key</a> hotkeys, and <a href="../Hotkeys.htm#keyup">key-up</a> hotkeys fire upon release rather than press-down. So, when waiting for their trigger key within their definition, the result may differ from what is expected, especially if the timeout option is used. For example, the following code does not work as intended because KeyWait only sees the release of <kbd>Alt</kbd>, so it will never time out:</p>
+<pre>Alt::  <em>; Replace this with ~Alt:: to make it work as intended.</em>
+{
+    if not KeyWait("Alt", "T0.3")
+        MsgBox "Held"
+    else
+        MsgBox "Pressed"
+}</pre>
+<p>This code always shows "Pressed" no matter how long you hold the key. To account for this, you would need to add the <a href="../Hotkeys.htm#Tilde">tilde prefix (~)</a> to make the modifier key fire upon press-down instead. In other words, replace <code>Alt::</code> with <code>~Alt::</code> to make it work as intended.</p>
+
 <h2 id="Related">Related</h2>
-<p><a href="GetKeyState.htm">GetKeyState</a>, <a href="../KeyList.htm">Key List</a>, <a href="InputHook.htm">InputHook</a>, <a href="KeyHistory.htm">KeyHistory</a>, <a href="InstallKeybdHook.htm">InstallKeybdHook</a>, <a href="InstallMouseHook.htm">InstallMouseHook</a>, <a href="ClipWait.htm">ClipWait</a>, <a href="WinWait.htm">WinWait</a></p>
+<p><a href="GetKeyState.htm">GetKeyState</a>, <a href="../KeyList.htm">Key List</a>, <a href="../Hotkeys.htm">Hotkeys</a>, <a href="InputHook.htm">InputHook</a>, <a href="KeyHistory.htm">KeyHistory</a>, <a href="InstallKeybdHook.htm">InstallKeybdHook</a>, <a href="InstallMouseHook.htm">InstallMouseHook</a>, <a href="ClipWait.htm">ClipWait</a>, <a href="WinWait.htm">WinWait</a></p>
 <h2 id="Examples">Examples</h2>
 <div class="ex" id="ExBasic">
-<p><a class="ex_number" href="#ExBasic"></a> Waits for the A key to be released.</p>
+<p><a class="ex_number" href="#ExBasic"></a> Waits for <kbd>A</kbd> to be released.</p>
 <pre>KeyWait "a"</pre>
 </div>
 
@@ -66,12 +77,12 @@ KeyWait "Alt"</pre>
 </div>
 
 <div class="ex" id="ExLogical">
-<p><a class="ex_number" href="#ExLogical"></a> Waits for the left Alt key to be logically released.</p>
+<p><a class="ex_number" href="#ExLogical"></a> Waits for the left <kbd>Alt</kbd> to be logically released.</p>
 <pre>KeyWait "LAlt", "L"</pre>
 </div>
 
 <div class="ex" id="ExHotkey">
-<p><a class="ex_number" href="#ExHotkey"></a> When pressing this hotkey, KeyWait waits for the user to physically release the CapsLock key. As a result, subsequent statements are performed on release instead of press. This behavior is similar to <code>~CapsLock up::</code>.</p>
+<p><a class="ex_number" href="#ExHotkey"></a> When pressing this hotkey, KeyWait waits for the user to physically release <kbd>CapsLock</kbd>. As a result, subsequent statements are performed on release instead of press. This behavior is similar to <code>~CapsLock up::</code>.</p>
 <pre>~CapsLock::
 {
     KeyWait "CapsLock"  <em>; Wait for user to physically release it.</em>
@@ -80,7 +91,7 @@ KeyWait "Alt"</pre>
 </div>
 
 <div class="ex" id="ExRemap">
-<p><a class="ex_number" href="#ExRemap"></a> Remaps a key or mouse button. (This example is only for illustration because it would be easier to use the <a href="../misc/Remap.htm">built-in remapping feature</a>.) In the following hotkey, the mouse button is kept held down while NumpadAdd is down, which effectively transforms NumpadAdd into a mouse button.</p>
+<p><a class="ex_number" href="#ExRemap"></a> Remaps a key or mouse button. (This example is only for illustration because it would be easier to use the <a href="../misc/Remap.htm">built-in remapping feature</a>.) In the following hotkey, the mouse button is kept held down while <kbd>NumpadAdd</kbd> is down, which effectively transforms <kbd>NumpadAdd</kbd> into a mouse button.</p>
 <pre>*NumpadAdd::
 {
     MouseClick "left",,, 1, 0, "D"  <em>; Hold down the left mouse button.</em>
@@ -90,10 +101,10 @@ KeyWait "Alt"</pre>
 </div>
 
 <div class="ex" id="ExDouble">
-<p><a class="ex_number" href="#ExDouble"></a> Detects when a key has been double-pressed (similar to double-click). KeyWait is used to stop the keyboard's auto-repeat feature from creating an unwanted double-press when you hold down the RControl key to modify another key. It does this by keeping the hotkey's thread running, which blocks the auto-repeats by relying upon #MaxThreadsPerHotkey being at its default setting of 1. For a more elaborate script that distinguishes between single, double and triple-presses, see <a href="SetTimer.htm#ExampleCount">SetTimer example #3</a>.</p>
+<p><a class="ex_number" href="#ExDouble"></a> Detects when a key has been double-pressed (similar to double-click). KeyWait is used to stop the keyboard's auto-repeat feature from creating an unwanted double-press when you hold down the right <kbd>Ctrl</kbd> to modify another key. It does this by keeping the hotkey's thread running, which blocks the auto-repeats by relying upon <a href="_MaxThreadsPerHotkey.htm">#MaxThreadsPerHotkey</a> being at its default setting of 1. For a more elaborate script that distinguishes between single, double and triple-presses, see <a href="SetTimer.htm#ExampleCount">SetTimer example #3</a>.</p>
 <pre>~RControl::
 {
-    if (A_PriorHotkey != "~RControl" or A_TimeSincePriorHotkey &gt; 400)
+    if (A_PriorHotkey != ThisHotkey or A_TimeSincePriorHotkey &gt; 400)
     {
         <em>; Too much time between presses, so this isn't a double-press.</em>
         KeyWait "RControl"

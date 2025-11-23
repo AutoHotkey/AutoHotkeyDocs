@@ -42,7 +42,7 @@ translateData = {
   "Change the font size":true,
   "Print this document":true,
   "Open this document in the default browser (requires internet connection). Middle-click to copy the link address.":true,
-  "Use the dark or light theme":true,
+  "Use the dark or light scheme":true,
   "Open the help settings":true,
   // ALT+... shortcuts (needs uppercase)
   "C":true,

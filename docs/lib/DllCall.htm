@@ -6,6 +6,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <link href="../static/theme.css" rel="stylesheet" type="text/css" />
+<link href="../static/dark.css" rel="stylesheet" type="text/css" media="(prefers-color-scheme: dark)" id="dark_css" />
 <script src="../static/content.js" type="text/javascript"></script>
 </head>
 <body>
@@ -26,7 +27,7 @@
       <p>If no function can be found by the given name, a "W" (Unicode) suffix is automatically appended. For example, <code>"MessageBox"</code> is the same as <code>"MessageBoxW"</code>.</p>
       <p>Performance can be dramatically improved when making <em>repeated</em> calls to a DLL by <a href="#load">loading it beforehand</a>.</p>
       <p>This parameter may also consist solely of an integer, which is interpreted as the address of the function to call. Sources of such addresses include <a href="#COM">COM</a> and <a href="CallbackCreate.htm">CallbackCreate</a>.</p>
-      <p>If this parameter is an object, the value of the object's <code>Ptr</code> property is used. If no such property exists, a <a href="Error.htm#PropertyError">PropertyError</a> is thrown.</p>
+      <p>If this parameter is an object, the value of the object's <code class="no-highlight">Ptr</code> property is used. If no such property exists, a <a href="Error.htm#PropertyError">PropertyError</a> is thrown.</p>
   </dd>
 
   <dt>Type1, Arg1</dt>
@@ -64,7 +65,7 @@
   <p>If the function is designed to store a string longer than the parameter's input value (or if the parameter is for output only), the recommended approach is to create a <a href="Buffer.htm">Buffer</a>, use the <a href="#ptr">Ptr</a> type to pass it, and use <a href="StrGet.htm">StrGet</a> to retrieve the string after the function returns, as in the <a href="#ExWsprintf">wsprintf example</a>.</p>
   <p>Otherwise, ensure that the variable is large enough before calling the function. This can be achieved by calling <code><a href="VarSetStrCapacity.htm">VarSetStrCapacity</a>(&amp;MyVar, 123)</code>, where 123 is the number of 16-bit units (loosely referred to as characters) that <em>MyVar</em> must be able to hold. If the variable is not null-terminated upon return, an error message is shown and the program exits as it is likely that memory has been corrupted via buffer overrun. This would typically indicate that the variable's capacity was insufficient.</p>
   <p>A <em>Str</em> argument must not be an <a href="../Variables.htm#Expressions">expression</a> that evaluates to a number (such as <code>i+1</code>). If it is, the function is not called and a <a href="Error.htm#TypeError">TypeError</a> is thrown.</p>
-  <p id="strp">The rarely-used <a href="#asterisk">Str*</a> arg type passes the address of a temporary variable containing the address of the string. If the function writes a new address into the temporary variable, the new string is copied into the script's variable, if a <a href="../Concepts.htm#variable-references">VarRef</a> was passed. This can be used with functions that expect something like "TCHAR **" or "LPTSTR *". However, if the function allocates memory and expects the caller to free it (such as by calling <a href="https://learn.microsoft.com/windows/win32/api/combaseapi/nf-combaseapi-cotaskmemfree">CoTaskMemFree</a>), the <code>Ptr*</code> arg type must be used instead.</p>
+  <p id="strp">The rarely-used <a href="#asterisk">Str*</a> arg type passes the address of a temporary variable containing the address of the string. If the function writes a new address into the temporary variable, the new string is copied into the script's variable, if a <a href="../Concepts.htm#variable-references">VarRef</a> was passed. This can be used with functions that expect something like "TCHAR **" or "LPTSTR *". However, if the function allocates memory and expects the caller to free it (such as by calling <a href="https://learn.microsoft.com/windows/win32/api/combaseapi/nf-combaseapi-cotaskmemfree">CoTaskMemFree</a>), the <code class="no-highlight">Ptr*</code> arg type must be used instead.</p>
   <p class="note"><strong>Note:</strong> When passing a string to a function, be aware what <a href="../Compat.htm#DllCall"><i>type</i> of string</a> the function expects.</p></td>
 </tr>
 <tr>
@@ -112,8 +113,8 @@ str := StrGet(buf, "cp0")  <em>; Retrieve ANSI string from buffer.</em>
 <tr id="ptr">
   <td>Ptr</td>
   <td><p>A <a href="../Variables.htm#PtrSize">pointer-sized</a> integer, equivalent to Int or Int64 depending on whether the exe running the script is 32-bit or 64-bit. <i>Ptr</i> should be used for pointers to arrays or structures (such as RECT* or LPPOINT) and almost all handles (such as HWND, HBRUSH or HBITMAP). If the parameter is a pointer to a single numeric value such as LPDWORD or int*, generally the * or P suffix should be used instead of "Ptr".</p>
-  <p>If an object is passed to a Ptr parameter, the value of the object's <code>Ptr</code> property is used. If no such property exists, a <a href="Error.htm#PropertyError">PropertyError</a> is thrown. Typically the object would be a <a href="Buffer.htm">Buffer</a>.</p>
-  <p>If an object is passed to a Ptr* parameter, the value of the object's <code>Ptr</code> property is retrieved before the call and the address of a temporary variable containing this value is passed to the function. After the function returns, the new value is assigned back to the object's <code>Ptr</code> property.</p>
+  <p>If an object is passed to a Ptr parameter, the value of the object's <code class="no-highlight">Ptr</code> property is used. If no such property exists, a <a href="Error.htm#PropertyError">PropertyError</a> is thrown. Typically the object would be a <a href="Buffer.htm">Buffer</a>.</p>
+  <p>If an object is passed to a Ptr* parameter, the value of the object's <code class="no-highlight">Ptr</code> property is retrieved before the call and the address of a temporary variable containing this value is passed to the function. After the function returns, the new value is assigned back to the object's <code class="no-highlight">Ptr</code> property.</p>
   <p><i>Ptr</i> can also be used with the * or P suffix; it should be used with functions that output a pointer via LPVOID* or similar.</p>
   <p><i>UPtr</i> is also valid, with the following limitations:</p>
   <ul>
@@ -174,15 +175,15 @@ str := StrGet(buf, "cp0")  <em>; Retrieve ANSI string from buffer.</em>
 
 <h2 id="load">Performance</h2>
 <p>When making repeated calls to a DLL, performance can be dramatically improved by loading it explicitly (<em>this is not necessary for a <a href="#std">standard DLL</a> such as User32 because it is always resident</em>). This practice avoids the need for DllCall to internally call LoadLibrary and FreeLibrary each time. For example:</p>
-<pre>hModule := DllCall("<strong>LoadLibrary</strong>", "Str", "MyFunctions.dll", "Ptr")  <em>; Avoids the need for DllCall in the loop to load the library.</em>
+<pre>hModule := DllCall("LoadLibrary", "Str", "MyFunctions.dll", "Ptr")  <em>; Avoids the need for DllCall in the loop to load the library.</em>
 Loop Files, "C:\My Documents\*.*", "R"
     result := DllCall("MyFunctions\BackupFile", "Str", A_LoopFilePath)
-DllCall("<strong>FreeLibrary</strong>", "Ptr", hModule)  <em>; To conserve memory, the DLL may be unloaded after using it.</em></pre>
+DllCall("FreeLibrary", "Ptr", hModule)  <em>; To conserve memory, the DLL may be unloaded after using it.</em></pre>
 <p>Even faster performance can be achieved by looking up the function's address beforehand. For example:</p>
 <pre><em>; In the following example, if the DLL isn't yet loaded, use LoadLibrary in place of GetModuleHandle.</em>
-<strong>MulDivProc</strong> := DllCall("GetProcAddress", "Ptr", DllCall("GetModuleHandle", "Str", "<strong>kernel32</strong>", "Ptr"), "AStr", "<strong>MulDiv</strong>", "Ptr")
+MulDivProc := DllCall("GetProcAddress", "Ptr", DllCall("GetModuleHandle", "Str", "kernel32", "Ptr"), "AStr", "MulDiv", "Ptr")
 Loop 500
-    DllCall(<strong>MulDivProc</strong>, "Int", 3, "Int", 4, "Int", 3)</pre>
+    DllCall(MulDivProc, "Int", 3, "Int", 4, "Int", 3)</pre>
 <p>If DllCall's first parameter is a literal string such as <code>"MulDiv"</code> and the DLL containing the function is ordinarily loaded before the script starts, or has been successfully loaded with <a href="_DllLoad.htm">#DllLoad</a>, the string is automatically resolved to a function address. This built-in optimization is more effective than the example shown above.</p>
 <p>Finally, when passing a string-variable to a function that will not change the length of the string, performance is improved by passing the variable <a href="StrPtr.htm">by address</a> (e.g. <code>StrPtr(MyVar)</code>) rather than as a "<a href="#str">str</a>" (especially when the string is very long). The following example converts a string to uppercase: <code>DllCall("CharUpper", "<strong>Ptr</strong>", StrPtr(MyVar), "Ptr")</code>.</p>
 
@@ -193,7 +194,7 @@ Loop 500
 <p>1) Call <code>MyStruct := Buffer(123, 0)</code> to allocate a buffer to hold the structure's data. Replace <code>123</code> with a number that is at least as large as the size of the structure, in bytes. Specifying zero as the last parameter is optional; it initializes all members to be binary zero, which is typically used to avoid calling NumPut as often in the next step.</p>
 <p>2) If the target function uses the values initially in the structure, call <code><a href="NumPut.htm">NumPut</a>("UInt", 123, MyStruct, 4)</code> to initialize any members that should be non-zero. Replace <code>123</code> with the integer to be put into the target member (or specify <code>StrPtr(Var)</code> to store the address of a string). Replace <code>4</code> with the offset of the target member (see step #4 for description of "offset"). Replace <code>"UInt"</code> with the appropriate type, such as <code>"Ptr"</code> if the member is a pointer or handle.</p>
 <p>3) Call the target function, passing <em>MyStruct</em> as a Ptr argument. For example, <code>DllCall("MyDll\MyFunc", "Ptr", MyStruct)</code>. The function will examine and/or change some of the members. DllCall automatically uses the address of the buffer, which is normally retrieved by using <code>MyStruct.Ptr</code>.</p>
-<p>4) Use <code>MyInteger := <a href="NumGet.htm">NumGet</a>(MyStruct, 4, "UInt")</code> to retrieve any desired integers from the structure. Replace <code>4</code> with the offset of the target member in the structure. The first member is always at offset 0. The second member is at offset 0 plus the size of the first member (typically 4). Members beyond the second are at the offset of the previous member plus the size of the previous member. Most members -- such as DWORD, Int, and <a href="#Int">other types of 32-bit integers</a> -- are 4 bytes in size. Replace <code>"UInt"</code> with the appropriate type or omit it if the member is a pointer or handle.</p>
+<p>4) Use <code>MyInteger := <a href="NumGet.htm">NumGet</a>(MyStruct, 4, "UInt")</code> to retrieve any desired integers from the structure. Replace <code>4</code> with the offset of the target member in the structure. The first member is always at offset 0. The second member is at offset 0 plus the size of the first member (typically 4). Members beyond the second are at the offset of the previous member plus the size of the previous member. Most members -- such as DWORD, Int, and <a href="#Int">other types of 32-bit integers</a> -- are 4 bytes in size. Replace <code>"UInt"</code> with the appropriate type, such as <code>"Ptr"</code> if the member is a pointer or handle.</p>
 <p>See <a href="#ExStruct">Structure Examples</a> for actual usages.</p>
 
 <h2 id="limits">Known Limitations</h2>
@@ -225,7 +226,7 @@ MsgBox "You pressed button #" WhichButton</pre>
 
 <div class="ex" id="ExWallpaper">
 <p><a class="ex_number" href="#ExWallpaper"></a> Changes the desktop wallpaper to the specified bitmap (.bmp) file.</p>
-<pre>DllCall("SystemParametersInfo", "UInt", 0x14, "UInt", 0, "Str", A_WinDir <strong>.</strong> "\winnt.bmp", "UInt", 1)</pre>
+<pre>DllCall("SystemParametersInfo", "UInt", 0x14, "UInt", 0, "Str", A_WinDir . "\winnt.bmp", "UInt", 1)</pre>
 </div>
 
 <div class="ex" id="ExIsWindowVisible">
