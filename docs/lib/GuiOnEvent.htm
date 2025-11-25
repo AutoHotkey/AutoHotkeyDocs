@@ -12,7 +12,7 @@
 </head>
 <body>
 
-<h1>OnEvent</h1>
+<h1>OnEvent (GUI)</h1>
 <p>Registers a function or method to be called when the given event is raised by a GUI window or control.</p>
 <pre class="Syntax"><a href="Gui.htm">Gui</a>.<span class="func">OnEvent</span>(EventName, Callback <span class="optional">, AddRemove</span>)
 <a href="GuiControl.htm">GuiCtrl</a>.<span class="func">OnEvent</span>(EventName, Callback <span class="optional">, AddRemove</span>)</pre>
@@ -24,13 +24,22 @@
     <p>Type: <a href="../Concepts.htm#strings">String</a></p>
     <p>The name of the event. See <a href="#Events">Events</a> further below.</p>
   </dd>
-  
   <dt>Callback</dt>
   <dd>
     <p>Type: <a href="../Concepts.htm#strings">String</a> or <a href="../misc/Functor.htm">Function Object</a></p>
     <p>The function, method or object to call when the event is raised.</p>
     <p>If the GUI has an event sink (that is, if <a href="Gui.htm#Call">Gui()</a>'s <em>EventObj</em> parameter was specified), this parameter may be the name of a method belonging to the event sink. Otherwise, this parameter must be a <a href="../misc/Functor.htm">function object</a>.</p>
-    <p>For details about the parameters, return value, naming, and more, see the following sections.</p>
+    <p>The callback accepts a specific number of parameters depending on the <a href="#Window_Events">window event</a> and <a href="#Control_Events">control event</a> and can be <a href="../Functions.htm#intro">defined</a> as follows:</p>
+    <pre class="NoIndent">MyCallback(GuiOrCtrlObj, ...) { ...</pre>
+    <p>Although the names you give the parameters do not matter, the following values are sequentially assigned to them:</p>
+    <ol>
+      <li>The <a href="Gui.htm">Gui</a> or <a href="GuiControl.htm">GuiControl</a> object of the GUI window or control which raised the event. This value is always passed.</li>
+      <li>Zero or more additional values depending on the <a href="#Window_Events">window event</a> and <a href="#Control_Events">control event</a>. For example, in the case of the <a href="#Size">Size</a> window event, this would be <em>MinMax</em> (whether the window is minimized or maximized), <em>Width</em> (its new width), and <em>Height</em> (its new height).</li>
+    </ol>
+    <p>You can omit one or more parameters from the end of the callback's parameter list if the corresponding information is not needed, but in this case an asterisk must be specified as the final parameter, e.g. <code>MyCallback(Param1, *)</code>.</p>
+    <p id="Callback_Return_Value">If multiple callbacks have been registered for an event, a callback may return a non-empty value to prevent any remaining callbacks from being called.</p>
+    <p>The return value may have additional meaning for specific events. For example, a <a href="#Close">Close</a> callback may return a non-zero number (such as <code>true</code>) to prevent the GUI window from closing.</p>
+    <p>For more details, see the following sections.</p>
   </dd>
   
   <dt>AddRemove</dt>
@@ -52,10 +61,6 @@
 <p>Many events pass additional parameters about the event, as described for each event.</p>
 <p>As with all methods or functions called dynamically, the callback is not required to declare parameters which the callback itself does not need, but in this case an asterisk must be specified as the final parameter, e.g. <code>MyCallback(Param1, *)</code>. If an event has more parameters than are declared by the callback, they will simply be ignored (unless the callback is <a href="../Functions.htm#Variadic">variadic</a>).</p>
 <p>The callback can declare more parameters than the event provides if (and only if) the additional parameters are declared optional. However, the use of optional parameters is not recommended as future versions of the program may extend an event with additional parameters, in which case the optional parameters would stop receiving their default values.</p>
-
-<h2 id="Callback_Return_Value">Callback Return Value</h2>
-<p>If multiple callbacks have been registered for an event, a callback may return a non-empty value to prevent any remaining callbacks from being called.</p>
-<p>The return value may have additional meaning for specific events. For example, a <a href="#Close">Close</a> callback may return a non-zero number (such as <code>true</code>) to prevent the GUI window from closing.</p>
 
 <h2 id="Callback_Name">Callback Name</h2>
 <p>By convention, the syntax of each event below is shown with a function name of the form <code class="no-highlight"><i>ObjectType</i>_<i>EventName</i></code>, for clarity. Scripts are not required to follow this convention, and can use any valid function name.</p>
