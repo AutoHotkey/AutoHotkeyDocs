@@ -35,13 +35,20 @@
   <dt>Replacement</dt>
   <dd>
     <p>Type: <a href="../Concepts.htm#strings">String</a> or <a href="../misc/Functor.htm">Function Object</a></p>
-    <p>This parameter can be either a replacement string or a callback function, as described below. If unset or omitted, it defaults to an empty string.</p>
-    <p><strong>String</Strong>: The string to be substituted for each match, which is plain text (not a regular expression).</p>
+    <p>If blank or omitted, <em>NeedleRegEx</em> will be replaced with blank (empty), meaning it will be omitted from the return value. Otherwise, specify a replacement string or in <span class="ver">[v2.1-alpha.1+]</span> a callback function.</p>
+    <hr>
+    <p>Specify the string to be substituted for each match, which is plain text (not a regular expression).</p>
     <p id="BackRef">This parameter may include backreferences like $1, which brings in the substring from <em>Haystack</em> that matched the first <a href="../misc/RegEx-QuickRef.htm#subpat">subpattern</a>. The simplest backreferences are $0 through $9, where $0 is the substring that matched the entire pattern, $1 is the substring that matched the first subpattern, $2 is the second, and so on. For backreferences greater than 9 (and optionally those less than or equal to 9), enclose the number in braces; e.g. ${10}, ${11}, and so on. For <a href="RegExMatch.htm#NamedSubPat">named subpatterns</a>, enclose the name in braces; e.g. ${SubpatternName}. To specify a literal $, use $$ (this is the only character that needs such special treatment; backslashes are never needed to escape anything).</p>
     <p>To convert the case of a subpattern, follow the $ with one of the following characters: U or u (uppercase), L or l (lowercase), T or t (title case, in which the first letter of each word is capitalized but all others are made lowercase). For example, both $U1 and $U{1} transcribe an uppercase version of the first subpattern.</p>
     <p>Nonexistent backreferences and those that did not match anything in <em>Haystack</em> -- such as one of the subpatterns in <span class="regex">(abc)|(xyz)</span> -- are transcribed as empty strings.</p>
     <p><span class="ver">[v2.1-alpha.10+]</span>: The replacement string may contain binary zero.</p>
-    <p><strong>Function</strong> <span class="ver">[v2.1-alpha.1+]</span>: The function object to call for each match in the string. The function accepts a single parameter (a <a href="RegExMatch.htm#MatchObject">Match object</a>) and should return the replacement text.</p>
+    <hr>
+    <p><span class="ver">[v2.1-alpha.1+]</span>: Specify the function to call for each match in the string.</p>
+    <p>The callback accepts one parameter and can be <a href="../Functions.htm#intro">defined</a> as follows:</p>
+      <pre class="NoIndent">MyCallback(Match) { ...</pre>
+      <p>Although the name you give the parameter does not matter, it is assigned a <a href="RegExMatch.htm#MatchObject">Match object</a>.</p>
+      <p>You can omit the callback's parameter if the corresponding information is not needed, but in this case an asterisk must be specified, e.g. <code>MyCallback(*)</code>.</p>
+      <p>The callback should return the replacement text.</p>
   </dd>
 
   <dt>&amp;OutputVarCount</dt>
@@ -116,14 +123,22 @@
 </div>
 
 <div class="ex" id="ExCallback">
-<p><a class="ex_number" href="#ExCallback"></a> Demonstrates basic use of a replacement callback.</p>
-<pre>MsgBox RegExReplace("123+6567=", "^(\d+)\+(\d+)=", m =&gt; m[1] + m[2])  <em>; 6690</em>
+<p><a class="ex_number" href="#ExCallback"></a> Basic usage of replacement callbacks. Requires <span class="ver">[v2.1-alpha.1+]</span>.</p>
+<p>The following reports <code class="no-highlight">6690</code> (the sum of the both matches 123 and 6567):</p>
+<pre>MsgBox RegExReplace("123+6567=", "^(\d+)\+(\d+)=", Add)
 
-MsgBox RegExReplace("01 0x20 3.14", "\d\S*", m =&gt; Format("{:.1f}", m.0))  <em>; 1.0 32.0 3.1</em>
+Add(Match)
+{
+    return Match[1] + Match[2]
+}</pre>
+<p>The above can be shortened to the following by using a <a href="../Variables.htm#fat-arrow">fat arrow function</a>:</p>
+<pre>MsgBox RegExReplace("123+6567=", "^(\d+)\+(\d+)=", m =&gt; m[1] + m[2])</pre>
+<p>The following reports <code class="no-highlight">1.0 32.0 3.1</code> (a string of formatted numbers):</p>
+<pre>MsgBox RegExReplace("01 0x20 3.14", "\d\S*", m =&gt; Format("{:.1f}", m.0))</pre>
+<p>The following reports <code class="no-highlight">1`n2`n3\g\\</code>:</p>
+<pre>esc := Map("n", "`n", "r", "`r", "b", "`b", "t", "`t", "v", "`v", "a", "`a", "f", "`f")
+MsgBox RegExReplace("1\n2\n3\g\\", "\\(.)", m =&gt; esc.Get(m[1], m[0]))</pre>
 
-esc := Map("n", "`n", "r", "`r", "b", "`b", "t", "`t", "v", "`v", "a", "`a", "f", "`f")
-MsgBox RegExReplace("1\n2\n3\g\\", "\\(.)", m =&gt; esc.Get(m[1], m[0]))  <em>; 1`n2`n3\g\\</em>
-</pre>
 </div>
 
 </body>

@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
 <title>OnMessage (GUI) - Syntax &amp; Usage | AutoHotkey v2</title>
-<meta name="description" content="The OnMessage method of a Gui object registers a function or method to be called whenever the Gui receives the specified message." />
-<meta name="ahk:equiv-v1" content="lib/GuiControl.htm" />
+<meta name="description" content="The OnMessage method of a Gui object registers a function or method to be called whenever the GUI window or control receives the specified message." />
+<meta name="ahk:equiv-v1" content="lib/OnMessage.htm" />
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <link href="../static/theme.css" rel="stylesheet" type="text/css">
@@ -12,9 +12,10 @@
 </head>
 <body>
 
-<h1>OnMessage (GUI) <span class="ver">[v2.1-alpha.7+]</span></h1>
-<p>Registers a function or method to be called whenever the <a href="Gui.htm">Gui</a> receives the specified message.</p>
-<pre class="Syntax">GuiOrCtrlObj.<span class="func">OnMessage</span>(MsgNumber, Callback <span class="optional">, AddRemove</span>)</pre>
+<h1>OnMessage (GUI) <span class="ver">[v2.1-alpha.1+]</span></h1>
+<p>Registers a function or method to be called whenever the GUI window or control receives the specified message.</p>
+<pre class="Syntax"><a href="Gui.htm">Gui</a>.<span class="func">OnMessage</span>(MsgNumber, Callback <span class="optional">, AddRemove</span>)
+<a href="GuiControl.htm">GuiCtrl</a>.<span class="func">OnMessage</span>(MsgNumber, Callback <span class="optional">, AddRemove</span>) <em>; Requires <span class="ver">[v2.1-alpha.7+]</span></em></pre>
 
 <h2 id="Parameters">Parameters</h2>
 <dl>
@@ -28,14 +29,26 @@
   <dd>
     <p>Type: <a href="../Concepts.htm#strings">String</a> or <a href="../misc/Functor.htm">Function Object</a></p>
     <p>The function, method or object to call when the message is received.</p>
-    <p>If the GUI has an event sink (that is, if <a href="Gui.htm#Call">Gui()</a>'s <em>EventObj</em> parameter was specified), this parameter may be the name of a method belonging to the event sink.</p>
-    <p>Otherwise, this parameter must be a <a href="../misc/Functor.htm">function object</a>.</p>
+    <p>If the GUI has an event sink (that is, if <a href="Gui.htm#Call">Gui()</a>'s <em>EventObj</em> parameter was specified), this parameter may be the name of a method belonging to the event sink. Otherwise, this parameter must be a <a href="../misc/Functor.htm">function object</a>.</p>
+    <p>The callback accepts four parameters and can be <a href="../Functions.htm#intro">defined</a> as follows:</p>
+    <pre class="NoIndent">MyCallback(GuiOrCtrlObj, wParam, lParam, msg) { ...</pre>
+    <p>Although the names you give the parameters do not matter, the following values are sequentially assigned to them:</p>
+    <ol>
+      <li>The <a href="Gui.htm">Gui</a> or <a href="GuiControl.htm">GuiControl</a> object of the GUI window or control which received the message.</li>
+      <li>The message's WPARAM value.</li>
+      <li>The message's LPARAM value.</li>
+      <li>The message number, which is useful in cases where a callback monitors more than one message.</li>
+    </ol>
+    <p>You can omit one or more parameters from the end of the callback's parameter list if the corresponding information is not needed, but in this case an asterisk must be specified as the final parameter, e.g. <code>MyCallback(Param1, *)</code>.</p>
+    <p>However, refer to the <a href="GuiOnEvent.htm#Callback_Parameters">notes for OnEvent</a>, especially regarding <code>this</code> and the <em>GuiOrCtrlObj</em> parameter.</p>
+    <p>If the callback returns a non-empty value, it is used as the message's reply, any remaining callbacks are not called, and the GUI window's default processing of the message is suppressed.</p>
+    <p>The callback should return either an integer or an empty string, or not explicitly return.</p>
   </dd>
   
   <dt>AddRemove</dt>
   <dd>
     <p>Type: <a href="../Concepts.htm#numbers">Integer</a></p>
-    <p>If omitted, it defaults to 1 (call the callback after any previously registered callbacks). Otherwise, specify one of the following numbers:</p>
+    <p>If omitted, it defaults to 1. Otherwise, specify one of the following numbers:</p>
     <ul>
       <li>1 = Call the callback after any previously registered callbacks.</li>
       <li>-1 = Call the callback before any previously registered callbacks.</li>
@@ -44,21 +57,12 @@
   </dd>
 </dl>
 
-<h2 id="Callback_Parameters">Callback Parameters</h2>
-<p>The callback receives up to four parameters:</p>
-<pre class="Syntax"><i>Callback</i>(GuiOrCtrlObj, wParam, lParam, MsgNumber)</pre>
-<p>However, refer to the <a href="GuiOnEvent.htm#Callback_Parameters">notes for OnEvent</a>, especially regarding <code>this</code> and the <em>GuiOrCtrlObj</em> parameter.</p>
-
-<h2 id="Callback_Return_Value">Callback Return Value</h2>
-<p>If the callback returns a non-empty value, it is used as the message's reply, any remaining callbacks are not called, and the Gui window's default processing of the message is suppressed.</p>
-<p>The callback should return either an Integer or an empty string, or not explicitly return.</p>
-
 <h2 id="Remarks">Remarks</h2>
 <p>These notes for <a href="GuiOnEvent.htm">OnEvent</a> also apply to OnMessage: <a href="GuiOnEvent.htm#Threads">Threads</a>, <a href="GuiOnEvent.htm#Destroying_the_GUI">Destroying the GUI</a>.</p>
-<p>When the callback is called, A_EventInfo and the last found window are set as per <a href="OnMessage.htm#Additional_Information_Available_to_the_Callback">Additional Information Available to the Callback</a>.</p>
-<p>Gui-specific message callbacks are called after global message callbacks (registered with the <a href="OnMessage.htm">OnMessage</a> function), but before the Gui window's own default processing takes place.</p>
+<p><span class="ver">[v2.1-alpha.7+]</span>: When the callback is called, A_EventInfo and the last found window are set as per <a href="OnMessage.htm#Additional_Information_Available_to_the_Callback">Additional Information Available to the Callback</a>.</p>
+<p>Gui-specific message callbacks are called after global message callbacks (registered with the <a href="OnMessage.htm">OnMessage</a> function), but before the GUI window's own default processing takes place.</p>
 <p>The callback function may be called recursively if the message is received while the callback is already running. The number of threads that can be started is limited only by <a href="_MaxThreads.htm">#MaxThreads</a>.</p>
-<p>If <em>GuiOrCtrlObj</em> is a control, window subclassing is used to detect or intercept messages sent directly to the control. These messages are not detected by the global <a href="OnMessage.htm">OnMessage</a> function.</p>
+<p><span class="ver">[v2.1-alpha.7+]</span>: For GuiCtrl.OnMessage, window subclassing is used to detect or intercept messages sent directly to the control. These messages are not detected by the global <a href="OnMessage.htm">OnMessage</a> function.</p>
 
 <h2 id="Related">Related</h2>
 <p><a href="Gui.htm">Gui</a> and <a href="GuiControl.htm">GuiControl</a> methods: <a href="GuiOnEvent.htm">OnEvent</a>, <a href="GuiOnNotify.htm">OnNotify</a>, <a href="GuiOnCommand.htm">OnCommand</a></p>

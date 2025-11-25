@@ -218,7 +218,7 @@ tocData = [
     ["Round","lib/Math.htm#Round"],
     ["Sqrt","lib/Math.htm#Sqrt"],
     ["Sin/Cos/Tan","lib/Math.htm#Sin"],
-    ["ASin/ACos/ATan","lib/Math.htm#ASin"]
+    ["ASin/ACos/ATan/ATan2","lib/Math.htm#ASin"]
   ]],
   ["Monitor","lib/Monitor.htm",
   [
@@ -506,6 +506,7 @@ tocData = [
     ["#MaxThreads","lib/_MaxThreads.htm"],
     ["#MaxThreadsBuffer","lib/_MaxThreadsBuffer.htm"],
     ["#MaxThreadsPerHotkey","lib/_MaxThreadsPerHotkey.htm"],
+    ["#Module","lib/_Module.htm"],
     ["#NoTrayIcon","lib/_NoTrayIcon.htm"],
     ["#Requires","lib/_Requires.htm"],
     ["#SingleInstance","lib/_SingleInstance.htm"],

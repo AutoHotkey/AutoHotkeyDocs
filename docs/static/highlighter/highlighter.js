@@ -189,7 +189,7 @@ function ctor_highlighter()
         if (DEC.toLowerCase() == 'static' && OPEN_PAREN) // static function definitions
           out += SPACE + ph('fun', wrap(NAME, 'fun', null)) + OPEN_PAREN;
         else if (NAME)
-          out += SPACE + expressions(NAME);
+          out += SPACE + expressions(NAME) + (OPEN_PAREN || '');
         return out;
       });
       // class declarations:

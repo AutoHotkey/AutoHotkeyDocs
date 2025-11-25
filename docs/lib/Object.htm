@@ -34,7 +34,7 @@
       <li><a href="#GetOwnPropDesc">GetOwnPropDesc</a>: Returns a descriptor for a given own property, compatible with DefineProp.</li>
       <li><a href="#HasOwnProp">HasOwnProp</a>: Returns 1 (true) if an object owns a property by the specified name.</li>
       <li><a href="#OwnProps">OwnProps</a>: Enumerates an object's own properties.</li>
-      <li><a href="#__Ref">__Ref</a>: Retrieves a nested struct or virtual reference to a property.</li>
+      <li><a href="#__Ref">__Ref</a> <span class="ver">[v2.1-alpha.10+]</span>: Retrieves a nested struct or virtual reference to a property.</li>
     </ul>
   </li>
   <li><a href="#Properties">Properties</a>:
@@ -48,9 +48,9 @@
       <li><a href="#GetCapacity">ObjGetCapacity</a>, <a href="#SetCapacity">ObjSetCapacity</a>: Retrieve or set an Object's capacity to contain properties.</li>
       <li><a href="#OwnPropCount">ObjOwnPropCount</a>: Retrieve the number of own properties contained by an object.</li>
       <li>ObjHasOwnProp, ObjOwnProps: Equivalent to the corresponding predefined method, but cannot be overridden.</li>
-      <li><a href="#GetDataPtr">ObjGetDataPtr</a>: Returns the address of the object's structured data (typed properties).</li>
-      <li><a href="#GetDataSize">ObjGetDataSize</a>: Returns the size of the object's structure (typed properties), in bytes.</li>
-      <li><a href="#SetDataPtr">ObjSetDataPtr</a>: Sets the address of the object's structured data (typed properties).</li>
+      <li><a href="#GetDataPtr">ObjGetDataPtr</a> <span class="ver">[v2.1-alpha.3+]</span>: Returns the address of the object's structured data (typed properties).</li>
+      <li><a href="#GetDataSize">ObjGetDataSize</a> <span class="ver">[v2.1-alpha.3+]</span>: Returns the size of the object's structure (typed properties), in bytes.</li>
+      <li><a href="#SetDataPtr">ObjSetDataPtr</a> <span class="ver">[v2.1-alpha.3+]</span>: Sets the address of the object's structured data (typed properties).</li>
     </ul>
   </li>
 </ul>
@@ -143,7 +143,7 @@ Obj := Object.<span class="func">Call</span>()</pre>
 <h4 id="GetOwnPropDesc_Return_Value">Return Value</h4>
 <p>Type: <a href="../Concepts.htm#objects">Object</a></p>
 <p>For a dynamic property, the return value is a new object with an own property for each accessor function: <em>Get</em>, <em>Set</em>, <em>Call</em>. Each property is present only if the corresponding accessor function is defined in <em>Obj</em> itself. For a value property, the return value is a new object with a property named <em>Value</em>. In such cases, <code>Obj.GetOwnPropDesc(Name).Value == Obj.%Name%</code>.</p>
-<p><span class="ver">[v2.1-alpha.3+]:</span> For a <a href="../Structs.htm">typed property</a>, the return value is a new object with the own properties <code class="no-highlight">Type</code> and <code>Offset</code>. <em>Type</em> is a reserved type name (string) or a class object. <em>Offset</em> is the zero-based offset of the property in bytes, relative to the start of the object's structured data.</p>
+<p><span class="ver">[v2.1-alpha.3+]</span>: For a <a href="../Structs.htm">typed property</a>, the return value is a new object with the own properties <code class="no-highlight">Type</code> and <code>Offset</code>. <em>Type</em> is a reserved type name (string) or a class object. <em>Offset</em> is the zero-based offset of the property in bytes, relative to the start of the object's structured data.</p>
 <p class="note"><strong>Note:</strong> Typed properties are never owned by a struct instance; only by the struct's base objects.</p>
 <p>Modifying the returned object has no effect on <em>Obj</em> unless <a href="#DefineProp">DefineProp</a> is called.</p>
 <h4 id="GetOwnPropDesc_Error_Handling">Error Handling</h4>
@@ -210,7 +210,7 @@ Obj := Object.<span class="func">Call</span>()</pre>
 </dl>
 <h4 id="__Ref_Return_Value">Return Value</h4>
 <p>Type: <a href="../Concepts.htm#objects">Object</a></p>
-<p>If the property is a <a href="../Structs.htm#nested-structs">nested struct</a>, a reference to the struct is returned. The property corresponding to a nested struct can only be assigned a value if the struct defines a settable __value property. The struct itself can also be used as a virtual reference in that case. An <a href="../Structs.htm#abstract">abstract data type</a> typically implements both a getter and a setter, in which case the nested struct itself can only be retrieved via this method.</p>
+<p>If the property is a <a href="../Structs.htm#nested-structs">nested struct</a>, a reference to the struct is returned. The property corresponding to a nested struct can only be assigned a value if the struct defines a settable __Value property. The struct itself can also be used as a virtual reference in that case. An <a href="../Structs.htm#abstract">abstract data type</a> typically implements both a getter and a setter, in which case the nested struct itself can only be retrieved via this method.</p>
 <p>If the property is not a nested struct, a <a href="PropRef.htm">PropRef</a> is created and returned.</p>
 <h4 id="__Ref_Remarks">Remarks</h4>
 <p>This method is normally called indirectly via the <a href="../Variables.htm#ref">reference operator</a>. For example, <code>&amp;Obj.Prop</code> is equivalent to <code>Obj.__Ref('Prop')</code>.</p>
@@ -264,22 +264,21 @@ Obj := Object.<span class="func">Call</span>()</pre>
 <pre class="Syntax">MaxItems := <span class="func">ObjGetCapacity</span>(Obj)</pre>
 <p>An exception is thrown if <em>Obj</em> is of an incorrect type.</p>
 
-<div class="methodShort" id="GetDataPtr"><h3>ObjGetDataPtr <span class="ver">[v2.1-alpha.3+]</span></h3>
-<pre class="Syntax">Ptr := <span class="func">ObjGetDataPtr</span>(Obj)</pre>
+<h3 id="GetDataPtr">ObjGetDataPtr <span class="ver">[v2.1-alpha.3+]</span></h3>
 <p>Returns the address of the object's <a href="../Structs.htm">structured data</a> (typed properties).</p>
+<pre class="Syntax">Ptr := <span class="func">ObjGetDataPtr</span>(Obj)</pre>
 <p>An exception is thrown if <em>Obj</em> is of an incorrect type.</p>
-</div>
 
-<div class="methodShort" id="GetDataSize"><h3>ObjGetDataSize <span class="ver">[v2.1-alpha.3+]</span></h3>
-<pre class="Syntax">Size := <span class="func">ObjGetDataSize</span>(Obj)</pre>
+<h3 id="GetDataSize">ObjGetDataSize <span class="ver">[v2.1-alpha.3+]</span></h3>
 <p>Returns the size of the object's <a href="../Structs.htm">structure</a> (typed properties), in bytes.</p>
+<pre class="Syntax">Size := <span class="func">ObjGetDataSize</span>(Obj)</pre>
 <p><em>Obj</em> can be a struct instance or a Prototype object, so a non-zero return value does not necessarily mean that the object itself has structured data.</p>
 <p>An exception is thrown if <em>Obj</em> is of an incorrect type.</p>
-</div>
-       
-<div class="methodShort" id="SetDataPtr"><h3>ObjSetDataPtr <span class="ver">[v2.1-alpha.3+]</span></h3>
+
+<h3 id="SetDataPtr">ObjSetDataPtr <span class="ver">[v2.1-alpha.3+]</span></h3>
 <p>Sets the address of the object's <a href="../Structs.htm">structured data</a> (typed properties).</p>
 <pre class="Syntax"><span class="func">ObjSetDataPtr</span>(Obj, Ptr)</pre>
+<h4 class="func_section" id="SetDataPtr_Parameters">Parameters</h4>
 <dl>
   <dt>Ptr</dt>
   <dd>
@@ -287,11 +286,12 @@ Obj := Object.<span class="func">Call</span>()</pre>
     <p>Specify the address of a valid struct as defined by typed properties in <code>Obj.base</code>, or any integer if there are no typed properties.</p>
   </dd>
 </dl>
-<p>The script may use <a href="#ObjGetDataPtr">ObjGetDataPtr</a> to retrieve <em>Ptr</em>.</p>
+<h4 class="func_section" id="SetDataPtr_Remarks">Remarks</h4>
+<p>The script may use <a href="#GetDataPtr">ObjGetDataPtr</a> to retrieve <em>Ptr</em>.</p>
 <p>ObjSetDataPtr does not affect nested objects, as they each have their own data pointer (which points into the outer object's original data).</p>
 <p class="warning"><strong>Warning:</strong> This function is likely to be removed or replaced with a "pointer to struct" type, but is currently the only way to make direct use of typed properties with an externally allocated struct.</p>
+<h4 class="func_section" id="SetDataPtr_Error_Handling">Error Handling</h4>
 <p>An exception is thrown if <em>Obj</em> is of an incorrect type.</p>
-</div>
-               
+
 </body>
 </html>
