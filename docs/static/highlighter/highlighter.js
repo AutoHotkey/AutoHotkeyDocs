@@ -183,14 +183,12 @@ function ctor_highlighter()
     /** Searches for declarations, formats them and replaces them with placeholders. */
     function declarations(innerHTML)
     {
-      innerHTML = innerHTML.replace(new RegExp(r_pre + '\\b(' + syn[5].join('|') + ')(?:(' + r_s + '+)([' + r_char + ']+)(\\()?|' + r_suf + ')', 'gim'), function(_, PRE, DEC, SPACE, NAME, OPEN_PAREN)
+      innerHTML = innerHTML.replace(new RegExp(r_pre + '\\b(' + syn[5].join('|') + ')(?:(' + r_s + '+)([' + r_char + ']+.*))?' + r_suf, 'gim'), function(_, PRE, DEC, SPACE, VAL)
       {
-        var out = PRE + ph('dec', wrap(DEC, 'dec', 5));
-        if (DEC.toLowerCase() == 'static' && OPEN_PAREN) // static function definitions
-          out += SPACE + ph('fun', wrap(NAME, 'fun', null)) + OPEN_PAREN;
-        else if (NAME)
-          out += SPACE + expressions(NAME) + (OPEN_PAREN || '');
-        return out;
+        var repl = wrap(DEC, 'dec', 5);
+        if (VAL)
+          repl += SPACE + expressions(VAL);
+        return PRE + ph('dec', repl);
       });
       // class declarations:
       innerHTML = innerHTML.replace(new RegExp(r_pre + '\\b(class)(?:$|(' + r_s + '+)([' + r_char + ']+)(?:(' + r_s + '+)(extends)(' + r_s + '+)([' + r_char + ']+))?(?=(?=' + r_s + '*\\{)|' + r_suf + '))', 'gim'), function(_, PRE, CLASS, SPACE1, NAME1, SPACE2, EXTENDS, SPACE3, NAME2)
