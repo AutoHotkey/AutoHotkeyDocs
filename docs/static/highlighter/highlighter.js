@@ -203,6 +203,47 @@ function ctor_highlighter()
           repl += SPACE1 + expressions(NAME1);
         return PRE + ph('dec', repl);
       });
+      // import declarations:
+      innerHTML = innerHTML.replace(new RegExp(r_pre + '\\b(import)(?:$|'
+        + '(' + r_s + '+)([' + r_char + ']+|(?:("|\').*?\\5)+)(?:(' + r_s + '+)(as)(' + r_s + '+)([' + r_char + ']+))?(?:(' + r_s + '*)(\\{[\\s\\S]+?\\}))?' + r_suf + '|'
+        + '(' + r_s + '+)(\\*|\\{[\\s\\S]+?\\})(' + r_s + '*)(from)(' + r_s + '+)([' + r_char + ']+|(?:("|\').*?\\9)+)' + r_suf
+        + ')', 'gim'), function(_, PRE, IMPORT,
+          SPACE11, VAL11, _, SPACE12, AS, SPACE13, VAL12, SPACE14, VAL13,
+          SPACE21, VAL21, SPACE22, FROM, SPACE23, VAL22, _)
+      {
+        var link = index_data[syn[5].dict['import']][1];
+        var repl = wrap(IMPORT, 'dec', link);
+        if (VAL11)
+        {
+          repl += SPACE11 + expressions(VAL11);
+          if (AS)
+            repl += SPACE12 + wrap(AS, 'dec', link) + SPACE13 + expressions(VAL12);
+          if (VAL13)
+            repl += SPACE14 + expressions(highlight_as(VAL13));
+        }
+        else if (FROM)
+          repl += SPACE21 + expressions(highlight_as(VAL21)) + SPACE22 + wrap(FROM, 'dec', link) + SPACE23 + expressions(VAL22);
+        return PRE + ph('dec', repl);
+
+        function highlight_as(str) {
+          return str.replace(/\bas\b/gi, function(m) { return ph('dec', wrap(m, 'dec', link)) });
+        }
+      });
+      // export declarations:
+      innerHTML = innerHTML.replace(new RegExp(r_pre + '\\b(export)(?:$|(' + r_s + '+)(?:(default)(' + r_s + '+))?(([' + r_char + ']+).*))' + r_suf, 'gim'), function(_, PRE, EXPORT, SPACE1, DEFAULT, SPACE2, VAL, NAME)
+      {
+        var link = index_data[syn[5].dict['export']][1];
+        var repl = wrap(EXPORT, 'dec', link);
+        if (VAL)
+        {
+          repl += SPACE1 + (DEFAULT ? wrap(DEFAULT, 'dec', link) + SPACE2 : '')
+          if (['class', 'import'].indexOf(NAME.toLowerCase()) != -1)
+            repl += expressions(declarations(VAL));
+          else
+            repl += expressions(VAL);
+        }
+        return PRE + ph('dec', repl);
+      });
       return innerHTML;
     }
     /** Searches for directives, formats them and replaces them with placeholders. */
