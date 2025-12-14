@@ -1,0 +1,1258 @@
+    ; ====== Information =======
+    ; Last Updated: 2025-08-06
+    ; Version: 2.0
+    ; Last Updated By: Ray
+    ; ====== Information =======
+     
+     
+    #NoEnv
+    #SingleInstance, Force
+    #Persistent
+    CoordMode, Pixel, Screen, RGB
+    CoordMode, Mouse, Screen
+    #InstallKeybdHook
+    #UseHook
+    #KeyHistory, 0
+    #HotKeyInterval 1
+    #MaxHotkeysPerInterval 127
+    SetKeyDelay, -1, 1
+    SetControlDelay, -1
+    SetMouseDelay, -1
+    SetWinDelay, -1
+    SendMode, InputThenPlay
+    SetBatchLines, -1
+    ListLines, Off
+    CoordMode, Pixel, Screen, RGB
+    CoordMode, Mouse, Screen
+     
+    ; ====== General Startup Functions & Load GDI =======
+    ; Last Updated: 2025-08-06
+    ; Last Updated By: Ray
+    ; ====== General Startup Functions & Load GDI =======
+     
+    ; Set Process Priority
+    PID := DllCall("GetCurrentProcessId")
+    Process, Priority, %PID%, High
+    pToken := Gdip_Startup()
+     
+    ; Create configs folder if it doesn't exist
+    configFolder := A_ScriptDir . "\configs\"
+    if !FileExist(configFolder)
+        FileCreateDir, %configFolder%
+     
+    ; Update config list on startup
+    UpdateConfigList()
+     
+    ; Initialize GDI
+    Gdip_Startup() {
+        if !DllCall("GetModuleHandle", "str", "gdiplus")
+            DllCall("LoadLibrary", "str", "gdiplus")
+        VarSetCapacity(si, 16, 0), si := Chr(1)
+        DllCall("gdiplus\GdiplusStartup", "uint*", pToken, "uint", &si, "uint", 0)
+        return pToken
+    }
+     
+    Gdip_ExitGUI(pToken) {
+        DllCall("gdiplus\GdiplusExitGUI", "uint", pToken)
+        if hModule := DllCall("GetModuleHandle", "str", "gdiplus")
+            DllCall("FreeLibrary", "uint", hModule)
+        return 0
+    }
+     
+    GetDC(hwnd=0) {
+        return DllCall("GetDC", "uint", hwnd)
+    }
+     
+    ReleaseDC(hdc, hwnd=0) {
+        return DllCall("ReleaseDC", "uint", hwnd, "uint", hdc)
+    }
+     
+    Gdip_GraphicsFromHDC(hDC) {
+        DllCall("gdiplus\GdipCreateFromHDC", "uint", hDC, "uint*", pGraphics)
+        return pGraphics
+    }
+     
+    Gdip_DeleteGraphics(pGraphics) {
+        return DllCall("gdiplus\GdipDeleteGraphics", "uint", pGraphics)
+    }
+     
+    Gdip_CreatePen(ARGB, w) {
+        DllCall("gdiplus\GdipCreatePen1", "int", ARGB, "float", w, "int", 2, "uint*", pPen)
+        return pPen
+    }
+     
+    Gdip_DeletePen(pPen) {
+        return DllCall("gdiplus\GdipDeletePen", "uint", pPen)
+    }
+     
+    Gdip_DrawEllipse(pGraphics, pPen, x, y, w, h) {
+        return DllCall("gdiplus\GdipDrawEllipse", "uint", pGraphics, "uint", pPen
+        , "float", x, "float", y, "float", w, "float", h)
+    }
+     
+    Gdip_SetSmoothingMode(pGraphics, SmoothingMode) {
+        return DllCall("gdiplus\GdipSetSmoothingMode", "uint", pGraphics, "int", SmoothingMode)
+    }
+     
+    Gdip_DrawLine(pGraphics, pPen, x1, y1, x2, y2) {
+        return DllCall("gdiplus\GdipDrawLine", "uint", pGraphics, "uint", pPen
+        , "float", x1, "float", y1, "float", x2, "float", y2)
+    }
+     
+    ; ====== Enhanced Modern GUI Setup =======
+    ; Last Updated: 2025-08-06
+    ; Last Updated By: Ray
+    ; Modern dark theme with enhanced styling
+    ; ====== Enhanced Modern GUI Setup =======
+    
+    ; Create main GUI with modern styling
+    Gui, +AlwaysOnTop -Caption +ToolWindow +LastFound
+    Gui, Color, 0x1a1a1a  ; Dark modern background
+    
+    ; Add gradient background effect
+    WinSet, Transparent, 245
+    
+    ; Modern header styling
+    Gui, Font, bold s18 c0x00D4FF, Segoe UI  ; Modern blue accent color
+    global hue := 0
+    global saturation := 255
+    global brightness := 255
+    Gui, Add, Text, x15 y8 w240 h35 BackgroundTrans Center gGuiMove vRainbowText c0x00D4FF, TDP4 Tool
+    
+    ; Modern close button with hover effect
+    Gui, Font, bold s12 c0xFF4444, Segoe UI
+    Gui, Add, Button, x275 y8 w30 h25 gClose +0x8000, X
+    
+    ; Enhanced tab control with modern styling
+    Gui, Font, s9 cWhite, Segoe UI
+    Gui, Add, Tab3, x8 y45 w300 h340 vMainTab +0x8000 cWhite, Aim|Visual|Anti|Config|Settings
+     
+    ; ====== Enhanced Tab 1 - Aim Settings =======
+    Gui, Tab, 1
+    
+    ; Section: Core Aimbot Settings
+    Gui, Font, bold s10 c0x00D4FF, Segoe UI
+    Gui, Add, Text, x20 y75 w260, [+] CORE SETTINGS
+    Gui, Font, s9 c0xE0E0E0, Segoe UI
+    Gui, Add, CheckBox, x25 y95 w250 vEnableCheckbox Checked c0x4CAF50, Aimbot Enabled
+    Gui, Add, CheckBox, x25 y115 w250 vHumanizationCheckbox Checked c0xFFB74D, Aim Assist (Humanization)
+    Gui, Add, CheckBox, x25 y135 w250 vEnablePredictionCheckbox gEnablePrediction Checked c0x9C27B0, Prediction System
+    
+    ; Section: Target Selection
+    Gui, Font, bold s10 c0x00D4FF, Segoe UI
+    Gui, Add, Text, x20 y165 w260, [+] TARGET SELECTION
+    Gui, Font, s9 c0xE0E0E0, Segoe UI
+    Gui, Add, Text, x25 y185 w100, Aim Bone:
+    Gui, Add, DropDownList, x25 y200 w120 vaimbone Choose1 gUpdateAimbone c0x2d2d2d, Head|Chest
+    Gui, Add, CheckBox, x160 y200 w120 vHipFireModeEnabled Checked c0xFF5722, Hip Fire Mode
+    
+    ; Section: Advanced Settings
+    Gui, Font, bold s10 c0x00D4FF, Segoe UI
+    Gui, Add, Text, x20 y235 w260, [+] PRECISION CONTROL
+    Gui, Font, s9 c0xE0E0E0, Segoe UI
+    Gui, Add, Text, x25 y255 w260 vSmoothnessText, Aim Strength: %Smoothness%
+    Gui, Add, Slider, x25 y270 w250 vSmoothnessControlSlider Range0-1000 AltSubmit gUpdateSmoothness +0x10, 500
+ 
+     
+     
+    ; ====== Enhanced Tab 2 - Visual Settings =======
+    Gui, Tab, 2
+    
+    ; Section: ESP Features
+    Gui, Font, bold s10 c0x00D4FF, Segoe UI
+    Gui, Add, Text, x20 y75 w260, [+] ESP FEATURES
+    Gui, Font, s9 c0xE0E0E0, Segoe UI
+    Gui, Add, Checkbox, x25 y95 w250 vFOVCircleCheckbox Checked gToggleFOVCircle c0x4CAF50, Draw FOV Circle
+    Gui, Add, Checkbox, x25 y115 w250 vSnapLinesCheckbox Checked c0xFF9800, Draw Snap Lines
+	
+    ; Section: FOV Configuration
+    Gui, Font, bold s10 c0x00D4FF, Segoe UI
+    Gui, Add, Text, x20 y145 w260, [+] FOV CONFIGURATION
+    Gui, Font, s9 c0xE0E0E0, Segoe UI
+    Gui, Add, Text, x25 y165 w250 vFOVtext, FOV Size: %CFovX% px
+    Gui, Add, Slider, x25 y180 w250 vFOVControlSlider Range0-150 AltSubmit gUpdateFOV +0x10, 150
+    
+    ; Section: Color Customization
+    Gui, Font, bold s10 c0x00D4FF, Segoe UI
+    Gui, Add, Text, x20 y215 w260, [+] COLOR CUSTOMIZATION
+    Gui, Font, s9 c0xE0E0E0, Segoe UI
+    
+    ; FOV Circle Color
+    Gui, Add, Text, x25 y235 w120, FOV Circle:
+    Gui, Add, Edit, x25 y250 w80 vFOVColorInput c0x2d2d2d +Center, 00ff00
+    Gui, Add, Button, x110 y249 w60 h22 gUpdateFOVColor +0x8000, Update
+    
+    ; Snap Line Color
+    Gui, Add, Text, x25 y280 w120, Snap Lines:
+    Gui, Add, Edit, x25 y295 w80 vSnapLineColorInput c0x2d2d2d +Center, 00FF00
+    Gui, Add, Button, x110 y294 w60 h22 gUpdateSnapLineColor +0x8000, Update
+     
+    ; ====== Enhanced Tab 3 - Anti-Detection =======
+    Gui, Tab, 3
+    
+    ; Section: Protection Systems
+    Gui, Font, bold s10 c0x00D4FF, Segoe UI
+    Gui, Add, Text, x20 y75 w260, [+] PROTECTION SYSTEMS
+    Gui, Font, s9 c0xE0E0E0, Segoe UI
+    Gui, Add, CheckBox, x25 y95 w250 vAntiDetectCheckbox c0x4CAF50, Anti-Detection
+    Gui, Add, CheckBox, x25 y115 w250 vAntiSwitchCheckbox c0xFF9800, Anti-Switch
+    
+    ; Section: Recoil Control
+    Gui, Font, bold s10 c0x00D4FF, Segoe UI
+    Gui, Add, Text, x20 y145 w260, [+] RECOIL CONTROL
+    Gui, Font, s9 c0xE0E0E0, Segoe UI
+    Gui, Add, Text, x25 y165 w250 vAntiRecoilText, Anti-Recoil: %recoilMultiplier%
+    Gui, Add, Slider, x25 y180 w250 vRecoilCompensationSlider Range0-100 AltSubmit gUpdateAntiSlider +0x10, 0
+    
+    ; Section: Important Notice
+    Gui, Font, bold s10 c0xFF4444, Segoe UI
+    Gui, Add, Text, x20 y215 w260, [+] IMPORTANT NOTICE
+    Gui, Font, s8 c0xFF6B6B, Segoe UI
+    Gui, Add, Text, x25 y235 w250 Center, WARNING: Anti-Recoil is for Legit Configs Only
+    Gui, Add, Text, x25 y250 w250 Center c0xFFB74D, Use responsibly to avoid detection
+     
+    ; ====== Enhanced Tab 4 - Configuration Manager =======
+    Gui, Tab, 4
+    
+    ; Section: Save Configuration
+    Gui, Font, bold s10 c0x00D4FF, Segoe UI
+    Gui, Add, Text, x20 y75 w260, [+] SAVE CONFIGURATION
+    Gui, Font, s9 c0xE0E0E0, Segoe UI
+    Gui, Add, Text, x25 y95 w250, Config Name:
+    Gui, Add, Edit, x25 y110 w250 vConfigNameEdit c0x2d2d2d +Center, Enter Config Name
+    Gui, Add, Button, x25 y135 w250 h25 gSaveConfig +0x8000, Save Current Configuration
+    
+    ; Section: Load Configuration
+    Gui, Font, bold s10 c0x00D4FF, Segoe UI
+    Gui, Add, Text, x20 y175 w260, [+] LOAD CONFIGURATION
+    Gui, Font, s9 c0xE0E0E0, Segoe UI
+    Gui, Add, Text, x25 y195 w250, Select Config:
+    Gui, Add, DropDownList, x25 y210 w200 vConfigDropdown gLoadConfig c0x2d2d2d, ; Placeholder for dynamic list of configs
+    Gui, Add, Button, x225 y210 w50 h22 gRefreshConfigs +0x8000, Scan
+    Gui, Add, Button, x25 y240 w250 h25 gLoadConfig +0x8000, Load Selected Configuration
+    
+    ; Section: Manager Info
+    Gui, Font, bold s9 c0x4CAF50, Segoe UI
+    Gui, Add, Text, x25 y280 w250 Center, Configuration Manager
+    Gui, Font, s8 c0xFFB74D, Segoe UI
+    Gui, Add, Text, x25 y295 w250 Center, Save and load your custom settings
+
+     
+    ; ====== Enhanced Tab 5 - Advanced Settings =======
+    Gui, Tab, 5
+    
+    ; Section: Experimental Features
+    Gui, Font, bold s10 c0x00D4FF, Segoe UI
+    Gui, Add, Text, x20 y75 w260, [+] EXPERIMENTAL FEATURES
+    Gui, Font, s9 c0xE0E0E0, Segoe UI
+    Gui, Add, CheckBox, x25 y95 w250 vControllerSupportCheckbox c0xFF9800, Controller Support (BETA)
+    Gui, Add, CheckBox, x25 y115 w250 vIgnoreObjectivesCheckbox c0x9C27B0, Ignore Objectives (Large Targets)
+    
+    ; Section: Aim Adjustments
+    Gui, Font, bold s10 c0x00D4FF, Segoe UI
+    Gui, Add, Text, x20 y145 w260, [+] AIM ADJUSTMENTS
+    Gui, Font, s9 c0xE0E0E0, Segoe UI
+    Gui, Add, Text, vOffsetXText x25 y165 w250, X Offset: %OffsetX%
+    Gui, Add, Slider, x25 y180 w250 vOffsetXSlider Range-250-250 gUpdateOffsets +0x10, 0
+    Gui, Add, Text, vOffsetYText x25 y205 w250, Y Offset: %OffsetY%
+    Gui, Add, Slider, x25 y220 w250 vOffsetYSlider Range-250-250 gUpdateOffsets +0x10, 0
+    
+    ; Section: Color Configuration
+    Gui, Font, bold s10 c0x00D4FF, Segoe UI
+    Gui, Add, Text, x20 y250 w260, [+] COLOR CONFIGURATION
+    Gui, Font, s9 c0xE0E0E0, Segoe UI
+    Gui, Add, Text, x25 y270 w250, Enemy Color (Hex):
+    Gui, Add, Edit, x25 y285 w150 vInputColor c0x2d2d2d +Cursor, 0x00FF00
+    Gui, Add, Button, x180 y284 w70 h22 gUpdateColor +0x8000, Update
+    
+    ; Section: System Controls
+    Gui, Font, bold s10 c0x00D4FF, Segoe UI
+    Gui, Add, Text, x20 y315 w260, [+] SYSTEM CONTROLS
+    Gui, Font, s9 c0xE0E0E0, Segoe UI
+    Gui, Add, Button, x25 y335 w120 h25 gReloadScript +0x8000, Reload Script
+     
+    ; ====== Final GUI Enhancements =======
+    ; Create modern GUI with advanced styling
+    Gui +LastFound
+    WinSet, Region, 0-0 W310 H385 R15-15 ; Modern rounded corners
+    
+    ; Add drop shadow effect (Windows 10/11 style)
+    DllCall("dwmapi\DwmSetWindowAttribute", "ptr", WinExist(), "uint", 2, "int*", 2, "uint", 4)
+    
+    ; Apply anti-ricochet protection to main GUI
+    hwndMain := WinExist()
+    DllCall("user32.dll\SetWindowDisplayAffinity", "ptr", hwndMain, "uint", 0x00000011)
+    WinSet, ExStyle, +0x00200000, ahk_id %hwndMain%
+    
+    ; Start rainbow color animation for header
+    SetTimer, UpdateRainbowColor, 50 ; Smooth 50ms transitions
+     
+    ; ====== Show Enhanced GUI =======
+    Gui, Show, x100 y100 w310 h385, Ray Tool
+     
+    ; ====== Anti-Ricochet Screen Shot System =======
+    ; Last Updated: 2025-08-06
+    ; Last Updated By: Ray
+    ; Uses Windows API to hide from screen capture while remaining visible
+    ; ====== Anti-Ricochet Screen Shot System =======
+    
+    ; Anti-ricochet variables
+    AntiRicochetEnabled := true
+    
+    ; Apply anti-ricochet protection using Windows API
+    if (AntiRicochetEnabled) {
+        Gui +LastFound
+        hWnd := WinExist()
+        ; Method 1: SetWindowDisplayAffinity - Hides from screen capture
+        DllCall("user32.dll\SetWindowDisplayAffinity", "ptr", hWnd, "uint", 0x00000011)
+        ; Method 2: Add WS_EX_NOREDIRECTIONBITMAP extended style
+        WinSet, ExStyle, +0x00200000, ahk_id %hWnd%
+    }
+	
+	toggle=gToggleFOVCircle
+	return
+
+	rbutton::
+	toggle:=!toggle
+	if toggle=1
+	click ,right ,down
+	else
+	click, right, up
+	return
+     
+    ; ====== Timers | ARF =======
+    ; Last Updated: 2025-08-06
+    ; Last Updated By: Ray
+    ; ====== Timers | ARF =======
+     
+    ; Set a timer to update the text in real time while the slider is being dragged
+     SetTimer, UpdateOffsetsLive, 10
+     
+    ; Update FOV circles if enabled
+    if (FOVCircleEnabled) {
+        SetTimer, DrawFOVCircle, ; Draw the circle
+		MouseGetPos, startX, startY
+		DllCall("Ellipse", "ptr", hdc
+        , "int", startX - CFovX1
+        , "int", startY - CFovY1
+        , "int", startX + CFovX2
+        , "int", startY + CFovY2)
+    } else
+     
+    ; ====== Aim Logic Variables =======
+    ; Last Updated: 2025-08-06
+    ; Last Updated By: Ray
+    ; ====== Aim Logic Variables =======
+    EMCol := 0xDF00FF 
+    ColVn := 25
+    CFovX := 0
+    CFovY := 0
+    ScanL := ZeroX - CFovX
+    ScanT := ZeroY - CFovY
+    ScanR := ZeroX + CFovX
+    ScanB := ZeroY + CFovY
+    targetX := 0
+    targetY := 0
+    Smoothness := 1.5
+    recoilAccumulation := 0
+    recoilDecayRate := 0.1
+    recoilMax := 10
+    recoilMultiplier := 1
+    OffsetX := 0
+    OffsetY := 0
+    controllerSupport := True
+    reacquireTimer := 0
+    reacquisitionInterval := 10
+    predictionMultiplier := 3.0
+    predictionSmoothing := 1.0
+    prevX := 0, prevY := 0, lastTime := 0
+    lockedX := 0, lockedY := 0
+    switchMode := "Head"
+    nameLengthAdjustment := 0
+    prevTargetX := 0
+    prevTargetY := 0
+    deltaX := 0
+    deltaY := 0
+    predictedX := 0
+    predictedY := 0
+    prevTime := 0 
+    MaxTarget := 100  ; Maximum target size for objective filtering
+    global FOVCircleColor := 0xFF00FF00
+    global CFovX2 := 95
+    global CFovY2 := 95
+    global ZeroX2 := A_ScreenWidth / 2
+    global ZeroY2 := A_ScreenHeight / 2.18
+     
+    ; ====== Main Loop =======
+    ; Last Updated: 2025-08-06
+    ; Last Updated By: Ray
+    ; ====== Main Loop =======
+     
+    Loop {
+        targetFound := False
+     
+        ; Get GUI Control States
+        GuiControlGet, EnableState,, EnableCheckbox
+        GuiControlGet, AntiDetectEnabled,, AntiDetectCheckbox
+        GuiControlGet, HumanizationEnabled,, HumanizationCheckbox
+        GuiControlGet, ControllerSupportEnabled,, ControllerSupportCheckbox
+        GuiControlGet, AntiSwitchEnabled,, AntiSwitchCheckbox
+        GuiControlGet, Aimbone,, aimbone
+        GuiControlGet, HipFireModeEnabled,, HipFireModeEnabled
+     
+        ; Enable or disable Humanization and Prediction checkboxes
+        if (EnableState) {
+            GuiControl, Enabled, HumanizationCheckbox
+            GuiControl, Enabled, EnablePredictionCheckbox
+            GuiControl, Enabled, HipFireModeEnabled
+        } Else {
+            GuiControl,, HumanizationCheckbox, 0
+            GuiControl,, EnablePredictionCheckbox, 0
+            GuiControl,, HipFireModeEnabled, 0
+            GuiControl, Disabled, HumanizationCheckbox
+            GuiControl, Disabled, EnablePredictionCheckbox
+            GuiControl, Disabled, HipFireModeEnabled
+        }
+     
+        ; Dynamic Screen Center Calculation
+        ZeroX := A_ScreenWidth / 2.08
+        if (Aimbone = "Head") {
+            ZeroY := A_ScreenHeight / 2.18
+        } else if (Aimbone = "Chest") {
+            ZeroY := A_ScreenHeight / 2.4
+        }
+     
+        ; Adjust scan area based on name length
+        nameLengthAdjustment := StrLen(Aimbone) * 2
+        ScanL := ZeroX - CFovX - nameLengthAdjustment
+        ScanT := ZeroY - CFovY - nameLengthAdjustment
+        ScanR := ZeroX + CFovX + nameLengthAdjustment
+        ScanB := ZeroY + CFovY + nameLengthAdjustment
+     
+        ; Check for Controller Input (Xbox and DualShock)
+        GetKeyState, JoyZ, JoyZ   ; Check right trigger for Xbox
+        GetKeyState, Joy1, Joy1     ; Check Cross button for DualShock
+     
+        ; Check if Controller Support is enabled
+        controllerSupport := ControllerSupportEnabled
+     
+        if ((EnableState && (HipFireModeEnabled || GetKeyState("RButton", "P"))) || (controllerSupport && (JoyZ > 0 || Joy1))) {
+            if (!targetLocked || !AntiSwitchEnabled) {
+                PixelSearch, AimPixelX, AimPixelY, ScanL, ScanT, ScanR, ScanB, EMCol, ColVn, Fast RGB
+                if (!ErrorLevel) {
+                    ; Check if we should ignore objectives (large targets)
+                    GuiControlGet, IgnoreObjectivesEnabled,, IgnoreObjectivesCheckbox
+                    if (IgnoreObjectivesEnabled) {
+                        TargetWidth := Abs(AimPixelX - ZeroX) * 2
+                        TargetHeight := Abs(AimPixelY - ZeroY) * 2
+                        
+                        ; Skip this target if it's too large (likely an objective)
+                        if (TargetWidth > MaxTarget || TargetHeight > MaxTarget) {
+                            targetFound := False
+                            SetTimer, DrawSnapLine, Off
+                            Gui, SnapLine:Destroy
+                            continue
+                        }
+                    }
+                    
+                    ; Draw snap line if enabled
+                    GuiControlGet, SnapLinesEnabled,, SnapLinesCheckbox
+                    if (SnapLinesEnabled && !ErrorLevel) {
+                        SetTimer, DrawSnapLine, 1
+                    } else {
+                        SetTimer, DrawSnapLine, Off
+                        Gui, SnapLine:Destroy
+                    }
+     
+                    ; Proceed with aiming at the target
+                    targetX := AimPixelX + OffsetX
+                    targetY := AimPixelY + OffsetY
+                    targetFound := True
+                    if (AntiSwitchEnabled) {
+                        targetLocked := true
+                        reacquireTimer := 0
+                        lockedX := AimPixelX
+                        lockedY := AimPixelY
+                    }
+                } else {
+                    SetTimer, DrawSnapLine, Off
+                    Gui, SnapLine:Destroy
+                    targetFound := False
+                }
+            } else {
+                reacquireTimer += 1
+                if (reacquireTimer >= reacquisitionInterval) {
+                    PixelSearch, AimPixelX, AimPixelY, ScanL, ScanT, ScanR, ScanB, EMCol, ColVn, Fast RGB
+                    if (!ErrorLevel) {
+                        ; Check if we should ignore objectives (large targets)
+                        GuiControlGet, IgnoreObjectivesEnabled,, IgnoreObjectivesCheckbox
+                        if (IgnoreObjectivesEnabled) {
+                            TargetWidth := Abs(AimPixelX - ZeroX) * 2
+                            TargetHeight := Abs(AimPixelY - ZeroY) * 2
+                            
+                            ; Skip this target if it's too large (likely an objective)
+                            if (TargetWidth > MaxTarget || TargetHeight > MaxTarget) {
+                                reacquireTimer := 0
+                                continue
+                            }
+                        }
+                        
+                        targetX := AimPixelX + OffsetX
+                        targetY := AimPixelY + OffsetY
+                    }
+                    reacquireTimer := 0
+                }
+            }
+     
+            if (targetFound) {
+                ; Target locked logic
+                if (AntiSwitchEnabled && targetLocked) {
+                    reacquireTimer += 1
+                    if (reacquireTimer >= reacquisitionInterval) {
+                        PixelSearch, AimPixelX, AimPixelY, ScanL, ScanT, ScanR, ScanB, EMCol, ColVn, Fast RGB
+                        if (!ErrorLevel) {
+                            ; Check if we should ignore objectives (large targets)
+                            GuiControlGet, IgnoreObjectivesEnabled,, IgnoreObjectivesCheckbox
+                            if (IgnoreObjectivesEnabled) {
+                                TargetWidth := Abs(AimPixelX - ZeroX) * 2
+                                TargetHeight := Abs(AimPixelY - ZeroY) * 2
+                                
+                                ; Skip this target if it's too large (likely an objective)
+                                if (TargetWidth <= MaxTarget && TargetHeight <= MaxTarget) {
+                                    lockedX := AimPixelX + OffsetX
+                                    lockedY := AimPixelY + OffsetY
+                                }
+                            } else {
+                                lockedX := AimPixelX + OffsetX
+                                lockedY := AimPixelY + OffsetY
+                            }
+                        }
+                        reacquireTimer := 0
+                    }
+                    TargetAimX := lockedX + OffsetX - ZeroX
+                    TargetAimY := lockedY - ZeroY
+                } else {
+                    TargetAimX := targetX - ZeroX
+                    TargetAimY := targetY - ZeroY
+                }
+     
+                ; Calculate deltaTime based on previous target position
+                deltaTime := (A_TickCount - lastTime) / 1000.0
+                if (lastTime) {
+                    velocityX := (targetX - prevX) / deltaTime
+                    velocityY := (targetY - prevY) / deltaTime
+                }
+                prevX := targetX, prevY := targetY, lastTime := A_TickCount
+     
+                ; Prediction logic
+                GuiControlGet, PredictionEnabled,, EnablePredictionCheckbox
+                if (PredictionEnabled && deltaTime) {
+                    predictedX := targetX + Round(velocityX * predictionMultiplier * deltaTime)
+                    predictedY := targetY + Round(velocityY * predictionMultiplier * deltaTime)
+                    TargetAimX := (predictionSmoothing * TargetAimX) + ((1 - predictionSmoothing) * predictedX)
+                    TargetAimY := (predictionSmoothing * TargetAimY) + ((1 - predictionSmoothing) * predictedY)
+                }            
+     
+                ; Recoil Compensation
+                global recoilStartTime
+                if (GetKeyState("LButton", "P")) {
+                    if (recoilStartTime = "") {
+                        recoilStartTime := A_TickCount
+                    }
+                    
+                    timeSinceStart := A_TickCount - recoilStartTime
+                    recoilIncrease := recoilMultiplier * 1
+                    
+                    ; Vertical recoil (always active)
+                    recoilAccumulation += recoilIncrease
+                    recoilAccumulation := Min(recoilAccumulation, recoilMax)
+                    
+                    ; Horizontal recoil (activates after 1 second)
+                    if (timeSinceStart > 1000) {  ; 1000ms = 1 second
+                        horizontalRecoil := recoilMultiplier * 0.3  ; 30% of vertical recoil
+                    } else {
+                        horizontalRecoil := 0
+                    }
+                } else {
+                    recoilStartTime := ""
+                    horizontalRecoil := 0
+                    recoilAccumulation -= recoilDecayRate
+                }
+                recoilAccumulation := Max(recoilAccumulation, 0)
+     
+                GuiControlGet, sliderValue,, RecoilCompensationSlider
+                recoilMultiplier := Round(sliderValue / 10)
+                GuiControl,, AntiRecoilText, Anti-Recoil: %recoilMultiplier%
+                
+                MoveX := Round(TargetAimX * Smoothness) - horizontalRecoil  ; Apply horizontal recoil
+                MovePreY := Round(TargetAimY * Smoothness)
+                MoveY := Round(MovePreY + recoilAccumulation)  ; Apply vertical recoil
+     
+                ; Anti-detection humanization (random movement)
+                if (AntiDetectEnabled) {
+                    Random, randX, -2, 2
+                    Random, randY, -2, 2
+                    MoveX += randX
+                    MoveY += randY
+                }
+     
+                ; Humanization (if enabled)
+                if (HumanizationEnabled) {
+                    if (Abs(MoveX) > 4) {
+                        MoveX := 4 * (MoveX / Abs(MoveX))
+                    }
+                    if (Abs(MoveY) > 4) {
+                        MoveY := 4 * (MoveY / Abs(MoveY))
+                    }
+                }
+     
+                ; Only move if the movement is greater than 1 pixel to prevent micro-jitters
+                if (abs(MoveX) > 1 || abs(MoveY) > 1) {
+                    DllCall("mouse_event", uint, 1, int, MoveX, int, MoveY, uint, 0, int, 0)
+                }
+            } else {
+                targetLocked := false
+            }
+        }
+        ; Small delay between loops
+        Sleep, 5
+    }
+     
+    ; Helper function to calculate distance between two points
+    CalcDistance(x1, y1, x2, y2) {
+        return Sqrt((x2-x1)**2 + (y2-y1)**2)
+    }
+     
+    ; ====== Aim Functions =======
+    ; Last Updated: 2025-08-06
+    ; Last Updated By: Ray
+    ; ====== Aim Functions =======
+     
+    EnablePrediction:
+     ; Get target's current position relative to the shooter
+     MouseGetPos, startX, startY
+     
+     ; Assume target's position is somewhere else (for demonstration)
+     targetX := startX + 200
+     targetY := startY + 100
+     targetAngle := CalculateAngle(startX, startY, targetX, targetY)
+     
+     ; Get the time to hit the target
+     targetTime := CalculateTimeToImpact(targetDistance, bulletSpeed)
+     
+     ; Predicted position (use time to get the new position of the target)
+     predictedX := TargetAimX + playerSpeed * targetTime * Cos(targetAngle)
+     predictedY := TargetAimY + playerSpeed * targetTime * Sin(targetAngle)
+     
+     ; Move mouse to predicted position (or use for aiming in-game)
+     MouseMove, %predictedX%, %predictedY%, 0
+    return
+     
+    ; Function to calculate angle (uses ATan2 to handle all quadrants)
+    CalculateAngle(x1, y1, x2, y2) {
+        dx := x2 - x1
+        dy := y2 - y1
+        return ATan(dy / dx)
+    }
+     
+    ; Function to calculate time to impact
+    CalculateTimeToImpact(distance, bulletSpeed) {
+        travelTime := distance / bulletSpeed ; Simplified time prediction
+        return travelTime
+    }
+     
+    UpdateAimbone:
+        GuiControlGet, Aimbone,, aimbone
+        switchMode := Aimbone
+    Return
+     
+    UpdateSmoothness:
+        GuiControlGet, SliderValue,, SmoothnessControlSlider
+        Smoothness := Round(SliderValue * 0.0015, 1)  
+        GuiControl,, SmoothnessText, Strength: %Smoothness%
+    Return
+     
+    UpdateAntiSlider:
+        GuiControlGet, sliderValue,, RecoilCompensationSlider
+        recoilMultiplier := Round(sliderValue / 10) ;
+        GuiControl,, AntiRecoilText, Anti-Recoil: %recoilMultiplier%
+    Return
+     
+    UpdateColor:
+        GuiControlGet, InputColor,, InputColor
+        if RegExMatch(InputColor, "^0x[0-9A-Fa-f]{6}$") {
+            EMCol := InputColor
+            MsgBox, Enemy color updated to: %EMCol%
+        } Else {
+            MsgBox, Invalid color code format. Please enter a valid hex color code (e.g., 0xDF00FF).
+            EMCol := 0xDF00FF
+        }
+        return
+     
+    ; ====== FOV/Visual Functions =======
+    ; Last Updated: 2025-08-06
+    ; Last Updated By: Ray
+    ; ====== FOV/Visual Functions =======
+     
+    ToggleFOVCircle:
+        GuiControlGet, FOVCircleEnabled,, FOVCircleCheckbox
+        if (FOVCircleEnabled) {
+            SetTimer, DrawFOVCircle, ; Draw the circle
+		MouseGetPos, startX, startY
+		DllCall("Ellipse", "ptr", hdc
+        , "int", startX - CFovX1
+        , "int", startY - CFovY1
+        , "int", startX + CFovX2
+        , "int", startY + CFovY2)
+        } else {
+            SetTimer, DrawFOVCircle, Off
+            Gui, FOV:Destroy
+        }
+    return
+     
+    UpdateFOVCircle:
+        ; Update the size of the FOV circle based on the slider value
+        Gui, FOV:Submit, NoHide
+        CFovX := SliderFOV ; Get the new size from the slider
+     
+        ; Get screen dimensions and aspect ratio
+        screenWidth := A_ScreenWidth
+        screenHeight := A_ScreenHeight
+        aspectRatio := screenWidth / screenHeight
+     
+        ; Calculate CFovX and CFovY based on the FOV value
+        CFovX := FOV * aspectRatio  ; Horizontal FOV scaled by the aspect ratio
+        CFovY := FOV  ; Vertical FOV remains the same (no scaling needed)
+     
+        ; Round the FOV values to 1 decimal place
+        CFovX := Round(CFovX, 1)
+        CFovY := Round(CFovY, 1)
+     
+        ; Update scan area based on new FOV
+        ZeroX := screenWidth / 2
+        ZeroY := screenHeight / 2
+     
+        ScanL := ZeroX - CFovX
+        ScanT := ZeroY - CFovY
+        ScanR := ZeroX + CFovX
+        ScanB := ZeroY + CFovY
+     
+        ; Use the larger value for both dimensions to ensure a perfect circle
+        circleSize := Max(CFovX, CFovY) * 2  ; Use the larger of the two values for the circle
+        global CFovX2 := circleSize
+        global CFovY2 := circleSize
+     
+        ; Update the GUI with the new rounded FOV value
+        GuiControl,, FOVtext, FOV: %CFovX% px  ; Display the updated horizontal FOV value
+     
+        if (FOVCircleEnabled)
+            SetTimer, DrawFOVCircle, ; Draw the circle
+		MouseGetPos, startX, startY
+		DllCall("Ellipse", "ptr", hdc
+        , "int", startX - CFovX1
+        , "int", startY - CFovY1
+        , "int", startX + CFovX2
+        , "int", startY + CFovY2)
+    Return
+     
+    UpdateFOVColor:
+        GuiControlGet, newColor,, FOVColorInput
+        if (RegExMatch(newColor, "^[0-9A-Fa-f]{6}$")) {
+            FOVCircleColor := "0xFF" . newColor
+            if (FOVCircleEnabled)
+                DrawFOVCircle()
+        } else {
+            MsgBox, 0x10, Invalid Color, Please enter a valid 6-digit hex color code (e.g., 00FF00)
+        }
+    return
+     
+    UpdateFOV:
+        GuiControlGet, SliderValue,, FOVControlSlider  ; Get the FOV slider value
+        FOV := SliderValue  ; Set the FOV value from the slider
+     
+        ; Get screen dimensions and aspect ratio
+        screenWidth := A_ScreenWidth
+        screenHeight := A_ScreenHeight
+        aspectRatio := screenWidth / screenHeight
+     
+        ; Calculate CFovX and CFovY based on the FOV value
+        CFovX := FOV * aspectRatio  ; Horizontal FOV scaled by the aspect ratio
+        CFovY := FOV  ; Vertical FOV remains the same (no scaling needed)
+     
+        ; Round the FOV values to 1 decimal place
+        CFovX := Round(CFovX, 1)
+        CFovY := Round(CFovY, 1)
+     
+        ; Update scan area based on new FOV
+        ZeroX := screenWidth / 2
+        ZeroY := screenHeight / 2
+     
+        ScanL := ZeroX - CFovX
+        ScanT := ZeroY - CFovY
+        ScanR := ZeroX + CFovX
+        ScanB := ZeroY + CFovY
+     
+        ; Use the larger value for both dimensions to ensure a perfect circle
+        circleSize := Max(CFovX, CFovY) * 2  ; Use the larger of the two values for the circle
+        global CFovX2 := circleSize
+        global CFovY2 := circleSize
+     
+        ; Update the GUI with the new rounded FOV value
+        GuiControl,, FOVtext, FOV: %CFovX% px  ; Display the updated horizontal FOV value
+     
+        if (FOVCircleEnabled)
+            SetTimer, DrawFOVCircle, ; Draw the circle
+		MouseGetPos, startX, startY
+		DllCall("Ellipse", "ptr", hdc
+        , "int", startX - CFovX1
+        , "int", startY - CFovY1
+        , "int", startX + CFovX2
+        , "int", startY + CFovY2)
+    Return
+     
+    UpdateSnapLineColor:
+        GuiControlGet, NewColor,, SnapLineColorInput
+        if (StrLen(NewColor) != 6 || !RegExMatch(NewColor, "^[0-9A-Fa-f]+$")) {
+            MsgBox, Please enter a valid 6-digit hex color code (e.g., FF0000 for red)
+            return
+        }
+        return
+     
+    DrawFOVCircle() {
+        global ZeroX, ZeroY, FOVCircleColor, CFovX
+        static hwndFOV := 0
+     
+        ZeroX2 := A_ScreenWidth / ; Draw the circle
+		MouseGetPos, startX, startY
+		DllCall("Ellipse", "ptr", hdc
+        , "int", startX - CFovX1
+        , "int", startY - CFovY1
+        , "int", startX + CFovX2
+        , "int", startY + CFovY2)
+        ZeroY2 := A_ScreenHeight / ; Draw the circle
+		MouseGetPos, startX, startY
+		DllCall("Ellipse", "ptr", hdc
+        , "int", startX - CFovX1
+        , "int", startY - CFovY1
+        , "int", startX + CFovX2
+        , "int", startY + CFovY2)
+        CFovX3 := (CFovX2 + 7)
+     
+        ; Adjust position of the circle based on the center and FOV size
+        xPos := (ZeroX2 - CFovX2 / 2)
+        yPos := (ZeroY2 - CFovY2 / 2)
+     
+        ; Destroy the previous window if it exists
+        if (hwndFOV) {
+            Gui, FOV:Destroy
+            hwndFOV := 0
+        }
+     
+        ; Create a new transparent window to draw the FOV circle with anti-ricochet protection
+        Gui, FOV:+LastFound +AlwaysOnTop -Caption +E0x20 +ToolWindow +Owner
+        Gui, FOV:Color, 000000
+        WinSet, ExStyle, +0x20  ; Set WS_EX_TRANSPARENT
+        WinSet, TransColor, 000000 255
+        
+        ; Apply anti-ricochet protection to FOV circle
+        hwndFOV := WinExist()
+        DllCall("user32.dll\SetWindowDisplayAffinity", "ptr", hwndFOV, "uint", 0x00000011)
+        WinSet, ExStyle, +0x00200000, ahk_id %hwndFOV%
+     
+		Gui, +AlwaysOnTop +E0x20 -Caption +ToolWindow +LastFound
+		Gui, Show, x%startX% y%startY%, FOVCircle
+        ; Show the FOV window with calculated position and size
+        hwndFOV := WinExist()
+     
+        ; Drawing operations (GDI+ functions)
+        hdc := GetDC(hwndFOV)
+        Graphics := Gdip_GraphicsFromHDC(hdc)
+        Gdip_SetSmoothingMode(Graphics, 4)
+     
+        ; Create pen for drawing the FOV circle
+        pPen := Gdip_CreatePen(FOVCircleColor, 2)
+        Gdip_DrawEllipse(Graphics, pPen, 0, 0, CFovX2, CFovX2) ; Drawing ellipse with diameter
+     
+        ; Clean up
+        Gdip_DeletePen(pPen)
+        Gdip_DeleteGraphics(Graphics)
+        ReleaseDC(hdc, hwndFOV)
+     
+    }
+     
+    DrawSnapLine() {
+        global MoveX, MoveY, targetFound
+        static hwndSnapLine := 0
+     
+        ; Clear the line if no target or if target lost
+        if (!targetFound || (MoveX = 0 && MoveY = 0)) {
+            if (hwndSnapLine) {
+                Gui, SnapLine:Destroy
+                hwndSnapLine := 0
+            }
+            return
+        }
+     
+        ; Get screen center
+        screenCenterX := A_ScreenWidth / 2
+        screenCenterY := A_ScreenHeight / 2
+     
+        ; Get snap line color
+        GuiControlGet, SnapLineColor,, SnapLineColorInput
+        if (SnapLineColor = "") {
+            SnapLineColor := "FF0000"  ; Default to red if no color specified
+        }
+     
+        ; Calculate window position and size based on line endpoints
+        x1 := screenCenterX
+        y1 := screenCenterY
+        x2 := screenCenterX + MoveX  ; Add MoveX to center X
+        y2 := screenCenterY + MoveY  ; Add MoveY to center Y
+     
+        ; Calculate window position and dimensions to encompass the line
+        xPos := Min(x1, x2)
+        yPos := Min(y1, y2)
+        width := Abs(x2 - x1)
+        height := Abs(y2 - y1)
+     
+        ; Add padding to ensure line is fully visible
+        padding := 4
+        xPos -= padding
+        yPos -= padding
+        width += padding * 2
+        height += padding * 2
+     
+        ; Ensure minimum dimensions
+        width := Max(width, 1)
+        height := Max(height, 1)
+     
+        ; Destroy previous window if it exists
+        if (hwndSnapLine) {
+            Gui, SnapLine:Destroy
+            hwndSnapLine := 0
+        }
+     
+        ; Create transparent window for snap line with click-through and anti-ricochet protection
+        Gui, SnapLine:+LastFound +AlwaysOnTop -Caption +ToolWindow +E0x80000 +E0x20
+        Gui, SnapLine:Color, 000000
+        WinSet, Transparent, 255
+        WinSet, ExStyle, +0x20 +0x8  ; WS_EX_TRANSPARENT + WS_EX_TOPMOST
+        WinSet, TransColor, 000000
+        
+        ; Apply anti-ricochet protection to snap line
+        hwndSnapLine := WinExist()
+        DllCall("user32.dll\SetWindowDisplayAffinity", "ptr", hwndSnapLine, "uint", 0x00000011)
+        WinSet, ExStyle, +0x00200000, ahk_id %hwndSnapLine%
+     
+        ; Show the window
+        Gui, SnapLine:Show, w%width% h%height% x%xPos% y%yPos% NA
+        hwndSnapLine := WinExist()
+     
+        ; Draw the line
+        hdc := GetDC(hwndSnapLine)
+        G := Gdip_GraphicsFromHDC(hdc)
+        Gdip_SetSmoothingMode(G, 4)
+        pPen := Gdip_CreatePen("0xFF" . SnapLineColor, 2)
+     
+        ; Adjust coordinates relative to window position
+        relX1 := x1 - xPos
+        relY1 := y1 - yPos
+        relX2 := x2 - xPos
+        relY2 := y2 - yPos
+     
+        ; Draw line
+        Gdip_DrawLine(G, pPen, relX1, relY1, relX2, relY2)
+     
+        ; Clean up
+        Gdip_DeletePen(pPen)
+        Gdip_DeleteGraphics(G)
+        ReleaseDC(hdc, hwndSnapLine)
+    }
+     
+    ; Convert HSV to RGB
+    HSVtoRGB(h, s, v) {
+        h := Mod(h, 360)
+        s := s/255
+        v := v/255
+        
+        if (s = 0) {
+            r := v
+            g := v
+            b := v
+        } else {
+            h := h/60
+            i := Floor(h)
+            f := h - i
+            p := v * (1 - s)
+            q := v * (1 - s * f)
+            t := v * (1 - s * (1 - f))
+            
+            if (i = 0) {
+                r := v, g := t, b := p
+            } else if (i = 1) {
+                r := q, g := v, b := p
+            } else if (i = 2) {
+                r := p, g := v, b := t
+            } else if (i = 3) {
+                r := p, g := q, b := v
+            } else if (i = 4) {
+                r := t, g := p, b := v
+            } else {
+                r := v, g := p, b := q
+            }
+        }
+        
+        r := Round(r * 255)
+        g := Round(g * 255)
+        b := Round(b * 255)
+        
+        return Format("0x{:02X}{:02X}{:02X}", r, g, b)
+    }
+     
+    UpdateRainbowColor:
+        hue := Mod(hue + 2, 360) ; Increment hue by 2 degrees each time
+        newColor := HSVtoRGB(hue, saturation, brightness)
+        GuiControl, % "+c" . newColor, RainbowText
+    return
+     
+    ; ====== Config Functions =======
+    ; Last Updated: 2025-08-06
+    ; Last Updated By: Ray
+    ; ====== Config Functions =======
+     
+    UpdateConfigList() {
+        global configFolder
+        configs := ""
+        Loop, %configFolder%*.ini
+        {
+            SplitPath, A_LoopFileName,,,, nameNoExt
+            configs .= nameNoExt . "|"
+        }
+        GuiControl,, ConfigDropdown, |%configs%
+    }
+     
+    ; Initial population of dropdown list when the GUI is shown
+    SetTimer, InitialConfigLoad, -100  ; Delay the initial load slightly to ensure GUI is ready
+     
+    Return
+     
+    InitialConfigLoad:
+        UpdateConfigList()
+    Return
+     
+    SaveConfig:
+        ; Get the config name and ensure it's not empty
+        GuiControlGet, ConfigName,, ConfigNameEdit
+        if (ConfigName = "" || ConfigName = "Enter Config Name") {
+            MsgBox, Please enter a valid configuration name.
+            Return
+        }
+        
+        ; Get all current settings
+        GuiControlGet, Human,, HumanizationCheckbox
+        GuiControlGet, EnableState,, EnableCheckbox
+        GuiControlGet, AntiDetectEnabled,, AntiDetectCheckbox
+        GuiControlGet, Smoothness,, SmoothnessControlSlider
+        GuiControlGet, recoilCompensation,, RecoilCompensationSlider
+        GuiControlGet, FOV,, FOVControlSlider
+        GuiControlGet, AntiSwitchEnabled,, AntiSwitchCheckbox
+        GuiControlGet, PredictionEnabled,, EnablePredictionCheckbox
+        GuiControlGet, AimBone,, aimbone
+        GuiControlGet, HipFireMode,, HipFireModeEnabled
+        GuiControlGet, IgnoreBigTargets,, IgnoreBigTargetsCheckbox
+        GuiControlGet, FOVCircle,, FOVCircleCheckbox
+        GuiControlGet, FOVColor,, FOVColorInput
+        GuiControlGet, ControllerSupport,, ControllerSupportCheckbox
+        GuiControlGet, IgnoreObjectives,, IgnoreObjectivesCheckbox
+        GuiControlGet, EnemyColor,, InputColor
+        GuiControlGet, OffsetX,, OffsetXSlider
+        GuiControlGet, OffsetY,, OffsetYSlider
+     
+        ; Create/Write configuration to INI file
+        configFile := configFolder . ConfigName . ".ini"
+        IniWrite, %Human%, %configFile%, Settings, HumanizationEnabled
+        IniWrite, %EnableState%, %configFile%, Settings, AimAssistEnabled
+        IniWrite, %AntiDetectEnabled%, %configFile%, Settings, AntiDetectionEnabled
+        IniWrite, %Smoothness%, %configFile%, Settings, Smoothness
+        IniWrite, %recoilCompensation%, %configFile%, Settings, RecoilCompensation
+        IniWrite, %FOV%, %configFile%, Settings, FOV
+        IniWrite, %AntiSwitchEnabled%, %configFile%, Settings, AntiSwitchEnabled
+        IniWrite, %PredictionEnabled%, %configFile%, Settings, PredictionEnabled
+        IniWrite, %AimBone%, %configFile%, Settings, AimBone
+        IniWrite, %HipFireMode%, %configFile%, Settings, HipFireMode
+        IniWrite, %IgnoreBigTargets%, %configFile%, Settings, IgnoreBigTargets
+        IniWrite, %FOVCircle%, %configFile%, Settings, FOVCircle
+        IniWrite, %FOVColor%, %configFile%, Settings, FOVColor
+        IniWrite, %ControllerSupport%, %configFile%, Settings, ControllerSupport
+        IniWrite, %IgnoreObjectives%, %configFile%, Settings, IgnoreObjectives
+        IniWrite, %EnemyColor%, %configFile%, Settings, EnemyColor
+        IniWrite, %OffsetX%, %configFile%, Settings, OffsetX
+        IniWrite, %OffsetY%, %configFile%, Settings, OffsetY
+     
+        ; Update config dropdown list
+        UpdateConfigList()
+        
+        MsgBox, Configuration saved successfully!
+    Return
+     
+    LoadConfig:
+        ; Get selected config name from dropdown
+        GuiControlGet, SelectedConfig,, ConfigDropdown
+        if (SelectedConfig = "") {
+            MsgBox, Please select a configuration to load.
+            Return
+        }
+     
+        configFile := configFolder . SelectedConfig . ".ini"
+        if !FileExist(configFile) {
+            MsgBox, Configuration file not found.
+            Return
+        }
+     
+        ; Read settings from selected config file
+        IniRead, Human, %configFile%, Settings, HumanizationEnabled, 0
+        IniRead, EnableState, %configFile%, Settings, AimAssistEnabled, 0
+        IniRead, AntiDetectEnabled, %configFile%, Settings, AntiDetectionEnabled, 0
+        IniRead, Smoothness, %configFile%, Settings, Smoothness, 0.1
+        IniRead, recoilCompensation, %configFile%, Settings, RecoilCompensation, 0.0
+        IniRead, FOV, %configFile%, Settings, FOV, 50
+        IniRead, AntiSwitchEnabled, %configFile%, Settings, AntiSwitchEnabled, 0
+        IniRead, PredictionEnabled, %configFile%, Settings, PredictionEnabled, 0
+        IniRead, AimBone, %configFile%, Settings, AimBone, Head
+        IniRead, HipFireMode, %configFile%, Settings, HipFireMode, 0
+        IniRead, IgnoreBigTargets, %configFile%, Settings, IgnoreBigTargets, 0
+        IniRead, FOVCircle, %configFile%, Settings, FOVCircle, 0
+        IniRead, FOVColor, %configFile%, Settings, FOVColor, 00FF00
+        IniRead, ControllerSupport, %configFile%, Settings, ControllerSupport, 0
+        IniRead, IgnoreObjectives, %configFile%, Settings, IgnoreObjectives, 0
+        IniRead, EnemyColor, %configFile%, Settings, EnemyColor, 0xDF00FF
+        IniRead, OffsetX, %configFile%, Settings, OffsetX, 50
+        IniRead, OffsetY, %configFile%, Settings, OffsetY, 0
+     
+        ; Update the GUI with the loaded values
+        GuiControl,, HumanizationCheckbox, %Human%
+        GuiControl,, EnableCheckbox, %EnableState%
+        GuiControl,, AntiDetectCheckbox, %AntiDetectEnabled%
+        GuiControl,, FOVControlSlider, %FOV%
+        GuiControl,, SmoothnessControlSlider, %Smoothness%
+        GuiControl,, RecoilCompensationSlider, %recoilCompensation%
+        GuiControl,, AntiSwitchCheckbox, %AntiSwitchEnabled%
+        GuiControl,, EnablePredictionCheckbox, %PredictionEnabled%
+        GuiControl, ChooseString, aimbone, %AimBone%
+        GuiControl,, HipFireModeEnabled, %HipFireMode%
+        GuiControl,, IgnoreBigTargetsCheckbox, %IgnoreBigTargets%
+        GuiControl,, FOVCircleCheckbox, %FOVCircle%
+        GuiControl,, FOVColorInput, %FOVColor%
+        GuiControl,, ControllerSupportCheckbox, %ControllerSupport%
+        GuiControl,, IgnoreObjectivesCheckbox, %IgnoreObjectives%
+        GuiControl,, InputColor, %EnemyColor%
+        GuiControl,, OffsetXSlider, %OffsetX%
+        GuiControl,, OffsetYSlider, %OffsetY%
+     
+        ; Update text displays
+        GuiControl,, SmoothnessText, Strength: %Smoothness%
+     
+        ; Update any visual elements that depend on these settings
+        Gosub, UpdateOffsets
+        if (FOVCircle)
+            Gosub, ToggleFOVCircle
+     
+        MsgBox, Configuration loaded successfully!
+    Return
+     
+    RefreshConfigs:
+        configs := ""
+        Loop, %configFolder%*.ini
+        {
+            SplitPath, A_LoopFileName,,,, nameNoExt
+            configs .= nameNoExt . "|"
+        }
+        GuiControl,, ConfigDropdown, |%configs%
+    Return
+     
+    ; ====== Keybind Functions =======
+    ; Last Updated: 2025-08-06
+    ; Last Updated By: Ray
+    ; ====== Keybind Functions =======
+     
+    ; Toggle Hide and Show with Insert key
+    Insert::
+    IfWinExist, Ray Tool
+    {
+        Gui, Hide
+    }
+    else
+    {
+        Gui, Show
+    }
+    Return
+     
+    ; ====== Live Update Functions =======
+    ; Last Updated: 2025-08-06
+    ; Last Updated By: Ray
+    ; ====== Live Update Functions =======
+     
+    UpdateOffsets:
+        ; Get the current values from the sliders
+        GuiControlGet, OffsetXSliderValue,, OffsetXSlider
+        GuiControlGet, OffsetYSliderValue,, OffsetYSlider
+     
+        ; Update the global offset variables
+        OffsetX := OffsetXSliderValue
+        OffsetY := OffsetYSliderValue
+        
+     
+        ; Update the text for X and Y offsets in the GUI
+        GuiControl,, OffsetXText, X Offset: %OffsetX%
+        GuiControl,, OffsetYText, Y Offset: %OffsetY%
+     
+    Return
+     
+    UpdateOffsetsLive:
+        ; Get the current slider values (this is done continuously with the timer)
+        GuiControlGet, OffsetXSliderValue,, OffsetXSlider
+        GuiControlGet, OffsetYSliderValue,, OffsetYSlider
+        GuiControlGet, SmoothnessSliderValue,, SmoothnessControlSlider
+        GuiControlGet, RecoilCompensationSliderValue,, RecoilCompensationSlider
+        GuiControlGet, FOVSliderValue,, FOVControlSlider
+     
+        ; Update the text for X and Y offsets in the GUI
+        GuiControl,, OffsetXText, X Offset: %OffsetXSliderValue%
+        GuiControl,, OffsetYText, Y Offset: %OffsetYSliderValue%
+        GuiControl,, SmoothnessText, Strength: %Smoothness%
+        GuiControl,, AntiRecoilText, Anti-Recoil: %recoilMultiplier%
+        GuiControl,, FOVtext, FOV: %CFovX% px  ;
+     
+    Return
+     
+       ; Last Updated By: Ray
+    ; ====== GUI Functions =======
+     
+    GuiMove:
+        PostMessage, 0xA1, 2, , , A
+    Return
+     
+    ReloadScript:
+        Reload
+    Return
+     
+ 
+     
+ 
+     
+    ; ====== Exit Functions =======
+    ; Last Updated: 2025-08-06
+    ; Last Updated By: Ray
+    ; ====== Exit Functions =======
+     
+    Close:
+    ; Clean up ESP overlays
+    SetTimer, DrawSnapLine, Off
+    SetTimer, DrawFOVCircle, Off
+    Gdip_ExitGUI(pToken)
+    GuiClose:
+        ; Clean up ESP overlays
+        SetTimer, DrawSnapLine, Off
+        SetTimer, DrawFOVCircle, Off
+        ExitApp
+    Return
