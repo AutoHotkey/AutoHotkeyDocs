@@ -233,8 +233,19 @@ IPCtrlGetAddress(GuiCtrl)
 <p><strong>Right:</strong> Causes the drop-down calendar to drop down on the right side of the control instead of the left.</p>
 <p><strong>1:</strong> Specify the number 1 in <em>Options</em> to provide an up-down control to the right of the control to modify date-time values, which replaces the button of the drop-down month calendar that would otherwise be available. This does not work in conjunction with the format option LongDate described above.</p>
 <p id="ChooseNone"><strong>2:</strong> Specify the number 2 in <em>Options</em> to provide a checkbox inside the control that the user may uncheck to indicate that no date/time is selected. Once the control is created, this option cannot be changed.</p>
-<p><strong>Colors inside the drop-down calendar:</strong> The colors of the day numbers inside the drop-down calendar obey that set by <a href="Gui.htm#SetFont">Gui.SetFont</a> or the <a href="Gui.htm#OtherOptions">c (Color)</a> option. To change the colors of other parts of the calendar, follow this example:</p>
-<pre><a href="SendMessage.htm">SendMessage</a> 0x1006, 4, 0xFFAA99, "SysDateTimePick321" <em>; 0x1006 is DTM_SETMCCOLOR. 4 is MCSC_MONTHBK (background color). The color must be specified in BGR vs. RGB format (red and blue components swapped).</em></pre>
+<p><strong>Colors inside the drop-down calendar:</strong> To change the colors of any part of the drop-down calendar, follow this example:</p>
+<pre>MyGui := Gui()
+DT := MyGui.Add("DateTime")
+MyGui.Show()
+
+<a href="SendMessage.htm">SendMessage</a> 0x1006, 4, 0xFFAA99, DT <em>; 0x1006 is DTM_SETMCCOLOR. 4 is MCSC_MONTHBK (background color). The color must be specified in BGR vs. RGB format (red and blue components swapped).</em>
+DT.OnNotify(-754, OnDropDown) <em>; -754 is DTN_DROPDOWN.</em>
+
+OnDropDown(DT, lParam) {
+    hMonthCal := SendMessage(0x1008, 0, 0, DT) <em>; 0x1008 is DTM_GETMONTHCAL.</em>
+    DllCall("UxTheme.dll\SetWindowTheme", "Ptr", hMonthCal, "WStr", "", "WStr", "", "HRESULT") <em>; Turn off visual styles for the MonthCal control.</em>
+}
+</pre>
 
 <a id="DDL"></a><h2 id="DropDownList">DropDownList (or DDL)</h2>
 <p>A list of choices that is displayed in response to pressing a small button.  In this case, the last parameter of <a href="Gui.htm#Add">Gui.Add</a> is an <a href="Array.htm">Array</a> like <code>["Choice1", "Choice2", "Choice3"]</code>.</p>
