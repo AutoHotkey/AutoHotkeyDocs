@@ -62,51 +62,31 @@
 <h2 id="Examples">Examples</h2>
 
 <div class="ex" id="ExList">
-<p><a class="ex_number" href="#ExList"></a> Shows a list of running processes retrieved via <a href="DllCall.htm">DllCall</a>.</p>
-<pre>d := "  |  "  <em>; string separator</em>
-s := 4096  <em>; size of buffers and arrays (4 KB)</em>
+<p><a class="ex_number" href="#ExList"></a> Shows a list of running processes retrieved via <a href="DllCall.htm">DllCall</a> and <a href="https://learn.microsoft.com/windows/win32/api/psapi/nf-psapi-enumprocesses">EnumProcesses</a>.</p>
+<pre>MyGui := Gui()
+LV := MyGui.Add("ListView", "w1300 r25", ["#", "PID", "Name", "Path"])
+for Index, Proc in GetProcessList()
+    LV.Add("", Index, Proc.PID, Proc.Name, Proc.Path)
+LV.ModifyCol()
+MyGui.Title := LV.GetCount() " Processes"
+MyGui.Show()
 
-ScriptPID := ProcessExist()  <em>; The PID of this running script.</em>
-<em>; Get the handle of this script with PROCESS_QUERY_INFORMATION (0x0400):</em>
-h := DllCall("OpenProcess", "UInt", 0x0400, "Int", false, "UInt", ScriptPID, "Ptr")
-<em>; Open an adjustable access token with this process (TOKEN_ADJUST_PRIVILEGES = 32):</em>
-DllCall("Advapi32.dll\OpenProcessToken", "Ptr", h, "UInt", 32, "PtrP", &amp;t := 0)
-<em>; Retrieve the locally unique identifier of the debug privilege:</em>
-DllCall("Advapi32.dll\LookupPrivilegeValue", "Ptr", 0, "Str", "SeDebugPrivilege", "Int64P", &amp;luid := 0)
-ti := Buffer(16, 0)  <em>; structure of privileges</em>
-NumPut( "UInt", 1  <em>; one entry in the privileges array...</em>
-      , "Int64", luid
-      , "UInt", 2  <em>; Enable this privilege: SE_PRIVILEGE_ENABLED = 2</em>
-      , ti)
-<em>; Update the privileges of this process with the new access token:</em>
-r := DllCall("Advapi32.dll\AdjustTokenPrivileges", "Ptr", t, "Int", false, "Ptr", ti, "UInt", 0, "Ptr", 0, "Ptr", 0)
-DllCall("CloseHandle", "Ptr", t)  <em>; Close the access token handle to save memory.</em>
-DllCall("CloseHandle", "Ptr", h)  <em>; Close the process handle to save memory.</em>
-
-hModule := DllCall("LoadLibrary", "Str", "Psapi.dll")  <em>; Increase performance by preloading the library.</em>
-a := Buffer(s)  <em>; An array that receives the list of process identifiers:</em>
-c := 0  <em>; counter for process idendifiers</em>
-l := ""
-DllCall("Psapi.dll\EnumProcesses", "Ptr", a, "UInt", s, "UIntP", &amp;r)
-Loop r // 4  <em>; Parse array for identifiers as DWORDs (32 bits):</em>
-{
-    id := NumGet(a, A_Index * 4, "UInt")
-    <em>; Open process with: PROCESS_VM_READ (0x0010) | PROCESS_QUERY_INFORMATION (0x0400)</em>
-    h := DllCall("OpenProcess", "UInt", 0x0010 | 0x0400, "Int", false, "UInt", id, "Ptr")
-    if !h
-        continue
-    n := Buffer(s, 0)  <em>; A buffer that receives the base name of the module:</em>
-    e := DllCall("Psapi.dll\GetModuleBaseName", "Ptr", h, "Ptr", 0, "Ptr", n, "UInt", s//2)
-    if !e    <em>; Fall-back method for 64-bit processes when in 32-bit mode:</em>
-        e := DllCall("Psapi.dll\GetProcessImageFileName", "Ptr", h, "Ptr", n, "UInt", s//2)
-    SplitPath StrGet(n), &amp;n
-    DllCall("CloseHandle", "Ptr", h)  <em>; Close the process handle to save memory.</em>
-    if (n &amp;&amp; e)  <em>; If image is not null add to list:</em>
-        l .= n "`n", c++
-}
-DllCall("FreeLibrary", "Ptr", hModule)  <em>; Unload the library to free memory.</em>
-<em>;l := Sort(l)  ; Uncomment this line to sort the list alphabetically.</em>
-MsgBox StrReplace(l, "`n", d), c " Processes", 0</pre>
+GetProcessList(MaxProcs := 1024) {
+    Arr := []  <em>; array to store the process information</em>
+    DllCall("Psapi.dll\EnumProcesses"
+        , "Ptr", Buf := Buffer(MaxProcs * 4)  <em>; buffer to store all PIDs</em>
+        , "UInt", Buf.Size
+        , "UIntP", &amp;ByteCnt := 0)  <em>; number of bytes returned by DllCall</em>
+    Loop (ByteCnt // 4) {
+        PID := NumGet(Buf, (A_Index - 1) * 4, "UInt")
+        try Arr.Push({
+            Name: ProcessGetName(PID),
+            Path: ProcessGetPath(PID),
+            PID: PID
+        })
+    }
+    return Arr
+}</pre>
 </div>
 
 <div class="ex" id="ExListCOM">

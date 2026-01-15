@@ -233,8 +233,30 @@ IPCtrlGetAddress(GuiCtrl)
 <p><strong>Right:</strong> Causes the drop-down calendar to drop down on the right side of the control instead of the left.</p>
 <p><strong>1:</strong> Specify the number 1 in <em>Options</em> to provide an up-down control to the right of the control to modify date-time values, which replaces the button of the drop-down month calendar that would otherwise be available. This does not work in conjunction with the format option LongDate described above.</p>
 <p id="ChooseNone"><strong>2:</strong> Specify the number 2 in <em>Options</em> to provide a checkbox inside the control that the user may uncheck to indicate that no date/time is selected. Once the control is created, this option cannot be changed.</p>
-<p><strong>Colors inside the drop-down calendar:</strong> The colors of the day numbers inside the drop-down calendar obey that set by <a href="Gui.htm#SetFont">Gui.SetFont</a> or the <a href="Gui.htm#OtherOptions">c (Color)</a> option. To change the colors of other parts of the calendar, follow this example:</p>
-<pre><a href="SendMessage.htm">SendMessage</a> 0x1006, 4, 0xFFAA99, "SysDateTimePick321" <em>; 0x1006 is DTM_SETMCCOLOR. 4 is MCSC_MONTHBK (background color). The color must be specified in BGR vs. RGB format (red and blue components swapped).</em></pre>
+<p><strong>Colors inside the drop-down calendar:</strong> To change the colors of any part of the drop-down calendar, use <a href="SendMessage.htm">SendMessage</a> as in this example:</p>
+<pre>DTM_SETMCCOLOR    := 0x1006
+
+MCSC_BACKGROUND   := 0 <em>; overall background</em>
+MCSC_MONTHBK      := 4 <em>; the month's background</em>
+MCSC_TEXT         := 1 <em>; the month's text</em>
+MCSC_TITLEBK      := 2 <em>; the title's background</em>
+MCSC_TITLETEXT    := 3 <em>; the title's text</em>
+MCSC_TRAILINGTEXT := 5 <em>; the other months' text</em>
+
+BackColor := 0xFFAA99 <em>; The calendar's new background color (BGR, not RGB).</em>
+TextColor := 0x0066CC <em>; The calendar's new text color (BGR, not RGB).</em>
+
+MyGui := Gui()
+DT := MyGui.Add("DateTime")
+DT.OnNotify(-754, DTN_DROPDOWN) <em>; Force Classic Theme appearance.</em>
+SendMessage(DTM_SETMCCOLOR, MCSC_MONTHBK, BackColor, DT)
+SendMessage(DTM_SETMCCOLOR, MCSC_TEXT, TextColor, DT)
+MyGui.Show()
+
+DTN_DROPDOWN(DT, lParam) {
+    hCal := SendMessage(0x1008, 0, 0, DT) <em>; 0x1008 is DTM_GETMONTHCAL.</em>
+    DllCall("UxTheme\SetWindowTheme", "Ptr", hCal, "WStr", "", "WStr", "")
+}</pre>
 
 <a id="DDL"></a><h2 id="DropDownList">DropDownList (or DDL)</h2>
 <p>A list of choices that is displayed in response to pressing a small button.  In this case, the last parameter of <a href="Gui.htm#Add">Gui.Add</a> is an <a href="Array.htm">Array</a> like <code>["Choice1", "Choice2", "Choice3"]</code>.</p>
@@ -417,8 +439,24 @@ MyGui.Show()</pre>
 <p><strong>4:</strong> Specify the number 4 in <em>Options</em> to display week numbers (1-53) to the left of each row of days. Week numbering is determined by the operating system's user local settings. The three possible modes are described in the documentation for <a href="https://learn.microsoft.com/windows/win32/intl/locale-ifirstweekofyear">LOCALE_IFIRSTWEEKOFYEAR</a>.</p>
 <p><strong>8:</strong> Specify the number 8 in <em>Options</em> to prevent the circling of today's date within the control.</p>
 <p><strong>16:</strong> Specify the number 16 in <em>Options</em> to prevent the display of today's date at the bottom of the control.</p>
-<p><strong>Colors:</strong> The colors of the day numbers inside the calendar obey that set by <a href="Gui.htm#SetFont">Gui.SetFont</a> or the <a href="Gui.htm#OtherOptions">c (Color)</a> option. To change the colors of other parts of the calendar, follow this example:</p>
-<pre><a href="SendMessage.htm">SendMessage</a> 0x100A, 5, 0xFFAA99, "SysMonthCal321" <em>; 0x100A is MCM_SETCOLOR. 5 is MCSC_TITLETEXT (color of title text). The color must be specified in BGR vs. RGB format (red and blue components swapped).</em></pre>
+<p><strong>Colors:</strong> The colors of the day numbers inside the calendar obey that set by <a href="Gui.htm#SetFont">Gui.SetFont</a> or the <a href="Gui.htm#OtherOptions">c (Color)</a> option if the control has <a href="Gui.htm#Theme">Classic Theme appearance</a>. To change the colors of other parts of the calendar, use <a href="SendMessage.htm">SendMessage</a> as in this example:</p>
+<pre>MCM_SETCOLOR      := 0x100A
+
+MCSC_BACKGROUND   := 0 <em>; overall background</em>
+MCSC_MONTHBK      := 4 <em>; the month's background</em>
+MCSC_TEXT         := 1 <em>; the month's text</em>
+MCSC_TITLEBK      := 2 <em>; the title's background</em>
+MCSC_TITLETEXT    := 3 <em>; the title's text</em>
+MCSC_TRAILINGTEXT := 5 <em>; other months' text</em>
+
+TitleBackColor := 0xFFAA99 <em>; The title's new background color (BGR, not RGB).</em>
+TitleTextColor := 0x0066CC <em>; The title's new text color (BGR, not RGB).</em>
+
+MyGui := Gui()
+MC := MyGui.Add("MonthCal", "-Theme")
+SendMessage(MCM_SETCOLOR, MCSC_TITLEBK, TitleBackColor, MC)
+SendMessage(MCM_SETCOLOR, MCSC_TITLETEXT, TitleTextColor, MC)
+MyGui.Show()</pre>
 
 <a id="Pic"></a><h2 id="Picture">Picture (or Pic)</h2>
 <p>An area containing an image (see last two paragraphs for supported file types). The last parameter is the filename of the image, which is assumed to be in <a href="../Variables.htm#WorkingDir">A_WorkingDir</a> if an absolute path isn't specified.</p>

@@ -480,6 +480,7 @@ function ctor_highlighter()
     /** Searches for statements, formats them and replaces them with placeholders. */
     function statements(innerHTML)
     {
+      innerHTML = escape_sequences(innerHTML);
       innerHTML = declarations(innerHTML);
       innerHTML = control_flow_statements(innerHTML);
       innerHTML = expressions(innerHTML);
