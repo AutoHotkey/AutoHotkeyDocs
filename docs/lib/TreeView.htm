@@ -8,6 +8,15 @@
 <link href="../static/theme.css" rel="stylesheet" type="text/css" />
 <link href="../static/dark.css" rel="stylesheet" type="text/css" media="(prefers-color-scheme: dark)" id="dark_css" />
 <script src="../static/content.js" type="text/javascript"></script>
+<style>
+  img {
+    margin: 0 1.5em;
+    border: 1px solid silver;
+  }
+  @media only screen and (max-width: 600px) {
+    img { margin: 0; }
+  }
+</style>
 </head>
 
 <body>
@@ -16,20 +25,21 @@
 <h2 id="toc">Table of Contents</h2>
 <ul>
   <li><a href="#Intro">Introduction and Simple Example</a></li>
-  <li><a href="#Options">Options and Styles for the Options Parameter</a></li>
-  <li><a href="#BuiltIn">Built-in Methods for TreeViews</a></li>
+  <li><a href="#Parameters">Parameters</a></li>
+  <li><a href="#BuiltIn">Built-in Methods</a></li>
   <li><a href="#Events">Events</a></li>
+  <li><a href="#IL">ImageLists</a> (the means by which icons are added to a TreeView)</li>
   <li><a href="#Remarks">Remarks</a></li>
   <li><a href="#Examples">Examples</a></li>
 </ul>
+
 <h2 id="Intro">Introduction and Simple Example</h2>
 <p>A TreeView displays a hierarchy of items by indenting child items beneath their parents. The most common example is Explorer's tree of drives and folders.</p>
 <p>A TreeView usually looks like this:</p>
 <img src="../static/ctrl_treeview.png" alt="TreeView" />
 <p>The syntax for creating a TreeView is:</p>
-<pre class="Syntax" id="GuiAdd">TV := GuiObj.<span class="func">Add</span>("TreeView", Options)</pre>
-<p>Or:</p>
-<pre class="Syntax">TV := GuiObj.<span class="func">AddTreeView</span>(Options)</pre>
+<pre class="Syntax" id="GuiAdd"><a href="GuiControl.htm">GuiCtrl</a> := MyGui.<span class="func">Add</span>("TreeView", Options)
+<a href="GuiControl.htm">GuiCtrl</a> := MyGui.<span class="func">AddTreeView</span>(Options)</pre>
 <p>Here is a working script that creates and displays a simple hierarchy of items:</p>
 <pre>MyGui := Gui()
 TV := MyGui.Add("TreeView")
@@ -41,34 +51,30 @@ P2C2 := TV.Add("Parent 2's second child", P2)
 P2C2C1 := TV.Add("Child 2's first child", P2C2)
 
 MyGui.Show()  <em>; Show the window and its TreeView.</em></pre>
-<h2 id="Options">Options and Styles for the Options Parameter</h2>
-<p><strong>Background:</strong> Specify the word <em>Background</em> followed immediately by a color name (see <a href="../misc/Colors.htm">color chart</a>) or RGB value (the 0x prefix is optional). Examples: <code class="no-highlight">BackgroundSilver</code>, <code class="no-highlight">BackgroundFFDD99</code>. If this option is not present, the TreeView initially defaults to the system's default background color. Specifying <code class="no-highlight">BackgroundDefault</code> or <code class="no-highlight">-Background</code> applies the system's default background color (usually white). For example, a TreeView can be restored to the default color via <code>TV.Opt("+BackgroundDefault")</code>.</p>
-<p><strong>Buttons:</strong> Specify <code class="no-highlight">-Buttons</code> (minus Buttons) to avoid displaying a plus or minus button to the left of each item that has children.</p>
-<p><strong>C:</strong> Text color. Specify the letter C followed immediately by a color name (see <a href="../misc/Colors.htm">color chart</a>) or RGB value (the 0x prefix is optional). Examples: <code class="no-highlight">cRed</code>, <code class="no-highlight">cFF2211</code>, <code class="no-highlight">c0xFF2211</code>, <code class="no-highlight">cDefault</code>.</p>
-<p id="Checked"><strong>Checked:</strong> Provides a checkbox at the left side of each item. When <a href="#Add">adding</a> an item, specify the word <em>Check</em> in its options to have the box to start off checked instead of unchecked. The user may either click the checkbox or press the spacebar to check or uncheck an item. To discover which items in a TreeView are currently checked, call the <a href="#GetNext">GetNext method</a> or <a href="#Get">Get method</a>.</p>
-<p><strong>HScroll:</strong> Specify <code class="no-highlight">-HScroll</code> (minus HScroll) to disable horizontal scrolling in the control (in addition, the control will not display any horizontal scroll bar).</p>
-<p id="ImageList"><strong>ImageList:</strong> This is the means by which icons are added to a TreeView. Specify the word <em>ImageList</em> followed immediately by the ImageListID returned from a previous call to <a href="ListView.htm#IL_Create">IL_Create</a>. This option has an effect only when creating a TreeView (however, the <a href="#SetImageList">SetImageList method</a> does not have this limitation). Here is a working example:</p>
-<pre>MyGui := Gui()
-ImageListID := <a href="ListView.htm#IL_Create">IL_Create</a>(10)  <em>; Create an ImageList with initial capacity for 10 icons.</em>
-Loop 10  <em>; Load the ImageList with some standard system icons.</em>
-    <a href="ListView.htm#IL_Add">IL_Add</a>(ImageListID, "shell32.dll", A_Index)
-TV := MyGui.Add("TreeView", "ImageList" . ImageListID)
-<a href="#Add">TV.Add</a>("Name of Item", 0, "Icon4")  <em>; Add an item to the TreeView and give it a folder icon.</em>
-MyGui.Show()</pre>
-<p><strong>Lines:</strong> Specify <code class="no-highlight">-Lines</code> (minus Lines) to avoid displaying a network of lines connecting parent items to their children. However, removing these lines also prevents the plus/minus buttons from being shown for top-level items.</p>
-<p id="ReadOnly"><strong>ReadOnly:</strong> Specify <code class="no-highlight">-ReadOnly</code> (minus ReadOnly) to allow editing of the text/name of each item. To edit an item, select it then press <kbd>F2</kbd> (see the <a href="#WantF2">WantF2</a> option below). Alternatively, you can click an item once to select it, wait at least half a second, then click the same item again to edit it. After being edited, an item can be alphabetically repositioned among its siblings via the following example:</p>
-<pre>TV := MyGui.Add("TreeView", "-ReadOnly")
-TV.OnEvent("ItemEdit", TV_Edit)  <em>; Call TV_Edit whenever a user has finished editing an item.</em>
-<em>; ...</em>
-TV_Edit(TV, Item)
-{
-    TV.Modify(TV.GetParent(Item), "Sort")  <em>; This works even if the item has no parent.</em>
-}</pre>
-<p><strong>R:</strong> Rows of height (upon creation). Specify the letter R followed immediately by the number of rows for which to make room inside the control. For example, <code class="no-highlight">R10</code> would make the control 10 items tall.</p>
-<p id="WantF2"><strong>WantF2:</strong> Specify <code class="no-highlight">-WantF2</code> (minus WantF2) to prevent <kbd>F2</kbd> from <a href="#ReadOnly">editing</a> the currently selected item. This setting is ignored unless <a href="#ReadOnly">-ReadOnly</a> is also in effect.</p>
-<p><strong>(Unnamed numeric styles):</strong> Since styles other than the above are rarely used, they do not have names. See the <a href="../misc/Styles.htm#TreeView">TreeView styles table</a> for a list.</p>
+
+<h2 id="Parameters">Parameters</h2>
+<dl>
+  <dt id="Options">Options</dt>
+  <dd>
+    <p>Type: <a href="../Concepts.htm#strings">String</a></p>
+    <p>In addition to the <a href="Gui.htm#Add_Options">general options and styles</a>, the following are supported or noteworthy:</p>
+    <p><strong>Background</strong><em>Color</em>: Background color. Specify for <em>Color</em> a color name (see <a href="../misc/Colors.htm">color chart</a>) or RGB value (the 0x prefix is optional). Examples: <code class="no-highlight">BackgroundSilver</code>, <code class="no-highlight">BackgroundFFDD99</code>. If this option is not present, the TreeView initially defaults to the system's default background color. Specifying <code class="no-highlight">BackgroundDefault</code> applies the system's default background color (usually white). For example, a TreeView can be restored to the default color via <code>TV.Opt("+BackgroundDefault")</code>.</p>
+    <p><strong>Buttons:</strong> Specify <code class="no-highlight">-Buttons</code> (minus Buttons) to avoid displaying a plus or minus button to the left of each item that has children.</p>
+    <p><strong>C</strong><em>Color</em>: Text color. Specify for <em>Color</em> a color name (see <a href="../misc/Colors.htm">color chart</a>) or RGB value (the 0x prefix is optional). Examples: <code class="no-highlight">cRed</code>, <code class="no-highlight">cFF2211</code>, <code class="no-highlight">c0xFF2211</code>, <code class="no-highlight">cDefault</code>.</p>
+    <p id="Checked"><strong>Checked:</strong> Provides a checkbox at the left side of each item. When <a href="#Add">adding</a> an item, specify the word <em>Check</em> in its options to have the box to start off checked instead of unchecked. The user may either click the checkbox or press the spacebar to check or uncheck an item. To discover which items in a TreeView are currently checked, call the <a href="#GetNext">GetNext</a> or <a href="#Get">Get</a> methods.</p>
+    <p><strong>HScroll:</strong> Specify <code class="no-highlight">-HScroll</code> (minus HScroll) to disable horizontal scrolling in the control (in addition, the control will not display any horizontal scroll bar).</p>
+    <p id="ImageList"><strong>ImageList</strong><em>ID</em>: This is the means by which icons are added to a TreeView. Specify for <em>ID</em> the ImageList ID returned from a previous call to <a href="ListView.htm#IL_Create">IL_Create</a>. This option has an effect only when creating a TreeView. Alternatively, the <a href="#SetImageList">SetImageList</a> method can be used without the limitation previously mentioned. For details, see <a href="#IL">ImageLists</a>.</p>
+    <p><strong>Lines:</strong> Specify <code class="no-highlight">-Lines</code> (minus Lines) to avoid displaying a network of lines connecting parent items to their children. However, removing these lines also prevents the plus/minus buttons from being shown for top-level items.</p>
+    <p id="ReadOnly"><strong>ReadOnly:</strong> Specify <code class="no-highlight">-ReadOnly</code> (minus ReadOnly) to allow editing of the text/name of each item. To edit an item, select it then press <kbd>F2</kbd> (see the <a href="#WantF2">WantF2</a> option below). Alternatively, you can click an item once to select it, wait at least half a second, then click the same item again to edit it. After being edited, an item can be alphabetically repositioned among its siblings, as in <a href="#ExEdit">example #1</a>.</p>
+    <p id="WantF2"><strong>WantF2:</strong> Specify <code class="no-highlight">-WantF2</code> (minus WantF2) to prevent <kbd>F2</kbd> from <a href="#ReadOnly">editing</a> the currently selected item. This setting is ignored unless <a href="#ReadOnly">-ReadOnly</a> is also in effect.</p>
+    <p><strong>W</strong><em>n</em>: Sets the width of the control. For example, specifying <code class="no-highlight">w400</code> would make the control 400 pixels wide. If omitted, the default is 30 times the current font size.</p>
+    <p><strong>R</strong><em>n</em> or <strong>H</strong><em>n</em>: Sets the height of the control. For example, specifying <code class="no-highlight">r7</code> would make room for 7 rows inside the control, while <code class="no-highlight">h400</code> would set the total height of the control to 400 pixels. If both R and H are omitted, the default is 5 rows.</p>
+    <p><strong>(Unnamed numeric styles):</strong> Since styles other than the above are rarely used, they do not have names. See the <a href="../misc/Styles.htm#TreeView">TreeView styles table</a> for a list.</p>
+  </dd>
+</dl>
+
 <h2 id="BuiltIn">Built-in Methods for TreeViews</h2>
-<p>In addition to the <a href="GuiControl.htm">default methods/properties of a GUI control</a>, TreeView controls have the following methods (defined in the Gui.TreeView class).</p>
+<p>In addition to the <a href="GuiControl.htm">default methods/properties of a GUI control</a>, this control type has the following methods:</p>
 <p>Item methods:</p>
 <ul>
   <li><a href="#Add">Add</a>: Adds a new item to the TreeView.</li>
@@ -113,20 +119,20 @@ TV_Edit(TV, Item)
     <p>If blank or omitted, it defaults to no options. Otherwise, specify one or more options from the list below (not case-sensitive). Separate each option from the next with a space or tab. To remove an option, precede it with a minus sign. To add an option, a plus sign is permitted but not required.</p>
     <p id="Bold"><strong>Bold:</strong> Displays the item's name in a bold font. To later un-bold the item, use <code>TV.Modify(ItemID, "-Bold")</code>. The word <em>Bold</em> may optionally be followed immediately by a 0 or 1 to indicate the starting state.</p>
     <p id="Check"><strong>Check:</strong> Shows a checkmark to the left of the item (if the TreeView has <a href="#Checked">checkboxes</a>). To later uncheck it, use <code>TV.Modify(ItemID, "-Check")</code>. The word <em>Check</em> may optionally be followed immediately by a 0 or 1 to indicate the starting state. In other words, both <code>"Check"</code> and <code>"Check" . VarContainingOne</code> are the same (the period used here is the <a href="../Variables.htm#concat">concatenation operator</a>).</p>
-    <p id="Expand"><strong>Expand:</strong> Expands the item to reveal its children (if any). To later collapse the item, use <code>TV.Modify(ItemID, "-Expand")</code>. If there are no children, the <a href="#Modify">Modify method</a> returns 0 instead of the item's ID. By contrast, the <a href="#Add">Add method</a> marks the item as expanded in case children are added to it later. Unlike the <a href="#Select">Select</a> option below, expanding an item does not automatically expand its parent. Finally, the word <em>Expand</em> may optionally be followed immediately by a 0 or 1 to indicate the starting state. In other words, both <code>"Expand"</code> and <code>"Expand" . VarContainingOne</code> are the same.</p>
-    <p><strong>First | Sort | N:</strong> These options apply only to the <a href="#Add">Add method</a>. They specify the new item's position relative to its siblings (a <em>sibling</em> is any other item on the same level). If none of these options is present, the new item is added as the last/bottom sibling. Otherwise, specify the word <em>First</em> to add the item as the first/top sibling, or specify the word <em>Sort</em> to insert it among its siblings in alphabetical order. If a plain integer <em>N</em> is specified, it is assumed to be ID number of the sibling after which to insert the new item (if <em>N</em> is the only option present, it does not have to be enclosed in quotes).</p>
-    <p><strong>Icon:</strong> Specify the word <em>Icon</em> followed immediately by the number of this item's icon, which is displayed to the left of the item's name. If this option is absent, the first icon in the <a href="#ImageList">ImageList</a> is used. To display a blank icon, specify a number that is larger than the number of icons in the ImageList. If the control lacks an ImageList, no icon is displayed nor is any space reserved for one.</p>
-    <p id="Select"><strong>Select:</strong> Selects the item. Since only one item at a time can be selected, any previously selected item is automatically de-selected. In addition, this option reveals the newly selected item by expanding its parent(s), if necessary. To find out the current selection, call the <a href="#GetSelection">GetSelection method</a>.</p>
-    <p><strong>Sort:</strong> For the <a href="#Modify">Modify method</a>, this option alphabetically sorts the children of the specified item. To instead sort all top-level items, use <code>TV.Modify(0, "Sort")</code>. If there are no children, 0 is returned instead of the ID of the modified item.</p>
+    <p id="Expand"><strong>Expand:</strong> Expands the item to reveal its children (if any). To later collapse the item, use <code>TV.Modify(ItemID, "-Expand")</code>. If there are no children, the <a href="#Modify">Modify</a> method returns 0 instead of the item's ID. By contrast, the <a href="#Add">Add</a> method marks the item as expanded in case children are added to it later. Unlike the <a href="#Select">Select</a> option below, expanding an item does not automatically expand its parent. Finally, the word <em>Expand</em> may optionally be followed immediately by a 0 or 1 to indicate the starting state. In other words, both <code>"Expand"</code> and <code>"Expand" . VarContainingOne</code> are the same.</p>
+    <p><strong>First | Sort | N:</strong> These options apply only to the <a href="#Add">Add</a> method. They specify the new item's position relative to its siblings (a <em>sibling</em> is any other item on the same level). If none of these options is present, the new item is added as the last/bottom sibling. Otherwise, specify the word <em>First</em> to add the item as the first/top sibling, or specify the word <em>Sort</em> to insert it among its siblings in alphabetical order. If a plain integer <em>N</em> is specified, it is assumed to be ID number of the sibling after which to insert the new item (if <em>N</em> is the only option present, it does not have to be enclosed in quotes).</p>
+    <p><strong>Icon:</strong> Specify the word <em>Icon</em> followed immediately by the number of this item's icon, which is displayed to the left of the item's name. If this option is absent, the first icon in the <a href="#IL">ImageList</a> is used. To display a blank icon, specify a number that is larger than the number of icons in the ImageList. If the control lacks an ImageList, no icon is displayed nor is any space reserved for one.</p>
+    <p id="Select"><strong>Select:</strong> Selects the item. Since only one item at a time can be selected, any previously selected item is automatically de-selected. In addition, this option reveals the newly selected item by expanding its parent(s), if necessary. To find out the current selection, call the <a href="#GetSelection">GetSelection</a> method.</p>
+    <p><strong>Sort:</strong> For the <a href="#Modify">Modify</a> method, this option alphabetically sorts the children of the specified item. To instead sort all top-level items, use <code>TV.Modify(0, "Sort")</code>. If there are no children, 0 is returned instead of the ID of the modified item.</p>
     <p><strong>Vis:</strong> Ensures that the item is completely visible by scrolling the TreeView and/or expanding its parent, if necessary.</p>
-    <p><strong>VisFirst:</strong> Same as above except that the TreeView is also scrolled so that the item appears at the top, if possible. This option is typically more effective when used with the <a href="#Modify">Modify method</a> than with the <a href="#Add">Add method</a>.</p>
+    <p><strong>VisFirst:</strong> Same as above except that the TreeView is also scrolled so that the item appears at the top, if possible. This option is typically more effective when used with the <a href="#Modify">Modify</a> method than with the <a href="#Add">Add</a> method.</p>
   </dd>
 </dl>
 <h4 id="Add_Return_Value">Return Value</h4>
 <p>Type: <a href="../Concepts.htm#numbers">Integer</a></p>
 <p>On success, this method returns the unique ID number of the newly added item. On failure, it returns 0.</p>
 <h4 id="Add_Remarks">Remarks</h4>
-<p>When adding a large number of items, performance can be improved by using <code>TV.Opt("-Redraw")</code> before adding the items and <code>TV.Opt("+Redraw")</code> afterward. See <a href="GuiControl.htm#redraw-remarks">Redraw</a> for more details.</p>
+<p>When adding a large number of items, performance can be improved by using <code>TV.Opt("-Redraw")</code> before adding the items and <code>TV.Opt("+Redraw")</code> afterward. See <a href="GuiControl.htm#Redraw">Redraw</a> for more details.</p>
 </div>
 
 <div class="methodShort" id="Modify">
@@ -226,6 +232,7 @@ TV_Edit(TV, Item)
 <h3>GetPrev</h3>
 <p>Returns the ID number of the sibling above the specified item.</p>
 <pre class="Syntax">PrevItemID := TV.<span class="func">GetPrev</span>(ItemID)</pre>
+<h4 id="GetPrev_Parameters">Parameters</h4>
 <dl>
   <dt>ItemID</dt>
   <dd>
@@ -319,7 +326,7 @@ Loop
 
 <div class="methodShort" id="SetImageList">
 <h3>SetImageList</h3>
-<p>Sets or replaces an <a href="ListView.htm#IL">ImageList</a> for displaying icons.</p>
+<p>Sets or replaces an <a href="#IL">ImageList</a> for displaying icons.</p>
 <pre class="Syntax">PrevImageListID := TV.<span class="func">SetImageList</span>(ImageListID <span class="optional">, IconType</span>)</pre>
 <h4 id="SetImageList_Parameters">Parameters</h4>
 <dl>
@@ -340,7 +347,7 @@ Loop
 </div>
 
 <h2 id="Events">Events</h2>
-<p>The following events can be detected by calling <a href="GuiOnEvent.htm">OnEvent</a> to register a callback function or method:</p>
+<p>The following events can be detected by calling <a href="GuiControl.htm#OnEvent">GuiControl.OnEvent</a> to register a callback function or method:</p>
 <table class="info">
   <tr><th>Event</th><th>Raised when...</th></tr>
   <tr><td><a href="GuiOnEvent.htm#Click">Click</a></td><td>The control is clicked.</td></tr>
@@ -353,7 +360,20 @@ Loop
   <tr><td><a href="GuiOnEvent.htm#ItemExpand">ItemExpand</a></td><td>An item is expanded or collapsed.</td></tr>
   <tr><td><a href="GuiOnEvent.htm#ItemSelect">ItemSelect</a></td><td>An item is selected.</td></tr>
 </table>
-<p>Additional (rarely-used) notifications can be detected by using <a href="GuiOnNotify.htm">OnNotify</a>. These notifications are <a href="https://learn.microsoft.com/windows/win32/controls/bumper-tree-view-control-reference-notifications">documented at Microsoft Docs</a>. Microsoft Docs does not show the numeric value of each notification code; those can be found in the Windows SDK or by searching the Internet.</p>
+<p>Additional (rarely-used) notifications can be detected by using <a href="GuiControl.htm#OnNotify">GuiControl.OnNotify</a>. These notifications are <a href="https://learn.microsoft.com/windows/win32/controls/bumper-tree-view-control-reference-notifications">documented at Microsoft Docs</a>. Microsoft Docs does not show the numeric value of each notification code; those can be found in the Windows SDK or by searching the Internet.</p>
+
+<h2 id="IL">ImageLists</h2>
+<p>An Image-List is a group of identically sized icons stored in memory. Upon creation, each ImageList is empty. The script calls <a href="ListView.htm#IL_Add">IL_Add</a> repeatedly to add icons to the list, and each icon is assigned a sequential number starting at 1. This is the number to which the script refers to display a particular icon to the left of an item's name. Here is a working example that demonstrates how to put icons into a TreeView:</p>
+<pre>MyGui := Gui()
+ImageListID := <a href="ListView.htm#IL_Create">IL_Create</a>(10)  <em>; Create an ImageList with initial capacity for 10 icons.</em>
+Loop 10  <em>; Load the ImageList with some standard system icons.</em>
+    <a href="ListView.htm#IL_Add">IL_Add</a>(ImageListID, "shell32.dll", A_Index)
+TV := MyGui.Add("TreeView", "ImageList" . ImageListID)
+<a href="#Add">TV.Add</a>("Name of Item", 0, "Icon4")  <em>; Add an item to the TreeView and give it a folder icon.</em>
+MyGui.Show()</pre>
+<p>The <a href="#SetImageList">SetImageList</a> method can be used as an alternative to the <a href="#ImageList">ImageList</a> option.</p>
+<p>For detailed information about all ImageList functions, check out the <a href="ListView.htm#IL">ListView page</a>.</p>
+<p id="ILremarks">Unlike <a href="ListView.htm">ListViews</a>, a TreeView's ImageList is not automatically destroyed when the TreeView is destroyed. Therefore, a script should call <a href="ListView.htm#IL_Destroy">IL_Destroy</a> after destroying a TreeView's window if the ImageList will not be used for anything else. However, this is not necessary if the script will soon be exiting because all ImageLists are automatically destroyed at that time.</p>
 
 <h2 id="Remarks">Remarks</h2>
 <p id="Enter">To detect when the user has pressed <kbd>Enter</kbd> while a TreeView has focus, use a <a href="GuiControls.htm#DefaultButton">default button</a> (which can be hidden if desired). For example:</p>
@@ -367,18 +387,32 @@ ButtonOK(*) {
 }</pre>
 <p>In addition to navigating from item to item with the keyboard, the user may also perform incremental search by typing the first few characters of an item's name. This causes the selection to jump to the nearest matching item.</p>
 <p>Although any length of text can be stored in each item of a TreeView, only the first 260 characters are displayed.</p>
-<p>Although the theoretical maximum number of items in a TreeView is 65536, item-adding performance will noticeably decrease long before then. This can be alleviated somewhat by using the redraw tip described in the <a href="#Add">Add method</a>.</p>
-<p id="ILremarks">Unlike <a href="ListView.htm">ListViews</a>, a TreeView's ImageList is not automatically destroyed when the TreeView is destroyed. Therefore, a script should call <a href="ListView.htm#IL_Destroy">IL_Destroy</a> after destroying a TreeView's window if the ImageList will not be used for anything else. However, this is not necessary if the script will soon be exiting because all ImageLists are automatically destroyed at that time.</p>
+<p>Although the theoretical maximum number of items in a TreeView is 65536, item-adding performance will noticeably decrease long before then. This can be alleviated somewhat by using the redraw tip described in the <a href="#Add">Add</a> method.</p>
 <p>A script may create more than one TreeView per window.</p>
-<p>To perform actions such as resizing, hiding, or changing the font of a TreeView, see <a href="GuiControl.htm">GuiControl object</a>.</p>
-<p>Tree View eXtension (TVX) extends TreeViews to support moving, inserting and deleting. It is demonstrated at <a href="https://www.autohotkey.com/board/topic/17497-">this archived forum thread</a>.</p>
+<p>To perform actions such as resizing, hiding, or changing the font of a TreeView, see the <a href="GuiControl.htm">GuiControl</a> object.</p>
+
 <h2 id="Related">Related</h2>
 <p><a href="ListView.htm">ListView</a>, <a href="GuiControls.htm">Other Control Types</a>, <a href="Gui.htm#Call">Gui()</a>, <a href="GuiOnEvent.htm#ContextMenu">ContextMenu event</a>, <a href="GuiControl.htm">Gui object</a>, <a href="GuiControl.htm">GuiControl object</a>, <a href="../misc/Styles.htm#TreeView">TreeView styles table</a></p>
 
 <h2 id="Examples">Examples</h2>
+<div class="ex" id="ExEdit">
+<p><a class="ex_number" href="#ExEdit"></a> Creates and displays an <a href="#ReadOnly">editable</a> TreeView containing three items. The TreeView uses <a href="GuiControl.htm#OnEvent">GuiControl.OnEvent</a> to process user input. In this case, whenever the user finishes editing an item, it is repositioned alphabetically among its siblings. To test this example, edit an item with <kbd>F2</kbd> or a delayed double-click.</p>
+<pre>MyGui := Gui()
+TV := MyGui.Add("TreeView", "-ReadOnly")
+TV.Add("A")
+TV.Add("B")
+TV.Add("C")
+TV.OnEvent("ItemEdit", TV_Edit)  <em>; Call TV_Edit whenever we finish editing an item.</em>
+MyGui.Show()
+
+TV_Edit(TV, Item)
+{
+    TV.Modify(TV.GetParent(Item), "Sort")  <em>; This works even if the item has no parent.</em>
+}</pre>
+</div>
 
 <div class="ex" id="ExAdvanced">
-<p><a class="ex_number" href="#ExAdvanced"></a> The following is a working script that is more elaborate than the one near the top of this page. It creates and displays a TreeView containing all folders in the all-users Start Menu. When the user selects a folder, its contents are shown in a ListView to the right (like Windows Explorer). In addition, a <a href="GuiControls.htm#StatusBar">StatusBar</a> control shows information about the currently selected folder.</p>
+<p><a class="ex_number" href="#ExAdvanced"></a> The following is a working script that is more elaborate than the one near the top of this page. It creates and displays a TreeView containing all folders in the all-users Start Menu. When the user selects a folder, its contents are shown in a <a href="GuiControls.htm#ListView">ListView</a> to the right (like Windows Explorer). In addition, a <a href="GuiControls.htm#StatusBar">StatusBar</a> control shows information about the currently selected folder.</p>
 <pre><em>; The following folder will be the root folder for the TreeView. Note that loading might take a long
 ; time if an entire drive such as C:\ is specified:</em>
 TreeRoot := A_MyDocuments
@@ -392,11 +426,11 @@ MyGui := Gui("+Resize", TreeRoot)  <em>; Allow the user to maximize or drag-resi
 ImageListID := <a href="ListView.htm#IL_Create">IL_Create</a>(5)
 Loop 5 
     <a href="ListView.htm#IL_Add">IL_Add</a>(ImageListID, "shell32.dll", A_Index)
-<em>; Create a <a href="#GuiAdd">TreeView</a> and a ListView side-by-side to behave like Windows Explorer:</em>
+<em>; Create a TreeView and a ListView side-by-side to behave like Windows Explorer:</em>
 TV := <a href="#GuiAdd">MyGui.Add</a>("TreeView", "r20 w" TreeViewWidth " <a href="#ImageList">ImageList</a>" ImageListID)
 LV := MyGui.Add("ListView", "r20 w" ListViewWidth " x+10", ["Name", "Modified"])
 
-<em>; Create a <a href="GuiControls.htm#StatusBar">Status Bar</a> to give info about the number of files and their total size:</em>
+<em>; Create a status bar to give info about the number of files and their total size:</em>
 SB := MyGui.Add("StatusBar")
 <a href="GuiControls.htm#SB_SetParts">SB.SetParts</a>(60, 85)  <em>; Create three parts in the bar (the third part fills all the remaining width).</em>
 

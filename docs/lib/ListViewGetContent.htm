@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <title>ListViewGetContent - Syntax &amp; Usage | AutoHotkey v2</title>
-<meta name="description" content="The ListViewGetContent function returns a list of items/rows from a ListView." />
+<meta name="description" content="The ListViewGetContent function returns content data from a list-view control, such as rows, columns, or count values." />
 <meta name="ahk:equiv-v1" content="lib/ControlGet.htm#List" />
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -14,21 +14,21 @@
 
 <h1>ListViewGetContent</h1>
 
-<p>Returns a list of items/rows from a ListView.</p>
+<p>Returns content data from a list-view control, such as rows, columns, or count values.</p>
 
-<pre class="Syntax">List := <span class="func">ListViewGetContent</span>(<span class="optional">Options, Control, WinTitle, WinText, ExcludeTitle, ExcludeText</span>)</pre>
+<pre class="Syntax">Data := <span class="func">ListViewGetContent</span>(<span class="optional">Options, Control, WinTitle, WinText, ExcludeTitle, ExcludeText</span>)</pre>
 
 <h2 id="Parameters">Parameters</h2>
 <dl>
     <dt>Options</dt>
     <dd>
         <p>Type: <a href="../Concepts.htm#strings">String</a></p>
-        <p>Specifices what to retrieve. If blank or omitted, all the text in the ListView is retrieved. Otherwise, specify zero or more of the following words, each separated from the next with a space or tab:</p>
-        <p><strong>Selected:</strong> Returns only the selected (highlighted) rows rather than all rows. If none, the return value is blank.</p>
-        <p><strong>Focused:</strong> Returns only the focused row. If none, the return value is blank.</p>
+        <p>Specify what to retrieve. If blank or omitted, all rows in the control are returned. Otherwise, specify zero or more of the following words, each separated from the next with a space or tab:</p>
+        <p><strong>Selected:</strong> Returns only the selected rows rather than all rows. If none, <em>Data</em> is made blank.</p>
+        <p><strong>Focused:</strong> Returns only the focused row. If none, <em>Data</em> is made blank.</p>
         <p id="ColN"><strong>Col</strong><em>N</em>: Returns only the <em>N</em>th column (field) rather than all columns. Replace <em>N</em> with a number of your choice. For example, Col4 returns the fourth column.</p>
-        <p><strong>Count:</strong> Returns a single number that is the total number of rows in the ListView.</p>
-        <p><strong>Count Selected:</strong> Returns the number of selected (highlighted) rows.</p>
+        <p><strong>Count:</strong> Returns a single number that is the total number of rows in the control.</p>
+        <p><strong>Count Selected:</strong> Returns the number of selected rows.</p>
         <p><strong>Count Focused:</strong> Returns the row number (position) of the focused row (0 if none).</p>
         <p><strong>Count Col:</strong> Returns the number of columns in the control (or -1 if the count cannot be determined).</p>
     </dd>
@@ -47,26 +47,28 @@
 </dl>
 
 <h2 id="Return_Value">Return Value</h2>
-<p>Type: <a href="../Concepts.htm#strings">String</a></p>
-<p>This function returns a list of items/rows. Within each row, each field (column) except the last will end with a tab character (`t). To access the items/rows individually, use a <a href="LoopParse.htm">parsing loop</a> as in <a href="#ExListView">example #1</a>.</p>
+<p>Type: <a href="../Concepts.htm#strings">String</a> or <a href="../Concepts.htm#numbers">Integer</a></p>
+<p>This function returns either a list of rows or a count value, depending on the specified options.</p>
+<p>When returning a list of rows, each row except the last will end with a linefeed character (`n). Within each row, each field (column) except the last will end with a tab character (`t).</p>
 
 <h2 id="Error_Handling">Error Handling</h2>
 <p>A <a href="Error.htm#TargetError">TargetError</a> is thrown if the window or control could not be found.</p>
-<p>An <a href="Error.htm#OSError">OSError</a> is thrown if a message could not be sent to the control, or if the process owning the ListView could not be opened, perhaps due to a lack of user permissions or because it is locked.</p>
+<p>An <a href="Error.htm#OSError">OSError</a> is thrown if a message could not be sent to the control, or if the process owning the list-view control could not be opened, perhaps due to a lack of user permissions or because it is locked.</p>
 <p>A <a href="Error.htm#ValueError">ValueError</a> is thrown if the <a href="#ColN">Col<em>N</em> option</a> specifies a nonexistent column.</p>
 
 <h2 id="Remarks">Remarks</h2>
-<p>Some applications store their ListView text privately, which prevents their text from being retrieved. In these cases, an exception will usually not be thrown, but all the retrieved fields will be empty.</p>
-<p>The columns in a ListView can be resized via <a href="SendMessage.htm">SendMessage</a> as shown in this example:</p>
-<pre>SendMessage(0x101E, 0, 80, "SysListView321", WinTitle)  <em>; 0x101E is the message LVM_SETCOLUMNWIDTH.</em></pre>
+<p>This function is intended for use with controls in a non-GUI window, i.e. a window that is not created with the <a href="Gui.htm#Call">Gui</a> function. It works best with common or predefined Microsoft controls; some applications use custom or modified controls, in which case the function might not work as expected. For <a href="ListView.htm">GUI ListView controls</a>, it is usually more convenient to use their <a href="ListView.htm#BuiltIn">built-in retrieval methods</a>.</p>
+<p>Some applications store their control data privately, preventing AutoHotkey from retrieving any text. In such cases, no exception is usually thrown, but all the retrieved text will be empty.</p>
+<p>On a related note, the columns in a list-view control can be resized via <a href="SendMessage.htm">SendMessage</a> as shown in this example:</p>
+<pre>SendMessage(0x101E, 0, 80, "SysListView321", WinTitle)  <em>; 0x101E is LVM_SETCOLUMNWIDTH.</em></pre>
 <p>In the above, 0 indicates the first column (specify 1 for the second, 2 for the third, etc.) Also, 80 is the new width. Replace 80 with -1 to autosize the column. Replace it with -2 to do the same but also take into account the header text width.</p>
 
 <h2 id="Related">Related</h2>
-<p><a href="ControlGetItems.htm">ControlGetItems</a>, <a href="WinGetList.htm">WinGetList</a>, <a href="Control.htm">Control functions</a></p>
+<p><a href="ControlGetItems.htm">ControlGetItems</a>, <a href="WinGetList.htm">WinGetList</a>, <a href="ListView.htm">GUI ListView control</a>, <a href="Control.htm">Control functions</a></p>
 
 <h2 id="Examples">Examples</h2>
 <div class="ex" id="ExListView">
-<p><a class="ex_number" href="#ExListView"></a> Extracts the individual rows and fields out of a ListView.</p>
+<p><a class="ex_number" href="#ExListView"></a> Extracts the individual rows and fields out of a list-view control in a GUI or non-GUI window.</p>
 <pre>List := ListViewGetContent("Selected", "SysListView321", WinTitle)
 Loop Parse, List, "`n"  <em>; Rows are delimited by linefeeds (`n).</em>
 {

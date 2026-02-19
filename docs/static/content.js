@@ -1535,7 +1535,7 @@ function ctor_structure()
     registerEvent(ListBox, 'touchstart', '> a', function() {
       touchmoved = false;
     });
-    // Show tooltip on mouseover if a item exceeds the length of its parent:
+    // Show tooltip on mouseover if an item exceeds the length of its parent:
     registerEvent(ListBox, 'mouseenter', '> a', function() {
       var $this = $(this);
       if (this.offsetWidth < this.scrollWidth && !$this.attr('title')) {
