@@ -220,6 +220,12 @@ tocData = [
     ["Sin/Cos/Tan","lib/Math.htm#Sin"],
     ["ASin/ACos/ATan/ATan2","lib/Math.htm#ASin"]
   ]],
+  ["Modules","Modules.htm",
+  [
+    ["#Module","lib/_Module.htm"],
+    ["Export","lib/Export.htm"],
+    ["Import","lib/Import.htm"]
+  ]],
   ["Monitor","lib/Monitor.htm",
   [
     ["MonitorGet","lib/MonitorGet.htm"],
