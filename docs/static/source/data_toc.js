@@ -18,7 +18,7 @@ tocData = [
     ["Debugging Clients","AHKL_DBGPClients.htm"],
     ["Compiler Directives","misc/Ahk2ExeDirectives.htm"],
     ["Objects","Objects.htm"],
-	["Modules","Modules.htm"],
+    ["Modules","Modules.htm"],
     ["Structures","Structs.htm"]
   ]],
   ["Frequently Asked Questions","FAQ.htm"],
@@ -304,7 +304,7 @@ tocData = [
     ["ListVars","lib/ListVars.htm"],
     ["OutputDebug","lib/OutputDebug.htm"],
     ["Persistent","lib/Persistent.htm"],
-	["Props","lib/Props.htm"]
+    ["Props","lib/Props.htm"]
   ]],
   ["Object Types","ObjList.htm",
   [
