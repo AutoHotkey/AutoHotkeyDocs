@@ -510,7 +510,7 @@ tocData = [
     ["#NoTrayIcon","lib/_NoTrayIcon.htm"],
     ["#Requires","lib/_Requires.htm"],
     ["#SingleInstance","lib/_SingleInstance.htm"],
-    ["#StructPack","lib/StructPack.htm"],
+    ["#StructPack","lib/_StructPack.htm"],
     ["#SuspendExempt","lib/_SuspendExempt.htm"],
     ["#UseHook","lib/_UseHook.htm"],
     ["#Warn","lib/_Warn.htm"],
