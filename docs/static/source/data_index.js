@@ -103,6 +103,7 @@ indexData = [
   ["||","Variables.htm#or",4,"",true],
   ["~","Variables.htm#unary",4,"",true],
   ["~=","Variables.htm#regex",4,"",true],
+  ["~!=","Variables.htm#regex",4,"",true],
   ["A_AhkPath","Variables.htm#AhkPath",1],
   ["A_AhkVersion","Variables.htm#AhkVersion",1],
   ["A_AllowMainWindow","Variables.htm#AllowMainWindow",1],
