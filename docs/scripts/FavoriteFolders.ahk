@@ -113,7 +113,7 @@ OpenFavorite(ItemName, ItemPos, *)
         ; Activate the window so that if the user is middle-clicking
         ; outside the dialog, subsequent clicks will also work:
         WinActivate g_window_id
-        ; Retrieve the unique ID number of the Edit1 control:
+        ; Retrieve the HWND of the Edit1 control:
         control_id := ControlGetHwnd("Edit1", g_window_id)
         ; Retrieve any filename that might already be in the field so
         ; that it can be restored after the switch to the new folder:

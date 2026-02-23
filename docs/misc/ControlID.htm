@@ -1,0 +1,73 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+<title>ControlID Parameter (Window Control Identifiers) | AutoHotkey v1</title>
+<meta name="description" content="This page lists identifiers that can be used in the ControlID parameter of commands to identify the target control." />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<link href="../static/theme.css" rel="stylesheet" type="text/css" />
+<link href="../static/dark.css" rel="stylesheet" type="text/css" media="(prefers-color-scheme: dark)" id="dark_css" />
+<script src="../static/content.js" type="text/javascript"></script>
+</head>
+<body>
+
+<h1>ControlID Parameter <span class="headnote">(Window Control Identifiers)</span></h1>
+
+<p>Some commands have a <em>ControlID</em> parameter used to identify which control in a window to operate on. This parameter can be the text of the control or any other identifier described on this page.</p>
+
+<h2 id="toc">Table of Contents</h2>
+<ul>
+  <li><a href="#Control_Identifiers">Control Identifiers</a>
+    <ul>
+      <li><a href="#HWND">HWND</a></li>
+      <li><a href="#Associated_Variable">Associated Variable</a></li>
+      <li><a href="#ClassNN">ClassNN</a></li>
+      <li><a href="#Text">Text</a></li>
+      <li><a href="#Omitted">Omitted</a></li>
+    </ul>
+  </li>
+  <li><a href="#Remarks">Remarks</a></li>
+  <li><a href="#Related">Related</a></li>
+</ul>
+
+<h2 id="Control_Identifiers">Control Identifiers</h2>
+<p>The following identifiers are ordered by descending precedence. This detail is important in rare cases of ambiguity. For example, if a window has two edit controls, the first with the text "Edit2" and the second with ClassNN "Edit2", and <code>Control, Hide,, Edit2</code> is used, the second control will be hidden, because ClassNN has higher precedence.</p>
+
+<h3 id="HWND">HWND</h3>
+<p>A control's HWND (short for handle to window) uniquely identifies that control for as long as it exists. To operate upon it, leave the <em>ControlID</em> parameter blank and specify <code class="no-highlight">ahk_id %ControlHwnd%</code> for the <a href="WinTitle.htm"><em>WinTitle</em> parameter</a> (this also works on hidden controls even when <a href="../lib/DetectHiddenWindows.htm">DetectHiddenWindows</a> is turned off). <span class="ver">[v1.1.04+]</span>: <a href="../lib/GuiControl.htm">GuiControl</a> and <a href="../lib/GuiControlGet.htm">GuiControlGet</a> allow the HWND to be specified directly in <em>ControlID</em>.</p>
+<p>A control's HWND can be retrieved via <a href="../lib/DllCall.htm">DllCall()</a>, in <span class="ver">[v1.0.43.06+]</span> via <a href="../lib/ControlGet.htm#Hwnd">ControlGet Hwnd</a>, <a href="../lib/WinGet.htm#ControlListHwnd">WinGet ControlListHwnd</a>, and <a href="../lib/MouseGetPos.htm">MouseGetPos</a>, in <span class="ver">[v1.0.46.01+]</span> via the <a href="../lib/Gui.htm#HwndOutputVar">Gui Add's Hwnd option</a>, and in <span class="ver">[v1.0.46.16+]</span> via <a href="../lib/GuiControlGet.htm#Hwnd">GuiControlGet Hwnd</a>.</p>
+<p>A HWND is especially useful when sending messages directly to a control via <a href="../lib/PostMessage.htm">PostMessage</a>, <a href="../lib/PostMessage.htm">SendMessage</a>, or when calling native APIs with <a href="../lib/DllCall.htm">DllCall()</a>. It is also helpful when controls are dynamically created or reordered, since the HWND remains constant for the lifetime of the control.</p>
+
+<h3 id="Associated_Variable">Associated Variable</h3>
+<p>A GUI control may be identified by the name of the variable associated with it. This applies to controls created with <a href="../lib/Gui.htm#Add">Gui Add</a> when the <a href="../lib/Gui.htm#var">V option</a> is used (e.g. <code class="no-highlight">vMyEdit</code>). The variable name then serves as the control's identifier for use with <a href="../lib/GuiControl.htm">GuiControl</a> and <a href="../lib/GuiControlGet.htm">GuiControlGet</a>.</p>
+<p>Using an associated variable is often the most convenient way to identify a GUI control, even for controls that are not input-capable (such as <a href="../lib/GuiControls.htm#Text">Text</a> or <a href="../lib/GuiControls.htm#GroupBox">GroupBox</a>). In these cases, the variable does not store input, but still provides a stable and readable identifier.</p>
+
+<h3 id="ClassNN">ClassNN</h3>
+<p>A control's ClassNN is the name of its window class followed by its sequence number within the top-level window which contains it. The instance number reflects the control's position among controls of the same class, in the order they were created. For example, <code class="no-highlight">Edit1</code> is the first edit control in a window and <code class="no-highlight">Button12</code> is the twelfth button.</p>
+<p>Some class names include digits which are not part of the control's sequence number. For example, "SysListView321" is the window's first ListView control, not its 321st. To retrieve the class name without the sequence number, pass the control's HWND to <a href="../lib/WinGetClass.htm">WinGetClass</a>.</p>
+<p>A control's ClassNN can be determined via Window Spy. Some commands such as <a href="../lib/ControlGetFocus.htm">ControlGetFocus</a>, <a href="../lib/GuiControlGet.htm#Focus">GuiControlGet Focus</a>, <a href="../lib/WinGet.htm#ControlList">WinGet ControlList</a>, and <a href="../lib/MouseGetPos.htm">MouseGetPos</a> retrieve a ClassNN.</p>
+<p>The instance number is not a persistent identifier. It may change if the application recreates controls, changes their order, or uses dynamic or virtualized UI elements. Some modern frameworks (such as WPF or Electron) may not expose traditional Win32 class names at all, or may reuse generic class names for multiple unrelated controls.</p>
+<p>ClassNN is often convenient when controls do not have unique text and when the control order is stable. When stability cannot be guaranteed, consider using a HWND or another identifier.</p>
+
+<h3 id="Text">Text</h3>
+<p>The text of a control may be used as a identifier, e.g. <code class="no-highlight">OK</code> for an OK button. The matching behavior is determined by <a href="../lib/SetTitleMatchMode.htm">SetTitleMatchMode</a>. Use text when it is unique and stable; many controls update it dynamically or do not expose meaningful text.</p>
+<p>A control's text can be determined via Window Spy. Some commands such as <a href="../lib/ControlGetText.htm">ControlGetText</a> and <a href="../lib/GuiControlGet.htm">GuiControlGet</a> retrieve such text.</p>
+
+<h3 id="Omitted">Omitted</h3>
+<p>For non-GUI commands, omitting the <em>ControlID</em> parameter causes them to operate on the target window's topmost control. However, a few of them have special behavior when omitting this parameter:</p>
+<ul>
+  <li><a href="../lib/ControlClick.htm">ControlClick</a> clicks the target window itself if there are no controls.</li>
+  <li><a href="../lib/ControlSend.htm">ControlSend</a> sends the keystrokes to the target window itself if there are no controls.</li>
+  <li><a href="../lib/PostMessage.htm">PostMessage</a> and <a href="../lib/PostMessage.htm">SendMessage</a> send the message directly to the target window.</li>
+</ul>
+<p>For <a href="../lib/GuiControl.htm">GuiControlGet</a>, omitting the <em>ControlID</em> parameter causes it to behave as though the control's <a href="#Associated_Variable">associated variable name</a> (if any) was specified.</p>
+
+<h2 id="Remarks">Remarks</h2>
+<p>The following commands have a <em>ControlID</em> parameter: <a href="../lib/Control.htm">Control</a>, <a href="../lib/ControlClick.htm">ControlClick</a>, <a href="../lib/ControlFocus.htm">ControlFocus</a>, <a href="../lib/ControlGet.htm">ControlGet</a>, <a href="../lib/ControlGetPos.htm">ControlGetPos</a>, <a href="../lib/ControlGetText.htm">ControlGetText</a>, <a href="../lib/ControlMove.htm">ControlMove</a>, <a href="../lib/ControlSend.htm">ControlSend</a>, <a href="../lib/ControlSetText.htm">ControlSetText</a>, <a href="../lib/GuiControl.htm">GuiControl</a>, <a href="../lib/GuiControlGet.htm">GuiControlGet</a>, <a href="../lib/PostMessage.htm">PostMessage</a>, <a href="../lib/PostMessage.htm">SendMessage</a>. Most of these commands have examples on their corresponding page that demonstrate the use of control identifiers.</p>
+<p>ClassNN and control text may change when applications recreate controls, alter their order, use dynamic or virtualized interfaces, or rely on frameworks that do not expose stable Win32 class names or text. When identifiers are unreliable, prefer using a HWND for lifetime-stable addressing or combine multiple criteria. As general guidance: use control text when it is unique and stable, use ClassNN when the control order is consistent and readability is desired, and use a HWND when maximum stability is required. Avoid hardcoding identifiers across application versions unless you control the target application.</p>
+
+<h2 id="Related">Related</h2>
+<p><a href="WinTitle.htm">WinTitle Parameter &amp; Last Found Window</a></p>
+
+</body>
+</html>
