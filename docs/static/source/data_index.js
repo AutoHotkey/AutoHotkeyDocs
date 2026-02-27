@@ -1257,6 +1257,7 @@ indexData = [
   ["WinClose","lib/WinClose.htm",2],
   ["window group","misc/WinTitle.htm#ahk_group"],
   ["window messages","misc/SendMessageList.htm"],
+  ["Window Spy","Program.htm#Window_Spy"],
   ["WinExist","lib/WinExist.htm",2],
   ["WinGetAlwaysOnTop","lib/WinGetAlwaysOnTop.htm",2],
   ["WinGetClass","lib/WinGetClass.htm",2],
