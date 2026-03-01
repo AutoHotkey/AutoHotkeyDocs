@@ -63,6 +63,7 @@ indexData = [
   ["#HotIf","lib/_HotIf.htm",0,"E"],
   ["#HotIfTimeout","lib/_HotIfTimeout.htm",0,"S"],
   ["#Hotstring","lib/_Hotstring.htm",0,"S"],
+  ["#Import","lib/Import.htm",0,"E"],
   ["#Include","lib/_Include.htm",0,"S"],
   ["#IncludeAgain","lib/_Include.htm",0,"S"],
   ["#InputLevel","lib/_InputLevel.htm",0,"S"],

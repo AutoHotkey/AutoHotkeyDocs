@@ -17,10 +17,11 @@
 <p>Imports a <a href="../Modules.htm">module</a>, or imports names from a module.</p>
 
 <pre class="Syntax">
-<span class="func">Import</span> ModuleName <span class="optional"><span class="func">as</span> ModuleAlias</span>
+<span class="func">Import</span> ModuleName <span class="func">as</span> ModuleAlias
 <span class="func">Import</span> { ExportName <span class="optional"><span class="func">as</span> Alias</span>, ... } <span class="func">from</span> ModuleName
 <span class="func">Import</span> * <span class="func">from</span> ModuleName
 <span class="func"><span class="optional">Export</span> Import</span> ModuleName <span class="optional"><span class="func">as</span> ModuleAlias</span> <span class="optional">{ *, ExportName ... }</span> <em>; <span class="ver">[v2.1-alpha.17+]</span></em>
+<span class="func">#Import <span class="optional">Export</span></span> ModuleName <span class="optional"><span class="func">as</span> ModuleAlias</span> <span class="optional">{ *, ExportName ... }</span> <em>; <span class="ver">[v2.1-alpha.20+]</span></em>
 </pre>
 
 <h2 id="Parameters">Parameters</h2>
@@ -49,7 +50,7 @@
 <p>Imports are processed after the main script file has been parsed, in an unspecified order. If <em>ModuleName</em> (excluding quote marks) does not match a module defined by <a href="_Module.htm">#Module</a> or previously imported from file, Import attempts to locate a module file and load it. For details, see <a href="../Modules.htm#Search_Path">Search Path</a>.</p>
 
 <h2 id="Imported_Names">Imported Names</h2>
-<p>If <code class="no-highlight">from</code> or <code>{}</code> is used or the module name is quoted, the module's default export is not added to the current module's global namespace unless <em>ModuleAlias</em> is specified. By contrast, <code>import MyModule</code> adds the module's default export as <em>MyModule</em>.</p>
+<p>The module's default export (typically the module itself) is added to the current module's global namespace only if <em>ModuleAlias</em> is specified or <em>ModuleName</em> is unquoted and <code class="no-highlight">from</code> is not used.</p>
 <p id="Wildcard_Import">If <code>*</code> is used, each unassigned and undeclared name in the current module may implicitly resolve to a name exported from <em>ModuleName</em> by an <a href="Export.htm">Export</a> declaration. If a name is exported from multiple imported modules, the last import takes precedence. Explicit imports and other declarations take precedence over implicit imports, regardless of order.</p>
 <p class="note"><strong>Note:</strong> An implicitly imported variable cannot be the target of an assignment, as the presence of an assignment would cause a new variable to be created in the current module.</p>
 <p>A load-time error is raised if any name used in an explicit import is also used in some other declaration within the current module.</p>
@@ -61,6 +62,14 @@
 <p>Import statements are recognized only when not enclosed by a function or block.</p>
 <p>Line breaks can be used inside the braces, due to <a href="../Scripts.htm#continuation-expr">continuation by enclosure</a>.</p>
 <p>Classes and functions are available even before the source module has executed, such as if the module which imports them is executing first due to a circular import.</p>
+<p><span class="ver">[v2.1-alpha.20+]</span>: For backward-compatibility with v2.0, <code>Import MyMod</code> is interpreted as a function call statement. Any of the following can be used instead:</p>
+<pre><em>; Import the module and add MyMod to the current namespace:</em>
+#Import MyMod
+import MyMod {}
+import MyMod as MyMod
+<em>; As above but also export MyMod from the current module:</em>
+export import MyMod
+#Import export MyMod</pre>
 
 <h2 id="Related">Related</h2>
 <p><a href="../Modules.htm">Modules</a>, <a href="Export.htm">Export</a>, <a href="_Module.htm">#Module</a>, <a href="_Include.htm">#Include</a></p>
