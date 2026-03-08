@@ -17,12 +17,12 @@
 <ul>
   <li><em>Global namespace</em> for variables, functions and classes.</li>
   <li><em>Body</em>, sometimes referred to as an auto-execute section.</li>
-  <li><em><a href="lib/Export.htm">Exports</a></em>, which can be <a href="lib/Import.htm">imported</a> by another module without explicitly listing each one.</li>
+  <li><em><a href="lib/Export.htm">Exports</a></em>, which can be <a href="lib/_Import.htm">imported</a> by another module without explicitly listing each one.</li>
   <li><em>Unique name</em>, used to import the module or whatever it exports.</li>
 </ul>
 <p>Splitting the components of a script into modules can make the components easier to reuse and maintain.</p>
-<p>By default, all lines of code and global variables (including functions and classes) are added to an implicitly-defined module named "__Main". The script can start a new module with <a href="lib/_Module.htm">#Module</a> or load one from a <a href="Scripts.htm#lib">Lib folder</a> with <a href="lib/Import.htm">Import</a>.</p>
-<p>An <a href="lib/Import.htm">Import</a> declaration can be used to add a module or some of its functions, classes and declared variables into the current module's global namespace. These need not be explicitly marked as exports, but doing so with an <a href="lib/Export.htm">Export</a> declaration permits them to be imported by a <a href="lib/Import.htm#Wildcard_Import">wildcard import</a>.</p>
+<p>By default, all lines of code and global variables (including functions and classes) are added to an implicitly-defined module named "__Main". The script can start a new module with <a href="lib/_Module.htm">#Module</a> or load one from file with <a href="lib/_Import.htm">#Import</a>.</p>
+<p>An <a href="lib/_Import.htm">#Import</a> declaration can be used to add a module or some of its functions, classes and variables into the current module's global namespace. These need not be explicitly marked as exports, but doing so with an <a href="lib/Export.htm">Export</a> declaration permits them to be imported by a <a href="lib/_Import.htm#Wildcard_Import">wildcard import</a>.</p>
 <p>All modules implicitly import from the built-in "AHK" module, which contains all built-in classes, variables and functions. A declaration or assignment within a module can reuse the name of a built-in class or function, in which case that class or function is not accessible except through the AHK module (e.g. <code>#Import AHK</code>, <code>AHK.MsgBox()</code>). However, built-in (A_) variables do not require a declaration or explicit import to allow assignment, and their names cannot be reused. <code>A_Args</code> is the exception (it is a normal variable defined in __Main).</p>
 <p>A module name is added to a module's global namespace only when imported, and conflicts can be resolved by giving the imported module an alias within the destination module.</p>
 <p><a href="lib/_Include.htm">#Include</a> is able to include a file once per module.</p>
@@ -30,18 +30,20 @@
 <p><a href="lib/_HotIf.htm">#HotIf</a> affects only the current module. #HotIf and <a href="lib/HotIf.htm">HotIf</a> expressions are module-scoped, as they may contain references to module-level variables. For instance, the effect of <code>#HotIf myToggle</code> depends on what value <em>myToggle</em> has in the current module.</p>
 
 <h2 id="Execution">Execution</h2>
-<p>The body of a module is executed at program startup, by the <a href="Scripts.htm#auto">auto-execute thread</a>. The order of execution is currently as follows, but is subject to change:</p>
-<ul>
-  <li>For each module, starting with the most recently-defined/loaded module and working backward:
-  <ul>
-    <li>For each import, if the imported module has not been executed (or begun executing its imports), execute that module first.</li>
-    <li>Execute the module itself.</li>
-  </ul></li>
-</ul>
-<p>The ideal would be to always execute a module before any module which depends on it, but this may be impossible if there is a cyclic import. For instance, if any module imports the default module (__Main, such as to access its global variables), __Main will always execute before the other module. This can be avoided by moving shared variables, functions and classes into a separate module and importing that instead of __Main.</p>
+<p>The body of each module is executed at program startup, by the <a href="Scripts.htm#auto">auto-execute thread</a>. Execution begins with the module which was defined or loaded last. If the module has no imports, the second-last module is executed next, and so on, until all modules have executed.</p>
+<p><span class="ver">[v2.1-alpha.21+]</span>: If a module has not begun execution by the time one of its variables or constants is referenced, the module is executed immediately. The #Import directive itself has no effect on the order. For example:</p>
+<pre>#module A
+MsgBox "A executing"  <em>; Shown second.</em>
+global ANSWER := 42
+
+#module B
+#import A {ANSWER}
+MsgBox "B executing"  <em>; Shown first.</em>
+MsgBox ANSWER         <em>; Shown third.</em></pre>
+<p><span class="ver">[v2.1-alpha.20]</span> and earlier: Each module executes its imported modules before its own body, excluding modules which have already begun execution. This doesn't work well when modules have circular dependencies.</p>
 
 <h2 id="Search_Path">Search Path <span class="ver">[v2.1-alpha.20+]</span></h2>
-<p>The module search path is a list of directories which the <a href="lib/Import.htm">Import</a> statement looks in to find module files. The directory of the file which contains the Import statement is always searched first. The <code class="no-highlight">AhkImportPath</code> environment variable can contain a semicolon-delimited list of additional directories to search. If it is not defined, the default list is as follows:</p>
+<p>The module search path is a list of directories which the <a href="lib/_Import.htm">#Import</a> statement looks in to find module files. The directory of the file which contains the #Import directive is always searched first. The <code class="no-highlight">AhkImportPath</code> environment variable can contain a semicolon-delimited list of additional directories to search. If it is not defined, the default list is as follows:</p>
 <pre class="no-highlight">%A_ScriptDir%;%A_MyDocuments%\AutoHotkey;%A_AhkPath%\..</pre>
 <p>Built-in variables may be used in the value of AhkImportPath by enclosing them in percent signs. Any percent signs which are not part of a valid variable reference are interpreted literally. References to environment variables are not resolved by AutoHotkey, as they are typically resolved before the process starts. List items can be absolute paths or relative to the directory containing the script (<a href="Variables.htm#ScriptDir">A_ScriptDir</a>). The list is resolved only once, so <a href="Variables.htm#LineFile">A_LineFile</a> always refers to the main script.</p>
 <p>Directories are searched in the order they are listed. Within each directory, files are considered in this order:</p>

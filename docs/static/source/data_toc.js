@@ -223,8 +223,8 @@ tocData = [
   ["Modules","Modules.htm",
   [
     ["#Module","lib/_Module.htm"],
-    ["Export","lib/Export.htm"],
-    ["Import","lib/Import.htm"]
+    ["#Import","lib/_Import.htm"],
+    ["Export","lib/Export.htm"]
   ]],
   ["Monitor","lib/Monitor.htm",
   [
