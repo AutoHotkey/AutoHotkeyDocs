@@ -84,7 +84,7 @@ var cache = {
 var forceNoScript = forceNoScript || false;
 var isCacheLoaded = cache.load();
 var workingDir = getWorkingDir();
-var relPath = location.href.replace(workingDir, '');
+var relPath = getRelativePath(location.href, workingDir);
 var equivPath = $('meta[name|="ahk:equiv"]').prop('content');
 var isInsideCHM = (location.href.search(/::/) > 0) ? 1 : 0;
 var supportsHistory = (history.replaceState) && !isInsideCHM;
@@ -222,7 +222,7 @@ var isPhone = (document.documentElement.clientWidth <= 600);
           return;
         switch(data[0]) {
           case 'normalizeURL':
-          var relPath = data[1].href.replace(workingDir, '');
+          var relPath = getRelativePath(data[1].href, workingDir);
           try {
             if (history.replaceState)
               history.replaceState(null, null, data[1].href);
@@ -1687,7 +1687,7 @@ function ctor_features()
     }
   };
 
-  // --- Add "Deprecated" icon ---
+  // --- Mark specific links as deprecated ---
 
   self.modifyDeprecatedLinks = function() {
     if (!retrieveData(deprecate.dataPath, "deprecate_data", "deprecateData", self.modifyDeprecatedLinks))
@@ -1695,13 +1695,19 @@ function ctor_features()
     var as = self.content.querySelectorAll("a");
     for (var i = 0; i < as.length; i++) {
       var a = as[i];
-      var href = a.getAttribute("href");
-      if (!href || href.charAt(0) == "#")
+      var is_anchor_only = ((a.getAttribute("href") || "").charAt(0) == "#");
+      var force_deprecated = (a.className.indexOf("deprecated") != -1);
+      if (a.hasAttribute("title"))
         continue;
-      var path = a.href.replace(workingDir, '');
-      if (cache.deprecate_data[path]) {
-        a.className = "deprecated";
-        a.title = T("Deprecated. New scripts should use {0} instead.").format(cache.deprecate_data[path]);
+      if (force_deprecated)
+        a.title = T("Deprecated.");
+      if (is_anchor_only && !force_deprecated)
+        continue;
+      var replacement = cache.deprecate_data[getRelativePath(a.href, workingDir)];
+      if (replacement) {
+        if (!force_deprecated)
+          a.className += " deprecated";
+        a.title = T("Deprecated. New scripts should use {0} instead.").format(replacement);
       }
     }
   };
@@ -1896,6 +1902,14 @@ function getWorkingDir()
   for (i = 0; i < pathArray.length - 1; i++)
     wDir += pathArray[i] + "/";
   return wDir;
+}
+
+// --- Get relative path ---
+
+function getRelativePath(href, workingDir) {
+  if (href.indexOf(workingDir) == 0)
+    return href.substring(workingDir.length);
+  return href;
 }
 
 // --- Check if an element is visible after scrolling ---

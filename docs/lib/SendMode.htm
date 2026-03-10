@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <title>SendMode - Syntax &amp; Usage | AutoHotkey v2</title>
-<meta name="description" content="The SendMode function causes Send, Click, MouseMove, MouseClick and MouseClickDrag to use the Event or Play mode rather than the default (Input)." />
+<meta name="description" content="The SendMode function makes Send synonymous with SendEvent or SendPlay rather than the default (SendInput). Also makes Click, MouseClick, MouseClickDrag, and MouseMove use the specified mode." />
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <link href="../static/theme.css" rel="stylesheet" type="text/css" />
@@ -13,44 +13,79 @@
 
 <h1>SendMode</h1>
 
-<p>Makes <a href="Send.htm">Send</a> synonymous with SendEvent or SendPlay rather than the default (SendInput). Also makes Click and MouseMove/Click/Drag use the specified method.</p>
+<p>Makes <a href="Send.htm">Send</a> synonymous with SendEvent or SendPlay rather than the default (SendInput). Also makes <a href="Click.htm">Click</a>, <a href="MouseClick.htm">MouseClick</a>, <a href="MouseClickDrag.htm">MouseClickDrag</a>, and <a href="MouseMove.htm">MouseMove</a> use the specified mode.</p>
 
-<pre class="Syntax"><span class="func">SendMode</span> Mode</pre>
+<pre class="Syntax">PrevMode := <span class="func">SendMode</span>(Mode)</pre>
 
 <h2 id="Parameters">Parameters</h2>
 <dl>
   <dt>Mode</dt>
   <dd>
     <p>Type: <a href="../Concepts.htm#strings">String</a></p>
-    <p>Specify one of the following words:</p>
-    <p id="Event"><strong>Event:</strong> Switches to the <a href="Send.htm#SendEvent">SendEvent</a> method for <a href="Send.htm">Send</a>, <a href="Send.htm">SendText</a>, <a href="Click.htm">Click</a>, <a href="MouseMove.htm">MouseMove</a>, <a href="MouseClick.htm">MouseClick</a>, and <a href="MouseClickDrag.htm">MouseClickDrag</a>.</p>
-    <p id="Input"><strong>Input:</strong> Uses the <a href="Send.htm#SendInput">SendInput</a> method for <a href="Send.htm">Send</a>, <a href="Send.htm">SendText</a>, <a href="Click.htm">Click</a>, <a href="MouseMove.htm">MouseMove</a>, <a href="MouseClick.htm">MouseClick</a>, and <a href="MouseClickDrag.htm">MouseClickDrag</a>. Known limitations:</p>
-    <ul>
-      <li>Windows Explorer ignores SendInput's simulation of certain navigational hotkeys such as <kbd>Alt</kbd>+<kbd>&larr;</kbd>. To work around this, use either <code>SendEvent "!{Left}"</code> or <code>SendInput "{Backspace}"</code>.</li>
-    </ul>
-    <p id="InputThenPlay"><strong>InputThenPlay:</strong> Same as above except that rather than falling back to Event mode when SendInput is <a href="Send.htm#SendInputUnavail">unavailable</a>, it reverts to Play mode (below). This also causes the <a href="Send.htm#SendInput">SendInput function</a> itself to revert to Play mode when SendInput is unavailable.</p>
-    <p id="Play"><strong>Play:</strong> Switches to the <a href="Send.htm#SendPlay">SendPlay</a> method for <a href="Send.htm">Send</a>, <a href="Send.htm">SendText</a>, <a href="Click.htm">Click</a>, <a href="MouseMove.htm">MouseMove</a>, <a href="MouseClick.htm">MouseClick</a>, and <a href="MouseClickDrag.htm">MouseClickDrag</a>. Known limitations:</p>
-    <ul>
-      <li>Characters that do not exist in the current keyboard layout (such as &Ocirc; in English) cannot be sent. To work around this, use <a href="Send.htm#SendEvent">SendEvent</a>.</li>
-      <li>Simulated mouse dragging might have no effect in RichEdit controls (and possibly others) such as those of WordPad and Metapad. To use an alternate mode for a particular drag, follow this example: <code><a href="Send.htm#SendEvent">SendEvent</a> "{Click 6 52 Down}{Click 45 52 Up}"</code>.</li>
-      <li>Simulated mouse wheel rotation produces movement in only one direction (usually downward, but upward in some applications). Also, wheel rotation might have no effect in applications such as MS Word and Notepad. To use an alternate mode for a particular rotation, follow this example: <code><a href="Send.htm#SendEvent">SendEvent</a> "{WheelDown 5}"</code>.</li>
-      <li>If <code>SendMode "Play"</code> is called during <a href="../Scripts.htm#auto">script startup</a>, all remapped keys are affected and might lose some of their functionality. See <a href="../misc/Remap.htm#SendPlay">SendPlay remapping limitations</a> for details.</li>
-      <li>SendPlay does not trigger AutoHotkey's hotkeys or hotstrings, or global hotkeys registered by other programs or the OS.</li>
-    </ul>
+    <p>Specify one of the following words to change the sending mode for subsequent occurrences of <a href="Send.htm">Send</a>, <a href="Send.htm">SendRaw</a>, <a href="Click.htm">Click</a>, <a href="MouseClick.htm">MouseClick</a>, <a href="MouseClickDrag.htm">MouseClickDrag</a>, and <a href="MouseMove.htm">MouseMove</a>:</p>
+    <p><strong>Event:</strong> Switches to the traditional <a href="#Event">SendEvent mode</a>.</p>
+    <p><strong>Input:</strong> Default mode. Switches to the <a href="#Input">SendInput mode</a>, which is the fastest and generally the most reliable method to send simulated keystrokes and mouse clicks.</p>
+    <p><strong>Play:</strong> Switches to the <a href="#Play" class="deprecated">SendPlay mode</a>, which is faster than SendEvent and can work in cases where the other modes fail, particularly in some games or applications with unusual input handling.</p>
+    <p id="InputThenPlay"><strong>InputThenPlay:</strong> Same as <em>Input</em> except that rather than falling back to <em>Event</em> when <em>Input</em> is <a href="#SendInputUnavail">unavailable</a>, it reverts to <em>Play</em>. This also causes the <a href="Send.htm">SendInput</a> function itself to revert to <em>Play</em> when <em>Input</em> is unavailable.</p>
   </dd>
 </dl>
 
 <h2 id="Return_Value">Return Value</h2>
 <p>Type: <a href="../Concepts.htm#strings">String</a></p>
-<p>This function returns the previous setting; either Event, Input, InputThenPlay or Play.</p>
+<p>This function returns the previous setting.</p>
+
+<h2 id="Sending_Modes">Sending Modes</h2>
+<p>The following sections describe the three methods AutoHotkey uses to send simulated keystrokes and mouse clicks: <a href="#Event">SendEvent</a>, <a href="#Input">SendInput</a>, and <a href="#Play" class="deprecated">SendPlay</a>. Each mode has different strengths and limitations, and applications may respond differently depending on how the input is generated. Understanding these differences helps in choosing the most effective mode for a particular script or target application.</p>
+
+<h3 id="Event">SendEvent</h3>
+<p>SendEvent is the traditional method to send keystrokes and mouse clicks. However, compared to the other sending modes, SendEvent is slower; it will never match the speed of <a href="#Input">SendInput</a> or <a href="#Play" class="deprecated">SendPlay</a>.</p>
+<p>SendEvent obeys the delays set by <a href="SetKeyDelay.htm">SetKeyDelay</a> and <a href="SetMouseDelay.htm">SetMouseDelay</a>. The default delay is 10 milliseconds.</p>
+<p>SendEvent is also used automatically when SendInput is <a href="#SendInputUnavail">unavailable</a>, unless <a href="#InputThenPlay">InputThenPlay</a> is in effect.</p>
+<p>The <a href="Send.htm">SendEvent</a> function can be used to send keystrokes explicitly via SendEvent mode.</p>
+
+
+<h3 id="Input">SendInput</h3>
+<p>SendInput is generally the preferred method to send keystrokes and mouse clicks because of its superior speed and reliability. Under most conditions, SendInput is nearly instantaneous, even when sending long strings. Since SendInput is so fast, it is also more reliable because there is less opportunity for some other window to pop up unexpectedly and intercept the keystrokes. Reliability is further improved by the fact that anything the user types during a SendInput is postponed until afterward.</p>
+<p>Unlike the other sending modes, the operating system limits SendInput to about 5000 characters (this may vary depending on the operating system's version and performance settings). Characters and events beyond this limit are not sent.</p>
+<p class="note"><strong>Note:</strong> SendInput ignores <a href="SetKeyDelay.htm">SetKeyDelay</a> and <a href="SetMouseDelay.htm">SetMouseDelay</a> because the operating system does not support a delay in this mode. However, when SendInput reverts to <a href="#Event">SendEvent</a> under the conditions described below, it uses <code>SetKeyDelay -1, 0</code> (unless SendEvent's KeyDelay is <code>-1,-1</code>, in which case <code>-1,-1</code> is used). When SendInput reverts to <a href="#Play" class="deprecated">SendPlay</a> due to <a href="#InputThenPlay">InputThenPlay</a>, it uses SendPlay's KeyDelay.</p>
+<p id="SendInputHook">If the script has a <a href="InstallKeybdHook.htm">low-level keyboard hook</a> installed, SendInput automatically uninstalls it prior to executing and reinstalls it afterward. As a consequence, SendInput generally cannot trigger the script's own hook hotkeys or <a href="InputHook.htm">InputHooks</a>. The hook is temporarily uninstalled because its presence would otherwise disable all of SendInput's advantages, making it inferior to both <a href="#Play" class="deprecated">SendPlay</a> and <a href="#Event">SendEvent</a>. However, this can only be done for the script's own hook, and is not done if an external hook is detected as described below.</p>
+<p id="SendInputUnavail">If a script <em>other than</em> the one executing SendInput has a <a href="InstallKeybdHook.htm">low-level keyboard hook</a> installed, SendInput automatically reverts to <a href="#Event">SendEvent</a> (or <a href="#Play" class="deprecated">SendPlay</a> if <a href="#InputThenPlay">InputThenPlay</a> is in effect). This is done because the presence of an external hook disables all of SendInput's advantages, making it inferior to both <a href="#Play" class="deprecated">SendPlay</a> and <a href="#Event">SendEvent</a>. However, since SendInput is unable to detect a low-level hook in programs other than AutoHotkey v1.0.43+, it will not revert in these cases, making it less reliable than the other modes.</p>
+<p>When SendInput sends mouse clicks by means such as <a href="Send.htm#Click">{Click}</a>, and <code><a href="CoordMode.htm">CoordMode</a> "Mouse", "Window"</code> or <code>CoordMode "Mouse", "Client"</code> is in effect, every click will be relative to the window that was active at the start of the send. Therefore, if SendInput intentionally activates another window (by means such as alt-tab), the coordinates of subsequent clicks within the same function will be wrong if they were intended to be relative to the new window rather than the old one.</p>
+<p>The <a href="Send.htm">SendInput</a> function can be used to send keystrokes explicitly via SendInput mode.</p>
+<p>Known limitations:</p>
+<ul>
+  <li>Windows Explorer ignores SendInput's simulation of certain navigational hotkeys such as <kbd>Alt</kbd>+<kbd>&larr;</kbd>. To work around this, use either <code>SendEvent "!{Left}"</code> or <code>SendInput "{Backspace}"</code>.</li>
+</ul>
+
+<h3 id="Play">SendPlay</h3>
+<p class="warning"><strong>Deprecated:</strong> SendPlay does not tend to work if <a href="https://en.wikipedia.org/wiki/User_Account_Control">User Account Control (UAC)</a> is enabled, even if the script is running as an administrator. For more information, refer to the <a href="../FAQ.htm#uac">FAQ</a>. On Windows 11 and later, SendPlay may have no effect at all.</p>
+<p>SendPlay's biggest advantage is its ability to "play back" keystrokes and mouse clicks in a broader variety of games than the other modes. For example, a particular game may accept <a href="../Hotstrings.htm#SendMode">hotstrings</a> only when they have the <a href="../Hotstrings.htm#SendMode">SendPlay option</a>.</p>
+<p>Of the three sending modes, SendPlay is the most unusual because it does not simulate keystrokes and mouse clicks per se. Instead, it creates a series of events (messages) that flow directly to the active window (similar to <a href="ControlSend.htm">ControlSend</a>, but at a lower level). Consequently, SendPlay does not trigger hotkeys or hotstrings.</p>
+<p>Like <a href="#Input">SendInput</a>, SendPlay's keystrokes do not get interspersed with keystrokes typed by the user. Thus, if the user happens to type something during a SendPlay, those keystrokes are postponed until afterward.</p>
+<p>Although SendPlay is considerably slower than <a href="#Input">SendInput</a>, it is usually faster than the traditional <a href="#Event">SendEvent</a> mode (even when <a href="SetKeyDelay.htm">KeyDelay</a> is -1).</p>
+<p>The Windows keys (LWin and RWin) are automatically blocked during a SendPlay if the <a href="InstallKeybdHook.htm">keyboard hook</a> is installed. This prevents the Start Menu from appearing if the user accidentally presses a Windows key during the send. By contrast, keys other than LWin and RWin do not need to be blocked because the operating system automatically postpones them until after the SendPlay (via buffering).</p>
+<p>SendPlay obeys the delays set by <a href="SetKeyDelay.htm">SetKeyDelay</a> and <a href="SetMouseDelay.htm">SetMouseDelay</a> if their <em>Play</em> parameter is present. Unlike <a href="#Event">SendEvent</a>, SendPlay defaults to -1 (no delay at all).</p>
+<p>SendPlay is unable to turn on or off the CapsLock, NumLock, or ScrollLock keys. Similarly, it is unable to change a key's state as seen by <a href="GetKeyState.htm">GetKeyState</a> unless the keystrokes are sent to one of the script's own windows. Even then, any changes to the left/right modifier keys (e.g. RControl) can be detected only via their neutral counterparts (e.g. Control).</p>
+<p>Unlike <a href="#Input">SendInput</a> and <a href="#Event">SendEvent</a>, the user may interrupt a SendPlay by pressing <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>Del</kbd> or <kbd>Ctrl</kbd>+<kbd>Esc</kbd>. When this happens, the remaining keystrokes are not sent but the script continues executing as though the SendPlay had completed normally.</p>
+<p>Although SendPlay can send LWin and RWin events, they are sent directly to the active window rather than performing their native operating system function. To work around this, use <a href="#Event">SendEvent</a>. For example, <code>SendEvent "#r"</code> would show the Start Menu's Run dialog.</p>
+<p>The <a href="Send.htm">SendPlay</a> function can be used to send keystrokes explicitly via SendPlay mode.</p>
+<p>Known limitations:</p>
+<ul>
+  <li>Characters that do not exist in the current keyboard layout (such as &Ocirc; in English) cannot be sent. To work around this, use <a href="#Event">SendEvent</a>.</li>
+  <li>Simulated mouse dragging might have no effect in RichEdit controls (and possibly others) such as those of WordPad and Metapad. To use an alternate mode for a particular drag, follow this example: <code><a href="Send.htm">SendEvent</a> "{Click 6 52 Down}{Click 45 52 Up}"</code>.</li>
+  <li>Simulated mouse wheel rotation produces movement in only one direction (usually downward, but upward in some applications). Also, wheel rotation might have no effect in applications such as MS Word and Notepad. To use an alternate mode for a particular rotation, follow this example: <code><a href="Send.htm">SendEvent</a> "{WheelDown 5}"</code>.</li>
+  <li>When calling <code>SendMode "Play"</code> during the <a href="../Scripts.htm#auto">script startup</a>, all remapped keys are affected and might lose some of their functionality. See <a href="../misc/Remap.htm#SendPlay">SendPlay remapping limitations</a> for details.</li>
+  <li>SendPlay does not trigger AutoHotkey's hotkeys or hotstrings, or global hotkeys registered by other programs or the OS.</li>
+</ul>
 
 <h2 id="Remarks">Remarks</h2>
-<p>If SendMode is not used, the default mode is <em>Input</em>.</p>
+<p>The default sending mode is <em>Input</em>.</p>
 <p>Since SendMode also changes the mode of <a href="Click.htm">Click</a>, <a href="MouseMove.htm">MouseMove</a>, <a href="MouseClick.htm">MouseClick</a>, and <a href="MouseClickDrag.htm">MouseClickDrag</a>, there may be times when you wish to use a different mode for a particular mouse event. The easiest way to do this is via <a href="Send.htm#Click">{Click}</a>. For example:</p>
 <pre>SendEvent "{Click 100 200}"  <em>; SendEvent uses the older, traditional method of clicking.</em></pre>
 <p>If SendMode is used during <a href="../Scripts.htm#auto">script startup</a>, it also affects <a href="../misc/Remap.htm">keyboard and mouse remapping</a>. In particular, if you use <code>SendMode "Play"</code> with remapping, see <a href="../misc/Remap.htm#SendPlay">SendPlay remapping limitations</a>.</p>
-<p>The built-in variable <strong>A_SendMode</strong> contains the current setting.</p>
+<p>The built-in variable <a href="../Variables.htm#SendMode">A_SendMode</a> contains the current setting and can also be assigned a new value instead of calling SendMode.</p>
 <p>Every newly launched <a href="../misc/Threads.htm">thread</a> (such as a <a href="../Hotkeys.htm">hotkey</a>, <a href="Menu.htm">custom menu item</a>, or <a href="SetTimer.htm">timed</a> subroutine) starts off fresh with the default setting for this function. That default may be changed by using this function during <a href="../Scripts.htm#auto">script startup</a>.</p>
+
 <h2 id="Related">Related</h2>
 <p><a href="Send.htm">Send</a>, <a href="SetKeyDelay.htm">SetKeyDelay</a>, <a href="SetMouseDelay.htm">SetMouseDelay</a>, <a href="Click.htm">Click</a>, <a href="MouseClick.htm">MouseClick</a>, <a href="MouseClickDrag.htm">MouseClickDrag</a>, <a href="MouseMove.htm">MouseMove</a></p>
 <h2 id="Examples">Examples</h2>

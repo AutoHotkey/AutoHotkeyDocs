@@ -29,8 +29,9 @@
     <p>Type: <a href="../Concepts.htm#strings">String</a> or <a href="../misc/Functor.htm">Function Object</a></p>
     <p>The function, method or object to call when the event is raised.</p>
     <p>If the GUI has an event sink (that is, if <a href="Gui.htm#Call">Gui()</a>'s <em>EventObj</em> parameter was specified), this parameter may be the name of a method belonging to the event sink. Otherwise, this parameter must be a <a href="../misc/Functor.htm">function object</a>.</p>
-    <p>The callback accepts a specific number of parameters depending on the <a href="#Window_Events">window event</a> and <a href="#Control_Events">control event</a> and can be <a href="../Functions.htm#intro">defined</a> as follows:</p>
+    <p>The callback accepts a specific number of parameters depending on the <a href="#Window_Events">window event</a> and <a href="#Control_Events">control event</a>. A callback function can be <a href="../Functions.htm#intro">defined</a> as follows:</p>
     <pre class="NoIndent">MyCallback(GuiOrCtrlObj, ...) { ...</pre>
+    <p class="note"><strong>Note:</strong> If the callback function was created by a <a href="../Objects.htm#Custom_Classes_method">method definition</a>, it has an implicit <code>this</code> parameter which must be taken into account.</p>
     <p>Although the names you give the parameters do not matter, the following values are sequentially assigned to them:</p>
     <ol>
       <li>The <a href="Gui.htm">Gui</a> or <a href="GuiControl.htm">GuiControl</a> object of the GUI window or control which raised the event. This value is always passed.</li>
@@ -327,6 +328,87 @@ Link_Click(Ctrl, ID, HREF)
         Run(HREF)
 }
 MyGui.Show()</pre>
+</div>
+
+<div class="ex" id="ExEventSink">
+<p><a class="ex_number" href="#ExEventSink"></a> Demonstrates two ways to handle events using methods instead of functions. This is functionally equivalent to the <a href="#ExEventSinkThis">next example</a>.</p>
+<pre>MyGui := Gui("-DPIScale",, MyGuiEvents)
+MyEdit := MyGui.AddEdit("vMyEdit")
+MyEdit.OnEvent("Focus", "CtrlFocused")
+MyEdit.OnEvent("LoseFocus", "CtrlUnfocused")
+MyGui.SetFont("s30")
+MyButton := MyGui.AddButton("vMyButton", "Test Button")
+MyButton.OnEvent("Focus", "CtrlFocused")
+MyButton.OnEvent("LoseFocus", "CtrlUnfocused")
+<em>; If the object isn't the Gui's event sink, it can also be done as shown below.
+; Bind is necessary because each method has an implicit "this" parameter.</em>
+MyButton.OnEvent("Click", MyGuiEvents.ButtonClicked.Bind(MyGuiEvents))
+MyGui.Show()
+
+class MyGuiEvents
+{
+    <em>; These are static because we use MyGuiEvents and not MyGuiEvents().</em>
+    static MessageFormat := "{1} was clicked."
+    
+    static CtrlFocused(Ctrl, *)
+    {
+        Ctrl.GetPos(&amp;X, &amp;Y, &amp;W)
+        ToolTip Ctrl.Name " has focus", X + W, Y
+    }
+    
+    static CtrlUnfocused(Ctrl, *)
+    {
+        ToolTip
+    }
+    
+    static ButtonClicked(Ctrl, *)
+    {
+        ToolTip
+        MsgBox Format(this.MessageFormat, Ctrl.Text)
+    }
+}</pre>
+</div>
+
+<div class="ex" id="ExEventSinkThis">
+<p><a class="ex_number" href="#ExEventSinkThis"></a> Demonstrates handling events within a Gui subclass. This is functionally equivalent to the <a href="#ExEventSink">previous example</a>.</p>
+<pre>DemoGui().Show()  <em>; This creates a DemoGui instance and shows it.</em>
+
+class DemoGui extends Gui
+{
+    MessageFormat := "{1} was clicked."
+    
+    __New()
+    {
+        <em>; Pass "this" as the EventSink.</em>
+        super.__New("-DPIScale",, this)
+        
+        MyEdit := this.AddEdit("vMyEdit")
+        MyEdit.OnEvent("Focus", "CtrlFocused")
+        MyEdit.OnEvent("LoseFocus", "CtrlUnfocused")
+        this.SetFont("s30")
+        MyButton := this.AddButton("vMyButton", "Test Button")
+        MyButton.OnEvent("Focus", "CtrlFocused")
+        MyButton.OnEvent("LoseFocus", "CtrlUnfocused")
+        MyButton.OnEvent("Click", "ButtonClicked")
+    }
+    
+    CtrlFocused(Ctrl, *)
+    {
+        Ctrl.GetPos(&amp;X, &amp;Y, &amp;W)
+        ToolTip Ctrl.Name " has focus", X + W, Y
+    }
+    
+    CtrlUnfocused(Ctrl, *)
+    {
+        ToolTip
+    }
+    
+    ButtonClicked(Ctrl, *)
+    {
+        ToolTip
+        MsgBox Format(this.MessageFormat, Ctrl.Text)
+    }
+}</pre>
 </div>
 
 </body>
