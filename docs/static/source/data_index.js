@@ -468,6 +468,7 @@ indexData = [
   ["Default property (Array)","lib/Array.htm#Default",7],
   ["Default property (Map)","lib/Map.htm#Default",7],
   ["Default property (Menu)","lib/Menu.htm#Default",7],
+  ["DefineProp","lib/Object.htm#DefineProp",2],
   ["DefineProp method (Object)","lib/Object.htm#DefineProp",7],
   ["delete files","lib/FileDelete.htm"],
   ["delete folder/directory","lib/DirDelete.htm"],
