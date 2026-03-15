@@ -17,30 +17,33 @@
 <p>Structs are most often used with external functions via <a href="lib/DllCall.htm">DllCall</a>, or with Gui controls via <a href="lib/SendMessage.htm">SendMessage</a>. In those cases, the memory offset of each field relative to the start of the struct must exactly match the offset expected by the external function or control, usually as defined in an SDK or documentation meant for C/C++ developers.</p>
 <p>In AutoHotkey v2.0 and earlier, structs were typically "defined" by allocating memory with <a href="lib/Buffer.htm">Buffer</a> (or other means) and directly manipulating it with <a href="lib/NumPut.htm">NumPut</a> and <a href="lib/NumGet.htm">NumGet</a>. This requires calculating the offset of each individual field as needed, so is a laborious and error-prone process. Fields are generally not referenced by name, making the code hard to read and maintain.</p>
 <p class="warning"><strong>Warning:</strong> This is preliminary documentation for v2.1. Specifics may change with each alpha release.</p>
-<p>With v2.1, structs can instead be created through the use of typed properties in a class. Each typed property corresponds to a field. Usually a <a href="#classdef">class definition</a> is used, but a structured class can also be <a href="#defprop">constructed at runtime</a>. Offsets and struct sizes are calculated automatically based on the sequence of typed properties.</p>
+<p>With v2.1, the script can define a struct as a sequence of typed properties. This allows the script to refer to fields by name, relying on automatic calculation of field offsets and struct sizes. Usually a <a href="#classdef">struct class definition</a> is used, but a struct class can also be <a href="#defprop">constructed at runtime</a>.</p>
 
-<h2 id="classdef">Using a Class Definition</h2>
-<p>Within a <a href="Objects.htm#Custom_Classes">class definition</a>, a typed property is defined by writing a colon and type expression or reserved type name after the property name. For example:</p>
-<pre>class POINT {
+<h2 id="classdef">Using a Class Definition <span class="ver">[v2.1-alpha.22+]</span></h2>
+<p>Struct classes are defined using <code>struct</code> instead of <code>class</code>, and default to extending Struct instead of Object.</p>
+<p>Each field in a struct is defined by writing its name, followed by a colon, then a type expression or reserved type name. This is also called a typed property. Multiple typed properties can be defined on one line by separating them with a comma. For example:</p>
+<pre>struct POINT {
     x : i32, y : i32
 }</pre>
 <p>All fields are zero-initialized when the object is constructed, before initializers are evaluated. A field can be initialized to some other value by including an assignment after the type. For example:</p>
-<pre>class LVINSERTMARK {
-    cbSize      : u32 := ObjGetDataSize(this)
+<pre>struct LVINSERTMARK {
+    cbSize      : u32 := this.Size
     dwFlags     : u32
     iItem       : i32
     dwReserved  : u32
 }</pre>
-<p>A struct is instantiated like any other object:</p>
+<p>A struct class can be instantiated the normal way, by calling it:</p>
 <pre>im := LVINSERTMARK()</pre>
+<p>As structs often come from external sources, an address can be converted to a reference to a struct by calling the At method.</p>
 <p>Fields defined by a subclass are always placed after fields defined by the base class. For example, when class StructB extends StructA, the layout is the same as if StructB extends Object but begins with a nested StructA. However, inherited properties are accessed directly, not through a nested struct.</p>
-<p><span class="ver">[v2.1-alpha.19+]</span>: <a href="lib/_StructPack.htm">#StructPack</a> can be used to override the default alignment of fields within the struct.</p>
+<p><a href="lib/_StructPack.htm">#StructPack</a> can be used to override the default alignment of fields within the struct.</p>
+<p>All elements of a <a href="Objects.htm#Custom_Classes">class definition</a> are permitted, but an initializer such as <code>x := 0</code> cannot create a new property.</p>
 
 <h2 id="defprop">Using DefineProp</h2>
 <p>A struct can be defined at runtime by creating a <a href="lib/Class.htm">Class</a> object and adding typed properties to its <a href="lib/Class.htm#Prototype">Prototype</a> with <a href="lib/Object.htm#DefineProp">DefineProp</a>. For example:</p>
-<pre>POINT := Class(Object)  <em>; Specify the base class so a Prototype is created automatically.</em>
-POINT.Prototype.DefineProp('x', {type: 'i32'})
-POINT.Prototype.DefineProp('y', {type: 'i32'})
+<pre>POINT := Class(Struct)  <em>; v2.1-alpha.21 and older used Object instead of Struct.</em>
+DefineProp(POINT.Prototype, 'x', {type: 'i32'})
+DefineProp(POINT.Prototype, 'y', {type: 'i32'})
 pt := POINT()
 </pre>
 <p>Typically the class object (POINT) would be defined once and used to create many instances (pt).</p>
@@ -48,10 +51,10 @@ pt := POINT()
 <p>As with a class definition, fields can be inherited from the prototype's base.</p>
 <p><span class="ver">[v2.1-alpha.19+]</span>: <a href="lib/Object.htm#DefinePropPack">Pack</a> can be used to override the default alignment of fields within the struct. For example:</p>
 <pre>
-AB := Class(Object)
-AB.Prototype.DefineProp 'a', {type: 'i8'}
-AB.Prototype.DefineProp 'b', {type: 'i32', pack: 1}
-MsgBox ObjGetDataSize(AB())
+AB := Class(Struct)
+DefineProp(AB.Prototype, 'a', {type: 'i8'})
+DefineProp(AB.Prototype, 'b', {type: 'i32', pack: 1})
+MsgBox AB().Size
 </pre>
 
 <h2 id="type-specs">Type Specifiers</h2>
@@ -65,8 +68,7 @@ MsgBox ObjGetDataSize(AB())
 </ul>
 <p>Type specifiers are evaluated in sequence with static property initializers, when the class is initialized (not each time it is instantiated).</p>
 <p>If an expression is used, it must evaluate to a class object, a string (a reserved type name) or an integer (size in bytes). It is evaluated in the context of <a href="Objects.htm#static__New">static __Init()</a>; i.e. <code>this</code> refers to the class object.</p>
-<p>If the type is a class, it must have at least one typed property; i.e. it must define a struct. A property of this type would typically be known as a nested struct, but such classes can also represent more <a href="#abstract">abstract</a> types such as smart pointers, arrays, enums, specialized string types, or types that are restricted to specific values.</p>
-<p class="note"><strong>Note:</strong> If a property is declared with type <code>MyObject</code>, this does not mean it can hold a <em>reference</em> to any MyObject, but rather that MyObject defines the type of the property.</p>
+<p><span class="ver">[v2.1-alpha.22+]</span>: If the type is a class, it must be a subclass of <a href="lib/Struct.htm">Struct</a>. A property of this type would typically be known as a nested struct (when used inside a struct), but struct classes can also define more <a href="#abstract">abstract</a> types such as smart pointers, arrays, enums, specialized string types, or types that are restricted to specific values.</p>
 
 <h3 id="type-names">Reserved Type Names</h3>
 <p>Currently the following type names are reserved. When written literally, they must be quoted when used with DefineProp. When used in a class definition, they may only be quoted if enclosed within parentheses. The convention is currently a single letter indicating the basic type and a suffix indicating the size of the type (in bits, if it is a number).</p>
@@ -90,7 +92,7 @@ MsgBox ObjGetDataSize(AB())
 
 <h3 id="abstract">Abstract Types</h3>
 <p>A struct can be used to implement a variety of abstract types, such as smart pointers, arrays, enums, specialized string types, or types that are restricted to specific values. For example, this implements a bool type like in C++:</p>
-<pre>class bool {
+<pre>struct bool {
     value : u8  <em>; This property name has no special meaning.</em>
     __value {
         get =&gt; this.value
@@ -98,7 +100,7 @@ MsgBox ObjGetDataSize(AB())
     }
 }
 
-class Example {
+struct Example {
     bInformed : bool
     __new() {
         for value in [false, "truthy", 3] {
@@ -112,12 +114,45 @@ Example()</pre>
 <p>The __Value property is also used by DllCall. For example, when the bool class is used as a DllCall parameter type, any incoming parameter value is automatically converted to 0 or 1 by <code>!!value</code>.</p>
 <p>There are a variety of conventions for strings in structs and DllCall. Currently typed properties have no built-in support for strings or arrays, but they can be implemented by scripts using these mechanisms. The <a href="#ExCString">CString</a> and <a href="#ExBSTR">BSTR</a> examples demonstrate this.</p>
 
-<h2 id="pointers">Pointers to Structs <span class="ver">[v2.1-alpha.9+]</span></h2>
-<pre class="Syntax">Obj := <span class="func">StructFromPtr</span>(StructClass, Address)</pre>
-<p>Support for pointers to structs is rudimentary. A "typed pointer" is created by passing the structured class and address to StructFromPtr. The structure need not have been allocated by the script instantiating a class. The typed pointer behaves as an instance of the class, but as it does not manage the lifetime of the struct itself, __Init, __New and __Delete are not called automatically.</p>
-<p>Any number of typed pointer instances can exist for a given struct. As a typed pointer is itself an object which encapsulates an address and type information, different instances do not compare equal even if they point to the same struct address. A new typed pointer instance may or may not be returned each time StructFromPtr is called or a nested struct is retrieved via a typed pointer.</p>
-<p>Typed pointers are currently ordinary objects and as such can have own properties, but this is likely to change. Any properties added to the typed pointer would exist only for that specific typed pointer instance.</p>
-<p>There is currently no built-in way to specify a "pointer to struct" type. A script could define a function which dynamically creates a typed pointer class, similar to <a href="#ExOut">the Out example</a>.</p>
+<h2 id="pointers">Pointers to Structs <span class="ver">[v2.1-alpha.22+]</span></h2>
+<p>Each struct class has a static property named <strong>Ptr</strong> which returns a pointer class. A pointer class is generally not instantiated, but is used with <a href="lib/DllCall.htm">DllCall</a> and typed properties to specify a pointer-to-struct parameter or field. For example, given an appropriate definition of the RECT struct class, <code>RECT.Ptr</code> represents the C type <code>RECT*</code> or <code>LPRECT</code>.</p>
+
+<h3 id="Boxed_Pointer">Boxed Pointer</h3>
+<p>Rather than encapsulating pointer values as their own unique type, they are treated as instances of the target struct class, with all of the same properties and type identity. To differentiate, we can use the term "boxed struct" to refer to an instance constructed by the script, and "boxed pointer" to refer to an instance which encapsulates a pointer value.</p>
+<p>An address (pointer value) can be boxed by calling the <a href="lib/Struct.htm#At">At</a> method.</p>
+<pre>Ref := StructClass.At(Address)</pre>
+<p>Since Ref is treated as an instance of StructClass, <code>Ref is StructClass &amp;&amp; Ref.Ptr = Address</code> is true and <code>Ref.Size</code> returns the size of the struct (defined by the class). This means that if Ref is passed to a <a href="lib/DllCall.htm">DllCall</a> <a href="lib/DllCall.htm#ptr">Ptr</a> parameter, <a href="lib/NumGet.htm">NumGet</a> or <a href="lib/NumPut.htm">NumPut</a>, the parameter value or target address is the address of the struct, not the address at which the pointer is stored.</p>
+<p>The lifetime of the actual struct is independent from the lifetime of a boxed pointer - the "box" only contains the pointer, not the struct. In many cases the struct is constructed by external code; the method of allocation can vary and may be unknowable. The script must ensure that no typed properties are queried after the struct is deleted.</p>
+<p class="warning"><strong>Warning:</strong> The debugger may query properties automatically, so it is best to always release any boxed pointers before the target struct is deleted.</p>
+<p>The struct is expected to have already been constructed (typically by external code), so __Init and __New are not called by At.</p>
+<p>Any number of boxed pointers can exist for a given address, and can even have different classes. Different instances do not compare equal; the "boxes" are compared, not the pointer value.</p>
+
+<h3 id="pointers_DllCall">DllCall</h3>
+<p>When used as a DllCall parameter type, <code>StructClass.Ptr</code> is handled similarly to any type with the <a href="lib/DllCall.htm#asterisk">* suffix</a>. That is, the parameter can accept a VarRef, a value of the base type, or a value which can be converted to the base type. If a VarRef is passed, the value is read back after the call and assigned to the VarRef, potentially converting it in the process. The specifics are as follows:</p>
+<ul>
+  <li>If <a href="Language.htm#unset">unset</a>, a null pointer (0) is passed.</li>
+  <li>If a StructClass.Ptr is passed, the pointer value it contains is passed (but this is not typical usage).</li>
+  <li>If a <a href="Concepts.htm#variable-references">VarRef</a> is passed, its value (if any) is used as input.</li>
+  <li>If the input is an instance of StructClass, its address is passed.</li>
+  <li>In any other case, a new instance of StructClass is constructed.
+  <ul>
+    <li>If an input value was provided (not an unset VarRef), __Value is assigned to handle the conversion. A TypeError is thrown if __Value is not implemented.</li>
+    <li>If a VarRef was passed, the VarRef is assigned one of the following:
+      <ul>
+        <li>The return value of the __Value getter, if defined.</li>
+        <li>The new struct instance, so <code>StructClass.Ptr, &amp;Arg</code> gives the same end result as <code>StructClass.Ptr, Arg := StructClass()</code>, except that Arg is not assigned until after the call.</li>
+      </ul>
+    </li>
+  </ul>
+</ul>
+<p>When used as a return type, the return value is a <a href="#Boxed_Pointer">boxed pointer</a>, or <a href="Language.htm#unset">unset</a> if null.</p>
+
+<h3 id="pointers_fields">Pointers in Structs</h3>
+<p>A pointer class can be used as the type of a struct field or typed property.</p>
+<p>For both assignment and return, <a href="Language.htm#unset">unset</a> is used to represent a null pointer (0).</p>
+<p>When non-null, the high-level value of the property is an instance of the target class (either a <a href="#Boxed_Pointer">boxed pointer</a> or a <a href="#Boxed_Pointer">boxed struct</a>).</p>
+<p>If a <a href="#Boxed_Pointer">boxed struct</a> of an appropriate type is assigned to the property, a reference is retained to ensure it is not deleted until after the script releases its reference to the outer struct or <a href="#Boxed_Pointer">boxed pointer</a>. For example, it is typically safe to use <code>outer.lpEx := Example()</code>, whereas <code>myVar := Example().Ptr</code> would free the new struct immediately after the assignment. If the underlying pointer value has been changed, evaluating <code>outer.lpEx</code> causes the held reference to be released.</p>
+<p>If a pointer class is constructed directly, its __Value property behaves as described above.</p>
 
 <h2 id="Related">Related</h2>
 <ul>
@@ -129,36 +164,42 @@ Example()</pre>
 <h2 id="Examples">Examples</h2>
 <div class="ex" id="ExBind">
 <p><a class="ex_number" href="#ExBind"></a> Shows the class name of the window/control under the mouse cursor.</p>
-<pre>class Point {
+<pre>struct Point {
     x : i32, y : i32
 }
-<em>; Use the class itself to pass by value.</em>
-WindowFromPoint := DllCall.Bind("WindowFromPoint", Point, unset, "uptr")
-<em>; Use "ptr" to pass by reference.</em>
-GetCursorPos := DllCall.Bind("GetCursorPos", "ptr", unset)
 
-pt := Point()
-GetCursorPos(pt)
-MsgBox WinGetClass(WindowFromPoint(pt))</pre>
+<em>; Use the class itself to pass by value (C type: POINT).</em>
+WindowFromPoint := DllCall.Bind("WindowFromPoint", Point, unset, "uptr")
+
+<em>; Use "ptr" to pass by reference without type-checking (C type: POINT*).</em>
+GetCursorPos := DllCall.Bind("GetCursorPos", "ptr", unset)
+pt1 := Point()
+GetCursorPos(pt1)
+MsgBox WinGetClass(WindowFromPoint(pt1))
+
+<em>; Use .Ptr to pass by reference or receive output via a VarRef.</em>
+GetCursorPos := DllCall.Bind("GetCursorPos", Point.Ptr, unset)
+GetCursorPos(&amp;pt2)
+MsgBox WinGetClass(WindowFromPoint(pt2))</pre>
 </div>
 
 <div class="ex" id="ExMONITORINFO">
 <p><a class="ex_number" href="#ExMONITORINFO"></a> Retrieves information about the monitor containing the mouse cursor, using nested structs.</p>
-<pre>class RECT {
+<pre>struct RECT {
     Left : i32
     Top : i32
     Right : i32
     Bottom : i32
 }
 
-class MONITORINFO {
+struct MONITORINFO {
     cbSize : i32 := 40
     rcMonitor : RECT
     rcWork : RECT
     dwFlags : i32
 }
 
-DllCall("GetCursorPos", "uint64*", &point:=0)
+DllCall("GetCursorPos", "uint64*", &amp;point:=0)
 hMonitor := DllCall("MonitorFromPoint", "int64", point, "uint", 0, "ptr")
 DllCall("user32\GetMonitorInfo", "ptr", hMonitor, "ptr", MI := MONITORINFO())
 MsgBox(
@@ -180,23 +221,21 @@ MsgBox(
 <p><a class="ex_number" href="#ExCString"></a> Defines a struct containing a fixed-size string with a specific encoding.</p>
 <pre><em>; Define a reusable "meta-class" or "generic class" for C-style strings.
 ; Calling CString itself returns a new class for use in a type expression.</em>
-class CString {
-    static Call(n, cp:="UTF-16") {
-        p := {base: this.Prototype}
-        p.UnitSize := StrPut("", cp)  <em>; Size in bytes of a single "character".</em>
-        p.Codepage := cp
-        p.Size := n * p.UnitSize  <em>; Total size of any field of this type.</em>
-        p.DefineProp('Ptr', {type: p.Size})  <em>; See <a href="#sized">Untyped Binary Data</a>.</em>
-        return {Prototype: p}
-    }
-    __value {
-        get =&gt; StrGet(this,, this.Codepage)
-        set =&gt; StrPut(value, this,, this.Codepage)
-    }
+CString(n, cp:="UTF-16") {
+    c := Class(Struct)
+    unitSize := StrPut("", cp)  <em>; Size in bytes of a single "character".</em>
+    totalSize := n * unitSize  <em>; Total size of any field of this type.</em>
+    DefineProp(c.Prototype, 'Ptr', {type: totalSize})  <em>; See Untyped Binary Data.</em>
+    DefineProp(c.Prototype, 'Size', {value: totalSize})
+    DefineProp(c.Prototype, '__value', {
+        get: (this)        =&gt; StrGet(this,, cp),
+        set: (this, value) =&gt; StrPut(value, this,, cp)
+    })
+    return c
 }
 
 <em>; Define a struct containing a string of at most 32 UTF-8 code units.</em>
-class XStruct {
+struct XStruct {
   str : CString(32, "UTF-8")
 }
 
@@ -205,44 +244,13 @@ x.str := "Hello!"
 MsgBox x.str
 </pre></div>
 
-<div class="ex" id="ExOut">
-<p><a class="ex_number" href="#ExOut"></a> Defines an arg type struct which assigns output to a VarRef, like the <a href="lib/DllCall.htm#asterisk">pointer suffix</a>.</p>
-<pre>
-class Point {
-    x : i32, y : i32
-}
-GetCursorPos := DllCall.Bind("GetCursorPos", Out(Point), unset)
-
-GetCursorPos(&mp1)  <em>; Let the call construct a new struct.</em>
-GetCursorPos(mp2 := Point())  <em>; Provide a struct to receive the output.</em>
-
-MsgBox mp1.x "," mp1.y "`n" mp2.x "," mp2.y
-
-Out(sc) {
-    oc := Class(Object)
-    oc.Prototype
-        .DefineProp('p', {type: 'uptr'})
-        .DefineProp('__value', {
-            set: set_out_value(this, value) {
-                if value is VarRef
-                    this.p := ObjGetDataPtr(%value% := sc())
-                else if value is sc
-                    this.p := ObjGetDataPtr(value)
-                else
-                    throw TypeError('Expected a VarRef or ' sc.Prototype.__Class ' but got a ' type(value), -1)
-            }
-        })
-    return oc
-}
-</pre></div>
-
 <div class="ex" id="ExBSTR">
 <p><a class="ex_number" href="#ExBSTR"></a> Defines a struct which handles conversion of strings to/from BSTR.</p>
 <pre>
 MsgBox DllCall("oleaut32\SysStringLen", BSTR, "abc" Chr(0) "123")
 MsgBox DllCall("oleaut32\SysAllocString", "wstr", "xyz", BSTR)
 
-class BSTR {  <em>; This type can also be used in a struct.</em>
+struct BSTR {  <em>; This type can also be used in a struct.</em>
     ptr : uptr
     size =&gt; DllCall("oleaut32\SysStringByteLen", "ptr", this, "uint")
     __value {
@@ -261,7 +269,7 @@ class BSTR {  <em>; This type can also be used in a struct.</em>
 <div class="ex" id="Exlldiv">
 <p><a class="ex_number" href="#Exlldiv"></a> Calls a function that returns a struct by value.</p>
 <pre>
-class lldiv_t {
+struct lldiv_t {
     quot : i64, rem : i64
 }
 res := DllCall("ucrtbase\lldiv", "int64", 31558149, "int64", 3600, lldiv_t)
@@ -272,10 +280,10 @@ MsgBox Format("Earth orbit: {} hours and {} seconds.", res.quot, res.rem)
 <div class="ex" id="ExHMODULE">
 <p><a class="ex_number" href="#ExHMODULE"></a> Defines a return type struct for error-checking and automatic cleanup.</p>
 <pre>
-class LoadedHModule {
-    ptr : uptr
-    __value =&gt; this.ptr ? this : throw(OSError(A_LastError, -1))
-    __delete() =&gt; DllCall("FreeLibrary", "ptr", this)
+struct LoadedHModule {
+    h : uptr
+    __value =&gt; this.h ? this : throw(OSError(A_LastError, -1))
+    __delete() =&gt; DllCall("FreeLibrary", "ptr", this.h)
 }
 
 check

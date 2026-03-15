@@ -193,9 +193,9 @@ function ctor_highlighter()
         return PRE + ph('dec', repl);
       });
       // class declarations:
-      innerHTML = innerHTML.replace(new RegExp(r_pre + '\\b(class)(?:$|(' + r_s + '+)([' + r_char + ']+)(?:(' + r_s + '+)(extends)(' + r_s + '+)([' + r_char + ']+))?(?=(?=' + r_s + '*\\{)|' + r_suf + '))', 'gim'), function(_, PRE, CLASS, SPACE1, NAME1, SPACE2, EXTENDS, SPACE3, NAME2)
+      innerHTML = innerHTML.replace(new RegExp(r_pre + '\\b(class|struct)(?:$|(' + r_s + '+)([' + r_char + ']+)(?:(' + r_s + '+)(extends)(' + r_s + '+)([' + r_char + ']+))?(?=(?=' + r_s + '*\\{)|' + r_suf + '))', 'gim'), function(_, PRE, CLASS, SPACE1, NAME1, SPACE2, EXTENDS, SPACE3, NAME2)
       {
-        var link = index_data[syn[5].dict['class']][1];
+        var link = index_data[syn[5].dict[CLASS]][1];
         var repl = wrap(CLASS, 'dec', link);
         if (EXTENDS)
           repl += SPACE1 + expressions(NAME1) + SPACE2 + wrap(EXTENDS, 'dec', link) + SPACE3 + expressions(NAME2);
