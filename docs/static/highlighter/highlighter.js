@@ -51,18 +51,18 @@ function ctor_highlighter()
       // Convert to pre>code if necessary:
       if (pre.tagName == 'PRE')
       {
-        if (pre.firstChild.tagName != 'CODE')
+        if (pre.firstChild && pre.firstChild.tagName == 'CODE')
+        {
+          code = pre.firstChild;
+          code.className += ' highlight';
+        }
+        else
         {
           code = document.createElement('code');
           code.className = 'highlight';
           code.innerHTML = pre.innerHTML;
           pre.innerHTML = '';
           pre.appendChild(code);
-        }
-        else
-        {
-          code = pre.firstChild;
-          code.className += ' highlight';
         }
       }
       // Temporarily remove HTML elements interfering with syntax detection:
@@ -202,6 +202,12 @@ function ctor_highlighter()
         else if (NAME1)
           repl += SPACE1 + expressions(NAME1);
         return PRE + ph('dec', repl);
+      });
+      // class's accessor definitions:
+      innerHTML = innerHTML.replace(new RegExp(r_pre + '\\b(get|set)\\b(?=(?=' + r_s + '*(\\{|=&gt;))|' + r_suf + ')', 'gim'), function(_, PRE, ACCESSOR)
+      {
+        var link = index_data[syn[5].dict['class']][1];
+        return PRE + ph('cfs', wrap(ACCESSOR, 'dec', link));
       });
       // import declarations:
       innerHTML = innerHTML.replace(new RegExp(r_pre + '\\b(import)(?:$|'
