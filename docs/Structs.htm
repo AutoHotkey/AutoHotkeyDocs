@@ -23,14 +23,14 @@
 <p>Struct classes are defined using <code>struct</code> instead of <code>class</code>, and default to extending Struct instead of Object.</p>
 <p>Each field in a struct is defined by writing its name, followed by a colon, then a type expression or reserved type name. This is also called a typed property. Multiple typed properties can be defined on one line by separating them with a comma. For example:</p>
 <pre>struct POINT {
-    x : i32, y : i32
+    x : Int32, y : Int32
 }</pre>
 <p>All fields are zero-initialized when the object is constructed, before initializers are evaluated. A field can be initialized to some other value by including an assignment after the type. For example:</p>
 <pre>struct LVINSERTMARK {
-    cbSize      : u32 := this.Size
-    dwFlags     : u32
-    iItem       : i32
-    dwReserved  : u32
+    cbSize      : UInt32 := this.Size
+    dwFlags     : UInt32
+    iItem       : Int32
+    dwReserved  : UInt32
 }</pre>
 <p>A struct class can be instantiated the normal way, by calling it:</p>
 <pre>im := LVINSERTMARK()</pre>
@@ -42,8 +42,8 @@
 <h2 id="defprop">Using DefineProp</h2>
 <p>A struct can be defined at runtime by creating a <a href="lib/Class.htm">Class</a> object and adding typed properties to its <a href="lib/Class.htm#Prototype">Prototype</a> with <a href="lib/Object.htm#DefineProp">DefineProp</a>. For example:</p>
 <pre>POINT := Class(Struct)  <em>; v2.1-alpha.21 and older used Object instead of Struct.</em>
-DefineProp(POINT.Prototype, 'x', {type: 'i32'})
-DefineProp(POINT.Prototype, 'y', {type: 'i32'})
+DefineProp(POINT.Prototype, 'x', {type: Int32})
+DefineProp(POINT.Prototype, 'y', {type: Int32})
 pt := POINT()
 </pre>
 <p>Typically the class object (POINT) would be defined once and used to create many instances (pt).</p>
@@ -52,15 +52,15 @@ pt := POINT()
 <p><span class="ver">[v2.1-alpha.19+]</span>: <a href="lib/Object.htm#DefinePropPack">Pack</a> can be used to override the default alignment of fields within the struct. For example:</p>
 <pre>
 AB := Class(Struct)
-DefineProp(AB.Prototype, 'a', {type: 'i8'})
-DefineProp(AB.Prototype, 'b', {type: 'i32', pack: 1})
+DefineProp(AB.Prototype, 'a', {type: Int8})
+DefineProp(AB.Prototype, 'b', {type: Int32, pack: 1})
 MsgBox AB().Size
 </pre>
 
 <h2 id="type-specs">Type Specifiers</h2>
 <p>A type specifier in a class definition can be:</p>
 <ul>
-  <li>A literal (unquoted) reserved type name, such as <code>i32</code>.</li>
+  <li>Deprecated: A literal (unquoted) reserved type name, such as <code>i32</code>.</li>
   <li>An exact class name, such as <code>MyClass.MyNestedClass</code>.</li>
   <li>An integer indicating the size of the property, in which case the property's value is its address, and cannot be assigned.</li>
   <li>An expression enclosed in parentheses which returns a class object or a reserved type name (quoted if literal).</li>
@@ -70,7 +70,18 @@ MsgBox AB().Size
 <p>If an expression is used, it must evaluate to a class object, a string (a reserved type name) or an integer (size in bytes). It is evaluated in the context of <a href="Objects.htm#static__New">static __Init()</a>; i.e. <code>this</code> refers to the class object.</p>
 <p><span class="ver">[v2.1-alpha.22+]</span>: If the type is a class, it must be a subclass of <a href="lib/Struct.htm">Struct</a>. A property of this type would typically be known as a nested struct (when used inside a struct), but struct classes can also define more <a href="#abstract">abstract</a> types such as smart pointers, arrays, enums, specialized string types, or types that are restricted to specific values.</p>
 
+<h3 id="numeric-types">Numeric Types <span class="ver">[v2.1-alpha.23+]</span></h3>
+<p>The following classes are predefined for numeric types:</p>
+<ul>
+  <li><code>Int8</code>, <code>Int16</code>, <code>Int32</code> and <code>Int64</code> are signed integers; 8-bit, 16-bit, 32-bit and 64-bit.</li>
+  <li><code>UInt8</code>, <code>UInt16</code> and <code>UInt32</code> are unsigned integers; 8-bit, 16-bit and 32-bit.</li>
+  <li><code>IntPtr</code> is a signed integer; 32-bit when A_PtrSize = 4 and 64-bit when A_PtrSize = 8.</li>
+  <li><code>Float32</code> and <code>Float64</code> are floating-point numbers.</li>
+</ul>
+<p class="note"><strong>Note:</strong> AutoHotkey does not support 64-bit unsigned integers, but signed integers can generally be used instead.</p>
+
 <h3 id="type-names">Reserved Type Names</h3>
+<p class="warning"><strong>Deprecated:</strong> These are likely to be removed. Use <a href="#numeric-types">type classes</a> instead.</p>
 <p>Currently the following type names are reserved. When written literally, they must be quoted when used with DefineProp. When used in a class definition, they may only be quoted if enclosed within parentheses. The convention is currently a single letter indicating the basic type and a suffix indicating the size of the type (in bits, if it is a number).</p>
 <ul>
   <li><code>i8</code>, <code>i16</code>, <code>i32</code> and <code>i64</code> are signed integers, with i32 being 32-bit.</li>
@@ -79,7 +90,6 @@ MsgBox AB().Size
   <li><code>f32</code> and <code>f64</code> are floating-point numbers.</li>
 </ul>
 <p>Type names are case-insensitive.</p>
-<p>These reserved names may be replaced by proper classes in future, likely after module support is added (to reduce the number of new names being introduced into the global scope).</p>
 
 <h3 id="sized">Untyped Binary Data</h3>
 <p>If a property's type specifier is an integer, it is interpreted as the size of the property, in bytes. When the property is evaluated, the address of the property itself is returned, rather than any value contained by the property. This is generally only useful when defining an abstract type, such as a fixed-size string or array.</p>
@@ -93,7 +103,7 @@ MsgBox AB().Size
 <h3 id="abstract">Abstract Types</h3>
 <p>A struct can be used to implement a variety of abstract types, such as smart pointers, arrays, enums, specialized string types, or types that are restricted to specific values. For example, this implements a bool type like in C++:</p>
 <pre>struct bool {
-    value : u8  <em>; This property name has no special meaning.</em>
+    value : UInt8  <em>; This property name has no special meaning.</em>
     __value {
         get =&gt; this.value
         set =&gt; this.value := !!value
@@ -154,6 +164,24 @@ Example()</pre>
 <p>If a <a href="#Boxed_Pointer">boxed struct</a> of an appropriate type is assigned to the property, a reference is retained to ensure it is not deleted until after the script releases its reference to the outer struct or <a href="#Boxed_Pointer">boxed pointer</a>. For example, it is typically safe to use <code>outer.lpEx := Example()</code>, whereas <code>myVar := Example().Ptr</code> would free the new struct immediately after the assignment. If the underlying pointer value has been changed, evaluating <code>outer.lpEx</code> causes the held reference to be released.</p>
 <p>If a pointer class is constructed directly, its __Value property behaves as described above.</p>
 
+<h2 id="arrays">Structured Arrays <span class="ver">[v2.1-alpha.23+]</span></h2>
+<p>Structured arrays have a fixed size and all elements must be the same type. Both the array length and element type are defined by the class, which is a subclass of <a href="lib/StructArray.htm">Struct.Array</a>. The subclass is not created by defining it in the script, but instead by using the <a href="lib/Struct.htm#__ItemClass">static __Item property</a> of a Struct subclass. For example:</p>
+<pre>struct X {
+    y : Int32[10]
+}
+z := X()
+MsgBox z.Size <em>; 40</em>
+MsgBox z.y.Size <em>; 40</em>
+MsgBox z.y.Length <em>; 10</em>
+MsgBox z.y is Int32[10] <em>; true</em>
+MsgBox z.y is Int32[100] <em>; false</em>
+
+struct XX {
+    items : X[2]
+}
+zz := XX()
+MsgBox zz.Size <em>; 80</em></pre>
+
 <h2 id="Related">Related</h2>
 <ul>
   <li><a href="lib/Object.htm#GetDataPtr">ObjGetDataPtr</a>: Returns the address of the object's structured data.</li>
@@ -165,7 +193,7 @@ Example()</pre>
 <div class="ex" id="ExBind">
 <p><a class="ex_number" href="#ExBind"></a> Shows the class name of the window/control under the mouse cursor.</p>
 <pre>struct Point {
-    x : i32, y : i32
+    x : Int32, y : Int32
 }
 
 <em>; Use the class itself to pass by value (C type: POINT).</em>
@@ -186,17 +214,17 @@ MsgBox WinGetClass(WindowFromPoint(pt2))</pre>
 <div class="ex" id="ExMONITORINFO">
 <p><a class="ex_number" href="#ExMONITORINFO"></a> Retrieves information about the monitor containing the mouse cursor, using nested structs.</p>
 <pre>struct RECT {
-    Left : i32
-    Top : i32
-    Right : i32
-    Bottom : i32
+    Left : Int32
+    Top : Int32
+    Right : Int32
+    Bottom : Int32
 }
 
 struct MONITORINFO {
-    cbSize : i32 := 40
+    cbSize : Int32 := 40
     rcMonitor : RECT
     rcWork : RECT
-    dwFlags : i32
+    dwFlags : Int32
 }
 
 DllCall("GetCursorPos", "uint64*", &amp;point:=0)
@@ -251,7 +279,7 @@ MsgBox DllCall("oleaut32\SysStringLen", BSTR, "abc" Chr(0) "123")
 MsgBox DllCall("oleaut32\SysAllocString", "wstr", "xyz", BSTR)
 
 struct BSTR {  <em>; This type can also be used in a struct.</em>
-    ptr : uptr
+    ptr : IntPtr
     size =&gt; DllCall("oleaut32\SysStringByteLen", "ptr", this, "uint")
     __value {
         get =&gt; StrGet(this)
@@ -270,7 +298,7 @@ struct BSTR {  <em>; This type can also be used in a struct.</em>
 <p><a class="ex_number" href="#Exlldiv"></a> Calls a function that returns a struct by value.</p>
 <pre>
 struct lldiv_t {
-    quot : i64, rem : i64
+    quot : Int64, rem : Int64
 }
 res := DllCall("ucrtbase\lldiv", "int64", 31558149, "int64", 3600, lldiv_t)
 MsgBox Format("Earth orbit: {} hours and {} seconds.", res.quot, res.rem)
@@ -281,7 +309,7 @@ MsgBox Format("Earth orbit: {} hours and {} seconds.", res.quot, res.rem)
 <p><a class="ex_number" href="#ExHMODULE"></a> Defines a return type struct for error-checking and automatic cleanup.</p>
 <pre>
 struct LoadedHModule {
-    h : uptr
+    h : IntPtr
     __value =&gt; this.h ? this : throw(OSError(A_LastError, -1))
     __delete() =&gt; DllCall("FreeLibrary", "ptr", this.h)
 }
