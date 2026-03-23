@@ -35,7 +35,6 @@ tocData = [
   ["Recent Changes","ChangeLog.htm"],
   ["Changes from v2.0 to v2.1","v2.1-changes.htm"],
   ["Changes from v1.1 to v2.0","v2-changes.htm"],
-  ["Changes from v1.0 to v1.1","v1-changes.htm"],
   ["Script Showcase","scripts/index.htm"],
   ["Function Index","lib/index.htm"],
   ["Drive", "lib/Drive.htm",

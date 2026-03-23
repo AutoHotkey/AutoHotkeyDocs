@@ -462,10 +462,12 @@ function ctor_index()
 
     var output = '', label, path, type;
     var type_name = {2: T("function"), 4: T("operator"), 6: T("class")};
-    input.sort(function(a, b) {
-      var textA = a[0].toLowerCase(), textB = b[0].toLowerCase()
-      return textA.localeCompare(textB);
-    });
+    var lang = T('en');
+    var collator = window.Intl ? new Intl.Collator(lang) : null;
+    if (collator)
+      input.sort(function(a, b) { return collator.compare(a[0], b[0]); });
+    else
+      input.sort(function(a, b) { return a[0].localeCompare(b[0], lang); });
     for (var i = 0, len = input.length; i < len; i++)
     {
       label = input[i][0];
@@ -476,7 +478,7 @@ function ctor_index()
       // Append type name for ambiguities:
       if (filter == -1 && type && type_name[type])
         if (input[i-1] && input[i-1][0] == label || input[i+1] && input[i+1][0] == label)
-          label += ' (' + type_name[type] + ')'
+          label += ' (' + type_name[type] + ')';
       var a = document.createElement("a");
       a.href = workingDir + path;
       a.setAttribute("tabindex", "-1");
