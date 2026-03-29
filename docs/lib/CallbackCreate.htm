@@ -16,7 +16,7 @@
 
 <p>Creates a machine-code address that when called, redirects the call to a <a href="../Functions.htm">function</a> in the script.</p>
 
-<pre class="Syntax">Address := <span class="func">CallbackCreate</span>(Function <span class="optional">, Options, ParamCount</span>)</pre>
+<pre class="Syntax">Address := <span class="func">CallbackCreate</span>(Function <span class="optional">, Options, ParamSpec</span>)</pre>
 <h2 id="Parameters">Parameters</h2>
 <dl>
 
@@ -34,13 +34,14 @@
     <p>If blank or omitted, a new <a href="../misc/Threads.htm">thread</a> will be started each time <em>Function</em> is called, the standard calling convention will be used, and the parameters will be passed individually to <em>Function</em>. Otherwise, specify one or more of the following options. Separate each option from the next with a space (e.g. <code>"C Fast"</code>).</p>
     <p id="Fast"><strong>Fast</strong> or <strong>F</strong>: Avoids starting a new <a href="../misc/Threads.htm">thread</a> each time <em>Function</em> is called. Although this performs better, it must be avoided whenever the thread from which <em>Address</em> is called varies (e.g. when the callback is triggered by an incoming message). This is because <em>Function</em> will be able to change global settings such as <a href="../Variables.htm#LastError">A_LastError</a> and the <a href="../misc/WinTitle.htm#LastFoundWindow">last-found window</a> for whichever thread happens to be running at the time it is called. For more information, see <a href="#Threads">Remarks</a>.</p>
     <p><strong>CDecl</strong> or <strong>C</strong>: Makes <em>Address</em> conform to the "C" calling convention. This is typically omitted because the standard calling convention is much more common for callbacks. This option is ignored by 64-bit versions of AutoHotkey, which use the x64 calling convention.</p>
-    <p><strong>&amp;:</strong> Causes the address of the parameter list (a single integer) to be passed to <em>Function</em> instead of the individual parameters. Parameter values can be retrieved by using <a href="NumGet.htm">NumGet</a>. When using the standard 32-bit calling convention, <em>ParamCount</em> must specify the size of the parameter list in DWORDs (the number of bytes divided by 4).</p>
+    <p><strong>&amp;:</strong> Causes the address of the parameter list (a single integer) to be passed to <em>Function</em> instead of the individual parameters. Parameter values can be retrieved by using <a href="NumGet.htm">NumGet</a>. When using the standard 32-bit calling convention, <em>ParamSpec</em> must specify the size of the parameter list in DWORDs (the number of bytes divided by 4).</p>
   </dd>
 
-  <dt>ParamCount</dt>
+  <dt>ParamSpec</dt>
   <dd>
-    <p>Type: <a href="../Concepts.htm#numbers">Integer</a></p>
+    <p>Type: <a href="../Concepts.htm#numbers">Integer</a> or <a href="../Concepts.htm#enumerable-value">Enumerable</a></p>
     <p>If omitted, it defaults to <a href="Func.htm#MinParams"><i>Function</i>.MinParams</a>, which is usually the number of mandatory parameters in the <a href="../Functions.htm#define">definition</a> of <em>Function</em>. Otherwise, specify the number of parameters that <em>Address</em>'s caller will pass to it. In either case, ensure that the caller passes exactly this number of parameters.</p>
+    <p><span class="ver">[v2.1-alpha.24+]</span>: For automatic conversion of the parameters and return value, specify a sequence of <a href="../Structs.htm">struct</a> classes. This should typically be an <a href="Array.htm">Array</a>, but can be any <a href="../Concepts.htm#enumerable-value">enumerable value</a>. The return type must always be specified as the final element. For example, <code>[Float32, Float32, Int32]</code> accepts two 32-bit floating-point numbers as parameters and returns a 32-bit integer.</p>
   </dd>
 
 </dl>
@@ -54,14 +55,23 @@
 <ul>
   <li><em>Function</em> is not an object, or has neither a <code class="no-highlight">MinParams</code> property nor a <code class="no-highlight">Call</code> method.</li>
   <li><em>Function</em> has a <code class="no-highlight">MinParams</code> property which exceeds the number of parameters that the callback will supply.</li>
-  <li><em>ParamCount</em> is negative.</li>
-  <li><em>ParamCount</em> is omitted and: 1) <em>Function</em> has no <code class="no-highlight">MinParams</code> property; or 2) the <code class="no-highlight">&amp;</code> option is used with the standard 32-bit calling convention.</li>
+  <li><em>ParamSpec</em> is negative.</li>
+  <li><em>ParamSpec</em> is omitted and: 1) <em>Function</em> has no <code class="no-highlight">MinParams</code> property; or 2) the <code class="no-highlight">&amp;</code> option is used with the standard 32-bit calling convention.</li>
+  <li><em>ParamSpec</em> is a non-numeric value and enumeration failed, or one of the values was not a valid type specifier.</li>
 </ul>
 
 <a id="The_Callback_Functions_Parameters"></a>
 <h2 id="The_Functions_Parameters">The <em>Function</em>'s Parameters</h2>
 <p>A <a href="../Functions.htm">function</a> assigned to a callback address may accept up to 31 parameters. <a href="../Functions.htm#optional">Optional parameters</a> are permitted, which is useful when <em>Function</em> is called by more than one caller.</p>
-<p>Interpreting the parameters correctly requires some understanding of how the x86 calling conventions work. Since AutoHotkey does not have typed parameters, the callback's parameter list is assumed to consist of integers, and some reinterpretation may be required.</p>
+<p>There are three modes for interpreting the parameters:</p>
+<ul>
+  <li>If <em>ParamSpec</em> is omitted or numeric and the <strong>&amp;</strong> option is not used, all parameters are assumed to be integers.</li>
+  <li>If <em>ParamSpec</em> is an array of type specifiers, each parameter is converted to the corresponding type.</li>
+  <li>If the <strong>&amp;</strong> option is used, only the address of the parameter list is passed to <em>Function</em>.</li>
+</ul>
+
+<h3 id="untyped-parameters">Untyped Parameters</h3>
+<p>If the parameter types are not specified, all parameters are assumed to be integers. Interpreting the values correctly requires some understanding of how the x86 calling conventions work.</p>
 
 <p><strong>AutoHotkey 32-bit:</strong> All incoming parameters are unsigned 32-bit integers. Smaller types are padded out to 32 bits, while larger types are split into a series of 32-bit parameters.</p>
 <p>If an incoming parameter is intended to be a signed integer, any negative numbers can be revealed by following either of the following methods:</p>
@@ -85,17 +95,19 @@ wParam := wParam &lt;&lt; 32 &gt;&gt; 32</pre>
 <pre>MyString := StrGet(MyParameter)</pre>
 <p>If an incoming parameter is the address of a structure, the individual members may be extracted by following the steps at <a href="DllCall.htm#struct">DllCall structures</a>.</p>
 
-<p id="Indirect"><strong>Receiving parameters by address:</strong> If the <code class="no-highlight">&amp;</code> option is used, <em>Function</em> receives the <i>address</i> of the first callback parameter. For example:</p>
+<h3 id="Indirect">Receiving Parameters By Address</h3>
+<p>If the <code class="no-highlight">&amp;</code> option is used, <em>Function</em> receives the <i>address</i> of the first callback parameter. For example:</p>
 <pre>
 callback := CallbackCreate(TheFunc, "F&amp;", 3)  <em>; Parameter list size must be specified for 32-bit.</em>
 DllCall(callback, "float", 10.5, "int64", 42)
 TheFunc(params) {
     MsgBox <a href="NumGet.htm">NumGet</a>(params, 0, "float") ", " NumGet(params, A_PtrSize, "int64")
 }</pre>
-<p>Most callbacks in 32-bit programs use the <em>stdcall</em> calling convention, which requires a fixed number of parameters. In those cases, <em>ParamCount</em> must be set to the size of the parameter list, where Int64 and Double count as two 32-bit parameters. With <em>Cdecl</em> or the 64-bit calling convention, <em>ParamCount</em> has no effect.</p>
+<p>Most callbacks in 32-bit programs use the <em>stdcall</em> calling convention, which requires a fixed number of parameters. In those cases, <em>ParamSpec</em> must be set to the size of the parameter list, where Int64 and Double count as two 32-bit parameters. With <em>Cdecl</em> or the 64-bit calling convention, specifying a parameter count has no effect.</p>
 
 <a id="What_the_Function_Should_Return"></a>
 <h2 id="What_Function_Should_Return">What <em>Function</em> Should Return</h2>
+<p><span class="ver">[v2.1-alpha.24+]</span>: If a return type was specified via <em>ParamSpec</em>, <em>Function</em> must return a value of a compatible type. Otherwise the return value should be as described below.</p>
 <p>If <em>Function</em> uses <a href="Return.htm">Return</a> without any parameters, or it specifies a blank value such as "" (or it never uses Return at all), 0 is returned to the caller of the callback. Otherwise, <em>Function</em> should return an integer, which is then returned to the caller. AutoHotkey 32-bit truncates return values to 32-bit, while AutoHotkey 64-bit supports 64-bit return values. Returning structs larger than this (by value) is not supported.</p>
 
 <h2 id="Threads">Fast vs. Slow</h2>
@@ -104,7 +116,7 @@ TheFunc(params) {
 <p>To avoid being interrupted by itself (or any other thread), a callback may use <a href="Critical.htm">Critical</a> as its first line. However, this is not completely effective when <em>Function</em> is called indirectly via the arrival of a message less than 0x0312 (increasing Critical's <a href="Critical.htm#Interval">interval</a> may help). Furthermore, <a href="Critical.htm">Critical</a> does not prevent <em>Function</em> from doing something that might indirectly result in a call to itself, such as calling <a href="SendMessage.htm">SendMessage</a> or <a href="DllCall.htm">DllCall</a>.</p>
 
 <h2 id="CallbackFree">CallbackFree</h2>
-<p>Deletes a callback and releases its reference to the function object.</p>
+<p>Deletes a callback and releases its references to the function object and type parameters (if any).</p>
 <pre class="Syntax"><span class="func">CallbackFree</span>(Address)</pre>
 <p>Each use of CallbackCreate allocates a small amount of memory (32 or 48 bytes plus system overhead). Since the OS frees this memory automatically when the script exits, any script that allocates a small, <em>fixed</em> number of callbacks can get away with not explicitly freeing the memory.</p>
 <p>However, if the function object held by the callback is of a dynamic nature (such as a <a href="../Functions.htm#closures">closure</a> or <a href="../misc/Functor.htm#BoundFunc">bound function</a>), it can be especially important to free the callback when it is no longer needed; otherwise, the function object will not be released.</p>
