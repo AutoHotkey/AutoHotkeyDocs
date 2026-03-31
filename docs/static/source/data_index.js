@@ -265,6 +265,7 @@ indexData = [
   ["ahk_exe","misc/WinTitle.htm#ahk_exe"],
   ["ahk_group","misc/WinTitle.htm#ahk_group"],
   ["ahk_id","misc/WinTitle.htm#ahk_id"],
+  ["ahk_opt","misc/WinTitle.htm#ahk_opt"],
   ["ahk_pid","misc/WinTitle.htm#ahk_pid"],
   ["Ahk2Exe","Scripts.htm#ahk2exe"],
   ["AhkImportPath","Modules.htm#Search_Path"],

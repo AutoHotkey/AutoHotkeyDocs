@@ -25,6 +25,7 @@
       <li><a href="#ahk_pid">ahk_pid (Process ID)</a></li>
       <li><a href="#ahk_exe">ahk_exe (Process Name/Path)</a></li>
       <li><a href="#ahk_group">ahk_group (Window Group)</a></li>
+      <li><a href="#ahk_opt">ahk_opt (Options)</a></li>
     </ul>
   </li>
   <li><a href="#multi">Multiple Criteria</a></li>
@@ -108,6 +109,29 @@ GroupAdd "Explorer", "ahk_class CabinetWClass"
 
 <em>; Activate any window matching the above criteria</em>
 WinActivate "ahk_group Explorer"</pre>
+
+<h3 id="ahk_opt">ahk_opt (Options) <span class="ver">[v2.1-alpha.25+]</span></h3>
+<p>Specify <code class="no-highlight">ahk_opt</code> followed by one or more of the following options, each separated from the next by one or more spaces or tabs.</p>
+<ul>
+  <li>Any valid value for <a href="../lib/SetTitleMatchMode.htm">SetTitleMatchMode</a>: 1, 2, 3, RegEx, Fast or Slow.</li>
+  <li><code class="no-highlight">Hidden</code> or <code class="no-highlight">Hidden1</code> to enable <a href="../lib/DetectHiddenWindows.htm">DetectHiddenWindows</a>, or <code class="no-highlight">Hidden0</code> to disable it.</li>
+  <li><code class="no-highlight">HiddenText</code> or <code class="no-highlight">HiddenText1</code> to enable <a href="../lib/DetectHiddenText.htm">DetectHiddenText</a>, or <code class="no-highlight">HiddenText0</code> to disable it.</li>
+</ul>
+<p>Options specified by ahk_opt override the default settings for all criteria within the same <em>WinTitle</em> and related parameters. For example, <code>WinExist("i)^untitled ahk_opt RegEx ahk_class i)^notepad$")</code> always uses the RegEx mode for both the title and the class, but uses the default setting for <a href="../lib/SetTitleMatchMode.htm#Speed">Speed</a>. </p>
+<p>When ahk_opt is combined with <a href="#ahk_group">ahk_group</a>, any options specified by ahk_opt effectively become the defaults for that specific evaluation of the group. For example:</p>
+<pre>GroupAdd "Scripts", "Hotkeys.ahk ahk_class AutoHotkey"
+GroupAdd "Scripts", "Autocorrect.ahk ahk_class AutoHotkey"
+GroupAdd "All_Scripts", "ahk_opt Hidden ahk_group Scripts"
+GroupAdd "Visible_Scripts", "ahk_opt Hidden0 ahk_group Scripts"
+
+MsgBox WinExist("ahk_group Scripts")  <em>; Uses default settings.</em>
+MsgBox WinExist("ahk_group All_Scripts")  <em>; Always detects hidden windows.</em>
+MsgBox WinExist("ahk_group Visible_Scripts")  <em>; Never detects hidden windows.</em>
+
+<em>; ahk_opt has no effect if every member of the group overrides it:</em>
+MsgBox WinExist("ahk_group All_Scripts ahk_opt Hidden0")
+</pre>
+<p>A setting of <code>DetectHiddenWindows false</code> or <code>ahk_opt Hidden0</code> is applied whenever <em>WinTitle</em> contains criteria other than ahk_group or ahk_opt. For example, <code>WinExist("D:\ ahk_group All_Scripts")</code> would not detect hidden windows unless <code>DetectHiddenWindows true</code> was used. In other words, the window's visibility is usually part of the criteria, but is deferred when ahk_group is used on its own so that individual group members can override it.</p>
 
 <h2 id="multi">Multiple Criteria</h2>
 <p>By contrast with the <a href="#ahk_group">ahk_group criterion</a> (which broadens the search), the search may be narrowed by specifying more than one criterion within the <var>WinTitle</var> parameter. In the following example, the script waits for a window whose title contains <em>My File.txt</em> <u>and</u> whose class is <em>Notepad</em>:</p>
