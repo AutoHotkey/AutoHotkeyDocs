@@ -66,12 +66,12 @@ MsgBox AB().Size
   <li>An expression enclosed in parentheses which returns a class object or a reserved type name (quoted if literal).</li>
   <li>An expression starting with an identifier, optionally followed by a parameter list (making it a function call), optionally followed by any number of property or method calls.</li>
 </ul>
-<p>Type specifiers are evaluated in sequence with static property initializers, when the class is initialized (not each time it is instantiated).</p>
+<p>Type specifiers are evaluated in sequence with static property initializers, when the class is initialized (not each time it is instantiated).</p>struct
 <p>If an expression is used, it must evaluate to a class object, a string (a reserved type name) or an integer (size in bytes). It is evaluated in the context of <a href="Objects.htm#static__New">static __Init()</a>; i.e. <code>this</code> refers to the class object.</p>
 <p><span class="ver">[v2.1-alpha.22+]</span>: If the type is a class, it must be a subclass of <a href="lib/Struct.htm">Struct</a>. A property of this type would typically be known as a nested struct (when used inside a struct), but struct classes can also define more <a href="#abstract">abstract</a> types such as smart pointers, arrays, enums, specialized string types, or types that are restricted to specific values.</p>
 
 <h3 id="numeric-types">Numeric Types <span class="ver">[v2.1-alpha.23+]</span></h3>
-<p>The following classes are predefined for numeric types:</p>
+<p>The following struct classes are predefined for numeric types:</p>
 <ul>
   <li><code>Int8</code>, <code>Int16</code>, <code>Int32</code> and <code>Int64</code> are signed integers; 8-bit, 16-bit, 32-bit and 64-bit.</li>
   <li><code>UInt8</code>, <code>UInt16</code> and <code>UInt32</code> are unsigned integers; 8-bit, 16-bit and 32-bit.</li>
@@ -79,6 +79,16 @@ MsgBox AB().Size
   <li><code>Float32</code> and <code>Float64</code> are floating-point numbers.</li>
 </ul>
 <p class="note"><strong>Note:</strong> AutoHotkey does not support 64-bit unsigned integers, but signed integers can generally be used instead.</p>
+<p>As these are struct classes, each one has a <a href="#pointers">pointer class</a> and <a href="#arrays">array classes</a>. For example, <code>UInt32.Ptr</code> is equivalent to <code>"UInt*"</code> when used with <a href="lib/DllCall.htm">DllCall</a>, and <code>UInt8[64]</code> is the class of an array of 64 bytes.</p>
+<p>When used as a property type, DllCall parameter type or array element type, conversion is handled directly and the class is not instantiated. For DllCall, this includes the pointer classes. For instance, a return value of type <code>Int32.Ptr</code> is exactly equivalent to <code>"int*"</code> and always dereferences the pointer (returns the integer value it points to) rather than returning a boxed pointer.</p>
+<p>An instance of a numeric struct class acts not as a number, but as a <a href="Functions.htm#virtual-reference">virtual reference</a> to a numeric variable. As with struct instances, we call it a <a href="#Boxed_Pointer">boxed pointer</a> if it encapsulates an unsafe pointer, or a <a href="#Boxed_Pointer">boxed struct</a> if its lifecycle is managed by the script. An instance can be created as follows:</p>
+<ul>
+  <li>Directly calling the class creates a boxed struct.</li>
+  <li>A property of a pointer type such as <code>Int32.Ptr</code> can return a boxed pointer.</li>
+  <li>A <a href="lib/CallbackCreate.htm">callback</a> can convert an incoming pointer value to a boxed pointer when the parameter type is a pointer type such as <code>Int32.Ptr</code>.</li>
+  <li>The <a href="lib/Struct.htm#At">At</a> method creates a boxed pointer.</li>
+</ul>
+<p>Each instance has a property named __Value of the type represented by the class. This is typically invoked by the <a href="Variables.htm#deref">dereference operator</a> or when using the instance as a <a href="Functions.htm#virtual-reference">virtual reference</a>. For example, <code>MouseGetPos(Int32.at(pt.ptr))</code> would store the X coordinate at the beginning of the struct <code>pt</code>.</p>
 
 <h3 id="type-names">Reserved Type Names</h3>
 <p class="warning"><strong>Deprecated:</strong> These are likely to be removed. Use <a href="#numeric-types">type classes</a> instead.</p>
