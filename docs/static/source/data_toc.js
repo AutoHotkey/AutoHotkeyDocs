@@ -501,7 +501,6 @@ tocData = [
   ["#Directives","",
   [
     ["#ClipboardTimeout","lib/_ClipboardTimeout.htm"],
-    ["#DefaultReturn","lib/_DefaultReturn.htm"],
     ["#DllLoad","lib/_DllLoad.htm"],
     ["#ErrorStdOut","lib/_ErrorStdOut.htm"],
     ["#HotIf","lib/_HotIf.htm"],
