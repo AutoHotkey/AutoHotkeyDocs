@@ -59,7 +59,6 @@ indexData = [
   ["&&","Variables.htm#and",4,"",true],
   ["&=","Variables.htm#AssignOp",4,"",true],
   ["#ClipboardTimeout","lib/_ClipboardTimeout.htm",0,"S"],
-  ["#DefaultReturn","lib/_DefaultReturn.htm",0,"E"],
   ["#DllLoad","lib/_DllLoad.htm",0,"S"],
   ["#ErrorStdOut","lib/_ErrorStdOut.htm",0,"S"],
   ["#HotIf","lib/_HotIf.htm",0,"E"],
