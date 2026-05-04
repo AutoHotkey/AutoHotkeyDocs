@@ -69,12 +69,47 @@
 <p>Scripts which were designed to <a href="misc/DPIScaling.htm#Workarounds">opt in to per-monitor mode</a> should be relatively unaffected by this change. Such scripts might have previously observed the mode unexpectedly reverting under specific conditions, because the script's main window is created before the script sets the mode. See <a href="misc/DPIScaling.htm#New_Threads">DPI Scaling - New Threads</a> for details.</p>
 <p>Hard-coded screen coordinates and offsets for secondary screens may need to be adjusted, but that would already be the case if display settings were changed.</p>
 
-<h2 id="CompatMode">Compatibility Mode <span class="ver">[v2.1-alpha.28+]</span></h2>
+<h2 id="CompatMode">Compatibility Mode <span class="ver">[v2.1-alpha.29+]</span></h2>
 <p>Some changes to the script's behavior are enabled only if <a href="lib/_Requires.htm">#Requires</a> is used to specify a version requirement which cannot be met by "2.0.x". There are currently two modes: v2.0 mode and v2.1 mode. The mode can be set independently for each <a href="Modules.htm">module</a> and <a href="Functions.htm">function</a>. For details of how the directive is applied, see <a href="lib/_Requires.htm#CompatMode">Compatibility Mode (#Requires)</a>.</p>
+<p>v2.0 mode is used by default, but does not prohibit the use of features which require v2.1.</p>
+<h3 id="blank-unset">Blank-Unset</h3>
+<p>This term is used with property and return values. For v2.0 and when returned to a caller in v2.0 mode, the value is <code>""</code> (an empty string). If an <a href="Variables.htm#fat-arrow">arrow function</a> performs a tail call such as <code>X() =&gt; Y()</code>, a <em>blank-unset</em> result can be propagated without the <a href="Variables.htm#maybe">maybe (?)</a> operator. Otherwise, it is equivalent to <code>unset</code>.</p>
+<p>Built-in functions return <a href="#blank-unset"><em>blank-unset</em></a> if they lack a documented return value.</p>
+<p>These return <em>blank-unset</em> under specific conditions where <code>""</code> was previously returned:</p>
+<ul>
+  <li><a href="lib/Array.htm">Array</a>: Delete, Pop, RemoveAt</li>
+  <li><a href="lib/Object.htm">Object</a>: DeleteProp</li>
+  <li><a href="lib/Gui.htm">Gui</a>: __Item, FocusedCtrl, MenuBar</li>
+  <li><a href="lib/GuiFromHwnd.htm">GuiFromHwnd</a></li>
+  <li><a href="lib/GuiCtrlFromHwnd.htm">GuiCtrlFromHwnd</a></li>
+  <li><a href="lib/InputHook.htm">InputHook</a>: OnChar, OnEnd, OnKeyDown, OnKeyUp</li>
+  <li><a href="lib/MenuFromHandle.htm">MenuFromHandle</a></li>
+  <li><a href="lib/Any.htm#GetBase">ObjGetBase</a> and <a href="lib/Any.htm#Base">Base (Any)</a></li>
+  <li><a href="lib/RegExMatch.htm">RegExMatch</a>'s OutputVar</li>
+</ul>
+
+<h3 id="Default_Return">Default Return</h3>
+<p>When the end of a function body is reached or <code>return</code> is used without a parameter, the function may return <code>""</code> (an empty string), <code>unset</code> or <a href="#blank-unset"><em>blank-unset</em></a>.</p>
+<ul>
+  <li>Functions defined in v2.0 mode default to <code>""</code>.</li>
+  <li>Functions defined in v2.1 mode default to <code>unset</code> if <code>return</code> is used with a parameter elsewhere within the function.</li>
+  <li>Otherwise, the default is <a href="#blank-unset"><em>blank-unset</em></a>.</li>
+</ul>
+
+<h3 id="v20mode">v2.0 Mode</h3>
+<p>If a function or property called from v2.0 mode returns <a href="#blank-unset"><em>blank-unset</em></a>, it is translated to <code>""</code> (an empty string).</p>
+<p>See also: <a href="#Default_Return">Default Return</a>, <a href="#blank-unset"><em>blank-unset</em></a></p>
+
 <h3 id="v21mode">v2.1 Mode</h3>
-<p>When a function is both defined in and called from v2.1 mode, it returns <code>unset</code> if it does not specify a return value. By contrast, <code>return unset</code> never returns <code>""</code>, and a v2.0 function called from v2.1 mode defaults to <code>""</code>.</p>
-<p>Built-in functions return <code>unset</code> instead of <code>""</code> if they lack a documented return value.</p>
-<p>Array and Map return <code>unset</code> when no item is present instead of <code>""</code>.</p>
+<p>These return <code>unset</code> under specific conditions instead of throwing an error:</p>
+<ul>
+  <li><a href="lib/Array.htm">Array</a>: __Item, Get</li>
+  <li><a href="lib/Gui.htm">Gui</a>: __Item</li>
+  <li><a href="lib/Map.htm">Map</a>: __Item, Delete, Get</li>
+  <li><a href="lib/Object.htm">Object</a>: GetMethod, GetOwnPropDesc</li>
+</ul>
+<p>Overall, <code>unset</code> is returned more consistently when an item or value is absent, whereas in v2.0 (and v2.0 mode) some methods return <code>""</code> and some methods or properties throw UnsetItemError.</p>
+<p>See also: <a href="#Default_Return">Default Return</a>, <a href="#blank-unset"><em>blank-unset</em></a></p>
 
 <h2 id="Low_Impact">Low Impact</h2>
 <p>These changes should not prevent v2.0 scripts from working, but may affect the behaviour of the program. This includes some changes to behaviour which was previously undocumented (and therefore not something a script should have relied on), and some changes to documented behaviour which should generally not require changes to existing scripts.</p>
