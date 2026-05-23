@@ -17,12 +17,10 @@
 <ul>
   <li><em>Global namespace</em> for variables, functions and classes.</li>
   <li><em>Body</em>, sometimes referred to as an auto-execute section.</li>
-  <li><em><a href="lib/Export.htm">Exports</a></em>, which can be <a href="lib/_Import.htm">imported</a> by another module without explicitly listing each one.</li>
-  <li><em>Unique name</em>, used to import the module or whatever it exports.</li>
 </ul>
 <p>Splitting the components of a script into modules can make the components easier to reuse and maintain.</p>
 <p>By default, all lines of code and global variables (including functions and classes) are added to an implicitly-defined module named "__Main". The script can start a new module with <a href="lib/_Module.htm">#Module</a> or load one from file with <a href="lib/_Import.htm">#Import</a>.</p>
-<p>An <a href="lib/_Import.htm">#Import</a> declaration can be used to add a module or some of its functions, classes and variables into the current module's global namespace. These need not be explicitly marked as exports, but doing so with an <a href="lib/Export.htm">Export</a> declaration permits them to be imported by a <a href="lib/_Import.htm#Wildcard_Import">wildcard import</a>.</p>
+<p>An <a href="lib/_Import.htm">#Import</a> directive can be used to make a module or some of its functions, classes and variables accessible within the current module.</p>
 <p>All modules implicitly import from the built-in "AHK" module, which contains all built-in classes, variables and functions. A declaration or assignment within a module can reuse the name of a built-in class or function, in which case that class or function is not accessible except through the AHK module (e.g. <code>#Import AHK</code>, <code>AHK.MsgBox()</code>). However, built-in (A_) variables do not require a declaration or explicit import to allow assignment, and their names cannot be reused. <code>A_Args</code> is the exception (it is a normal variable defined in __Main).</p>
 <p>A module name is added to a module's global namespace only when imported, and conflicts can be resolved by giving the imported module an alias within the destination module.</p>
 <p><a href="lib/_Include.htm">#Include</a> is able to include a file once per module.</p>
@@ -58,9 +56,7 @@ MsgBox ANSWER         <em>; Shown third.</em></pre>
 
 <div class="ex" id="ExSimple"><p><a class="ex_number" href="#ExSimple"></a> Each module has its own global variables (<code>MyVar</code> and <code>ShowVar</code>).</p>
 <pre>
-import Other as Other  <em>; This works with v2.1-alpha.19 and v2.1-alpha.20.
-;#Import Other         ; This requires v2.1-alpha.20+.
-;import Other {}       ; This would make Other accessible only in v2.1-alpha.20+.</em>
+#Import Other         ; This requires v2.1-alpha.20+.
 MyVar := 1
       ShowVar()  <em>; Our MyVar is 1.</em>
 Other.ShowVar()  <em>; Other MyVar is still 2.</em>
@@ -69,13 +65,13 @@ ShowVar() =&gt; MsgBox("Main MyVar = " MyVar)
 
 #Module Other
 MyVar := 2
-export ShowVar() =&gt; MsgBox("Other MyVar = " MyVar)
+ShowVar() =&gt; MsgBox("Other MyVar = " MyVar)
 </pre></div>
 
 <div class="ex" id="ExAlias"><p><a class="ex_number" href="#ExAlias"></a> Use an alias to resolve a conflict. Each module has its own <code>Calculate</code>, which takes precedence over any wildcard import.</p>
 <pre>
-import {Calculate as CalculateX} from X
-import * from Y
+#Import "X" {Calculate as CalculateX}
+#Import "Y" {*}
 
 MyVar := 1
 MsgBox Calculate()
@@ -87,11 +83,11 @@ MsgBox "Y = " (Y ?? "not imported")
 Calculate() =&gt; 1
 
 #Module X
-export Calculate() =&gt; 2
+Calculate() =&gt; 2
 
 #Module Y
-export Calculate() =&gt; 3
-export Check(n) =&gt; n = Calculate()
+Calculate() =&gt; 3
+Check(n) =&gt; n = Calculate()
 </pre></div>
 
 <div class="ex" id="ExAHK"><p><a class="ex_number" href="#ExAHK"></a> Access shadowed built-in functions.</p>

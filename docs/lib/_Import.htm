@@ -48,21 +48,43 @@
 <p>Imports are processed after the main script file has been parsed, in an unspecified order. If <em>ModuleName</em> (excluding quote marks) does not match a module defined by <a href="_Module.htm">#Module</a> or previously imported from file, #Import attempts to locate a module file and load it. For details, see <a href="../Modules.htm#Search_Path">Search Path</a>.</p>
 
 <h2 id="Imported_Names">Imported Names</h2>
-<p>The module's default export (typically the module itself) is added to the current module's global namespace only if <em>ModuleAlias</em> is specified or <em>ModuleName</em> is unquoted.</p>
-<p id="Wildcard_Import">If <code>*</code> is used, each unassigned and undeclared name in the current module may implicitly resolve to a name exported from <em>ModuleName</em> by an <a href="Export.htm">Export</a> declaration. If a name is exported from multiple imported modules, the last import takes precedence. Explicit imports and other declarations take precedence over implicit imports, regardless of order.</p>
+<p>The module itself is added to the current module's global namespace only if <em>ModuleAlias</em> is specified or <em>ModuleName</em> is unquoted.</p>
+<p id="Wildcard_Import">If <code>*</code> is used, each unassigned and undeclared name in the current module may implicitly resolve to a name exported from <em>ModuleName</em>. If a name is exported from multiple imported modules, the last import takes precedence. Explicit imports and other declarations take precedence over implicit imports, regardless of order.</p>
+<p><span class="ver">[v2.1-alpha.31+]</span>: Each module exports all global names which do not begin with an underscore, except for names imported without the Export keyword.</p>
 <p class="note"><strong>Note:</strong> An implicitly imported variable cannot be the target of an assignment, as the presence of an assignment would cause a new variable to be created in the current module.</p>
 <p>A load-time error is raised if any name used in an explicit import is also used in some other declaration within the current module.</p>
 
-<h2 id="Export">Export</h2>
-<p>If the <code>export</code> keyword is used, all explicitly imported names are also exported from the current module.</p>
-<p><span class="ver">[v2.1-alpha.24+]</span>: Export can also be used with wildcard import.</p>
+<h2 id="Export">Export <span class="ver">[v2.1-alpha.31+]</span></h2>
+<p>The imported names are only exported (accessible to wildcard import in other modules) if the Export keyword is used. For example:</p>
+<pre>
+#Module TestB
+  #Import LibB {*}
+  <em>; B and F are both defined.</em>
+  MsgBox Format("B: {}`nF: {}`n_internal: {}", B(), Type(F?), Type(_internal?)), "TestB"
+
+#Module LibB
+  #Import Export _internal {*}
+  B() =&gt; Type(F?)
+
+#Module TestA
+  #Import LibA {*}
+  <em>; Only A is defined.</em>
+  MsgBox Format("A: {}`nF: {}`n_internal: {}", A(), Type(F?), Type(_internal?)), "TestA"
+
+#Module LibA
+  #Import _internal {*}
+  A() =&gt; Type(F?)
+
+#Module _internal
+  F() =&gt; 0
+</pre>
 
 <h2 id="Remarks">Remarks</h2>
 <p>Line breaks can be used inside the braces, due to <a href="../Scripts.htm#continuation-expr">continuation by enclosure</a>.</p>
 <p>Classes and functions are available even before the source module has executed, such as if the module which imports them is executing first due to a circular import.</p>
 
 <h2 id="Related">Related</h2>
-<p><a href="../Modules.htm">Modules</a>, <a href="Export.htm">Export</a>, <a href="_Module.htm">#Module</a>, <a href="_Include.htm">#Include</a></p>
+<p><a href="../Modules.htm">Modules</a>, <a href="_Module.htm">#Module</a>, <a href="_Include.htm">#Include</a></p>
 
 </body>
 </html>
