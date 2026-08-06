@@ -131,47 +131,62 @@
 <p class="loading_code" style="display: none;">Loading code...</p>
 
 <script>
-if (!!-[1,]) // Exclude Internet Explorer 8 or below
-  addOnClickEvent();
-
-function addOnClickEvent() {
-  var els = document.querySelectorAll('.show_code a');
-  var text_show_code = els[0].innerHTML;
-  var text_hide_code = document.querySelectorAll('.hide_code')[0].innerHTML;
-  var text_loading_code = document.querySelectorAll('.loading_code')[0].innerHTML;
-  $.get(els[0].href, function() { // Check whether it is possible to get a file
-    for (var i = 0; i < els.length; i++) {
-      els[i].onclick = function() {
-        if (this.innerHTML !== text_hide_code) {
-          this.innerHTML = text_hide_code;
-          if (!this.nextSibling) {
-            pre = document.createElement('pre');
-            pre.className = 'NoIndent';
-            pre.setAttribute('filename', this.getAttribute('href'));
-            pre.innerHTML = text_loading_code;
-            this.parentNode.insertBefore(pre, this.nextSibling);
-            $.get(this.href, function(data) {
-              $(pre).text(data.replace(/\r\n/g, '\n'));
-              features.addCodeBoxButtons([pre]);
-              features.addSyntaxColors([pre]);
-            }, 'text');
+  (function () {
+    const as = document.querySelectorAll('.show_code a');
+    const text_show_code = as[0].innerHTML;
+    const text_hide_code = document.querySelector('.hide_code').innerHTML;
+    const text_loading_code = document.querySelector('.loading_code').innerHTML;
+    load(as[0].href, function () { // Check whether it is possible to get a file
+      as.forEach(function (a) {
+        a.addEventListener('click', function (e) {
+          e.preventDefault();
+          if (a.innerHTML != text_hide_code) {
+            a.innerHTML = text_hide_code;
+            if (!a.nextElementSibling) {
+              const pre = document.createElement('pre');
+              pre.className = 'NoIndent';
+              pre.setAttribute('filename', a.href);
+              pre.innerHTML = text_loading_code;
+              a.parentNode.insertBefore(pre, a.nextSibling);
+              load(a.href, function (data) {
+                pre.textContent = data.replace(/\r\n/g, '\n');
+                frame.content.addCodeBoxButtons([pre]);
+                frame.content.addSyntaxColors([pre]);
+              });
+            }
+            else
+              a.nextElementSibling.show();
           }
-          else
-            this.nextSibling.style.display = 'block';
-        }
-        else {
-          this.innerHTML = text_show_code;
-          this.nextSibling.style.display = 'none';
-        }
-        return false; // Suppress opening the file in a normal way
-      };
+          else {
+            a.innerHTML = text_show_code;
+            a.nextElementSibling.hide();
+          }
+        });
+      });
+    }, function () {
+      if (!/::/.test(location.href)) // CHM
+        as.forEach(function (a) { a.setAttribute('target', '_blank'); });
+    });
+
+    function load(url, callback, fail) {
+      try {
+        const x = new XMLHttpRequest();
+        x.open('GET', url, true);
+        x.responseType = 'text';
+        x.onreadystatechange = function () {
+          if (x.readyState === 4) {
+            if (x.status === 200)
+              callback(x.responseText)
+            else if (fail)
+              fail();
+          }
+        };
+        x.send();
+      } catch (e) {
+        if (fail) fail();
+      }
     }
-  }, 'text').fail(function() {
-    if (!isInsideCHM)
-      for (var i = 0; i < els.length; i++)
-        els[i].setAttribute('target', '_blank');
-  });
-}
+  })();
 </script>
 </body>
 

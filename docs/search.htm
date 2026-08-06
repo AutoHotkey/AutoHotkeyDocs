@@ -1,89 +1,54 @@
 <!DOCTYPE HTML>
 <html lang="en">
 <head>
+<title>Search | AutoHotkey v2</title>
 <meta name="robots" content="noindex, nofollow" />
+<meta name="ahk:build-search-skip" content="true" />
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <link href="static/theme.css" rel="stylesheet" type="text/css" />
 <link href="static/dark.css" rel="stylesheet" type="text/css" media="(prefers-color-scheme: dark)" id="dark_css" />
-<script>forceNoScript = true;</script>
+<script>window.forceNoScript = true;</script>
 <script src="static/content.js" type="text/javascript"></script>
 </head>
 <body>
 <p>Searching...</p>
-<p id="container" style="display:none"></p>
+<p>Usage: <code class="no-highlight">search.htm?q=query&m=mode</code></p>
+<ul>
+  <li>mode = 1 &RightArrow; index tab</li>
+  <li>mode = 2 &RightArrow; search tab</li>
+</ul>
+<p><code class="no-highlight">&m=mode</code> is optional and defaults to mode #1 (index).</p>
 <script>
-/*
-Usage: search.htm?q=query&m=mode
-
-  mode = 1 -> index tab
-  mode = 2 -> search tab
-
-&m=mode is optional and defaults to mode #1 (index).
-*/
-var pQuery = getUrlParameter("q");
-var pMode = (Number(getUrlParameter("m")) || 1);
-
-switch(pMode) {
-  case 1:
-  cache.index_input = pQuery;
-  cache.index_scrollPos = null;
-  cache.clickTab = 1;
-  loadScript(index.dataPath, function() {
-    loadScript(translate.dataPath, function() {
-      cache.index_data = indexData;
-      cache.translate_data = translateData;
-      document.getElementById('container').innerHTML = index.create(cache.index_data, -1);
-      var aList = $('#container').children();
-      match = index.findMatch(aList, pQuery.toLowerCase());
-      if (match.length) {
-        cache.index_clickItem = match.index();
-        window.location = match.attr('href');
-      }
-      else {
-        window.location = scriptDir+"/../";
-      }
+  (function () {
+    const pQuery = getUrlParam('q');
+    const pMode = (Number(getUrlParam('m')) || 1);
+    const fallback_link = (new host.setupToolbarTools).home.link;
+    switch (pMode) {
+      case 1: useIndexTab(); break;
+      case 2: useSearchTab(); break;
+    }
+    function useIndexTab() {
+      const input = (cache.index_input = pQuery).toLowerCase();
+      cache.forced = {selectedTab: 1};
+      if (!site.waitForDataIndex(useIndexTab)) return;
+      if (!site.waitForDataTranslate(useIndexTab)) return;
+      const items = (new host.setupSidebarTabsPageIndex).createList(cache.index_data, -1);
+      const match = items.find(function (item) {
+        return item.label.toLowerCase().indexOf(input) === 0;
+      });
+      window.location = match ? match.href : fallback_link;
       cache.save();
-    });
-  });
-  break;
-  case 2:
-  cache.search_input = pQuery;
-  cache.search_scrollPos = null;
-  cache.clickTab = 2;
-  cache.LastUsedSource = "search";
-  loadScript(search.dataPath, function() {
-    cache.search_index = SearchIndex;
-    cache.search_files = SearchFiles;
-    cache.search_titles = SearchTitles;
-    cache.search_data = search.create(pQuery.toLowerCase());
-    document.getElementById('container').innerHTML = cache.search_data;
-    cache.save();
-    var aList = $('#container').children();
-    if (aList.length)
-      window.location = aList.eq(0).attr('href');
-    else {
-      window.location = scriptDir+"/../";
     }
-  });
-  break;
-}
-// https://stackoverflow.com/a/21903119
-function getUrlParameter(sParam) {
-    var sPageURL, sParameterName, i;
-    if (window.location.search)
-      sPageURL = window.location.search.substring(1);
-    else
-      sPageURL = window.location.hash.substring(1);
-    var sURLVariables = sPageURL.split('&');
-    for (i = 0; i < sURLVariables.length; i++) {
-        sParameterName = sURLVariables[i].split('=');
-
-        if (sParameterName[0] === sParam) {
-            return sParameterName[1] === undefined ? true : decodeURIComponent(sParameterName[1]);
-        }
+    function useSearchTab() {
+      const input = cache.search_input = pQuery;
+      cache.forced = {selectedTab: 2};
+      if (!site.waitForDataSearch(useSearchTab)) return;
+      const items = (new host.setupSidebarTabsPageSearch).createList([input]);
+      window.location = items.length ? items[0].href : fallback_link;
+      cache.save();
     }
-};
+  })();
 </script>
 </body>
 </html>

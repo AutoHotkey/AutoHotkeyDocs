@@ -38,13 +38,14 @@
 <body>
   <h1>Help Settings</h1>
   <p>Specify the settings the help should be started with by default. These settings are permanent; this is, they apply for all current and future visits to this help.</p>
+  <p class="warning" id="local-usage" style="display: none"><strong>Disabled:</strong> Using the help locally prevents the settings from working reliably.</p>
   <table>
     <tr>
       <td>
         <label for="fontSize">Content font size:</label>
       </td>
       <td>
-        <select id="fontSize" size="1">
+        <select id="fontSize" size="1" disabled>
           <option value="0.6">Very small</option>
           <option value="0.8">Small</option>
           <option value="1" selected>Medium (default)</option>
@@ -55,10 +56,10 @@
     </tr>
     <tr>
       <td>
-        <label for="clickTab">Selected tab:</label>
+        <label for="selectedTab">Selected tab:</label>
       </td>
       <td>
-        <select id="clickTab" size="1">
+        <select id="selectedTab" size="1" disabled>
           <option value="0" selected>Content (default)</option>
           <option value="1">Index</option>
           <option value="2">Search</option>
@@ -67,10 +68,10 @@
     </tr>
     <tr>
       <td>
-        <label for="displaySidebar">Sidebar visibility:</label>
+        <label for="showSidebar">Sidebar visibility:</label>
       </td>
       <td>
-        <select id="displaySidebar" size="1">
+        <select id="showSidebar" size="1" disabled>
           <option value="false">Hidden</option>
           <option value="true" selected>Visible (default)</option>
         </select>
@@ -81,7 +82,7 @@
         <label for="colorScheme">Color scheme:</label>
       </td>
       <td>
-        <select id="colorScheme" size="1">
+        <select id="colorScheme" size="1" disabled>
           <option value="null" selected>Browser (default)</option>
           <option value="light">Light</option>
           <option value="dark">Dark</option>
@@ -93,18 +94,21 @@
         <label for="collapseQuickRef">Quick reference visibility:</label>
       </td>
       <td>
-        <select id="collapseQuickRef" size="1">
+        <select id="collapseQuickRef" size="1" disabled>
           <option value="false" selected>Uncollapsed (default)</option>
           <option value="true">Collapsed</option>
         </select>
       </td>
     </tr>
   </table>
+  <p>
   <div class="note" id="activex" style="display: none">
     <p>
-      <strong>Note:</strong> If you press the following button, ActiveX is used to create a config file named 'chm_config.js' in the same directory as the CHM file, with the following content:</p>
+      <strong>Note:</strong> If you press the following button, ActiveX is used to create a config file named 'chm_config.js' in the same directory as the CHM file, with the following content:
+    </p>
     <pre class="NoIndent no-highlight" id="config-stringified"></pre>
   </div>
+  </p>
   <table>
     <tr>
       <td>&nbsp;</td>
@@ -113,131 +117,82 @@
       </td>
     </tr>
   </table>
-  <p id="permission-denied" style="display: none">Permission denied. Run the CHM file as administrator or create the config file manually.</p>
+  <p id="permission-denied" style="display: none">It may help to run the CHM file as administrator. You could also create the config file manually.</p>
 
   <script>
-    var config = {};
-    var selects = document.getElementsByTagName('select');
-    var btn = document.getElementById("save-settings");
-    var pre = document.getElementById("config-stringified");
-    // Get default values:
-    if (!user) {
-      var user = {};
-      for (var i = 0; i < selects.length; i++)
-        user[selects[i].id] = nativeType(selects[i].value);
-    }
-    // Set default stringified config:
-    pre.innerText = 'config = ' + JSON.stringify(user, null, 2);
-
-    // Get saved values:
-    if (location.href.search(/::/) > 0) {
-      var configPath = decodeURI(window.location.href.match(/mk:@MSITStore:(.*?)\\[^\\]+\.chm/i)[1] + '\\chm_config.js');
-      loadScript(configPath, setSelectValues); setSelectEvents();
-      document.getElementById("activex").style.display = 'block';
-      btn.onclick = saveToFile;
-    }
-    else if (window.localStorage) {
-      config = JSON.parse(window.localStorage.getItem('config'));
-      setSelectValues(); setSelectEvents();
-      btn.onclick = saveToLocalStorage;
-    }
-    else {
-      var result = document.cookie.match(/config=([^;]+)/);
-      result && (config = JSON.parse(result[1]));
-      setSelectValues(); setSelectEvents();
-      btn.onclick = saveToCookie;
-    }
-
-    function setSelectValues() {
-      // Overwrite default values:
-      for (var key in config)
-        if (key in user
-        && document.querySelector('#' + key + ' option[value="' + config[key] + '"]'))
-          user[key] = config[key];
-      // Set select values on load:
-      document.onreadystatechange = function() {
-        var state = document.readyState;
-        if (state == 'complete') {
-          for (var i = 0; i < selects.length; i++) {
-            var select = selects[i];
-            if (user[select.id] !== undefined)
-              select.value = String(user[select.id]);
-            else
-              select.disabled = true;
-          };
-          pre.innerText = 'config = ' + JSON.stringify(user, null, 2);
+    (function() {
+      const selects = document.querySelectorAll('select');
+      const btn = document.querySelector('#save-settings');
+      const pre = document.querySelector('#config-stringified');
+      const settings = Object.assign({}, user.settings);
+      pre.textContent = 'config = ' + JSON.stringify(settings, null, 2);
+      if (site.inCHM)
+        document.querySelector('#activex').show();
+      if (site.isLocal)
+        document.querySelector('#local-usage').show();
+      user.load(function(config) {
+        if (config) Object.assign(settings, validateConfigSettings(config));
+        site.onDOMContentLoad(function() {
+          if (config === undefined) return;
+          selects.forEach(setupSelect);
+          pre.textContent = 'config = ' + JSON.stringify(settings, null, 2);
+          window.addEventListener('pageshow', function() { // Handle bfcache
+            btn.disabled = true;
+            selects.forEach(function(select) { select.onchange(); });
+          });
+        });
+      });
+      btn.onclick = function() {
+        try {
+          user.save(settings);
+          btn.disabled = true;
         }
-      }
-    }
-
-    function setSelectEvents() {
-      for (var i = 0; i < selects.length; i++) {
-        var select = selects[i];
-        selects[i].onchange = function() {
-          btn.disabled = false;
-          user[this.id] = nativeType(this.value);
-          pre.innerText = 'config = ' + JSON.stringify(user, null, 2);
-        };
-      };
-    }
-
-    function saveToFile() {
-      btn.disabled = true;
-      var content = 'config = ' + JSON.stringify(user, null, 2);
-      pre.innerText = content;
-      try {
-        var fso = new ActiveXObject("Scripting.FileSystemObject");
-        var a = fso.OpenTextFile(decodeURI(configPath), 2, true);
-        a.WriteLine(content.replace(/\n/g, '\r\n'));
-        a.Close();
-      }
-      catch (err) {
-        if (err.number = -2146828218)
-          alert(err.message + '\n\n' + document.getElementById("permission-denied").innerText);
-        else
-          alert(err.message + ' (' + err.number + ')');
-      }
-    }
-
-    function saveToLocalStorage() {
-      btn.disabled = true;
-      window.localStorage.setItem('config', JSON.stringify(user));
-    }
-
-    function saveToCookie() {
-      btn.disabled = true;
-      document.cookie = ['config', '=', JSON.stringify(user), '; expires=.', new Date(new Date().getTime() + 60 * 60 * 1000 * 24 * 365).toGMTString(), '; path=/;'].join('');
-    }
-
-    function loadScript(url, callback) {
-      var script = document.createElement("script")
-      script.type = "text/javascript";
-      if (script.readyState) {  // IE
-        script.onreadystatechange = function() {
-          if (script.readyState == "loaded" ||
-            script.readyState == "complete") {
-            script.onreadystatechange = null;
-            callback();
+        catch (err) {
+          if (site.inCHM) {
+            const HRESULT = err.number >>> 0;
+            const message = '0x' + HRESULT.toString(16).toUpperCase() + ': ' +  err.message;
+            if (HRESULT == 0x800A0046) // permission denied
+              alert(message + '\n\n' + document.querySelector('#permission-denied').innerText);
+            else
+              alert(message);
           }
-        };
-      } else {  // Others
-        script.onload = function() {
-          callback();
+          else throw err;
+        }
+      };
+
+      function validateConfigSettings(config) {
+        const settings = Object.assign({}, user.settings);
+        if (!config) return settings;
+        for (var s in user.settings) {
+          const has_opt_val = document.querySelector('#' + s + ' option[value="' + config[s] + '"]');
+          if (s in config && has_opt_val)
+            settings[s] = config[s];
+        }
+        return settings;
+      }
+
+      function setupSelect(select) {
+        if (!settings.hasOwnProperty(select.id)) return;
+        select.disabled = false;
+        select.value = String(settings[select.id]);
+        select.onchange = function(event) {
+          const value = native_type(select.value);
+          if (settings[select.id] === value) return;
+          btn.disabled = false;
+          settings[this.id] = value;
+          pre.textContent = 'config = ' + JSON.stringify(settings, null, 2);
+          if (!event) return;
+          site.postMessage(user.settings_paths[this.id], value);
         };
       }
-      script.src = url;
-      document.getElementsByTagName("head")[0].appendChild(script);
-    }
 
-    function nativeType(str) {
-      if (str == 'true')
-        return true;
-      if (str == 'false')
-        return false;
-      if (str == 'null')
-        return null;
-      return isNaN(str) ? str : Number(str);
-    }
+      function native_type(str) {
+        if (str == 'true') return true;
+        if (str == 'false') return false;
+        if (str == 'null') return null;
+        return isNaN(str) ? str : Number(str);
+      }
+    })();
   </script>
 </body>
 
