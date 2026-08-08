@@ -19,7 +19,7 @@ IndexJS := FileRead("docs\static\source\data_index.js")
 Overwrite("Index.hhk", INDEX_CreateHHK(IndexJS))
 
 ; Uncomment the following lines to use the old sidebar:
-; try FileDelete("docs\static\content.js")
+; Overwrite("docs\static\content.js", "var site = { init: function() {} };")
 ; TocJS := FileRead("docs\static\source\data_toc.js")
 ; Overwrite("Table of Contents.hhc", TOC_CreateHHC(TocJS))
 ; IniWrite("Table of Contents.hhc", "Project.hhp", "OPTIONS", "Contents file")
