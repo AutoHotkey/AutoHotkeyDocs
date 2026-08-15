@@ -55,8 +55,9 @@ TOC_CreateHHC(data)
     createList(items, list := "")
     {
         list .= "`n<ul>`n"
-        for item in items
+        loop items.length
         {
+            item := items.%A_Index - 1%
             list .= '<li><object type="text/sitemap">'
             list .= '<param name="Name" value="' EncodeHTML(item.0) '">'
             if item.1
