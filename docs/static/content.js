@@ -11,7 +11,7 @@ const frame = new setupSiteFrame;
 
 function setupSite() {
   const site = this;
-  site.scriptElement = document.currentScript || document.querySelector('script[src$="static/content.js"]');
+  site.scriptElement = document.currentScript || document.head.querySelector('#content_js');
   site.scriptDir = site.scriptElement.src.slice(0, site.scriptElement.src.lastIndexOf('/'));
   site.urlBase = site.scriptDir.slice(0, site.scriptDir.lastIndexOf('/'));
   site.urlRelative = getUrlRelative(location.href, site.urlBase);
@@ -135,7 +135,6 @@ function setupSite() {
       const link = document.createElement('link');
       link.href = site.urlBase + '/static/dark.css';
       link.rel = 'stylesheet';
-      link.type = 'text/css';
       link.id = 'dark_css';
       return link;
     }
