@@ -165,10 +165,34 @@ function setupSite() {
   site.onBeforeUnload = function(callback) {
     window.addEventListener('beforeunload', callback);
   };
+  site.scriptStatus = {}; site.scriptQueue = {};
+  site.loadScript = function(url, success, fail) {
+    if (site.scriptStatus[url] === 'loaded') return success && success();
+    if (site.scriptStatus[url] === 'error') return fail && fail();
+    if (site.scriptStatus[url] === 'loading') {
+      if (success) (site.scriptQueue[url] = site.scriptQueue[url] || []).push(success);
+      return;
+    }
+    site.scriptStatus[url] = 'loading';
+    site.scriptQueue[url] = success ? [success] : [];
+    const script = document.createElement('script');
+    script.onload = function() {
+      site.scriptStatus[url] = 'loaded';
+      site.scriptQueue[url].forEach(function(cb) { cb(); });
+      site.scriptQueue[url] = null;
+    };
+    script.onerror = function() {
+      site.scriptStatus[url] = 'error';
+      site.scriptQueue[url] = null;
+      fail && fail();
+    };
+    script.src = url;
+    document.head.appendChild(script);
+  }
   site.waitForData = function(path, pairs, callback, args) {
     const missing = pairs.find(function(p) { return cache[p[0]] === undefined; });
     if (!missing) return true;
-    loadScript(path, function() {
+    site.loadScript(path, function() {
       pairs.forEach(function(p) { cache[p[0]] = window[p[1]]; });
       callback.apply(null, args);
     });
@@ -260,7 +284,7 @@ function setupUserSettings() {
   };
   user.load = function(callback) {
     if (site.inCHM) {
-      loadScript(user.getCHMConfigPath(), function() {
+      site.loadScript(user.getCHMConfigPath(), function() {
         callback(window.config);
       }, function() {
         callback(null);
@@ -1489,7 +1513,7 @@ function setupSiteFrameContent() {
   content.addSyntaxColors = function(pres) {
     if (typeof highlighter == 'undefined') {
       if (!site.waitForDataIndex(content.addSyntaxColors, arguments)) return;
-      loadScript(site.urlBase + '/static/highlighter/highlighter.js', function() {
+      site.loadScript(site.urlBase + '/static/highlighter/highlighter.js', function() {
         highlighter.addSyntaxColors(pres, cache.index_data, site.urlBase + '/', false);
       });
     }
@@ -1656,14 +1680,6 @@ function isScrolledIntoView(el, container) {
   const elTop = el.offsetTop;
   const elBottom = elTop + el.offsetHeight;
   return (elTop >= containerTop && elBottom <= containerBottom);
-}
-
-function loadScript(url, callback, fail) {
-  const script = document.createElement('script');
-  script.onload = callback;
-  script.onerror = fail;
-  script.src = url;
-  document.head.appendChild(script);
 }
 
 function T(original) {
