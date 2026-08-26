@@ -39,7 +39,8 @@ translateData = {
   "Open this document in the default browser (requires internet connection). Middle-click to copy the link address.":true,
   "Use the dark or light scheme":true,
   "Open the help settings":true,
-  // content
+  // viewer
+  "Pre-release documentation. Specifics may not be added yet and may change with future releases.":true,
   "Select code":true,
   "Download code":true,
   "Back to top":true,

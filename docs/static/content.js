@@ -933,6 +933,13 @@ function ctor_structure()
     if (!retrieveData(translate.dataPath, "translate_data", "translateData", self.modify))
       return;
 
+    // --- Show pre-release banner ---
+
+    if (cache.docs_data.PRE_RELEASE) {
+      $('#right').prepend('<div class="banner"><span class="text" data-translate data-content="Pre-release documentation. Specifics may not be added yet and may change with future releases."></span><span class="close" data-content="×"></span></div>');
+      $('#right .banner .close').on('click', function() { $('#right .banner').hide(); });
+    }
+
     // --- Add events ---
 
     self.saveCacheBeforeLeaving();
@@ -948,7 +955,7 @@ function ctor_structure()
 
     // --- Translate elements with data-translate attribute (value 1 for content only, 2 for attributes only) ---
 
-    $('#head').add($('#left')).find('*[data-translate]').each(function() {
+    $('*[data-translate]' + (isFrameCapable ? '' : ':not(#right > .area *)')).each(function() {
       var $this = $(this);
       var elContent = $this.text();
       var attrTitleValue = $this.attr('title');
@@ -1044,6 +1051,8 @@ function ctor_structure()
       // Show language and version on the buttons:
       isIE8 ? $langBtn.text(lang) : $langBtn.attr('data-content', lang);
       isIE8 ? $verBtn.text(ver) : $verBtn.attr('data-content', ver);
+      // Colorize version if pre-release:
+      if (cache.docs_data.PRE_RELEASE) $verTool.addClass('pre');
       // Hide currently selected language and version in the selection lists:
       $(isIE8 ? 'a:contains(' + lang + ')' : 'a[data-content=' + lang + ']', $langList).parent().hide();
       $(isIE8 ? 'a:contains(' + ver + ')' : 'a[data-content=' + ver + ']', $verList).parent().hide();
