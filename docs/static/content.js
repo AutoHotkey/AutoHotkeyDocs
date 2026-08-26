@@ -107,6 +107,7 @@ var toc = new ctor_toc;
 var index = new ctor_index;
 var search = new ctor_search;
 var features = new ctor_features;
+var docs = {dataPath: scriptDir + '/source/data_docs.js'};
 var translate = {dataPath: scriptDir + '/source/data_translate.js'};
 var deprecate = {dataPath: scriptDir + '/source/data_deprecate.js'};
 
@@ -460,7 +461,7 @@ function ctor_index()
   self.dataPath = scriptDir + '/source/data_index.js';
   self.create = function(input, filter) { // Create and add the index links.
     var output = '';
-    var lang = T('en');
+    var lang = cache.docs_data.LANGUAGE;
     var collator = window.Intl ? new Intl.Collator(lang) : null;
     if (collator)
       input.sort(function(a, b) { return collator.compare(a[0], b[0]); });
@@ -486,6 +487,8 @@ function ctor_index()
   };
   self.modify = function() { // Modify the elements of the index tab.
 
+    if (!retrieveData(docs.dataPath, "docs_data", "docsData", self.modify))
+      return;
     if (!retrieveData(self.dataPath, "index_data", "indexData", self.modify))
       return;
     if (!retrieveData(translate.dataPath, "translate_data", "translateData", self.modify))
@@ -920,6 +923,11 @@ function ctor_structure()
         tabs[i].className += ' no-quick';
     }
 
+    // --- Wait for docs data ---
+
+    if (!retrieveData(docs.dataPath, "docs_data", "docsData", self.modify))
+      return;
+
     // --- Wait for translation data ---
 
     if (!retrieveData(translate.dataPath, "translate_data", "translateData", self.modify))
@@ -1004,7 +1012,8 @@ function ctor_structure()
 
     var $online = $('#head .h-tools.online');
     // Set language code and version:
-    var lang = T("en"), ver = T("v1");
+    var lang = cache.docs_data.LANGUAGE;
+    var ver = cache.docs_data.PRE_RELEASE ? 'pre' : cache.docs_data.VERSION;
     // language links. Keys are based on ISO 639-1 language name standard:
     var link = { 'v1': { 'en': 'https://www.autohotkey.com/docs/v1/',
                          'de': 'https://ahkde.github.io/docs/v1/',
@@ -1016,12 +1025,16 @@ function ctor_structure()
                          'ja': 'https://ahkscript.github.io/ja/docs/v2/',
                          'zh': 'https://wyagd001.github.io/v2/docs/' } }
 
-    var $langList = $online.find('ul.languages')
-    var $verList = $online.find('ul.versions')
+    var $langTool = $('li.language', $online), $verTool = $('li.version', $online);
+    var $langBtn = $('button', $langTool), $verBtn = $('button', $verTool);
+    var $langList = $('ul', $langTool), $verList = $('ul', $verTool);
 
     self.modifyTools = function(relPath, equivPath) {
       // Bug - IE/Edge doesn't turn off list-style if element is hidden:
       $langList.add($verList).css("list-style", "none");
+      // Show language and version on the buttons:
+      isIE8 ? $langBtn.text(lang) : $langBtn.attr('data-content', lang);
+      isIE8 ? $verBtn.text(ver) : $verBtn.attr('data-content', ver);
       // Hide currently selected language and version in the selection lists:
       $(isIE8 ? 'a:contains(' + lang + ')' : 'a[data-content=' + lang + ']', $langList).parent().hide();
       $(isIE8 ? 'a:contains(' + ver + ')' : 'a[data-content=' + ver + ']', $verList).parent().hide();
@@ -1054,7 +1067,7 @@ function ctor_structure()
       });
       // 'Edit page on GitHub' button:
       $("li.edit > a").attr({
-        href: T("https://github.com/Lexikos/AutoHotkey_L-Docs/edit/v1/docs/") + relPath,
+        href: cache.docs_data.TOOL_EDIT_LINK + relPath,
         target: "_blank"
       });
 
@@ -1397,18 +1410,21 @@ function ctor_structure()
   }
   // Add shortcuts:
   self.addShortcuts = function() {
+    if (!retrieveData(docs.dataPath, "docs_data", "docsData", self.addShortcuts)) return;
     $(document).on("keydown", function(e) {
       if (e.which == 117) {
         self.pressKey("F6");
         return false;
       }
       if (e.altKey) {
-        var keyList = ["C", "N", "S"];
-        for (var i = 0; i < keyList.length; i++)
-          if (e.which == T(keyList[i]).charCodeAt(0)) {
-            self.pressKey(keyList[i]);
+        var tabs = ['CONTENT', 'INDEX', 'SEARCH'];
+        for (var i = 0; i < tabs.length; i++) {
+          var key = cache.docs_data['TAB_ALT_SHORTCUT_' + tabs[i]];
+          if (e.which == key.charCodeAt(0)) {
+            self.pressKey(key);
             return false;
           }
+        }
       }
     });
   }

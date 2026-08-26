@@ -29,12 +29,9 @@ translateData = {
   "Skip navigation":true,
   "Hide or show the sidebar":true,
   "Go to the homepage":true,
-  "en":true,
   "Change the language":true,
-  "v1":true,
   "Change the version":true,
   "Edit this document on GitHub":true,
-  "https://github.com/Lexikos/AutoHotkey_L-Docs/edit/v1/docs/":true,
   "Go back":true,
   "Go forward":true,
   "Change the font size":true,
@@ -42,10 +39,6 @@ translateData = {
   "Open this document in the default browser (requires internet connection). Middle-click to copy the link address.":true,
   "Use the dark or light scheme":true,
   "Open the help settings":true,
-  // ALT+... shortcuts (needs uppercase)
-  "C":true,
-  "N":true,
-  "S":true,
   // content
   "Select code":true,
   "Download code":true,
