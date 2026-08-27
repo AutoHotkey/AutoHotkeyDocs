@@ -315,13 +315,8 @@ function ctor_toc()
       }
       else
         var el = document.createElement("button");
-      if (isIE8)
-        el.innerHTML = text;
-      else
-      {
-        el.setAttribute("data-content", text);
-        el.setAttribute("aria-label", text);
-      }
+      $(el).setDisplayText(text);
+      el.setAttribute("aria-label", text);
       var span = document.createElement("span");
       span.innerHTML = el.outerHTML;
       var li = document.createElement("li");
@@ -474,13 +469,8 @@ function ctor_index()
       var a = document.createElement("a");
       a.href = workingDir + input[i][1];
       a.setAttribute("tabindex", "-1");
-      if (isIE8)
-        a.innerHTML = input[i][0];
-      else
-      {
-        a.setAttribute("data-content", input[i][0]);
-        a.setAttribute("aria-label", input[i][0]);
-      }
+      $(a).setDisplayText(input[i][0]);
+      a.setAttribute("aria-label", input[i][0]);
       output += a.outerHTML;
     }
     return output;
@@ -552,7 +542,7 @@ function ctor_index()
     if (!input)
       return match;
     for (var i = 0; i < indexListChildren.length; i++) {
-      var text = isIE8 ? indexListChildren[i].innerText : indexListChildren[i].getAttribute('data-content');
+      var text = $(indexListChildren[i]).getDisplayText();
       var listitem = text.substr(0, input.length).toLowerCase();
       if (listitem == input) {
         match = indexListChildren.eq(i);
@@ -814,13 +804,8 @@ function ctor_search()
         var a = document.createElement("a");
         a.href = workingDir + ro[t].u;
         a.setAttribute("tabindex", "-1");
-        if (isIE8)
-          a.innerHTML = ro[t].n;
-        else
-        {
-          a.setAttribute("data-content", ro[t].n);
-          a.setAttribute("aria-label", ro[t].n);
-        }
+        $(a).setDisplayText(ro[t].n);
+        a.setAttribute("aria-label", ro[t].n);
         output += a.outerHTML;
       }
       return output;
@@ -899,8 +884,6 @@ function ctor_structure()
       {
         template = template.replace('<div class="quick"><button class="header" title="Collapse or uncollapse the quick reference" data-translate aria-label="title"><div class="chevron"></div><span data-translate data-content="Quick reference"></span></button><div class="main"></div></div>', '');
       }
-      if (isIE8)
-         template = template.replace(/ data-content="(.*?)">/g, '>$1');
     }
     if (!isFrameCapable)
       template = template.replace('<iframe class="hidden" frameBorder="0" id="frame" src="" role="main">', '<div class="area" role="main">');
@@ -922,6 +905,13 @@ function ctor_structure()
       for (var i = 0; i < tabs.length; i++)
         tabs[i].className += ' no-quick';
     }
+
+    // --- IE8 has issues with [data-content]:before, so avoid using it ---
+
+    if (isIE8)
+      $('*[data-content]' + (isFrameCapable ? '' : ':not(#right > .area *)')).each(function() {
+        $(this).text($(this).attr('data-content')); $(this).removeAttr('data-content');
+      });
 
     // --- Wait for docs data ---
 
@@ -1027,11 +1017,10 @@ function ctor_structure()
     var $langTool = $('li.language', $online);
     var $langBtn = $('button', $langTool);
     var $langList = $('ul', $langTool);
-    isIE8 ? $langBtn.text(lang) : $langBtn.attr('data-content', lang);
-    var $langItem = $(
-      isIE8 ? 'a:contains(' + lang + ')' : 'a[data-content=' + lang + ']',
-      $langList
-    );
+    var $langItem = $langList.find('a').filter(function() {
+      return $(this).getDisplayText() === lang;
+    }).first();
+    $langBtn.setDisplayText(lang);
     $langItem.parent().hide();
     $langBtn.attr('title', $langItem.attr('title') + '\n\n' + T('Click to the change the language.'));
     $langBtn.attr('aria-label', $langBtn.attr('title'));
@@ -1061,11 +1050,10 @@ function ctor_structure()
     var $verBtn = $('button', $verTool);
     var $verList = $('ul', $verTool);
     if (cache.docs_data.PRE_RELEASE) $verTool.addClass('pre');
-    isIE8 ? $verBtn.text(ver) : $verBtn.attr('data-content', ver);
-    var $verItem = $(
-      isIE8 ? 'a:contains(' + ver + ')' : 'a[data-content=' + ver + ']',
-      $verList
-    );
+    var $verItem = $verList.find('a').filter(function() {
+      return $(this).getDisplayText() === ver;
+    }).first();
+    $verBtn.setDisplayText(ver);
     $verItem.parent().hide();
     $verBtn.attr('title', $verItem.attr('title') + '\n\n' + T('Click to the change the version.'));
     $verBtn.attr('aria-label', $verBtn.attr('title'));
@@ -1109,7 +1097,7 @@ function ctor_structure()
       // language links:
       $langList.find('li').each( function() {
         var a = $(this).find('a');
-        var thisLink = link[ver][isIE8 ? a.text() : a.attr('data-content')];
+        var thisLink = link[ver][a.getDisplayText()];
         if (thisLink == null)
           $(this).hide(); // Hide language button
         else
@@ -1118,7 +1106,7 @@ function ctor_structure()
       // version links:
       $verList.find('li').each( function() {
         var a = $(this).find('a');
-        var ver = isIE8 ? a.text() : a.attr('data-content');
+        var ver = a.getDisplayText();
         var thisLink = link[ver][lang];
         // Fallback to default docs:
         thisLink = (thisLink == null) ? link[ver]['en'] : thisLink;
@@ -1581,7 +1569,7 @@ function ctor_structure()
     registerEvent(ListBox, 'mouseenter', '> a', function() {
       var $this = $(this);
       if (this.offsetWidth < this.scrollWidth && !$this.attr('title')) {
-        $this.attr('title', isIE8 ? $this.text() : $this.attr('data-content'));
+        $this.attr('title', $this.getDisplayText());
       }
     });
   }
@@ -1809,19 +1797,13 @@ function ctor_features()
       var sel = document.createElement('a');
       sel.className = 'selectCode';
       sel.title = T("Select code");
-      if (isIE8)
-        sel.innerHTML = 'S';
-      else
-        sel.setAttribute("data-content", 'S');
+      $(sel).setDisplayText('S');
       buttons.appendChild(sel);
       if (supportsBlob && !isSyntax && !isNoHighlight) {
         var dwn = document.createElement('a');
         dwn.className = 'downloadCode';
         dwn.title = T("Download code");
-        if (isIE8)
-          dwn.innerHTML = '↓';
-        else
-          dwn.setAttribute("data-content", '↓');
+        $(dwn).setDisplayText('↓');
         buttons.appendChild(dwn);
       }
       $(parent) // Show these buttons on hover:
@@ -2122,6 +2104,16 @@ padding:"inner"+a,content:b,"":"outer"+a},function(c,d){n.fn[d]=function(d,e){va
       clearTimeout($.queueFunc._timer);
       $.queueFunc._queue = [];
     }
+  };
+
+  $.fn.setDisplayText = function(value) {
+    return this.each(function() {
+      isIE8 ? $(this).text(value) : $(this).attr('data-content', value);
+    });
+  };
+
+  $.fn.getDisplayText = function() {
+    return isIE8 ? $(this).text() : $(this).attr('data-content');
   };
 }
 
