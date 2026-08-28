@@ -103,9 +103,12 @@ function setupSite() {
     return obj;
   };
   site.addShortcuts = function() {
-    if (!site.waitForDataTranslate(site.addShortcuts)) return;
+    if (!site.waitForDataDocs(site.addShortcuts)) return;
     const altKeys = {};
-    ['C', 'N', 'S'].forEach(function(k) { return altKeys[T(k).charCodeAt(0)] = k; });
+    ['CONTENT', 'INDEX', 'SEARCH'].forEach(function(tab) {
+      const key = cache.docs_data['TAB_ALT_SHORTCUT_' + tab];
+      altKeys[key.charCodeAt(0)] = key;
+    });
     document.addEventListener('keydown', function(e) {
       if (e.which == 117) { // F6
         e.preventDefault(); host.performKeyAction('F6');
@@ -225,6 +228,11 @@ function setupSite() {
       ['deprecate_data', 'deprecateData']
     ], caller, args);
   };
+  site.waitForDataDocs = function(caller, args) {
+    return site.waitForData(site.urlBase + '/static/source/data_docs.js', [
+      ['docs_data', 'docsData']
+    ], caller, args);
+  };
 }
 
 function setupCache() {
@@ -324,7 +332,7 @@ function setupUserSettings() {
 function setupSiteHost() {
   const host = this;
   host.cache = cache;
-  host.template = '<div class="lyt_head" role="banner"><button class="lyt_skipnav" data-translate aria-label="data-content" data-content="Skip navigation"></button><div class="lyt_area"><div class="lyt_tab_row"><ul><li><button data-translate title="Shortcut: ALT+C" aria-label="Content tab" data-content="C̲ontent"></button></li><li><button data-translate title="Shortcut: ALT+N" aria-label="Index tab" data-content="In̲dex"></button></li><li><button data-translate title="Shortcut: ALT+S" aria-label="Search tab" data-content="S̲earch"></button></li></ul></div><div class="lyt_sidebar_toggle"><ul><li><button title="Hide or show the sidebar" data-translate aria-label="title">&#926;</button></li></ul></div><div class="lyt_tools"><div class="lyt_tools_online"><ul><li class="lyt_tool_home"><a href="{0}" title="Go to the homepage" data-translate aria-label="title">&#916;</a></li><li class="lyt_tool_language dropdown closed"><button title="Change the language" data-translate aria-label="title" data-content="en"></button><ul class="selected"><li><a href="#" title="English" aria-label="title" data-content="en"></a></li><li><a href="#" title="Deutsch (German)" data-content="de" aria-label="title"></a></li><li><a href="#" title="&#x65e5;&#x672c;&#x8a9e; (Japanese)" data-content="ja" aria-label="title"></a></li><li><a href="#" title="&#xD55C;&#xAD6D;&#xC5B4 (Korean)" aria-label="title" data-content="ko"></a></li><li><a href="#" title="Português (Portuguese)" data-content="pt" aria-label="title"></a></li><li><a href="#" title="&#x4E2D;&#x6587; (Chinese)" aria-label="title" data-content="zh"></a></li></ul></li><li class="lyt_tool_version dropdown closed"><button title="Change the version" data-translate aria-label="title" data-content="v1"></button><ul class="selected"><li><a href="#" title="AHK v1.1" aria-label="title" data-content="v1"></a></li><li><a href="#" title="AHK v2.0" aria-label="title" data-content="v2"></a></li></ul></li><li class="lyt_tool_edit"><a href="#" target="_blank" title="Edit this document on GitHub" data-translate="2" aria-label="title" data-content="E"></a></li></ul></div><div class="lyt_tools_chm"><ul><li class="lyt_tool_back"><button title="Go back" data-translate="2" aria-label="title">&#9668;</button></li><li class="lyt_tool_forward"><button title="Go forward" data-translate="2" aria-label="title">&#9658;</button></li><li class="lyt_tool_zoom"><button title="Change the font size" data-translate="2" aria-label="title" data-content="Z"></button></li><li class="lyt_tool_print"><button title="Print this document" data-translate="2" aria-label="title" data-content="P"></button></li><li class="lyt_tool_browser"><a href="#" target="_blank" title="Open this document in the default browser (requires internet connection). Middle-click to copy the link address." data-translate="2" aria-label="title" data-content="¬"></a></li></ul></div><div class="lyt_tools_main"><ul><li class="lyt_tool_color"><button title="Use the dark or light scheme" data-translate="2" aria-label="title" data-content="C"></button></li><li class="lyt_tool_settings"><button title="Open the help settings" data-translate="2" aria-label="title">&#1029;</button></li></ul></div></div></div></div><div class="lyt_main"><div class="lyt_left" role="navigation"><div class="lyt_tab_page_toc hidden"></div><div class="lyt_tab_page_index hidden"><div class="lyt_input"><input type="search" placeholder="Search" data-translate="2" /></div><div class="lyt_select"><select size="1" class="lyt_select_empty"><option value="-1" selected data-translate>Unfiltered</option><option value="0" data-translate>Directives</option><option value="1" data-translate>Built-in Variables</option><option value="2" data-translate>Built-in Functions</option><option value="3" data-translate>Control Flow Statements</option><option value="4" data-translate>Operators</option><option value="5" data-translate>Declarations</option><option value="6" data-translate>Built-in Classes</option><option value="7" data-translate>Built-in Methods/Properties</option><option value="99" data-translate>Ahk2Exe Compiler</option></select></div><div class="lyt_list"></div></div><div class="lyt_tab_page_search hidden"><div class="lyt_input"><input type="search" placeholder="Search" data-translate="2" /></div><div class="lyt_list"></div><div class="lyt_checkbox"><input type="checkbox" id="highlightSearchTerms"><label for="highlightSearchTerms" data-translate>Highlight search terms</label><div class="lyt_updown" title="Go to previous/next occurrence" data-translate aria-label="title"><div class="lyt_updown_up"><div class="triangle-up"></div></div><div class="lyt_updown_down"><div class="triangle-down"></div></div></div></div></div><div class="lyt_load"><div class="lds-dual-ring"></div></div><div class="lyt_quick"><button class="lyt_quick_head" title="Collapse or uncollapse the quick reference" data-translate aria-label="title"><div class="chevron"></div><span data-translate data-content="Quick reference"></span></button><div class="lyt_quick_main"></div></div></div><div class="lyt_dragbar"></div><div class="lyt_right"><div class="lyt_load"><div class="lds-dual-ring"></div></div><iframe class="lyt_frame hidden" frameborder="0" src="about:blank" role="main"></iframe></div></div>';
+  host.template = '<div class="lyt_head" role="banner"><button class="lyt_skipnav" data-translate aria-label="data-content" data-content="Skip navigation"></button><div class="lyt_area"><div class="lyt_tab_row"><ul><li><button data-translate title="Shortcut: ALT+C" aria-label="Content tab" data-content="C̲ontent"></button></li><li><button data-translate title="Shortcut: ALT+N" aria-label="Index tab" data-content="In̲dex"></button></li><li><button data-translate title="Shortcut: ALT+S" aria-label="Search tab" data-content="S̲earch"></button></li></ul></div><div class="lyt_sidebar_toggle"><ul><li><button title="Hide or show the sidebar" data-translate aria-label="title">&#926;</button></li></ul></div><div class="lyt_tools"><div class="lyt_tools_online"><ul><li class="lyt_tool_home"><a href="{0}" title="Go to the homepage" data-translate aria-label="title">&#916;</a></li><li class="lyt_tool_language dropdown closed"><button></button><ul class="selected"></ul></li><li class="lyt_tool_version dropdown closed"><button></button><ul class="selected"></ul></li><li class="lyt_tool_edit"><a href="#" target="_blank" title="Edit this document on GitHub" data-translate="2" aria-label="title" data-content="E"></a></li></ul></div><div class="lyt_tools_chm"><ul><li class="lyt_tool_back"><button title="Go back" data-translate="2" aria-label="title">&#9668;</button></li><li class="lyt_tool_forward"><button title="Go forward" data-translate="2" aria-label="title">&#9658;</button></li><li class="lyt_tool_zoom"><button title="Change the font size" data-translate="2" aria-label="title" data-content="Z"></button></li><li class="lyt_tool_print"><button title="Print this document" data-translate="2" aria-label="title" data-content="P"></button></li><li class="lyt_tool_browser"><a href="#" target="_blank" title="Open this document in the default browser (requires internet connection). Middle-click to copy the link address." data-translate="2" aria-label="title" data-content="¬"></a></li></ul></div><div class="lyt_tools_main"><ul><li class="lyt_tool_color"><button title="Use the dark or light scheme" data-translate="2" aria-label="title" data-content="C"></button></li><li class="lyt_tool_settings"><button title="Open the help settings" data-translate="2" aria-label="title">&#1029;</button></li></ul></div></div></div></div><div class="lyt_main"><div class="lyt_left" role="navigation"><div class="lyt_tab_page_toc hidden"></div><div class="lyt_tab_page_index hidden"><div class="lyt_input"><input type="search" placeholder="Search" data-translate="2" /></div><div class="lyt_select"><select size="1" class="lyt_select_empty"><option value="-1" selected data-translate>Unfiltered</option><option value="0" data-translate>Directives</option><option value="1" data-translate>Built-in Variables</option><option value="2" data-translate>Built-in Functions</option><option value="3" data-translate>Control Flow Statements</option><option value="4" data-translate>Operators</option><option value="5" data-translate>Declarations</option><option value="6" data-translate>Built-in Classes</option><option value="7" data-translate>Built-in Methods/Properties</option><option value="99" data-translate>Ahk2Exe Compiler</option></select></div><div class="lyt_list"></div></div><div class="lyt_tab_page_search hidden"><div class="lyt_input"><input type="search" placeholder="Search" data-translate="2" /></div><div class="lyt_list"></div><div class="lyt_checkbox"><input type="checkbox" id="highlightSearchTerms"><label for="highlightSearchTerms" data-translate>Highlight search terms</label><div class="lyt_updown" title="Go to previous/next occurrence" data-translate aria-label="title"><div class="lyt_updown_up"><div class="triangle-up"></div></div><div class="lyt_updown_down"><div class="triangle-down"></div></div></div></div></div><div class="lyt_load"><div class="lds-dual-ring"></div></div><div class="lyt_quick"><button class="lyt_quick_head" title="Collapse or uncollapse the quick reference" data-translate aria-label="title"><div class="chevron"></div><span data-translate data-content="Quick reference"></span></button><div class="lyt_quick_main"></div></div></div><div class="lyt_dragbar"></div><div class="lyt_right"><div class="lyt_load"><div class="lds-dual-ring"></div></div><iframe class="lyt_frame hidden" frameborder="0" src="about:blank" role="main"></iframe></div></div>';
   host.build = function() {
     const body = document.body.cloneNode(false);
     body.classList.add('lyt_body');
@@ -361,6 +369,7 @@ function setupSiteHost() {
       viewer.right = host.main.querySelector('.lyt_right');
       viewer.frame = host.viewer.right.querySelector('.lyt_frame');
       viewer.load = host.viewer.right.querySelector('.lyt_load');
+      viewer.banner = new host.setupViewerBanner; viewer.banner.init();
       if (site.inIE) viewer.show(true);
       viewer.onReady(function(frame_win) { // Load the initial URL into the frame.
         if (site.supportsStorage)
@@ -416,6 +425,28 @@ function setupSiteHost() {
     };
     viewer.hasFocus = function() {
       return viewer.right.contains(document.activeElement);
+    };
+  };
+  host.setupViewerBanner = function() {
+    const banner = this;
+    banner.init = function() {
+      if (!site.waitForDataDocs(banner.init)) return;
+      if (!site.waitForDataTranslate(banner.init)) return;
+      if (!cache.docs_data.PRE_RELEASE) return;
+      const text = T('Pre-release documentation. Specifics may not be added yet and may change with future releases.');
+      host.viewer.right.insertBefore(banner.create(text), host.viewer.right.firstChild);
+    };
+    banner.create = function(text) {
+      const div = document.createElement('div');
+      const span1 = document.createElement('span'); div.appendChild(span1);
+      const span2 = document.createElement('span'); div.appendChild(span2);
+      div.classList.add('lyt_banner');
+      span1.classList.add('text');
+      span1.setAttribute('data-translate', ''); span1.setAttribute('data-content', text);
+      span2.classList.add('close');
+      span2.setAttribute('data-content', '×');
+      span2.addEventListener('click', function() { div.hide(); });
+      return div;
     };
   };
   host.performKeyAction = function(keyName) {
@@ -482,23 +513,9 @@ function setupSiteHost() {
   };
   host.setupToolbarTools = function() {
     const tools = this;
-    tools.links = { // language links. Keys are based on ISO 639-1 language name standard.
-      v1: {
-        en: 'https://www.autohotkey.com/docs/v1/',
-        de: 'https://ahkde.github.io/docs/v1/',
-        ko: 'https://ahkscript.github.io/ko/docs/',
-        pt: 'https://ahkscript.github.io/pt/docs/',
-        zh: 'https://wyagd001.github.io/zh-cn/docs/'
-      },
-      v2: {
-        en: 'https://www.autohotkey.com/docs/v2/',
-        de: 'https://ahkde.github.io/docs/v2/',
-        ja: 'https://ahkscript.github.io/ja/docs/v2/',
-        zh: 'https://wyagd001.github.io/v2/docs/'
-      }
-    };
     tools.opened = null;
     tools.init = function() {
+      if (!site.waitForDataDocs(tools.init)) return;
       if (!site.waitForDataTranslate(tools.init)) return;
       tools.element = host.head.querySelector('.lyt_tools');
       tools.home.init();
@@ -544,6 +561,11 @@ function setupSiteHost() {
           setTimeout(function() { tool.close(); }, 200);
       });
     };
+    tools.setupDropdownItem = function(item, label, link, title) {
+      item.setAttribute('data-content', label);
+      item.title = title; item.setAttribute('aria-label', item.title);
+      item.setAttribute('data-link', link);
+    };
     tools.home = {
       link: location.protocol + '//' + location.host,
       init: function() {
@@ -553,31 +575,54 @@ function setupSiteHost() {
     };
     tools.language = {
       init: function() {
+        const lang = cache.docs_data.LANGUAGE;
         tools.language.element = tools.element.querySelector('.lyt_tool_language');
+        const button = tools.language.element.querySelector('button');
         tools.setupDropdown(tools.language);
-        tools.language.dropdown.querySelector('[data-content="' + T('en') + '"]').parentElement.hide();
+        cache.docs_data.TOOL_LANGUAGE_ITEMS.forEach(function(item) {
+          const label = item[0], link = item[1], title = item[2];
+          if (label === lang) {
+            const button_title = title + '\n\n' + T('Click to the change the language.');
+            tools.setupDropdownItem(button, label, link, button_title);
+            tools.language.link = link;
+            return;
+          }
+          const li = document.createElement('li'); tools.language.dropdown.appendChild(li);
+          const a = document.createElement('a'); li.appendChild(a);
+          tools.setupDropdownItem(a, label, link, title);
+        });
       },
       update: function(urlRelative) {
         tools.language.dropdown.children.forEach(function(li) {
           const a = li.querySelector('a');
-          const lang = a.dataset.content;
-          const link = tools.links[T('v1')][lang];
-          link ? a.href = link + urlRelative : li.hide();
+          a.href = a.dataset.link + urlRelative;
         });
       }
     };
     tools.version = {
       init: function() {
+        const ver = cache.docs_data.PRE_RELEASE ? 'pre' : cache.docs_data.VERSION;
         tools.version.element = tools.element.querySelector('.lyt_tool_version');
+        const button = tools.version.element.querySelector('button');
+        if (cache.docs_data.PRE_RELEASE) tools.version.element.classList.add('pre');
         tools.setupDropdown(tools.version);
-        tools.version.dropdown.querySelector('[data-content="' + T('v1') + '"]').parentElement.hide();
+        cache.docs_data.TOOL_VERSION_ITEMS.forEach(function(item) {
+          const label = item[0], link = item[1], title = item[2];
+          if (label === ver) {
+            const button_title = title + '\n\n' + T('Click to the change the version.');
+            tools.setupDropdownItem(button, label, link, button_title);
+            tools.version.link = link;
+            return;
+          }
+          const li = document.createElement('li'); tools.version.dropdown.appendChild(li);
+          const a = document.createElement('a'); li.appendChild(a);
+          tools.setupDropdownItem(a, label, link, title);
+        });
       },
       update: function(urlRelative, urlEquivRelative) {
         tools.version.dropdown.children.forEach(function(li) {
           const a = li.querySelector('a');
-          const ver = a.dataset.content;
-          const link = tools.links[ver][T('en')];
-          a.href = (link || link[ver]['en']) + (urlEquivRelative || urlRelative);
+          a.href = a.dataset.link + (urlEquivRelative || urlRelative);
         });
       }
     };
@@ -586,7 +631,7 @@ function setupSiteHost() {
         tools.edit.element = tools.element.querySelector('.lyt_tool_edit');
       },
       update: function(urlRelative) {
-        tools.edit.element.firstChild.href = T('https://github.com/Lexikos/AutoHotkey_L-Docs/edit/v1/docs/') + urlRelative;
+        tools.edit.element.firstChild.href = cache.docs_data.TOOL_EDIT_LINK + urlRelative;
       }
     };
     tools.back = {
@@ -627,7 +672,7 @@ function setupSiteHost() {
         });
       },
       update: function(urlRelative) {
-        tools.browser.element.firstChild.href = tools.links[T('v1')][T('en')] + urlRelative;
+        tools.browser.element.firstChild.href = tools.language.link + urlRelative;
       }
     };
     tools.color = {
@@ -990,7 +1035,7 @@ function setupSiteHost() {
     index.createList = function(items, filter) {
       const list = [];
       const type_name = { 2: T('function'), 4: T('operator'), 6: T('class') };
-      const lang = T('en');
+      const lang = cache.docs_data.LANGUAGE;
       const collator = window.Intl ? new Intl.Collator(lang) : null;
       if (collator)
         items.sort(function(a, b) { return collator.compare(a[0], b[0]); });
@@ -1009,6 +1054,7 @@ function setupSiteHost() {
       return list;
     };
     index.init = function() {
+      if (!site.waitForDataDocs(index.init)) return;
       if (!site.waitForDataIndex(index.init)) return;
       if (!site.waitForDataTranslate(index.init)) return;
       index.element = host.sidebar.left.querySelector('.lyt_tab_page_index');
