@@ -332,7 +332,7 @@ function setupUserSettings() {
 function setupSiteHost() {
   const host = this;
   host.cache = cache;
-  host.template = '<div class="lyt_head" role="banner"><button class="lyt_skipnav" data-translate aria-label="data-content" data-content="Skip navigation"></button><div class="lyt_area"><div class="lyt_tab_row"><ul><li><button data-translate title="Shortcut: ALT+C" aria-label="Content tab" data-content="C̲ontent"></button></li><li><button data-translate title="Shortcut: ALT+N" aria-label="Index tab" data-content="In̲dex"></button></li><li><button data-translate title="Shortcut: ALT+S" aria-label="Search tab" data-content="S̲earch"></button></li></ul></div><div class="lyt_sidebar_toggle"><ul><li><button title="Hide or show the sidebar" data-translate aria-label="title">&#926;</button></li></ul></div><div class="lyt_tools"><div class="lyt_tools_online"><ul><li class="lyt_tool_home"><a href="{0}" title="Go to the homepage" data-translate aria-label="title">&#916;</a></li><li class="lyt_tool_language dropdown closed"><button></button><ul class="selected"></ul></li><li class="lyt_tool_version dropdown closed"><button></button><ul class="selected"></ul></li><li class="lyt_tool_edit"><a href="#" target="_blank" title="Edit this document on GitHub" data-translate="2" aria-label="title" data-content="E"></a></li></ul></div><div class="lyt_tools_chm"><ul><li class="lyt_tool_back"><button title="Go back" data-translate="2" aria-label="title">&#9668;</button></li><li class="lyt_tool_forward"><button title="Go forward" data-translate="2" aria-label="title">&#9658;</button></li><li class="lyt_tool_zoom"><button title="Change the font size" data-translate="2" aria-label="title" data-content="Z"></button></li><li class="lyt_tool_print"><button title="Print this document" data-translate="2" aria-label="title" data-content="P"></button></li><li class="lyt_tool_browser"><a href="#" target="_blank" title="Open this document in the default browser (requires internet connection). Middle-click to copy the link address." data-translate="2" aria-label="title" data-content="¬"></a></li></ul></div><div class="lyt_tools_main"><ul><li class="lyt_tool_color"><button title="Use the dark or light scheme" data-translate="2" aria-label="title" data-content="C"></button></li><li class="lyt_tool_settings"><button title="Open the help settings" data-translate="2" aria-label="title">&#1029;</button></li></ul></div></div></div></div><div class="lyt_main"><div class="lyt_left" role="navigation"><div class="lyt_tab_page_toc hidden"></div><div class="lyt_tab_page_index hidden"><div class="lyt_input"><input type="search" placeholder="Search" data-translate="2" /></div><div class="lyt_select"><select size="1" class="lyt_select_empty"><option value="-1" selected data-translate>Unfiltered</option><option value="0" data-translate>Directives</option><option value="1" data-translate>Built-in Variables</option><option value="2" data-translate>Built-in Functions</option><option value="3" data-translate>Control Flow Statements</option><option value="4" data-translate>Operators</option><option value="5" data-translate>Declarations</option><option value="6" data-translate>Built-in Classes</option><option value="7" data-translate>Built-in Methods/Properties</option><option value="99" data-translate>Ahk2Exe Compiler</option></select></div><div class="lyt_list"></div></div><div class="lyt_tab_page_search hidden"><div class="lyt_input"><input type="search" placeholder="Search" data-translate="2" /></div><div class="lyt_list"></div><div class="lyt_checkbox"><input type="checkbox" id="highlightSearchTerms"><label for="highlightSearchTerms" data-translate>Highlight search terms</label><div class="lyt_updown" title="Go to previous/next occurrence" data-translate aria-label="title"><div class="lyt_updown_up"><div class="triangle-up"></div></div><div class="lyt_updown_down"><div class="triangle-down"></div></div></div></div></div><div class="lyt_load"><div class="lds-dual-ring"></div></div><div class="lyt_quick"><button class="lyt_quick_head" title="Collapse or uncollapse the quick reference" data-translate aria-label="title"><div class="chevron"></div><span data-translate data-content="Quick reference"></span></button><div class="lyt_quick_main"></div></div></div><div class="lyt_dragbar"></div><div class="lyt_right"><div class="lyt_load"><div class="lds-dual-ring"></div></div><iframe class="lyt_frame hidden" frameborder="0" src="about:blank" role="main"></iframe></div></div>';
+  host.template = '<div class="lyt_head" role="banner"><button class="lyt_skipnav" data-translate aria-label="data-content" data-content="Skip navigation"></button><div class="lyt_area"><div class="lyt_tab_row"><ul><li><button data-translate title="Shortcut: ALT+C" aria-label="Content tab" data-content="C̲ontent"></button></li><li><button data-translate title="Shortcut: ALT+N" aria-label="Index tab" data-content="In̲dex"></button></li><li><button data-translate title="Shortcut: ALT+S" aria-label="Search tab" data-content="S̲earch"></button></li></ul></div><div class="lyt_sidebar_toggle"><ul><li><button title="Hide or show the sidebar" data-translate aria-label="title">&#926;</button></li></ul></div><div class="lyt_tools"><div class="online"><ul><li class="home"><a href="{0}" title="Go to the homepage" data-translate aria-label="title">&#916;</a></li><li class="language dropdown closed"><button></button><ul class="selected"></ul></li><li class="version dropdown closed"><button></button><ul class="selected"></ul></li><li class="edit"><a href="#" target="_blank" title="Edit this document on GitHub" data-translate="2" aria-label="title" data-content="E"></a></li></ul></div><div class="chm"><ul><li class="back"><button title="Go back" data-translate="2" aria-label="title">&#9668;</button></li><li class="forward"><button title="Go forward" data-translate="2" aria-label="title">&#9658;</button></li><li class="zoom"><button title="Change the font size" data-translate="2" aria-label="title" data-content="Z"></button></li><li class="print"><button title="Print this document" data-translate="2" aria-label="title" data-content="P"></button></li><li class="browser"><a href="#" target="_blank" title="Open this document in the default browser (requires internet connection). Middle-click to copy the link address." data-translate="2" aria-label="title" data-content="¬"></a></li></ul></div><div class="main"><ul><li class="color"><button title="Use the dark or light scheme" data-translate="2" aria-label="title" data-content="C"></button></li><li class="settings"><button title="Open the help settings" data-translate="2" aria-label="title">&#1029;</button></li></ul></div></div></div></div><div class="lyt_main"><div class="lyt_left" role="navigation"><div class="lyt_tab_page_toc hidden"></div><div class="lyt_tab_page_index hidden"><div class="lyt_input"><input type="search" placeholder="Search" data-translate="2" /></div><div class="lyt_select"><select size="1" class="lyt_select_empty"><option value="-1" selected data-translate>Unfiltered</option><option value="0" data-translate>Directives</option><option value="1" data-translate>Built-in Variables</option><option value="2" data-translate>Built-in Functions</option><option value="3" data-translate>Control Flow Statements</option><option value="4" data-translate>Operators</option><option value="5" data-translate>Declarations</option><option value="6" data-translate>Built-in Classes</option><option value="7" data-translate>Built-in Methods/Properties</option><option value="99" data-translate>Ahk2Exe Compiler</option></select></div><div class="lyt_list"></div></div><div class="lyt_tab_page_search hidden"><div class="lyt_input"><input type="search" placeholder="Search" data-translate="2" /></div><div class="lyt_list"></div><div class="lyt_checkbox"><input type="checkbox" id="highlightSearchTerms"><label for="highlightSearchTerms" data-translate>Highlight search terms</label><div class="lyt_updown" title="Go to previous/next occurrence" data-translate aria-label="title"><div class="lyt_updown_up"><div class="triangle-up"></div></div><div class="lyt_updown_down"><div class="triangle-down"></div></div></div></div></div><div class="lyt_load"><div class="lds-dual-ring"></div></div><div class="lyt_quick"><button class="lyt_quick_head" title="Collapse or uncollapse the quick reference" data-translate aria-label="title"><div class="chevron"></div><span data-translate data-content="Quick reference"></span></button><div class="lyt_quick_main"></div></div></div><div class="lyt_dragbar"></div><div class="lyt_right"><div class="lyt_load"><div class="lds-dual-ring"></div></div><iframe class="lyt_frame hidden" frameborder="0" src="about:blank" role="main"></iframe></div></div>';
   host.build = function() {
     const body = document.body.cloneNode(false);
     body.classList.add('lyt_body');
@@ -367,8 +367,8 @@ function setupSiteHost() {
     const viewer = this;
     viewer.init = function() {
       viewer.right = host.main.querySelector('.lyt_right');
-      viewer.frame = host.viewer.right.querySelector('.lyt_frame');
-      viewer.load = host.viewer.right.querySelector('.lyt_load');
+      viewer.frame = viewer.right.querySelector('.lyt_frame');
+      viewer.load = viewer.right.querySelector('.lyt_load');
       viewer.banner = new host.setupViewerBanner; viewer.banner.init();
       if (site.inIE) viewer.show(true);
       viewer.onReady(function(frame_win) { // Load the initial URL into the frame.
@@ -513,24 +513,15 @@ function setupSiteHost() {
   };
   host.setupToolbarTools = function() {
     const tools = this;
+    tools.tool = {};
     tools.opened = null;
     tools.init = function() {
+      tools.element = host.head.querySelector('.lyt_tools');
       if (!site.waitForDataDocs(tools.init)) return;
       if (!site.waitForDataTranslate(tools.init)) return;
-      tools.element = host.head.querySelector('.lyt_tools');
-      tools.home.init();
-      tools.language.init();
-      tools.version.init();
-      tools.edit.init();
-      tools.back.init();
-      tools.forward.init();
-      tools.zoom.init();
-      tools.print.init();
-      tools.browser.init();
-      tools.color.init();
-      tools.settings.init();
+      Object.values(tools.tool).forEach(function(tool) { tool.init(); });
       tools.update(site.urlRelative, site.urlEquivRelative);
-      tools.element.querySelector('.lyt_tools_' + (site.inCHM ? 'online' : 'chm')).hide();
+      tools.element.querySelector(site.inCHM ? '.online' : '.chm').hide();
     };
     tools.setupDropdown = function(tool) {
       tool.dropdown = tool.element.querySelector('ul');
@@ -566,119 +557,121 @@ function setupSiteHost() {
       item.title = title; item.setAttribute('aria-label', item.title);
       item.setAttribute('data-link', link);
     };
-    tools.home = {
+    tools.tool.home = {
       link: location.protocol + '//' + location.host,
       init: function() {
-        tools.home.element = tools.element.querySelector('.lyt_tool_home');
-        tools.home.element.firstChild.href = tools.home.link;
+        this.element = tools.element.querySelector('.home');
+        this.element.firstChild.href = this.link;
       }
     };
-    tools.language = {
+    tools.tool.language = {
       init: function() {
+        this.element = tools.element.querySelector('.language');
         const lang = cache.docs_data.LANGUAGE;
-        tools.language.element = tools.element.querySelector('.lyt_tool_language');
-        const button = tools.language.element.querySelector('button');
-        tools.setupDropdown(tools.language);
+        const button = this.element.querySelector('button');
+        tools.setupDropdown(this);
         cache.docs_data.TOOL_LANGUAGE_ITEMS.forEach(function(item) {
           const label = item[0], link = item[1], title = item[2];
           if (label === lang) {
             const button_title = title + '\n\n' + T('Click to the change the language.');
             tools.setupDropdownItem(button, label, link, button_title);
-            tools.language.link = link;
+            this.link = link;
             return;
           }
-          const li = document.createElement('li'); tools.language.dropdown.appendChild(li);
+          const li = document.createElement('li'); this.dropdown.appendChild(li);
           const a = document.createElement('a'); li.appendChild(a);
           tools.setupDropdownItem(a, label, link, title);
-        });
+        }, this);
       },
       update: function(urlRelative) {
-        tools.language.dropdown.children.forEach(function(li) {
+        this.dropdown.children.forEach(function(li) {
           const a = li.querySelector('a');
           a.href = a.dataset.link + urlRelative;
         });
       }
     };
-    tools.version = {
+    tools.tool.version = {
       init: function() {
+        this.element = tools.element.querySelector('.version');
         const ver = cache.docs_data.PRE_RELEASE ? 'pre' : cache.docs_data.VERSION;
-        tools.version.element = tools.element.querySelector('.lyt_tool_version');
-        const button = tools.version.element.querySelector('button');
-        if (cache.docs_data.PRE_RELEASE) tools.version.element.classList.add('pre');
-        tools.setupDropdown(tools.version);
+        const button = this.element.querySelector('button');
+        if (cache.docs_data.PRE_RELEASE) this.element.classList.add('pre');
+        tools.setupDropdown(this);
         cache.docs_data.TOOL_VERSION_ITEMS.forEach(function(item) {
           const label = item[0], link = item[1], title = item[2];
           if (label === ver) {
             const button_title = title + '\n\n' + T('Click to the change the version.');
             tools.setupDropdownItem(button, label, link, button_title);
-            tools.version.link = link;
+            this.link = link;
             return;
           }
-          const li = document.createElement('li'); tools.version.dropdown.appendChild(li);
+          const li = document.createElement('li'); this.dropdown.appendChild(li);
           const a = document.createElement('a'); li.appendChild(a);
           tools.setupDropdownItem(a, label, link, title);
-        });
+        }, this);
       },
       update: function(urlRelative, urlEquivRelative) {
-        tools.version.dropdown.children.forEach(function(li) {
+        this.dropdown.children.forEach(function(li) {
           const a = li.querySelector('a');
           a.href = a.dataset.link + (urlEquivRelative || urlRelative);
         });
       }
     };
-    tools.edit = {
+    tools.tool.edit = {
       init: function() {
-        tools.edit.element = tools.element.querySelector('.lyt_tool_edit');
+        this.element = tools.element.querySelector('.edit');
       },
       update: function(urlRelative) {
-        tools.edit.element.firstChild.href = cache.docs_data.TOOL_EDIT_LINK + urlRelative;
+        const a = this.element.querySelector('a');
+        a.href = cache.docs_data.TOOL_EDIT_LINK + urlRelative;
       }
     };
-    tools.back = {
+    tools.tool.back = {
       init: function() {
-        tools.back.element = tools.element.querySelector('.lyt_tool_back');
-        tools.back.element.addEventListener('click', function() { history.back(); });
+        this.element = tools.element.querySelector('.back');
+        this.element.addEventListener('click', function() { history.back(); });
       }
     };
-    tools.forward = {
+    tools.tool.forward = {
       init: function() {
-        tools.forward.element = tools.element.querySelector('.lyt_tool_forward');
-        tools.forward.element.addEventListener('click', function() { history.forward(); });
+        this.element = tools.element.querySelector('.forward');
+        this.element.addEventListener('click', function() { history.forward(); });
       }
     };
-    tools.zoom = {
+    tools.tool.zoom = {
       init: function() {
-        tools.zoom.element = tools.element.querySelector('.lyt_tool_zoom');
-        tools.zoom.element.addEventListener('click', function() {
+        this.element = tools.element.querySelector('.zoom');
+        this.element.addEventListener('click', function() {
           const fontSize = cache.fontSize + 0.2;
           frame.postMessage('setFontSize', fontSize > 1.4 ? 0.6 : fontSize);
         });
       }
     };
-    tools.print = {
+    tools.tool.print = {
       init: function() {
-        tools.print.element = tools.element.querySelector('.lyt_tool_print');
-        tools.print.element.addEventListener('click', function() {
+        this.element = tools.element.querySelector('.print');
+        this.element.addEventListener('click', function() {
           host.viewer.frame.contentWindow.document.execCommand('print', false, null);
         });
       }
     };
-    tools.browser = {
+    tools.tool.browser = {
       init: function() {
-        tools.browser.element = tools.element.querySelector('.lyt_tool_browser');
-        tools.browser.element.addEventListener('mouseup', function(e) {
-          if (e.button == 1) // middle-click
-            window.clipboardData.setData('Text', tools.browser.firstChild.href);
+        this.element = tools.element.querySelector('.browser');
+        this.element.addEventListener('mouseup', function(e) {
+          if (e.button != 1) return; // middle-click
+          window.clipboardData.setData('Text', this.firstChild.href);
         });
       },
       update: function(urlRelative) {
-        tools.browser.element.firstChild.href = tools.language.link + urlRelative;
+        const a = this.element.querySelector('a');
+        a.href = tools.tool.language.link + urlRelative;
       }
     };
-    tools.color = {
+    tools.tool.color = {
       init: function() {
-        tools.color.element = tools.element.querySelector('.lyt_tool_color');
-        tools.color.element.addEventListener('click', function() {
+        this.element = tools.element.querySelector('.color');
+        this.element.addEventListener('click', function() {
           const scheme = cache.colorScheme;
           const prefers_dark = window.matchMedia('(prefers-color-scheme: dark)').matches;
           const dark_active = scheme == 'dark' || (scheme == null && prefers_dark);
@@ -686,19 +679,18 @@ function setupSiteHost() {
         });
       }
     };
-    tools.settings = {
+    tools.tool.settings = {
       init: function() {
-        tools.settings.element = tools.element.querySelector('.lyt_tool_settings');
-        tools.settings.element.addEventListener('click', function() {
+        this.element = tools.element.querySelector('.settings');
+        this.element.addEventListener('click', function() {
           host.viewer.openURL(site.urlBase + '/settings.htm');
         });
       }
     };
     tools.update = function(urlRelative, urlEquivRelative) {
-      tools.language.update(urlRelative);
-      tools.version.update(urlRelative, urlEquivRelative);
-      tools.edit.update(urlRelative);
-      tools.browser.update(urlRelative);
+      Object.values(tools.tool).forEach(function(tool) {
+        if (tool.update) tool.update(urlRelative, urlEquivRelative);
+      });
     };
   };
   host.setupSidebar = function() {
@@ -906,10 +898,10 @@ function setupSiteHost() {
       }
     };
     toc.init = function() {
+      toc.element = host.sidebar.left.querySelector('.lyt_tab_page_toc');
       if (!site.waitForDataTOC(toc.init)) return;
       if (!site.waitForDataDeprecate(toc.init)) return;
       if (!site.waitForDataTranslate(toc.init)) return;
-      toc.element = host.sidebar.left.querySelector('.lyt_tab_page_toc');
       toc.element.addEventListener('click', function(e) {
         const item = e.target.closest('li');
         if (!item) return;
@@ -1054,10 +1046,10 @@ function setupSiteHost() {
       return list;
     };
     index.init = function() {
+      index.element = host.sidebar.left.querySelector('.lyt_tab_page_index');
       if (!site.waitForDataDocs(index.init)) return;
       if (!site.waitForDataIndex(index.init)) return;
       if (!site.waitForDataTranslate(index.init)) return;
-      index.element = host.sidebar.left.querySelector('.lyt_tab_page_index');
       index.edit = index.element.querySelector('.lyt_input input');
       index.filter = index.element.querySelector('.lyt_select select');
       index.list = index.element.querySelector('.lyt_list');
@@ -1098,8 +1090,8 @@ function setupSiteHost() {
   host.setupSidebarTabsPageSearch = function() {
     const search = this;
     search.init = function() {
-      if (!site.waitForDataSearch(search.init)) return;
       search.element = host.sidebar.left.querySelector('.lyt_tab_page_search');
+      if (!site.waitForDataSearch(search.init)) return;
       search.edit = search.element.querySelector('.lyt_input input');
       search.list = search.element.querySelector('.lyt_list');
       search.checkbox = search.element.querySelector('.lyt_checkbox input');
