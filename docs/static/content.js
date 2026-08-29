@@ -517,10 +517,7 @@ function setupSiteHost() {
     tools.opened = null;
     tools.init = function() {
       tools.element = host.head.querySelector('.lyt_tools');
-      if (!site.waitForDataDocs(tools.init)) return;
-      if (!site.waitForDataTranslate(tools.init)) return;
       Object.values(tools.tool).forEach(function(tool) { tool.init(); });
-      tools.update(site.urlRelative, site.urlEquivRelative);
       tools.element.querySelector(site.inCHM ? '.online' : '.chm').hide();
     };
     tools.setupDropdown = function(tool) {
@@ -557,135 +554,161 @@ function setupSiteHost() {
       item.title = title; item.setAttribute('aria-label', item.title);
       item.setAttribute('data-link', link);
     };
-    tools.tool.home = {
-      link: location.protocol + '//' + location.host,
-      init: function() {
-        this.element = tools.element.querySelector('.home');
-        this.element.firstChild.href = this.link;
-      }
+    tools.tool.home = new function() {
+      const tool = this;
+      tool.link = location.protocol + '//' + location.host;
+      tool.init = function() {
+        tool.element = tools.element.querySelector('.home');
+        tool.element.firstChild.href = tool.link;
+      };
     };
-    tools.tool.language = {
-      init: function() {
-        this.element = tools.element.querySelector('.language');
+    tools.tool.language = new function() {
+      const tool = this;
+      tool.init = function() {
+        tool.element = tools.element.querySelector('.language');
+        tool.addDropdownItems();
+      };
+      tool.addDropdownItems = function() {
+        if (!site.waitForDataDocs(tool.addDropdownItems)) return;
+        if (!site.waitForDataTranslate(tool.addDropdownItems)) return;
         const lang = cache.docs_data.LANGUAGE;
-        const button = this.element.querySelector('button');
-        tools.setupDropdown(this);
+        const button = tool.element.querySelector('button');
+        tools.setupDropdown(tool);
         cache.docs_data.TOOL_LANGUAGE_ITEMS.forEach(function(item) {
           const label = item[0], link = item[1], title = item[2];
           if (label === lang) {
             const button_title = title + '\n\n' + T('Click to the change the language.');
             tools.setupDropdownItem(button, label, link, button_title);
-            this.link = link;
+            tool.link = link;
             return;
           }
-          const li = document.createElement('li'); this.dropdown.appendChild(li);
+          const li = document.createElement('li'); tool.dropdown.appendChild(li);
           const a = document.createElement('a'); li.appendChild(a);
           tools.setupDropdownItem(a, label, link, title);
-        }, this);
-      },
-      update: function(urlRelative) {
-        this.dropdown.children.forEach(function(li) {
+        });
+        tool.update(site.urlRelative, site.urlEquivRelative);
+      };
+      tool.update = function(urlRelative) {
+        tool.dropdown.children.forEach(function(li) {
           const a = li.querySelector('a');
           a.href = a.dataset.link + urlRelative;
         });
-      }
+      };
     };
-    tools.tool.version = {
-      init: function() {
-        this.element = tools.element.querySelector('.version');
+    tools.tool.version = new function() {
+      const tool = this;
+      tool.init = function() {
+        tool.element = tools.element.querySelector('.version');
+        tool.addDropdownItems();
+      };
+      tool.addDropdownItems = function() {
+        if (!site.waitForDataDocs(tool.addDropdownItems)) return;
+        if (!site.waitForDataTranslate(tool.addDropdownItems)) return;
         const ver = cache.docs_data.PRE_RELEASE ? 'pre' : cache.docs_data.VERSION;
-        const button = this.element.querySelector('button');
-        if (cache.docs_data.PRE_RELEASE) this.element.classList.add('pre');
-        tools.setupDropdown(this);
+        const button = tool.element.querySelector('button');
+        if (cache.docs_data.PRE_RELEASE) tool.element.classList.add('pre');
+        tools.setupDropdown(tool);
         cache.docs_data.TOOL_VERSION_ITEMS.forEach(function(item) {
           const label = item[0], link = item[1], title = item[2];
           if (label === ver) {
             const button_title = title + '\n\n' + T('Click to the change the version.');
             tools.setupDropdownItem(button, label, link, button_title);
-            this.link = link;
+            tool.link = link;
             return;
           }
-          const li = document.createElement('li'); this.dropdown.appendChild(li);
+          const li = document.createElement('li'); tool.dropdown.appendChild(li);
           const a = document.createElement('a'); li.appendChild(a);
           tools.setupDropdownItem(a, label, link, title);
-        }, this);
-      },
-      update: function(urlRelative, urlEquivRelative) {
-        this.dropdown.children.forEach(function(li) {
+        });
+        tool.update(site.urlRelative, site.urlEquivRelative);
+      };
+      tool.update = function(urlRelative, urlEquivRelative) {
+        tool.dropdown.children.forEach(function(li) {
           const a = li.querySelector('a');
           a.href = a.dataset.link + (urlEquivRelative || urlRelative);
         });
-      }
+      };
     };
-    tools.tool.edit = {
-      init: function() {
-        this.element = tools.element.querySelector('.edit');
-      },
-      update: function(urlRelative) {
-        const a = this.element.querySelector('a');
+    tools.tool.edit = new function() {
+      const tool = this;
+      tool.init = function() {
+        tool.element = tools.element.querySelector('.edit');
+        tool.update(site.urlRelative);
+      };
+      tool.update = function(urlRelative) {
+        if (!site.waitForDataDocs(tool.update)) return;
+        const a = tool.element.querySelector('a');
         a.href = cache.docs_data.TOOL_EDIT_LINK + urlRelative;
-      }
+      };
     };
-    tools.tool.back = {
-      init: function() {
-        this.element = tools.element.querySelector('.back');
-        this.element.addEventListener('click', function() { history.back(); });
-      }
+    tools.tool.back = new function() {
+      const tool = this;
+      tool.init = function() {
+        tool.element = tools.element.querySelector('.back');
+        tool.element.addEventListener('click', function() { history.back(); });
+      };
     };
-    tools.tool.forward = {
-      init: function() {
-        this.element = tools.element.querySelector('.forward');
-        this.element.addEventListener('click', function() { history.forward(); });
-      }
+    tools.tool.forward = new function() {
+      const tool = this;
+      tool.init = function() {
+        tool.element = tools.element.querySelector('.forward');
+        tool.element.addEventListener('click', function() { history.forward(); });
+      };
     };
-    tools.tool.zoom = {
-      init: function() {
-        this.element = tools.element.querySelector('.zoom');
-        this.element.addEventListener('click', function() {
+    tools.tool.zoom = new function() {
+      const tool = this;
+      tool.init = function() {
+        tool.element = tools.element.querySelector('.zoom');
+        tool.element.addEventListener('click', function() {
           const fontSize = cache.fontSize + 0.2;
           frame.postMessage('setFontSize', fontSize > 1.4 ? 0.6 : fontSize);
         });
-      }
+      };
     };
-    tools.tool.print = {
-      init: function() {
-        this.element = tools.element.querySelector('.print');
-        this.element.addEventListener('click', function() {
+    tools.tool.print = new function() {
+      const tool = this;
+      tool.init = function() {
+        tool.element = tools.element.querySelector('.print');
+        tool.element.addEventListener('click', function() {
           host.viewer.frame.contentWindow.document.execCommand('print', false, null);
         });
-      }
+      };
     };
-    tools.tool.browser = {
-      init: function() {
-        this.element = tools.element.querySelector('.browser');
-        this.element.addEventListener('mouseup', function(e) {
+    tools.tool.browser = new function() {
+      const tool = this;
+      tool.init = function() {
+        tool.element = tools.element.querySelector('.browser');
+        tool.element.addEventListener('mouseup', function(e) {
           if (e.button != 1) return; // middle-click
           window.clipboardData.setData('Text', this.firstChild.href);
         });
-      },
-      update: function(urlRelative) {
-        const a = this.element.querySelector('a');
+        tool.update(site.urlRelative);
+      };
+      tool.update = function(urlRelative) {
+        const a = tool.element.querySelector('a');
         a.href = tools.tool.language.link + urlRelative;
-      }
+      };
     };
-    tools.tool.color = {
-      init: function() {
-        this.element = tools.element.querySelector('.color');
-        this.element.addEventListener('click', function() {
+    tools.tool.color = new function() {
+      const tool = this;
+      tool.init = function() {
+        tool.element = tools.element.querySelector('.color');
+        tool.element.addEventListener('click', function() {
           const scheme = cache.colorScheme;
           const prefers_dark = window.matchMedia('(prefers-color-scheme: dark)').matches;
           const dark_active = scheme == 'dark' || (scheme == null && prefers_dark);
           site.setSchemeAll(dark_active ? 'light' : 'dark');
         });
-      }
+      };
     };
-    tools.tool.settings = {
-      init: function() {
-        this.element = tools.element.querySelector('.settings');
-        this.element.addEventListener('click', function() {
+    tools.tool.settings = new function() {
+      const tool = this;
+      tool.init = function() {
+        tool.element = tools.element.querySelector('.settings');
+        tool.element.addEventListener('click', function() {
           host.viewer.openURL(site.urlBase + '/settings.htm');
         });
-      }
+      };
     };
     tools.update = function(urlRelative, urlEquivRelative) {
       Object.values(tools.tool).forEach(function(tool) {
@@ -899,9 +922,6 @@ function setupSiteHost() {
     };
     toc.init = function() {
       toc.element = host.sidebar.left.querySelector('.lyt_tab_page_toc');
-      if (!site.waitForDataTOC(toc.init)) return;
-      if (!site.waitForDataDeprecate(toc.init)) return;
-      if (!site.waitForDataTranslate(toc.init)) return;
       toc.element.addEventListener('click', function(e) {
         const item = e.target.closest('li');
         if (!item) return;
@@ -925,6 +945,12 @@ function setupSiteHost() {
       toc.element.focus = function() {
         if (toc.items.focused) toc.items.focused.focus();
       };
+      toc.initList();
+    };
+    toc.initList = function() {
+      if (!site.waitForDataTOC(toc.initList)) return;
+      if (!site.waitForDataDeprecate(toc.initList)) return;
+      if (!site.waitForDataTranslate(toc.initList)) return;
       toc.element.appendChild(toc.createList(cache.toc_data));
       if (!site.onTouchDevice) toc.hideScrollbar();
       requestAnimationFrame(function() {
@@ -1047,58 +1073,61 @@ function setupSiteHost() {
     };
     index.init = function() {
       index.element = host.sidebar.left.querySelector('.lyt_tab_page_index');
-      if (!site.waitForDataDocs(index.init)) return;
-      if (!site.waitForDataIndex(index.init)) return;
-      if (!site.waitForDataTranslate(index.init)) return;
       index.edit = index.element.querySelector('.lyt_input input');
       index.filter = index.element.querySelector('.lyt_select select');
       index.list = index.element.querySelector('.lyt_list');
       setupEditListCombo(index.edit, index.list);
       index.edit.value = cache.index_input || null;
-      index.edit.addEventListener('input', selectFirstMatch);
+      index.edit.addEventListener('input', index.selectFirstMatch);
       index.filter.value = cache.index_filter || -1;
-      index.filter.addEventListener('change', filterList); filterList();
+      index.filter.addEventListener('change', index.filterList);
       index.element.focus = function() { index.edit.focus(); };
-      function selectFirstMatch() {
-        const input = cache.update('index_input', index.edit.value.toLowerCase());
-        if (!input) {
-          index.edit.setMatchStateColor(null);
-          return null;
-        }
-        const match = index.list.children[index.list.items.findIndex(function(item) {
-          return item.label.toLowerCase().startsWith(input);
-        })];
-        if (match) {
-          index.list.selectItemByIndex(match._index);
-          const scroll_target = index.list.children[Math.min(match._index + 5, index.list.max)];
-          requestAnimationFrame(function() { scroll_target.scrollIntoView(false); });
-          index.edit.setMatchStateColor(true);
-          return true;
-        }
-        index.edit.setMatchStateColor(false);
-        return false;
+      index.initList();
+    };
+    index.initList = function() {
+      if (!site.waitForDataDocs(index.initList)) return;
+      if (!site.waitForDataIndex(index.initList)) return;
+      if (!site.waitForDataTranslate(index.initList)) return;
+      index.filterList();
+    };
+    index.filterList = function() {
+      const selection = cache.update('index_filter', index.filter.value);
+      index.filter.classList[selection == -1 ? 'add' : 'remove']('lyt_select_empty');
+      index.list.replaceItems(index.createList(cache.index_data, selection));
+      if (!index.selectFirstMatch(index.edit, index.list))
+        index.list.selectItemByIndex(0);
+    };
+    index.selectFirstMatch = function() {
+      const input = cache.update('index_input', index.edit.value.toLowerCase());
+      if (!input) {
+        index.edit.setMatchStateColor(null);
+        return null;
       }
-      function filterList() {
-        const selection = cache.update('index_filter', index.filter.value);
-        index.filter.classList[selection == -1 ? 'add' : 'remove']('lyt_select_empty');
-        index.list.replaceItems(index.createList(cache.index_data, selection));
-        if (!selectFirstMatch(index.edit, index.list))
-          index.list.selectItemByIndex(0);
+      const match = index.list.children[index.list.items.findIndex(function(item) {
+        return item.label.toLowerCase().startsWith(input);
+      })];
+      if (match) {
+        index.list.selectItemByIndex(match._index);
+        const scroll_target = index.list.children[Math.min(match._index + 5, index.list.max)];
+        requestAnimationFrame(function() { scroll_target.scrollIntoView(false); });
+        index.edit.setMatchStateColor(true);
+        return true;
       }
+      index.edit.setMatchStateColor(false);
+      return false;
     };
   };
   host.setupSidebarTabsPageSearch = function() {
     const search = this;
     search.init = function() {
       search.element = host.sidebar.left.querySelector('.lyt_tab_page_search');
-      if (!site.waitForDataSearch(search.init)) return;
       search.edit = search.element.querySelector('.lyt_input input');
       search.list = search.element.querySelector('.lyt_list');
       search.checkbox = search.element.querySelector('.lyt_checkbox input');
       search.updown = search.element.querySelector('.lyt_checkbox .lyt_updown');
       setupEditListCombo(search.edit, search.list);
       search.edit.value = cache.search_input || null;
-      search.edit.addEventListener('input', updateList); updateList();
+      search.edit.addEventListener('input', search.updateList);
       search.checkbox.checked = cache.search_highlightTerms;
       search.element.focus = function() { search.edit.focus(); };
       search.checkbox.addEventListener('change', function() {
@@ -1110,21 +1139,26 @@ function setupSiteHost() {
         const count = this.classList.contains('lyt_updown_up') ? -1 : 1;
         frame.postMessage('content.search_highlight.moveMatchSelection', count);
       });
-      function updateList() {
-        const input = cache.update('search_input', search.edit.value);
-        const input_array = cache.update('search_input_array', convertInputToArray(input));
-        search.list.removeItems();
-        search.edit.setMatchStateColor(null);
-        if (!input_array) return;
-        search.list.addItems(search.createList(input_array));
-        search.list.selectItemByIndex(0);
-        search.edit.setMatchStateColor(!!(search.list.items.length));
-      }
+      search.initList();
+    };
+    search.initList = function() {
+      if (!site.waitForDataSearch(search.initList)) return;
+      search.updateList();
+    };
+    search.updateList = function() {
+      const input = cache.update('search_input', search.edit.value);
+      const input_array = cache.update('search_input_array', convertInputToArray(input));
+      search.list.removeItems();
+      search.edit.setMatchStateColor(null);
+      if (!input_array) return;
+      search.list.addItems(search.createList(input_array));
+      search.list.selectItemByIndex(0);
+      search.edit.setMatchStateColor(!!(search.list.items.length));
       function convertInputToArray(input) {
         input = input.toLowerCase().replace(/^ +| +$| +(?= )|\+/, ''); // Normalize whitespace.
         if (input == '') return null;
         return input.split(' ').filter(Boolean); // Split and remove undefined or empty strings.
-      }
+      };
     };
     search.createList = function(terms) {
       const list = [], PartialIndex = {}, RESULT_LIMIT = 50;
