@@ -73,24 +73,29 @@ function setupSite() {
     const params = [];
     const parts = full_path.split('.');
     const root = parts[0], path = parts.slice(1).join('.');
-    const root_references = { host: host, frame: frame, site: site };
+    const root_refs = { host: host, frame: frame, site: site };
     for (var i = 1; i < arguments.length; i++) params.push(arguments[i]);
+    const msg = { root: root, path: path, params: params };
     if (root == 'host' && site.inFrame)
-      window.parent.postMessage(JSON.stringify([root, path].concat(params)), '*');
+      window.parent.postMessage(msg, '*');
     else if (root == 'frame' && !site.inFrame) {
       const frame_element = host.viewer && host.viewer.frame;
       if (!frame_element || !frame_element.contentWindow) return;
-      frame_element.contentWindow.postMessage(JSON.stringify([root, path].concat(params)), '*');
+      frame_element.contentWindow.postMessage(msg, '*');
     }
     else
-      site.resolvePath(root_references[root], path).apply(root_references[root], params);
+      site.resolvePath(root_refs[root], path).apply(root_refs[root], params);
   };
-  site.listenForMessages = function() { // Messages sent by postMessage.
-    const root = this;
+  site.listenForMessages = function(root) { // Messages sent by postMessage.
+    const root_refs = { host: host, frame: frame, site: site };
     window.addEventListener('message', function(e) {
-      const data = parseJSON(e.data);
-      if (!Array.isArray(data)) return;
-      site.resolvePath(root, data[1]).apply(root, data.slice(2));
+      const msg = e.data;
+      if (!msg || typeof msg !== 'object') return;
+      if (!msg.root || typeof msg.root !== 'string') return;
+      if (!msg.path || typeof msg.path !== 'string') return;
+      if (!msg.params || !Array.isArray(msg.params)) return;
+      if (msg.root !== root) return;
+      site.resolvePath(root_refs[root], msg.path).apply(root_refs[root], msg.params);
     });
   };
   site.resolvePath = function(root, path) {
@@ -339,7 +344,7 @@ function setupSiteHost() {
     body.innerHTML = host.template;
     document.documentElement.replaceChild(body, document.body);
   };
-  host.listenForMessages = function() { site.listenForMessages.apply(host); };
+  host.listenForMessages = function() { site.listenForMessages('host'); };
   host.postMessage = function(path) {
     const params = ['host.' + path];
     for (var i = 1; i < arguments.length; i++) params.push(arguments[i]);
@@ -1323,7 +1328,7 @@ function setupSiteHost() {
 function setupSiteFrame() {
   const frame = this;
   frame.cache = cache;
-  frame.listenForMessages = function() { site.listenForMessages.apply(frame); };
+  frame.listenForMessages = function() { site.listenForMessages('frame'); };
   frame.postMessage = function(path) {
     const params = ['frame.' + path];
     for (var i = 1; i < arguments.length; i++) params.push(arguments[i]);
