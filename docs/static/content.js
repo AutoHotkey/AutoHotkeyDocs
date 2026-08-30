@@ -836,7 +836,7 @@ function setupSiteHost() {
         const li = document.createElement('li'); ul.appendChild(li);
         const span = document.createElement('span'); li.appendChild(span);
         const a = document.createElement('a'); span.appendChild(a);
-        a.href = site.urlBase + '/' + getUrlHashless(url) + (h2.id ? '#' + h2.id : '');
+        a.href = site.urlBase + '/' + stripHashAndQuery(url) + (h2.id ? '#' + h2.id : '');
         a.setAttribute('data-content', h2.innerText);
         a.setAttribute('aria-label', h2.innerText);
         li.title = h2.innerText;
@@ -1031,8 +1031,8 @@ function setupSiteHost() {
       const clicked = toc.items.all[cache.toc_clickItem];
       if (url.endsWith('/')) url += 'index.htm';
       const matchList = toc.filterItemsByUrl(toc.items.all, url);
-      const matchListNoHash = toc.filterItemsByUrl(toc.items.all, getUrlHashless(url));
-      const matches = matchList.length ? matchList : matchListNoHash.length ? matchListNoHash : null;
+      const matchListClean = toc.filterItemsByUrl(toc.items.all, stripHashAndQuery(url));
+      const matches = matchList.length ? matchList : matchListClean.length ? matchListClean : null;
       const useClicked = matches && matches.some(function(el) { return el === clicked; });
       return useClicked ? [clicked] : matches;
     };
@@ -1044,7 +1044,7 @@ function setupSiteHost() {
     };
     toc.findItemByUrl = function(items, url) {
       return items.find(function(item) {
-        return (item.label.href === url || item.label.href === getUrlHashless(url));
+        return (item.label.href === url || item.label.href === stripHashAndQuery(url));
       });
     };
     toc.deselectItems = function() {
@@ -1726,8 +1726,8 @@ function createFuncQueue() {
   return q;
 }
 
-function getUrlHashless(url) {
-  return url.split('#', 1)[0];
+function stripHashAndQuery(url) {
+  return url.split(/[?#]/, 1)[0];
 }
 
 function getUrlRelative(url, base) {
