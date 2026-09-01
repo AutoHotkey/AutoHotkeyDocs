@@ -27,6 +27,7 @@ function setupSite() {
   site.supportsStorage = !!window.sessionStorage && !site.isLocal;
   site.supportsCookies = navigator.cookieEnabled && !site.isLocal;
   site.onTouchDevice = !!('ontouchstart' in window) || !!(navigator.msMaxTouchPoints);
+  site.supportsInertAttribute = 'inert' in HTMLElement.prototype;
   site.init = function() {
     if (site.openedBySearchbot) return;
     cache.init(); user.init();
@@ -57,6 +58,8 @@ function setupSite() {
       host.build();
       host.addShortcuts();
       host.applyTranslations();
+      host.checkInertAttributeSupport();
+      host.addAriaLabels();
       host.init();
       host.applyUserSettings();
       host.onHashChange(function() {
@@ -337,7 +340,7 @@ function setupUserSettings() {
 function setupSiteHost() {
   const host = this;
   host.cache = cache;
-  host.template = '<div class="lyt_head" role="banner"><button class="lyt_skipnav" data-translate aria-label="data-content" data-content="Skip navigation"></button><div class="lyt_area"><div class="lyt_tab_row"><ul><li><button data-translate title="Shortcut: ALT+C" aria-label="Content tab" data-content="C̲ontent"></button></li><li><button data-translate title="Shortcut: ALT+N" aria-label="Index tab" data-content="In̲dex"></button></li><li><button data-translate title="Shortcut: ALT+S" aria-label="Search tab" data-content="S̲earch"></button></li></ul></div><div class="lyt_sidebar_toggle"><ul><li><button title="Hide or show the sidebar" data-translate aria-label="title">&#926;</button></li></ul></div><div class="lyt_tools"><div class="online"><ul><li class="home"><a href="{0}" title="Go to the homepage" data-translate aria-label="title">&#916;</a></li><li class="language dropdown closed"><button></button><ul class="selected"></ul></li><li class="version dropdown closed"><button></button><ul class="selected"></ul></li><li class="edit"><a href="#" target="_blank" title="Edit this document on GitHub" data-translate="2" aria-label="title" data-content="E"></a></li></ul></div><div class="chm"><ul><li class="back"><button title="Go back" data-translate="2" aria-label="title">&#9668;</button></li><li class="forward"><button title="Go forward" data-translate="2" aria-label="title">&#9658;</button></li><li class="zoom"><button title="Change the font size" data-translate="2" aria-label="title" data-content="Z"></button></li><li class="print"><button title="Print this document" data-translate="2" aria-label="title" data-content="P"></button></li><li class="browser"><a href="#" target="_blank" title="Open this document in the default browser (requires internet connection). Middle-click to copy the link address." data-translate="2" aria-label="title" data-content="¬"></a></li></ul></div><div class="main"><ul><li class="color"><button title="Use the dark or light scheme" data-translate="2" aria-label="title" data-content="C"></button></li><li class="settings"><button title="Open the help settings" data-translate="2" aria-label="title">&#1029;</button></li></ul></div></div></div></div><div class="lyt_main"><div class="lyt_left" role="navigation"><div class="lyt_tab_page_toc hidden"></div><div class="lyt_tab_page_index hidden"><div class="lyt_input"><input type="search" placeholder="Search" data-translate="2" /></div><div class="lyt_select"><select size="1" class="lyt_select_empty"><option value="-1" selected data-translate>Unfiltered</option><option value="0" data-translate>Directives</option><option value="1" data-translate>Built-in Variables</option><option value="2" data-translate>Built-in Functions</option><option value="3" data-translate>Control Flow Statements</option><option value="4" data-translate>Operators</option><option value="5" data-translate>Declarations</option><option value="6" data-translate>Built-in Classes</option><option value="7" data-translate>Built-in Methods/Properties</option><option value="99" data-translate>Ahk2Exe Compiler</option></select></div><div class="lyt_list"></div></div><div class="lyt_tab_page_search hidden"><div class="lyt_input"><input type="search" placeholder="Search" data-translate="2" /></div><div class="lyt_list"></div><div class="lyt_checkbox"><input type="checkbox" id="highlightSearchTerms"><label for="highlightSearchTerms" data-translate>Highlight search terms</label><div class="lyt_updown" title="Go to previous/next occurrence" data-translate aria-label="title"><div class="lyt_updown_up"><div class="triangle-up"></div></div><div class="lyt_updown_down"><div class="triangle-down"></div></div></div></div></div><div class="lyt_load"><div class="lds-dual-ring"></div></div><div class="lyt_quick"><button class="lyt_quick_head" title="Collapse or uncollapse the quick reference" data-translate aria-label="title"><div class="chevron"></div><span data-translate data-content="Quick reference"></span></button><div class="lyt_quick_main"></div></div></div><div class="lyt_dragbar"></div><div class="lyt_right"><div class="lyt_load"><div class="lds-dual-ring"></div></div><iframe class="lyt_frame hidden" frameborder="0" src="about:blank" role="main"></iframe></div></div>';
+  host.template = '<div class="lyt_head" role="banner"><button class="lyt_skipnav" aria-label="Skip navigation"><span inert data-translate>Skip navigation</span></button><div class="lyt_area"><div class="lyt_tab_row"><ul><li><button data-translate title="Shortcut: ALT+C" aria-label="Content tab"><span inert data-translate>C̲ontent</span></button></li><li><button data-translate title="Shortcut: ALT+N" aria-label="Index tab"><span inert data-translate>In̲dex</span></button></li><li><button data-translate title="Shortcut: ALT+S" aria-label="Search tab"><span inert data-translate>S̲earch</span></button></li></ul></div><div class="lyt_sidebar_toggle"><ul><li><button title="Hide or show the sidebar" data-translate><span inert>Ξ</span></button></li></ul></div><div class="lyt_tools"><div class="online"><ul><li class="home"><a href="#" title="Go to the homepage" data-translate><span inert>Δ</span></a></li><li class="language dropdown closed"><button></button><ul class="selected"></ul></li><li class="version dropdown closed"><button></button><ul class="selected"></ul></li><li class="edit"><a href="#" target="_blank" title="Edit this document on GitHub" data-translate><span inert>E</span></a></li></ul></div><div class="chm"><ul><li class="back"><button title="Go back" data-translate><span inert>◄</span></button></li><li class="forward"><button title="Go forward" data-translate><span inert>►</span></button></li><li class="zoom"><button title="Change the font size" data-translate><span inert>Z</span></button></li><li class="print"><button title="Print this document" data-translate><span inert>P</span></button></li><li class="browser"><a href="#" target="_blank" title="Open this document in the default browser (requires internet connection). Middle-click to copy the link address." data-translate><span inert>¬</span></a></li></ul></div><div class="main"><ul><li class="color"><button title="Use the dark or light scheme" data-translate><span inert>C</span></button></li><li class="settings"><button title="Open the help settings" data-translate><span inert>Ѕ</span></button></li></ul></div></div></div></div><div class="lyt_main"><div class="lyt_left" role="navigation"><div class="lyt_tab_page_toc hidden"></div><div class="lyt_tab_page_index hidden"><div class="lyt_input"><input type="search" placeholder="Search" data-translate /></div><div class="lyt_select"><select size="1" class="lyt_select_empty"><option value="-1" selected data-translate>Unfiltered</option><option value="0" data-translate>Directives</option><option value="1" data-translate>Built-in Variables</option><option value="2" data-translate>Built-in Functions</option><option value="3" data-translate>Control Flow Statements</option><option value="4" data-translate>Operators</option><option value="5" data-translate>Declarations</option><option value="6" data-translate>Built-in Classes</option><option value="7" data-translate>Built-in Methods/Properties</option><option value="99" data-translate>Ahk2Exe Compiler</option></select></div><div class="lyt_list"></div></div><div class="lyt_tab_page_search hidden"><div class="lyt_input"><input type="search" placeholder="Search" data-translate /></div><div class="lyt_list"></div><div class="lyt_checkbox"><input type="checkbox" id="highlightSearchTerms"><label for="highlightSearchTerms"><span inert data-translate>Highlight search terms</span></label><div class="lyt_updown" title="Go to previous/next occurrence" data-translate><div class="lyt_updown_up"><div class="triangle-up"></div></div><div class="lyt_updown_down"><div class="triangle-down"></div></div></div></div></div><div class="lyt_load"><div class="lds-dual-ring"></div></div><div class="lyt_quick"><button class="lyt_quick_head" title="Collapse or uncollapse the quick reference" data-translate><div class="chevron"></div><span inert data-translate>Quick reference</span></button><div class="lyt_quick_main"></div></div></div><div class="lyt_dragbar"></div><div class="lyt_right"><div class="lyt_load"><div class="lds-dual-ring"></div></div><iframe class="lyt_frame hidden" frameborder="0" src="about:blank" role="main"></iframe></div></div>';
   host.build = function() {
     const body = document.body.cloneNode(false);
     body.classList.add('lyt_body');
@@ -442,16 +445,14 @@ function setupSiteHost() {
       host.viewer.right.insertBefore(banner.create(text), host.viewer.right.firstChild);
     };
     banner.create = function(text) {
-      const div = document.createElement('div');
-      const span1 = document.createElement('span'); div.appendChild(span1);
-      const span2 = document.createElement('span'); div.appendChild(span2);
-      div.classList.add('lyt_banner');
-      span1.classList.add('text');
-      span1.setAttribute('data-translate', ''); span1.setAttribute('data-content', text);
-      span2.classList.add('close');
-      span2.setAttribute('data-content', '×');
-      span2.addEventListener('click', function() { div.hide(); });
-      return div;
+      const banner = document.createElement('div');
+      const label = document.createElement('div'); banner.appendChild(label);
+      const close = document.createElement('div'); banner.appendChild(close);
+      banner.classList.add('lyt_banner');
+      label.setDisplayText(text).classList.add('label');
+      close.setDisplayText('×').classList.add('close');
+      close.addEventListener('click', function() { banner.hide(); });
+      return banner;
     };
   };
   host.performKeyAction = function(keyName) {
@@ -474,31 +475,28 @@ function setupSiteHost() {
     host.viewer.focus();
   };
   host.applyTranslations = function() {
-    // data-translate=1 for content only, data-translate=2 for attributes only
     if (!site.waitForDataTranslate(host.applyTranslations)) return;
     document.querySelectorAll('[data-translate]').forEach(function(el) {
-      const content = el.textContent;
-      const title = el.getAttribute('title');
-      const placeholder = el.getAttribute('placeholder');
-      const ariaLabel = el.getAttribute('aria-label');
-      const dataContent = el.getAttribute('data-content');
-      const dataTranslate = el.getAttribute('data-translate');
-      if (!dataTranslate || dataTranslate == 1) {
-        if (content != '')
-          el.textContent = T(content) || content;
-        if (dataContent !== null)
-          el.setAttribute('data-content', T(dataContent));
-      }
-      if (!dataTranslate || dataTranslate == 2) {
-        if (title !== null)
-          el.title = T(title);
-        if (placeholder !== null)
-          el.placeholder = T(placeholder);
-      }
-      if (ariaLabel) {
-        const value = el.getAttribute(ariaLabel);
-        el.setAttribute('aria-label', T(value || ariaLabel));
-      }
+      if (el.firstChild && el.firstChild.nodeType === 3)
+        el.textContent = T(el.textContent) || el.textContent;
+      ['title', 'placeholder', 'aria-label'].forEach(function(attr) {
+        if (!el.hasAttribute(attr)) return;
+        el.setAttribute(attr, T(el.getAttribute(attr)));
+      });
+    });
+  };
+  host.addAriaLabels = function() {
+    document.querySelectorAll('[title]').forEach(function(el) {
+      if (el.hasAttribute('aria-label')) return;
+      el.setAttribute('aria-label', el.title);
+    });
+  };
+  host.checkInertAttributeSupport = function() { // IE11
+    if (site.supportsInertAttribute) return;
+    document.querySelectorAll('[inert]').forEach(function(el) {
+      el.removeAttribute('inert');
+      el.setAttribute('data-content', el.textContent);
+      el.textContent = '';
     });
   };
   host.init = function() {
@@ -555,7 +553,7 @@ function setupSiteHost() {
       });
     };
     tools.setupDropdownItem = function(item, label, link, title) {
-      item.setAttribute('data-content', label);
+      item.setDisplayText(label);
       item.title = title; item.setAttribute('aria-label', item.title);
       item.setAttribute('data-link', link);
     };
@@ -837,9 +835,8 @@ function setupSiteHost() {
         const span = document.createElement('span'); li.appendChild(span);
         const a = document.createElement('a'); span.appendChild(a);
         a.href = site.urlBase + '/' + stripHashAndQuery(url) + (h2.id ? '#' + h2.id : '');
-        a.setAttribute('data-content', h2.innerText);
-        a.setAttribute('aria-label', h2.innerText);
-        li.title = h2.innerText;
+        a.setDisplayText(h2.innerText);
+        a.title = h2.innerText; a.setAttribute('aria-label', a.title);
       });
     };
     quick.showScrollbar = function() { quick.main.style.overflow = ''; };
@@ -905,14 +902,12 @@ function setupSiteHost() {
           }
           else
             li.label = document.createElement('button');
-          li.label.setAttribute('data-content', text);
-          li.label.setAttribute('aria-label', text);
-          const span = document.createElement('span');
-          span.appendChild(li.label);
+          const span = document.createElement('span'); span.appendChild(li.label);
+          li.label.setDisplayText(text);
+          li.label.title = text; li.label.setAttribute('aria-label', text);
           li._index = li_counter++;
-          li.title = text;
           if (cache.deprecate_data[path])
-            li.title += '\n\n' + T('Deprecated. New scripts should use {0} instead.').format(cache.deprecate_data[path]);
+            li.label.title += '\n\n' + T('Deprecated. New scripts should use {0} instead.').format(cache.deprecate_data[path]);
           if (subitems && subitems.length) {
             li.classList.add('closed');
             li.appendChild(span);
@@ -1557,7 +1552,9 @@ function setupSiteFrameContent() {
     });
     function createButton(className, text, title) {
       const a = document.createElement('a');
-      a.className = className; a.setAttribute('data-content', text); a.title = title;
+      a.setDisplayText(text);
+      a.className = className;
+      a.title = title; a.setAttribute('aria-label', title);
       return a;
     }
     function createButtonSelect(pre) {
@@ -1797,7 +1794,7 @@ function setupEditListCombo(edit, list) {
       const a = document.createElement('a');
       a.href = item.href;
       a.tabIndex = -1;
-      a.setAttribute('data-content', item.label);
+      a.setDisplayText(item.label);
       a.setAttribute('aria-label', item.label);
       a._index = list.max = i;
       list.appendChild(a);
@@ -1876,31 +1873,31 @@ function setupEditListCombo(edit, list) {
   });
   // Select an item on click:
   list.addEventListener('click', function(e) {
-    if (e.target.nodeName !== 'A') return;
+    if (!e.target.closest('a')) return;
     e.preventDefault();
     list.selectItemByIndex(e.target._index);
   });
   // Open an item on double-click or touch (for mobile):
   var touchmoved;
   list.addEventListener('dblclick', function(e) {
-    if (e.target.nodeName !== 'A') return;
+    if (!e.target.closest('a')) return;
     if (touchmoved) return;
     e.preventDefault();
     list.selected = e.target;
     host.viewer.openURL(list.selected.href, true);
   });
   list.addEventListener('touchmove', function(e) {
-    if (e.target.nodeName !== 'A') return; touchmoved = true;
+    if (!e.target.closest('a')) return; touchmoved = true;
   });
   list.addEventListener('touchstart', function(e) {
-    if (e.target.nodeName !== 'A') return; touchmoved = false;
+    if (!e.target.closest('a')) return; touchmoved = false;
   });
   // Show tooltip on mouseover if an item exceeds the length of its parent:
   list.addEventListener('mouseover', function(e) {
-    if (e.target.nodeName !== 'A') return;
+    if (!e.target.closest('a')) return;
     const item = e.target;
     if (item.offsetWidth < item.scrollWidth && !item.title) {
-      item.title = item.dataset.content;
+      item.title = item.getDisplayText();
     }
   });
   // Helper functions:
@@ -2154,5 +2151,19 @@ function addExtensions() {
       if (!(key in target))
         target[key] = source[key];
     return target;
+  };
+  Element.prototype.setDisplayText = function(text) { // IE11
+    const span = document.createElement('span'); this.replaceChildren(span);
+    if (site.supportsInertAttribute) {
+      span.setAttribute('inert', '');
+      span.textContent = text;
+    }
+    else
+      span.setAttribute('data-content', text);
+    return this;
+  };
+  Element.prototype.getDisplayText = function() { // IE11
+    const span = this.firstChild;
+    return (site.supportsInertAttribute) ? span.textContent : span.dataset.content;
   };
 }
