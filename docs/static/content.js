@@ -639,9 +639,9 @@ function setupSiteHost() {
         tool.update(site.urlRelative);
       };
       tool.update = function(urlRelative) {
-        if (!site.waitForDataDocs(tool.update)) return;
+        if (!site.waitForDataDocs(tool.update, arguments)) return;
         const a = tool.element.querySelector('a');
-        a.href = cache.docs_data.TOOL_EDIT_LINK + urlRelative;
+        a.href = cache.docs_data.TOOL_EDIT_LINK + stripHashAndQuery(urlRelative);
       };
     };
     tools.tool.back = new function() {
