@@ -569,6 +569,7 @@ function setupSiteHost() {
       const tool = this;
       tool.init = function() {
         tool.element = tools.element.querySelector('.language');
+        tools.setupDropdown(tool);
         tool.addDropdownItems();
       };
       tool.addDropdownItems = function() {
@@ -576,7 +577,6 @@ function setupSiteHost() {
         if (!site.waitForDataTranslate(tool.addDropdownItems)) return;
         const lang = cache.docs_data.LANGUAGE;
         const button = tool.element.querySelector('button');
-        tools.setupDropdown(tool);
         cache.docs_data.TOOL_LANGUAGE_ITEMS.forEach(function(item) {
           const label = item[0], link = item[1], title = item[2];
           if (label === lang) {
@@ -602,6 +602,7 @@ function setupSiteHost() {
       const tool = this;
       tool.init = function() {
         tool.element = tools.element.querySelector('.version');
+        tools.setupDropdown(tool);
         tool.addDropdownItems();
       };
       tool.addDropdownItems = function() {
@@ -610,7 +611,6 @@ function setupSiteHost() {
         const ver = cache.docs_data.PRE_RELEASE ? 'pre' : cache.docs_data.VERSION;
         const button = tool.element.querySelector('button');
         if (cache.docs_data.PRE_RELEASE) tool.element.classList.add('pre');
-        tools.setupDropdown(tool);
         cache.docs_data.TOOL_VERSION_ITEMS.forEach(function(item) {
           const label = item[0], link = item[1], title = item[2];
           if (label === ver) {
