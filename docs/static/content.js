@@ -583,7 +583,7 @@ function setupSiteHost() {
           if (label === lang) {
             var button_title = title;
             if (tool.dropdown.children.length)
-              button_title += '\n\n' + T('Click to the change the language.');
+              button_title += '\n\n' + T('Click to change the language.');
             tools.setupDropdownItem(button, label, link, button_title);
             tool.link = link;
             return;
@@ -619,7 +619,7 @@ function setupSiteHost() {
           if (label === ver) {
             var button_title = title;
             if (tool.dropdown.children.length)
-              button_title += '\n\n' + T('Click to the change the version.');
+              button_title += '\n\n' + T('Click to change the version.');
             tools.setupDropdownItem(button, label, link, button_title);
             tool.link = link;
             return;
