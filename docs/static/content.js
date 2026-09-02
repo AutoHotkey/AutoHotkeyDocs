@@ -1022,7 +1022,7 @@ function ctor_structure()
       var label = lang_items[i][0], link = lang_items[i][1], title = lang_items[i][2];
       if (label === lang) {
         $langToolBtn.setDisplayText(lang);
-        $langToolBtn.attr('title', title + '\n\n' + T('Click to the change the language.'));
+        $langToolBtn.attr('title', title + '\n\n' + T('Click to change the language.'));
         $langToolBtn.attr('aria-label', $langToolBtn.attr('title'));
         continue;
       }
@@ -1043,7 +1043,7 @@ function ctor_structure()
       var label = ver_items[i][0], link = ver_items[i][1], title = ver_items[i][2];
       if (label === ver) {
         $verToolBtn.setDisplayText(ver);
-        $verToolBtn.attr('title', title + '\n\n' + T('Click to the change the version.'));
+        $verToolBtn.attr('title', title + '\n\n' + T('Click to change the version.'));
         $verToolBtn.attr('aria-label', $verToolBtn.attr('title'));
         continue;
       }
