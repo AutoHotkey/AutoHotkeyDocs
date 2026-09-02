@@ -422,6 +422,7 @@ function setupSiteHost() {
       if (site.onPhone) setTimeout(function() { host.sidebar.show(false); }, 200);
     };
     viewer.focus = function() {
+      cache.update('lastFocusLocation', 'frame');
       tryFocus();
       function tryFocus() {
         const frame_win = viewer.frame.contentWindow;
@@ -955,7 +956,8 @@ function setupSiteHost() {
         toc.items.focused = e.target.closest('li');
       });
       toc.element.focus = function() {
-        if (toc.items.focused) toc.items.focused.focus();
+        const item = toc.items.focused || toc.items.selected[0];
+        if (item) item.focus();
       };
       toc.initList();
     };
