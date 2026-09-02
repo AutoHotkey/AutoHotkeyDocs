@@ -456,14 +456,21 @@ function setupSiteHost() {
     };
   };
   host.performKeyAction = function(keyName) {
+    if (!site.waitForDataDocs(host.performKeyAction)) return;
     if (site.inFrame) {
       host.postMessage('performKeyAction', keyName);
       return;
     }
     switch (keyName) {
-      case 'C': host.sidebar.tabs.selectByIndex(0); break;
-      case 'N': host.sidebar.tabs.selectByIndex(1); break;
-      case 'S': host.sidebar.tabs.selectByIndex(2); break;
+      case cache.docs_data.TAB_ALT_SHORTCUT_CONTENT:
+        host.sidebar.tabs.selectByIndex(0);
+        break;
+      case cache.docs_data.TAB_ALT_SHORTCUT_INDEX:
+        host.sidebar.tabs.selectByIndex(1);
+        break;
+      case cache.docs_data.TAB_ALT_SHORTCUT_SEARCH:
+        host.sidebar.tabs.selectByIndex(2);
+        break;
       case 'F6': host.cycleFocus(); break;
     }
   };
