@@ -543,6 +543,7 @@ function setupSiteHost() {
         tools.opened ? this.close() : this.open();
       };
       tool.element.addEventListener('click', function() {
+        if (!tool.dropdown.children.length) return;
         if (tools.opened && tools.opened !== tool)
           tools.opened.close();
         tool.toggle();
@@ -580,7 +581,9 @@ function setupSiteHost() {
         cache.docs_data.TOOL_LANGUAGE_ITEMS.forEach(function(item) {
           const label = item[0], link = item[1], title = item[2];
           if (label === lang) {
-            const button_title = title + '\n\n' + T('Click to the change the language.');
+            var button_title = title;
+            if (tool.dropdown.children.length)
+              button_title += '\n\n' + T('Click to the change the language.');
             tools.setupDropdownItem(button, label, link, button_title);
             tool.link = link;
             return;
@@ -614,7 +617,9 @@ function setupSiteHost() {
         cache.docs_data.TOOL_VERSION_ITEMS.forEach(function(item) {
           const label = item[0], link = item[1], title = item[2];
           if (label === ver) {
-            const button_title = title + '\n\n' + T('Click to the change the version.');
+            var button_title = title;
+            if (tool.dropdown.children.length)
+              button_title += '\n\n' + T('Click to the change the version.');
             tools.setupDropdownItem(button, label, link, button_title);
             tool.link = link;
             return;
