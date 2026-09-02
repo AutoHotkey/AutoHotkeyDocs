@@ -1441,21 +1441,22 @@ function ctor_structure()
   }
   // Perform action for specified key:
   self.pressKey = function(keyname) {
+    if (!retrieveData(docs.dataPath, "docs_data", "docsData", self.pressKey)) return;
     if (isInsideFrame) {
       postMessageToParent('pressKey', [keyname]);
     }
     else {
       switch(keyname) {
-        case "C":
-        structure.showTab(0); // Content tab
+        case cache.docs_data.TAB_ALT_SHORTCUT_CONTENT:
+        structure.showTab(0);
         break;
   
-        case "N":
-        structure.showTab(1); // Index tab
+        case cache.docs_data.TAB_ALT_SHORTCUT_INDEX:
+        structure.showTab(1);
         break;
   
-        case "S":
-        structure.showTab(2); // Search tab
+        case cache.docs_data.TAB_ALT_SHORTCUT_SEARCH:
+        structure.showTab(2);
         break;
   
         case "F6": // Move focus between left and right area
