@@ -85,7 +85,7 @@ var forceNoScript = forceNoScript || false;
 var isCacheLoaded = cache.load();
 var workingDir = getWorkingDir();
 var relPath = getRelativePath(location.href, workingDir);
-var equivPath = $('meta[name|="ahk:equiv"]').prop('content');
+var ahkMetas = getAhkMetas();
 var isInsideCHM = (location.href.search(/::/) > 0) ? 1 : 0;
 var supportsHistory = (history.replaceState) && !isInsideCHM;
 var isFrameCapable = !cache.forceNoFrame && (isInsideCHM || supportsHistory);
@@ -169,7 +169,7 @@ var isPhone = (document.documentElement.clientWidth <= 600);
         $('head').append('<style>body {font-size:' + cache.fontSize + 'em}</style>');
       normalizeParentURL = function() {
         var url = getUrlParameter('url');
-        postMessageToParent('normalizeURL', [url ? {"href": url} : $.extend({}, window.location), document.title, supportsHistory ? history.state : null, equivPath]);
+        postMessageToParent('normalizeURL', [url ? {"href": url} : $.extend({}, window.location), document.title, supportsHistory ? history.state : null, ahkMetas]);
         if (cache.toc_clickItemTemp)
           if (supportsHistory)
             history.replaceState($.extend(history.state, {toc_clickItemTemp: cache.toc_clickItemTemp}), null, null);
@@ -1035,12 +1035,15 @@ function ctor_structure()
     // 'change version' tool:
     var ver = cache.docs_data.PRE_RELEASE ? 'pre' : cache.docs_data.VERSION;
     var ver_items = cache.docs_data.TOOL_VERSION_ITEMS;
+    var ver_item_pre = cache.docs_data.TOOL_VERSION_ITEM_PRE;
+    var ver_latest = ver_items[ver_items.length - 1][0];
+    var ver_items_all = ver_item_pre ? ver_items.concat([['pre'].concat(ver_item_pre)]) : ver_items;
     var $verTool = $('li.version', $online);
     var $verToolBtn = $('button', $verTool);
     var $verToolList = $('ul', $verTool);
     if (cache.docs_data.PRE_RELEASE) $verTool.addClass('pre');
-    for (var i = 0; i < ver_items.length; i++) {
-      var label = ver_items[i][0], link = ver_items[i][1], title = ver_items[i][2];
+    for (var i = 0; i < ver_items_all.length; i++) {
+      var label = ver_items_all[i][0], link = ver_items_all[i][1], title = ver_items_all[i][2];
       if (label === ver) {
         $verToolBtn.setDisplayText(ver);
         $verToolBtn.attr('title', title + '\n\n' + T('Click to change the version.'));
@@ -1091,7 +1094,7 @@ function ctor_structure()
     // If help is CHM, show CHM tools, else show online tools
     (isInsideCHM) ? $chm.show().addClass('visible') : $online.show().addClass('visible');
     
-    self.updateToolLinks = function(relPath, equivPath) {
+    self.updateToolLinks = function(relPath, ahkMetas) {
       // language links:
       $langToolList.find('li').each(function() {
         var a = $(this).find('a');
@@ -1099,7 +1102,8 @@ function ctor_structure()
       });
       // version links:
       $verToolList.find('li').each(function() {
-        var a = $(this).find('a');
+        var a = $(this).find('a'), ver = a.getDisplayText();
+        var equivPath = ahkMetas['equiv-' + (ver === 'pre' ? ver_latest : ver)];
         a.attr('href', a.attr('data-link') + (equivPath || relPath));
       });
       // 'edit page on GitHub' link:
@@ -1110,7 +1114,7 @@ function ctor_structure()
       // 'open in default browser' link:
       $browserToolLink.attr('href', $browserToolLink.attr('data-link') + relPath);
     };
-    self.updateToolLinks(relPath, equivPath);
+    self.updateToolLinks(relPath, ahkMetas);
 
     // --- Apply click events for sidebar tabs ---
 
@@ -1932,6 +1936,17 @@ function getRelativePath(href, workingDir) {
   if (href.indexOf(workingDir) == 0)
     return href.substring(workingDir.length);
   return href;
+}
+
+// --- Get ahk: metas ---
+
+function getAhkMetas() {
+  var obj = {};
+  $('meta[name^="ahk:"]').each(function() {
+    var meta = $(this);
+    obj[meta.attr('name').slice(4)] = meta.attr('content');
+  });
+  return obj;
 }
 
 // --- Check if an element is visible after scrolling ---
