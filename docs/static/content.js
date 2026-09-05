@@ -16,7 +16,7 @@ function setupSite() {
   site.urlBase = site.scriptDir.slice(0, site.scriptDir.lastIndexOf('/'));
   site.urlRelative = getUrlRelative(location.href, site.urlBase);
   site.urlFull = site.urlBase + '/' + (getUrlParam('frame') || site.urlRelative);
-  site.urlEquivRelative = getUrlEquivRelative();
+  site.ahkMetas = getAhkMetas();
   site.inCHM = /::/.test(location.href);
   site.isLocal = window.location.protocol === 'file:';
   site.inFrame = (window.self !== window.top);
@@ -354,10 +354,10 @@ function setupSiteHost() {
     site.postMessage.apply(null, params);
   };
   host.applyUserSettings = site.applyUserSettings;
-  host.update = function(title, urlFull, urlRelative, urlEquiv, history_state) {
+  host.update = function(title, urlFull, urlRelative, ahkMetas, history_state) {
     host.updateTitle(title);
     host.updateUrl(urlFull, urlRelative);
-    host.toolbar.tools.update(urlRelative, urlEquiv);
+    host.toolbar.tools.update(urlRelative, ahkMetas);
     host.sidebar.tabs.page_toc.update(urlFull, history_state, true);
   };
   host.updateTitle = function(title) { document.title = title; };
@@ -600,7 +600,7 @@ function setupSiteHost() {
           const a = document.createElement('a'); li.appendChild(a);
           tools.setupDropdownItem(a, label, link, title);
         });
-        tool.update(site.urlRelative, site.urlEquivRelative);
+        tool.update(site.urlRelative);
       };
       tool.update = function(urlRelative) {
         tool.dropdown.children.forEach(function(li) {
@@ -620,9 +620,14 @@ function setupSiteHost() {
         if (!site.waitForDataDocs(tool.addDropdownItems)) return;
         if (!site.waitForDataTranslate(tool.addDropdownItems)) return;
         const ver = cache.docs_data.PRE_RELEASE ? 'pre' : cache.docs_data.VERSION;
+        const ver_items = cache.docs_data.TOOL_VERSION_ITEMS;
+        const ver_item_pre = cache.docs_data.TOOL_VERSION_ITEM_PRE;
+        const ver_item_pre_full = ['pre'].concat(ver_item_pre);
+        const ver_items_all = ver_item_pre ? ver_items.concat([ver_item_pre_full]) : ver_items;
         const button = tool.element.querySelector('button');
+        tool.latest = ver_items[ver_items.length - 1][0];
         if (cache.docs_data.PRE_RELEASE) tool.element.classList.add('pre');
-        cache.docs_data.TOOL_VERSION_ITEMS.forEach(function(item) {
+        ver_items_all.forEach(function(item) {
           const label = item[0], link = item[1], title = item[2];
           if (label === ver) {
             var button_title = title;
@@ -636,11 +641,12 @@ function setupSiteHost() {
           const a = document.createElement('a'); li.appendChild(a);
           tools.setupDropdownItem(a, label, link, title);
         });
-        tool.update(site.urlRelative, site.urlEquivRelative);
+        tool.update(site.urlRelative, site.ahkMetas);
       };
-      tool.update = function(urlRelative, urlEquivRelative) {
+      tool.update = function(urlRelative, ahkMetas) {
         tool.dropdown.children.forEach(function(li) {
-          const a = li.querySelector('a');
+          const a = li.querySelector('a'), ver = a.getDisplayText();
+          const urlEquivRelative = ahkMetas['equiv-' + (ver === 'pre' ? tool.latest : ver)];
           a.href = a.dataset.link + (urlEquivRelative || urlRelative);
         });
       };
@@ -726,9 +732,9 @@ function setupSiteHost() {
         });
       };
     };
-    tools.update = function(urlRelative, urlEquivRelative) {
+    tools.update = function(urlRelative, ahkMetas) {
       Object.values(tools.tool).forEach(function(tool) {
-        if (tool.update) tool.update(urlRelative, urlEquivRelative);
+        if (tool.update) tool.update(urlRelative, ahkMetas);
       });
     };
   };
@@ -1348,9 +1354,9 @@ function setupSiteFrame() {
     const title = document.title;
     const urlFull = location.href;
     const urlRelative = getUrlRelative(urlFull, site.urlBase);
-    const urlEquivRelative = site.urlEquivRelative;
+    const ahkMetas = site.ahkMetas;
     const history_state = history.state;
-    host.postMessage('update', title, urlFull, urlRelative, urlEquivRelative, history_state);
+    host.postMessage('update', title, urlFull, urlRelative, ahkMetas, history_state);
   };
   frame.onHashChange = site.onHashChange;
   frame.onDOMContentLoad = site.onDOMContentLoad;
@@ -1747,9 +1753,12 @@ function getUrlRelative(url, base) {
   return url;
 }
 
-function getUrlEquivRelative() {
-  const meta = document.querySelector('meta[name|="ahk:equiv"]');
-  return meta ? meta.getAttribute('content') : null;
+function getAhkMetas() {
+  const obj = {};
+  document.head.querySelectorAll('meta[name^="ahk:"]').forEach(function(meta) {
+    obj[meta.name.slice(4)] = meta.content;
+  });
+  return obj;
 }
 
 function detectPhone(scriptElement) {
