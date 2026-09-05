@@ -65,6 +65,9 @@ function setupSite() {
       host.onHashChange(function() {
         host.viewer.openURL(location.href); // Redirect manually added # anchor to the frame.
       });
+      host.onPageShow(function(e) {
+        if (e.persisted) { host.viewer.show(true); }
+      });
     }
   };
   site.trackFocus = function() {
@@ -175,6 +178,9 @@ function setupSite() {
   };
   site.onBeforeUnload = function(callback) {
     window.addEventListener('beforeunload', callback);
+  };
+  site.onPageShow = function(callback) {
+    window.addEventListener('pageshow', callback);
   };
   site.scriptStatus = {}; site.scriptQueue = {};
   site.loadScript = function(url, success, fail) {
@@ -1338,6 +1344,7 @@ function setupSiteHost() {
     };
   };
   host.onHashChange = site.onHashChange;
+  host.onPageShow = site.onPageShow;
   host.setScheme = site.setScheme;
   host.addShortcuts = site.addShortcuts;
 }
