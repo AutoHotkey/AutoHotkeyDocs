@@ -250,6 +250,7 @@ function setupCache() {
   const cache = this;
   cache.init = function() {
     cache.loaded = cache.load();
+    cache.update('scriptDir', site.scriptDir);
   };
   cache.load = function() {
     if (site.supportsStorage) {
@@ -261,6 +262,7 @@ function setupCache() {
     } catch (e) {
       return false;
     }
+    if (data.scriptDir != site.scriptDir) return false;
     cache.update(Object.assign(data, data.forced));
     return true;
   };
