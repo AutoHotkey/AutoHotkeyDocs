@@ -427,7 +427,8 @@ function setupSiteHost() {
       viewer.frame.contentWindow.location.href = url;
       if (!prevent_focus) viewer.focus();
       cache.save();
-      if (site.onPhone) setTimeout(function() { host.sidebar.show(false); }, 200);
+      if (site.onPhone)
+        setTimeout(function() { host.sidebar.show(false); cache.save(); }, 200);
     };
     viewer.focus = function() {
       cache.update('lastFocusLocation', 'frame');
