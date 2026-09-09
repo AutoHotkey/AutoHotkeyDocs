@@ -594,12 +594,13 @@ function setupSiteHost() {
         if (!site.waitForDataDocs(tool.addDropdownItems)) return;
         if (!site.waitForDataTranslate(tool.addDropdownItems)) return;
         const lang = cache.docs_data.LANGUAGE;
+        const lang_items = cache.docs_data.TOOL_LANGUAGE_ITEMS;
         const button = tool.element.querySelector('button');
-        cache.docs_data.TOOL_LANGUAGE_ITEMS.forEach(function(item) {
+        lang_items.forEach(function(item) {
           const label = item[0], link = item[1], title = item[2];
           if (label === lang) {
             var button_title = title;
-            if (tool.dropdown.children.length)
+            if (lang_items.length > 1)
               button_title += '\n\n' + T('Click to change the language.');
             tools.setupDropdownItem(button, label, link, button_title);
             tool.link = link;
@@ -640,7 +641,7 @@ function setupSiteHost() {
           const label = item[0], link = item[1], title = item[2];
           if (label === ver) {
             var button_title = title;
-            if (tool.dropdown.children.length)
+            if (ver_items_all.length > 1)
               button_title += '\n\n' + T('Click to change the version.');
             tools.setupDropdownItem(button, label, link, button_title);
             tool.link = link;
