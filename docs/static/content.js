@@ -1907,17 +1907,18 @@ function setupEditListCombo(edit, list) {
   });
   // Select an item on click:
   list.addEventListener('click', function(e) {
-    if (!e.target.closest('a')) return;
+    const item = e.target.closest('a');
+    if (!item) return;
     e.preventDefault();
-    list.selectItemByIndex(e.target._index);
+    list.selectItemByIndex(item._index);
   });
   // Open an item on double-click or touch (for mobile):
   var touchmoved;
   list.addEventListener('dblclick', function(e) {
-    if (!e.target.closest('a')) return;
-    if (touchmoved) return;
+    const item = e.target.closest('a');
+    if (!item || touchmoved) return;
     e.preventDefault();
-    list.selected = e.target;
+    list.selected = item;
     host.viewer.openURL(list.selected.href, true);
   });
   list.addEventListener('touchmove', function(e) {
@@ -1928,8 +1929,8 @@ function setupEditListCombo(edit, list) {
   });
   // Show tooltip on mouseover if an item exceeds the length of its parent:
   list.addEventListener('mouseover', function(e) {
-    if (!e.target.closest('a')) return;
-    const item = e.target;
+    const item = e.target.closest('a');
+    if (!item) return;
     if (item.offsetWidth < item.scrollWidth && !item.title) {
       item.title = item.getDisplayText();
     }
