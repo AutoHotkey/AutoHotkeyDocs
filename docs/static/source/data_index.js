@@ -1259,7 +1259,7 @@ indexData = [
   ["VerCompare", "lib/VerCompare.htm", 2],
   ["version of a file", "lib/FileGetVersion.htm"],
   ["virtual key", "lib/Send.htm#vk"],
-  ["virtual reference", "Functions.htm#virtual-reference"],
+  ["virtual reference", "Functions.htm#virtual-references"],
   ["Visible property (Gui.Control)", "lib/GuiControl.htm#Visible", 7],
   ["VisibleNonText property (InputHook)", "lib/InputHook.htm#VisibleNonText", 7],
   ["VisibleText property (InputHook)", "lib/InputHook.htm#VisibleText", 7],
