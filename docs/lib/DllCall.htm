@@ -15,7 +15,7 @@
 
 <p>Calls a function inside a DLL, such as a standard Windows API function.</p>
 
-<pre class="Syntax">Result := <span class="func">DllCall</span>("<span class="optional">DllFile\</span>Function" <span class="optional">, Type1, Arg1, Type2, Arg2, "Cdecl ReturnType"</span>)</pre>
+<pre class="Syntax">Result := <span class="func">DllCall</span>("<span class="optional">DllFile\</span>Function" <span class="optional">, Type1, Arg1, Type2, Arg2, "CDecl ReturnType"</span>)</pre>
 <h2 id="Parameters">Parameters</h2>
 <dl>
 
@@ -27,7 +27,7 @@
       <p>If no function can be found by the given name, a "W" (Unicode) suffix is automatically appended. For example, <code>"MessageBox"</code> is the same as <code>"MessageBoxW"</code>.</p>
       <p>Performance can be dramatically improved when making <em>repeated</em> calls to a DLL by <a href="#load">loading it beforehand</a>.</p>
       <p>This parameter may also consist solely of an integer, which is interpreted as the address of the function to call. Sources of such addresses include <a href="#COM">COM</a> and <a href="CallbackCreate.htm">CallbackCreate</a>.</p>
-      <p>If this parameter is an object, the value of the object's <code class="no-highlight">Ptr</code> property is used. If no such property exists, a <a href="Error.htm#PropertyError">PropertyError</a> is thrown.</p>
+      <p>If this parameter is an object, the value of the object's Ptr property is used. If no such property exists, a <a href="Error.htm#PropertyError">PropertyError</a> is thrown.</p>
   </dd>
 
   <dt>Type1, Arg1</dt>
@@ -36,14 +36,14 @@
       <p>Each of these pairs represents a single parameter to be passed to the function. The number of pairs is unlimited. For <em>Type</em>, see the <a href="#types">types table</a> below. For <em>Arg</em>, specify the value to be passed to the function.</p>
   </dd>
 
-  <dt>Cdecl ReturnType</dt>
+  <dt>CDecl ReturnType</dt>
   <dd>
       <p>Type: <a href="../Concepts.htm#strings">String</a></p>
-      <p id="cdecl">The word <em>Cdecl</em> is normally omitted because most functions use the standard calling convention rather than the "C" calling convention (functions such as wsprintf that accept a varying number of arguments are one exception to this). Note that most object-oriented C++ functions use the <i>thiscall</i> convention, which is not supported.</p>
-      <p>If present, the word <em>Cdecl</em> should be listed before the return type (if any). Separate each word from the next with a space or tab. For example: <code>"Cdecl Str"</code>.</p>
-      <p>Since a separate "C" calling convention does not exist in 64-bit code, <i>Cdecl</i> may be specified but has no effect on 64-bit builds of AutoHotkey.</p>
+      <p id="CDecl"><span id="cdecl"></span>The word <em>CDecl</em> is normally omitted because most functions use the standard calling convention rather than the "C" calling convention (functions such as wsprintf that accept a varying number of arguments are one exception to this). Note that most object-oriented C++ functions use the <em>thiscall</em> convention, which is not supported.</p>
+      <p>If present, the word <em>CDecl</em> should be listed before the return type (if any). Separate each word from the next with a space or tab. For example: <code>"CDecl Str"</code>.</p>
+      <p>Since a separate "C" calling convention does not exist in 64-bit code, <em>CDecl</em> may be specified but has no effect on 64-bit builds of AutoHotkey.</p>
       <p><span class="ver">[v2.1-alpha.3+]</span>: Specifying <em>Cdecl</em> has no effect even on 32-bit builds, and can always be omitted. Prior versions used the <em>Cdecl</em> option only to determine whether to check the stack pointer (ESP) after the call. This is now done unconditionally, but functions which do not accept parameters are assumed to be <em>Cdecl</em> (as either call would not change ESP).</p>
-      <p><em>ReturnType</em>: If the function returns a 32-bit signed integer (Int), BOOL, or nothing at all, <em>ReturnType</em> may be omitted. Otherwise, specify one of the argument types from the <a href="#types">types table</a> below. The <a href="#asterisk">asterisk suffix</a> is also supported.</p>
+      <p><em>ReturnType</em>: If the function returns a 32-bit signed integer (Int), BOOL, or nothing at all, <em>ReturnType</em> may be omitted. Otherwise, specify one of the argument types from the <a href="#types">types table</a> below. The <a href="#asterisk">asterisk/P suffix suffix</a> is also supported.</p>
   </dd>
 
 </dl>
@@ -61,21 +61,21 @@
 <th>Type</th>
 <th abbr="Descr">Description</th>
 </tr>
-<tr id="str">
-<td>Str</td>
+<tr id="Str">
+<td><span id="str"></span>Str</td>
 <td>
   <p>A string such as <code>"Blue"</code> or <code>MyVar</code>, or a <a href="../Concepts.htm#variable-references">VarRef</a> such as <code>&amp;MyVar</code>. If the called function modifies the string and the argument is a naked variable or VarRef, its contents will be updated. For example, the following call would convert the contents of <em>MyVar</em> to uppercase: <code>DllCall("CharUpper", "Str", <i>MyVar</i>)</code>.</p>
-  <p>If the function is designed to store a string longer than the parameter's input value (or if the parameter is for output only), the recommended approach is to create a <a href="Buffer.htm">Buffer</a>, use the <a href="#ptr">Ptr</a> type to pass it, and use <a href="StrGet.htm">StrGet</a> to retrieve the string after the function returns, as in the <a href="#ExWsprintf">wsprintf example</a>.</p>
+  <p>If the function is designed to store a string longer than the parameter's input value (or if the parameter is for output only), the recommended approach is to create a <a href="Buffer.htm">Buffer</a>, use the <a href="#Ptr">Ptr</a> type to pass it, and use <a href="StrGet.htm">StrGet</a> to retrieve the string after the function returns, as in the <a href="#ExWsprintf">wsprintf example</a>.</p>
   <p>Otherwise, ensure that the variable is large enough before calling the function. This can be achieved by calling <code><a href="VarSetStrCapacity.htm">VarSetStrCapacity</a>(&amp;MyVar, 123)</code>, where 123 is the number of 16-bit units (loosely referred to as characters) that <em>MyVar</em> must be able to hold. If the variable is not null-terminated upon return, an error message is shown and the program exits as it is likely that memory has been corrupted via buffer overrun. This would typically indicate that the variable's capacity was insufficient.</p>
-  <p>A <em>Str</em> argument must not be an <a href="../Variables.htm#Expressions">expression</a> that evaluates to a number (such as <code>i+1</code>). If it is, the function is not called and a <a href="Error.htm#TypeError">TypeError</a> is thrown.</p>
-  <p id="strp">The rarely-used <a href="#asterisk">Str*</a> arg type passes the address of a temporary variable containing the address of the string. If the function writes a new address into the temporary variable, the new string is copied into the script's variable, if a <a href="../Concepts.htm#variable-references">VarRef</a> was passed. This can be used with functions that expect something like "TCHAR **" or "LPTSTR *". However, if the function allocates memory and expects the caller to free it (such as by calling <a href="https://learn.microsoft.com/windows/win32/api/combaseapi/nf-combaseapi-cotaskmemfree">CoTaskMemFree</a>), the <code class="no-highlight">Ptr*</code> arg type must be used instead.</p>
-  <p class="note"><strong>Note:</strong> When passing a string to a function, be aware what <a href="../Compat.htm#DllCall"><i>type</i> of string</a> the function expects.</p></td>
+  <p>A Str argument must not be an <a href="../Variables.htm#Expressions">expression</a> that evaluates to a number (such as <code>i+1</code>). If it is, the function is not called and a <a href="Error.htm#TypeError">TypeError</a> is thrown.</p>
+  <p id="strp">The rarely-used <a href="#asterisk">Str*</a> arg type passes the address of a temporary variable containing the address of the string. If the function writes a new address into the temporary variable, the new string is copied into the script's variable, if a <a href="../Concepts.htm#variable-references">VarRef</a> was passed. This can be used with functions that expect something like <code class="no-highlight">TCHAR **</code> or <code class="no-highlight">LPTSTR *</code>. However, if the function allocates memory and expects the caller to free it (such as by calling <a href="https://learn.microsoft.com/windows/win32/api/combaseapi/nf-combaseapi-cotaskmemfree">CoTaskMemFree</a>), the <a href="#asterisk">Ptr*</a> arg type must be used instead.</p>
+  <p class="note"><strong>Note:</strong> When passing a string to a function, be aware what <a href="../Compat.htm#DllCall"><em>type</em> of string</a> the function expects.</p></td>
 </tr>
-<tr>
+<tr id="WStr">
   <td><span id="wstr"></span>WStr</td>
-  <td>Since AutoHotkey uses UTF-16 natively, WStr (wide character string) is equivalent to Str.</td>
+  <td>Since AutoHotkey uses UTF-16 natively, WStr (wide character string) is equivalent to <a href="#Str">Str</a>.</td>
 </tr>
-<tr>
+<tr id="AStr">
   <td><span id="astr"></span>AStr</td>
   <td>
     <p>AStr causes the input value to be automatically converted to ANSI. Since the temporary memory used for this conversion is only large enough for the converted input string, any value written to it by the function is discarded. To receive an ANSI string as an output parameter, follow this example:</p>
@@ -87,7 +87,7 @@ str := StrGet(buf, "cp0")  <em>; Retrieve ANSI string from buffer.</em>
     <p>See <a href="../Compat.htm#DllCall">Binary Compatibility</a> for equivalent Win32 types and other details.</p>
   </td>
 </tr>
-<tr>
+<tr id="Int64">
   <td>Int64<br><code>Int64</code></td>
   <td>
     <p>A 64-bit integer, whose range is -9223372036854775808 (-0x8000000000000000) to 9223372036854775807 (0x7FFFFFFFFFFFFFFF).</p>
@@ -97,52 +97,47 @@ str := StrGet(buf, "cp0")  <em>; Retrieve ANSI string from buffer.</em>
 <tr id="Int">
   <td>Int<br><code>Int32</code></td>
   <td>
-    <p>A 32-bit integer (the most common integer type), whose range is -2147483648 (-0x80000000) to 2147483647 (0x7FFFFFFF). An Int is sometimes called a "Long".</p>
-    <p>An Int should also be used for each BOOL argument expected by a function (a BOOL value should be either 1 or 0).</p>
-    <p>An <a href="#unsigned">unsigned</a> Int (UInt) is also used quite frequently, such as for DWORD.</p>
+    <p>A 32-bit integer (the most common integer type), whose range is -2147483648 (-0x80000000) to 2147483647 (0x7FFFFFFF). An Int is sometimes called a "Long". An Int should also be used for each BOOL argument expected by a function (a BOOL value should be either 1 or 0). An <a href="#unsigned">unsigned</a> Int (UInt) is also used quite frequently, such as for DWORD.</p>
     <p><span class="ver">[v2.1-alpha.23+]</span>: <code>Int32</code> is supported.</p>
   </td>
 </tr>
-<tr>
+<tr id="Short">
   <td>Short<br><code>Int16</code></td>
   <td>
     <p>A 16-bit integer, whose range is -32768 (-0x8000) to 32767 (0x7FFF). An <a href="#unsigned">unsigned</a> Short (UShort) can be used with functions that expect a WORD.</p>
     <p><span class="ver">[v2.1-alpha.23+]</span>: <code>Int16</code> is supported.</p>
   </td>
 </tr>
-<tr>
+<tr id="Char">
   <td>Char<br><code>Int8</code></td>
   <td>
     <p>An 8-bit integer, whose range is -128 (-0x80) to 127 (0x7F). An <a href="#unsigned">unsigned</a> character (UChar) can be used with functions that expect a BYTE.</p>
     <p><span class="ver">[v2.1-alpha.23+]</span>: <code>Int8</code> is supported.</p>
   </td>
 </tr>
-<tr>
+<tr id="Float">
   <td>Float<br><code>Float32</code></td>
   <td>
     <p>A 32-bit floating point number, which provides 6 digits of precision.</p>
     <p><span class="ver">[v2.1-alpha.23+]</span>: <code>Float32</code> is supported.</p>
   </td>
 </tr>
-<tr>
+<tr id="Double">
   <td>Double<br><code>Float64</code></td>
   <td>
     <p>A 64-bit floating point number, which provides 15 digits of precision.</p>
     <p><span class="ver">[v2.1-alpha.23+]</span>: <code>Float64</code> is supported.</p>
   </td>
 </tr>
-<tr id="ptr">
-  <td>Ptr<br><code>IntPtr</code></td>
-  <td><p>A <a href="../Variables.htm#PtrSize">pointer-sized</a> integer, equivalent to Int or Int64 depending on whether the exe running the script is 32-bit or 64-bit. <i>Ptr</i> should be used for pointers to arrays or structures (such as RECT* or LPPOINT) and almost all handles (such as HWND, HBRUSH or HBITMAP). If the parameter is a pointer to a single numeric value such as LPDWORD or int*, generally the * or P suffix should be used instead of "Ptr".</p>
+<tr id="Ptr">
+  <td><span id="ptr"></span>Ptr<br><code>IntPtr</code></td>
+  <td><p>A <a href="../Variables.htm#PtrSize">pointer-sized</a> integer, equivalent to <a href="#Int">Int</a> or <a href="#Int64">Int64</a> depending on whether the exe running the script is 32-bit or 64-bit. Ptr should be used for pointers to arrays or structures (such as RECT* or LPPOINT) and almost all handles (such as HWND, HBRUSH or HBITMAP). If the parameter is a pointer to a single numeric value such as LPDWORD or Int*, generally the * or P suffix should be used instead of Ptr.</p>
   <p><span class="ver">[v2.1-alpha.22+]</span>: More specific <a href="../Structs.htm#pointers">pointer classes</a> should typically be used for pointers to structures.</p>
   <p><span class="ver">[v2.1-alpha.23+]</span>: <code>IntPtr</code> is equivalent to "Ptr". UIntPtr is not supported.</p>
-  <p>If an object is passed to a Ptr parameter, the value of the object's <code class="no-highlight">Ptr</code> property is used. If no such property exists, a <a href="Error.htm#PropertyError">PropertyError</a> is thrown. Typically the object would be a <a href="Buffer.htm">Buffer</a>.</p>
-  <p>If an object is passed to a Ptr* parameter, the value of the object's <code class="no-highlight">Ptr</code> property is retrieved before the call and the address of a temporary variable containing this value is passed to the function. After the function returns, the new value is assigned back to the object's <code class="no-highlight">Ptr</code> property.</p>
-  <p><i>Ptr</i> can also be used with the * or P suffix; it should be used with functions that output a pointer via LPVOID* or similar.</p>
-  <p><i>UPtr</i> is also valid, with the following limitations:</p>
-  <ul>
-    <li>It is only unsigned in 32-bit builds as AutoHotkey does not support unsigned 64-bit integers.</li>
-    <li>Objects are not permitted.</li>
+  <p>Ptr can also be used with the * or P suffix; it should be used with functions that output a pointer via LPVOID* or similar.</p>
+  <p>If an object is passed to a Ptr parameter, the value of the object's Ptr property is used. If no such property exists, a <a href="Error.htm#PropertyError">PropertyError</a> is thrown. Typically the object would be a <a href="Buffer.htm">Buffer</a>.</p>
+  <p>If an object is passed to a <a href="#asterisk">Ptr*</a> parameter, the value of the object's Ptr property is retrieved before the call and the address of a temporary variable containing this value is passed to the function. After the function returns, the new value is assigned back to the object's Ptr property.</p>
+  <p>An <a href="#unsigned">unsigned</a> pointer (UPtr) is also valid, with the following limitations: 1) It is only unsigned in 32-bit builds as AutoHotkey does not support unsigned 64-bit integers, and 2) objects are not permitted.</li>
   </ul>
   <p class="note"><strong>Note:</strong> To pass a <strong>NULL</strong> handle or pointer, pass the integer 0.</p></td>
 </tr>
@@ -150,9 +145,9 @@ str := StrGet(buf, "cp0")  <em>; Retrieve ANSI string from buffer.</em>
   <td>* or P<br>
     <code>.Ptr</code><br>
     (suffix)</td>
-  <td><p>Append an asterisk (with optional preceding space) to any of the above types to cause the address of the argument to be passed rather than the value itself (the called function must be designed to accept it). Since the value of such an argument might be modified by the function, whenever a <a href="../Concepts.htm#variable-references">VarRef</a> is passed as the argument, the variable's contents will be updated after the function returns. For example, the following call would pass the contents of MyVar to MyFunction by address, but would also update MyVar to reflect any changes made to it by MyFunction: <code>DllCall("MyDll\MyFunction", "Int*", &amp;MyVar)</code>.</p>
-    <p>In general, an asterisk is used whenever a function has an argument type or return type that starts with "LP". The most common example is LPDWORD, which is a pointer to a DWORD. Since a DWORD is an unsigned 32-bit integer, use "UInt*" or "UIntP" to represent LPDWORD. An asterisk should not be used for string types such as LPTSTR, pointers to structures such as LPRECT, or arrays; for these, <a href="#str">"Str"</a> or <a href="#ptr">"Ptr"</a> should be used, depending on whether you pass a string, address or <a href="Buffer.htm">Buffer</a>.</p>
-    <p class="note"><strong>Note:</strong> "Char*" is not the same as <a href="#str">"Str"</a> because "Char*" passes the address of an 8-bit number, whereas <a href="#str">"Str"</a> passes the address of a series of characters, which may be either 16-bit (Unicode) or 8-bit (for "AStr"), depending on the version of AutoHotkey. Similarly, "UInt*" passes the address of a 32-bit number, so should not be used if the function expects an array of values or a structure larger than 32 bits.</p>
+  <td><p>Append an asterisk or the letter P (both with optional preceding space) to any of the above types to cause the address of the argument to be passed rather than the value itself (the called function must be designed to accept it). Since the value of such an argument might be modified by the function, whenever a <a href="../Concepts.htm#variable-references">VarRef</a> is passed as the argument, the variable's contents will be updated after the function returns. For example, the following call would pass the contents of MyVar to MyFunction by address, but would also update MyVar to reflect any changes made to it by MyFunction: <code>DllCall("MyDll\MyFunction", "Int*", &amp;MyVar)</code>.</p>
+    <p>In general, an asterisk/P suffix is used whenever a function has an argument type or return type that starts with "LP". The most common example is LPDWORD, which is a pointer to a DWORD. Since a DWORD is an unsigned 32-bit integer, use <a href="#asterisk">UInt*</a> or <a href="#asterisk">UIntP</a> to represent LPDWORD. An asterisk/P suffix should not be used for string types such as LPTSTR, pointers to structures such as LPRECT, or arrays; for these, <a href="#Str">Str</a> or <a href="#Ptr">Ptr</a> should be used, depending on whether you pass a string, address or <a href="Buffer.htm">Buffer</a>.</p>
+    <p class="note"><strong>Note:</strong> <a href="#asterisk">Char*</a> is not the same as <a href="#Str">Str</a> because <a href="#asterisk">Char*</a> passes the address of an 8-bit number, whereas <a href="#Str">Str</a> passes the address of a series of characters, which may be either 16-bit (Unicode) or 8-bit (for <a href="#AStr">AStr</a>), depending on the version of AutoHotkey. Similarly, <a href="#asterisk">UInt*</a> passes the address of a 32-bit number, so should not be used if the function expects an array of values or a structure larger than 32 bits.</p>
     <p>Since variables in AutoHotkey have no fixed type, the address passed to the function points to temporary memory rather than the caller's variable.</p>
     <p><span class="ver">[v2.1-alpha.22+]</span>: A <a href="../Structs.htm#pointers">pointer class</a> has similar usage and can be used for structs.</p>
     <p><span class="ver">[v2.1-alpha.23+]</span>: Each <a href="../Structs.htm#numeric-types">numeric type class</a> has its own pointer class, which is equivalent to the corresponding type string. For example, <code>Int32.Ptr</code> is equivalent to <code>"int*"</code>.</p>
@@ -160,9 +155,9 @@ str := StrGet(buf, "cp0")  <em>; Retrieve ANSI string from buffer.</em>
 </tr>
 <tr id="unsigned">
   <td>U (prefix)</td>
-  <td><p>Prepend the letter U to any of the integer types above to interpret it as an unsigned integer (UInt64, UInt, UShort, and UChar). Strictly speaking, this is necessary only for return values and <a href="#asterisk">asterisk variables</a> because it does not matter whether an argument passed by value is unsigned or signed (except for Int64).</p>
-    <p>If a negative integer is specified for an unsigned argument, the integer wraps around into the unsigned domain. For example, when -1 is sent as a UInt, it would become 0xFFFFFFFF.</p>
-    <p><em>Unsigned</em> 64-bit integers produced by a function are not supported. Therefore, to work with numbers greater or equal to 0x8000000000000000, omit the U prefix and interpret any negative values received from the function as large integers. For example, a function that yields -1 as an Int64 is really yielding 0xFFFFFFFFFFFFFFFF if it is designed to yield a UInt64.</p>
+  <td><p>Prepend the letter U to any of the integer types above to interpret it as an unsigned integer (<a href="#unsigned">UInt64</a>, <a href="#unsigned">UInt</a>, <a href="#unsigned">UShort</a>, <a href="#unsigned">UChar</a>, and <a href="#unsigned">UPtr</a>). Strictly speaking, this is necessary only for return values and <a href="#asterisk">asterisk variables</a> because it does not matter whether an argument passed by value is unsigned or signed (except for <a href="#Int64">Int64</a>).</p>
+    <p>If a negative integer is specified for an unsigned argument, the integer wraps around into the unsigned domain. For example, when -1 is sent as a <a href="#unsigned">UInt</a>, it would become 0xFFFFFFFF.</p>
+    <p><em>Unsigned</em> 64-bit integers produced by a function are not supported. Therefore, to work with numbers greater or equal to 0x8000000000000000, omit the U prefix and interpret any negative values received from the function as large integers. For example, a function that yields -1 as an <a href="#Int64">Int64</a> is really yielding 0xFFFFFFFFFFFFFFFF if it is designed to yield a <a href="#unsigned">UInt64</a>.</p>
     </td>
 </tr>
 <tr id="HRESULT">
@@ -196,15 +191,15 @@ str := StrGet(buf, "cp0")  <em>; Retrieve ANSI string from buffer.</em>
   <li><a href="Error.htm#OSError">OSError</a>: The <a href="#HRESULT">HRESULT</a> return type was used and the function returned an error value (as defined by the <a href="https://learn.microsoft.com/windows/win32/api/winerror/nf-winerror-failed">FAILED macro</a>). <code>Exception.Extra</code> contains the hexadecimal error code.</li>
   <li><a href="Error.htm#TypeError">TypeError</a>: The <em>[DllFile\]Function</em> parameter is a floating point number. A string or positive integer is required.</li>
   <li><a href="Error.htm#ValueError">ValueError</a>: The <a href="#types">return type</a> or one of the specified <a href="#types">arg types</a> is invalid.</li>
-  <li><a href="Error.htm#TypeError">TypeError</a>: An argument was passed a value of an unexpected type. For instance, an <a href="../Variables.htm#Expressions">expression</a> that evaluates to a number was passed to a string (<a href="#str">str</a>) argument, a non-numeric string was passed to a numeric argument, or an object was passed to an argument <em>not</em> of type <a href="#ptr">Ptr</a>.</li>
+  <li><a href="Error.htm#TypeError">TypeError</a>: An argument was passed a value of an unexpected type. For instance, an <a href="../Variables.htm#Expressions">expression</a> that evaluates to a number was passed to a string (<a href="#Str">Str</a>) argument, a non-numeric string was passed to a numeric argument, or an object was passed to an argument <em>not</em> of type <a href="#Ptr">Ptr</a>.</li>
   <li><a href="Error.htm">Error</a>: The specified <em>DllFile</em> could not be accessed or loaded. If no explicit path was specified for <em>DllFile</em>, the file must exist in the system's PATH or <a href="../Variables.htm#WorkingDir">A_WorkingDir</a>. This error might also occur if the user lacks permission to access the file, or if AutoHotkey is 32-bit and the DLL is 64-bit or vice versa.</li>
   <li><a href="Error.htm">Error</a>: The specified function could not be found inside the DLL.</li>
-  <li><a href="Error.htm">Error</a>: The function was called but it aborted with a fatal exception. <code>Exception.Extra</code> contains the exception code. For example, 0xC0000005 means "access violation". In such cases, the thread is aborted (if <a href="Try.htm">try</a> is not used), but any <a href="#asterisk">asterisk variables</a> are still updated. An example of a fatal exception is dereferencing an invalid pointer such as NULL (0). Since a <a href="#cdecl">Cdecl</a> or x64 function never produces the error described in the next paragraph, it may generate an exception when too few arguments are passed to it.</li>
-  <li><a href="Error.htm">Error</a>: The function was called but was passed too many or too few arguments. <code>Exception.Extra</code> contains the number of bytes by which the argument list was incorrect. If it is positive, too many arguments (or arguments that were too large) were passed, or (prior to <span class="ver">[v2.1-alpha.2]</span>) the call requires <a href="#cdecl">CDecl</a>. If it is negative, too few arguments were passed. This situation should be corrected to ensure reliable operation of the function. The presence of this error may also indicate that an exception occurred. Note that due to the x64 calling convention, 64-bit builds never raise this error.</li>
+  <li><a href="Error.htm">Error</a>: The function was called but it aborted with a fatal exception. <code>Exception.Extra</code> contains the exception code. For example, 0xC0000005 means "access violation". In such cases, the thread is aborted (if <a href="Try.htm">Try</a> is not used), but any <a href="#asterisk">asterisk variables</a> are still updated. An example of a fatal exception is dereferencing an invalid pointer such as NULL (0). Since a <a href="#CDecl">CDecl</a> or x64 function never produces the error described in the next paragraph, it may generate an exception when too few arguments are passed to it.</li>
+  <li><a href="Error.htm">Error</a>: The function was called but was passed too many or too few arguments. <code>Exception.Extra</code> contains the number of bytes by which the argument list was incorrect. If it is positive, too many arguments (or arguments that were too large) were passed, or (prior to <span class="ver">[v2.1-alpha.2]</span>) the call requires <a href="#CDecl">CDecl</a>. If it is negative, too few arguments were passed. This situation should be corrected to ensure reliable operation of the function. The presence of this error may also indicate that an exception occurred. Note that due to the x64 calling convention, 64-bit builds never raise this error.</li>
 </ul>
 
 <h2 id="except">Native Exceptions and A_LastError</h2>
-<p>In spite of the built-in exception handling, it is still possible to crash a script with DllCall. This can happen when a function does not directly generate an exception but yields something inappropriate, such as a bad pointer or a string that is not terminated. This might not be the function's fault if the script passed it an unsuitable value such as a bad pointer or a <a href="#str">"str"</a> with insufficient capacity. A script can also crash when it specifies an inappropriate argument type or return type, such as claiming that an ordinary integer yielded by a function is an <a href="#asterisk">asterisk variable</a> or <a href="#str">str</a>.</p>
+<p>In spite of the built-in exception handling, it is still possible to crash a script with DllCall. This can happen when a function does not directly generate an exception but yields something inappropriate, such as a bad pointer or a string that is not terminated. This might not be the function's fault if the script passed it an unsuitable value such as a bad pointer or a <a href="#Str">Str</a> with insufficient capacity. A script can also crash when it specifies an inappropriate argument type or return type, such as claiming that an ordinary integer yielded by a function is an <a href="#asterisk">asterisk variable</a> or <a href="#Str">Str</a>.</p>
 <p>The built-in variable <a href="../Variables.htm#LastError">A_LastError</a> contains the result of the operating system's GetLastError() function.</p>
 
 <h2 id="load">Performance</h2>
@@ -219,7 +214,7 @@ MulDivProc := DllCall("GetProcAddress", "Ptr", DllCall("GetModuleHandle", "Str",
 Loop 500
     DllCall(MulDivProc, "Int", 3, "Int", 4, "Int", 3)</pre>
 <p>If DllCall's first parameter is a literal string such as <code>"MulDiv"</code> and the DLL containing the function is ordinarily loaded before the script starts, or has been successfully loaded with <a href="_DllLoad.htm">#DllLoad</a>, the string is automatically resolved to a function address. This built-in optimization is more effective than the example shown above.</p>
-<p>Finally, when passing a string-variable to a function that will not change the length of the string, performance is improved by passing the variable <a href="StrPtr.htm">by address</a> (e.g. <code>StrPtr(MyVar)</code>) rather than as a "<a href="#str">str</a>" (especially when the string is very long). The following example converts a string to uppercase: <code>DllCall("CharUpper", "<strong>Ptr</strong>", StrPtr(MyVar), "Ptr")</code>.</p>
+<p>Finally, when passing a string-variable to a function that will not change the length of the string, performance is improved by passing the variable <a href="StrPtr.htm">by address</a> (e.g. <code>StrPtr(MyVar)</code>) rather than as a <a href="#Str">Str</a> (especially when the string is very long). The following example converts a string to uppercase: <code>DllCall("CharUpper", "<strong>Ptr</strong>", StrPtr(MyVar), "Ptr")</code>.</p>
 
 <h2 id="struct">Structures and Arrays</h2>
 <p>A structure is a collection of <em>members</em> (fields) stored adjacently in memory. Most members tend to be integers.</p>
@@ -227,17 +222,17 @@ Loop 500
 <p>Functions that accept the address of a structure (or a memory-block array) can be called by allocating memory by some means and passing the memory address to the function. The <a href="Buffer.htm">Buffer</a> object is recommended for this purpose. The following steps are generally used:</p>
 <p>1) Call <code>MyStruct := Buffer(123, 0)</code> to allocate a buffer to hold the structure's data. Replace <code>123</code> with a number that is at least as large as the size of the structure, in bytes. Specifying zero as the last parameter is optional; it initializes all members to be binary zero, which is typically used to avoid calling NumPut as often in the next step.</p>
 <p>2) If the target function uses the values initially in the structure, call <code><a href="NumPut.htm">NumPut</a>("UInt", 123, MyStruct, 4)</code> to initialize any members that should be non-zero. Replace <code>123</code> with the integer to be put into the target member (or specify <code>StrPtr(Var)</code> to store the address of a string). Replace <code>4</code> with the offset of the target member (see step #4 for description of "offset"). Replace <code>"UInt"</code> with the appropriate type, such as <code>"Ptr"</code> if the member is a pointer or handle.</p>
-<p>3) Call the target function, passing <em>MyStruct</em> as a Ptr argument. For example, <code>DllCall("MyDll\MyFunc", "Ptr", MyStruct)</code>. The function will examine and/or change some of the members. DllCall automatically uses the address of the buffer, which is normally retrieved by using <code>MyStruct.Ptr</code>.</p>
+<p>3) Call the target function, passing <em>MyStruct</em> as a <a href="#Ptr">Ptr</a> argument. For example, <code>DllCall("MyDll\MyFunc", "Ptr", MyStruct)</code>. The function will examine and/or change some of the members. DllCall automatically uses the address of the buffer, which is normally retrieved by using <code>MyStruct.Ptr</code>.</p>
 <p>4) Use <code>MyInteger := <a href="NumGet.htm">NumGet</a>(MyStruct, 4, "UInt")</code> to retrieve any desired integers from the structure. Replace <code>4</code> with the offset of the target member in the structure. The first member is always at offset 0. The second member is at offset 0 plus the size of the first member (typically 4). Members beyond the second are at the offset of the previous member plus the size of the previous member. Most members -- such as DWORD, Int, and <a href="#Int">other types of 32-bit integers</a> -- are 4 bytes in size. Replace <code>"UInt"</code> with the appropriate type, such as <code>"Ptr"</code> if the member is a pointer or handle.</p>
 <p>See <a href="#ExStruct">Structure Examples</a> for actual usages.</p>
 
 <h2 id="limits">Known Limitations</h2>
-<p>When a variable's string address (e.g. <code>StrPtr(MyVar)</code>) is passed to a function and that function alters the length of the variable's contents, subsequent uses of the variable may behave incorrectly. To fix this, do one of the following: 1) Pass <em>MyVar</em> as a <a href="#str">"Str"</a> argument rather than as a Ptr/address; 2) Call <code><a href="VarSetStrCapacity.htm#neg1">VarSetStrCapacity</a>(&amp;MyVar, -1)</code> to update the variable's internally-stored length after calling DllCall.</p>
+<p>When a variable's string address (e.g. <code>StrPtr(MyVar)</code>) is passed to a function and that function alters the length of the variable's contents, subsequent uses of the variable may behave incorrectly. To fix this, do one of the following: 1) Pass <em>MyVar</em> as a <a href="#Str">Str</a> argument rather than as a <a href="#Ptr">Ptr</a>; 2) Call <code><a href="VarSetStrCapacity.htm#neg1">VarSetStrCapacity</a>(&amp;MyVar, -1)</code> to update the variable's internally-stored length after calling DllCall.</p>
 <p>Any binary zero stored in a variable by a function may act as a terminator, preventing all data to the right of the zero from being accessed or changed by most built-in functions. However, such data can be manipulated by retrieving the string's address with <a href="StrPtr.htm">StrPtr</a> and passing it to other functions, such as <a href="NumPut.htm">NumPut</a>, <a href="NumGet.htm">NumGet</a>, <a href="StrGet.htm">StrGet</a>, <a href="StrPut.htm">StrPut</a>, and DllCall itself.</p>
 <p>A function that returns the address of one of the strings that was passed into it might return an identical string in a different memory address than expected. For example calling <code>CharLower(CharUpper(MyVar))</code> in a programming language would convert <em>MyVar</em>'s contents to lowercase. But when the same is done with DllCall, <em>MyVar</em> would be uppercase after the following call because CharLower would have operated on a different/temporary string whose contents were identical to <em>MyVar</em>:</p>
 <pre>MyVar := "ABC"
 result := DllCall("CharLower", "<strong><u>Str</u></strong>", DllCall("CharUpper", "Str", MyVar, "<strong><u>Str</u></strong>"), "Str")</pre>
-<p>To work around this, change the two underlined "Str" values above to Ptr. This interprets CharUpper's return value as a pure address that will get passed as an integer to CharLower.</p>
+<p>To work around this, change the two underlined Str values above to Ptr. This interprets CharUpper's return value as a pure address that will get passed as an integer to CharLower.</p>
 <p>Certain limitations may be encountered when dealing with strings. For details, see <a href="../Compat.htm#DllCall">Binary Compatibility</a>.</p>
 
 <h2 id="COM">Component Object Model (COM)</h2>
@@ -273,7 +268,7 @@ if not DllCall("IsWindowVisible", "Ptr", WinExist("Untitled - Notepad"))  <em>; 
 <div class="ex" id="ExWsprintf">
 <p><a class="ex_number" href="#ExWsprintf"></a> Calls the API's wsprintf() to pad the number 432 with leading zeros to make it 10 characters wide (0000000432).</p>
 <pre>ZeroPaddedNumber := Buffer(20)  <em>; Ensure the buffer is large enough to accept the new string.</em>
-DllCall("wsprintf", "Ptr", ZeroPaddedNumber, "Str", "%010d", "Int", 432, "Cdecl")  <em>; Requires the Cdecl calling convention.</em>
+DllCall("wsprintf", "Ptr", ZeroPaddedNumber, "Str", "%010d", "Int", 432, "CDecl")  <em>; Requires the CDecl calling convention.</em>
 MsgBox StrGet(ZeroPaddedNumber)
 
 <em>; Alternatively, use the <a href="Format.htm">Format</a> function in conjunction with the zero flag:</em>
@@ -390,7 +385,7 @@ SystemCursor(cmd)  <em>; cmd = "Show|Hide|Toggle|Reload"</em>
                 , "Int", 32, "Int", 32
                 , "Ptr", Buffer(32*4, 0xFF)
                 , "Ptr", Buffer(32*4, 0))
-            c[id] := {<span class="no-highlight">default</span>: h_default, blank: h_blank}
+            c[id] := {default: h_default, blank: h_blank}
         }
     }
     switch cmd
