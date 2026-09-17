@@ -20,9 +20,10 @@
 <p><code class="no-highlight">&m=mode</code> is optional and defaults to mode #1 (index).</p>
 <script>
   (function () {
-    const pQuery = getUrlParam('q');
-    const pMode = (Number(getUrlParam('m')) || 1);
-    const fallback_link = (new host.setupToolbarTools).tool.home.link;
+    cache.init();
+    const pQuery = getUrlParamFromSearchOrHash('q');
+    const pMode = (Number(getUrlParamFromSearchOrHash('m')) || 1);
+    const fallback_link = site.scriptDir + '/../';
     switch (pMode) {
       case 1: useIndexTab(); break;
       case 2: useSearchTab(); break;
@@ -33,7 +34,8 @@
       if (!site.waitForDataDocs(useIndexTab)) return;
       if (!site.waitForDataIndex(useIndexTab)) return;
       if (!site.waitForDataTranslate(useIndexTab)) return;
-      const items = (new host.setupSidebarTabsPageIndex).createList(cache.index_data, -1);
+      const index = new host.setupSidebarTabsPageIndex;
+      const items = index.createList(cache.index_data, -1);
       const match = items.find(function (item) {
         return item.label.toLowerCase().indexOf(input) === 0;
       });
@@ -44,9 +46,20 @@
       const input = cache.search_input = pQuery;
       cache.forced = {selectedTab: 2};
       if (!site.waitForDataSearch(useSearchTab)) return;
-      const items = (new host.setupSidebarTabsPageSearch).createList([input]);
+      const search = new host.setupSidebarTabsPageSearch;
+      const items = search.createList(search.convertInputToArray(input));
       window.location = items.length ? items[0].href : fallback_link;
       cache.save();
+    }
+    function getUrlParamFromSearchOrHash(name) {
+      return getUrlParam(name) || getUrlParamFromHash(name);
+    }
+    function getUrlParamFromHash(name) { // for CHM
+      const params = window.location.hash.substring(1).split('&');
+      const match = params.find(function (param) { return param.split('=')[0] === name; });
+      if (!match) return undefined;
+      const value = match.split('=')[1];
+      return value ? decodeURIComponent(value) : true;
     }
   })();
 </script>
