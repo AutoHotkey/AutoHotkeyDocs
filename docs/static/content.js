@@ -577,10 +577,9 @@ function setupSiteHost() {
     };
     tools.tool.home = new function() {
       const tool = this;
-      tool.link = location.protocol + '//' + location.host;
       tool.init = function() {
         tool.element = tools.element.querySelector('.home');
-        tool.element.firstChild.href = tool.link;
+        tool.element.firstChild.href = location.protocol + '//' + location.host;
       };
     };
     tools.tool.language = new function() {
@@ -1177,18 +1176,18 @@ function setupSiteHost() {
     };
     search.updateList = function() {
       const input = cache.update('search_input', search.edit.value);
-      const input_array = cache.update('search_input_array', convertInputToArray(input));
+      const input_array = cache.update('search_input_array', search.convertInputToArray(input));
       search.list.removeItems();
       search.edit.setMatchStateColor(null);
       if (!input_array) return;
       search.list.addItems(search.createList(input_array));
       search.list.selectItemByIndex(0);
       search.edit.setMatchStateColor(!!(search.list.items.length));
-      function convertInputToArray(input) {
-        input = input.toLowerCase().replace(/^ +| +$| +(?= )|\+/, ''); // Normalize whitespace.
-        if (input == '') return null;
-        return input.split(' ').filter(Boolean); // Split and remove undefined or empty strings.
-      };
+    };
+    search.convertInputToArray = function(input) {
+      input = input.toLowerCase().replace(/^ +| +$| +(?= )|\+/, ''); // Normalize whitespace.
+      if (input == '') return null;
+      return input.split(' ').filter(Boolean); // Split and remove undefined or empty strings.
     };
     search.createList = function(terms) {
       const list = [], PartialIndex = {}, RESULT_LIMIT = 50;
