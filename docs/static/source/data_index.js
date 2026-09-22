@@ -606,6 +606,7 @@ indexData = [
   ["Focus method (Gui.Control)", "lib/GuiControl.htm#Focus", 7],
   ["Focused property (Gui.Control)", "lib/GuiControl.htm#Focused", 7],
   ["FocusedCtrl property (Gui)", "lib/Gui.htm#FocusedCtrl", 7],
+  ["FontHandle property (Gui)", "lib/Gui.htm#FontHandle", 7],
   ["folder/directory copy", "lib/DirCopy.htm"],
   ["folder/directory create", "lib/DirCreate.htm"],
   ["folder/directory move", "lib/DirMove.htm"],
