@@ -3,7 +3,8 @@ docsData = {
   VERSION: "v2",
   PRE_RELEASE: true,
   TOOL_LANGUAGE_ITEMS: [
-    ["en", "https://www.autohotkey.com/docs/alpha/", "English"]
+    ["en", "https://www.autohotkey.com/docs/alpha/", "English"],
+    ["de", "https://ahkde.github.io/docs/pre/", "Deutsch (German)"]
   ],
   TOOL_VERSION_ITEMS: [
     ["v1", "https://www.autohotkey.com/docs/v1/", "AutoHotkey v1.1"],
