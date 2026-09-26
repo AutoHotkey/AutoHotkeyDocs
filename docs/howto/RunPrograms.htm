@@ -27,36 +27,39 @@
 Run "notepad C:\Program Files\AutoHotkey\license.txt"
 </pre>
 <p class="note"><strong>Note:</strong> This example assumes AutoHotkey is installed in the default location, and will show an error otherwise.</p>
-<p>Simple, right? Now suppose that we want to open the file in WordPad instead of Notepad.</p>
-<pre>Run "wordpad C:\Program Files\AutoHotkey\license.txt"</pre>
+<p>Simple, right? Now suppose that we want to open the file in the Microsoft browser instead of Notepad.</p>
+<pre>Run "iexplore C:\Program Files\AutoHotkey\license.txt"</pre>
 <p>Run this code and see what you can learn from the result.</p>
 <p>Okay, so the new code doesn't work. Hopefully you didn't dismiss the error dialog immediately; error dialogs are a normal part of the process of coding, and often contain very useful information. This one should tell us a few things:</p>
 <ul>
   <li>Firstly, the obvious: the program couldn't be launched.</li>
   <li>The dialog shows "Action" and "Params", but our whole command line is shown next to "Action", and "Params" is empty. In other words, the Run function doesn't know where the program name ends and the parameters begin.</li>
-  <li>"The system cannot find the file specified" (on English-language systems). Perhaps the system couldn't find "wordpad", but what it's really saying is that there is no such file as "wordpad C:\...".</li>
+  <li>"The system cannot find the file specified" (on English-language systems). Perhaps the system couldn't find "iexplore", but what it's really saying is that there is no such file as "iexplore C:\...".</li>
 </ul>
-<p>But why did Notepad work? Running either "notepad" or "wordpad" on its own works, but for different reasons. Unlike notepad.exe, wordpad.exe cannot be found by checking each directory listed in the PATH environment variable. It can be located by a different method, which requires the Run function to separate the program name and parameters.</p>
+<p>But why did Notepad work? Running either "notepad" or "iexplore" on its own works, but for different reasons. Unlike notepad.exe, iexplore.exe cannot be found by checking each directory listed in the PATH environment variable. It can be located by a different method, which requires the Run function to separate the program name and parameters.</p>
 <p>So in this case, the Run function needs a bit of help, in any or all of the following forms:</p>
 <ul>
   <li>Explicitly use the ".exe" extension.</li>
-  <li>Explicitly use the full path of wordpad.exe.</li>
+  <li>Explicitly use the full path of iexplore.exe.</li>
   <li>Enclose the program name in quotation marks.</li>
 </ul>
-<p>For now, go with the easiest option:</p>
-<pre>Run "wordpad.exe C:\Program Files\AutoHotkey\license.txt"</pre>
-<p>Now WordPad launches, but it shows an error: "C:\Program" wasn't found.</p>
+<p>Go with the easiest option:</p>
+<pre>Run "iexplore.exe C:\Program Files\AutoHotkey\license.txt"</pre>
+<p>The Microsoft browser now launches successfully and displays the file.</p>
+<p>However, some programs still fail to open a path containing spaces. For example, the following code would report that "C:\Program.png" was not found:</p>
+<pre>Run "mspaint C:\Program Files\AutoHotkey\UX\inc\spy.ico"</pre>
+<p>See the next section on how to handle this.</p>
 
 <h2 id="Quote_Marks_and_Spaces">Quote Marks and Spaces</h2>
-<p>Often when passing command-line parameters to a program, it is necessary to enclose each parameter in quote marks if the parameter contains a space. This wasn't necessary with Notepad, but Notepad is an exception to the general rule. A naive attempt at a solution might be to simply add more quote marks:</p>
-<pre>Run "wordpad.exe "C:\Program Files\AutoHotkey\license.txt""</pre>
+<p>Often when passing command-line parameters to a program, it is necessary to enclose each parameter in quote marks if the parameter contains a space. This wasn't necessary with "notepad" or "iexplore", but those are exceptions to the general rule. A naive attempt at a solution might be to simply add more quote marks:</p>
+<pre>Run "mspaint "C:\Program Files\AutoHotkey\UX\inc\spy.ico""</pre>
 <p>But this won't work, because by default, quote marks are used to denote the start and end of literal text. So how do we include a literal quote mark within the command line, rather than having it end the command line?</p>
 <p><strong>Method 1:</strong> Precede each literal quote mark with <code class="no-highlight">`</code> (back-tick, back-quote or grave accent). This is known as an <a href="../misc/EscapeChar.htm">escape sequence</a>. The quote mark is then included in the command line (i.e. the string that is passed to the Run function), whereas the back-tick, having fulfilled its purpose, is left out.</p>
-<pre>Run "wordpad.exe `"C:\Program Files\AutoHotkey\license.txt`""</pre>
+<pre>Run "mspaint `"C:\Program Files\AutoHotkey\UX\inc\spy.ico`""</pre>
 <p><strong>Method 2:</strong> Enclose the command line in single quotes instead of double quotes.</p>
-<pre>Run 'wordpad.exe "C:\Program Files\AutoHotkey\license.txt"'</pre>
+<pre>Run 'mspaint "C:\Program Files\AutoHotkey\UX\inc\spy.ico"'</pre>
 <p>Of course, in that case any <em>literal</em> single quotes (or apostrophes) in the text would need to be escaped (<code class="no-highlight">`'</code>).</p>
-<p>How you write the code affects which quote marks actually make it through to the Run function. In the two examples above, the Run function receives the string <code class="no-highlight">wordpad.exe "C:\Program Files\AutoHotkey\license.txt"</code>. The Run function either splits this into a <em>program name</em> and <em>parameters</em> (everything else) or leaves that up to the system. In either case, how the remaining quote marks are interpreted depends entirely on the target program.</p>
+<p>How you write the code affects which quote marks actually make it through to the Run function. In the two examples above, the Run function receives the string <code class="no-highlight">mspaint "C:\Program Files\AutoHotkey\UX\inc\spy.ico"</code>. The Run function either splits this into a <em>program name</em> and <em>parameters</em> (everything else) or leaves that up to the system. In either case, how the remaining quote marks are interpreted depends entirely on the target program.</p>
 <p>Many programs treat a quote mark as part of the parameter if it is preceded by a backslash. For example, <code>Run 'my.exe "A\" B'</code> might produce a parameter with the value <code class="no-highlight">A" B</code> instead of two parameters. This is up to the program, and can usually be avoided by doubling the backslash, as in <code>Run 'my.exe "A\\" B'</code>, which usually produces two parameters (<code class="no-highlight">A\</code> and <code class="no-highlight">B</code>).</p>
 <p>Most programs interpret quote marks as a sort of toggle, switching modes between "space ends the parameter" and "space is included in the parameter". In other words, <code>Run 'my.exe "A B"'</code> is generally equivalent to <code>Run 'my.exe A" "B'</code>. So another way to avoid issues with slashes is to quote the <em>spaces</em> instead of the entire parameter, or end the quote before the slash, as in <code>Run 'my.exe "A"\ B'</code>.</p>
 
