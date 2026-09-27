@@ -271,9 +271,10 @@ if MsgBox("Retry or cancel?",, "R/C") = "Retry"
 <p>If the <code class="no-highlight">Owner<i>HWND</i></code> option is specified, it takes precedence over any other setting. <i>HWND</i> can be the <a href="../misc/WinTitle.htm#ahk_id">HWND</a> of any window, even one not owned by the script.</p>
 <p><strong>The Help button:</strong> When the Help button option (16384) is present in <em>Options</em>, pressing the Help button will have no effect unless both of the following are true:</p>
 <ol>
-  <li>The message box is owned by a GUI window by means of the <a href="Gui.htm#OwnDialogs">OwnDialogs option</a>.</li>
+  <li>The message box is owned by either the script's hidden <a href="../Program.htm#main-window">main window</a> (via the <a href="#OwnerOption">Owner option</a>) or a GUI window (via the <a href="Gui.htm#OwnDialogs">OwnDialogs option</a>).</li>
   <li>The script is monitoring the WM_HELP message (0x0053). For example: <code><a href="OnMessage.htm">OnMessage</a>(0x0053, WM_HELP)</code>. When the WM_HELP function is called, it may guide the user by means such as showing another window or message box.</li>
 </ol>
+<p>See <a href="#ExHelpBtn">example #8</a> for a demonstration.</p>
 <p><strong>The Close button (in the message box's title bar):</strong> Since the message box is a built-in feature of the operating system, its X button is enabled only when certain buttons are present. If there is only an OK button, clicking the X button is the same as pressing OK. Otherwise, the X button is disabled unless there is a Cancel button, in which case clicking the X is the same as pressing Cancel.</p>
 <p id="max"><strong>Maximum 7 ongoing calls:</strong> The <a href="../misc/Threads.htm">thread</a> displaying a message box can typically be interrupted, allowing the new thread to display its own message box before the previous call returns. A maximum of 7 ongoing calls to MsgBox are permitted, but any calls beyond the 7th cause an <a href="Error.htm">Error</a> to be thrown. Note that a call to MsgBox in an interrupted thread cannot return until the thread is resumed.</p>
 
@@ -331,6 +332,31 @@ MsgBox "The initial value is: " var
 MsgBox "The result is: " var * 2
 MsgBox <a href="Format.htm">Format</a>("The result is: {1}", var * 2)
 </pre>
+</div>
+
+<div class="ex" id="ExHelpBtn">
+<p><a class="ex_number" href="#ExHelpBtn"></a> Shows how to make the <a href="#Help">Help button</a> functional using the <a href="#OwnerOption">Owner option</a> or the <a href="Gui.htm#OwnDialogs">Gui OwnDialogs option</a>.</p>
+<pre>OnMessage(0x0053, WM_HELP)
+MsgBox("Press the Help button.", "Help button test", "0x4000 Owner" A_ScriptHwnd)
+WM_HELP(*)
+{
+    MsgBox "Help button pressed."
+}</pre>
+<pre>OnMessage(0x0053, WM_HELP)
+MyGui := Gui()
+MyGui.Add("Button",, "Show MsgBox").OnEvent("Click", ShowMsgBox)
+MyGui.Show()
+
+ShowMsgBox(*)
+{
+    MyGui.Opt("+OwnDialogs")
+    MsgBox("Press the Help button.", "Help button test", 0x4000)
+}
+
+WM_HELP(*)
+{
+    MsgBox "Help button pressed."
+}</pre>
 </div>
 </body>
 </html>
