@@ -1,32 +1,60 @@
 #Requires AutoHotkey v2 ; prefer 32-bit
 
-; Change this path if the loop below doesn't find your hhc.exe,
-; or leave it as-is if hhc.exe is somewhere in %PATH%.
-hhc := "hhc.exe"
+CreateIndexHHK()
+; ForceClassicSidebar()
+CompileCHM()
 
-; Try to find hhc.exe, since it's not in %PATH% by default.
-for env_var in ["ProgramFiles", "ProgramFiles(x86)", "ProgramW6432"]
+GetCompilerPath()
 {
-    Programs := EnvGet(env_var)
-    if (Programs && FileExist(checking := Programs "\HTML Help Workshop\hhc.exe"))
+    ; Change this path if the loop below doesn't find your hhc.exe,
+    ; or leave it as-is if hhc.exe is somewhere in %PATH%.
+    path := "hhc.exe"
+
+    ; Try to find hhc.exe, since it's not in %PATH% by default.
+    for i, env_var in ["ProgramFiles", "ProgramFiles(x86)", "ProgramW6432"]
     {
-        hhc := checking
-        break
+        Programs := EnvGet(env_var)
+        if (Programs && FileExist(checking := Programs "\HTML Help Workshop\hhc.exe"))
+        {
+            path := checking
+            break
+        }
+    }
+
+    return path
+}
+
+CreateIndexHHK()
+{
+    IndexJS := FileRead("docs\static\source\data_index.js")
+    Overwrite("Index.hhk", INDEX_CreateHHK(IndexJS))
+}
+
+CompileCHM()
+{
+    try
+        RunWait(Format('{1} "{2}\Project.hhp"', GetCompilerPath(), A_ScriptDir))
+    catch as e {
+        msg := e.message "`n`nTo generate the CHM file, HTML Help Workshop needs to be installed."
+        try FileAppend(msg, "*")
+        OnMessage(0x0053, (*) => Run("compiler\readme.txt"))
+        btn := MsgBox(msg "`n`nDo you want to install it now?",, "YN 0x4000 Owner" A_ScriptHwnd)
+        if (btn = "yes")
+        {
+            RunWait("compiler\htmlhelp.exe")
+            CompileCHM()
+        }
     }
 }
 
-IndexJS := FileRead("docs\static\source\data_index.js")
-Overwrite("Index.hhk", INDEX_CreateHHK(IndexJS))
-
-; Uncomment the following lines to use the old sidebar:
-; Overwrite("docs\static\content.js", "var site = { init: function() {} };")
-; TocJS := FileRead("docs\static\source\data_toc.js")
-; Overwrite("Table of Contents.hhc", TOC_CreateHHC(TocJS))
-; IniWrite("Table of Contents.hhc", "Project.hhp", "OPTIONS", "Contents file")
-; IniWrite("AutoHotkey v2 Help,Table of Contents.hhc,Index.hhk,docs\index.htm,docs\index.htm,,,,,0x73520,,0x10200e,[200,0,1080,700],0,,,,0,,0", "Project.hhp", "WINDOWS", "Contents")
-
-; Compile AutoHotkey.chm.
-RunWait(hhc ' "' A_ScriptDir '\Project.hhp"')
+ForceClassicSidebar()
+{
+    Overwrite("docs\static\content.js", "var site = { init: function() {} };")
+    TocJS := FileRead("docs\static\source\data_toc.js")
+    Overwrite("Table of Contents.hhc", TOC_CreateHHC(TocJS))
+    IniWrite("Table of Contents.hhc", "Project.hhp", "OPTIONS", "Contents file")
+    IniWrite("AutoHotkey v2 Help,Table of Contents.hhc,Index.hhk,docs\index.htm,docs\index.htm,,,,,0x73520,,0x10200e,[200,0,1080,700],0,,,,0,,0", "Project.hhp", "WINDOWS", "Contents")
+}
 
 Overwrite(File, Text)
 {
