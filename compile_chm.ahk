@@ -1,15 +1,7 @@
+#Requires AutoHotkey v1 ; prefer 32-bit
 #NoEnv
-#SingleInstance Force
 SetBatchLines, -1
 SetWorkingDir %A_ScriptDir%
-
-if (A_PtrSize = 8) {
-    try
-        RunWait "%A_AhkPath%\..\AutoHotkeyU32.exe" "%A_ScriptFullPath%"
-    catch
-        MsgBox 16,, This script must be run with AutoHotkey 32-bit, due to use of the ScriptControl COM component.
-    ExitApp
-}
 
 CreateIndexHHK()
 ; ForceClassicSidebar()
@@ -43,8 +35,10 @@ CreateIndexHHK()
 
 CompileCHM()
 {
-    try
+    try {
         RunWait % Format("{1} ""{2}\Project.hhp""", GetCompilerPath(), A_ScriptDir)
+        ExitApp
+    }
     catch e {
         msg := e.message "`n`nTo generate the CHM file, HTML Help Workshop needs to be installed."
         FileAppend % msg, "*"
