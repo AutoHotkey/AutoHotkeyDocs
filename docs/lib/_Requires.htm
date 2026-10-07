@@ -39,13 +39,27 @@
 <pre class="no-highlight">Line Text: #Requires <i>%Requirement%</i>
 Error: This line does not contain a recognized action.</pre>
 
-<h2 id="CompatMode">Compatibility Mode <span class="ver">[v2.1-alpha.28+]</span></h2>
-<p>Specifying one or more version requirements also sets the compatibility mode for the script. v2.0-compatible mode is enabled if version "2.0.x" would meet the requirements, otherwise it is disabled. If the directive is not used, v2.0 mode is used by default. Using the directive without a version requirement does not affect the mode.</p>
-<p>The first version directive used within a module sets the runtime mode for all startup code in that module across all files.</p>
+<h2 id="CompatMode">Compatibility Mode <span class="ver">[v2.1-alpha.34+]</span></h2>
+<p>Specifying a version requirement (or multiple requirements in one directive) may also set the compatibility mode for the current module and subsequent functions. v2.0-compatible mode is enabled if version "2.0.x" would meet the requirements, otherwise it is disabled. If the directive is not used, v2.0 mode is used by default. Using the directive without a version requirement does not affect the mode.</p>
+<p class="warning"><strong>Note:</strong> Runtime behavior depends on the mode of the current module or function, not the position of the directive in relation to the current line or file.</p>
+<p>The first version directive used within each module sets the runtime mode for all startup code in that module across all files.</p>
+<p>Version directives are parsed at load time to determine the mode for subsequent function or method definitions.</p>
 <p><a href="_Module.htm">#Module</a> sets the default mode of the new module to that of the __Init module.</p>
-<p>Version directives may be used throughout the code to set the runtime mode for any subsequent function definitions. Using the directive inside a function only affects nested functions; the mode reverts at the end of the function. This allows a v2.0 function to be placed inside a v2.1 function.</p>
-<p>Mode changes put into effect by a version directive inside an <a href="_Include.htm">#Include</a> file are reverted at the end of the file. This allows a v2.1 script to #include a v2.0 function or class library. However, any code not inside a function (i.e. startup code) operates in the mode set for the current module. v2.0 libraries can instead be loaded via <a href="_Import.htm">#Import</a> for maximum compatibility.</p>
+<p>Version directives are scoped to the current module, file and function. In other words:</p>
+<ul>
+  <li>Using the directive inside a module only affects other modules if it is the first directive, as described above.</li>
+  <li>Using the directive inside an include file does not affect the outer module or any functions defined in the outer file.</li>
+  <li>Using the directive inside a function only affects nested functions.</li>
+</ul>
+<p>Correct use of version directives can allow code written for different versions to be mixed in one script.</p>
+<ul>
+  <li>A v2.1 module or function can safely contain v2.0 functions.</li>
+  <li>A v2.0 file containing only function and class definitions can be safely included in a v2.1 module with <a href="_Include.htm">#Include</a>.</li>
+  <li>A script originally written for v2.0 can be gradually updated one function at a time. New functions can take advantage of v2.1 mode while leaving the rest of the script in v2.0 mode.</li>
+  <li>v2.0 and v2.1 modes cannot be mixed within the global/startup code of a single module, even if the code originates from multiple files. As a general rule, it is safest to separate v2.0 files from v2.1 files by keeping them in separate modules.</li>
+</ul>
 <p>For details of how the mode affects the script's behaviour, see <a href="../v2.1-changes.htm#CompatMode">Compatibility Mode (Changes)</a>.</p>
+<p>The <a href="#ExCompatMode">compatibility mode example</a> below demonstrates how version directives affect compatibility mode.</p>
 
 <h2 id="Remarks">Remarks</h2>
 <p>As the <a href="../Program.htm#launcher">launcher</a> enables the use of v1 and v2 scripts on one system, it is recommended that you add at least <code>#Requires AutoHotkey v1</code> for v1 scripts and <code>#Requires AutoHotkey v2</code> for v2 scripts. This will ensure that the correct version is used to run the script.</p>
@@ -87,6 +101,61 @@ MsgBox "This script will run only on v2.0, including alpha releases."</pre>
 <div class="ex" id="ExVerBuild">
 <p><a class="ex_number" href="#ExVerBuild"></a> Causes the script to run only with a 64-bit interpreter (EXE) version 2.0-rc.2 or later.</p>
 <pre>#Requires AutoHotkey v2.0-rc.2 64-bit</pre>
+</div>
+
+<div class="ex" id="ExCompatMode">
+<p><a class="ex_number" href="ExCompatMode"></a> Demonstrates how version directives affect <a href="#CompatMode">compatibility mode</a>. </p>
+<pre>
+<em>; This essential line sets the mode for the current module (__Main).</em>
+#Requires AutoHotkey v2.1-alpha.33
+
+<em>; Use try-catch to detect the mode.  Base returns "" in v2.0 mode and unset in v2.1 mode.
+; ?? is not used here because it works for "blank-unset" return values in both modes.</em>
+try
+    MsgBox Type(Any.Prototype.Base), "Main #1"
+catch UnsetError
+    MsgBox "UnsetError", "Main #1"
+
+<em>; Try swapping these two directives around to see how it affects CompatibleLib's initialization.</em>
+#Import "CompatibleLib.ahk" {CompatibleFunc}
+<em>; #Include "CompatibleLib.ahk"</em>
+
+CompatibleFunc()
+MainFunc()
+
+<em>; Directives in any #Include above have no effect on this module.</em>
+try
+    MsgBox Type(Any.Prototype.Base), "Main #2"
+catch UnsetError
+    MsgBox "UnsetError", "Main #2"
+
+MainFunc() {
+    try
+        MsgBox Type(Any.Prototype.Base), "MainFunc"
+    catch UnsetError
+        MsgBox "UnsetError", "MainFunc"
+}
+</pre>
+<p>CompatibleLib.ahk:</p>
+<pre filename="CompatibleLib.ahk">
+#Requires AutoHotkey v2.0
+
+<em>; When #included in a v2.1 module, the following throws an error.</em>
+try
+    MsgBox Type(Any.Prototype.Base), "CompatibleLib"
+catch UnsetError
+    MsgBox "UnsetError", "CompatibleLib"
+
+<em>; The function below always uses v2.0 mode, due to the directive above.</em>
+CompatibleFunc() {
+    try
+        MsgBox Type(Any.Prototype.Base), "CompatibleFunc"
+    catch UnsetError
+        MsgBox "UnsetError", "CompatibleFunc"
+}
+</pre>
+</div>
+
 </div>
 
 </body>
