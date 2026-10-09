@@ -1235,6 +1235,7 @@ indexData = [
   ["UInt8", "Structs.htm#numeric-types", 6],
   ["Uncheck method (Menu)", "lib/Menu.htm#Uncheck", 7],
   ["uninitialized variables", "Concepts.htm#uninitialized-variables"],
+  ["union", "Structs.htm#classdef-union", 5, "", true],
   ["Unset", "Language.htm#unset", 1],
   ["UnsetError", "lib/Error.htm#UnsetError", 6],
   ["UnsetItemError", "lib/Error.htm#UnsetError", 6],
