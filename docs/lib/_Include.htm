@@ -35,11 +35,12 @@
   <dt>&lt;LibName&gt;</dt>
   <dd>
     <p>Type: <a href="../Concepts.htm#strings">String</a></p>
-    <p>A library file or function name. For example, <code>#Include &lt;lib&gt;</code> and <code>#Include &lt;lib_func&gt;</code> would both include lib.ahk from one of the <a href="../Scripts.htm#lib">Lib folders</a>. Variable references are not allowed.</p>
+    <p>A library file name. For example, <code>#Include &lt;lib&gt;</code> would include lib.ahk from one of several locations. Variable references are not allowed. Refer to <a href="../Scripts.htm#lib">Script Library Folders</a> for details about how the name is resolved to a file, including some differences between v2.0 and v2.1.</p>
     <p>A subdirectory can be specified, with the caveat that the first underscore may be interpreted as a delimiter as described under <a href="../Scripts.htm#lib">Script Library Folders</a>, e.g. <code>#Include &lt;a_b\c&gt;</code> will try a.ahk if a_b\c.ahk is not found.</p>
   </dd>
 
 </dl>
+
 <h2 id="Remarks">Remarks</h2>
 <p>A script behaves as though the included file's contents are physically present at the exact position of the #Include directive (as though a copy-and-paste were done from the included file). Consequently, it generally cannot merge two isolated scripts together into one functioning script.</p>
 <p>#Include ensures that the specified file is included only once, even if multiple inclusions are encountered for it. By contrast, #IncludeAgain allows multiple inclusions of the same file, while being the same as #Include in all other respects.</p>
@@ -66,6 +67,29 @@
 <div class="ex" id="ExDir2">
 <p><a class="ex_number" href="#ExDir2"></a> Same as above but for an explicitly named directory.</p>
 <pre>#Include "C:\My Scripts"</pre>
+</div>
+
+<div class="ex" id="ExCompat">
+<p><a class="ex_number" href="#ExCompat"></a> Utilizes modules to resolve a conflict between two libraries with the same name.</p>
+<pre filename="Main.ahk"><em>; Main.ahk</em>
+#Requires AutoHotkey v2.1-alpha.35
+#Import "v2.0\Script2.ahk"
+#Include &lt;MyLib&gt;
+MyLib("Main.ahk")
+</pre>
+<pre filename="MyLib.ahk"><em>; Lib\MyLib.ahk</em>
+#Requires AutoHotkey v2.1-alpha.35
+MyLib(s) =&gt; MsgBox(A_LineFile, s)
+</pre>
+<pre filename="Script2.ahk"><em>; v2.0\Script2.ahk</em>
+#Requires AutoHotkey v2.0
+#Include &lt;MyLib&gt;
+MyLib("Script2.ahk")
+</pre>
+<pre filename="MyLib.ahk"><em>; v2.0\Lib\MyLib.ahk</em>
+#Requires AutoHotkey v2.0
+MyLib(s) =&gt; MsgBox(A_LineFile, s)
+</pre>
 </div>
 
 </body>
