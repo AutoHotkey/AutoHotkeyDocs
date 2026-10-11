@@ -180,7 +180,7 @@ function ctor_highlighter()
     /** Searches for declarations, formats them and replaces them with placeholders. */
     function declarations(innerHTML)
     {
-      innerHTML = innerHTML.replace(new RegExp(r.pre + '\\b(' + syn[5].join('|') + ')(?:(' + r.s + '+)(' + r.name + '.*))?' + r.suf, 'gim'), function(_, PRE, DEC, SPACE, VAL)
+      innerHTML = innerHTML.replace(new RegExp(r.pre + '\\b(' + syn[5].join('|') + ')(?:(' + r.s + '+)(' + r.name + '.*))?(?=(?=' + r.s + '*\\{)|' + r.suf + ')', 'gim'), function(_, PRE, DEC, SPACE, VAL)
       {
         var repl = wrap(DEC, 'dec', 5);
         if (VAL)
