@@ -205,32 +205,6 @@ function ctor_highlighter()
         var link = index_data[syn[5].dict['class']][1];
         return PRE + ph('cfs', wrap(ACCESSOR, 'dec', link));
       });
-      // import declarations:
-      innerHTML = innerHTML.replace(new RegExp(r.pre + '\\b(import)(?:$|'
-        + '(' + r.s + '+)(' + r.name + '|(?:("|\').*?\\5)+)(?:(' + r.s + '+)(as)(' + r.s + '+)(' + r.name + '))?(?:(' + r.s + '*)(\\{[\\s\\S]+?\\}))?' + r.suf + '|'
-        + '(' + r.s + '+)(\\*|\\{[\\s\\S]+?\\})(' + r.s + '*)(from)(' + r.s + '+)(' + r.name + '|(?:("|\').*?\\9)+)' + r.suf
-        + ')', 'gim'), function(_, PRE, IMPORT,
-          SPACE11, VAL11, _, SPACE12, AS, SPACE13, VAL12, SPACE14, VAL13,
-          SPACE21, VAL21, SPACE22, FROM, SPACE23, VAL22, _)
-      {
-        var link = index_data[syn[5].dict['import']][1];
-        var repl = wrap(IMPORT, 'dec', link);
-        if (VAL11)
-        {
-          repl += SPACE11 + expressions(VAL11);
-          if (AS)
-            repl += SPACE12 + wrap(AS, 'dec', link) + SPACE13 + expressions(VAL12);
-          if (VAL13)
-            repl += SPACE14 + expressions(highlight_as(VAL13));
-        }
-        else if (FROM)
-          repl += SPACE21 + expressions(highlight_as(VAL21)) + SPACE22 + wrap(FROM, 'dec', link) + SPACE23 + expressions(VAL22);
-        return PRE + ph('dec', repl);
-
-        function highlight_as(str) {
-          return str.replace(/\bas\b/gi, function(m) { return ph('dec', wrap(m, 'dec', link)) });
-        }
-      });
       return innerHTML;
     }
     /** Searches for directives, formats them and replaces them with placeholders. */

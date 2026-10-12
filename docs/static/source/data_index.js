@@ -719,7 +719,7 @@ indexData = [
   ["IL_Destroy", "lib/ListView.htm#IL_Destroy", 2],
   ["Image Lists (GUI)", "lib/ListView.htm#IL"],
   ["ImageSearch", "lib/ImageSearch.htm", 2],
-  ["import", "lib/_Import.htm", 5, "", true],
+  ["import modules", "lib/_Import.htm"],
   ["in", "Variables.htm#is_in_contains", 4],
   ["in (For)", "lib/For.htm"],
   ["Include", "lib/_Include.htm"],
