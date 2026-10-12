@@ -555,6 +555,7 @@ indexData = [
   ["Exit", "lib/Exit.htm", 2],
   ["ExitApp", "lib/ExitApp.htm", 2],
   ["Exp", "lib/Math.htm#Exp", 2],
+  ["Export (#Import)", "lib/_Import.htm#Export"],
   ["expressions", "Variables.htm#Expressions"],
   ["extends", "Objects.htm#Custom_Classes"],
   ["Extra property (Error)", "lib/Error.htm#Extra", 7],
