@@ -236,13 +236,17 @@ function ctor_highlighter()
     /** Searches for directives, formats them and replaces them with placeholders. */
     function directives(innerHTML)
     {
-      return innerHTML.replace(new RegExp(r.pre + '(' + syn[0].join('|') + ')\\b($|' + r.s + '|(?=' + r.cont + '))(.*?)' + r.suf, 'gim'), function(_, PRE, DIR, SEP, PARAMS)
+      return innerHTML.replace(new RegExp(r.pre + '(' + syn[0].join('|') + ')\\b($|' + r.s + '+|(?=' + r.cont + '))(.*?)' + r.suf, 'gim'), function(_, PRE, DIR, SEP, PARAMS)
       {
         var dir = DIR.toLowerCase();
         var types = index_data[syn[0].dict[dir]][3]; // parameter types
         PARAMS = param_list_to_array(PARAMS);
         PARAMS = merge_excess_params(PARAMS, types);
         PARAMS = param_array_to_list(PARAMS, types);
+        if (dir == '#import')
+          PARAMS = PARAMS.replace(/^export\b/i, function(m) {
+            return ph('dec', wrap(m, 'dec', null));
+          })
         return PRE + ph('dir', wrap(DIR, 'dir', 0) + SEP + PARAMS);
       });
     }
