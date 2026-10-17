@@ -110,6 +110,7 @@ var features = new ctor_features;
 var docs = {dataPath: scriptDir + '/source/data_docs.js'};
 var translate = {dataPath: scriptDir + '/source/data_translate.js'};
 var deprecate = {dataPath: scriptDir + '/source/data_deprecate.js'};
+var syntax = {dataPath: scriptDir + '/source/data_syntax.js'};
 
 scriptElement.insertAdjacentHTML('afterend', structure.metaViewport);
 var isPhone = (document.documentElement.clientWidth <= 600);
@@ -1859,12 +1860,12 @@ function ctor_features()
     var docs_path = scriptDir + '/../';
     if (typeof highlighter == 'undefined')
     {
-      if (!retrieveData(index.dataPath, "index_data", "indexData", function() { self.addSyntaxColors(pres); }))
+      if (!retrieveData(syntax.dataPath, "syntax_data", "syntaxData", function() { self.addSyntaxColors(pres); }))
         return;
-      loadScript(scriptDir + '/highlighter/highlighter.js', function() { highlighter.addSyntaxColors(pres, cache.index_data, docs_path, false); });
+      loadScript(scriptDir + '/highlighter/highlighter.js', function() { highlighter.addSyntaxColors(pres, cache.syntax_data, docs_path, false); });
     }
     else
-      highlighter.addSyntaxColors(pres, cache.index_data, docs_path, false);
+      highlighter.addSyntaxColors(pres, cache.syntax_data, docs_path, false);
   };
 
   // --- Add footer at the bottom of the site ---
