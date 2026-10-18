@@ -247,6 +247,11 @@ function setupSite() {
       ['docs_data', 'docsData']
     ], caller, args);
   };
+  site.waitForDataSyntax = function(caller, args) {
+    return site.waitForData(site.urlBase + '/static/source/data_syntax.js', [
+      ['syntax_data', 'syntaxData']
+    ], caller, args);
+  };
 }
 
 function setupCache() {
@@ -1616,13 +1621,13 @@ function setupSiteFrameContent() {
   // Add syntax highlighting for AutoHotkey code:
   content.addSyntaxColors = function(pres) {
     if (typeof highlighter == 'undefined') {
-      if (!site.waitForDataIndex(content.addSyntaxColors, arguments)) return;
+      if (!site.waitForDataSyntax(content.addSyntaxColors, arguments)) return;
       site.loadScript(site.urlBase + '/static/highlighter/highlighter.js', function() {
-        highlighter.addSyntaxColors(pres, cache.index_data, site.urlBase + '/', false);
+        highlighter.addSyntaxColors(pres, cache.syntax_data, site.urlBase + '/', false);
       });
     }
     else
-      highlighter.addSyntaxColors(pres, cache.index_data, site.urlBase + '/', false);
+      highlighter.addSyntaxColors(pres, cache.syntax_data, site.urlBase + '/', false);
   };
   // Add copyright and licence information at the bottom of the page:
   content.addFooter = function() {
