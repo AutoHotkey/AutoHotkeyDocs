@@ -1,0 +1,91 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+<title>ObjCreateWithDataPtr - Syntax &amp; Usage | AutoHotkey v2</title>
+<meta name="description" content="The ObjCreateWithDataPtr function creates an object with an internal data pointer." />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<link href="../static/theme.css" rel="stylesheet" />
+<link href="../static/dark.css" rel="stylesheet" media="(prefers-color-scheme: dark)" id="dark_css" />
+<script src="../static/content.js" id="content_js"></script>
+</head>
+<body><script>site.init();</script>
+
+
+<h1>ObjCreateWithDataPtr <span class="ver">[v2.1-alpha.36+]</span></h1>
+
+<p>Creates an object with an internal data pointer.</p>
+
+<pre class="Syntax">Obj := <span class="func">ObjCreateWithDataPtr</span>(ClassObj, Address)</pre>
+<h2 id="Parameters">Parameters</h2>
+<dl>
+  <dt>ClassObj</dt>
+  <dd>
+    <p>Type: <a href="../Concepts.htm#objects">Object</a></p>
+    <p>A <a href="Class.htm">Class</a> object which supports direct construction.</p>
+  </dd>
+  <dt>Address</dt>
+  <dd>
+    <p>Type: <a href="../Concepts.htm#numbers">Integer</a></p>
+    <p>A number in the native integer range (32-bit or 64-bit). If <em>ClassObj</em> defines typed properties, the value must be either zero or a compatible memory address.</p>
+  </dd>
+</dl>
+
+<h2 id="Return_Value">Return Value</h2>
+<p>Type: <a href="../Concepts.htm#objects">Object</a> or <a href="Struct.htm">Struct</a></p>
+<p>The return value is an object derived from <code>ClassObj.Prototype</code>.</p>
+
+<h2 id="Error_Handling">Error Handling</h4>
+<p>An exception is thrown if <em>ClassObj</em> is unsupported.</p>
+<p>Passing an invalid non-zero address may cause program instability if <em>ClassObj</em> defines any typed properties.</p>
+
+<h2 id="Remarks">Remarks</h2>
+<p>Consider all alternatives before using this function. It is intended for specific unusual cases such as:</p>
+<ul>
+  <li>Implementing abstractions for function pointers, interface pointers, handles and similar, where <em>Obj</em> itself represents the pointer or handle value, like a <a href="../Structs.htm#Boxed_Pointer">boxed pointer</a>, but with <a href="../Objects.htm#Custom_NewDelete">__Delete</a> enabled.</li>
+  <li>Creating a non-struct object whose typed properties reference memory outside the object itself.</li>
+</ul>
+<p>This function should not be used merely to bypass an overridden static Call method. Within the method, call <code>super()</code> or <code>super.Call()</code> to construct an instance. An overridden method can also be bypassed by explicitly invoking its superclass version, as in <code>(Object.Call)(ClassObj)</code>.</p>
+<p>Unlike <a href="Class.htm#Call">ClassObj.Call</a>, this function creates an object without calling <a href="../Objects.htm#Custom_Classes_var">__Init</a> or <a href="../Objects.htm#Custom_NewDelete">__New</a>, but the script can call them manually if desired. If __Init is not called, instance variable initializers are not executed. The end result is similar to an expression like <code>{Base: ClassObj.Prototype}</code>, except that a wider range of classes are supported.</p>
+<p>Unlike <a href="Struct.htm#At">StructClass.At</a>, __Delete is called when the object is deleted.</p>
+<p>The object's data pointer can be retrieved with <a href="Object.htm#ObjGetDataPtr">ObjGetDataPtr</a> and set with <a href="Object.htm#ObjSetDataPtr">ObjSetDataPtr</a>. If <em>ClassObj</em> is a struct class, it can also be retrieved with <a href="Struct.htm#Ptr">Obj.Ptr</a>.</p>
+
+<h2 id="Examples">Examples</h2>
+
+<div class="ex" id="ExCallback">
+<p><a class="ex_number" href="#ExCallback"></a> Create a reference-counted callback.</p>
+<pre>#Requires AutoHotkey v2.1-alpha.36
+
+myCallback := CCallback(() =&gt; MsgBox("Callback was called"))
+
+<em>; Callback can be assigned to a pointer field.</em>
+sample := SampleStruct()
+sample.callback := myCallback
+
+<em>; Just to show we don't need to keep this reference:</em>
+myCallback := unset
+
+<em>; Call the callback (a better example would pass it via struct to an API).</em>
+DllCall(NumGet(sample, IntPtr))
+
+sample := unset
+MsgBox "Variables have been unset"
+
+struct SampleStruct {
+    callback : CCallback.Ptr
+}
+
+struct CCallback {
+    static Call(args*) {
+        cb := CallbackCreate(args*)
+        MsgBox "Creating callback " cb
+        return ObjCreateWithDataPtr(this, cb)
+    }
+    __delete() {
+        MsgBox "Deleting callback " this.ptr
+        CallbackFree(this.ptr)
+    }
+}</pre>
+
+</body>
+</html>
