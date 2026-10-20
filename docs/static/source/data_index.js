@@ -916,6 +916,7 @@ indexData = [
   ["Obey directive (Ahk2Exe)", "misc/Ahk2ExeDirectives.htm#Obey", 99],
   ["ObjAddRef", "lib/ObjAddRef.htm", 2],
   ["ObjBindMethod", "lib/ObjBindMethod.htm", 2],
+  ["ObjCreateWithDataPtr", "lib/ObjCreateWithDataPtr.htm", 2],
   ["Object", "lib/Object.htm", 6],
   ["Object", "lib/Object.htm#Call", 2],
   ["object literal", "Objects.htm#object-literal"],

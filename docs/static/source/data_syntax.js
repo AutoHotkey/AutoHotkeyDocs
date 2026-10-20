@@ -380,6 +380,7 @@ syntaxData = [
     ["NumPut", "lib/NumPut.htm"],
     ["ObjAddRef", "lib/ObjAddRef.htm"],
     ["ObjBindMethod", "lib/ObjBindMethod.htm"],
+    ["ObjCreateWithDataPtr", "lib/ObjCreateWithDataPtr.htm"],
     ["Object", "lib/Object.htm#Call"],
     ["ObjFromPtr", "Objects.htm#ObjFromPtr"],
     ["ObjFromPtrAddRef", "Objects.htm#ObjFromPtr"],
