@@ -7,28 +7,16 @@ function ctor_highlighter()
 {
   /**
    * Adds syntax highlighting for AutoHotkey code.
-   *
-   * An index item counts as a syntax element if its third field is one of the following digits:
-   * - 0 = directive
-   * - 1 = built-in var
-   * - 2 = built-in function
-   * - 3 = control flow statement
-   * - 4 = operator
-   * - 5 = declaration
-   * - 6 = command
-   * - 7 = sub-command
-   * - 8 = built-in method/property
-   * - 99 = Ahk2Exe compiler
    * @param {NodeList} codes - A list of `<pre>` or `<code>` elements.
-   * @param {array} index_data - An array of arrays of strings (data_index.js).
+   * @param {array} syntax_data - A list of items sorted by type (data_syntax.js).
    * @param {string} docs_path - The path to the docs.
    * @param {boolean} new_tab - If true, the link opens in a new tab.
    */
-  this.addSyntaxColors = function(codes, index_data, docs_path, new_tab)
+  this.addSyntaxColors = function(codes, syntax_data, docs_path, new_tab)
   {
     if (!-[1,]) // Exclude Internet Explorer 8 or below
       return;
-    var s, r, syn = sort_syntax_by_type(index_data);
+    var s, r, syn = process_syntax_data(syntax_data);
     // Traverse pre elements:
     for (var i = 0; i < codes.length; i++)
     {
@@ -201,13 +189,13 @@ function ctor_highlighter()
       {
         if (resolve_placeholders(CLASS, 'dec', true).toLowerCase() != 'class')
           return ASIS;
-        var link = index_data[syn[5].dict['class']][1];
+        var link = syn[5].dict['class'][1];
         return ph('dec', wrap(CLASS, 'dec', link) + SPACE1 + expressions(NAME1) + SPACE2 + wrap(EXTENDS, 'dec', link) + SPACE3 + expressions(NAME2));
       });
       // class's accessor definitions:
       innerHTML = innerHTML.replace(new RegExp(r.pre + '\\b(get|set)\\b(?=(?=' + r.s + '*\\{)|' + r.suf + ')', 'gim'), function(_, PRE, ACCESSOR)
       {
-        var link = index_data[syn[5].dict['class']][1];
+        var link = syn[5].dict['class'][1];
         return PRE + ph('cfs', wrap(ACCESSOR, 'dec', link));
       });
       return innerHTML;
@@ -218,7 +206,7 @@ function ctor_highlighter()
       return innerHTML.replace(new RegExp(r.pre + '(' + syn[0].join('|') + ')\\b($|[\\t ' + r.delim + ']|' + r.s + '*(?=' + r.cont + '))(.*?)' + r.suf, 'gim'), function(_, PRE, DIR, SEP, PARAMS)
       {
         var dir = DIR.toLowerCase();
-        var types = index_data[syn[0].dict[dir]][3]; // parameter types
+        var types = syn[0].dict[dir][2]; // parameter types
         PARAMS = param_list_to_array(PARAMS, types.indexOf('E') != -1);
         PARAMS = merge_excess_params(PARAMS, types);
         PARAMS = param_array_to_list(PARAMS, types);
@@ -233,7 +221,7 @@ function ctor_highlighter()
         if (CFS) // control flow statements:
         {
           var cfs = CFS.toLowerCase(), out, link;
-          var types = index_data[syn[3].dict[cfs]][3]; // parameter types
+          var types = syn[3].dict[cfs][2]; // parameter types
           if (SEP == '(')
             if (cfs == 'if' || cfs == 'while')
               return PRE + ph('cfs', wrap(CFS, 'cfs', 3)) + expressions(SEP + PARAMS);
@@ -248,19 +236,19 @@ function ctor_highlighter()
           {
             if (m = PARAMS.match(new RegExp('^(' + r.s + '*?)(' + r.name_legacy + '?)(' + r.s + '*?)(&gt;=|>=|&gt;|>|&lt;&gt;|<>|&lt;=|<=|&lt;|<|!=|=)(' + r.s + '*?)(.*?)$', 'i')))
             {
-              link = index_data[syn[3].dict['ifequal']][1];
+              link = syn[3].dict['ifequal'][1];
               out = wrap(CFS, 'cfs', link) + SEP + m[1] + expressions(m[2]) + m[3] + operators(m[4]) + m[5] + param_array_to_list([m[6]], 'S');
               return PRE + ph('cfs', out);
             }
             else if (m = PARAMS.match(new RegExp('^(' + r.s + '*?)(' + r.name_legacy + '?)(' + r.s + '+?)((?:not' + r.s + '+?)?(?:between))(' + r.s + '+?)(.*?)(' + r.s + '+?)(and)(' + r.s + '+?)(.*?)$', 'i')))
             {
-              link = index_data[syn[3].dict['if between']][1];
+              link = syn[3].dict['if between'][1];
               out = wrap(CFS, 'cfs', link) + SEP + m[1] + expressions(m[2]) + m[3] + wrap(m[4], 'cfs', link) + m[5] + param_array_to_list([m[6]], 'S') + m[7] + wrap(m[8], 'cfs', link) + m[9] + param_array_to_list([m[10]], 'S');
               return PRE + ph('cfs', out);
             }
             else if (m = PARAMS.match(new RegExp('^(' + r.s + '*?)(' + r.name_legacy + '?)(' + r.s + '+?)((?:not' + r.s + '+?)?(in|contains)|(is)(?:' + r.s + '+?not)?)(' + r.s + '+?)(.*?)$', 'i')))
             {
-              link = index_data[syn[3].dict['if ' + (m[5] || m[6]).toLowerCase()]][1];
+              link = syn[3].dict['if ' + (m[5] || m[6]).toLowerCase()][1];
               out = wrap(CFS, 'cfs', link) + SEP + m[1] + expressions(m[2]) + m[3] + wrap(m[4], 'cfs', link) + m[7] + param_array_to_list([m[8]], 'S');
               return PRE + ph('cfs', out);
             }
@@ -279,7 +267,7 @@ function ctor_highlighter()
           {
             if (m = PARAMS.match(new RegExp('^(' + r.s + '*(?:' + r.delim + r.s + '*)?' + r.name + '?(?:' + r.s + '*' + r.delim + r.s + '*' + r.name + '?)*(?:' + r.s + '*' + r.delim + ')?)(' + r.s + '+)(in)(' + r.s + ')(.+)$', 'i')))
             {
-              link = index_data[syn[3].dict['for']][1];
+              link = syn[3].dict['for'][1];
               out = wrap(CFS, 'cfs', link) + SEP + expressions(m[1]) + m[2] + wrap(m[3], 'cfs', link) + m[4] + expressions(m[5]);
               return PRE + ph('cfs', out);
             }
@@ -293,8 +281,8 @@ function ctor_highlighter()
             if (PARAMS.length > 1 && (m = PARAMS[0].match(new RegExp('^' + r.s + '*(files|parse|read|reg)' + r.s + '*$', 'i'))))
             {
               var subcfs = PARAMS.shift();
-              var entry = index_data[syn[3].dict['loop, ' + m[1].toLowerCase()]];
-              PARAMS = param_array_to_list(PARAMS, entry[3]);
+              var entry = syn[3].dict['loop, ' + m[1].toLowerCase()];
+              PARAMS = param_array_to_list(PARAMS, entry[2]);
               out = wrap(CFS, 'cfs', entry[1]) + operators(SEP) + wrap(subcfs, 'cfs', entry[1]) + wrap(r.delim, 'opr', null) + PARAMS;
               return PRE + ph('cfs', out);
             }
@@ -311,7 +299,7 @@ function ctor_highlighter()
         else if (CMD) // commands:
         {
           var cmd = CMD.toLowerCase();
-          var types = index_data[syn[6].dict[cmd]][3]; // parameter types
+          var types = syn[6].dict[cmd][2]; // parameter types
           if (SEP == '(')
             return ASIS;
           PARAMS = param_list_to_array(PARAMS, types.indexOf('E') != -1);
@@ -649,7 +637,7 @@ function ctor_highlighter()
         if (new_tab)
           a.target = '_blank';
         if (typeof LinkOrTypeNum == 'number')
-          a.href = docs_path + index_data[syn[LinkOrTypeNum].dict[KeywordOrString.toLowerCase()]][1];
+          a.href = docs_path + syn[LinkOrTypeNum].dict[KeywordOrString.toLowerCase()][1];
         else
           a.href = docs_path + LinkOrTypeNum;
         a.innerHTML = KeywordOrString;
@@ -740,26 +728,22 @@ function ctor_highlighter()
       return param;
     }
     /**
-     * Sorts syntax keywords by type number.
-     * @param {array} index_data - An array of arrays of strings (data_index.js).
-     * @returns {object} An object of number properties and array values.
+     * Process syntax data.
+     * @param {array} syntax_data - A list of items sorted by type (data_syntax.js).
+     * @returns {object} The processed syntax data.
      */
-    function sort_syntax_by_type(index_data)
+    function process_syntax_data(syntax_data)
     {
       var syntax = {};
-      for (var i = index_data.length - 1; i >= 0; i--)
-      {
-        var entry = index_data[i][0];
-        var type = index_data[i][2];
-        var skip = index_data[i][4] || false;
-        if (typeof type == 'undefined')
-          continue;
-        syntax[type] = syntax[type] || [];
-        if (entry.substr(entry.length - 2) == '()')
-          entry = entry.substr(0, entry.length - 2);
-        if (!skip)
-          syntax[type].push(entry);
-        (syntax[type].dict = syntax[type].dict || {})[entry.toLowerCase()] = i;
+      for (var i = syntax_data.length - 1; i >= 0; i--) {
+        syntax[i] = []; syntax[i].dict = {};
+        for (var ii = syntax_data[i].length - 1; ii >= 0; ii--) {
+          var item = syntax_data[i][ii];
+          var keyword = item[0];
+          var skip = item[3] || false;
+          if (!skip) syntax[i].push(keyword);
+          syntax[i].dict[keyword.toLowerCase()] = item;
+        }
       }
       return syntax;
     }
