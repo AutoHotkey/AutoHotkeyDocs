@@ -456,13 +456,6 @@ function ctor_index()
   var self = this;
   self.dataPath = scriptDir + '/source/data_index.js';
   self.create = function(input, filter) { // Create and add the index links.
-    /* Filter types (-1 = unfiltered):
-      0 = directive         5 = declaration
-      1 = built-in var      6 = command
-      2 = built-in func     7 = sub-command
-      3 = control flow      8 = built-in method/prop
-      4 = operator          99 = Ahk2Exe compiler
-    */
     var output = '';
     var lang = cache.docs_data.LANGUAGE;
     var collator = window.Intl ? new Intl.Collator(lang) : null;

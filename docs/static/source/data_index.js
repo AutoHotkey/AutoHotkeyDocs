@@ -1,3 +1,13 @@
+// A alphabetically sorted list of items. Each item is an array where field:
+//   #1 = item name
+//   #1 = relative docs link
+//   #3 = item type (optional). One of the following numbers used to categorize related items.
+//
+//   0 = directive         5 = declaration
+//   1 = built-in var      6 = command
+//   2 = built-in func     7 = sub-command
+//   3 = control flow      8 = built-in method/prop
+//   4 = operator          99 = Ahk2Exe compiler
 indexData = [
   ["__Call meta-function","Objects.htm#Meta_Functions"],
   ["__Delete meta-function","Objects.htm#Custom_NewDelete"],
