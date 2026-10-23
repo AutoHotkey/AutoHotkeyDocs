@@ -1,4 +1,4 @@
-// A alphabetically sorted list of items. Each item is an array where field:
+// An alphabetically sorted list of items. Each item is an array where field:
 //   #1 = item name
 //   #1 = relative docs link
 //   #3 = item type (optional). One of the following numbers used to categorize related items.
