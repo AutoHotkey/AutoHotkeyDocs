@@ -16,6 +16,7 @@ indexData = [
   ["__New method (Buffer)", "lib/Buffer.htm#__New", 7],
   ["__New method (Gui)", "lib/Gui.htm#__New", 7],
   ["__New method (Map)", "lib/Map.htm#__New", 7],
+  ["__New method (Struct)", "lib/Struct.htm#__New", 7],
   ["__Ref method (Object)", "lib/Object.htm#__Ref", 7],
   ["__Ref method (Struct)", "lib/Struct.htm#__Ref", 7],
   ["__Set meta-function", "Objects.htm#Meta_Functions"],
