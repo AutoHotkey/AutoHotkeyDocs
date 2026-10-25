@@ -1085,13 +1085,6 @@ function setupSiteHost() {
   host.setupSidebarTabsPageIndex = function() {
     const index = this;
     index.createList = function(items, filter) {
-      /* Filter types (-1 = unfiltered):
-        0 = directive         5 = declaration
-        1 = built-in var      6 = command
-        2 = built-in func     7 = sub-command
-        3 = control flow      8 = built-in method/prop
-        4 = operator          99 = Ahk2Exe compiler
-      */
       const list = [];
       const type_name = { 2: T('function'), 4: T('operator'), 6: T('class') };
       const lang = cache.docs_data.LANGUAGE;
