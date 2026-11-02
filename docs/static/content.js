@@ -1002,7 +1002,7 @@ function setupSiteHost() {
       const itemsToSelect = toc.getItemsToSelectByUrl(urlFull);
       if (!itemsToSelect) return;
       toc.selectItems(itemsToSelect);
-      if (focus) itemsToSelect[0].focus();
+      itemsToSelect[0].focus(!focus);
     };
     toc.extensions = {
       select: function() {
@@ -1051,9 +1051,12 @@ function setupSiteHost() {
           parent.collapse(duration);
         });
       },
-      focus: function() {
+      focus: function(scroll_only) {
         toc.items.focused = this;
-        this.label.focus({ focusVisible: false });
+        if (scroll_only)
+          this.label.scrollIntoView({ block: 'center' });
+        else
+          this.label.focus({ focusVisible: false });
       }
     };
     toc.getItemsToSelectByUrl = function(url) {
