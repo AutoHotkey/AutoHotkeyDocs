@@ -102,6 +102,26 @@ MsgBox AB().Size
 </ul>
 <p>Each instance has a property named __Value of the type represented by the class. This is typically invoked by the <a href="Variables.htm#deref">dereference operator</a> or when using the instance as a <a href="Functions.htm#virtual-references">virtual reference</a>. For example, <code>MouseGetPos(Int32.at(pt.ptr))</code> would store the X coordinate at the beginning of the struct <code>pt</code>.</p>
 
+<h2 id="open-structures">Open Structures <span class="ver">[v2.1-alpha.38+]</span></h2>
+<p>Each Prototype starts with its structure "open". New typed properties can be added while the structure is open, but the offset of each typed property and final size of the structure are unknown. Once an instance or another structure definition depends on these details, they cannot be permitted to change, so the structure is said to "close".</p>
+<p>The structure of a class is closed when any of the following occur:</p>
+<ul>
+  <li>An instance or boxed pointer is constructed.</li>
+  <li>A structure which contains or extends this structure is closed.</li>
+  <li>The size of the structure is requested by passing the Prototype to <a href="lib/Object.htm#ObjGetDataSize">ObjGetDataSize</a>.</li>
+  <li>The class is used as a parameter or return type with <a href="lib/DllCall.htm">DllCall</a>, <a href="lib/ComCall.htm">ComCall</a> or <a href="lib/CallbackCreate.htm">CallbackCreate</a>.</li>
+</ul>
+<p>A structure cannot directly or indirectly contain itself, but it can self-reference through a pointer. For example:</p>
+<pre>struct S1 {
+    P1 : S2.Ptr
+}
+struct S2 {
+    P2 : S1
+    P3 : Int32
+}
+</pre>
+<p>S1 is initialized first, but the reference to S2 causes S2 to be initialized before S1 is finished defining P1. This means the size of P2 is unknown and the offset of P3 cannot be determined during initialization of the class. That could be avoided by reversing the order of the definitions in this example, but the rules listed above allow it to work either way. Note that initialization order can also be affected by external references to either class.</p>
+
 <h2 id="nested-structs">Nested Structs</h2>
 <p>Nested structs are constructed in order of definition, prior to initialization of the outer struct. The nested struct's own field initializers are evaluated, and <a href="Objects.htm#Custom_NewDelete">__New</a> is called (without parameters) before any initializers in the outer struct.</p>
 <p class="note"><strong>Note:</strong> Due to their specific needs for memory allocation and initialization, nested structs are constructed directly, not by calling the static Call method of the class.</p>
