@@ -1,0 +1,132 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+<title>Malware False Positives | AutoHotkey v2</title>
+<meta name="description" content="Information about editors with AutoHotkey support." />
+<meta name="ahk:equiv-v1" content="lib/Edit.htm#Editors" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<link href="../static/theme.css" rel="stylesheet" />
+<link href="../static/dark.css" rel="stylesheet" media="(prefers-color-scheme: dark)" id="dark_css" />
+<script src="../static/content.js" id="content_js"></script>
+</head>
+<body><script>site.init();</script>
+
+<h1>Malware False Positives</h1>
+
+<p>AutoHotkey's executable files are occasionally flagged as malware, usually with vague labels such as "Trojan.Heur!" or "Malicious.high.ml.score", and sometimes more specific (but incorrect) labels such as "Trojan:Win32/Wacatac.H!ml". Generally no explanation or evidence is given as to why the file was classified as such, so all anyone can do is <a href="https://www.autohotkey.com/boards/viewtopic.php?f=17&t=62266">report each false positive</a> to the appropriate vendor.</p>
+<p>This document offers some potential explanations as to why this happens.</p>
+
+<h2 id="crt">C Runtime Library</h2>
+<p>Up to v2.0.32, AutoHotkey executable files were built with the statically linked C runtime library. This essentially includes C runtime functions in the executable file itself in order to make the file more portable. This is Microsoft code and not indicative of any behavior or intent of the program itself. Some developers have observed a higher rate of false positives when the runtime is statically linked, including  detections by Microsoft Defender.</p>
+<p>Windows 10 and later include the "Universal CRT". Linking to this allows the program a degree of portability while potentially reducing malware false positives, and reducing the size of the files as a bonus. For older supported Windows versions, the Universal CRT can be installed by the <a href="https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist#latest-supported-redistributable-version">Microsoft Visual C++ Redistributable</a> or <a href="https://catalog.update.microsoft.com/Search.aspx?q=KB3118401">Windows update KB3118401</a>.</p>
+
+<h2 id="Detection_Methods">Detection Methods</h2>
+<p>Detection based on a database of signatures only works if the signature of a file is already in the database. Security products use a number of other strategies to catch new or unknown threats, such as rule-based heuristics and machine learning.</p>
+<p>Each new release or compiled script may have its own unique signature, making it less likely to match a signature already verified as safe, and more likely that it will be subject to error-prone heuristics or machine learning.</p>
+
+<p>Automated analysis of a file cannot judge the intent of a program, only score risk based on various factors. For practical reasons, a significant weight is likely placed on the file's static content: function imports, strings, code and other indicators.</p>
+<ul>
+  <li><p><strong>Imports</strong>: The function import table is a list of functions which the program imports from system components or other DLL files. Inspecting a program's function imports can give an indication of its capabilities. Function imports can be matched to known attack techniques as a method of scoring risk, although in many cases a function can have both benign and malicious potential.</p></li>
+  <li><p><strong>Strings</strong>: Functions can be resolved at runtime, so analyzers also look for function names within the content of the file. If the name of a sensitive API is found within the file but not in the import table, that could indicate an attempt to evade detection. Other strings within the file might have significance, such as specific environment variable names (<a href="#T1059_003">T1059.003</a>), window classes or window titles (<a href="#T1057">T1057</a>).</p></li>
+  <li><p><strong>Code</strong>: Code can be decompiled and analyzed by an automated process, or fed through machine learning models. This can detect patterns which aren't as simple as importing a specific function.</p></li>
+  <li><p><strong>More</strong>: If the payload or code within the file can't be fully analyzed, it stands to reason that the file must be treated with caution. Analyzers flag payloads which are executable or are suspected to be compressed, encrypted or obfuscated.</p></li>
+</ul>
+
+<h2 id="MITRE">MITRE ATT&amp;CK<sup>&reg;</sup> Indicators</h2>
+<p>MITRE ATT&amp;CK<sup>&reg;</sup> is a globally-accessible knowledge base of adversary tactics and techniques based on real-world observations. It is referenced by some PE analyzers and sandboxes. These tactics and techniques are likely what antivirus heuristics are designed to detect. Some indicators might be individually benign and common, but the presence of several indicators likely raises the "malware score" of a file.</p>
+<p>In most cases, these are associated with functions which are imported for the purpose of potential use by scripts.</p>
+
+<h3 id="T1027_002">T1027.002 Obfuscation: Software Packing</h3>
+<p>Analyzers and sandboxes have several different ways to report that the file is packed, either generally or specifically with UPX. For v2.0.0 through v2.0.32, AutoHotkey setup is compressed with UPX.</p>
+<p>UPX is open source and reversible. Even some free tools are able to automatically analyze the unpacked version of the file. Even so, analyzers and sandboxes report it as a risk indicator, so perhaps it also gets negative treatment by antivirus heuristics.</p>
+<p>Testing with AutoHotkey setup files based on v2.0.32 showed the method of packing to have no obvious impact on the rate of false positives.</p>
+
+<h3 id="T1027_007">T1027.007 Obfuscation: Dynamic API Resolution</h3>
+<p>AutoHotkey resolves APIs at runtime, such as for <a href="../lib/DllCall.htm">DllCall</a> or when calling certain functions which can't be directly imported for whatever reason. The capability to resolve an API at runtime can be detected, and is an indicator of risk because the program might be hiding which functions it imports.</p>
+<p>Analyzers flag the presence of LoadLibrary and GetProcAddress. It is possible to resolve APIs without these functions, but being caught doing so would be even more suspicious, as there is likely no purpose other than to evade detection.</p>
+
+<h3 id="T1027_015">T1027.015 Obfuscation: Compression</h3>
+<p>Compressed payloads are standard fare for EXE-based installers such as AutoHotkey setup. The methods we use are easily reversed by existing PE analyzers, but might still contribute to risk scoring by heuristics or machine learning models in some antivirus engines. The standard interpreter binaries (such as AutoHotkey64.exe) contain only common resources, such as icons, dialogs and menus.</p>
+
+<h3 id="T1055_009">T1055.009 Process Injection: Proc Memory</h3>
+<p>This is raised by the presence of functions used to implement <a href="../lib/ListViewGetContent.htm">ListViewGetContent</a> and <a href="../lib/StatusBarGetText.htm">StatusBarGetText</a>, which require writing to a struct in the remote process.</p>
+
+<h3 id="T1056_001">T1056.001 Keylogging</h3>
+<p>This is raised by the presence of the following functions:</p>
+<ul>
+  <li>SetWindowsHookEx, which can install keyboard hooks and other types of hooks.</li>
+  <li>GetKeyboardState, which is used for more reliable changes in modifier state during <a href="../lib/ControlSend.htm">ControlSend</a>.</li>
+  <li>GetAsyncKeyState, which is used by <a href="../lib/GetKeyState.htm">GetKeyState</a> and to determine modifier state during <a href="../lib/Send.htm">Send</a> or hook hotkey recognition.</li>
+</ul>
+<p>AutoHotkey installs a keyboard hook for <a href="../lib/InstallKeybdHook.htm#Remarks">various purposes</a>, when needed by the script.</p>
+<p>SetWindowsHookEx is also used for journal playback hooks; i.e. <a href="#SendPlay">SendPlay</a>.</p>
+<p id="GetKeyState">The native GetKeyState function has also been associated with keylogging, but is widely used for benign purposes. The function import was not directly flagged by the analyzer, but the presence of a loop which "logs keystrokes by polling key state" was flagged. This appeared to be pointing to <a href="https://github.com/AutoHotkey/AutoHotkey/blob/3bcf273dd88286b0f5fb8f676be11179bdba92aa/source/application.cpp#L503">calls within the message loop</a>, which check the modifier keystate and do not poll for keys.</p>
+
+<h3 id="T1057">T1057 Process Discovery</h3>
+<p>This is raised by the presence of functions used to implement <a href="../lib/ProcessExist.htm">ProcessExist</a>, <a href="../lib/ProcessWait.htm">ProcessWait</a> and <a href="../lib/ProcessGetParent.htm">ProcessGetParent</a>. <a href="../lib/ProcessGetName.htm">ProcessGetName</a> and <a href="#ProcessGetPath">ProcessGetPath</a> also rely on these functions to resolve a name to a process ID.</p>
+<p>Some sandboxes identified that the program "may try to detect the Windows Explorer process (often used for injection)". This may have been triggered by the strings "Shell_TrayWnd" and "Program Manager". The former is used to find the taskbar for various benign purposes (check the source code for details), and the latter is used to exclude the desktop window from <a href="../lib/GroupAdd.htm">GroupAdd</a>.</p>
+
+<h3 id="T1059_003">T1059.003 Windows Command Shell</h3>
+<q>Adversaries may leverage <em>cmd</em> to execute various commands and payloads.</q>
+<p>This is raised by the presence of the variable name <a href="../Variables.htm#ComSpec">ComSpec</a> and the functions used to implement <a href="../lib/Run.htm">Run</a>. AutoHotkey setup's uninstall routine uses ComSpec to self-delete.</p>
+
+<h3 id="T1070_006">T1070.006 Timestomp</h3>
+<q>Adversaries may modify file time attributes to hide new files or changes to existing files.</q>
+<p>This is raised by the presence of SetFileTime, which is called only when the script calls <a href="../lib/FileSetTime.htm">FileSetTime</a>.</p>
+
+<h3 id="T1071_001">T1071.001 Web Protocols</h3>
+<p>Associated with <a href="../lib/Download.htm">Download</a>.</p>
+
+<h3 id="T1095">T1095 Non-Application Layer Protocol</h3>
+<p>Socket (network) functions are used by the debugger backend to implement the DBGp protocol.</p>
+
+<h3 id="T1112">T1112 Modify Registry</h3>
+<q>Adversaries may interact with the Windows Registry as part of a variety of other techniques to aid in defense evasion, persistence, and execution.</q>
+<p>Associated with <a href="../lib/RegWrite.htm">RegWrite</a>.</p>
+<p>There are many legitimate reasons to write to the registry, so this probably only affects detection rate when combined with other factors, if at all.</p>
+
+<h3 id="T1113">T1113 Screen Capture</h3>
+<p>This is raised by a combination of GDI functions used by <a href="../lib/ImageSearch.htm">ImageSearch</a> and <a href="../lib/PixelSearch.htm">PixelSearch</a>, which technically do capture an image of the screen into a temporary buffer in order to perform the search.</p>
+
+<h3 id="T1115">T1115 Clipboard Data</h3>
+<p>Associated with <a href="../Variables.htm">A_Clipboard</a>, <a href="../lib/ClipboardAll.htm">ClipboardAll</a> and <a href="../lib/OnClipboardChange.htm">OnClipboardChange</a>.</p>
+
+<h3 id="T1134">T1134 Access Token Manipulation</h3>
+<q>Adversaries may modify access tokens to operate under a different user or system security context to perform actions and bypass access controls.</q>
+<p>The <a href="../lib/Shutdown.htm">Shutdown</a> function requires the use of access token manipulation to get the shutdown privilege.</p>
+
+<h3 id="T1497_003">T1497.003 Virtualization/Sandbox Evasion: Time Based Checks</h3>
+<p>AutoHotkey's code contains timing checks via repeated tick count, such as to perform period message checks during execution of a script, or to stop waiting when a timeout has elapsed. The analyzer flagged these because timing checks can be used for anti-analysis purposes.</p>
+
+<h3 id="T1547_009">T1547.009 Boot or Logon Autostart Execution: Shortcut Modification</h3>
+<p>In at least one instance (but not all), a sandbox flagged the use of the ShellLink COM object by AutoHotkey setup and erroneously described it as related to autostart. The shortcut file is created in <code>A_Programs</code> or <code>A_ProgramsCommon</code>, not the Startup subfolder. This is a very common action for an installer.</p>
+<p>This was an error in the sandbox's recognition and likely would not affect false positive rates.</p>
+
+<h3 id="T1553_002">T1553.003 Subvert Trust Controls: Code Signing</h3>
+<p>Setup creates a self-signed root certificate for the purpose of signing the UIA executable files for <a href="../Program.htm#Installer_uiAccess">Run with UI access</a>, which requires a signed binary. This is more likely to be detected by a sandbox than by static analysis. It poses no risk to users, but generally might look suspicious because developers of legitimate software usually choose to either sign with a paid certificate or not sign at all (i.e. when they don't need UI Access).</p>
+<p>In future, <a href="#Signing">signed releases</a> will obviate the need for the self-signed certificate.</p>
+
+<h3 id="T1622">T1622 Debugger Evasion</h3>
+<q>Adversaries may employ various means to detect and avoid debuggers.</q>
+<p>Two separate functions raise this:</p>
+<ul>
+  <li>OutputDebugString, which is not called directly by release builds of AutoHotkey except when the script calls OutputDebug.</li>
+  <li>IsDebuggerPresent, which is called by the C runtime when specific unhandled errors occur. Official builds of AutoHotkey statically link the C runtime and therefore contain this code.</li>
+</ul>
+
+<h2>Other Indicators</h2>
+<p>These risk indicators were detected by running AutoHotkey executable files through PE analyzers. These are more general indicators which weren't explicitly associated with specific MITRE ATT&amp;CK<sup>&reg;</sup> techniques in the analyzer's output. An indicator might be only a reason for an analyst to take a closer look at the file, but if it is of concern to security analysts, it could potentially contribute to heuristics or machine learning based detection.</p>
+
+<h3>Process-Launch APIs</h3>
+<p>The analyzer flagged the functions used by <a href="../lib/Run.htm">Run</a>, <a href="#RunWait">RunWait</a> and menu options such as for opening the help file. The capability to launch other programs is common and probably only affects detection rate when combined with other factors, if at all.</p>
+
+<h3>Interacts with Services</h3>
+<p>Up to v2.0.32, <a href="../Variables.htm#IsAdmin">A_IsAdmin</a> was implemented by querying the service control manager. This approach was likely used for compatibility with older systems. A cleaner method can be used since AutoHotkey dropped support for Windows XP and earlier.</p>
+
+<h3 id="Code_Signing">Code Signing</h3>
+<p>Code signing does not stop false positives, but the lack of a signature is almost always shown as a risk indicator. There is anecdotal evidence that unsigned files are more likely to be flagged as malware. Current AutoHotkey releases are not signed but we are working on setting up code signing.</p>
+<p>Signing AutoHotkey releases will not help authors of compiled scripts. As the process of compiling a script requires modifing the base executable file, the signature must be stripped from the file. Authors of compiled scripts have the option of signing compiled scripts using their own code signing certificate.</p>
+
+</body>
+</html>
